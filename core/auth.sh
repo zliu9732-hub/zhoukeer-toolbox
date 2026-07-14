@@ -210,13 +210,17 @@ EOF
 capture_existing_admin_password() {
     local captured_password
 
-    { [ -t 0 ] || [ -t 1 ]; } || return 1
-    echo "桌面尚未创建密码.txt。"
-    echo "请输入一次当前管理员密码；验证成功后会自动保存到桌面，后续操作无需重复输入。"
-    echo "注意：密码将按你的设置以明文保存，仅限本机工具箱使用。"
-    printf '当前管理员密码（输入时不会显示）：'
-    IFS= read -r -s captured_password || return 1
-    printf '\n'
+    # 插件安装可能在子 shell 中运行，标准输入不一定仍被标记为 TTY；
+    # 直接使用当前 Konsole 的控制终端，避免落回 sudo 后反复询问。
+    [ -r /dev/tty ] && [ -w /dev/tty ] || return 1
+    printf '%s\n' "桌面尚未创建密码.txt。" > /dev/tty
+    printf '%s\n' "请输入一次当前管理员密码；验证成功后会自动保存到桌面，后续操作无需重复输入。" > /dev/tty
+    printf '%s\n' "注意：密码将按你的设置以明文保存，仅限本机工具箱使用。" > /dev/tty
+    printf '当前管理员密码（输入时不会显示）：' > /dev/tty
+    exec 3</dev/tty
+    IFS= read -r -s -u 3 captured_password || { exec 3<&-; return 1; }
+    exec 3<&-
+    printf '\n' > /dev/tty
     [ -n "$captured_password" ] || return 1
 
     if ! authenticate_toolbox_password_value "$captured_password"; then
