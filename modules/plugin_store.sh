@@ -100,7 +100,9 @@ install_plugin_store() {
     }
 
     echo "正在启动Decky国内安装器..."
-    if bash "$installer"; then
+    # 镜像脚本使用了 Bash 语法，但提权后会按 /bin/sh 重新启动并报“找不到命令”。
+    # 直接以 root Bash 执行，既保留 SUDO_USER，又避免脚本错误切回 sh。
+    if sudo bash "$installer"; then
         echo "Decky Loader安装完成，请返回游戏模式检查插件菜单。"
         log "Decky Loader安装完成"
     else

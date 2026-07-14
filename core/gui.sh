@@ -82,23 +82,12 @@ remote_menu() {
     while true; do
         choice="$(gui_dialog --menu "选择远程协助工具" \
             todesk "ToDesk" \
-            rustdesk-install "安装或更新 RustDesk" \
-            rustdesk-config "查看 RustDesk 服务器配置" \
             back "返回主菜单")" || return 0
         case "$choice" in
             todesk)
                 gui_confirm "ToDesk 将请求管理员密码并临时关闭 SteamOS 只读保护，完成后会恢复。是否继续？" && \
                     run_gui_action "安装ToDesk" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/todesk.sh" --install
-                ;;
-            rustdesk-install)
-                gui_confirm "将下载并校验 RustDesk 1.4.8，是否继续？" && \
-                    run_gui_action "安装RustDesk" \
-                    bash "$PROJECT_ROOT/modules/rustdesk.sh" --install
-                ;;
-            rustdesk-config)
-                run_gui_action "RustDesk服务器配置" \
-                    bash "$PROJECT_ROOT/modules/rustdesk.sh" --config
                 ;;
             back) return 0 ;;
         esac

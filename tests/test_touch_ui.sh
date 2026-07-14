@@ -41,6 +41,8 @@ grep -Fq 'UI_LAST_ROW=20' "$PROJECT_ROOT/core/ui.sh"
 grep -Fq 'WINDOW_SIZE="1220x740"' "$PROJECT_ROOT/launch.sh"
 grep -Fq 'FillStyle=Crop' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
 grep -Fq 'Wallpaper=@WALLPAPER@' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
+grep -Fq 'WallpaperOpacity=0.35' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
+grep -Fq "label_color='\\033[1;38;5;45m'" "$PROJECT_ROOT/core/ui.sh"
 grep -Fq 'Exec=bash "$INSTALL_DIR/launch.sh"' "$PROJECT_ROOT/install.sh"
 grep -Fq 'launch_basic' "$PROJECT_ROOT/launch.sh"
 if grep -Eq -- '--hide-(menubar|toolbars|tabbar)' "$PROJECT_ROOT/launch.sh" "$PROJECT_ROOT/install.sh"; then

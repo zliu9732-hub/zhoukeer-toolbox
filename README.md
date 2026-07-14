@@ -12,7 +12,6 @@
 - 插件商城：下载并校验Decky国内镜像安装器后启动安装；小黄鸭、FSR4和CheatDeck使用123云盘国内分流一键安装。小黄鸭安装完成后会打开Lossless Scaling的Steam正版页面。
 - 微信、QQ：优先通过中科大Flathub缓存进行用户级安装，失败后切换官方源；安装成功后自动创建桌面快捷方式，不修改SteamOS只读分区。
 - ToDesk：使用固定的第三方SteamOS适配包并校验SHA256，安装完成后恢复只读保护。
-- RustDesk 远程工具：支持限时重试下载、SHA256 校验、保留旧版本和自建服务器配置指引。
 - Steam Deck 优化：清理 Steam 下载缓存、着色器缓存，并提供性能模式提示。
 - 网络检测：检测基础网络连通性。
 - 安全清理：清理前必须确认，避免误删。
@@ -78,31 +77,6 @@ curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/bootstrap.sh
 bash "${HOME}/.local/share/zhoukeer-toolbox/main.sh"
 ```
 
-## 配置 RustDesk
-
-首次使用前编辑：
-
-```bash
-${HOME}/.local/share/zhoukeer-toolbox/config/settings.conf
-```
-
-可配置项：
-
-```bash
-RUSTDESK_DOWNLOAD=""
-RUSTDESK_DOWNLOAD_FALLBACK=""
-RUSTDESK_SHA256=""
-RUSTDESK_ID_SERVER=""
-RUSTDESK_RELAY_SERVER=""
-RUSTDESK_API=""
-RUSTDESK_KEY=""
-RUSTDESK_CONFIG_STRING=""
-```
-
-`RUSTDESK_KEY` 是可分发给客户端的服务器公钥，不是服务器私钥。禁止在配置中加入服务器私钥、远程密码、API账号、登录Token或其他登录凭据。
-
-RustDesk 1.4.8优先从用户提供的123云盘直链下载，失败后切换官方GitHub；两个来源都必须通过官方SHA256校验。`RUSTDESK_CONFIG_STRING` 只能填写 RustDesk 客户端“导出服务器配置”生成的字符串。工具不会根据服务器字段猜测该字符串，也不会直接修改 `RustDesk2.toml`；无法安全自动导入时会显示手动配置说明。
-
 ## ToDesk说明
 
 用户提供的 `curl -L todesk.lanbai.top | sh` 会继续下载可变脚本、关闭SteamOS只读保护并使用pacman安装第三方软件包。本工具不会直接执行这条管道命令，而是固定已审查的 `mclanbai/archtodesk` 提交和ToDesk 4.7.2.0软件包SHA256。安装前会明确提示风险并要求管理员验证，完成后尝试恢复只读保护。
@@ -115,7 +89,7 @@ ToDesk并非SteamOS原生软件，SteamOS系统更新可能移除通过pacman安
 bash "${HOME}/.local/share/zhoukeer-toolbox/update.sh"
 ```
 
-更新脚本会下载发布包，完成 SHA256 校验后调用安装器。安装器先在同级暂存目录准备完整新版本，再切换安装目录；准备或切换失败时保留、恢复旧版本。安装器会保留已有非空配置；当指定的 RustDesk 配置项缺失、为空或仍是旧版默认下载源时，先备份原配置，再从 `settings.example.conf` 补充新默认值。
+更新脚本会下载发布包，完成 SHA256 校验后调用安装器。安装器先在同级暂存目录准备完整新版本，再切换安装目录；准备或切换失败时保留、恢复旧版本。安装器会保留已有非空配置，并在更新时清除已经退役的 RustDesk 服务器字段。
 
 预演更新：
 
@@ -147,7 +121,7 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 4. 提交代码并打 tag，例如 `v4.0.0`。
 5. 在 GitHub Release 中上传发布包和 `.sha256` 校验文件。
 6. 在 Release 中写明安装、更新、卸载命令。
-7. 不要在 Release 包中包含私有 RustDesk Key、Token、邮箱或个人路径。
+7. 不要在 Release 包中包含密码、Token、邮箱或个人路径。
 
 `bootstrap.sh` 和 `update.sh` 支持通过环境变量指定正式发布包：
 
@@ -170,7 +144,6 @@ bash bootstrap.sh
 - 桌面快捷方式是否能通过 Konsole 打开工具箱。
 - SteamOS 是否能正确识别。
 - Steam 下载缓存和着色器缓存路径是否符合当前 SteamOS 版本。
-- RustDesk AppImage 是否能下载、赋权和启动。
 - ToDesk安装后是否恢复SteamOS只读保护、服务是否启动、桌面入口是否存在。
 - Decky、微信、QQ和ProtonUp-Qt在当前SteamOS版本是否能正常安装和启动。
 - 更新菜单能否从Gitee下载并验证固定更新包，Gitee失败时能否切换GitHub。

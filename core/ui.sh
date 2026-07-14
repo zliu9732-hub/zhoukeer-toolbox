@@ -60,7 +60,7 @@ ui_sidebar_item() {
     local label="$3"
     local selected="$4"
     local background='48;5;24'
-    local foreground='1;97;48;5;24'
+    local foreground='1;226;48;5;24'
 
     if [ "$value" = "$selected" ]; then
         background='48;5;45'
@@ -78,19 +78,19 @@ ui_touch_button() {
     local color="$2"
     local label="$3"
     local hint="${4:-}"
-    local label_color='\033[1;38;5;255m'
+    local label_color='\033[1;38;5;45m'
 
     # 右侧按钮保持透明，让黑白背景能够完整显示；颜色仅用于区分文字状态。
     case "$color" in
         *'48;5;114'*) label_color='\033[1;38;5;114m' ;;
         *'48;5;160'*) label_color='\033[1;38;5;203m' ;;
-        *'48;5;238'*) label_color='\033[1;38;5;250m' ;;
+        *'48;5;238'*) label_color='\033[1;38;5;220m' ;;
     esac
 
     ui_move "$row" "$UI_PANEL_COL"
     printf '%b●  %s%b' "$label_color" "$label" "$NC"
     ui_move "$((row + 1))" "$UI_PANEL_COL"
-    printf '\033[38;5;250m   %s%b' "$hint" "$NC"
+    printf '\033[38;5;220m   %s%b' "$hint" "$NC"
 }
 
 draw_category_frame() {
@@ -125,10 +125,10 @@ draw_category_frame() {
     done
 
     ui_panel_line 2 '\033[1;38;5;45m' "📦 周克儿工具箱 V4"
-    ui_panel_line 3 '\033[1;38;5;255m' "Steam Deck Toolbox"
+    ui_panel_line 3 '\033[1;38;5;45m' "Steam Deck Toolbox"
     ui_panel_line 4 '\033[38;5;45m' "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     ui_panel_line 5 '\033[1;38;5;220m' "$title"
-    ui_panel_line 6 '\033[1;38;5;255m' "$subtitle"
+    ui_panel_line 6 '\033[1;38;5;45m' "$subtitle"
 }
 
 draw_disclaimer_frame() {
@@ -141,7 +141,7 @@ draw_disclaimer_frame() {
     ui_move 5 6
     printf '\033[1;38;5;220m使用说明与免责声明\033[0m'
     ui_move 6 6
-    printf '\033[38;5;255m请阅读以下内容，知悉后再开始使用\033[0m'
+    printf '\033[38;5;45m请阅读以下内容，知悉后再开始使用\033[0m'
 }
 
 ui_disclaimer_line() {
@@ -162,7 +162,7 @@ ui_disclaimer_button() {
     ui_move "$row" 8
     printf '%b●  %s%b' "$color" "$label" "$NC"
     ui_move "$((row + 1))" 11
-    printf '\033[38;5;250m%s%b' "$hint" "$NC"
+    printf '\033[38;5;220m%s%b' "$hint" "$NC"
 }
 
 ui_prompt() {

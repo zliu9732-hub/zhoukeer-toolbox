@@ -8,6 +8,7 @@ grep -Fq 'https://www.mhhf.com/Deck/install.sh' "$PROJECT_ROOT/modules/plugin_st
 grep -Fq 'e7c504485bccbc223d8aaab5b45e7214362ece97fdb279bde336bd872aa3e4b0' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'bash "$installer"' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'sudo bash "$installer"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_LSFG_SHA256="5355c6df656775fa467445c7787604bc159b8d8b97e5364bedb02a5d2e0ab677"' \
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'DECKY_FSR4_SHA256="236dc5aef5c908d905a848d7e448689634479ab61cd9184154ba8a725b3f2089"' \

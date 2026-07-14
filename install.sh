@@ -21,14 +21,6 @@ CONFIG_FILE="$INSTALL_DIR/config/settings.conf"
 CONFIG_EXAMPLE_FILE="$SOURCE_ROOT/config/settings.example.conf"
 
 CONFIG_MIGRATION_VARIABLES=(
-    RUSTDESK_DOWNLOAD
-    RUSTDESK_DOWNLOAD_FALLBACK
-    RUSTDESK_SHA256
-    RUSTDESK_ID_SERVER
-    RUSTDESK_RELAY_SERVER
-    RUSTDESK_API
-    RUSTDESK_KEY
-    RUSTDESK_CONFIG_STRING
     TODESK_ARCHIVE_URL
     TODESK_PACKAGE_NAME
     TODESK_PACKAGE_SHA256
@@ -80,45 +72,6 @@ assignment_is_empty() {
     esac
 }
 
-assignment_value() {
-    local assignment="$1"
-    local first
-    local last
-    local value
-
-    value="${assignment#*=}"
-    value="$(printf '%s' "$value" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
-    if [ "${#value}" -ge 2 ]; then
-        first="${value%"${value#?}"}"
-        last="${value#"${value%?}"}"
-        if { [ "$first" = '"' ] && [ "$last" = '"' ]; } || \
-            { [ "$first" = "'" ] && [ "$last" = "'" ]; }; then
-            value="${value#?}"
-            value="${value%?}"
-        fi
-    fi
-    printf '%s\n' "$value"
-}
-
-assignment_is_legacy_default() {
-    local key="$1"
-    local assignment="$2"
-    local value
-
-    value="$(assignment_value "$assignment")"
-    case "$key:$value" in
-        RUSTDESK_DOWNLOAD:https://github.com/rustdesk/rustdesk/releases/download/1.4.6/rustdesk-1.4.6-x86_64.AppImage)
-            return 0
-            ;;
-        RUSTDESK_SHA256:f91b13ac685cd63b28157d5387d8329910229d5e0e4e228b5d27d2163e664a5f)
-            return 0
-            ;;
-        *)
-            return 1
-            ;;
-    esac
-}
-
 prepare_config_migration() {
     local config_file="$1"
     local example_file="$2"
@@ -156,11 +109,28 @@ prepare_config_migration() {
         if assignment_is_empty "$current_assignment" && ! assignment_is_empty "$default_assignment"; then
             CONFIG_MIGRATION_KEYS+=("$key")
             CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
-        elif assignment_is_legacy_default "$key" "$current_assignment"; then
-            CONFIG_MIGRATION_KEYS+=("$key")
-            CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
         fi
     done
+}
+
+sanitize_retired_rustdesk_config() {
+    local config_file="$1"
+    local sanitized_file
+
+    sanitized_file="$(mktemp "$config_file.sanitize.XXXXXX")" || return 1
+    awk '
+        /^[[:space:]]*(export[[:space:]]+)?RUSTDESK_[A-Z0-9_]+[[:space:]]*=/ { next }
+        /RustDesk/ { next }
+        { print }
+    ' "$config_file" > "$sanitized_file" || {
+        rm -f -- "$sanitized_file"
+        return 1
+    }
+    chmod 600 "$sanitized_file" || {
+        rm -f -- "$sanitized_file"
+        return 1
+    }
+    mv -f -- "$sanitized_file" "$config_file"
 }
 
 write_config_assignment() {
@@ -376,6 +346,16 @@ copy_dir_files modules
 copy_dir_files utils
 copy_dir_files config
 copy_dir_files assets
+
+# RustDesk 已从工具箱退役。更新时同步清除主配置和历史备份里的服务器字段，
+# 避免旧 ID、中继、API 或公钥继续留在安装目录中。
+while IFS= read -r retired_config; do
+    sanitize_retired_rustdesk_config "$retired_config" || {
+        echo "清理旧 RustDesk 配置失败: $retired_config"
+        exit 1
+    }
+done < <(find "$STAGING_DIR/config" -maxdepth 1 -type f -name 'settings.conf*' -print)
+rm -f -- "$STAGING_DIR/apps/rustdesk.AppImage"
 
 CONFIG_FILE="$STAGING_DIR/config/settings.conf"
 if [ ! -f "$CONFIG_FILE" ]; then

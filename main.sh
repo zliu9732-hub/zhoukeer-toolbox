@@ -74,7 +74,7 @@ confirm_and_run() {
     shift 2
 
     draw_category_frame "" "$title" "$message"
-    ui_panel_line 8 '\033[1;38;5;255m' "请确认是否继续这项操作"
+    ui_panel_line 8 '\033[1;38;5;220m' "请确认是否继续这项操作"
     ui_touch_button 10 '\033[1;30;48;5;114m' "继续执行" "已授权工具箱完成该操作"
     ui_touch_button 15 '\033[1;97;48;5;160m' "返回主菜单" "不做任何更改"
     ui_prompt
@@ -93,12 +93,12 @@ show_disclaimer() {
     while true; do
         # 免责声明独占整个窗口，避免侧栏和长句把确认按钮挤出可见区域。
         draw_disclaimer_frame
-        ui_disclaimer_line 8 '\033[1;38;5;255m' "本脚本由 闲鱼：超级妹宝双叶 制作"
-        ui_disclaimer_line 9 '\033[38;5;255m' "支持所有人免费使用"
-        ui_disclaimer_line 10 '\033[38;5;255m' "禁止商业使用、销售、转卖或借此盈利"
-        ui_disclaimer_line 11 '\033[38;5;255m' "下载内容均来自官方免费发布或开源项目"
-        ui_disclaimer_line 12 '\033[38;5;255m' "不包含付费软件本体、破解或商业授权"
-        ui_disclaimer_line 13 '\033[38;5;250m' "若有侵权，请联系作者删除"
+        ui_disclaimer_line 8 '\033[1;38;5;220m' "本脚本由 闲鱼：超级妹宝双叶 制作"
+        ui_disclaimer_line 9 '\033[38;5;45m' "支持所有人免费使用"
+        ui_disclaimer_line 10 '\033[38;5;45m' "禁止商业使用、销售、转卖或借此盈利"
+        ui_disclaimer_line 11 '\033[38;5;45m' "下载内容均来自官方免费发布或开源项目"
+        ui_disclaimer_line 12 '\033[38;5;45m' "不包含付费软件本体、破解或商业授权"
+        ui_disclaimer_line 13 '\033[38;5;220m' "若有侵权，请联系作者删除"
         ui_disclaimer_button 15 '\033[1;38;5;114m' "知悉并开始使用" "点击即表示已阅读上述说明"
         ui_disclaimer_button 18 '\033[1;38;5;203m' "退出工具箱" "暂不使用"
         choice="$(read_menu_choice any:15-16:agree any:18-19:exit)"
@@ -164,19 +164,15 @@ remote_assistance_menu() {
     local choice
 
     while true; do
-        draw_category_frame remote "远程协助" "售后支持和故障处理，RustDesk 已配置自建服务器"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "ToDesk" "国内远程协助，安装时需要管理员密码"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "RustDesk" "123云盘高速源优先，失败自动切换备用源"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "服务器配置" "查看 RustDesk ID、中继和 API 服务器"
+        draw_category_frame remote "远程协助" "安装 ToDesk，方便售后支持和故障处理"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "安装或更新 ToDesk" "国内远程协助，安装时需要管理员密码"
         ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:8-9:todesk right:11-12:rustdesk right:14-15:config right:17-18:home)"
+        choice="$(read_touch_menu right:9-10:todesk right:17-18:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
             todesk) confirm_and_run "ToDesk远程工具" "安装时仍需输入 Steam Deck 管理员密码" bash "$PROJECT_ROOT/modules/todesk.sh" --install ;;
-            rustdesk) confirm_and_run "RustDesk远程工具" "下载、校验并安装 RustDesk 1.4.8" bash "$PROJECT_ROOT/modules/rustdesk.sh" --install ;;
-            config) run_action "RustDesk服务器配置" bash "$PROJECT_ROOT/modules/rustdesk.sh" --config ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "remote" ] || return 0
@@ -303,11 +299,11 @@ home_menu() {
 
     draw_category_frame "" "欢迎使用" "全界面只需点击，无需输入任何数字或字母"
     ui_panel_line 8 '\033[1;38;5;220m' "⭐ 第一次使用：点击左侧“新机初始化”"
-    ui_panel_line 10 '\033[1;38;5;255m' "💻 常用软件：微信、QQ、ProtonUp-Qt"
-    ui_panel_line 12 '\033[1;38;5;255m' "📡 远程协助：ToDesk、RustDesk"
-    ui_panel_line 14 '\033[1;38;5;255m' "🧩 插件商城：Decky、小黄鸭、FSR4、CheatDeck"
-    ui_panel_line 16 '\033[1;38;5;255m' "⚙  系统设置：设备信息、网络检测"
-    ui_panel_line 17 '\033[1;38;5;255m' "🚀 系统优化：清理、性能建议、一键修复"
+    ui_panel_line 10 '\033[1;38;5;45m' "💻 常用软件：微信、QQ、ProtonUp-Qt"
+    ui_panel_line 12 '\033[1;38;5;45m' "📡 远程协助：ToDesk"
+    ui_panel_line 14 '\033[1;38;5;45m' "🧩 插件商城：Decky、小黄鸭、FSR4、CheatDeck"
+    ui_panel_line 16 '\033[1;38;5;45m' "⚙  系统设置：设备信息、网络检测"
+    ui_panel_line 17 '\033[1;38;5;45m' "🚀 系统优化：清理、性能建议、一键修复"
     ui_panel_line 18 '\033[1;38;5;114m' "🔄 工具箱更新：Gitee 优先，GitHub 备用"
     ui_prompt
     choice="$(read_touch_menu)"
