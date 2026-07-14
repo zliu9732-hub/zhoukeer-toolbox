@@ -118,8 +118,9 @@ read_touch_menu() {
         left:8-9:nav-plugins \
         left:10-11:nav-settings \
         left:12-13:nav-optimize \
-        left:14-15:nav-update \
-        left:17-18:nav-exit \
+        left:14-15:nav-changelog \
+        left:16-17:nav-update \
+        left:18-19:nav-exit \
         "$@"
 }
 
@@ -131,6 +132,7 @@ apply_navigation() {
         nav-plugins) NEXT_CATEGORY="plugins" ;;
         nav-settings) NEXT_CATEGORY="settings" ;;
         nav-optimize) NEXT_CATEGORY="optimize" ;;
+        nav-changelog) NEXT_CATEGORY="changelog" ;;
         nav-update) NEXT_CATEGORY="update" ;;
         nav-exit) NEXT_CATEGORY="exit" ;;
         *) return 1 ;;
@@ -377,6 +379,24 @@ system_optimization_menu() {
     done
 }
 
+changelog_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame changelog "更新日志" "周克儿工具箱 V4 · 2026-07-14"
+        ui_panel_line 7 '\033[1;38;5;114m' "✓ 新增纯触控分类界面、黑白背景和工具箱图标"
+        ui_panel_line 9 '\033[1;38;5;45m' "✓ 新增国内下载源、Chrome 和 Steamcommunity 302"
+        ui_panel_line 11 '\033[1;38;5;45m' "✓ 新增系统密码设置、修改和自动验证"
+        ui_panel_line 13 '\033[1;38;5;45m' "✓ 完善 Decky、常用插件、ToDesk 和新机初始化"
+        ui_panel_line 15 '\033[1;38;5;220m' "✓ 修复旧版密码记录识别并补充免责声明"
+        ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:17-18:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        [ "$choice" = "home" ] && { NEXT_CATEGORY="home"; return 0; }
+    done
+}
+
 home_menu() {
     local choice
 
@@ -387,7 +407,7 @@ home_menu() {
     ui_panel_line 14 '\033[1;38;5;45m' "🧩 插件商城：Decky、小黄鸭、FSR4、CheatDeck"
     ui_panel_line 16 '\033[1;38;5;45m' "⚙  系统设置：国内源、加速器、密码"
     ui_panel_line 17 '\033[1;38;5;45m' "🚀 系统优化：清理、性能建议、一键修复"
-    ui_panel_line 18 '\033[1;38;5;114m' "🔄 工具箱更新：Gitee 优先，GitHub 备用"
+    ui_panel_line 18 '\033[1;38;5;114m' "📋 更新日志 / 🔄 工具箱更新"
     ui_prompt
     choice="$(read_touch_menu)"
     apply_navigation "$choice" || true
@@ -404,6 +424,7 @@ while true; do
         plugins) plugin_store_menu ;;
         settings) system_settings_menu ;;
         optimize) system_optimization_menu ;;
+        changelog) changelog_menu ;;
         update)
             confirm_and_run "更新工具箱" "下载、校验并安全替换为最新版本" bash "$PROJECT_ROOT/update.sh"
             [ "$NEXT_CATEGORY" = "update" ] && NEXT_CATEGORY="home"

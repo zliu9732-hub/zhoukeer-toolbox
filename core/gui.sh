@@ -271,6 +271,7 @@ main_gui_menu() {
             plugins "🧩 插件商城" \
             settings "⚙️ 系统设置" \
             optimization "🛠 系统优化" \
+            changelog "📋 更新日志" \
             update "🔄 更新工具箱" \
             exit "❌ 退出")" || exit 0
 
@@ -285,6 +286,9 @@ main_gui_menu() {
             plugins) plugin_menu ;;
             settings) settings_menu ;;
             optimization) optimization_menu ;;
+            changelog)
+                gui_dialog --textbox "$PROJECT_ROOT/CHANGELOG.md" 900 650
+                ;;
             update)
                 gui_confirm "将下载经过 SHA256 校验的新版本，是否继续？" && \
                     run_gui_action "更新工具箱" bash "$PROJECT_ROOT/update.sh"

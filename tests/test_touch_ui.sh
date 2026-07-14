@@ -70,5 +70,8 @@ if printf '%s\n%s\n' "$sidebar_source" "$frame_source" | grep -Eq '48;5;(24|45)'
 fi
 printf '%s\n' "$sidebar_source" | grep -Fq "marker='▌ '"
 printf '%s\n' "$sidebar_source" | grep -Fq '──────────────────────────'
+grep -Fq 'ui_sidebar_item 14 changelog "📋 更新日志"' "$PROJECT_ROOT/core/ui.sh"
+grep -Fq 'left:14-15:nav-changelog' "$PROJECT_ROOT/main.sh"
+grep -Fq 'changelog) changelog_menu' "$PROJECT_ROOT/main.sh"
 
 echo "PASS: 纯触控、透明按钮、免责声明、字体和背景主题测试通过"

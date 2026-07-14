@@ -103,8 +103,9 @@ draw_category_frame() {
     ui_sidebar_item 8 plugins "🧩 插件商城" "$selected"
     ui_sidebar_item 10 settings "⚙  系统设置" "$selected"
     ui_sidebar_item 12 optimize "🚀 系统优化" "$selected"
-    ui_sidebar_item 14 update "🔄 工具箱更新" "$selected"
-    ui_sidebar_item 17 exit "✖  退出工具箱" "$selected"
+    ui_sidebar_item 14 changelog "📋 更新日志" "$selected"
+    ui_sidebar_item 16 update "🔄 工具箱更新" "$selected"
+    ui_sidebar_item 18 exit "✖  退出工具箱" "$selected"
 
     row=2
     while [ "$row" -le "$UI_LAST_ROW" ]; do
