@@ -33,9 +33,11 @@ run_choice_test '\033[<0;40;13m\033[<0;40;18M' "cancel" "right:18-19:cancel"
 run_choice_test '\033[<64;40;13M\033[<32;40;13M\033[<0;40;18M' "cancel" "right:18-19:cancel"
 
 # 大按钮使用行范围命中，不再要求精确点在单行文字上。
-run_choice_test '\033[<0;15;6M' "software" "left:5-6:software"
+run_choice_test '\033[<0;15;5M' "software" "left:4-5:software"
 
-grep -Fq 'Font=Noto Sans Mono CJK SC,20' "$PROJECT_ROOT/install.sh"
+grep -Fq 'Font=Noto Sans Mono CJK SC,17' "$PROJECT_ROOT/install.sh"
+grep -Fq 'TerminalRows=22' "$PROJECT_ROOT/install.sh"
+grep -Fq 'UI_LAST_ROW=20' "$PROJECT_ROOT/core/ui.sh"
 grep -Fq 'WINDOW_SIZE="1220x740"' "$PROJECT_ROOT/launch.sh"
 grep -Fq 'FillStyle=Crop' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
 grep -Fq 'Wallpaper=@WALLPAPER@' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
@@ -47,6 +49,8 @@ if grep -Eq -- '--hide-(menubar|toolbars|tabbar)' "$PROJECT_ROOT/launch.sh" "$PR
 fi
 
 grep -Fq '知悉并开始使用' "$PROJECT_ROOT/main.sh"
+grep -Fq 'draw_disclaimer_frame' "$PROJECT_ROOT/main.sh"
+grep -Fq 'any:15-16:agree any:18-19:exit' "$PROJECT_ROOT/main.sh"
 grep -Fq '闲鱼：超级妹宝双叶' "$PROJECT_ROOT/main.sh"
 grep -Fq '小黄鸭（LSFG-VK）' "$PROJECT_ROOT/main.sh"
 if sed -n '/ui_touch_button()/,/^}/p' "$PROJECT_ROOT/core/ui.sh" | grep -Fq "printf '%b%-50s%b'"; then

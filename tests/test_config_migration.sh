@@ -55,7 +55,7 @@ make_blank_config() {
 
     mkdir -p "$(dirname "$destination")"
     awk '
-        /^(RUSTDESK|TODESK)_[A-Z0-9_]+=/ {
+        /^(RUSTDESK|TODESK|DECKY)_[A-Z0-9_]+=/ {
             split($0, parts, "=")
             print parts[1] "=\"\""
             next
@@ -103,6 +103,12 @@ test_blank_config_migration() {
         "todesk-bin-4.7.2.0-4-x86_64.pkg.tar.zst"
     assert_value "$config_file" TODESK_PACKAGE_SHA256 \
         "60026e9a7163611cd5feba6ed3d246fa4c9763cb95c04e07da09052243e12a29"
+    assert_value "$config_file" DECKY_LSFG_SHA256 \
+        "5355c6df656775fa467445c7787604bc159b8d8b97e5364bedb02a5d2e0ab677"
+    assert_value "$config_file" DECKY_FSR4_SHA256 \
+        "236dc5aef5c908d905a848d7e448689634479ab61cd9184154ba8a725b3f2089"
+    assert_value "$config_file" DECKY_CHEATDECK_SHA256 \
+        "83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
 
     backup_count="$(find "$install_dir/config" -maxdepth 1 -type f \
         -name 'settings.conf.bak.*' | wc -l | tr -d ' ')"

@@ -437,15 +437,15 @@ if [ -f "$INSTALL_DIR/assets/Zhoukeer.colorscheme.in" ] && [ -f "$BACKGROUND_PAT
     cat > "$KONSOLE_PROFILE" <<EOF
 [Appearance]
 ColorScheme=ZhoukeerToolbox
-Font=Noto Sans Mono CJK SC,20,-1,5,50,0,0,0,0,0
-LineSpacing=2
+Font=Noto Sans Mono CJK SC,17,-1,5,50,0,0,0,0,0
+LineSpacing=0
 
 [General]
 Name=周克儿工具箱
 Parent=FALLBACK/
 TerminalColumns=102
 TerminalMargin=6
-TerminalRows=27
+TerminalRows=22
 EOF
 fi
 

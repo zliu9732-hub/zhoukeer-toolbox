@@ -8,7 +8,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
 UI_SIDEBAR_WIDTH=29
 UI_SEPARATOR_COL=32
 UI_PANEL_COL=35
-UI_LAST_ROW=27
+UI_LAST_ROW=20
 
 logo() {
 echo -e "${BLUE}"
@@ -107,14 +107,15 @@ draw_category_frame() {
         row=$((row + 1))
     done
 
+    # 采用无间隔的两行触控区，确保在 Steam Deck 实际可见的 20 行内完整显示。
     ui_sidebar_item 2 init "⭐ 新机初始化" "$selected"
-    ui_sidebar_item 5 software "💻 常用软件" "$selected"
-    ui_sidebar_item 8 remote "📡 远程协助" "$selected"
-    ui_sidebar_item 11 plugins "🧩 插件商城" "$selected"
-    ui_sidebar_item 14 settings "⚙  系统设置" "$selected"
-    ui_sidebar_item 17 optimize "🚀 系统优化" "$selected"
-    ui_sidebar_item 20 update "🔄 工具箱更新" "$selected"
-    ui_sidebar_item 24 exit "✖  退出工具箱" "$selected"
+    ui_sidebar_item 4 software "💻 常用软件" "$selected"
+    ui_sidebar_item 6 remote "📡 远程协助" "$selected"
+    ui_sidebar_item 8 plugins "🧩 插件商城" "$selected"
+    ui_sidebar_item 10 settings "⚙  系统设置" "$selected"
+    ui_sidebar_item 12 optimize "🚀 系统优化" "$selected"
+    ui_sidebar_item 14 update "🔄 工具箱更新" "$selected"
+    ui_sidebar_item 17 exit "✖  退出工具箱" "$selected"
 
     row=2
     while [ "$row" -le "$UI_LAST_ROW" ]; do
@@ -126,8 +127,42 @@ draw_category_frame() {
     ui_panel_line 2 '\033[1;38;5;45m' "📦 周克儿工具箱 V4"
     ui_panel_line 3 '\033[1;38;5;255m' "Steam Deck Toolbox"
     ui_panel_line 4 '\033[38;5;45m' "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    ui_panel_line 6 '\033[1;38;5;220m' "$title"
-    ui_panel_line 7 '\033[1;38;5;255m' "$subtitle"
+    ui_panel_line 5 '\033[1;38;5;220m' "$title"
+    ui_panel_line 6 '\033[1;38;5;255m' "$subtitle"
+}
+
+draw_disclaimer_frame() {
+    printf '\033[0m\033[2J\033[H'
+
+    ui_move 2 6
+    printf '\033[1;38;5;45m📦 周克儿工具箱 V4\033[0m'
+    ui_move 3 6
+    printf '\033[38;5;45m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m'
+    ui_move 5 6
+    printf '\033[1;38;5;220m使用说明与免责声明\033[0m'
+    ui_move 6 6
+    printf '\033[38;5;255m请阅读以下内容，知悉后再开始使用\033[0m'
+}
+
+ui_disclaimer_line() {
+    local row="$1"
+    local color="$2"
+    local text="$3"
+
+    ui_move "$row" 6
+    printf '%b%s%b' "$color" "$text" "$NC"
+}
+
+ui_disclaimer_button() {
+    local row="$1"
+    local color="$2"
+    local label="$3"
+    local hint="$4"
+
+    ui_move "$row" 8
+    printf '%b●  %s%b' "$color" "$label" "$NC"
+    ui_move "$((row + 1))" 11
+    printf '\033[38;5;250m%s%b' "$hint" "$NC"
 }
 
 ui_prompt() {
