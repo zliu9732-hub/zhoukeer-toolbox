@@ -252,8 +252,13 @@ VALID_RECORD="$TMP_ROOT/valid-password-record"
 cp -p "$PASSWORD_FILE" "$VALID_RECORD"
 
 chmod 644 "$PASSWORD_FILE"
-assert_auth_rejects_record "auth.sh 接受了 644 权限的密码记录"
-cp -p "$VALID_RECORD" "$PASSWORD_FILE"
+PATH="$BIN_DIR:$PATH" HOME="$HOME_DIR" PASSWORD_TEST_UID="$PASSWORD_TEST_UID" \
+    PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+        source "$PROJECT_ROOT/core/auth.sh"
+        load_toolbox_password
+        [ "$TOOLBOX_PASSWORD" = "changed password 456!" ]
+    ' >/dev/null 2>&1 || fail "auth.sh 未自动兼容修复旧版644密码记录"
+[ "$(file_mode "$PASSWORD_FILE")" = "600" ] || fail "旧版密码记录没有自动收紧为600"
 
 printf '\n密码：duplicate\n' >> "$PASSWORD_FILE"
 assert_auth_rejects_record "auth.sh 接受了多个密码字段"
@@ -277,6 +282,18 @@ mv "$REAL_RECORD" "$PASSWORD_FILE"
 
 FOREIGN_UID=$((PASSWORD_TEST_UID + 1))
 assert_auth_rejects_record "auth.sh 接受了非当前UID拥有的密码记录" "$FOREIGN_UID"
+
+# 兼容旧版使用半角冒号和Windows换行的密码字段。
+sed 's/^密码：/密码:/' "$PASSWORD_FILE" | sed 's/$/\r/' > "$TMP_ROOT/legacy-record"
+chmod 600 "$TMP_ROOT/legacy-record"
+mv "$TMP_ROOT/legacy-record" "$PASSWORD_FILE"
+PATH="$BIN_DIR:$PATH" HOME="$HOME_DIR" PASSWORD_TEST_UID="$PASSWORD_TEST_UID" \
+    PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+        source "$PROJECT_ROOT/core/auth.sh"
+        load_toolbox_password
+        [ "$TOOLBOX_PASSWORD" = "changed password 456!" ]
+    ' >/dev/null 2>&1 || fail "auth.sh 未兼容半角冒号或CRLF旧记录"
+cp -p "$VALID_RECORD" "$PASSWORD_FILE"
 
 # USER 环境变量即使伪装成 root，也必须以 id -un 的真实结果 deck 为准。
 grep -Fxq "用户：deck" "$PASSWORD_FILE" || fail "密码记录错误信任了 USER 环境变量"
