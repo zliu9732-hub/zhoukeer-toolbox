@@ -14,6 +14,7 @@ FLATHUB_REPO_FILE_PRIMARY="https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrep
 FLATHUB_REPO_FILE_FALLBACK="https://dl.flathub.org/repo/flathub.flatpakrepo"
 FLATHUB_APPREF_BASE="https://flathub.org/repo/appstream"
 FLATPAK_INSTALL_TIMEOUT="${ZHOUKEER_FLATPAK_INSTALL_TIMEOUT:-1800}"
+FLATPAK_APPREF_TIMEOUT="${ZHOUKEER_FLATPAK_APPREF_TIMEOUT:-300}"
 
 software_details() {
     case "$1" in
@@ -161,7 +162,12 @@ run_flatpak_install() {
 run_flatpak_appref_install() {
     local appref_url="$FLATHUB_APPREF_BASE/$SOFTWARE_APP_ID.flatpakref"
     echo "正在使用Flathub官方安装描述直装 $SOFTWARE_NAME..."
-    flatpak install --user --noninteractive -y "$appref_url"
+    if command -v timeout >/dev/null 2>&1; then
+        timeout --foreground "$FLATPAK_APPREF_TIMEOUT" \
+            flatpak install --user --noninteractive -y "$appref_url"
+    else
+        flatpak install --user --noninteractive -y "$appref_url"
+    fi
 }
 
 create_software_shortcut() {
