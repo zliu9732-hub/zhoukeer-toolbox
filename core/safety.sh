@@ -9,6 +9,11 @@ confirm_action() {
     local prompt="$1"
     local answer
 
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        echo "$prompt [已通过图形界面确认]"
+        return 0
+    fi
+
     read -r -p "$prompt [y/N]: " answer
     case "$answer" in
         y|Y|yes|YES)

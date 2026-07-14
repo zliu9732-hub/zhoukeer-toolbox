@@ -32,6 +32,11 @@ confirm_initialization() {
     local answer
 
     show_initialization_plan
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        echo ""
+        echo "已通过图形界面确认，开始初始化。"
+        return 0
+    fi
     echo ""
     read -r -p "确认开始请输入 INIT：" answer
     [ "$answer" = "INIT" ]

@@ -304,5 +304,10 @@ rustdesk_menu() {
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-    rustdesk_menu
+    case "${1:-}" in
+        --install) install_rustdesk ;;
+        --config) config_rustdesk ;;
+        "") rustdesk_menu ;;
+        *) echo "未知参数: $1"; exit 1 ;;
+    esac
 fi

@@ -13,6 +13,13 @@ source "$PROJECT_ROOT/core/logger.sh"
 
 ensure_runtime_dirs
 
+# Steam Deck桌面模式优先使用可触控的KDE图形菜单；缺少图形环境时回退到终端界面。
+if [ "${1:-}" != "--text" ] && \
+    [ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ] && \
+    command -v kdialog >/dev/null 2>&1; then
+    exec bash "$PROJECT_ROOT/core/gui.sh"
+fi
+
 pause_menu() {
     echo ""
     read -r -p "回车继续"
