@@ -144,16 +144,16 @@ common_software_menu() {
         draw_category_frame software "常用软件" "国内缓存优先，安装完成自动创建桌面图标"
         ui_touch_button 8 '\033[1;97;48;5;24m' "微信" "安装或修复微信，同步创建桌面快捷方式"
         ui_touch_button 11 '\033[1;97;48;5;24m' "QQ" "安装或修复 QQ，同步创建桌面快捷方式"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "ProtonUp-Qt" "管理 Proton-GE 等游戏兼容层"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "Chrome 浏览器" "安装浏览器并创建桌面快捷方式"
         ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:8-9:wechat right:11-12:qq right:14-15:protonup right:17-18:home)"
+        choice="$(read_touch_menu right:8-9:wechat right:11-12:qq right:14-15:browser right:17-18:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
             wechat) confirm_and_run "安装微信" "国内缓存优先；完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" wechat ;;
             qq) confirm_and_run "安装QQ" "国内缓存优先；完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" qq ;;
-            protonup) confirm_and_run "安装ProtonUp-Qt" "安装完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" protonup ;;
+            browser) confirm_and_run "安装Chrome浏览器" "国内缓存优先；完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" browser ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "software" ] || return 0
@@ -164,18 +164,68 @@ remote_assistance_menu() {
     local choice
 
     while true; do
-        draw_category_frame remote "远程协助" "安装 ToDesk，方便售后支持和故障处理"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "安装或更新 ToDesk" "国内远程协助，安装时需要管理员密码"
+        draw_category_frame remote "远程协助" "ToDesk 使用前必须先完成 Steam 游戏模式设置"
+        ui_panel_line 7 '\033[1;38;5;220m' "⚠ 先开启开发者模式和旧版 X11 桌面模式"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "查看设置步骤并安装 ToDesk" "未完成设置时，请勿直接启动 ToDesk"
         ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:9-10:todesk right:17-18:home)"
+        choice="$(read_touch_menu right:10-11:todesk right:17-18:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            todesk) confirm_and_run "ToDesk远程工具" "安装时仍需输入 Steam Deck 管理员密码" bash "$PROJECT_ROOT/modules/todesk.sh" --install ;;
+            todesk) todesk_preflight ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "remote" ] || return 0
+    done
+}
+
+todesk_preflight() {
+    local choice
+
+    while true; do
+        draw_category_frame remote "ToDesk 使用前设置" "请先切回 Steam 游戏模式，按顺序完成全部步骤"
+        ui_panel_line 7 '\033[1;38;5;220m' "① 按 Steam 键 → 设置 → 系统"
+        ui_panel_line 9 '\033[1;38;5;45m' "② 开启“启用开发者模式”"
+        ui_panel_line 11 '\033[1;38;5;45m' "③ 设置侧栏进入“开发者” → 找到“杂项”"
+        ui_panel_line 13 '\033[1;38;5;45m' "④ 开启“使用旧版 X11 桌面模式”"
+        ui_panel_line 15 '\033[1;38;5;220m' "⑤ 重新进入桌面模式，再安装并启动 ToDesk"
+        ui_touch_button 16 '\033[1;30;48;5;114m' "以上设置已完成，继续安装" "点击即确认两项开关均已开启"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回远程协助" "暂不安装"
+        choice="$(read_touch_menu right:16-17:continue right:18-19:back)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            continue)
+                confirm_and_run "ToDesk远程工具" "将自动使用桌面密码.txt验证；缺失时由系统询问" bash "$PROJECT_ROOT/modules/todesk.sh" --install
+                return 0
+                ;;
+            back) NEXT_CATEGORY="remote"; return 0 ;;
+        esac
+    done
+}
+
+new_machine_preflight() {
+    local choice
+
+    while true; do
+        draw_category_frame init "新机初始化前准备" "初始化包含 ToDesk，请先在 Steam 游戏模式完成设置"
+        ui_panel_line 7 '\033[1;38;5;220m' "① Steam 键 → 设置 → 系统 → 启用开发者模式"
+        ui_panel_line 9 '\033[1;38;5;45m' "② 设置侧栏 → 开发者 → 杂项"
+        ui_panel_line 11 '\033[1;38;5;45m' "③ 开启“使用旧版 X11 桌面模式”"
+        ui_panel_line 13 '\033[1;38;5;220m' "④ 重新进入桌面模式，再开始初始化"
+        ui_panel_line 14 '\033[1;38;5;45m' "继续后将安装国内源、常用软件、Decky 和 ToDesk"
+        ui_touch_button 16 '\033[1;30;48;5;114m' "设置已完成，开始新机初始化" "点击即确认已开启开发者模式和旧版 X11"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "暂不初始化"
+        choice="$(read_touch_menu right:16-17:start right:18-19:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            start)
+                run_action "一键新机初始化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/new_machine.sh"
+                NEXT_CATEGORY="home"
+                return 0
+                ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
     done
 }
 
@@ -231,7 +281,7 @@ plugin_store_menu() {
     while true; do
         draw_category_frame plugins "插件商城" "Decky 与三个常用插件均使用 123 云盘国内分流"
         ui_touch_button 7 '\033[1;97;48;5;24m' "安装或更新 Decky Loader" "使用经过固定校验的国内安装源"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "小黄鸭（LSFG-VK）" "安装插件后自动打开 Steam 正版页面"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "小黄鸭（LSFG-VK）" "安装后可打开正版页或导入合法本地备份"
         ui_touch_button 11 '\033[1;97;48;5;24m' "FSR4（Decky Framegen）" "下载并安装到 Decky 插件目录"
         ui_touch_button 13 '\033[1;97;48;5;24m' "CheatDeck" "下载并安装到 Decky 插件目录"
         ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -241,7 +291,7 @@ plugin_store_menu() {
 
         case "$choice" in
             install) confirm_and_run "Decky Loader插件商城" "使用国内镜像安装器，执行前会校验固定 SHA256" bash "$PROJECT_ROOT/modules/plugin_store.sh" store ;;
-            lsfg) confirm_and_run "小黄鸭（LSFG-VK）" "安装插件后将打开 Lossless Scaling 的 Steam 正版页面" bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg ;;
+            lsfg) confirm_and_run "小黄鸭（LSFG-VK）" "安装后可打开 Steam 正版页面，或选择自己合法取得的本地备份" bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg ;;
             fsr4) confirm_and_run "FSR4（Decky Framegen）" "将安装到 Decky 插件目录" bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4 ;;
             cheatdeck) confirm_and_run "CheatDeck" "将安装到 Decky 插件目录" bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
@@ -254,18 +304,50 @@ system_settings_menu() {
     local choice
 
     while true; do
-        draw_category_frame settings "系统设置" "查看设备状态，检测网络并处理常见问题"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "查看系统信息" "SteamOS 版本、设备架构和基础环境"
-        ui_touch_button 12 '\033[1;97;48;5;24m' "网络检测与修复" "检查 DNS、连通性和常用下载源"
-        ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        draw_category_frame settings "系统设置" "下载源、Steam加速、系统密码和设备信息"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "添加国内下载源" "添加用户级 Flathub 国内缓存，保留官方备用"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "Steamcommunity 302" "安装、查看状态或安全卸载 Steam 加速器"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "设置系统密码" "明文保存到桌面；同一用户运行的软件也能读取"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "修改系统密码" "同步更新明文记录；同一用户软件也能读取"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "查看系统信息" "SteamOS 版本、设备架构和基础环境"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:8-9:info right:12-13:network right:17-18:home)"
+        choice="$(read_touch_menu right:7-8:source right:9-10:accelerator right:11-12:set-password right:13-14:change-password right:15-16:info right:18-19:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
+            source) confirm_and_run "添加国内下载源" "只添加用户级 Flatpak 国内缓存，不修改只读分区" bash "$PROJECT_ROOT/modules/domestic_source.sh" enable ;;
+            accelerator) steam_accelerator_touch_menu ;;
+            set-password) confirm_and_run "设置系统密码" "新密码将明文保存到桌面密码.txt；所有以当前用户身份运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" set ;;
+            change-password) confirm_and_run "修改系统密码" "将读取旧记录并明文保存新密码；所有以当前用户身份运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;
             info) run_action "系统信息" bash "$PROJECT_ROOT/core/detect.sh" ;;
-            network) run_action "网络检测与修复" bash "$PROJECT_ROOT/modules/network.sh" ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = "settings" ] || return 0
+    done
+}
+
+steam_accelerator_touch_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame settings "Steamcommunity 302" "官方 Linux AMD64 固定版本，安装包双重校验"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "安装或更新" "安装后在官方界面按需开启后台服务"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "查看运行状态" "查看版本、桌面图标和后台服务状态"
+        ui_touch_button 14 '\033[1;97;48;5;160m' "安全卸载" "后台服务仍启用时会拒绝删除"
+        ui_touch_button 17 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
+        ui_prompt
+        choice="$(read_touch_menu right:8-9:install right:11-12:status right:14-15:uninstall right:17-18:settings)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            install)
+                confirm_and_run "Steamcommunity 302" "涉及本机代理、hosts/DNS和根证书；安装后由你选择是否开启后台服务" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" install
+                ;;
+            status) run_action "Steamcommunity 302 状态" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" status ;;
+            uninstall)
+                confirm_and_run "卸载 Steamcommunity 302" "请先在官方界面禁用后台服务并恢复 hosts、DNS 和证书" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
+                ;;
+            settings) NEXT_CATEGORY="settings"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "settings" ] || return 0
     done
@@ -299,10 +381,10 @@ home_menu() {
 
     draw_category_frame "" "欢迎使用" "全界面只需点击，无需输入任何数字或字母"
     ui_panel_line 8 '\033[1;38;5;220m' "⭐ 第一次使用：点击左侧“新机初始化”"
-    ui_panel_line 10 '\033[1;38;5;45m' "💻 常用软件：微信、QQ、ProtonUp-Qt"
+    ui_panel_line 10 '\033[1;38;5;45m' "💻 常用软件：微信、QQ、Chrome 浏览器"
     ui_panel_line 12 '\033[1;38;5;45m' "📡 远程协助：ToDesk"
     ui_panel_line 14 '\033[1;38;5;45m' "🧩 插件商城：Decky、小黄鸭、FSR4、CheatDeck"
-    ui_panel_line 16 '\033[1;38;5;45m' "⚙  系统设置：设备信息、网络检测"
+    ui_panel_line 16 '\033[1;38;5;45m' "⚙  系统设置：国内源、加速器、密码"
     ui_panel_line 17 '\033[1;38;5;45m' "🚀 系统优化：清理、性能建议、一键修复"
     ui_panel_line 18 '\033[1;38;5;114m' "🔄 工具箱更新：Gitee 优先，GitHub 备用"
     ui_prompt
@@ -315,10 +397,7 @@ show_disclaimer
 while true; do
     case "$NEXT_CATEGORY" in
         home) home_menu ;;
-        init)
-            confirm_and_run "一键新机初始化" "安装新机常用项目，部分步骤需要管理员密码" bash "$PROJECT_ROOT/modules/new_machine.sh"
-            [ "$NEXT_CATEGORY" = "init" ] && NEXT_CATEGORY="home"
-            ;;
+        init) new_machine_preflight ;;
         software) common_software_menu ;;
         remote) remote_assistance_menu ;;
         plugins) plugin_store_menu ;;

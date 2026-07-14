@@ -6,6 +6,8 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../core/env.sh"
 source "$PROJECT_ROOT/core/platform.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/logger.sh"
+# shellcheck disable=SC1091
+source "$PROJECT_ROOT/core/auth.sh"
 
 TODESK_CONNECT_TIMEOUT=15
 TODESK_MAX_TIME=1200
@@ -23,7 +25,7 @@ cleanup_todesk() {
 
     if [ "$TODESK_READONLY_CHANGED" -eq 1 ]; then
         echo "正在恢复 SteamOS 只读保护..."
-        if ! sudo steamos-readonly enable; then
+        if ! toolbox_sudo steamos-readonly enable; then
             echo "警告：未能恢复只读保护，请执行: sudo steamos-readonly enable"
             log "ToDesk安装警告: 未能恢复SteamOS只读保护"
         fi
@@ -82,9 +84,15 @@ show_todesk_warning() {
     echo "来源：mclanbai/archtodesk 第三方适配包"
     echo "版本：4.7.2.0"
     echo ""
+    echo "使用前必须先在游戏模式完成："
+    echo "1. Steam键 → 设置 → 系统 → 开启“启用开发者模式”"
+    echo "2. 返回设置侧栏 → 进入“开发者”"
+    echo "3. 在开发者页面的“杂项”中开启“使用旧版X11桌面模式”"
+    echo "4. 重新进入桌面模式后再安装并启动ToDesk"
+    echo ""
     echo "该操作将："
     echo "- 下载约80MB的第三方ToDesk软件包并校验SHA256"
-    echo "- 请求管理员密码"
+    echo "- 优先读取桌面密码.txt自动验证，记录不可用时由系统询问"
     echo "- 临时关闭SteamOS只读保护"
     echo "- 使用pacman安装系统软件并启用todeskd服务"
     echo "- 完成后恢复SteamOS只读保护"
@@ -211,7 +219,7 @@ install_todesk() {
     package_path="$TODESK_DOWNLOADED_PACKAGE"
 
     echo "安装需要Steam Deck管理员密码。"
-    if ! sudo -v; then
+    if ! toolbox_sudo true; then
         echo "管理员验证失败，未修改系统。"
         return 1
     fi
@@ -221,7 +229,7 @@ install_todesk() {
         # 先登记需要恢复并注册处理，再修改只读状态，避免异常中断留下关闭状态。
         TODESK_READONLY_CHANGED=1
         trap cleanup_todesk EXIT INT TERM
-        if ! sudo steamos-readonly disable; then
+        if ! toolbox_sudo steamos-readonly disable; then
             echo "无法关闭SteamOS只读保护。"
             cleanup_todesk
             TODESK_READONLY_CHANGED=0
@@ -233,17 +241,17 @@ install_todesk() {
     fi
 
     echo "正在准备pacman密钥..."
-    sudo pacman-key --init || return 1
-    sudo pacman-key --populate || return 1
+    toolbox_sudo pacman-key --init || return 1
+    toolbox_sudo pacman-key --populate || return 1
 
     echo "正在安装ToDesk..."
-    if ! sudo pacman -U --noconfirm "$package_path"; then
+    if ! toolbox_sudo pacman -U --noconfirm "$package_path"; then
         echo "ToDesk安装失败；未删除原有配置。"
         log "ToDesk安装失败: pacman返回错误"
         return 1
     fi
 
-    if ! sudo systemctl enable --now todeskd.service; then
+    if ! toolbox_sudo systemctl enable --now todeskd.service; then
         echo "ToDesk已安装，但后台服务启动失败。"
         log "ToDesk安装警告: todeskd服务启动失败"
     fi

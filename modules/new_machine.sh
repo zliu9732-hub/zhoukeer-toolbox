@@ -20,12 +20,13 @@ show_initialization_plan() {
     echo "✓ 微信"
     echo "✓ QQ"
     echo "✓ ToDesk"
-    echo "✓ 常用兼容层管理器（ProtonUp-Qt）"
+    echo "✓ Chrome 浏览器"
     echo "✓ 工具箱快捷方式检查"
-    echo "✓ 网络检测"
+    echo "✓ 国内下载源与网络检测"
     echo ""
-    echo "国内源替换和系统权限重置风险较高，当前版本不会自动执行。"
+    echo "国内源仅添加用户级 Flatpak 缓存，不修改 SteamOS 只读分区。"
     echo "ToDesk和Decky安装过程中仍可能要求输入Steam Deck管理员密码。"
+    echo "ToDesk使用前须在游戏模式开启开发者模式及“使用旧版X11桌面模式”。"
 }
 
 confirm_initialization() {
@@ -112,7 +113,7 @@ run_new_machine_initialization() {
 
     run_step "Steam Deck基础检查" basic_steamdeck_check
     run_step "网络检测" check_network
-    skip_step "国内源优化" "尚未配置经过验证且可恢复的国内镜像方案"
+    run_step "添加国内下载源" bash "$PROJECT_ROOT/modules/domestic_source.sh" enable
     run_step "插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh"
     run_step "微信" env ZHOUKEER_AUTO_CONFIRM=1 \
@@ -121,8 +122,8 @@ run_new_machine_initialization() {
         bash "$PROJECT_ROOT/modules/software.sh" qq
     run_step "ToDesk" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/todesk.sh" --install
-    run_step "常用兼容层管理器" env ZHOUKEER_AUTO_CONFIRM=1 \
-        bash "$PROJECT_ROOT/modules/software.sh" protonup
+    run_step "Chrome 浏览器" env ZHOUKEER_AUTO_CONFIRM=1 \
+        bash "$PROJECT_ROOT/modules/software.sh" browser
     skip_step "权限修复" "未发现具体故障时不应批量重置用户或系统权限"
     run_step "创建快捷方式" check_toolbox_shortcuts
 

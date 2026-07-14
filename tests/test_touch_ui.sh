@@ -60,4 +60,13 @@ if sed -n '/ui_touch_button()/,/^}/p' "$PROJECT_ROOT/core/ui.sh" | grep -Fq "pri
     exit 1
 fi
 
+sidebar_source="$(sed -n '/ui_sidebar_item()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
+frame_source="$(sed -n '/draw_category_frame()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
+if printf '%s\n%s\n' "$sidebar_source" "$frame_source" | grep -Eq '48;5;(24|45)'; then
+    echo "FAIL: 左侧菜单仍包含蓝色背景填充"
+    exit 1
+fi
+printf '%s\n' "$sidebar_source" | grep -Fq "marker='▌ '"
+printf '%s\n' "$sidebar_source" | grep -Fq '──────────────────────────'
+
 echo "PASS: 纯触控、透明按钮、免责声明、字体和背景主题测试通过"

@@ -19,6 +19,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEFAULT_INSTALL_DIR="$HOME/.local/share/zhoukeer-toolbox"
 CONFIG_BACKUP_DIR="$HOME/.config/zhoukeer-toolbox"
 LOG_BACKUP_DIR="$HOME/.local/state/zhoukeer-toolbox"
+PASSWORD_RECORD="$HOME/Desktop/密码.txt"
 
 confirm_action() {
     local prompt="$1"
@@ -50,6 +51,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
     echo "[dry-run] 默认安装目录匹配时将删除: $DEFAULT_INSTALL_DIR"
     echo "[dry-run] 可选择备份配置到: $CONFIG_BACKUP_DIR/settings.conf"
     echo "[dry-run] 可选择备份日志到: $LOG_BACKUP_DIR/logs"
+    echo "[dry-run] 卸载时会询问是否删除桌面明文密码记录: $PASSWORD_RECORD"
     echo "[dry-run] 不会删除或备份任何文件。"
     exit 0
 fi
@@ -68,11 +70,30 @@ if confirm_action "是否保留日志？"; then
     PRESERVE_LOGS=1
 fi
 
+DELETE_PASSWORD_RECORD=0
+if [ -e "$PASSWORD_RECORD" ] || [ -L "$PASSWORD_RECORD" ]; then
+    echo "注意：该文件包含明文系统密码：$PASSWORD_RECORD"
+    if confirm_action "是否同时删除桌面密码记录？"; then
+        DELETE_PASSWORD_RECORD=1
+    else
+        echo "将保留桌面密码记录，请妥善保管或稍后手动删除。"
+    fi
+fi
+
 rm -f "$HOME/Desktop/周克儿工具箱.desktop"
 rm -f "$HOME/.local/share/applications/zhoukeer-toolbox.desktop"
 rm -f "$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
 rm -f "$HOME/.local/share/konsole/ZhoukeerToolbox.colorscheme"
 echo "已删除快捷方式"
+
+if [ "$DELETE_PASSWORD_RECORD" -eq 1 ]; then
+    if [ -d "$PASSWORD_RECORD" ] && [ ! -L "$PASSWORD_RECORD" ]; then
+        echo "警告：密码记录路径是目录，工具箱不会自动删除: $PASSWORD_RECORD"
+    else
+        rm -f -- "$PASSWORD_RECORD"
+        echo "已删除桌面密码记录"
+    fi
+fi
 
 if [ "$PRESERVE_CONFIG" -eq 1 ] && [ -f "$PROJECT_ROOT/config/settings.conf" ]; then
     mkdir -p "$CONFIG_BACKUP_DIR"

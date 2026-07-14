@@ -45,32 +45,27 @@ ui_panel_line() {
     printf '%b%s%b' "$color" "$text" "$NC"
 }
 
-ui_fill_sidebar_row() {
-    local row="$1"
-    local color="$2"
-
-    ui_move "$row" 2
-    printf '\033[%sm%*s\033[0m' "$color" "$UI_SIDEBAR_WIDTH" ""
-}
-
 # 每个分类是两行高的大按钮，内部值只用于程序识别，界面不显示字母或数字。
 ui_sidebar_item() {
     local row="$1"
     local value="$2"
     local label="$3"
     local selected="$4"
-    local background='48;5;24'
-    local foreground='1;226;48;5;24'
+    local marker='  '
+    local foreground='\033[1;97m'
+    local separator='\033[38;5;240m'
 
     if [ "$value" = "$selected" ]; then
-        background='48;5;45'
-        foreground='1;30;48;5;45'
+        marker='▌ '
+        foreground='\033[1;38;5;220m'
+        separator='\033[38;5;45m'
     fi
 
-    ui_fill_sidebar_row "$row" "$background"
-    ui_fill_sidebar_row "$((row + 1))" "$background"
-    ui_move "$row" 4
-    printf '\033[%sm%s\033[0m' "$foreground" "$label"
+    # 侧栏保持透明，只用短标记和细横线表示层级，避免遮挡黑白背景。
+    ui_move "$row" 3
+    printf '%b%s%s%b' "$foreground" "$marker" "$label" "$NC"
+    ui_move "$((row + 1))" 3
+    printf '%b──────────────────────────%b' "$separator" "$NC"
 }
 
 ui_touch_button() {
@@ -100,12 +95,6 @@ draw_category_frame() {
     local row
 
     printf '\033[0m\033[2J\033[H'
-
-    row=2
-    while [ "$row" -le "$UI_LAST_ROW" ]; do
-        ui_fill_sidebar_row "$row" '48;5;24'
-        row=$((row + 1))
-    done
 
     # 采用无间隔的两行触控区，确保在 Steam Deck 实际可见的 20 行内完整显示。
     ui_sidebar_item 2 init "⭐ 新机初始化" "$selected"

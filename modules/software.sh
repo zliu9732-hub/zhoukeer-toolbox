@@ -28,11 +28,11 @@ software_details() {
             SOFTWARE_APP_ID="com.qq.QQ"
             SOFTWARE_CATEGORIES="Network;InstantMessaging;"
             ;;
-        protonup)
-            SOFTWARE_NAME="ProtonUp-Qt兼容层管理器"
-            SOFTWARE_DESKTOP_NAME="ProtonUp-Qt"
-            SOFTWARE_APP_ID="net.davidotek.pupgui2"
-            SOFTWARE_CATEGORIES="Utility;Game;"
+        browser)
+            SOFTWARE_NAME="Google Chrome浏览器"
+            SOFTWARE_DESKTOP_NAME="Chrome浏览器"
+            SOFTWARE_APP_ID="com.google.Chrome"
+            SOFTWARE_CATEGORIES="Network;WebBrowser;"
             ;;
         *)
             echo "未知软件: $1"
@@ -227,7 +227,7 @@ install_software() {
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
-        wechat|qq|protonup) install_software "$1" ;;
-        *) echo "用法: $0 {wechat|qq|protonup}"; exit 1 ;;
+        wechat|qq|browser) install_software "$1" ;;
+        *) echo "用法: $0 {wechat|qq|browser}"; exit 1 ;;
     esac
 fi

@@ -24,8 +24,10 @@ CONFIG_MIGRATION_VARIABLES=(
     TODESK_ARCHIVE_URL
     TODESK_PACKAGE_NAME
     TODESK_PACKAGE_SHA256
-    DECKY_INSTALLER_URL
-    DECKY_INSTALLER_SHA256
+    DECKY_LOADER_URL
+    DECKY_LOADER_SHA256
+    DECKY_SERVICE_URL
+    DECKY_SERVICE_SHA256
     DECKY_LSFG_URL
     DECKY_LSFG_SHA256
     DECKY_FSR4_URL
@@ -121,6 +123,26 @@ sanitize_retired_rustdesk_config() {
     awk '
         /^[[:space:]]*(export[[:space:]]+)?RUSTDESK_[A-Z0-9_]+[[:space:]]*=/ { next }
         /RustDesk/ { next }
+        { print }
+    ' "$config_file" > "$sanitized_file" || {
+        rm -f -- "$sanitized_file"
+        return 1
+    }
+    chmod 600 "$sanitized_file" || {
+        rm -f -- "$sanitized_file"
+        return 1
+    }
+    mv -f -- "$sanitized_file" "$config_file"
+}
+
+sanitize_retired_decky_installer_config() {
+    local config_file="$1"
+    local sanitized_file
+
+    sanitized_file="$(mktemp "$config_file.sanitize.XXXXXX")" || return 1
+    awk '
+        /^[[:space:]]*(export[[:space:]]+)?DECKY_INSTALLER_(URL|SHA256)[[:space:]]*=/ { next }
+        /Decky Loader 国内安装器/ { next }
         { print }
     ' "$config_file" > "$sanitized_file" || {
         rm -f -- "$sanitized_file"
@@ -352,6 +374,10 @@ copy_dir_files assets
 while IFS= read -r retired_config; do
     sanitize_retired_rustdesk_config "$retired_config" || {
         echo "清理旧 RustDesk 配置失败: $retired_config"
+        exit 1
+    }
+    sanitize_retired_decky_installer_config "$retired_config" || {
+        echo "清理旧 Decky 外层安装器配置失败: $retired_config"
         exit 1
     }
 done < <(find "$STAGING_DIR/config" -maxdepth 1 -type f -name 'settings.conf*' -print)

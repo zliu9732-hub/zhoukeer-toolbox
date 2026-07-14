@@ -73,11 +73,15 @@ case "$command" in
         printf 'modify %s\n' "$*" >> "$state/commands"
         ;;
     info)
-        [ -f "$state/installed" ]
+        [ -f "$state/installed.$1" ]
         ;;
     install)
         printf 'install %s\n' "$*" >> "$state/commands"
-        touch "$state/installed"
+        app_id=""
+        for arg in "$@"; do
+            app_id="$arg"
+        done
+        touch "$state/installed.$app_id"
         ;;
     *)
         echo "unexpected flatpak command: $command" >&2
@@ -112,4 +116,31 @@ bash "$PROJECT_ROOT/modules/software.sh" wechat >/dev/null
 [ -x "$SHORTCUT" ]
 [ "$(grep -c '^install ' "$STATE_DIR/commands")" -eq 1 ]
 
-echo "PASS: 国内Flatpak源和桌面快捷方式测试通过"
+# Chrome 必须使用正确的 Flatpak 应用 ID，并创建独立桌面快捷方式。
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" browser >/dev/null
+
+CHROME_SHORTCUT="$HOME_DIR/Desktop/Chrome浏览器.desktop"
+[ -x "$CHROME_SHORTCUT" ]
+grep -Fq 'Name=Google Chrome浏览器' "$CHROME_SHORTCUT"
+grep -Fq 'Exec=flatpak run com.google.Chrome' "$CHROME_SHORTCUT"
+grep -Fq 'Icon=com.google.Chrome' "$CHROME_SHORTCUT"
+grep -Fq 'Categories=Network;WebBrowser;' "$CHROME_SHORTCUT"
+grep -Fq 'install --user --noninteractive -y flathub-cn com.google.Chrome' \
+    "$STATE_DIR/commands"
+
+# Chrome 已安装时同样只修复快捷方式，不重复安装。
+rm -f "$CHROME_SHORTCUT"
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" browser >/dev/null
+
+[ -x "$CHROME_SHORTCUT" ]
+[ "$(grep -c 'com.google.Chrome$' "$STATE_DIR/commands")" -eq 1 ]
+
+echo "PASS: 国内Flatpak源、微信和Chrome桌面快捷方式测试通过"

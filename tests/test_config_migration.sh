@@ -89,6 +89,10 @@ test_blank_config_migration() {
         "60026e9a7163611cd5feba6ed3d246fa4c9763cb95c04e07da09052243e12a29"
     assert_value "$config_file" DECKY_LSFG_SHA256 \
         "5355c6df656775fa467445c7787604bc159b8d8b97e5364bedb02a5d2e0ab677"
+    assert_value "$config_file" DECKY_LOADER_SHA256 \
+        "30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e"
+    assert_value "$config_file" DECKY_SERVICE_SHA256 \
+        "64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1"
     assert_value "$config_file" DECKY_FSR4_SHA256 \
         "236dc5aef5c908d905a848d7e448689634479ab61cd9184154ba8a725b3f2089"
     assert_value "$config_file" DECKY_CHEATDECK_SHA256 \
@@ -142,6 +146,29 @@ test_retired_rustdesk_config_removed() {
     [ ! -e "$retired_app" ] || fail "退役的 RustDesk AppImage 仍留在安装目录中"
 }
 
+test_retired_decky_installer_config_removed() {
+    local case_root="$TMP_ROOT/retired-decky-installer"
+    local install_dir="$case_root/install"
+    local config_file="$install_dir/config/settings.conf"
+
+    mkdir -p "$(dirname "$config_file")"
+    cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
+    printf '%s\n' \
+        '# Decky Loader 国内安装器。旧配置应被移除。' \
+        'DECKY_INSTALLER_URL="https://www.mhhf.com/Deck/install.sh"' \
+        'DECKY_INSTALLER_SHA256="retired"' >> "$config_file"
+
+    run_installer "$case_root/home" "$install_dir"
+
+    if grep -Eq 'DECKY_INSTALLER_|/Deck/install\.sh' "$config_file"; then
+        fail "退役的Decky外层安装器配置仍留在用户配置中"
+    fi
+    assert_value "$config_file" DECKY_LOADER_SHA256 \
+        "30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e"
+    assert_value "$config_file" DECKY_SERVICE_SHA256 \
+        "64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1"
+}
+
 test_missing_config_created() {
     local case_root="$TMP_ROOT/missing"
     local install_dir="$case_root/install"
@@ -174,6 +201,7 @@ test_dry_run_has_no_side_effects() {
 test_blank_config_migration
 test_custom_config_preserved
 test_retired_rustdesk_config_removed
+test_retired_decky_installer_config_removed
 test_missing_config_created
 test_dry_run_has_no_side_effects
 
