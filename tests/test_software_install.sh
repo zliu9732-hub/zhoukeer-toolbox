@@ -104,6 +104,8 @@ grep -Fq 'Exec=flatpak run com.tencent.WeChat' "$SHORTCUT"
 grep -Fq 'Icon=com.tencent.WeChat' "$SHORTCUT"
 grep -Fq 'install --user --noninteractive -y flathub-cn com.tencent.WeChat' \
     "$STATE_DIR/commands"
+grep -Fq 'local appref_url="$FLATHUB_APPREF_BASE/$SOFTWARE_APP_ID.flatpakref"' \
+    "$PROJECT_ROOT/modules/software.sh"
 
 # 已安装时只修复快捷方式，不应再次下载。
 rm -f "$SHORTCUT"

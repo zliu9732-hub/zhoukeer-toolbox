@@ -12,6 +12,7 @@ FLATHUB_OFFICIAL_REMOTE="flathub"
 FLATHUB_CN_URL="${ZHOUKEER_FLATHUB_CN_URL:-https://mirrors.ustc.edu.cn/flathub}"
 FLATHUB_REPO_FILE_PRIMARY="https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo"
 FLATHUB_REPO_FILE_FALLBACK="https://dl.flathub.org/repo/flathub.flatpakrepo"
+FLATHUB_APPREF_BASE="https://flathub.org/repo/appstream"
 FLATPAK_INSTALL_TIMEOUT="${ZHOUKEER_FLATPAK_INSTALL_TIMEOUT:-1800}"
 
 software_details() {
@@ -157,6 +158,12 @@ run_flatpak_install() {
     fi
 }
 
+run_flatpak_appref_install() {
+    local appref_url="$FLATHUB_APPREF_BASE/$SOFTWARE_APP_ID.flatpakref"
+    echo "正在使用Flathub官方安装描述直装 $SOFTWARE_NAME..."
+    flatpak install --user --noninteractive -y "$appref_url"
+}
+
 create_software_shortcut() {
     local desktop_dir="$HOME/Desktop"
     local desktop_file="$desktop_dir/$SOFTWARE_DESKTOP_NAME.desktop"
@@ -199,15 +206,15 @@ install_software() {
         echo "已取消安装 $SOFTWARE_NAME。"
         return 0
     }
-    ensure_flatpak_remotes || {
-        echo "Flathub下载源配置失败。"
-        return 1
-    }
+    if ! ensure_flatpak_remotes; then
+        echo "Flathub远程源配置失败，将尝试官方安装描述直装。"
+    fi
 
     echo "正在通过国内缓存安装 $SOFTWARE_NAME..."
     if ! run_flatpak_install "$FLATHUB_CN_REMOTE"; then
         echo "国内缓存安装失败或超时，切换Flathub官方备用源。"
-        if ! run_flatpak_install "$FLATHUB_OFFICIAL_REMOTE"; then
+        if ! run_flatpak_install "$FLATHUB_OFFICIAL_REMOTE" && \
+            ! run_flatpak_appref_install; then
             echo "$SOFTWARE_NAME 安装失败，不会继续无限等待。"
             log "$SOFTWARE_NAME Flatpak安装失败"
             return 1
