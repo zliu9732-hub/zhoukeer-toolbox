@@ -94,11 +94,12 @@ show_disclaimer() {
         # 免责声明独占整个窗口，避免侧栏和长句把确认按钮挤出可见区域。
         draw_disclaimer_frame
         ui_disclaimer_line 8 '\033[1;38;5;220m' "本脚本由 闲鱼：超级妹宝双叶 制作"
-        ui_disclaimer_line 9 '\033[38;5;45m' "支持所有人免费使用"
-        ui_disclaimer_line 10 '\033[38;5;45m' "禁止商业使用、销售、转卖或借此盈利"
-        ui_disclaimer_line 11 '\033[38;5;45m' "下载内容均来自官方免费发布或开源项目"
-        ui_disclaimer_line 12 '\033[38;5;45m' "不包含付费软件本体、破解或商业授权"
-        ui_disclaimer_line 13 '\033[38;5;220m' "若有侵权，请联系作者删除"
+        ui_disclaimer_line 9 '\033[38;5;45m' "支持免费使用；禁止商业、销售、转卖或借此盈利"
+        ui_disclaimer_line 10 '\033[38;5;45m' "下载内容均来自官方免费发布或开源项目"
+        ui_disclaimer_line 11 '\033[38;5;45m' "不包含付费软件本体、破解或商业授权"
+        ui_disclaimer_line 12 '\033[38;5;220m' "部分国内下载分流由作者本人的123云盘提供"
+        ui_disclaimer_line 13 '\033[1;38;5;114m' "喜欢本工具，欢迎来闲鱼支持作者"
+        ui_disclaimer_line 14 '\033[38;5;220m' "若有侵权，请及时联系作者删除"
         ui_disclaimer_button 15 '\033[1;38;5;114m' "知悉并开始使用" "点击即表示已阅读上述说明"
         ui_disclaimer_button 18 '\033[1;38;5;203m' "退出工具箱" "暂不使用"
         choice="$(read_menu_choice any:15-16:agree any:18-19:exit)"

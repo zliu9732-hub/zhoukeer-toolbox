@@ -54,6 +54,8 @@ grep -Fq '知悉并开始使用' "$PROJECT_ROOT/main.sh"
 grep -Fq 'draw_disclaimer_frame' "$PROJECT_ROOT/main.sh"
 grep -Fq 'any:15-16:agree any:18-19:exit' "$PROJECT_ROOT/main.sh"
 grep -Fq '闲鱼：超级妹宝双叶' "$PROJECT_ROOT/main.sh"
+grep -Fq '作者本人的123云盘提供' "$PROJECT_ROOT/main.sh"
+grep -Fq '欢迎来闲鱼支持作者' "$PROJECT_ROOT/main.sh"
 grep -Fq '小黄鸭（LSFG-VK）' "$PROJECT_ROOT/main.sh"
 if sed -n '/ui_touch_button()/,/^}/p' "$PROJECT_ROOT/core/ui.sh" | grep -Fq "printf '%b%-50s%b'"; then
     echo "FAIL: 右侧按钮仍在绘制整块色块"
