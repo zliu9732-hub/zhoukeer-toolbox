@@ -46,6 +46,7 @@ echo ""
 if [ "$DRY_RUN" -eq 1 ]; then
     echo "[dry-run] 将删除桌面快捷方式: $HOME/Desktop/周克儿工具箱.desktop"
     echo "[dry-run] 将删除应用菜单入口: $HOME/.local/share/applications/zhoukeer-toolbox.desktop"
+    echo "[dry-run] 将删除工具箱专用 Konsole 主题"
     echo "[dry-run] 默认安装目录匹配时将删除: $DEFAULT_INSTALL_DIR"
     echo "[dry-run] 可选择备份配置到: $CONFIG_BACKUP_DIR/settings.conf"
     echo "[dry-run] 可选择备份日志到: $LOG_BACKUP_DIR/logs"
@@ -69,6 +70,8 @@ fi
 
 rm -f "$HOME/Desktop/周克儿工具箱.desktop"
 rm -f "$HOME/.local/share/applications/zhoukeer-toolbox.desktop"
+rm -f "$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
+rm -f "$HOME/.local/share/konsole/ZhoukeerToolbox.colorscheme"
 echo "已删除快捷方式"
 
 if [ "$PRESERVE_CONFIG" -eq 1 ] && [ -f "$PROJECT_ROOT/config/settings.conf" ]; then

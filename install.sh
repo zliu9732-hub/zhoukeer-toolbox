@@ -270,6 +270,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
     show_config_migration_dry_run
     echo "[dry-run] 将创建桌面快捷方式: $HOME/Desktop/周克儿工具箱.desktop"
     echo "[dry-run] 将创建应用菜单入口: $HOME/.local/share/applications/zhoukeer-toolbox.desktop"
+    echo "[dry-run] 将创建工具箱专用的 Konsole 大字体和背景主题"
     echo "[dry-run] 不会创建目录、复制文件或修改权限。"
     exit $?
 fi
@@ -318,7 +319,7 @@ trap cleanup_install EXIT
 mkdir -p "$INSTALL_PARENT"
 rm -rf -- "$STAGING_DIR" "$BACKUP_DIR"
 mkdir -p "$STAGING_DIR/config" "$STAGING_DIR/apps" "$STAGING_DIR/logs"
-mkdir -p "$HOME/.local/share/applications"
+mkdir -p "$HOME/.local/share/applications" "$HOME/.local/share/konsole"
 
 # 配置、已下载应用和日志属于用户数据，先复制到新版本暂存目录。
 # 新程序完全准备好后才会一次切换，避免更新中断形成新旧混合版本。
@@ -406,6 +407,9 @@ fi
 DESKTOP_FILE="$HOME/Desktop/周克儿工具箱.desktop"
 APPLICATION_FILE="$HOME/.local/share/applications/zhoukeer-toolbox.desktop"
 ICON_PATH="$INSTALL_DIR/assets/icon.png"
+BACKGROUND_PATH="$INSTALL_DIR/assets/background.png"
+KONSOLE_PROFILE="$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
+KONSOLE_COLOR_SCHEME="$HOME/.local/share/konsole/ZhoukeerToolbox.colorscheme"
 ICON_ENTRY="utilities-terminal"
 
 if [ -f "$ICON_PATH" ]; then
@@ -416,12 +420,33 @@ if [ ! -d "$HOME/Desktop" ]; then
     mkdir -p "$HOME/Desktop"
 fi
 
+if [ -f "$INSTALL_DIR/assets/Zhoukeer.colorscheme.in" ] && [ -f "$BACKGROUND_PATH" ]; then
+    awk -v wallpaper="$BACKGROUND_PATH" '
+        /^Wallpaper=@WALLPAPER@$/ { print "Wallpaper=" wallpaper; next }
+        { print }
+    ' "$INSTALL_DIR/assets/Zhoukeer.colorscheme.in" > "$KONSOLE_COLOR_SCHEME"
+
+    cat > "$KONSOLE_PROFILE" <<EOF
+[Appearance]
+ColorScheme=ZhoukeerToolbox
+Font=Noto Sans Mono CJK SC,19,-1,5,50,0,0,0,0,0
+LineSpacing=2
+
+[General]
+Name=周克儿工具箱
+Parent=FALLBACK/
+TerminalColumns=102
+TerminalMargin=6
+TerminalRows=29
+EOF
+fi
+
 cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
 Type=Application
 Name=周克儿工具箱
 Comment=Steam Deck工具箱
-Exec=konsole --geometry 1000x650 --workdir "$INSTALL_DIR" -e bash "$INSTALL_DIR/main.sh" --touch
+Exec=konsole --profile "$KONSOLE_PROFILE" --separate --hide-menubar --hide-toolbars --hide-tabbar --geometry 1180x720 --workdir "$INSTALL_DIR" -e bash "$INSTALL_DIR/main.sh" --touch
 Icon=$ICON_ENTRY
 Terminal=false
 Categories=Utility;
