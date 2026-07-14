@@ -369,6 +369,20 @@ if [ -f "$STATE_DIR/sudo-commands" ] && \
 fi
 mv "$PASSWORD_FILE.saved" "$PASSWORD_FILE"
 
+# 首次没有记录时，可在明确输入并验证现有管理员密码后自动生成记录。
+rm -f "$PASSWORD_FILE" "$STATE_DIR/sudo-cache"
+PATH="$BIN_DIR:$PATH" HOME="$HOME_DIR" PASSWORD_TEST_STATE="$STATE_DIR" \
+    FAKE_SUDO_PASSWORD="$CHANGED_PASSWORD" PROJECT_ROOT="$PROJECT_ROOT" \
+    bash -c '
+        source "$PROJECT_ROOT/core/auth.sh"
+        printf "%s\n" "$FAKE_SUDO_PASSWORD" | {
+            IFS= read -r supplied
+            authenticate_toolbox_password_value "$supplied"
+            write_captured_toolbox_password "$supplied"
+        }
+    ' >/dev/null 2>&1 || fail "无法根据现有管理员密码生成桌面记录"
+assert_password_record "$CHANGED_PASSWORD"
+
 # 三个需要 sudo 的入口必须统一经过 auth helper，避免旁路明文自动验证。
 for consumer in \
     "$PROJECT_ROOT/modules/plugin_store.sh" \

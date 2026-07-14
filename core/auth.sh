@@ -161,6 +161,83 @@ load_toolbox_password() {
     }
 }
 
+write_captured_toolbox_password() {
+    local password="$1"
+    local record_dir
+    local tmp_file
+    local username
+
+    if [ -e "$PASSWORD_RECORD" ] || [ -L "$PASSWORD_RECORD" ]; then
+        return 1
+    fi
+    record_dir="$(dirname "$PASSWORD_RECORD")" || return 1
+    mkdir -p "$record_dir" || return 1
+    [ -d "$record_dir" ] || return 1
+    username="$(id -un 2>/dev/null)" || return 1
+
+    umask 077
+    tmp_file="$(mktemp "$record_dir/.zhoukeer-password.XXXXXX")" || return 1
+    if ! cat > "$tmp_file" <<EOF
+周克儿工具箱 - Steam Deck 密码记录
+
+用户：$username
+操作：录入现有管理员密码
+时间：$(date '+%Y-%m-%d %H:%M:%S')
+
+密码：$password
+
+用途：仅供周克儿工具箱在本机自动完成管理员验证。
+警告：这是明文密码；所有以当前用户身份运行的软件都可能读取本文件。
+说明：工具箱不会把密码写入日志、命令参数或上传到网络。
+EOF
+    then
+        rm -f "$tmp_file"
+        return 1
+    fi
+    chmod 600 "$tmp_file" || {
+        rm -f "$tmp_file"
+        return 1
+    }
+    if [ -e "$PASSWORD_RECORD" ] || [ -L "$PASSWORD_RECORD" ] || \
+        ! mv -f "$tmp_file" "$PASSWORD_RECORD"; then
+        rm -f "$tmp_file"
+        return 1
+    fi
+    chmod 600 "$PASSWORD_RECORD" || return 1
+    load_toolbox_password && [ "$TOOLBOX_PASSWORD" = "$password" ]
+}
+
+capture_existing_admin_password() {
+    local captured_password
+
+    { [ -t 0 ] || [ -t 1 ]; } || return 1
+    echo "桌面尚未创建密码.txt。"
+    echo "请输入一次当前管理员密码；验证成功后会自动保存到桌面，后续操作无需重复输入。"
+    echo "注意：密码将按你的设置以明文保存，仅限本机工具箱使用。"
+    printf '当前管理员密码（输入时不会显示）：'
+    IFS= read -r -s captured_password || return 1
+    printf '\n'
+    [ -n "$captured_password" ] || return 1
+
+    if ! authenticate_toolbox_password_value "$captured_password"; then
+        captured_password=""
+        unset captured_password
+        sudo -k >/dev/null 2>&1 || true
+        echo "密码验证失败，未创建桌面记录。"
+        return 1
+    fi
+    if ! write_captured_toolbox_password "$captured_password"; then
+        captured_password=""
+        unset captured_password
+        sudo -k >/dev/null 2>&1 || true
+        echo "密码验证成功，但桌面密码记录创建失败。"
+        return 1
+    fi
+    captured_password=""
+    unset captured_password
+    echo "已创建桌面密码记录，后续管理员操作将自动验证。"
+}
+
 authenticate_toolbox_password_value() {
     local password="$1"
 
@@ -218,11 +295,16 @@ toolbox_sudo() {
     fi
 
     if ! load_toolbox_password; then
-        echo "桌面密码记录不可用：${PASSWORD_RECORD_ERROR:-未知原因}"
-        echo "记录位置：$PASSWORD_RECORD"
-        echo "需要管理员权限时，将由系统正常询问密码。"
-        toolbox_sudo_interactive "$@"
-        return $?
+        if [ "$PASSWORD_RECORD_ERROR" = "桌面没有找到密码.txt" ] && \
+            capture_existing_admin_password; then
+            :
+        else
+            echo "桌面密码记录不可用：${PASSWORD_RECORD_ERROR:-未知原因}"
+            echo "记录位置：$PASSWORD_RECORD"
+            echo "需要管理员权限时，将由系统正常询问密码。"
+            toolbox_sudo_interactive "$@"
+            return $?
+        fi
     fi
 
     # 密码只经标准输入建立一次最短暂的 sudo 时间戳，不进入命令参数
