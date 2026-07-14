@@ -287,7 +287,15 @@ install_lsfg_bundle() {
         "${DECKY_LSFG_URL:-}" \
         "${DECKY_LSFG_SHA256:-}" \
         "Decky LSFG-VK"; then
-        echo "请确认已经通过 Steam 正版购买并安装 Lossless Scaling。"
+        echo "请去 Steam 支持正版并安装 Lossless Scaling。"
+        echo "正在打开 Lossless Scaling 的 Steam 商店页面..."
+        if command -v xdg-open >/dev/null 2>&1; then
+            xdg-open "steam://store/993090" >/dev/null 2>&1 &
+        elif command -v steam >/dev/null 2>&1; then
+            steam "steam://store/993090" >/dev/null 2>&1 &
+        else
+            echo "商店地址：https://store.steampowered.com/app/993090/"
+        fi
         return 0
     fi
     return 1

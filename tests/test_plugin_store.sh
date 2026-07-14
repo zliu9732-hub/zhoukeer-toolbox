@@ -16,7 +16,8 @@ grep -Fq 'DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b097
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'install_tree_atomically' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '通过 Steam 正版购买并安装 Lossless Scaling' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '请去 Steam 支持正版并安装 Lossless Scaling' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'steam://store/993090' "$PROJECT_ROOT/modules/plugin_store.sh"
 
 output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg || true)"
 printf '%s\n' "$output" | grep -Fq '仅支持真实 SteamOS 环境'

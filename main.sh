@@ -235,7 +235,7 @@ plugin_store_menu() {
     while true; do
         draw_category_frame plugins "插件商城" "Decky 与三个常用插件均使用 123 云盘国内分流"
         ui_touch_button 7 '\033[1;97;48;5;24m' "安装或更新 Decky Loader" "使用经过固定校验的国内安装源"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "小黄鸭（LSFG-VK）" "安装插件；本体请通过 Steam 正版安装"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "小黄鸭（LSFG-VK）" "安装插件后自动打开 Steam 正版页面"
         ui_touch_button 11 '\033[1;97;48;5;24m' "FSR4（Decky Framegen）" "下载并安装到 Decky 插件目录"
         ui_touch_button 13 '\033[1;97;48;5;24m' "CheatDeck" "下载并安装到 Decky 插件目录"
         ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -245,7 +245,7 @@ plugin_store_menu() {
 
         case "$choice" in
             install) confirm_and_run "Decky Loader插件商城" "使用国内镜像安装器，执行前会校验固定 SHA256" bash "$PROJECT_ROOT/modules/plugin_store.sh" store ;;
-            lsfg) confirm_and_run "小黄鸭（LSFG-VK）" "安装插件前请先在 Steam 正版安装 Lossless Scaling" bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg ;;
+            lsfg) confirm_and_run "小黄鸭（LSFG-VK）" "安装插件后将打开 Lossless Scaling 的 Steam 正版页面" bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg ;;
             fsr4) confirm_and_run "FSR4（Decky Framegen）" "将安装到 Decky 插件目录" bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4 ;;
             cheatdeck) confirm_and_run "CheatDeck" "将安装到 Decky 插件目录" bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
