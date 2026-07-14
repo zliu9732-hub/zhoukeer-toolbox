@@ -5,7 +5,7 @@
 ## 功能
 
 - 设备检测：显示系统、发行版和 SteamOS 环境识别结果。
-- RustDesk 远程工具：支持下载 AppImage，并查看自建服务器配置。
+- RustDesk 远程工具：支持限时重试下载、SHA256 校验、保留旧版本和自建服务器配置指引。
 - Steam Deck 优化：清理 Steam 下载缓存、着色器缓存，并提供性能模式提示。
 - 网络检测：检测基础网络连通性。
 - 安全清理：清理前必须确认，避免误删。
@@ -68,13 +68,17 @@ ${HOME}/.local/share/zhoukeer-toolbox/config/settings.conf
 
 ```bash
 RUSTDESK_DOWNLOAD=""
+RUSTDESK_SHA256=""
 RUSTDESK_ID_SERVER=""
 RUSTDESK_RELAY_SERVER=""
 RUSTDESK_API=""
 RUSTDESK_KEY=""
+RUSTDESK_CONFIG_STRING=""
 ```
 
-不要把私人服务器、Token、Key 或私有下载链接提交到公开仓库。
+`RUSTDESK_KEY` 是可分发给客户端的服务器公钥，不是服务器私钥。禁止在配置中加入服务器私钥、远程密码、API账号、登录Token或其他登录凭据。
+
+`RUSTDESK_CONFIG_STRING` 只能填写 RustDesk 客户端“导出服务器配置”生成的字符串。工具不会根据服务器字段猜测该字符串，也不会直接修改 `RustDesk2.toml`。该项留空、当前 AppImage 不支持普通用户执行 `--config` 或导入失败时，工具会显示手动配置说明。RustDesk 1.4.6 虽然包含 `--config` 命令入口，但要求已安装并使用管理员权限；工具不会为此调用 `sudo`，便携 AppImage 会回退到手动配置。
 
 ## 更新
 
@@ -82,7 +86,7 @@ RUSTDESK_KEY=""
 bash "${HOME}/.local/share/zhoukeer-toolbox/update.sh"
 ```
 
-更新脚本会下载发布包，完成 SHA256 校验后调用安装器覆盖程序文件。重复安装和更新不会覆盖已有 `config/settings.conf`。
+更新脚本会下载发布包，完成 SHA256 校验后调用安装器覆盖程序文件。安装器会保留已有非空配置；当指定的 RustDesk 配置项缺失或为空时，先备份原配置，再从 `settings.example.conf` 补充默认值。
 
 预演更新：
 

@@ -26,12 +26,13 @@ MAX_TIME="${ZHOUKEER_MAX_TIME:-120}"
 
 GITEE_RAW_BASE="${ZHOUKEER_GITEE_RAW_BASE:-https://gitee.com/$GITEE_OWNER/$REPO_NAME/raw/$BRANCH}"
 GITHUB_RAW_BASE="${ZHOUKEER_GITHUB_RAW_BASE:-https://raw.githubusercontent.com/$GITHUB_OWNER/$REPO_NAME/$BRANCH}"
-GITEE_PACKAGE_URL="${ZHOUKEER_GITEE_PACKAGE_URL:-https://gitee.com/$GITEE_OWNER/$REPO_NAME/repository/archive/$BRANCH.tar.gz}"
-GITHUB_PACKAGE_URL="${ZHOUKEER_GITHUB_PACKAGE_URL:-https://github.com/$GITHUB_OWNER/$REPO_NAME/archive/refs/heads/$BRANCH.tar.gz}"
+PACKAGE_NAME="${ZHOUKEER_PACKAGE_NAME:-zhoukeer-toolbox.tar.gz}"
+GITEE_PACKAGE_URL="${ZHOUKEER_GITEE_PACKAGE_URL:-$GITEE_RAW_BASE/dist/$PACKAGE_NAME}"
+GITHUB_PACKAGE_URL="${ZHOUKEER_GITHUB_PACKAGE_URL:-$GITHUB_RAW_BASE/dist/$PACKAGE_NAME}"
 GITEE_VERSION_URL="${ZHOUKEER_GITEE_VERSION_URL:-$GITEE_RAW_BASE/VERSION}"
 GITHUB_VERSION_URL="${ZHOUKEER_GITHUB_VERSION_URL:-$GITHUB_RAW_BASE/VERSION}"
-GITEE_CHECKSUM_URL="${ZHOUKEER_GITEE_CHECKSUM_URL:-$GITEE_RAW_BASE/SHA256SUMS}"
-GITHUB_CHECKSUM_URL="${ZHOUKEER_GITHUB_CHECKSUM_URL:-$GITHUB_RAW_BASE/SHA256SUMS}"
+GITEE_CHECKSUM_URL="${ZHOUKEER_GITEE_CHECKSUM_URL:-$GITEE_RAW_BASE/dist/SHA256SUMS}"
+GITHUB_CHECKSUM_URL="${ZHOUKEER_GITHUB_CHECKSUM_URL:-$GITHUB_RAW_BASE/dist/SHA256SUMS}"
 
 need_command() {
     if ! command -v "$1" >/dev/null 2>&1; then
@@ -57,7 +58,106 @@ download_one() {
     local label="$3"
 
     echo "尝试下载($label): $url"
-    curl -fL --connect-timeout "$CONNECT_TIMEOUT" --max-time "$MAX_TIME" -o "$output" "$url"
+    rm -f -- "$output"
+    curl \
+        --fail \
+        --location \
+        --show-error \
+        --proto '=https' \
+        --proto-redir '=https' \
+        --connect-timeout "$CONNECT_TIMEOUT" \
+        --max-time "$MAX_TIME" \
+        --output "$output" \
+        "$url"
+}
+
+valid_sha256() {
+    local value="$1"
+
+    [ "${#value}" -eq 64 ] || return 1
+    case "$value" in
+        *[!0-9A-Fa-f]*) return 1 ;;
+    esac
+}
+
+checksum_from_manifest() {
+    local manifest="$1"
+    local package_name="$2"
+
+    awk -v name="$package_name" '
+        NF >= 2 {
+            file = $2
+            sub(/^\*/, "", file)
+            if (file == name) {
+                print $1
+                exit
+            }
+        }
+    ' "$manifest"
+}
+
+verify_package() {
+    local package_file="$1"
+    local expected="$2"
+    local actual
+
+    if ! valid_sha256 "$expected"; then
+        echo "SHA256格式无效或校验文件中缺少 $PACKAGE_NAME"
+        return 1
+    fi
+
+    actual="$(sha256_file "$package_file")"
+    expected="$(printf '%s' "$expected" | tr '[:upper:]' '[:lower:]')"
+    if [ "$actual" != "$expected" ]; then
+        echo "SHA256校验失败"
+        echo "期望: $expected"
+        echo "实际: $actual"
+        return 1
+    fi
+
+    echo "SHA256校验通过"
+}
+
+download_verified_package_from() {
+    local label="$1"
+    local package_url="$2"
+    local checksum_url="$3"
+    local package_file="$4"
+    local checksum_file="$5"
+    local expected="${ZHOUKEER_SHA256:-}"
+
+    echo "尝试获取并校验($label)"
+    download_one "$package_url" "$package_file" "$label更新包" || return 1
+
+    if [ -z "$expected" ]; then
+        download_one "$checksum_url" "$checksum_file" "$label校验文件" || return 1
+        expected="$(checksum_from_manifest "$checksum_file" "$PACKAGE_NAME")"
+    fi
+
+    verify_package "$package_file" "$expected"
+}
+
+download_verified_package() {
+    local package_file="$1"
+    local checksum_file="$2"
+
+    if download_verified_package_from \
+        "Gitee" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
+        "$package_file" "$checksum_file"; then
+        DOWNLOAD_SOURCE="Gitee"
+        return 0
+    fi
+
+    echo "Gitee包或校验文件不可用，切换GitHub备用源。"
+    if download_verified_package_from \
+        "GitHub" "$GITHUB_PACKAGE_URL" "$GITHUB_CHECKSUM_URL" \
+        "$package_file" "$checksum_file"; then
+        DOWNLOAD_SOURCE="GitHub"
+        return 0
+    fi
+
+    echo "安装包验证失败：Gitee和GitHub均不可用。"
+    return 1
 }
 
 download_with_fallback() {
@@ -131,37 +231,9 @@ else
 fi
 echo "版本: $VERSION"
 
-echo "[2/5] 下载项目包..."
-download_with_fallback "$PACKAGE_FILE" "项目包" "$GITEE_PACKAGE_URL" "$GITHUB_PACKAGE_URL" || exit 1
-PACKAGE_SOURCE="$DOWNLOAD_SOURCE"
-
-echo "[3/5] SHA256完整性校验..."
-EXPECTED_SHA256="${ZHOUKEER_SHA256:-}"
-if [ -z "$EXPECTED_SHA256" ]; then
-    if [ "$PACKAGE_SOURCE" = "Gitee" ]; then
-        curl -fL --connect-timeout "$CONNECT_TIMEOUT" --max-time "$MAX_TIME" -o "$CHECKSUM_FILE" "$GITEE_CHECKSUM_URL" 2>/dev/null || true
-    else
-        curl -fL --connect-timeout "$CONNECT_TIMEOUT" --max-time "$MAX_TIME" -o "$CHECKSUM_FILE" "$GITHUB_CHECKSUM_URL" 2>/dev/null || true
-    fi
-
-    if [ -s "$CHECKSUM_FILE" ]; then
-        EXPECTED_SHA256="$(awk '/\.tar\.gz/ {print $1; exit} NF >= 1 {candidate=$1} END {if (candidate) print candidate}' "$CHECKSUM_FILE" | head -n 1)"
-    fi
-fi
-
-ACTUAL_SHA256="$(sha256_file "$PACKAGE_FILE")"
-if [ -n "$EXPECTED_SHA256" ]; then
-    if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
-        echo "SHA256校验失败，已停止安装。"
-        echo "期望: $EXPECTED_SHA256"
-        echo "实际: $ACTUAL_SHA256"
-        exit 1
-    fi
-    echo "SHA256校验通过"
-else
-    echo "未获取到 SHA256SUMS，开发阶段继续安装。"
-    echo "当前包 SHA256: $ACTUAL_SHA256"
-fi
+echo "[2/5] 下载并校验项目包..."
+download_verified_package "$PACKAGE_FILE" "$CHECKSUM_FILE" || exit 1
+echo "下载源: $DOWNLOAD_SOURCE"
 
 echo "[4/5] 解压并检查安装器..."
 tar -xzf "$PACKAGE_FILE" -C "$TMP_DIR"

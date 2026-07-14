@@ -4,6 +4,7 @@
 
 # 临时和备份文件
 *.save
+*.bak.*
 
 # 日志文件
 logs/
@@ -18,3 +19,7 @@ logs/
 
 # 本地运行产物
 apps/
+
+# Release版本化产物（dist中的稳定更新包和SHA256SUMS需要提交）
+dist/zhoukeer-toolbox-*.tar.gz
+dist/zhoukeer-toolbox-*.tar.gz.sha256
