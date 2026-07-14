@@ -7,8 +7,18 @@ source "$PROJECT_ROOT/core/platform.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/logger.sh"
 
-DECKY_INSTALLER_URL="https://github.com/SteamDeckHomebrew/decky-installer/releases/latest/download/install_release.sh"
-DECKY_INSTALLER_SHA256="e926a9215efdb6a1449f7fe9e703a8b2495d5be53ab5c7abc4c3968ead472b0b"
+load_config
+
+DECKY_INSTALLER_URL="${DECKY_INSTALLER_URL:-https://www.mhhf.com/Deck/install.sh}"
+DECKY_INSTALLER_SHA256="${DECKY_INSTALLER_SHA256:-e7c504485bccbc223d8aaab5b45e7214362ece97fdb279bde336bd872aa3e4b0}"
+DECKY_TMP_DIR=""
+
+cleanup_decky_tmp() {
+    if [ -n "$DECKY_TMP_DIR" ] && [ -d "$DECKY_TMP_DIR" ]; then
+        rm -rf -- "$DECKY_TMP_DIR"
+    fi
+    DECKY_TMP_DIR=""
+}
 
 calculate_decky_sha256() {
     local file="$1"
@@ -24,8 +34,8 @@ calculate_decky_sha256() {
 confirm_decky_install() {
     local answer
 
-    echo "将安装官方Decky Loader插件商城。"
-    echo "安装器会请求管理员权限并从GitHub下载最新版PluginLoader。"
+    echo "将通过国内镜像安装Decky Loader插件商城。"
+    echo "安装脚本已固定SHA256；执行时会请求Steam Deck管理员权限。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi
@@ -46,7 +56,7 @@ install_plugin_store() {
         echo "插件商城安装仅支持真实SteamOS环境。"
         return 1
     fi
-    for command_name in curl jq sudo; do
+    for command_name in bash curl sudo; do
         require_command "$command_name" || return 1
     done
     confirm_decky_install || {
@@ -55,8 +65,9 @@ install_plugin_store() {
     }
 
     tmp_dir="$(mktemp -d)" || return 1
-    installer="$tmp_dir/install_release.sh"
-    trap 'rm -rf -- "$tmp_dir"' EXIT INT TERM
+    DECKY_TMP_DIR="$tmp_dir"
+    installer="$tmp_dir/install.sh"
+    trap cleanup_decky_tmp EXIT INT TERM
 
     if ! curl \
         --fail \
@@ -69,7 +80,7 @@ install_plugin_store() {
         --retry 3 \
         --output "$installer" \
         "$DECKY_INSTALLER_URL"; then
-        echo "Decky官方安装器下载失败。"
+        echo "Decky国内安装器下载失败。"
         return 1
     fi
 
@@ -88,8 +99,8 @@ install_plugin_store() {
         return 1
     }
 
-    echo "正在启动Decky官方安装器..."
-    if sh "$installer"; then
+    echo "正在启动Decky国内安装器..."
+    if bash "$installer"; then
         echo "Decky Loader安装完成，请返回游戏模式检查插件菜单。"
         log "Decky Loader安装完成"
     else
@@ -98,10 +109,32 @@ install_plugin_store() {
         return 1
     fi
 
-    rm -rf -- "$tmp_dir"
+    cleanup_decky_tmp
     trap - EXIT INT TERM
 }
 
+show_pending_plugin_source() {
+    local plugin_name="$1"
+    local url="$2"
+    local sha256="$3"
+
+    if [ -n "$url" ] && [ -n "$sha256" ]; then
+        echo "$plugin_name 的国内分流已经填入配置，但安装格式仍需完成真机校验。"
+        echo "为避免破坏Decky插件目录，本版暂不执行该安装包。"
+        return 1
+    fi
+
+    echo "$plugin_name 的123云盘国内分流正在整理，暂未开放安装。"
+    echo "请稍后通过左侧“工具箱更新”获取完整的一键安装功能。"
+    return 1
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-    install_plugin_store
+    case "${1:-store}" in
+        store) install_plugin_store ;;
+        lsfg) show_pending_plugin_source "小黄鸭（LSFG-VK）" "${DECKY_LSFG_URL:-}" "${DECKY_LSFG_SHA256:-}" ;;
+        fsr4) show_pending_plugin_source "FSR4（Decky Framegen）" "${DECKY_FSR4_URL:-}" "${DECKY_FSR4_SHA256:-}" ;;
+        cheatdeck) show_pending_plugin_source "CheatDeck" "${DECKY_CHEATDECK_URL:-}" "${DECKY_CHEATDECK_SHA256:-}" ;;
+        *) echo "未知插件操作: $1"; exit 1 ;;
+    esac
 fi

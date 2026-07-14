@@ -78,11 +78,19 @@ ui_touch_button() {
     local color="$2"
     local label="$3"
     local hint="${4:-}"
+    local label_color='\033[1;38;5;255m'
+
+    # 右侧按钮保持透明，让黑白背景能够完整显示；颜色仅用于区分文字状态。
+    case "$color" in
+        *'48;5;114'*) label_color='\033[1;38;5;114m' ;;
+        *'48;5;160'*) label_color='\033[1;38;5;203m' ;;
+        *'48;5;238'*) label_color='\033[1;38;5;250m' ;;
+    esac
 
     ui_move "$row" "$UI_PANEL_COL"
-    printf '%b%-50s%b' "$color" "  $label" "$NC"
+    printf '%b●  %s%b' "$label_color" "$label" "$NC"
     ui_move "$((row + 1))" "$UI_PANEL_COL"
-    printf '%b%-50s%b' "$color" "  $hint" "$NC"
+    printf '\033[38;5;250m   %s%b' "$hint" "$NC"
 }
 
 draw_category_frame() {

@@ -76,12 +76,35 @@ confirm_and_run() {
     draw_category_frame "" "$title" "$message"
     ui_panel_line 9 '\033[1;38;5;255m' "请确认是否继续这项操作"
     ui_touch_button 12 '\033[1;30;48;5;114m' "继续执行" "已授权工具箱完成该操作"
-    ui_touch_button 18 '\033[1;97;48;5;160m' "取消" "不做任何更改，返回菜单"
+    ui_touch_button 18 '\033[1;97;48;5;160m' "返回主菜单" "不做任何更改"
     ui_prompt
-    choice="$(read_menu_choice right:12-13:yes right:18-19:no)"
+    choice="$(read_touch_menu right:12-13:yes right:18-19:no)"
+    if apply_navigation "$choice"; then
+        return 0
+    fi
     if [ "$choice" = "yes" ]; then
         run_action "$title" env ZHOUKEER_AUTO_CONFIRM=1 "$@"
     fi
+}
+
+show_disclaimer() {
+    local choice
+
+    while true; do
+        draw_category_frame "" "使用说明与免责声明" "请阅读并知悉后开始使用"
+        ui_panel_line 9 '\033[1;38;5;255m' "本脚本由 闲鱼：超级妹宝双叶 制作"
+        ui_panel_line 11 '\033[38;5;255m' "支持所有人免费使用，禁止商业使用、销售、转卖或借此盈利"
+        ui_panel_line 13 '\033[38;5;255m' "下载内容均为官方免费发布或开源内容，不包含付费软件本体或破解"
+        ui_panel_line 15 '\033[38;5;250m' "第三方软件与插件请遵守各自许可证；若有侵权请及时联系作者删除"
+        ui_touch_button 18 '\033[1;30;48;5;114m' "知悉并开始使用" "点击即表示已阅读上述说明"
+        ui_touch_button 23 '\033[1;97;48;5;160m' "退出工具箱" "暂不使用"
+        ui_prompt
+        choice="$(read_menu_choice right:18-19:agree right:23-24:exit)"
+        case "$choice" in
+            agree) return 0 ;;
+            exit) exit 0 ;;
+        esac
+    done
 }
 
 read_touch_menu() {
@@ -131,6 +154,7 @@ common_software_menu() {
             protonup) confirm_and_run "安装ProtonUp-Qt" "安装完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" protonup ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
+        [ "$NEXT_CATEGORY" = "software" ] || return 0
     done
 }
 
@@ -153,6 +177,7 @@ remote_assistance_menu() {
             config) run_action "RustDesk服务器配置" bash "$PROJECT_ROOT/modules/rustdesk.sh" --config ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
+        [ "$NEXT_CATEGORY" = "remote" ] || return 0
     done
 }
 
@@ -175,6 +200,7 @@ steam_touch_menu() {
             shader-cache) confirm_and_run "清理着色器缓存" "清理后游戏着色器需要重新生成" bash "$PROJECT_ROOT/modules/steam.sh" shader-cache ;;
             back) return 0 ;;
         esac
+        [ "$NEXT_CATEGORY" = "optimize" ] || return 0
     done
 }
 
@@ -197,6 +223,7 @@ clean_touch_menu() {
             user-cache) confirm_and_run "清理用户缓存" "部分应用会在下次启动时重新生成缓存" bash "$PROJECT_ROOT/modules/clean.sh" user-cache ;;
             back) return 0 ;;
         esac
+        [ "$NEXT_CATEGORY" = "optimize" ] || return 0
     done
 }
 
@@ -204,18 +231,24 @@ plugin_store_menu() {
     local choice
 
     while true; do
-        draw_category_frame plugins "插件商城" "管理 Steam Deck 的 Decky Loader 插件环境"
-        ui_touch_button 10 '\033[1;97;48;5;24m' "安装或更新 Decky Loader" "执行经过校验的 Decky 官方安装器"
-        ui_panel_line 15 '\033[1;38;5;255m' "安装后可以在游戏模式的快捷菜单中使用插件"
-        ui_touch_button 21 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        draw_category_frame plugins "插件商城" "Decky 国内安装源；三个插件的 123 云盘分流即将接入"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "安装或更新 Decky Loader" "使用经过固定校验的国内安装源"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "小黄鸭（LSFG-VK）" "123 云盘国内分流待配置"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "FSR4（Decky Framegen）" "123 云盘国内分流待配置"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "CheatDeck" "123 云盘国内分流待配置"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:10-11:install right:21-22:home)"
+        choice="$(read_touch_menu right:8-9:install right:11-12:lsfg right:14-15:fsr4 right:17-18:cheatdeck right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            install) confirm_and_run "Decky Loader插件商城" "执行经过校验的 Decky 官方安装器" bash "$PROJECT_ROOT/modules/plugin_store.sh" ;;
+            install) confirm_and_run "Decky Loader插件商城" "使用国内镜像安装器，执行前会校验固定 SHA256" bash "$PROJECT_ROOT/modules/plugin_store.sh" store ;;
+            lsfg) run_action "小黄鸭（LSFG-VK）" bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg ;;
+            fsr4) run_action "FSR4（Decky Framegen）" bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4 ;;
+            cheatdeck) run_action "CheatDeck" bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
+        [ "$NEXT_CATEGORY" = "plugins" ] || return 0
     done
 }
 
@@ -236,6 +269,7 @@ system_settings_menu() {
             network) run_action "网络检测与修复" bash "$PROJECT_ROOT/modules/network.sh" ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
+        [ "$NEXT_CATEGORY" = "settings" ] || return 0
     done
 }
 
@@ -258,6 +292,7 @@ system_optimization_menu() {
             fix) confirm_and_run "一键修复模式" "检测网络并安全清理 Steam 下载缓存" bash "$PROJECT_ROOT/modules/fixall.sh" ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
+        [ "$NEXT_CATEGORY" = "optimize" ] || return 0
     done
 }
 
@@ -268,7 +303,7 @@ home_menu() {
     ui_panel_line 9 '\033[1;38;5;220m' "⭐ 第一次使用：点击左侧“新机初始化”"
     ui_panel_line 12 '\033[1;38;5;255m' "💻 常用软件：微信、QQ、ProtonUp-Qt"
     ui_panel_line 14 '\033[1;38;5;255m' "📡 远程协助：ToDesk、RustDesk"
-    ui_panel_line 16 '\033[1;38;5;255m' "🧩 插件商城：Decky Loader"
+    ui_panel_line 16 '\033[1;38;5;255m' "🧩 插件商城：Decky、小黄鸭、FSR4、CheatDeck"
     ui_panel_line 18 '\033[1;38;5;255m' "⚙  系统设置：设备信息、网络检测"
     ui_panel_line 20 '\033[1;38;5;255m' "🚀 系统优化：清理、性能建议、一键修复"
     ui_panel_line 23 '\033[1;38;5;114m' "🔄 工具箱更新：国内 Gitee 优先，GitHub 备用"
@@ -277,12 +312,14 @@ home_menu() {
     apply_navigation "$choice" || true
 }
 
+show_disclaimer
+
 while true; do
     case "$NEXT_CATEGORY" in
         home) home_menu ;;
         init)
             confirm_and_run "一键新机初始化" "安装新机常用项目，部分步骤需要管理员密码" bash "$PROJECT_ROOT/modules/new_machine.sh"
-            NEXT_CATEGORY="home"
+            [ "$NEXT_CATEGORY" = "init" ] && NEXT_CATEGORY="home"
             ;;
         software) common_software_menu ;;
         remote) remote_assistance_menu ;;
@@ -291,7 +328,7 @@ while true; do
         optimize) system_optimization_menu ;;
         update)
             confirm_and_run "更新工具箱" "下载、校验并安全替换为最新版本" bash "$PROJECT_ROOT/update.sh"
-            NEXT_CATEGORY="home"
+            [ "$NEXT_CATEGORY" = "update" ] && NEXT_CATEGORY="home"
             ;;
         exit)
             log "用户退出工具箱"

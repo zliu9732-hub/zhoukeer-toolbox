@@ -35,7 +35,7 @@ run_choice_test '\033[<64;40;13M\033[<32;40;13M\033[<0;40;18M' "cancel" "right:1
 # 大按钮使用行范围命中，不再要求精确点在单行文字上。
 run_choice_test '\033[<0;15;6M' "software" "left:5-6:software"
 
-grep -Fq 'Font=Noto Sans Mono CJK SC,21' "$PROJECT_ROOT/install.sh"
+grep -Fq 'Font=Noto Sans Mono CJK SC,20' "$PROJECT_ROOT/install.sh"
 grep -Fq 'WINDOW_SIZE="1220x740"' "$PROJECT_ROOT/launch.sh"
 grep -Fq 'FillStyle=Crop' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
 grep -Fq 'Wallpaper=@WALLPAPER@' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
@@ -46,4 +46,12 @@ if grep -Eq -- '--hide-(menubar|toolbars|tabbar)' "$PROJECT_ROOT/launch.sh" "$PR
     exit 1
 fi
 
-echo "PASS: 纯触控、大按钮、大字体和背景主题测试通过"
+grep -Fq '知悉并开始使用' "$PROJECT_ROOT/main.sh"
+grep -Fq '闲鱼：超级妹宝双叶' "$PROJECT_ROOT/main.sh"
+grep -Fq '小黄鸭（LSFG-VK）' "$PROJECT_ROOT/main.sh"
+if sed -n '/ui_touch_button()/,/^}/p' "$PROJECT_ROOT/core/ui.sh" | grep -Fq "printf '%b%-50s%b'"; then
+    echo "FAIL: 右侧按钮仍在绘制整块色块"
+    exit 1
+fi
+
+echo "PASS: 纯触控、透明按钮、免责声明、字体和背景主题测试通过"

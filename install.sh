@@ -32,6 +32,14 @@ CONFIG_MIGRATION_VARIABLES=(
     TODESK_ARCHIVE_URL
     TODESK_PACKAGE_NAME
     TODESK_PACKAGE_SHA256
+    DECKY_INSTALLER_URL
+    DECKY_INSTALLER_SHA256
+    DECKY_LSFG_URL
+    DECKY_LSFG_SHA256
+    DECKY_FSR4_URL
+    DECKY_FSR4_SHA256
+    DECKY_CHEATDECK_URL
+    DECKY_CHEATDECK_SHA256
 )
 CONFIG_MIGRATION_KEYS=()
 CONFIG_MIGRATION_DEFAULTS=()
@@ -357,7 +365,7 @@ copy_dir_files() {
     done
 }
 
-for file in main.sh main_old.sh launch.sh install.sh uninstall.sh update.sh bootstrap.sh README.md VERSION .gitignore; do
+for file in main.sh main_old.sh launch.sh install.sh uninstall.sh update.sh bootstrap.sh i README.md VERSION .gitignore; do
     if [ -f "$SOURCE_ROOT/$file" ]; then
         copy_file "$SOURCE_ROOT/$file" "$STAGING_DIR/$file"
     fi
@@ -429,7 +437,7 @@ if [ -f "$INSTALL_DIR/assets/Zhoukeer.colorscheme.in" ] && [ -f "$BACKGROUND_PAT
     cat > "$KONSOLE_PROFILE" <<EOF
 [Appearance]
 ColorScheme=ZhoukeerToolbox
-Font=Noto Sans Mono CJK SC,21,-1,5,50,0,0,0,0,0
+Font=Noto Sans Mono CJK SC,20,-1,5,50,0,0,0,0,0
 LineSpacing=2
 
 [General]
