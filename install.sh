@@ -357,7 +357,7 @@ copy_dir_files() {
     done
 }
 
-for file in main.sh main_old.sh install.sh uninstall.sh update.sh bootstrap.sh README.md VERSION .gitignore; do
+for file in main.sh main_old.sh launch.sh install.sh uninstall.sh update.sh bootstrap.sh README.md VERSION .gitignore; do
     if [ -f "$SOURCE_ROOT/$file" ]; then
         copy_file "$SOURCE_ROOT/$file" "$STAGING_DIR/$file"
     fi
@@ -446,7 +446,7 @@ cat > "$DESKTOP_FILE" <<EOF
 Type=Application
 Name=周克儿工具箱
 Comment=Steam Deck工具箱
-Exec=konsole --profile "$KONSOLE_PROFILE" --separate --hide-menubar --hide-toolbars --hide-tabbar --geometry 1180x720 --workdir "$INSTALL_DIR" -e bash "$INSTALL_DIR/main.sh" --touch
+Exec=bash "$INSTALL_DIR/launch.sh"
 Icon=$ICON_ENTRY
 Terminal=false
 Categories=Utility;

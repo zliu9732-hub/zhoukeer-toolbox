@@ -38,6 +38,11 @@ run_choice_test '\033[<0;15;7M' "software" "left:6-7:software"
 grep -Fq 'Font=Noto Sans Mono CJK SC,19' "$PROJECT_ROOT/install.sh"
 grep -Fq 'FillStyle=Crop' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
 grep -Fq 'Wallpaper=@WALLPAPER@' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
-grep -Fq 'Exec=konsole --profile' "$PROJECT_ROOT/install.sh"
+grep -Fq 'Exec=bash "$INSTALL_DIR/launch.sh"' "$PROJECT_ROOT/install.sh"
+grep -Fq 'launch_basic' "$PROJECT_ROOT/launch.sh"
+if grep -Eq -- '--hide-(menubar|toolbars|tabbar)' "$PROJECT_ROOT/launch.sh" "$PROJECT_ROOT/install.sh"; then
+    echo "FAIL: 启动流程仍包含旧版 Konsole 可能不支持的参数"
+    exit 1
+fi
 
 echo "PASS: 纯触控、大按钮、大字体和背景主题测试通过"
