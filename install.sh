@@ -22,6 +22,7 @@ CONFIG_EXAMPLE_FILE="$SOURCE_ROOT/config/settings.example.conf"
 
 CONFIG_MIGRATION_VARIABLES=(
     RUSTDESK_DOWNLOAD
+    RUSTDESK_DOWNLOAD_FALLBACK
     RUSTDESK_SHA256
     RUSTDESK_ID_SERVER
     RUSTDESK_RELAY_SERVER
@@ -71,6 +72,45 @@ assignment_is_empty() {
     esac
 }
 
+assignment_value() {
+    local assignment="$1"
+    local first
+    local last
+    local value
+
+    value="${assignment#*=}"
+    value="$(printf '%s' "$value" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+    if [ "${#value}" -ge 2 ]; then
+        first="${value%"${value#?}"}"
+        last="${value#"${value%?}"}"
+        if { [ "$first" = '"' ] && [ "$last" = '"' ]; } || \
+            { [ "$first" = "'" ] && [ "$last" = "'" ]; }; then
+            value="${value#?}"
+            value="${value%?}"
+        fi
+    fi
+    printf '%s\n' "$value"
+}
+
+assignment_is_legacy_default() {
+    local key="$1"
+    local assignment="$2"
+    local value
+
+    value="$(assignment_value "$assignment")"
+    case "$key:$value" in
+        RUSTDESK_DOWNLOAD:https://github.com/rustdesk/rustdesk/releases/download/1.4.6/rustdesk-1.4.6-x86_64.AppImage)
+            return 0
+            ;;
+        RUSTDESK_SHA256:f91b13ac685cd63b28157d5387d8329910229d5e0e4e228b5d27d2163e664a5f)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
 prepare_config_migration() {
     local config_file="$1"
     local example_file="$2"
@@ -106,6 +146,9 @@ prepare_config_migration() {
 
         # 示例默认值同样为空时，现有空赋值已经与默认配置一致，无需反复迁移。
         if assignment_is_empty "$current_assignment" && ! assignment_is_empty "$default_assignment"; then
+            CONFIG_MIGRATION_KEYS+=("$key")
+            CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
+        elif assignment_is_legacy_default "$key" "$current_assignment"; then
             CONFIG_MIGRATION_KEYS+=("$key")
             CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
         fi
@@ -250,8 +293,42 @@ echo "安装目录: $INSTALL_DIR"
 echo "模式: $([ "$DRY_RUN" -eq 1 ] && echo dry-run || echo install)"
 echo ""
 
-mkdir -p "$INSTALL_DIR" "$INSTALL_DIR/config" "$INSTALL_DIR/apps" "$INSTALL_DIR/logs"
+INSTALL_PARENT="$(dirname "$INSTALL_DIR")"
+INSTALL_NAME="$(basename "$INSTALL_DIR")"
+STAGING_DIR="$INSTALL_PARENT/.${INSTALL_NAME}.install.$$"
+BACKUP_DIR="$INSTALL_PARENT/.${INSTALL_NAME}.backup.$$"
+SWAP_STARTED=0
+SWAP_FINISHED=0
+
+cleanup_install() {
+    if [ -n "${STAGING_DIR:-}" ] && [ -d "$STAGING_DIR" ]; then
+        rm -rf -- "$STAGING_DIR"
+    fi
+
+    if [ "$SWAP_STARTED" -eq 1 ] && [ "$SWAP_FINISHED" -eq 0 ] && \
+        [ -d "$BACKUP_DIR" ] && [ ! -e "$INSTALL_DIR" ]; then
+        mv -- "$BACKUP_DIR" "$INSTALL_DIR" || \
+            echo "警告：自动恢复旧版本失败，旧文件保存在: $BACKUP_DIR"
+    fi
+}
+
+trap 'exit 130' INT TERM
+trap cleanup_install EXIT
+
+mkdir -p "$INSTALL_PARENT"
+rm -rf -- "$STAGING_DIR" "$BACKUP_DIR"
+mkdir -p "$STAGING_DIR/config" "$STAGING_DIR/apps" "$STAGING_DIR/logs"
 mkdir -p "$HOME/.local/share/applications"
+
+# 配置、已下载应用和日志属于用户数据，先复制到新版本暂存目录。
+# 新程序完全准备好后才会一次切换，避免更新中断形成新旧混合版本。
+if [ -d "$INSTALL_DIR" ]; then
+    for persistent_dir in config apps logs; do
+        if [ -d "$INSTALL_DIR/$persistent_dir" ]; then
+            cp -a "$INSTALL_DIR/$persistent_dir/." "$STAGING_DIR/$persistent_dir/" || exit 1
+        fi
+    done
+fi
 
 copy_file() {
     local src="$1"
@@ -275,13 +352,13 @@ copy_dir_files() {
                 continue
                 ;;
         esac
-        copy_file "$src" "$INSTALL_DIR/$rel"
+        copy_file "$src" "$STAGING_DIR/$rel"
     done
 }
 
 for file in main.sh main_old.sh install.sh uninstall.sh update.sh bootstrap.sh README.md VERSION .gitignore; do
     if [ -f "$SOURCE_ROOT/$file" ]; then
-        copy_file "$SOURCE_ROOT/$file" "$INSTALL_DIR/$file"
+        copy_file "$SOURCE_ROOT/$file" "$STAGING_DIR/$file"
     fi
 done
 
@@ -291,17 +368,40 @@ copy_dir_files utils
 copy_dir_files config
 copy_dir_files assets
 
+CONFIG_FILE="$STAGING_DIR/config/settings.conf"
 if [ ! -f "$CONFIG_FILE" ]; then
-    if [ -f "$INSTALL_DIR/config/settings.example.conf" ]; then
-        cp "$INSTALL_DIR/config/settings.example.conf" "$CONFIG_FILE"
+    if [ -f "$STAGING_DIR/config/settings.example.conf" ]; then
+        cp "$STAGING_DIR/config/settings.example.conf" "$CONFIG_FILE"
         echo "已创建用户配置: $CONFIG_FILE"
     fi
 else
-    prepare_config_migration "$CONFIG_FILE" "$INSTALL_DIR/config/settings.example.conf" || exit 1
+    prepare_config_migration "$CONFIG_FILE" "$STAGING_DIR/config/settings.example.conf" || exit 1
     migrate_existing_config "$CONFIG_FILE" || exit 1
 fi
 
-find "$INSTALL_DIR" -maxdepth 3 -type f -name "*.sh" -exec chmod +x {} +
+if ! find "$STAGING_DIR" -type f -name '*.sh' -exec bash -n {} \;; then
+    echo "新版本包含Shell语法错误，旧版本保持不变。"
+    exit 1
+fi
+find "$STAGING_DIR" -maxdepth 3 -type f -name "*.sh" -exec chmod +x {} +
+
+if [ -d "$INSTALL_DIR" ]; then
+    SWAP_STARTED=1
+    if ! mv -- "$INSTALL_DIR" "$BACKUP_DIR"; then
+        echo "无法备份旧版本，安装已停止。"
+        exit 1
+    fi
+fi
+
+if ! mv -- "$STAGING_DIR" "$INSTALL_DIR"; then
+    echo "无法启用新版本，正在恢复旧版本。"
+    exit 1
+fi
+SWAP_FINISHED=1
+
+if [ -d "$BACKUP_DIR" ]; then
+    rm -rf -- "$BACKUP_DIR"
+fi
 
 DESKTOP_FILE="$HOME/Desktop/周克儿工具箱.desktop"
 APPLICATION_FILE="$HOME/.local/share/applications/zhoukeer-toolbox.desktop"

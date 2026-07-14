@@ -218,14 +218,19 @@ install_todesk() {
 
     readonly_status="$(steamos-readonly status 2>/dev/null || true)"
     if printf '%s' "$readonly_status" | grep -qi 'enabled'; then
+        # 先登记需要恢复并注册处理，再修改只读状态，避免异常中断留下关闭状态。
+        TODESK_READONLY_CHANGED=1
+        trap cleanup_todesk EXIT INT TERM
         if ! sudo steamos-readonly disable; then
             echo "无法关闭SteamOS只读保护。"
+            cleanup_todesk
+            TODESK_READONLY_CHANGED=0
+            trap - EXIT INT TERM
             return 1
         fi
-        TODESK_READONLY_CHANGED=1
+    else
+        trap cleanup_todesk EXIT INT TERM
     fi
-
-    trap cleanup_todesk EXIT INT TERM
 
     echo "正在准备pacman密钥..."
     sudo pacman-key --init || return 1

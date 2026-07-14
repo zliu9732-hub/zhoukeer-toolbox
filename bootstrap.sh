@@ -127,10 +127,10 @@ download_verified_package_from() {
     local expected="${ZHOUKEER_SHA256:-}"
 
     echo "尝试获取并校验($label)"
-    download_one "$package_url" "$package_file" "$label更新包" || return 1
+    download_one "$package_url" "$package_file" "${label}更新包" || return 1
 
     if [ -z "$expected" ]; then
-        download_one "$checksum_url" "$checksum_file" "$label校验文件" || return 1
+        download_one "$checksum_url" "$checksum_file" "${label}校验文件" || return 1
         expected="$(checksum_from_manifest "$checksum_file" "$PACKAGE_NAME")"
     fi
 
@@ -223,7 +223,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "[1/5] 获取版本信息..."
+echo "[1/4] 获取版本信息..."
 if download_with_fallback "$VERSION_FILE" "版本信息" "$GITEE_VERSION_URL" "$GITHUB_VERSION_URL"; then
     VERSION="$(tr -d '\r\n' < "$VERSION_FILE")"
 else
@@ -231,24 +231,29 @@ else
 fi
 echo "版本: $VERSION"
 
-echo "[2/5] 下载并校验项目包..."
+echo "[2/4] 下载并校验项目包..."
 download_verified_package "$PACKAGE_FILE" "$CHECKSUM_FILE" || exit 1
 echo "下载源: $DOWNLOAD_SOURCE"
 
-echo "[4/5] 解压并检查安装器..."
+echo "[3/4] 解压并检查安装器..."
 tar -xzf "$PACKAGE_FILE" -C "$TMP_DIR"
-PACKAGE_DIR="$(find "$TMP_DIR" -mindepth 1 -maxdepth 2 -type f -name install.sh -print | head -n 1)"
-PACKAGE_DIR="$(dirname "$PACKAGE_DIR")"
+INSTALLER_PATH="$(find "$TMP_DIR" -mindepth 1 -maxdepth 2 -type f -name install.sh -print | head -n 1)"
 
-if [ -z "$PACKAGE_DIR" ] || [ ! -f "$PACKAGE_DIR/install.sh" ]; then
+if [ -z "$INSTALLER_PATH" ] || [ ! -f "$INSTALLER_PATH" ]; then
     echo "项目包不完整：未找到 install.sh"
     exit 1
 fi
+PACKAGE_DIR="$(dirname "$INSTALLER_PATH")"
 
 if [ ! -f "$PACKAGE_DIR/main.sh" ] || [ ! -d "$PACKAGE_DIR/modules" ] || [ ! -d "$PACKAGE_DIR/core" ]; then
     echo "项目包不完整：缺少 main.sh、modules 或 core"
     exit 1
 fi
 
-echo "[5/5] 调用安装器..."
-ZHOUKEER_INSTALL_DIR="$INSTALL_DIR" bash "$PACKAGE_DIR/install.sh"
+if ! find "$PACKAGE_DIR" -type f -name '*.sh' -exec bash -n {} \;; then
+    echo "项目包包含Shell语法错误，已停止安装。"
+    exit 1
+fi
+
+echo "[4/4] 调用安装器..."
+ZHOUKEER_INSTALL_DIR="$INSTALL_DIR" bash "$INSTALLER_PATH"

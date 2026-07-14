@@ -55,7 +55,7 @@ make_blank_config() {
 
     mkdir -p "$(dirname "$destination")"
     awk '
-        /^RUSTDESK_[A-Z0-9_]+=/ {
+        /^(RUSTDESK|TODESK)_[A-Z0-9_]+=/ {
             split($0, parts, "=")
             print parts[1] "=\"\""
             next
@@ -90,13 +90,19 @@ test_blank_config_migration() {
     run_installer "$case_root/home" "$install_dir"
 
     assert_value "$config_file" RUSTDESK_DOWNLOAD \
-        "https://github.com/rustdesk/rustdesk/releases/download/1.4.6/rustdesk-1.4.6-x86_64.AppImage"
+        "https://1846467258.cdn.123clouddisk.com/1846467258/%E8%A7%86%E9%A2%91/rustdesk-1.4.8-x86_64.AppImage"
+    assert_value "$config_file" RUSTDESK_DOWNLOAD_FALLBACK \
+        "https://github.com/rustdesk/rustdesk/releases/download/1.4.8/rustdesk-1.4.8-x86_64.AppImage"
     assert_value "$config_file" RUSTDESK_ID_SERVER "293035.xyz:48845"
     assert_value "$config_file" RUSTDESK_RELAY_SERVER "293035.xyz:48846"
     assert_value "$config_file" RUSTDESK_API "http://293035.xyz:48843"
     assert_value "$config_file" RUSTDESK_KEY \
         "2Vx42GidjDLgp0kT5akymxN3BjXSOLH0QQuhe2TAS4g="
     assert_value "$config_file" RUSTDESK_CONFIG_STRING ""
+    assert_value "$config_file" TODESK_PACKAGE_NAME \
+        "todesk-bin-4.7.2.0-4-x86_64.pkg.tar.zst"
+    assert_value "$config_file" TODESK_PACKAGE_SHA256 \
+        "60026e9a7163611cd5feba6ed3d246fa4c9763cb95c04e07da09052243e12a29"
 
     backup_count="$(find "$install_dir/config" -maxdepth 1 -type f \
         -name 'settings.conf.bak.*' | wc -l | tr -d ' ')"
@@ -123,6 +129,37 @@ test_custom_config_preserved() {
     assert_value "$config_file" RUSTDESK_API "https://custom.example/api"
     assert_value "$config_file" RUSTDESK_KEY "custom-public-key"
     assert_value "$config_file" RUSTDESK_CONFIG_STRING "custom-config-string"
+}
+
+test_legacy_rustdesk_defaults_upgraded() {
+    local case_root="$TMP_ROOT/legacy-rustdesk"
+    local install_dir="$case_root/install"
+    local config_file="$install_dir/config/settings.conf"
+
+    mkdir -p "$(dirname "$config_file")"
+    cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
+    awk '
+        /^RUSTDESK_DOWNLOAD=/ {
+            print "RUSTDESK_DOWNLOAD=\"https://github.com/rustdesk/rustdesk/releases/download/1.4.6/rustdesk-1.4.6-x86_64.AppImage\""
+            next
+        }
+        /^RUSTDESK_DOWNLOAD_FALLBACK=/ { next }
+        /^RUSTDESK_SHA256=/ {
+            print "RUSTDESK_SHA256=\"f91b13ac685cd63b28157d5387d8329910229d5e0e4e228b5d27d2163e664a5f\""
+            next
+        }
+        { print }
+    ' "$config_file" > "$config_file.legacy"
+    mv "$config_file.legacy" "$config_file"
+
+    run_installer "$case_root/home" "$install_dir"
+
+    assert_value "$config_file" RUSTDESK_DOWNLOAD \
+        "https://1846467258.cdn.123clouddisk.com/1846467258/%E8%A7%86%E9%A2%91/rustdesk-1.4.8-x86_64.AppImage"
+    assert_value "$config_file" RUSTDESK_DOWNLOAD_FALLBACK \
+        "https://github.com/rustdesk/rustdesk/releases/download/1.4.8/rustdesk-1.4.8-x86_64.AppImage"
+    assert_value "$config_file" RUSTDESK_SHA256 \
+        "ae1ec1a6f4f92da41acad6d166a362bd39bbbd02bb70265641558696c2509ccb"
 }
 
 test_missing_config_created() {
@@ -155,6 +192,7 @@ test_dry_run_has_no_side_effects() {
 
 test_blank_config_migration
 test_custom_config_preserved
+test_legacy_rustdesk_defaults_upgraded
 test_missing_config_created
 test_dry_run_has_no_side_effects
 

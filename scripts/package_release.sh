@@ -21,6 +21,8 @@ tar \
     --exclude="dist" \
     --exclude="logs" \
     --exclude="apps" \
+    --exclude="*.save" \
+    --exclude="*.bak.*" \
     --exclude="config/settings.conf" \
     -czf "$PACKAGE_PATH" .
 

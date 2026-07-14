@@ -58,6 +58,28 @@ validate_rustdesk_settings() {
     fi
 }
 
+download_rustdesk_file() {
+    local output="$1"
+    local url="$2"
+    local label="$3"
+
+    [ -n "$url" ] || return 1
+    echo "尝试下载($label): $url"
+    curl \
+        --fail \
+        --location \
+        --show-error \
+        --proto '=https' \
+        --proto-redir '=https' \
+        --connect-timeout "$RUSTDESK_CONNECT_TIMEOUT" \
+        --max-time "$RUSTDESK_MAX_TIME" \
+        --retry "$RUSTDESK_RETRIES" \
+        --retry-delay 2 \
+        --retry-all-errors \
+        --output "$output" \
+        "$url"
+}
+
 show_manual_config() {
     echo ""
     echo "请打开 RustDesk → 设置 → 网络 → 解锁网络设置，手动填写："
@@ -176,23 +198,15 @@ install_rustdesk() {
     }
 
     echo "[1/4] 下载 RustDesk..."
-    if ! curl \
-        --fail \
-        --location \
-        --show-error \
-        --proto '=https' \
-        --proto-redir '=https' \
-        --connect-timeout "$RUSTDESK_CONNECT_TIMEOUT" \
-        --max-time "$RUSTDESK_MAX_TIME" \
-        --retry "$RUSTDESK_RETRIES" \
-        --retry-delay 2 \
-        --retry-all-errors \
-        --output "$download_tmp" \
-        "$RUSTDESK_DOWNLOAD"; then
-        echo "下载失败，已保留现有 RustDesk。"
-        rm -f -- "$download_tmp"
-        log "RustDesk下载失败，已保留旧版本"
-        return 1
+    if ! download_rustdesk_file "$download_tmp" "$RUSTDESK_DOWNLOAD" "123云盘"; then
+        echo "主下载源失败，切换RustDesk官方GitHub备用源。"
+        if ! download_rustdesk_file \
+            "$download_tmp" "${RUSTDESK_DOWNLOAD_FALLBACK:-}" "GitHub"; then
+            echo "下载失败，已保留现有 RustDesk。"
+            rm -f -- "$download_tmp"
+            log "RustDesk下载失败，已保留旧版本"
+            return 1
+        fi
     fi
 
     echo "[2/4] 校验 SHA256..."
