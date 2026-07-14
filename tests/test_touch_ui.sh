@@ -33,9 +33,10 @@ run_choice_test '\033[<0;40;13m\033[<0;40;18M' "cancel" "right:18-19:cancel"
 run_choice_test '\033[<64;40;13M\033[<32;40;13M\033[<0;40;18M' "cancel" "right:18-19:cancel"
 
 # 大按钮使用行范围命中，不再要求精确点在单行文字上。
-run_choice_test '\033[<0;15;7M' "software" "left:6-7:software"
+run_choice_test '\033[<0;15;6M' "software" "left:5-6:software"
 
-grep -Fq 'Font=Noto Sans Mono CJK SC,19' "$PROJECT_ROOT/install.sh"
+grep -Fq 'Font=Noto Sans Mono CJK SC,21' "$PROJECT_ROOT/install.sh"
+grep -Fq 'WINDOW_SIZE="1220x740"' "$PROJECT_ROOT/launch.sh"
 grep -Fq 'FillStyle=Crop' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
 grep -Fq 'Wallpaper=@WALLPAPER@' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
 grep -Fq 'Exec=bash "$INSTALL_DIR/launch.sh"' "$PROJECT_ROOT/install.sh"

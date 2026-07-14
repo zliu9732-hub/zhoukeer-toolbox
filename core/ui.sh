@@ -8,7 +8,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
 UI_SIDEBAR_WIDTH=29
 UI_SEPARATOR_COL=32
 UI_PANEL_COL=35
-UI_LAST_ROW=29
+UI_LAST_ROW=27
 
 logo() {
 echo -e "${BLUE}"
@@ -99,14 +99,14 @@ draw_category_frame() {
         row=$((row + 1))
     done
 
-    ui_sidebar_item 3 init "⭐ 新机初始化" "$selected"
-    ui_sidebar_item 6 software "💻 常用软件" "$selected"
-    ui_sidebar_item 9 remote "📡 远程协助" "$selected"
-    ui_sidebar_item 12 plugins "🧩 插件商城" "$selected"
-    ui_sidebar_item 15 settings "⚙  系统设置" "$selected"
-    ui_sidebar_item 18 optimize "🚀 系统优化" "$selected"
-    ui_sidebar_item 21 update "🔄 工具箱更新" "$selected"
-    ui_sidebar_item 26 exit "✖  退出工具箱" "$selected"
+    ui_sidebar_item 2 init "⭐ 新机初始化" "$selected"
+    ui_sidebar_item 5 software "💻 常用软件" "$selected"
+    ui_sidebar_item 8 remote "📡 远程协助" "$selected"
+    ui_sidebar_item 11 plugins "🧩 插件商城" "$selected"
+    ui_sidebar_item 14 settings "⚙  系统设置" "$selected"
+    ui_sidebar_item 17 optimize "🚀 系统优化" "$selected"
+    ui_sidebar_item 20 update "🔄 工具箱更新" "$selected"
+    ui_sidebar_item 24 exit "✖  退出工具箱" "$selected"
 
     row=2
     while [ "$row" -le "$UI_LAST_ROW" ]; do

@@ -4,6 +4,14 @@ set -u
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# 直接在 Konsole 中运行 main.sh 时，自动转入专用主题窗口。
+# launch.sh 会设置标记，避免新窗口再次重启形成循环。
+if [ "${ZHOUKEER_LAUNCHED:-0}" != "1" ] && \
+    [ -x "$PROJECT_ROOT/launch.sh" ] && \
+    command -v konsole >/dev/null 2>&1; then
+    exec bash "$PROJECT_ROOT/launch.sh"
+fi
+
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/env.sh"
 # shellcheck disable=SC1091
@@ -78,14 +86,14 @@ confirm_and_run() {
 
 read_touch_menu() {
     read_menu_choice \
-        left:3-4:nav-init \
-        left:6-7:nav-software \
-        left:9-10:nav-remote \
-        left:12-13:nav-plugins \
-        left:15-16:nav-settings \
-        left:18-19:nav-optimize \
-        left:21-22:nav-update \
-        left:26-27:nav-exit \
+        left:2-3:nav-init \
+        left:5-6:nav-software \
+        left:8-9:nav-remote \
+        left:11-12:nav-plugins \
+        left:14-15:nav-settings \
+        left:17-18:nav-optimize \
+        left:20-21:nav-update \
+        left:24-25:nav-exit \
         "$@"
 }
 
