@@ -252,4 +252,7 @@ fi
 echo "[4/4] 调用安装器..."
 ZHOUKEER_INSTALL_DIR="$PROJECT_ROOT" bash "$INSTALLER_PATH"
 
+# 安装目录采用原子替换；恢复当前工作目录，避免调用方继续引用已删除的旧目录。
+cd "$PROJECT_ROOT" 2>/dev/null || cd "$HOME" || exit 1
+
 echo "自更新完成"

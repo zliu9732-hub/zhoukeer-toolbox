@@ -421,7 +421,7 @@ cat > "$DESKTOP_FILE" <<EOF
 Type=Application
 Name=周克儿工具箱
 Comment=Steam Deck工具箱
-Exec=konsole --workdir "$INSTALL_DIR" -e bash "$INSTALL_DIR/main.sh"
+Exec=konsole --geometry 1000x650 --workdir "$INSTALL_DIR" -e bash "$INSTALL_DIR/main.sh" --touch
 Icon=$ICON_ENTRY
 Terminal=false
 Categories=Utility;

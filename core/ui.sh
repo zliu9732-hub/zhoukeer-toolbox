@@ -100,5 +100,95 @@ draw_category_frame() {
 
 ui_prompt() {
     ui_move 23 2
-    printf '\033[0m\033[2K\033[1;38;5;45m请选择：\033[0m'
+    printf '\033[0m\033[2K\033[1;38;5;45m可直接点击菜单，也可使用键盘：\033[0m'
+}
+
+enable_mouse_tracking() {
+    printf '\033[?1000h\033[?1006h'
+}
+
+disable_mouse_tracking() {
+    printf '\033[?1000l\033[?1006l'
+}
+
+read_ui_event() {
+    local char
+    local first
+    local index
+    local old_ifs
+    local payload
+    local sequence=""
+
+    UI_EVENT_TYPE=""
+    UI_EVENT_KEY=""
+    UI_EVENT_X=""
+    UI_EVENT_Y=""
+
+    IFS= read -rsn1 first || return 1
+    if [ "$first" != $'\033' ]; then
+        UI_EVENT_TYPE="key"
+        UI_EVENT_KEY="$first"
+        return 0
+    fi
+
+    index=0
+    while [ "$index" -lt 32 ]; do
+        IFS= read -rsn1 -t 1 char || break
+        sequence="$sequence$char"
+        case "$char" in
+            M|m) break ;;
+        esac
+        index=$((index + 1))
+    done
+
+    case "$sequence" in
+        '[<'*M)
+            payload="${sequence#'[<'}"
+            payload="${payload%M}"
+            old_ifs="$IFS"
+            IFS=';'
+            # shellcheck disable=SC2162
+            read UI_EVENT_BUTTON UI_EVENT_X UI_EVENT_Y <<EOF
+$payload
+EOF
+            IFS="$old_ifs"
+            UI_EVENT_TYPE="click"
+            return 0
+            ;;
+    esac
+
+    UI_EVENT_TYPE="key"
+    UI_EVENT_KEY="$first"
+}
+
+read_menu_choice() {
+    local mapping
+    local region
+    local row
+    local value
+
+    while read_ui_event; do
+        if [ "$UI_EVENT_TYPE" = "key" ]; then
+            printf '%s\n' "$UI_EVENT_KEY"
+            return 0
+        fi
+
+        for mapping in "$@"; do
+            region="${mapping%%:*}"
+            mapping="${mapping#*:}"
+            row="${mapping%%:*}"
+            value="${mapping#*:}"
+
+            [ "$UI_EVENT_Y" = "$row" ] || continue
+            case "$region" in
+                left) [ "$UI_EVENT_X" -le 26 ] || continue ;;
+                right) [ "$UI_EVENT_X" -ge 28 ] || continue ;;
+                any) ;;
+                *) continue ;;
+            esac
+            printf '%s\n' "$value"
+            return 0
+        done
+    done
+    return 1
 }

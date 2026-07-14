@@ -29,13 +29,17 @@ gui_notice() {
 }
 
 run_gui_action() {
+    local status
     local title="$1"
     shift
 
     print_header
     print_section_title "$title"
     echo ""
-    if "$@"; then
+    "$@"
+    status=$?
+    cd "$PROJECT_ROOT" 2>/dev/null || cd "$HOME" 2>/dev/null || true
+    if [ "$status" -eq 0 ]; then
         gui_notice "$title 已完成。"
     else
         gui_dialog --error "$title 未完成，请查看终端中的提示。"
@@ -53,17 +57,17 @@ software_menu() {
             back "返回主菜单")" || return 0
         case "$choice" in
             wechat)
-                gui_confirm "将通过 Flathub 安装微信，是否继续？" && \
+                gui_confirm "将优先通过国内Flathub缓存安装微信，并自动创建桌面图标。是否继续？" && \
                     run_gui_action "安装微信" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" wechat
                 ;;
             qq)
-                gui_confirm "将通过 Flathub 安装 QQ，是否继续？" && \
+                gui_confirm "将优先通过国内Flathub缓存安装QQ，并自动创建桌面图标。是否继续？" && \
                     run_gui_action "安装QQ" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" qq
                 ;;
             protonup)
-                gui_confirm "将安装 ProtonUp-Qt 兼容层管理器，是否继续？" && \
+                gui_confirm "将安装ProtonUp-Qt并自动创建桌面图标，是否继续？" && \
                     run_gui_action "安装ProtonUp-Qt" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" protonup
                 ;;

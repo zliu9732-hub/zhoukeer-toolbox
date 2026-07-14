@@ -7,19 +7,32 @@ source "$PROJECT_ROOT/core/platform.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/logger.sh"
 
+FLATHUB_CN_REMOTE="flathub-cn"
+FLATHUB_OFFICIAL_REMOTE="flathub"
+FLATHUB_CN_URL="${ZHOUKEER_FLATHUB_CN_URL:-https://mirrors.ustc.edu.cn/flathub}"
+FLATHUB_REPO_FILE_PRIMARY="https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo"
+FLATHUB_REPO_FILE_FALLBACK="https://dl.flathub.org/repo/flathub.flatpakrepo"
+FLATPAK_INSTALL_TIMEOUT="${ZHOUKEER_FLATPAK_INSTALL_TIMEOUT:-1800}"
+
 software_details() {
     case "$1" in
         wechat)
             SOFTWARE_NAME="微信"
+            SOFTWARE_DESKTOP_NAME="微信"
             SOFTWARE_APP_ID="com.tencent.WeChat"
+            SOFTWARE_CATEGORIES="Network;InstantMessaging;"
             ;;
         qq)
             SOFTWARE_NAME="QQ"
+            SOFTWARE_DESKTOP_NAME="QQ"
             SOFTWARE_APP_ID="com.qq.QQ"
+            SOFTWARE_CATEGORIES="Network;InstantMessaging;"
             ;;
         protonup)
             SOFTWARE_NAME="ProtonUp-Qt兼容层管理器"
+            SOFTWARE_DESKTOP_NAME="ProtonUp-Qt"
             SOFTWARE_APP_ID="net.davidotek.pupgui2"
+            SOFTWARE_CATEGORIES="Utility;Game;"
             ;;
         *)
             echo "未知软件: $1"
@@ -31,8 +44,9 @@ software_details() {
 confirm_software_install() {
     local answer
 
-    echo "将通过Flathub以当前用户身份安装：$SOFTWARE_NAME"
+    echo "将通过Flatpak以当前用户身份安装：$SOFTWARE_NAME"
     echo "应用ID：$SOFTWARE_APP_ID"
+    echo "下载顺序：中科大Flathub缓存 → Flathub官方源"
     case "$SOFTWARE_APP_ID" in
         com.tencent.WeChat|com.qq.QQ)
             echo "注意：Flathub页面将该应用标记为非腾讯官方验证的社区封装。"
@@ -50,17 +64,118 @@ confirm_software_install() {
     esac
 }
 
-ensure_flathub() {
-    if flatpak remotes --user --columns=name 2>/dev/null | grep -Fxq flathub; then
-        return 0
+download_flathub_repo_file() {
+    local destination="$1"
+    local url
+
+    for url in "$FLATHUB_REPO_FILE_PRIMARY" "$FLATHUB_REPO_FILE_FALLBACK"; do
+        echo "正在获取Flathub签名配置：$url"
+        if curl \
+            --fail \
+            --location \
+            --silent \
+            --show-error \
+            --proto '=https' \
+            --proto-redir '=https' \
+            --connect-timeout 10 \
+            --max-time 30 \
+            --retry 2 \
+            --output "$destination" \
+            "$url" && \
+            grep -q '^\[Flatpak Repo\]$' "$destination" && \
+            grep -q '^GPGKey=' "$destination"; then
+            return 0
+        fi
+    done
+
+    rm -f -- "$destination"
+    echo "无法获取Flathub签名配置。"
+    return 1
+}
+
+flatpak_remote_exists() {
+    flatpak remotes --user --columns=name 2>/dev/null | grep -Fxq "$1"
+}
+
+ensure_flatpak_remotes() {
+    local repo_file
+
+    repo_file="$(mktemp)" || return 1
+    if ! download_flathub_repo_file "$repo_file"; then
+        rm -f -- "$repo_file"
+        return 1
     fi
 
-    echo "正在添加Flathub用户源..."
-    flatpak remote-add \
-        --user \
-        --if-not-exists \
-        flathub \
-        https://flathub.org/repo/flathub.flatpakrepo
+    if ! flatpak_remote_exists "$FLATHUB_CN_REMOTE"; then
+        echo "正在添加Flathub国内缓存源..."
+        if ! flatpak remote-add --user --if-not-exists \
+            "$FLATHUB_CN_REMOTE" "$repo_file"; then
+            rm -f -- "$repo_file"
+            return 1
+        fi
+    fi
+
+    if ! flatpak remote-modify --user "$FLATHUB_CN_REMOTE" \
+        --url="$FLATHUB_CN_URL"; then
+        echo "无法配置Flathub国内缓存源。"
+        rm -f -- "$repo_file"
+        return 1
+    fi
+
+    # 官方源只作为国内缓存失败后的备用，不修改用户已有的官方源配置。
+    if ! flatpak_remote_exists "$FLATHUB_OFFICIAL_REMOTE"; then
+        echo "正在添加Flathub官方备用源..."
+        if ! flatpak remote-add --user --if-not-exists \
+            "$FLATHUB_OFFICIAL_REMOTE" "$repo_file"; then
+            rm -f -- "$repo_file"
+            return 1
+        fi
+    fi
+
+    rm -f -- "$repo_file"
+}
+
+run_flatpak_install() {
+    local remote="$1"
+    local locale_name="C"
+    local utf8_locale
+
+    utf8_locale="$(locale -a 2>/dev/null | awk 'tolower($0) ~ /^c\.(utf-8|utf8)$/ { print; exit }')"
+    if [ -n "$utf8_locale" ]; then
+        locale_name="$utf8_locale"
+    fi
+
+    if command -v timeout >/dev/null 2>&1; then
+        LC_ALL="$locale_name" LANG="$locale_name" \
+            timeout --foreground "$FLATPAK_INSTALL_TIMEOUT" \
+            flatpak install --user --noninteractive -y \
+            "$remote" "$SOFTWARE_APP_ID"
+    else
+        LC_ALL="$locale_name" LANG="$locale_name" \
+            flatpak install --user --noninteractive -y \
+            "$remote" "$SOFTWARE_APP_ID"
+    fi
+}
+
+create_software_shortcut() {
+    local desktop_dir="$HOME/Desktop"
+    local desktop_file="$desktop_dir/$SOFTWARE_DESKTOP_NAME.desktop"
+
+    mkdir -p "$desktop_dir" || return 1
+    cat > "$desktop_file" <<EOF
+[Desktop Entry]
+Type=Application
+Name=$SOFTWARE_NAME
+Comment=由周克儿工具箱安装
+Exec=flatpak run $SOFTWARE_APP_ID
+Icon=$SOFTWARE_APP_ID
+Terminal=false
+Categories=$SOFTWARE_CATEGORIES
+EOF
+    chmod +x "$desktop_file" || return 1
+
+    echo "已创建桌面快捷方式：$desktop_file"
+    log "$SOFTWARE_NAME 桌面快捷方式已创建: $desktop_file"
 }
 
 install_software() {
@@ -72,30 +187,42 @@ install_software() {
         return 1
     }
     require_command flatpak || return 1
+    require_command curl || return 1
 
     if flatpak info "$SOFTWARE_APP_ID" >/dev/null 2>&1; then
-        echo "$SOFTWARE_NAME 已安装。"
-        return 0
+        echo "$SOFTWARE_NAME 已安装，正在检查桌面快捷方式。"
+        create_software_shortcut
+        return $?
     fi
 
     confirm_software_install || {
         echo "已取消安装 $SOFTWARE_NAME。"
         return 0
     }
-    ensure_flathub || {
-        echo "Flathub配置失败。"
+    ensure_flatpak_remotes || {
+        echo "Flathub下载源配置失败。"
         return 1
     }
 
-    echo "正在安装 $SOFTWARE_NAME..."
-    if flatpak install --user --noninteractive -y flathub "$SOFTWARE_APP_ID"; then
-        echo "$SOFTWARE_NAME 安装完成。"
-        log "$SOFTWARE_NAME Flatpak安装完成"
-    else
-        echo "$SOFTWARE_NAME 安装失败。"
-        log "$SOFTWARE_NAME Flatpak安装失败"
+    echo "正在通过国内缓存安装 $SOFTWARE_NAME..."
+    if ! run_flatpak_install "$FLATHUB_CN_REMOTE"; then
+        echo "国内缓存安装失败或超时，切换Flathub官方备用源。"
+        if ! run_flatpak_install "$FLATHUB_OFFICIAL_REMOTE"; then
+            echo "$SOFTWARE_NAME 安装失败，不会继续无限等待。"
+            log "$SOFTWARE_NAME Flatpak安装失败"
+            return 1
+        fi
+    fi
+
+    if ! flatpak info "$SOFTWARE_APP_ID" >/dev/null 2>&1; then
+        echo "$SOFTWARE_NAME 安装命令结束，但未检测到已安装应用。"
+        log "$SOFTWARE_NAME Flatpak安装结果验证失败"
         return 1
     fi
+
+    echo "$SOFTWARE_NAME 安装完成。"
+    log "$SOFTWARE_NAME Flatpak安装完成"
+    create_software_shortcut
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
