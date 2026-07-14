@@ -388,7 +388,7 @@ changelog_menu() {
         ui_panel_line 9 '\033[1;38;5;45m' "✓ 新增国内下载源、Chrome 和 Steamcommunity 302"
         ui_panel_line 11 '\033[1;38;5;45m' "✓ 新增系统密码设置、修改和自动验证"
         ui_panel_line 13 '\033[1;38;5;45m' "✓ 完善 Decky、常用插件、ToDesk 和新机初始化"
-        ui_panel_line 15 '\033[1;38;5;220m' "✓ 修复旧版密码记录识别并补充免责声明"
+        ui_panel_line 15 '\033[1;38;5;220m' "✓ 修复旧版密码记录无法识别的问题"
         ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:17-18:home)"
