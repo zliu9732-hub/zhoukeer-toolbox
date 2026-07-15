@@ -376,15 +376,13 @@ optimization_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "系统优化与维护" \
-            diagnose "游戏启动诊断（不删除游戏文件）" \
+            game-tools "游戏与掌机助手" \
             steam "Steam Deck 优化" \
             cleanup "系统清理" \
             fixall "一键修复模式" \
             back "返回主菜单")" || return 0
         case "$choice" in
-            diagnose)
-                run_gui_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose
-                ;;
+            game-tools) game_tools_gui_menu ;;
             steam) steam_optimization_menu ;;
             cleanup) cleanup_menu ;;
             fixall)
@@ -392,6 +390,34 @@ optimization_menu() {
                     run_gui_action "一键修复模式" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/fixall.sh"
                 ;;
+            back) return 0 ;;
+        esac
+    done
+}
+
+game_tools_gui_menu() {
+    local choice
+
+    while true; do
+        choice="$(gui_dialog --menu "游戏与掌机助手" \
+            epic "安装 Epic 并 Add to Steam" \
+            battlenet "安装战网并 Add to Steam" \
+            diagnose "游戏启动诊断（不删除游戏文件）" \
+            shortcuts "掌机常用快捷键" \
+            peripherals "外接设备检查（只读）" \
+            back "返回系统优化")" || return 0
+        case "$choice" in
+            epic)
+                gui_confirm "下载 Epic 官方 MSI 到桌面。安装包 Add to Steam 后选择 PE 或 GE-Proton 10-4；安装完成后在同一个 Steam 条目里把目标换成真正的 EpicGamesLauncher.exe。是否继续？" && \
+                    run_gui_action "安装 Epic 并 Add to Steam" bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
+                ;;
+            battlenet)
+                gui_confirm "下载战网官方 EXE 到桌面。安装包 Add to Steam 后选择 PE 或 GE-Proton 10-4；安装完成后在同一个 Steam 条目里把目标换成真正的 Battle.net.exe。是否继续？" && \
+                    run_gui_action "安装战网并 Add to Steam" bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
+                ;;
+            diagnose) run_gui_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
+            shortcuts) run_gui_action "掌机常用快捷键" bash "$PROJECT_ROOT/modules/handheld_helper.sh" shortcuts ;;
+            peripherals) run_gui_action "外接设备检查" bash "$PROJECT_ROOT/modules/handheld_helper.sh" peripherals ;;
             back) return 0 ;;
         esac
     done

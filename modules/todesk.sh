@@ -16,6 +16,11 @@ TODESK_READONLY_CHANGED=0
 TODESK_TMP_DIR=""
 TODESK_DOWNLOADED_PACKAGE=""
 
+# Gitee 的 repository/archive 接口已返回 400，改为拉取同一固定提交。
+# 仍只安装已校验 SHA256 的包，不执行上游的在线安装脚本。
+TODESK_REPOSITORY_URL="${TODESK_REPOSITORY_URL:-https://gitee.com/mclanbai/archtodesk.git}"
+TODESK_REPOSITORY_COMMIT="${TODESK_REPOSITORY_COMMIT:-b2b63a834c0fcb77ff87c1424d6c393804d8e1af}"
+
 load_config
 
 cleanup_todesk() {
@@ -50,7 +55,7 @@ calculate_sha256() {
 validate_todesk_settings() {
     local value
 
-    for value in TODESK_ARCHIVE_URL TODESK_PACKAGE_NAME TODESK_PACKAGE_SHA256; do
+    for value in TODESK_REPOSITORY_URL TODESK_REPOSITORY_COMMIT TODESK_PACKAGE_NAME TODESK_PACKAGE_SHA256; do
         eval "[ -n \"\${$value:-}\" ]" || {
             echo "ToDesk配置缺失: $value"
             return 1
@@ -68,10 +73,18 @@ validate_todesk_settings() {
             ;;
     esac
 
-    case "$TODESK_ARCHIVE_URL" in
+    case "$TODESK_REPOSITORY_URL" in
         https://*) ;;
         *)
-            echo "ToDesk下载地址必须使用HTTPS。"
+            echo "ToDesk仓库地址必须使用HTTPS。"
+            return 1
+            ;;
+    esac
+
+    case "$TODESK_REPOSITORY_COMMIT" in
+        [0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]* ) ;;
+        *)
+            echo "ToDesk固定提交格式无效。"
             return 1
             ;;
     esac
@@ -116,56 +129,31 @@ confirm_todesk_install() {
 }
 
 download_todesk_package() {
-    local archive_file
-    local package_member
-    local extracted_package
+    local repository_dir
     local package_tmp
     local actual_sha256
     local expected_sha256
 
     mkdir -p "$APP_DIR" || return 1
     TODESK_TMP_DIR="$(mktemp -d "$APP_DIR/.todesk-download.XXXXXX")" || return 1
-    archive_file="$TODESK_TMP_DIR/archtodesk.tar.gz"
+    repository_dir="$TODESK_TMP_DIR/archtodesk"
 
-    echo "正在下载ToDesk适配包..."
-    if ! curl \
-        --fail \
-        --location \
-        --show-error \
-        --proto '=https' \
-        --proto-redir '=https' \
-        --connect-timeout "$TODESK_CONNECT_TIMEOUT" \
-        --max-time "$TODESK_MAX_TIME" \
-        --retry "$TODESK_RETRIES" \
-        --retry-delay 2 \
-        --retry-all-errors \
-        --output "$archive_file" \
-        "$TODESK_ARCHIVE_URL"; then
-        echo "ToDesk下载失败。"
+    echo "正在获取固定版本的ToDesk适配包..."
+    if ! timeout "$TODESK_MAX_TIME" git clone --depth 1 "$TODESK_REPOSITORY_URL" "$repository_dir"; then
+        echo "ToDesk适配包获取失败。"
         return 1
     fi
 
-    package_member="$(
-        tar -tzf "$archive_file" 2>/dev/null |
-            awk -v name="$TODESK_PACKAGE_NAME" '
-                $0 == name || index($0, "/" name) == length($0) - length(name) {
-                    print
-                    exit
-                }
-            '
-    )"
-    case "$package_member" in
-        ""|/*|../*|*/../*|*/..)
-            echo "ToDesk下载包结构异常，已停止。"
-            return 1
-            ;;
-    esac
-
-    if ! tar -xzf "$archive_file" -C "$TODESK_TMP_DIR" "$package_member"; then
-        echo "无法从下载包提取ToDesk软件包。"
+    if [ "$(git -C "$repository_dir" rev-parse HEAD 2>/dev/null)" != "$TODESK_REPOSITORY_COMMIT" ]; then
+        echo "ToDesk上游版本已变化，固定提交校验未通过，已停止安装。"
         return 1
     fi
-    extracted_package="$TODESK_TMP_DIR/$package_member"
+
+    extracted_package="$repository_dir/$TODESK_PACKAGE_NAME"
+    if [ ! -f "$extracted_package" ]; then
+        echo "固定提交中未找到ToDesk安装包。"
+        return 1
+    fi
 
     actual_sha256="$(calculate_sha256 "$extracted_package")" || {
         echo "无法计算ToDesk SHA256。"
@@ -206,7 +194,7 @@ install_todesk() {
         return 1
     fi
 
-    for command_name in curl tar sudo pacman pacman-key systemctl steamos-readonly; do
+    for command_name in git timeout sudo pacman pacman-key systemctl steamos-readonly; do
         require_command "$command_name" || return 1
     done
     validate_todesk_settings || return 1

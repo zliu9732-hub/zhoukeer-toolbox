@@ -521,21 +521,49 @@ system_optimization_menu() {
 
     while true; do
         draw_category_frame optimize "系统优化" "缓存清理、性能建议和常见问题修复"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "游戏启动诊断" "检查 Steam、兼容层、空间和日志；不删除游戏文件"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "游戏与掌机助手" "非 Steam 入库、启动诊断、快捷键和外接设备检查"
         ui_touch_button 10 '\033[1;97;48;5;24m' "Steam Deck 优化" "下载缓存、着色器缓存和性能建议"
         ui_touch_button 13 '\033[1;97;48;5;24m' "系统清理" "安全释放用户缓存和 Steam 缓存"
         ui_touch_button 16 '\033[1;97;48;5;24m' "一键修复模式" "检测网络并处理常见下载问题"
         ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:diagnose right:10-11:steam right:13-14:clean right:16-17:fix right:18-19:home)"
+        choice="$(read_touch_menu right:7-8:game-tools right:10-11:steam right:13-14:clean right:16-17:fix right:18-19:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            diagnose) run_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
+            game-tools) game_tools_touch_menu ;;
             steam) steam_touch_menu ;;
             clean) clean_touch_menu ;;
             fix) confirm_and_run "一键修复模式" "检测网络并安全清理 Steam 下载缓存" bash "$PROJECT_ROOT/modules/fixall.sh" ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = "optimize" ] || return 0
+    done
+}
+
+game_tools_touch_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame optimize "游戏与掌机助手" "安全检测和引导，不删除游戏或修改 Steam 游戏库"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "安装 Epic 并 Add to Steam" "下载官方 MSI；安装后把原 Steam 条目目标换成主 EXE"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "安装战网并 Add to Steam" "下载官方 EXE；安装后把原 Steam 条目目标换成主 EXE"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "游戏启动诊断" "检查 Steam、兼容层、空间和日志；不删除游戏文件"
+        ui_touch_button 16 '\033[1;97;48;5;24m' "掌机常用快捷键 / 外接设备" "快捷键说明及显示器、蓝牙设备只读检查"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统优化" "查看清理和修复功能"
+        ui_prompt
+        choice="$(read_touch_menu right:7-8:epic right:10-11:battlenet right:13-14:diagnose right:16-17:handheld right:18-19:optimize)"
+        if apply_navigation "$choice"; then return 0; fi
+
+        case "$choice" in
+            epic) confirm_and_run "安装 Epic 并 Add to Steam" "下载官方 MSI 到桌面；随后按提示右键 Add to Steam 并手动选择 PE 或 GE-Proton 10-4" bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
+            battlenet) confirm_and_run "安装战网并 Add to Steam" "下载官方 EXE 到桌面；随后按提示右键 Add to Steam 并手动选择 PE 或 GE-Proton 10-4" bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
+            diagnose) run_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
+            handheld)
+                run_action "掌机常用快捷键" bash "$PROJECT_ROOT/modules/handheld_helper.sh" shortcuts
+                run_action "外接设备检查" bash "$PROJECT_ROOT/modules/handheld_helper.sh" peripherals
+                ;;
+            optimize) NEXT_CATEGORY="optimize"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "optimize" ] || return 0
     done

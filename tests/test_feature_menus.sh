@@ -45,6 +45,8 @@ touch_settings_menu="$(sed -n '/^system_settings_menu()/,/^}/p' "$MAIN_FILE")"
 gui_settings_menu="$(sed -n '/^settings_menu()/,/^}/p' "$GUI_FILE")"
 touch_optimization_menu="$(sed -n '/^system_optimization_menu()/,/^}/p' "$MAIN_FILE")"
 gui_optimization_menu="$(sed -n '/^optimization_menu()/,/^}/p' "$GUI_FILE")"
+touch_game_tools_menu="$(sed -n '/^game_tools_touch_menu()/,/^}/p' "$MAIN_FILE")"
+gui_game_tools_menu="$(sed -n '/^game_tools_gui_menu()/,/^}/p' "$GUI_FILE")"
 touch_plugin_menu="$(sed -n '/^plugin_store_menu()/,/^}/p' "$MAIN_FILE")"
 gui_plugin_menu="$(sed -n '/^plugin_menu()/,/^}/p' "$GUI_FILE")"
 touch_plugin_preflight="$(sed -n '/^plugin_store_preflight()/,/^}/p' "$MAIN_FILE")"
@@ -80,12 +82,30 @@ for plugin_menu in "$touch_plugin_menu" "$gui_plugin_menu"; do
 done
 
 for optimization_menu in "$touch_optimization_menu" "$gui_optimization_menu"; do
-    assert_contains "$optimization_menu" '游戏启动诊断' "系统优化缺少游戏启动诊断入口"
-    assert_contains "$optimization_menu" 'modules/game_diagnose.sh" diagnose' "游戏启动诊断入口调用错误"
+    assert_contains "$optimization_menu" '游戏与掌机助手' "系统优化缺少游戏与掌机助手入口"
+done
+
+for game_tools_menu in "$touch_game_tools_menu" "$gui_game_tools_menu"; do
+    assert_contains "$game_tools_menu" '安装 Epic 并 Add to Steam' "游戏助手缺少Epic安装入口"
+    assert_contains "$game_tools_menu" 'modules/game_launchers.sh" epic' "Epic安装入口调用错误"
+    assert_contains "$game_tools_menu" '安装战网并 Add to Steam' "游戏助手缺少战网安装入口"
+    assert_contains "$game_tools_menu" 'modules/game_launchers.sh" battlenet' "战网安装入口调用错误"
+    assert_contains "$game_tools_menu" '游戏启动诊断' "游戏助手缺少启动诊断入口"
+    assert_contains "$game_tools_menu" 'modules/game_diagnose.sh" diagnose' "游戏启动诊断入口调用错误"
+    assert_contains "$game_tools_menu" '掌机常用快捷键' "游戏助手缺少快捷键入口"
+    assert_contains "$game_tools_menu" '外接设备检查' "游戏助手缺少外接设备检查入口"
 done
 
 assert_contains "$(cat "$PROJECT_ROOT/modules/game_diagnose.sh")" '不会删除游戏、兼容数据或缓存' \
     "游戏启动诊断缺少只读安全说明"
+assert_contains "$(cat "$PROJECT_ROOT/modules/game_launchers.sh")" 'EpicGamesLauncherInstaller.msi' \
+    "Epic安装器未使用官方MSI地址"
+assert_contains "$(cat "$PROJECT_ROOT/modules/game_launchers.sh")" 'Battle.net-Setup.exe' \
+    "战网安装器未使用官方EXE地址"
+assert_contains "$(cat "$PROJECT_ROOT/modules/todesk.sh")" 'git clone --depth 1' \
+    "ToDesk未改用固定提交拉取"
+assert_not_contains "$(cat "$PROJECT_ROOT/modules/todesk.sh")" 'repository/archive/' \
+    "ToDesk仍使用失效的Gitee归档接口"
 
 assert_contains "$touch_plugin_preflight" '启用开发者模式' "插件商城打开前缺少开发者模式说明"
 assert_contains "$touch_plugin_preflight" 'CEF 远程调试' "插件商城打开前缺少CEF远程调试说明"
