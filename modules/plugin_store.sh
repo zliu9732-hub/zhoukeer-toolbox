@@ -1203,10 +1203,9 @@ install_feature_plugins() {
 }
 
 install_all_plugin_packages() {
-    echo "将依次处理 Decky Loader、3款独立功能插件和25款精选插件，其中包括SimpleDeckyTDP与Unifideck。"
+    echo "将依次处理 3款独立功能插件和25款精选插件，其中包括SimpleDeckyTDP与Unifideck。"
     echo "官方推荐插件仍由 Decky 内置安装器在 Steam 界面中确认。"
 
-    install_plugin_store || return 1
     install_feature_plugins || return 1
     if ! bash "$PROJECT_ROOT/modules/decky_bundle.sh" install; then
         echo "官方推荐插件清单未完成提交；小黄鸭、FSR4 和 CheatDeck 的结果请查看上方提示。"
