@@ -77,6 +77,7 @@ for plugin_menu in "$touch_plugin_menu" "$gui_plugin_menu"; do
     assert_contains "$plugin_menu" 'modules/plugin_store.sh" localizer' "周克儿汉化入口调用错误"
     assert_contains "$plugin_menu" '一键清空已装插件' "插件商城菜单缺少插件清空入口"
     assert_contains "$plugin_menu" 'modules/plugin_store.sh" uninstall' "插件卸载入口调用错误"
+    assert_contains "$plugin_menu" '清空已装 Decky 插件' "插件清空缺少触控确认页"
     assert_contains "$plugin_menu" '29款' "插件商城主菜单未显示当前插件总数"
     assert_contains "$plugin_menu" 'SimpleDeckyTDP' "插件商城描述缺少SimpleDeckyTDP"
     assert_contains "$plugin_menu" 'Unifideck' "插件商城描述缺少Unifideck"

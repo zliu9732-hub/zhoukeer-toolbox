@@ -565,16 +565,19 @@ uninstall_all_decky_plugins() {
         return 1
     fi
     prepare_plugin_root "$plugin_root" || return 1
-    command -v kdialog >/dev/null 2>&1 || {
-        echo "当前桌面缺少确认窗口。请在 SteamOS 桌面模式运行工具箱后重试。"
-        return 1
-    }
-    kdialog --title "确认清空 Decky 插件" --warningyesno \
-        "确定清空插件根目录内的所有 Decky 插件吗？这会删除全部插件文件和插件设置，但不会删除 Decky Loader 本体。" \
-        --yes-label "全部删除" --no-label "取消" >/dev/null 2>&1 || {
-        echo "已取消卸载。"
-        return 0
-    }
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
+        if command -v kdialog >/dev/null 2>&1; then
+            kdialog --title "确认清空 Decky 插件" --warningyesno \
+                "确定清空插件根目录内的所有 Decky 插件吗？这会删除全部插件文件和插件设置，但不会删除 Decky Loader 本体。" \
+                --yes-label "全部删除" --no-label "取消" >/dev/null 2>&1 || {
+                echo "已取消卸载。"
+                return 0
+            }
+        else
+            echo "请从工具箱菜单点击“一键清空已装插件”后，在触控确认页继续。"
+            return 1
+        fi
+    fi
 
     for entry in "$plugin_root"/* "$plugin_root"/.[!.]* "$plugin_root"/..?*; do
         [ -e "$entry" ] || [ -L "$entry" ] || continue

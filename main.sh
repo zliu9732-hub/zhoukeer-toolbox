@@ -175,7 +175,7 @@ common_software_menu() {
 
         case "$choice" in
             wechat) confirm_and_run "安装微信" "腾讯官网AppImage；失败时保留原有版本" bash "$PROJECT_ROOT/modules/software.sh" wechat ;;
-            qq) confirm_and_run "安装QQ" "从腾讯官网国内CDN下载；完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" qq ;;
+            qq) confirm_and_run "安装QQ" "通过上海交大与中科大 Flathub 国内缓存安装；完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" qq ;;
             browser) confirm_and_run "安装Firefox浏览器" "完整包安装；失败时保留原有版本" bash "$PROJECT_ROOT/modules/software.sh" browser ;;
             ge-proton) confirm_and_run "安装GE-Proton兼容层" "安装到Steam compatibilitytools.d目录；完成后需要重启Steam" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
@@ -324,7 +324,7 @@ plugin_store_menu() {
             all) confirm_and_run "安装当前列表全部插件" "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将安装 Decky、3款独立功能插件和26款精选插件，其中包括 SimpleDeckyTDP 与 Unifideck；商店插件仍需在Steam界面确认" bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
             browse) plugin_official_touch_pages ;;
             localizer) confirm_and_run "安装周克儿汉化" "这是独立的 Decky 汉化层测试版：不会改写原插件文件，首批仅覆盖基础文案。安装后请回游戏模式，在 Decky 菜单中启用。是否继续？" bash "$PROJECT_ROOT/modules/plugin_store.sh" localizer ;;
-            uninstall) run_with_pause bash "$PROJECT_ROOT/modules/plugin_store.sh" uninstall ;;
+            uninstall) confirm_and_run "清空已装 Decky 插件" "将删除 homebrew/plugins 根目录内的全部插件文件和插件设置；Decky Loader 本体不会被删除。是否继续？" bash "$PROJECT_ROOT/modules/plugin_store.sh" uninstall ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "plugins" ] || return 0

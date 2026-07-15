@@ -79,7 +79,7 @@ software_menu() {
                     bash "$PROJECT_ROOT/modules/software.sh" wechat
                 ;;
             qq)
-                gui_confirm "将从腾讯QQ官网国内CDN下载官方AppImage，并自动创建桌面图标。是否继续？" && \
+                gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 QQ，不连接腾讯 QQ AppImage 下载地址。是否继续？" && \
                     run_gui_action "安装QQ" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" qq
                 ;;
@@ -173,7 +173,9 @@ plugin_menu() {
                     run_gui_action "安装周克儿汉化" bash "$PROJECT_ROOT/modules/plugin_store.sh" localizer
                 ;;
             uninstall)
-                run_gui_action "清空已装插件" bash "$PROJECT_ROOT/modules/plugin_store.sh" uninstall
+                gui_confirm "清空已装 Decky 插件：将删除插件根目录的全部插件文件和插件设置；Decky Loader 本体不会被删除。是否继续？" && \
+                    run_gui_action "清空已装插件" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" uninstall
                 ;;
             back) return 0 ;;
         esac
