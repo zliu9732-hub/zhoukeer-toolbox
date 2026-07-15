@@ -561,13 +561,15 @@ home_menu() {
     local choice
 
     draw_category_frame "" "欢迎使用" "全界面只需点击，无需输入任何数字或字母"
-    ui_panel_line 8 '\033[1;38;5;220m' "⭐ 第一次使用：点击左侧“新机初始化”"
-    ui_panel_line 10 '\033[1;38;5;45m' "💻 常用软件：微信、QQ、Firefox 浏览器"
-    ui_panel_line 12 '\033[1;38;5;45m' "📡 远程协助：RustDesk、AnyDesk、ToDesk"
-    ui_panel_line 14 '\033[1;38;5;45m' "🧩 插件商城：Decky、29款插件、官方商城分页"
-    ui_panel_line 16 '\033[1;38;5;45m' "⚙  系统设置：国内源、加速器、密码"
-    ui_panel_line 17 '\033[1;38;5;45m' "💿 双系统设置：互通盘、双引导菜单"
-    ui_panel_line 18 '\033[1;38;5;114m' "🚀 系统优化 / 📋 更新日志 / 🔄 工具箱更新"
+    ui_panel_line 8 '\033[1;38;5;220m' "⭐ 新机初始化：国内源、软件、Decky、ToDesk"
+    ui_panel_line 9 '\033[1;38;5;45m' "💻 常用软件：微信、QQ、Firefox 浏览器"
+    ui_panel_line 10 '\033[1;38;5;45m' "📡 远程协助：RustDesk、AnyDesk、ToDesk"
+    ui_panel_line 11 '\033[1;38;5;45m' "🧩 插件商城：Decky、29款插件、官方商城分页"
+    ui_panel_line 12 '\033[1;38;5;45m' "⚙ 系统设置：国内源、加速器、密码、设备信息"
+    ui_panel_line 13 '\033[1;38;5;45m' "💿 双系统设置：互通盘、双引导菜单"
+    ui_panel_line 14 '\033[1;38;5;114m' "🚀 系统优化：缓存清理、性能建议、问题修复"
+    ui_panel_line 15 '\033[1;38;5;114m' "📋 更新日志：查看版本改动和修复内容"
+    ui_panel_line 16 '\033[1;38;5;114m' "🔄 工具箱更新：检查并更新到最新版本"
     ui_prompt
     choice="$(read_touch_menu)"
     apply_navigation "$choice" || true
