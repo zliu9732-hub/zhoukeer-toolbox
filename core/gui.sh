@@ -131,6 +131,15 @@ remote_menu() {
 plugin_menu() {
     local choice
 
+    gui_notice "插件商城使用前设置：
+① 回到游戏模式，按 Steam 键 → 设置 → 系统；
+② 开启“启用开发者模式”；
+③ 在设置侧栏进入“开发者”菜单；
+④ 开启“CEF 远程调试”；
+⑤ 再回到桌面模式使用本商城。
+
+这两项设置是 Decky 官方插件安装所需的前置条件。"
+
     while true; do
         choice="$(gui_dialog --menu "Decky Loader 插件商城" \
             install "安装或更新 Decky Loader" \

@@ -45,6 +45,7 @@ touch_settings_menu="$(sed -n '/^system_settings_menu()/,/^}/p' "$MAIN_FILE")"
 gui_settings_menu="$(sed -n '/^settings_menu()/,/^}/p' "$GUI_FILE")"
 touch_plugin_menu="$(sed -n '/^plugin_store_menu()/,/^}/p' "$MAIN_FILE")"
 gui_plugin_menu="$(sed -n '/^plugin_menu()/,/^}/p' "$GUI_FILE")"
+touch_plugin_preflight="$(sed -n '/^plugin_store_preflight()/,/^}/p' "$MAIN_FILE")"
 touch_dual_menu="$(sed -n '/^dual_system_menu()/,/^}/p' "$MAIN_FILE")"
 gui_dual_menu="$(sed -n '/^dual_system_menu()/,/^}/p' "$GUI_FILE")"
 
@@ -69,6 +70,10 @@ for plugin_menu in "$touch_plugin_menu" "$gui_plugin_menu"; do
     assert_contains "$plugin_menu" '启用开发者模式' "插件商城缺少开发者模式前置说明"
     assert_contains "$plugin_menu" 'CEF远程调试' "插件商城缺少CEF远程调试前置说明"
 done
+
+assert_contains "$touch_plugin_preflight" '启用开发者模式' "插件商城打开前缺少开发者模式说明"
+assert_contains "$touch_plugin_preflight" 'CEF 远程调试' "插件商城打开前缺少CEF远程调试说明"
+assert_contains "$touch_plugin_preflight" '以上设置已完成，进入插件商城' "插件商城打开前缺少继续按钮"
 
 touch_plugin_pages="$(sed -n '/^plugin_official_touch_pages()/,/^}/p' "$MAIN_FILE")"
 gui_plugin_pages="$(sed -n '/^plugin_official_gui_pages()/,/^}/p' "$GUI_FILE")"

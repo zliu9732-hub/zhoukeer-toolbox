@@ -327,6 +327,27 @@ plugin_store_menu() {
     done
 }
 
+plugin_store_preflight() {
+    local choice
+
+    while true; do
+        draw_category_frame plugins "插件商城使用前设置" "Decky 插件安装前，请先在游戏模式完成以下两项设置"
+        ui_panel_line 7 '\033[1;38;5;220m' "① 按 Steam 键 → 设置 → 系统"
+        ui_panel_line 9 '\033[1;38;5;45m' "② 开启“启用开发者模式”"
+        ui_panel_line 11 '\033[1;38;5;45m' "③ 在设置侧栏进入“开发者”菜单"
+        ui_panel_line 13 '\033[1;38;5;45m' "④ 开启“CEF 远程调试”"
+        ui_panel_line 15 '\033[1;38;5;220m' "⑤ 完成后回到桌面模式，再打开插件商城"
+        ui_touch_button 16 '\033[1;30;48;5;114m' "以上设置已完成，进入插件商城" "Decky 官方插件安装需要这两项设置"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "暂不进入插件商城"
+        choice="$(read_touch_menu right:16-17:continue right:18-19:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            continue) NEXT_CATEGORY="plugins-menu"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+    done
+}
+
 plugin_official_touch_pages() {
     local choice
     local page=0
@@ -558,7 +579,8 @@ while true; do
         init) new_machine_preflight ;;
         software) common_software_menu ;;
         remote) remote_assistance_menu ;;
-        plugins) plugin_store_menu ;;
+        plugins) plugin_store_preflight ;;
+        plugins-menu) plugin_store_menu ;;
         settings) system_settings_menu ;;
         dual) dual_system_menu ;;
         optimize) system_optimization_menu ;;
