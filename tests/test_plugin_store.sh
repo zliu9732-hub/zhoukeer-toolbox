@@ -36,7 +36,7 @@ grep -Fq 'steam://install/993090' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'check_lossless_scaling_installation' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '未检测到 Steam 库中的 Lossless Scaling' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '选择名称以 Linux 开头的可用版本' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '右下角“三个点” → 插头图标 → 小黄鸭 → 安装 LSFG' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'Steam Deck 机身右下角“三个点（…）”按钮' "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Fq 'Lossless Scaling.rar' "$PROJECT_ROOT/modules/plugin_store.sh" || \
     grep -Fq '1846467258.cdn.123clouddisk.com/1846467258/工具箱/Lossless' \
         "$PROJECT_ROOT/modules/plugin_store.sh"; then

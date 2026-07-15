@@ -1000,7 +1000,8 @@ print_lossless_linux_branch_tip() {
     echo ""
     echo "使用提示：安装完成后，请在 Steam 正版页面打开游戏右侧齿轮。"
     echo "进入“属性” → “测试版”，选择名称以 Linux 开头的可用版本。"
-    echo "随后进入游戏模式：右下角“三个点” → 插头图标 → 小黄鸭 → 安装 LSFG。"
+    echo "随后进入游戏模式：按 Steam Deck 机身右下角“三个点（…）”按钮。"
+    echo "在打开的菜单中依次点击：插头图标 → 小黄鸭 → 安装 LSFG。"
 }
 
 install_configured_plugin() {
