@@ -13,7 +13,7 @@
 ## 功能
 
 - 一键新机初始化：一次确认后依次检查SteamOS和网络，并自动执行当前清单中的新机常用项目。
-- 插件商城：下载并校验Decky国内镜像安装器后启动安装；推荐插件整组安装会实时读取Decky官方商店最新版并交给Decky内置安装器统一确认，非官方插件可使用123云盘成品ZIP分流；小黄鸭、FSR4和CheatDeck继续提供独立入口。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
+- 插件商城：当前完整清单共29款，包括小黄鸭、FSR4、CheatDeck三款独立功能插件，以及包含SimpleDeckyTDP和Unifideck在内的26款精选插件；支持全部一键安装、商店插件分页浏览和单项安装。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
 
 使用小黄鸭前，安装完成后请在 Steam 正版页面打开游戏右侧齿轮，进入“属性 → 测试版”，选择名称以 Linux 开头的可用版本；随后进入游戏模式，按 Steam Deck 机身右下角的“三个点（…）”按钮，在打开的菜单中依次点击插头图标 → 小黄鸭 → 安装 LSFG。
 - 常用软件与远程协助：微信和QQ直接从腾讯官网国内 CDN 安装官方 AppImage；Firefox 使用123云盘国内直链提供的 Linux x86_64 中文完整包；RustDesk、AnyDesk 会在上海交大和中科大 Flatpak 缓存间测速、限时切换。安装成功后会创建桌面快捷方式，不修改SteamOS只读分区。
@@ -77,7 +77,7 @@ curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/bootstrap.sh
 - 桌面快捷方式：`~/Desktop/周克儿工具箱.desktop`
 - 应用菜单入口：`~/.local/share/applications/zhoukeer-toolbox.desktop`
 
-桌面快捷方式会使用项目中的圆形 `assets/icon-round.svg`，内部图案仍来自原始 `assets/icon.png`。
+桌面快捷方式会使用项目中的圆形透明 `assets/icon-round.png`，内部图案仍来自原始 `assets/icon.png`。
 
 如果桌面快捷方式提示不受信任，请右键选择允许启动。
 

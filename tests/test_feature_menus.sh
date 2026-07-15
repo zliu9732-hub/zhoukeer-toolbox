@@ -67,6 +67,10 @@ for plugin_menu in "$touch_plugin_menu" "$gui_plugin_menu"; do
     assert_contains "$plugin_menu" '一键安装当前列表全部插件' "插件商城菜单缺少全部插件一键安装"
     assert_contains "$plugin_menu" 'modules/plugin_store.sh" all' "全部插件入口调用错误"
     assert_contains "$plugin_menu" '浏览官方插件' "插件商城菜单缺少官方插件分页入口"
+    assert_contains "$plugin_menu" '29款' "插件商城主菜单未显示当前插件总数"
+    assert_contains "$plugin_menu" 'SimpleDeckyTDP' "插件商城描述缺少SimpleDeckyTDP"
+    assert_contains "$plugin_menu" 'Unifideck' "插件商城描述缺少Unifideck"
+    assert_not_contains "$plugin_menu" '123插件' "插件商城菜单不应按123插件单独分类"
     assert_contains "$plugin_menu" '启用开发者模式' "插件商城缺少开发者模式前置说明"
     assert_contains "$plugin_menu" 'CEF远程调试' "插件商城缺少CEF远程调试前置说明"
 done

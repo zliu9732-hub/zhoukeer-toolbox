@@ -306,10 +306,10 @@ plugin_store_menu() {
     local choice
 
     while true; do
-        draw_category_frame plugins "插件商城" "Decky内置安装器、官方商店最新版与123云盘分流"
+        draw_category_frame plugins "插件商城" "Decky内置安装器、29款插件与商店最新版"
         ui_touch_button 6 '\033[1;97;48;5;24m' "安装或更新 Decky Loader" "使用经过固定校验的国内安装源"
         ui_touch_button 8 '\033[1;97;48;5;24m' "一键安装常用功能插件" "小黄鸭、FSR4、CheatDeck 一次装好"
-        ui_touch_button 10 '\033[1;97;48;5;30m' "一键安装当前列表全部插件" "Decky、三款功能插件和 24 个官方推荐插件"
+        ui_touch_button 10 '\033[1;97;48;5;30m' "一键安装当前列表全部插件" "3款独立功能 + 26款精选插件，共29款"
         ui_touch_button 12 '\033[1;97;48;5;24m' "浏览官方插件（分页）" "每页 5 个插件，均附中文功能说明"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -319,7 +319,7 @@ plugin_store_menu() {
         case "$choice" in
             install) confirm_and_run "Decky Loader插件商城" "安装前请先回游戏模式：Steam键→设置→系统→开启“启用开发者模式”；再到开发者菜单开启“CEF远程调试”。完成后回桌面模式继续。将使用国内镜像安装器，执行前会校验固定 SHA256" bash "$PROJECT_ROOT/modules/plugin_store.sh" store ;;
             features) confirm_and_run "安装常用功能插件" "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将依次安装小黄鸭、FSR4 和 CheatDeck；单项失败不会覆盖旧版本" bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
-            all) confirm_and_run "安装当前列表全部插件" "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将安装 Decky、三款功能插件和 24 个官方推荐插件；官方插件仍需在Steam界面确认" bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
+            all) confirm_and_run "安装当前列表全部插件" "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将安装 Decky、3款独立功能插件和26款精选插件，其中包括 SimpleDeckyTDP 与 Unifideck；商店插件仍需在Steam界面确认" bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
             browse) plugin_official_touch_pages ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -562,7 +562,7 @@ home_menu() {
     ui_panel_line 8 '\033[1;38;5;220m' "⭐ 第一次使用：点击左侧“新机初始化”"
     ui_panel_line 10 '\033[1;38;5;45m' "💻 常用软件：微信、QQ、Firefox 浏览器"
     ui_panel_line 12 '\033[1;38;5;45m' "📡 远程协助：RustDesk、AnyDesk、ToDesk"
-    ui_panel_line 14 '\033[1;38;5;45m' "🧩 插件商城：Decky、小黄鸭、FSR4、CheatDeck"
+    ui_panel_line 14 '\033[1;38;5;45m' "🧩 插件商城：Decky、29款插件、官方商城分页"
     ui_panel_line 16 '\033[1;38;5;45m' "⚙  系统设置：国内源、加速器、密码"
     ui_panel_line 17 '\033[1;38;5;45m' "💿 双系统设置：互通盘、双引导菜单"
     ui_panel_line 18 '\033[1;38;5;114m' "🚀 系统优化 / 📋 更新日志 / 🔄 工具箱更新"

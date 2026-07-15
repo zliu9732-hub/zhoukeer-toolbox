@@ -51,4 +51,4 @@ fi
 output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg || true)"
 printf '%s\n' "$output" | grep -Fq '仅支持真实 SteamOS 环境'
 
-echo "PASS: Decky国内源和三个插件一键安装配置检查通过"
+echo "PASS: Decky国内源、独立功能插件和完整清单配置检查通过"

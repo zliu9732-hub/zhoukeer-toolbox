@@ -1069,7 +1069,7 @@ install_feature_plugins() {
 }
 
 install_all_plugin_packages() {
-    echo "将依次处理 Decky Loader、三款常用功能插件和当前列表的官方推荐插件。"
+    echo "将依次处理 Decky Loader、3款独立功能插件和26款精选插件，其中包括SimpleDeckyTDP与Unifideck。"
     echo "官方推荐插件仍由 Decky 内置安装器在 Steam 界面中确认。"
 
     install_plugin_store || return 1

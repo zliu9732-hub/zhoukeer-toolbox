@@ -10,7 +10,7 @@ source "$PROJECT_ROOT/core/ui.sh"
 source "$PROJECT_ROOT/core/logger.sh"
 
 GUI_TITLE="周克儿工具箱 V4"
-GUI_ICON="$PROJECT_ROOT/assets/icon-round.svg"
+GUI_ICON="$PROJECT_ROOT/assets/icon-round.png"
 
 # Decky 官方商店插件：保留英文官方名，后面附小白可理解的中文作用。
 DECKY_OFFICIAL_PLUGIN_NAMES=(
@@ -144,7 +144,7 @@ plugin_menu() {
         choice="$(gui_dialog --menu "Decky Loader 插件商城" \
             install "安装或更新 Decky Loader" \
             features "一键安装常用功能插件（小黄鸭、FSR4、CheatDeck）" \
-            all "一键安装当前列表全部插件" \
+            all "一键安装当前列表全部插件（共29款）" \
             browse "浏览官方插件（分页｜中文说明）" \
             back "返回主菜单")" || return 0
         case "$choice" in
@@ -159,7 +159,7 @@ plugin_menu() {
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" features
                 ;;
             all)
-                gui_confirm "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将安装 Decky、三款功能插件和 24 个官方推荐插件；官方插件仍需在Steam界面确认。是否继续？" && \
+                gui_confirm "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将安装 Decky、3款独立功能插件和26款精选插件，其中包括 SimpleDeckyTDP 与 Unifideck；商店插件仍需在Steam界面确认。是否继续？" && \
                     run_gui_action "安装当前列表全部插件" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" all
                 ;;
@@ -396,7 +396,7 @@ main_gui_menu() {
             new-machine "⭐ 一键新机初始化" \
             software "📦 常用软件" \
             remote "🖥 远程协助" \
-            plugins "🧩 插件商城" \
+            plugins "🧩 插件商城（29款插件）" \
             settings "⚙️ 系统设置" \
             dual "💿 双系统设置" \
             optimization "🛠 系统优化" \

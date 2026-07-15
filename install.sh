@@ -433,7 +433,7 @@ fi
 
 DESKTOP_FILE="$HOME/Desktop/周克儿工具箱.desktop"
 APPLICATION_FILE="$HOME/.local/share/applications/zhoukeer-toolbox.desktop"
-ICON_PATH="$INSTALL_DIR/assets/icon-round.svg"
+ICON_PATH="$INSTALL_DIR/assets/icon-round.png"
 BACKGROUND_PATH="$INSTALL_DIR/assets/background.png"
 KONSOLE_PROFILE="$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
 KONSOLE_COLOR_SCHEME="$HOME/.local/share/konsole/ZhoukeerToolbox.colorscheme"
