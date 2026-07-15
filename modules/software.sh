@@ -47,8 +47,7 @@ software_details() {
         qq)
             SOFTWARE_NAME="QQ"
             SOFTWARE_DESKTOP_NAME="QQ"
-            SOFTWARE_APP_ID=""
-            SOFTWARE_INSTALL_MODE="appimage"
+            SOFTWARE_APP_ID="com.qq.QQ"
             SOFTWARE_CATEGORIES="Network;InstantMessaging;"
             ;;
         browser)

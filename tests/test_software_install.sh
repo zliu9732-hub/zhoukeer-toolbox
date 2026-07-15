@@ -181,38 +181,29 @@ bash "$PROJECT_ROOT/modules/software.sh" wechat >/dev/null
 [ -x "$SHORTCUT" ]
 [ "$(grep -c 'WeChatLinux_x86_64.AppImage$' "$STATE_DIR/curl-urls")" -eq 1 ]
 
-# QQ 使用腾讯官网动态配置和国内 CDN，不经过 Flatpak。
+# QQ 改用两个国内 Flathub 缓存，避免腾讯 AppImage CDN 返回 403。
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \
 FLATPAK_TEST_STATE="$STATE_DIR" \
-ZHOUKEER_APP_DIR="$STATE_DIR/apps" \
-ZHOUKEER_QQ_APPIMAGE_PATH="$STATE_DIR/apps/QQ.AppImage" \
-ZHOUKEER_QQ_MIN_BYTES=4 \
 ZHOUKEER_AUTO_CONFIRM=1 \
 bash "$PROJECT_ROOT/modules/software.sh" qq >/dev/null
 
 QQ_SHORTCUT="$HOME_DIR/Desktop/QQ.desktop"
-[ -x "$STATE_DIR/apps/QQ.AppImage" ]
 [ -x "$QQ_SHORTCUT" ]
-grep -Fq "Exec=\"$STATE_DIR/apps/QQ.AppImage\"" "$QQ_SHORTCUT"
-grep -Fq 'Icon=qq' "$QQ_SHORTCUT"
-grep -Fxq 'https://qq-web.cdn-go.cn/im.qq.com_new/latest/rainbow/pcConfig.json' \
-    "$STATE_DIR/curl-urls"
-grep -Fxq 'https://qqdl.gtimg.cn/qqfile/test/QQ_x86_64.AppImage' \
-    "$STATE_DIR/curl-urls"
-! grep -Fq 'com.qq.QQ' "$STATE_DIR/commands"
+grep -Fq 'Exec=flatpak run com.qq.QQ' "$QQ_SHORTCUT"
+grep -Fq 'Icon=com.qq.QQ' "$QQ_SHORTCUT"
+grep -Fq 'install --user --noninteractive -y flathub-cn com.qq.QQ' "$STATE_DIR/commands"
+[ -f "$STATE_DIR/installed.com.qq.QQ" ]
 
-# QQ 已安装时只修复快捷方式，不重复下载。
+# QQ 已安装时只修复快捷方式，不重复安装。
 rm -f "$QQ_SHORTCUT"
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \
 FLATPAK_TEST_STATE="$STATE_DIR" \
-ZHOUKEER_QQ_APPIMAGE_PATH="$STATE_DIR/apps/QQ.AppImage" \
-ZHOUKEER_QQ_MIN_BYTES=4 \
 ZHOUKEER_AUTO_CONFIRM=1 \
 bash "$PROJECT_ROOT/modules/software.sh" qq >/dev/null
 [ -x "$QQ_SHORTCUT" ]
-[ "$(grep -c 'QQ_x86_64.AppImage$' "$STATE_DIR/curl-urls")" -eq 1 ]
+[ "$(grep -c 'com.qq.QQ' "$STATE_DIR/commands")" -eq 1 ]
 
 # Firefox 使用完整压缩包，不经过 Flatpak。
 touch "$HOME_DIR/Desktop/Chrome浏览器.desktop" \
