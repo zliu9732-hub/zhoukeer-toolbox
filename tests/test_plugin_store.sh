@@ -35,6 +35,7 @@ grep -Fq 'import_lossless_backup' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'steam://install/993090' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'check_lossless_scaling_installation' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '未检测到 Steam 库中的 Lossless Scaling' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '选择名称以 Linux 开头的可用版本' "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Fq 'Lossless Scaling.rar' "$PROJECT_ROOT/modules/plugin_store.sh" || \
     grep -Fq '1846467258.cdn.123clouddisk.com/1846467258/工具箱/Lossless' \
         "$PROJECT_ROOT/modules/plugin_store.sh"; then

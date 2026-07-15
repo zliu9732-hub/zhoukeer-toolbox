@@ -983,6 +983,7 @@ check_lossless_scaling_installation() {
             rm -f -- "$libraries_file"
             echo "已检测到 Steam 库中的 Lossless Scaling。"
             echo "小黄鸭插件已安装，可以返回游戏模式继续使用。"
+            print_lossless_linux_branch_tip
             log "小黄鸭安装后检测到 Lossless Scaling: $game_dir"
             return 0
         fi
@@ -991,7 +992,14 @@ check_lossless_scaling_installation() {
 
     echo "未检测到 Steam 库中的 Lossless Scaling。"
     echo "将为你打开 Steam 正版页面；完成购买和安装后即可配合插件使用。"
+    print_lossless_linux_branch_tip
     open_lossless_store
+}
+
+print_lossless_linux_branch_tip() {
+    echo ""
+    echo "使用提示：安装完成后，请在 Steam 正版页面打开游戏右侧齿轮。"
+    echo "进入“属性” → “测试版”，选择名称以 Linux 开头的可用版本。"
 }
 
 install_configured_plugin() {
