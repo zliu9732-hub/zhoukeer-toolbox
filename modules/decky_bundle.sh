@@ -89,7 +89,7 @@ build_decky_bundle_javascript() {
     local custom_plugins="$1"
     local official_names="${2:-$DECKY_OFFICIAL_PLUGIN_NAMES}"
 
-    printf '%s' "(async()=>{const marker=$(json_quote "$DECKY_BUNDLE_MARKER");const officialNames=$official_names;const custom=[$custom_plugins];const storeUrl=$(json_quote "$DECKY_STORE_URL");const artifactBase=$(json_quote "$DECKY_ARTIFACT_BASE");if(typeof DeckyBackend==='undefined')throw new Error('Decky frontend is not ready');const response=await fetch(storeUrl,{headers:{'X-Decky-Version':(await DeckyPluginLoader.updateVersion()).current}});if(!response.ok)throw new Error('Decky store HTTP '+response.status);const store=await response.json();const byName=new Map(store.map((plugin)=>[plugin.name,plugin]));const missing=officialNames.filter((name)=>!byName.has(name));if(missing.length)throw new Error('Missing official plugins: '+missing.join(', '));const installed=await DeckyBackend.call('loader/get_plugins');const installedVersions=new Map(installed.map((plugin)=>[plugin.name,String(plugin.version||'')]));const requests=[];for(const name of officialNames){const plugin=byName.get(name);const latest=plugin.versions&&plugin.versions[0];if(!latest||!latest.hash)throw new Error('No release for '+name);if(installedVersions.get(name)===String(latest.name))continue;requests.push({name,artifact:latest.artifact||artifactBase+'/'+latest.hash+'.zip',version:String(latest.name),hash:latest.hash,install_type:installedVersions.has(name)?2:0});}for(const plugin of custom){if(installedVersions.get(plugin.name)===String(plugin.version))continue;requests.push({name:plugin.name,artifact:plugin.artifact,version:String(plugin.version),hash:plugin.hash,install_type:installedVersions.has(plugin.name)?2:0});}if(!requests.length)return marker+':current';await DeckyBackend.call('utilities/install_plugins',requests);return marker+':'+requests.length;})()"
+    printf '%s' "(function(){const m=$(json_quote "$DECKY_BUNDLE_MARKER");const on=$official_names;const c=[$custom_plugins];const su=$(json_quote "$DECKY_STORE_URL");const ab=$(json_quote "$DECKY_ARTIFACT_BASE");if(typeof DeckyBackend==="undefined"){console.error("no back");return m;}DeckyPluginLoader.updateVersion().then(function(v){return fetch(su,{headers:{"X-Decky-Version":v.current}});}).then(function(r){if(!r.ok)throw Error("http"+r.status);return r.json();}).then(function(s){var b=new Map(s.map(function(p){return[p.name,p];}));DeckyBackend.call("loader/get_plugins").then(function(i){var iv=new Map(i.map(function(p){return[p.name,String(p.version||"")];}));var rq=[];var p;for(var n of on){p=b.get(n);var l=p.versions&&p.versions[0];if(!l||!l.hash)continue;if(iv.get(n)===String(l.name))continue;rq.push({name:n,artifact:l.artifact||ab+"/"+l.hash+".zip",version:String(l.name),hash:l.hash,install_type:iv.has(n)?2:0});}for(var pg of c){if(iv.get(pg.name)===String(pg.version))continue;rq.push({name:pg.name,artifact:pg.artifact,version:String(pg.version),hash:pg.hash,install_type:iv.has(pg.name)?2:0});}if(rq.length)DeckyBackend.call("utilities/install_plugins",rq);});}).catch(function(e){console.error("zkeer:",e);});return m;})()"
 }
 
 call_decky_frontend() {
@@ -100,13 +100,13 @@ call_decky_frontend() {
     local response
 
     for tab in "SharedJSContext" "Steam Shared Context presented by Valve™" "Steam" "SP"; do
-        payload="{\"tab\":$(json_quote "$tab"),\"run_async\":true,\"code\":$(json_quote "$code")}"
+        payload="{\"tab\":$(json_quote "$tab"),\"run_async\":false,\"code\":$(json_quote "$code")}"
         response="$(curl \
             --fail \
             --silent \
             --show-error \
             --connect-timeout 5 \
-            --max-time 45 \
+            --max-time 90 \
             --header "X-Decky-Auth: $token" \
             --header "Content-Type: application/json" \
             --data "$payload" \
