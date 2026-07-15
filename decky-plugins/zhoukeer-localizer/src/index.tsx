@@ -13,6 +13,7 @@ const ENABLED_KEY = "zhoukeer-localizer-enabled";
 const FOOTER_ATTRIBUTE = "data-zhoukeer-localizer-footer";
 const PLUGIN_ROOT_ATTRIBUTE = "data-zhoukeer-localizer-plugin";
 const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "TEXTAREA"]);
+const RESCAN_INTERVAL_MS = 1000;
 
 function readEnabled(): boolean {
   return localStorage.getItem(ENABLED_KEY) !== "false";
@@ -22,14 +23,31 @@ function writeEnabled(enabled: boolean): void {
   localStorage.setItem(ENABLED_KEY, String(enabled));
 }
 
-function translateTextNode(node: Text, strings: Record<string, string>): void {
+function translationEntryFor(value: string): TranslationEntry | undefined {
+  const normalized = value.trim();
+  return TRANSLATIONS.find((entry) =>
+    normalized === entry.plugin ||
+    normalized === entry.chineseName ||
+    (entry.aliases ?? []).includes(normalized)
+  );
+}
+
+function pluginNameStrings(entry: TranslationEntry): Record<string, string> {
+  return Object.fromEntries(
+    [entry.plugin, ...(entry.aliases ?? [])].map((name) => [name, entry.chineseName])
+  );
+}
+
+function translateTextNode(node: Text, strings: Record<string, string>): number {
   const original = node.nodeValue;
-  if (!original) return;
+  if (!original) return 0;
 
   const leading = original.match(/^\s*/)?.[0] ?? "";
   const trailing = original.match(/\s*$/)?.[0] ?? "";
   const translated = strings[original.trim()];
-  if (translated) node.nodeValue = `${leading}${translated}${trailing}`;
+  if (!translated || translated === original.trim()) return 0;
+  node.nodeValue = `${leading}${translated}${trailing}`;
+  return 1;
 }
 
 function addAuthorFooter(title: HTMLElement): void {
@@ -42,61 +60,82 @@ function addAuthorFooter(title: HTMLElement): void {
   title.insertAdjacentElement("afterend", footer);
 }
 
-function translateTextIn(root: Node, strings: Record<string, string>): void {
+function translateTextIn(root: Node, strings: Record<string, string>): number {
+  let translatedCount = 0;
   if (root instanceof Text) {
-    if (!SKIP_TAGS.has(root.parentElement?.tagName ?? "")) translateTextNode(root, strings);
-    return;
+    if (!SKIP_TAGS.has(root.parentElement?.tagName ?? "")) {
+      translatedCount += translateTextNode(root, strings);
+    }
+    return translatedCount;
   }
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   while (walker.nextNode()) {
     const node = walker.currentNode as Text;
-    if (!SKIP_TAGS.has(node.parentElement?.tagName ?? "")) translateTextNode(node, strings);
+    if (!SKIP_TAGS.has(node.parentElement?.tagName ?? "")) {
+      translatedCount += translateTextNode(node, strings);
+    }
   }
+  return translatedCount;
 }
 
-function findPluginRoot(title: HTMLElement): HTMLElement {
+function findPluginRoot(title: HTMLElement): HTMLElement | undefined {
   let candidate: HTMLElement | null = title.parentElement;
   for (let level = 0; candidate && level < 6; level += 1, candidate = candidate.parentElement) {
     if (candidate.querySelector('[class*="PanelSectionRow"]')) return candidate;
   }
-  return title.parentElement ?? title;
+  return undefined;
 }
 
-function activatePluginTitle(title: HTMLElement, entry: TranslationEntry): void {
+function activatePluginTitle(title: HTMLElement, entry: TranslationEntry): number {
+  let translatedCount = translateTextIn(title, pluginNameStrings(entry));
   const pluginRoot = findPluginRoot(title);
+  if (!pluginRoot) return translatedCount;
+
   pluginRoot.setAttribute(PLUGIN_ROOT_ATTRIBUTE, entry.plugin);
-  translateTextIn(pluginRoot, { [entry.plugin]: entry.chineseName, ...entry.strings });
+  translatedCount += translateTextIn(pluginRoot, {
+    ...pluginNameStrings(entry),
+    ...entry.strings
+  });
   addAuthorFooter(title);
+  return translatedCount;
 }
 
 function findKnownPluginTitles(root: Node): HTMLElement[] {
-  if (!(root instanceof HTMLElement)) return [];
-  const candidates = [root, ...Array.from(root.querySelectorAll<HTMLElement>("*"))];
+  const scanRoot = root instanceof Text ? root.parentElement : root;
+  if (!(scanRoot instanceof HTMLElement)) return [];
+  const candidates = [scanRoot, ...Array.from(scanRoot.querySelectorAll<HTMLElement>("*"))];
   return candidates.filter((element) => {
-    const entry = TRANSLATIONS.find((item) => element.textContent?.trim() === item.plugin);
+    const entry = translationEntryFor(element.textContent ?? "");
     return Boolean(entry) && !Array.from(element.children).some(
-      (child) => child.textContent?.trim() === entry?.plugin
+      (child) => Boolean(translationEntryFor(child.textContent ?? ""))
     );
   });
 }
 
-function processNode(root: Node): void {
-  const parent = root instanceof Text ? root.parentElement : root.parentElement;
-  const activeRoot = parent?.closest<HTMLElement>(`[${PLUGIN_ROOT_ATTRIBUTE}]`);
+function processNode(root: Node): number {
+  const scanRoot = root instanceof Text ? root.parentElement : root;
+  if (!scanRoot) return 0;
+
+  let translatedCount = 0;
+  const activeRoot = scanRoot instanceof HTMLElement
+    ? scanRoot.closest<HTMLElement>(`[${PLUGIN_ROOT_ATTRIBUTE}]`)
+    : undefined;
   if (activeRoot) {
     const plugin = activeRoot.getAttribute(PLUGIN_ROOT_ATTRIBUTE);
     const entry = TRANSLATIONS.find((item) => item.plugin === plugin);
-    if (entry) translateTextIn(root, entry.strings);
+    if (entry) translatedCount += translateTextIn(scanRoot, entry.strings);
   }
 
-  for (const title of findKnownPluginTitles(root)) {
-    const entry = TRANSLATIONS.find((item) => item.plugin === title.textContent?.trim());
-    if (entry) activatePluginTitle(title, entry);
+  for (const title of findKnownPluginTitles(scanRoot)) {
+    const entry = translationEntryFor(title.textContent ?? "");
+    if (entry) translatedCount += activatePluginTitle(title, entry);
   }
+  return translatedCount;
 }
 
 class TranslationEngine {
   private observer?: MutationObserver;
+  private rescanTimer?: number;
 
   start(): void {
     if (this.observer || !readEnabled()) return;
@@ -108,17 +147,24 @@ class TranslationEngine {
       }
     });
     this.observer.observe(document.body, { childList: true, characterData: true, subtree: true });
+    this.rescanTimer = window.setInterval(() => processNode(document.body), RESCAN_INTERVAL_MS);
   }
 
   stop(): void {
     this.observer?.disconnect();
     this.observer = undefined;
+    if (this.rescanTimer !== undefined) window.clearInterval(this.rescanTimer);
+    this.rescanTimer = undefined;
   }
 
   refresh(enabled: boolean): void {
     writeEnabled(enabled);
     this.stop();
     if (enabled) this.start();
+  }
+
+  scan(): number {
+    return readEnabled() ? processNode(document.body) : 0;
   }
 }
 
@@ -137,6 +183,16 @@ function Content() {
     });
   };
 
+  const scanNow = () => {
+    const translatedCount = engine.scan();
+    toaster.toast({
+      title: "周克儿汉化",
+      body: translatedCount > 0
+        ? `本次已处理 ${translatedCount} 处文字。`
+        : "未发现可处理文字。请先打开目标插件页面，再点击扫描。"
+    });
+  };
+
   return (
     <PanelSection title="周克儿汉化">
       <PanelSectionRow>
@@ -145,8 +201,13 @@ function Content() {
         </ButtonItem>
       </PanelSectionRow>
       <PanelSectionRow>
+        <ButtonItem layout="below" onClick={scanNow}>
+          立即扫描当前页面
+        </ButtonItem>
+      </PanelSectionRow>
+      <PanelSectionRow>
         <div style={{ fontSize: "12px", lineHeight: "1.45", opacity: 0.75 }}>
-          首批已接入 {TRANSLATIONS.length} 个插件的基础词库。词库会随工具箱更新扩充，不会改写原插件文件。
+          已接入 {TRANSLATIONS.length} 个插件的基础词库，并会兼容扫描动态加载的 Decky 页面。
           <br />
           {AUTHOR_NOTICE}
         </div>

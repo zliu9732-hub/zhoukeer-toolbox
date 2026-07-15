@@ -244,11 +244,13 @@ const TRANSLATIONS = [
     },
     {
         plugin: "LSFG-VK",
+        aliases: ["Decky LSFG-VK"],
         chineseName: "LSFG-VK（小黄鸭帧生成）",
         strings: { "Frame Generation": "帧生成", "Enable": "启用", "Settings": "设置" }
     },
     {
         plugin: "Decky-Framegen",
+        aliases: ["Decky Framegen"],
         chineseName: "Decky-Framegen（FSR4 帧生成）",
         strings: { "Frame Generation": "帧生成", "Enable": "启用", "Settings": "设置" }
     },
@@ -258,30 +260,38 @@ const TRANSLATIONS = [
         strings: { "Cheats": "辅助功能", "Enable": "启用", "Settings": "设置" }
     }
 ];
-new Map(TRANSLATIONS.flatMap((entry) => [
-    [entry.plugin, entry.chineseName],
-    ...Object.entries(entry.strings)
-]));
 
 const ENABLED_KEY = "zhoukeer-localizer-enabled";
 const FOOTER_ATTRIBUTE = "data-zhoukeer-localizer-footer";
 const PLUGIN_ROOT_ATTRIBUTE = "data-zhoukeer-localizer-plugin";
 const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "TEXTAREA"]);
+const RESCAN_INTERVAL_MS = 1000;
 function readEnabled() {
     return localStorage.getItem(ENABLED_KEY) !== "false";
 }
 function writeEnabled(enabled) {
     localStorage.setItem(ENABLED_KEY, String(enabled));
 }
+function translationEntryFor(value) {
+    const normalized = value.trim();
+    return TRANSLATIONS.find((entry) => normalized === entry.plugin ||
+        normalized === entry.chineseName ||
+        (entry.aliases ?? []).includes(normalized));
+}
+function pluginNameStrings(entry) {
+    return Object.fromEntries([entry.plugin, ...(entry.aliases ?? [])].map((name) => [name, entry.chineseName]));
+}
 function translateTextNode(node, strings) {
     const original = node.nodeValue;
     if (!original)
-        return;
+        return 0;
     const leading = original.match(/^\s*/)?.[0] ?? "";
     const trailing = original.match(/\s*$/)?.[0] ?? "";
     const translated = strings[original.trim()];
-    if (translated)
-        node.nodeValue = `${leading}${translated}${trailing}`;
+    if (!translated || translated === original.trim())
+        return 0;
+    node.nodeValue = `${leading}${translated}${trailing}`;
+    return 1;
 }
 function addAuthorFooter(title) {
     if (title.parentElement?.querySelector(`[${FOOTER_ATTRIBUTE}]`))
@@ -293,17 +303,21 @@ function addAuthorFooter(title) {
     title.insertAdjacentElement("afterend", footer);
 }
 function translateTextIn(root, strings) {
+    let translatedCount = 0;
     if (root instanceof Text) {
-        if (!SKIP_TAGS.has(root.parentElement?.tagName ?? ""))
-            translateTextNode(root, strings);
-        return;
+        if (!SKIP_TAGS.has(root.parentElement?.tagName ?? "")) {
+            translatedCount += translateTextNode(root, strings);
+        }
+        return translatedCount;
     }
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()) {
         const node = walker.currentNode;
-        if (!SKIP_TAGS.has(node.parentElement?.tagName ?? ""))
-            translateTextNode(node, strings);
+        if (!SKIP_TAGS.has(node.parentElement?.tagName ?? "")) {
+            translatedCount += translateTextNode(node, strings);
+        }
     }
+    return translatedCount;
 }
 function findPluginRoot(title) {
     let candidate = title.parentElement;
@@ -311,40 +325,55 @@ function findPluginRoot(title) {
         if (candidate.querySelector('[class*="PanelSectionRow"]'))
             return candidate;
     }
-    return title.parentElement ?? title;
+    return undefined;
 }
 function activatePluginTitle(title, entry) {
+    let translatedCount = translateTextIn(title, pluginNameStrings(entry));
     const pluginRoot = findPluginRoot(title);
+    if (!pluginRoot)
+        return translatedCount;
     pluginRoot.setAttribute(PLUGIN_ROOT_ATTRIBUTE, entry.plugin);
-    translateTextIn(pluginRoot, { [entry.plugin]: entry.chineseName, ...entry.strings });
+    translatedCount += translateTextIn(pluginRoot, {
+        ...pluginNameStrings(entry),
+        ...entry.strings
+    });
     addAuthorFooter(title);
+    return translatedCount;
 }
 function findKnownPluginTitles(root) {
-    if (!(root instanceof HTMLElement))
+    const scanRoot = root instanceof Text ? root.parentElement : root;
+    if (!(scanRoot instanceof HTMLElement))
         return [];
-    const candidates = [root, ...Array.from(root.querySelectorAll("*"))];
+    const candidates = [scanRoot, ...Array.from(scanRoot.querySelectorAll("*"))];
     return candidates.filter((element) => {
-        const entry = TRANSLATIONS.find((item) => element.textContent?.trim() === item.plugin);
-        return Boolean(entry) && !Array.from(element.children).some((child) => child.textContent?.trim() === entry?.plugin);
+        const entry = translationEntryFor(element.textContent ?? "");
+        return Boolean(entry) && !Array.from(element.children).some((child) => Boolean(translationEntryFor(child.textContent ?? "")));
     });
 }
 function processNode(root) {
-    const parent = root instanceof Text ? root.parentElement : root.parentElement;
-    const activeRoot = parent?.closest(`[${PLUGIN_ROOT_ATTRIBUTE}]`);
+    const scanRoot = root instanceof Text ? root.parentElement : root;
+    if (!scanRoot)
+        return 0;
+    let translatedCount = 0;
+    const activeRoot = scanRoot instanceof HTMLElement
+        ? scanRoot.closest(`[${PLUGIN_ROOT_ATTRIBUTE}]`)
+        : undefined;
     if (activeRoot) {
         const plugin = activeRoot.getAttribute(PLUGIN_ROOT_ATTRIBUTE);
         const entry = TRANSLATIONS.find((item) => item.plugin === plugin);
         if (entry)
-            translateTextIn(root, entry.strings);
+            translatedCount += translateTextIn(scanRoot, entry.strings);
     }
-    for (const title of findKnownPluginTitles(root)) {
-        const entry = TRANSLATIONS.find((item) => item.plugin === title.textContent?.trim());
+    for (const title of findKnownPluginTitles(scanRoot)) {
+        const entry = translationEntryFor(title.textContent ?? "");
         if (entry)
-            activatePluginTitle(title, entry);
+            translatedCount += activatePluginTitle(title, entry);
     }
+    return translatedCount;
 }
 class TranslationEngine {
     observer;
+    rescanTimer;
     start() {
         if (this.observer || !readEnabled())
             return;
@@ -358,16 +387,23 @@ class TranslationEngine {
             }
         });
         this.observer.observe(document.body, { childList: true, characterData: true, subtree: true });
+        this.rescanTimer = window.setInterval(() => processNode(document.body), RESCAN_INTERVAL_MS);
     }
     stop() {
         this.observer?.disconnect();
         this.observer = undefined;
+        if (this.rescanTimer !== undefined)
+            window.clearInterval(this.rescanTimer);
+        this.rescanTimer = undefined;
     }
     refresh(enabled) {
         writeEnabled(enabled);
         this.stop();
         if (enabled)
             this.start();
+    }
+    scan() {
+        return readEnabled() ? processNode(document.body) : 0;
     }
 }
 const engine = new TranslationEngine();
@@ -382,7 +418,16 @@ function Content() {
             body: next ? "汉化层已启用。重新打开插件页面即可生效。" : "汉化层已暂停。"
         });
     };
-    return (SP_JSX.jsxs(DFL.PanelSection, { title: "\u5468\u514B\u513F\u6C49\u5316", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: toggle, children: enabled ? "已启用，点击暂停" : "已暂停，点击启用" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs("div", { style: { fontSize: "12px", lineHeight: "1.45", opacity: 0.75 }, children: ["\u9996\u6279\u5DF2\u63A5\u5165 ", TRANSLATIONS.length, " \u4E2A\u63D2\u4EF6\u7684\u57FA\u7840\u8BCD\u5E93\u3002\u8BCD\u5E93\u4F1A\u968F\u5DE5\u5177\u7BB1\u66F4\u65B0\u6269\u5145\uFF0C\u4E0D\u4F1A\u6539\u5199\u539F\u63D2\u4EF6\u6587\u4EF6\u3002", SP_JSX.jsx("br", {}), AUTHOR_NOTICE] }) })] }));
+    const scanNow = () => {
+        const translatedCount = engine.scan();
+        toaster.toast({
+            title: "周克儿汉化",
+            body: translatedCount > 0
+                ? `本次已处理 ${translatedCount} 处文字。`
+                : "未发现可处理文字。请先打开目标插件页面，再点击扫描。"
+        });
+    };
+    return (SP_JSX.jsxs(DFL.PanelSection, { title: "\u5468\u514B\u513F\u6C49\u5316", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: toggle, children: enabled ? "已启用，点击暂停" : "已暂停，点击启用" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: scanNow, children: "\u7ACB\u5373\u626B\u63CF\u5F53\u524D\u9875\u9762" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs("div", { style: { fontSize: "12px", lineHeight: "1.45", opacity: 0.75 }, children: ["\u5DF2\u63A5\u5165 ", TRANSLATIONS.length, " \u4E2A\u63D2\u4EF6\u7684\u57FA\u7840\u8BCD\u5E93\uFF0C\u5E76\u4F1A\u517C\u5BB9\u626B\u63CF\u52A8\u6001\u52A0\u8F7D\u7684 Decky \u9875\u9762\u3002", SP_JSX.jsx("br", {}), AUTHOR_NOTICE] }) })] }));
 }
 var index = definePlugin(() => {
     engine.start();

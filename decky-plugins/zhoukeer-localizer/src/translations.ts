@@ -2,6 +2,7 @@ export const AUTHOR_NOTICE = "闲鱼双叶汉化制作，请支持汉化者";
 
 export type TranslationEntry = {
   plugin: string;
+  aliases?: string[];
   chineseName: string;
   strings: Record<string, string>;
 };
@@ -167,11 +168,13 @@ export const TRANSLATIONS: TranslationEntry[] = [
   },
   {
     plugin: "LSFG-VK",
+    aliases: ["Decky LSFG-VK"],
     chineseName: "LSFG-VK（小黄鸭帧生成）",
     strings: { "Frame Generation": "帧生成", "Enable": "启用", "Settings": "设置" }
   },
   {
     plugin: "Decky-Framegen",
+    aliases: ["Decky Framegen"],
     chineseName: "Decky-Framegen（FSR4 帧生成）",
     strings: { "Frame Generation": "帧生成", "Enable": "启用", "Settings": "设置" }
   },
@@ -181,10 +184,3 @@ export const TRANSLATIONS: TranslationEntry[] = [
     strings: { "Cheats": "辅助功能", "Enable": "启用", "Settings": "设置" }
   }
 ];
-
-export const EXACT_TRANSLATIONS = new Map<string, string>(
-  TRANSLATIONS.flatMap((entry) => [
-    [entry.plugin, entry.chineseName],
-    ...Object.entries(entry.strings)
-  ])
-);
