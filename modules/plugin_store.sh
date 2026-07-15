@@ -964,7 +964,34 @@ install_lsfg_bundle() {
         "小黄鸭（LSFG-VK）" \
         "${DECKY_LSFG_URL:-}" \
         "${DECKY_LSFG_SHA256:-}" \
-        "Decky LSFG-VK"
+        "Decky LSFG-VK" || return 1
+
+    check_lossless_scaling_installation
+}
+
+check_lossless_scaling_installation() {
+    local libraries_file
+    local steam_root
+    local game_dir
+
+    libraries_file="$(mktemp)" || return 1
+    discover_steam_libraries "$libraries_file"
+    while IFS= read -r steam_root; do
+        [ -n "$steam_root" ] || continue
+        game_dir="$steam_root/steamapps/common/Lossless Scaling"
+        if [ -d "$game_dir" ] && [ -f "$game_dir/LosslessScaling.exe" ]; then
+            rm -f -- "$libraries_file"
+            echo "已检测到 Steam 库中的 Lossless Scaling。"
+            echo "小黄鸭插件已安装，可以返回游戏模式继续使用。"
+            log "小黄鸭安装后检测到 Lossless Scaling: $game_dir"
+            return 0
+        fi
+    done < "$libraries_file"
+    rm -f -- "$libraries_file"
+
+    echo "未检测到 Steam 库中的 Lossless Scaling。"
+    echo "将为你打开 Steam 正版页面；完成购买和安装后即可配合插件使用。"
+    open_lossless_store
 }
 
 install_configured_plugin() {
