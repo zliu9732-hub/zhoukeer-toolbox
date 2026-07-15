@@ -42,7 +42,7 @@ grep -Fq 'WINDOW_SIZE="1220x740"' "$PROJECT_ROOT/launch.sh"
 grep -Fq 'FillStyle=Crop' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
 grep -Fq 'Wallpaper=@WALLPAPER@' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
 grep -Fq 'WallpaperOpacity=0.35' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
-grep -Fq "label_color='\\033[1;38;5;45m'" "$PROJECT_ROOT/core/ui.sh"
+grep -Fq "label_color='\\033[1;38;5;255m'" "$PROJECT_ROOT/core/ui.sh"
 grep -Fq 'Exec=/usr/bin/env bash "$INSTALL_DIR/launch.sh"' "$PROJECT_ROOT/install.sh"
 grep -Fq 'supports_konsole_option' "$PROJECT_ROOT/launch.sh"
 grep -Fq 'launcher.log' "$PROJECT_ROOT/launch.sh"
@@ -69,10 +69,15 @@ if printf '%s\n%s\n' "$sidebar_source" "$frame_source" | grep -Eq '48;5;(24|45)'
     echo "FAIL: 左侧菜单仍包含蓝色背景填充"
     exit 1
 fi
-printf '%s\n' "$sidebar_source" | grep -Fq "marker='▌ '"
+printf '%s\n' "$sidebar_source" | grep -Fq "marker='▶ '"
 printf '%s\n' "$sidebar_source" | grep -Fq '──────────────────────────'
-grep -Fq 'ui_sidebar_item 12 dual "💿 双系统设置"' "$PROJECT_ROOT/core/ui.sh"
-grep -Fq 'ui_sidebar_item 16 changelog "📋 更新日志"' "$PROJECT_ROOT/core/ui.sh"
+grep -Fq 'ui_sidebar_item 2 init "◆ 新机初始化"' "$PROJECT_ROOT/core/ui.sh"
+grep -Fq 'ui_sidebar_item 12 dual "◫ 双系统设置"' "$PROJECT_ROOT/core/ui.sh"
+grep -Fq 'ui_sidebar_item 16 changelog "▤ 更新日志"' "$PROJECT_ROOT/core/ui.sh"
+if printf '%s\n' "$frame_source" | grep -Eq '⭐|💻|📡|🧩|💿|🚀|📋|🔄|✖'; then
+    echo "FAIL: 左侧菜单仍包含彩色Emoji图标"
+    exit 1
+fi
 grep -Fq 'left:12-13:nav-dual' "$PROJECT_ROOT/main.sh"
 grep -Fq 'left:16-17:nav-changelog' "$PROJECT_ROOT/main.sh"
 grep -Fq 'changelog) changelog_menu' "$PROJECT_ROOT/main.sh"

@@ -36,13 +36,26 @@ ui_move() {
     printf '\033[%s;%sH' "$1" "$2"
 }
 
+# 将旧页面传入的多种强调色统一成红、白、灰三档，和红黑背景保持一致。
+ui_resolve_text_color() {
+    local requested="$1"
+
+    UI_THEME_COLOR='\033[1;38;5;255m'
+    case "$requested" in
+        *'5;220'*|*'5;203'*|*'5;160'*) UI_THEME_COLOR='\033[1;38;5;203m' ;;
+        *'5;114'*) UI_THEME_COLOR='\033[1;38;5;255m' ;;
+        *'5;45'*) UI_THEME_COLOR='\033[1;38;5;250m' ;;
+    esac
+}
+
 ui_panel_line() {
     local row="$1"
     local color="$2"
     local text="$3"
 
+    ui_resolve_text_color "$color"
     ui_move "$row" "$UI_PANEL_COL"
-    printf '%b%s%b' "$color" "$text" "$NC"
+    printf '%b%s%b' "$UI_THEME_COLOR" "$text" "$NC"
 }
 
 # 每个分类是两行高的大按钮，内部值只用于程序识别，界面不显示字母或数字。
@@ -53,13 +66,13 @@ ui_sidebar_item() {
     local selected="$4"
     local show_separator="${5:-1}"
     local marker='  '
-    local foreground='\033[1;97m'
-    local separator='\033[38;5;240m'
+    local foreground='\033[1;38;5;250m'
+    local separator='\033[38;5;239m'
 
     if [ "$value" = "$selected" ]; then
-        marker='▌ '
-        foreground='\033[1;38;5;220m'
-        separator='\033[38;5;45m'
+        marker='▶ '
+        foreground='\033[1;38;5;203m'
+        separator='\033[38;5;203m'
     fi
 
     # 侧栏保持透明，只用短标记和细横线表示层级，避免遮挡黑白背景。
@@ -76,19 +89,19 @@ ui_touch_button() {
     local color="$2"
     local label="$3"
     local hint="${4:-}"
-    local label_color='\033[1;38;5;45m'
+    local label_color='\033[1;38;5;255m'
 
     # 右侧按钮保持透明，让黑白背景能够完整显示；颜色仅用于区分文字状态。
     case "$color" in
-        *'48;5;114'*) label_color='\033[1;38;5;114m' ;;
+        *'48;5;114'*) label_color='\033[1;38;5;203m' ;;
         *'48;5;160'*) label_color='\033[1;38;5;203m' ;;
-        *'48;5;238'*) label_color='\033[1;38;5;220m' ;;
+        *'48;5;238'*) label_color='\033[1;38;5;245m' ;;
     esac
 
     ui_move "$row" "$UI_PANEL_COL"
     printf '%b●  %s%b' "$label_color" "$label" "$NC"
     ui_move "$((row + 1))" "$UI_PANEL_COL"
-    printf '\033[38;5;220m   %s%b' "$hint" "$NC"
+    printf '\033[38;5;250m   %s%b' "$hint" "$NC"
 }
 
 draw_category_frame() {
@@ -100,27 +113,27 @@ draw_category_frame() {
     printf '\033[0m\033[2J\033[H'
 
     # 采用无间隔的两行触控区，确保在 Steam Deck 实际可见的 20 行内完整显示。
-    ui_sidebar_item 2 init "⭐ 新机初始化" "$selected"
-    ui_sidebar_item 4 software "💻 常用软件" "$selected"
-    ui_sidebar_item 6 remote "📡 远程协助" "$selected"
-    ui_sidebar_item 8 plugins "🧩 插件商城" "$selected"
-    ui_sidebar_item 10 settings "⚙  系统设置" "$selected"
-    ui_sidebar_item 12 dual "💿 双系统设置" "$selected"
-    ui_sidebar_item 14 optimize "🚀 系统优化" "$selected"
-    ui_sidebar_item 16 changelog "📋 更新日志" "$selected"
-    ui_sidebar_item 18 update "🔄 工具箱更新" "$selected"
-    ui_sidebar_item 20 exit "✖  退出工具箱" "$selected" 0
+    ui_sidebar_item 2 init "◆ 新机初始化" "$selected"
+    ui_sidebar_item 4 software "▣ 常用软件" "$selected"
+    ui_sidebar_item 6 remote "⌁ 远程协助" "$selected"
+    ui_sidebar_item 8 plugins "✦ 插件商城" "$selected"
+    ui_sidebar_item 10 settings "⚙ 系统设置" "$selected"
+    ui_sidebar_item 12 dual "◫ 双系统设置" "$selected"
+    ui_sidebar_item 14 optimize "▲ 系统优化" "$selected"
+    ui_sidebar_item 16 changelog "▤ 更新日志" "$selected"
+    ui_sidebar_item 18 update "↻ 工具箱更新" "$selected"
+    ui_sidebar_item 20 exit "× 退出工具箱" "$selected" 0
 
     row=2
     while [ "$row" -le "$UI_LAST_ROW" ]; do
         ui_move "$row" "$UI_SEPARATOR_COL"
-        printf '\033[38;5;45m│\033[0m'
+        printf '\033[38;5;203m│\033[0m'
         row=$((row + 1))
     done
 
-    ui_panel_line 2 '\033[1;38;5;45m' "📦 周克儿工具箱 V4"
+    ui_panel_line 2 '\033[1;38;5;203m' "◆ 周克儿工具箱 V4"
     ui_panel_line 3 '\033[1;38;5;45m' "Steam Deck Toolbox"
-    ui_panel_line 4 '\033[38;5;45m' "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    ui_panel_line 4 '\033[38;5;203m' "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     ui_panel_line 5 '\033[1;38;5;220m' "$title"
     ui_panel_line 6 '\033[1;38;5;45m' "$subtitle"
 }
@@ -129,13 +142,13 @@ draw_disclaimer_frame() {
     printf '\033[0m\033[2J\033[H'
 
     ui_move 2 6
-    printf '\033[1;38;5;45m📦 周克儿工具箱 V4\033[0m'
+    printf '\033[1;38;5;203m◆ 周克儿工具箱 V4\033[0m'
     ui_move 3 6
-    printf '\033[38;5;45m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m'
+    printf '\033[38;5;203m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m'
     ui_move 5 6
-    printf '\033[1;38;5;220m使用说明与免责声明\033[0m'
+    printf '\033[1;38;5;255m使用说明与免责声明\033[0m'
     ui_move 6 6
-    printf '\033[38;5;45m请阅读以下内容，知悉后再开始使用\033[0m'
+    printf '\033[38;5;250m请阅读以下内容，知悉后再开始使用\033[0m'
 }
 
 ui_disclaimer_line() {
@@ -143,8 +156,9 @@ ui_disclaimer_line() {
     local color="$2"
     local text="$3"
 
+    ui_resolve_text_color "$color"
     ui_move "$row" 6
-    printf '%b%s%b' "$color" "$text" "$NC"
+    printf '%b%s%b' "$UI_THEME_COLOR" "$text" "$NC"
 }
 
 ui_disclaimer_button() {
@@ -153,15 +167,16 @@ ui_disclaimer_button() {
     local label="$3"
     local hint="$4"
 
+    ui_resolve_text_color "$color"
     ui_move "$row" 8
-    printf '%b●  %s%b' "$color" "$label" "$NC"
+    printf '%b◆  %s%b' "$UI_THEME_COLOR" "$label" "$NC"
     ui_move "$((row + 1))" 11
-    printf '\033[38;5;220m%s%b' "$hint" "$NC"
+    printf '\033[38;5;250m%s%b' "$hint" "$NC"
 }
 
 ui_prompt() {
     ui_move "$UI_LAST_ROW" "$UI_PANEL_COL"
-    printf '\033[0m\033[2K\033[1;38;5;45m请用触屏或触控板点击大按钮\033[0m'
+    printf '\033[0m\033[2K\033[1;38;5;203m请用触屏或触控板点击大按钮\033[0m'
 }
 
 enable_mouse_tracking() {
