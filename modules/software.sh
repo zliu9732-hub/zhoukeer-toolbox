@@ -34,6 +34,12 @@ FIREFOX_INSTALL_DIR="${ZHOUKEER_FIREFOX_INSTALL_DIR:-$APP_DIR/firefox}"
 FIREFOX_DOWNLOAD_TIMEOUT="${ZHOUKEER_FIREFOX_DOWNLOAD_TIMEOUT:-600}"
 FIREFOX_MIN_BYTES="${ZHOUKEER_FIREFOX_MIN_BYTES:-52428800}"
 
+RUSTDESK_DOWNLOAD_URL="${ZHOUKEER_RUSTDESK_DOWNLOAD_URL:-https://1846467258.cdn.123clouddisk.com/1846467258/%E8%A7%86%E9%A2%91/rustdesk-1.4.8-x86_64.AppImage}"
+RUSTDESK_APPIMAGE_PATH="${ZHOUKEER_RUSTDESK_APPIMAGE_PATH:-$APP_DIR/RustDesk.AppImage}"
+RUSTDESK_SHA256="${ZHOUKEER_RUSTDESK_SHA256:-ae1ec1a6f4f92da41acad6d166a362bd39bbbd02bb70265641558696c2509ccb}"
+RUSTDESK_DOWNLOAD_TIMEOUT="${ZHOUKEER_RUSTDESK_DOWNLOAD_TIMEOUT:-600}"
+RUSTDESK_MIN_BYTES="${ZHOUKEER_RUSTDESK_MIN_BYTES:-10485760}"
+
 software_details() {
     SOFTWARE_INSTALL_MODE="flatpak"
     case "$1" in
@@ -60,13 +66,8 @@ software_details() {
         rustdesk)
             SOFTWARE_NAME="RustDesk"
             SOFTWARE_DESKTOP_NAME="RustDesk"
-            SOFTWARE_APP_ID="com.rustdesk.RustDesk"
-            SOFTWARE_CATEGORIES="Network;RemoteAccess;"
-            ;;
-        anydesk)
-            SOFTWARE_NAME="AnyDesk"
-            SOFTWARE_DESKTOP_NAME="AnyDesk"
-            SOFTWARE_APP_ID="com.anydesk.Anydesk"
+            SOFTWARE_APP_ID=""
+            SOFTWARE_INSTALL_MODE="rustdesk_appimage"
             SOFTWARE_CATEGORIES="Network;RemoteAccess;"
             ;;
         *)
@@ -95,6 +96,11 @@ confirm_software_install() {
             echo "安装位置：$FIREFOX_INSTALL_DIR"
             echo "下载最长等待 $FIREFOX_DOWNLOAD_TIMEOUT 秒，失败后会保留旧版本。"
             ;;
+        rustdesk_appimage)
+            echo "将从123云盘国内直链下载RustDesk x86_64 AppImage。"
+            echo "安装位置：$RUSTDESK_APPIMAGE_PATH"
+            echo "下载最长等待 $RUSTDESK_DOWNLOAD_TIMEOUT 秒，失败后会保留旧版本。"
+            ;;
         *)
             echo "将通过Flatpak以当前用户身份安装：$SOFTWARE_NAME"
             echo "应用ID：$SOFTWARE_APP_ID"
@@ -102,12 +108,6 @@ confirm_software_install() {
             echo "每个来源最长等待 $FLATPAK_INSTALL_TIMEOUT 秒，不再额外寻找Flathub官方源。"
             ;;
     esac
-    case "$SOFTWARE_APP_ID" in
-        com.anydesk.Anydesk)
-            echo "注意：AnyDesk 的 Flathub 包由社区维护；首次启动请按软件提示授权。"
-            ;;
-    esac
-
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi
@@ -282,6 +282,22 @@ wechat_appimage_is_valid() {
     appimage_is_valid "$1" "$WECHAT_MIN_BYTES"
 }
 
+rustdesk_appimage_is_valid() {
+    appimage_is_valid "$1" "$RUSTDESK_MIN_BYTES"
+}
+
+calculate_sha256() {
+    local file="$1"
+
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum -- "$file" | awk '{print $1}'
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 -- "$file" | awk '{print $1}'
+    else
+        return 1
+    fi
+}
+
 resolve_qq_appimage_url() {
     local config_file config_url appimage_url
 
@@ -454,6 +470,79 @@ install_official_wechat_appimage() (
     log "微信官方AppImage安装完成: $WECHAT_APPIMAGE_PATH"
 )
 
+install_rustdesk_appimage() (
+    local architecture parent_dir temp_file backup_file actual_sha256
+
+    architecture="$(uname -m)"
+    case "$architecture" in
+        x86_64|amd64) ;;
+        *)
+            echo "当前RustDesk安装包不适用于 $architecture 架构。"
+            return 1
+            ;;
+    esac
+
+    parent_dir="$(dirname "$RUSTDESK_APPIMAGE_PATH")"
+    mkdir -p "$parent_dir" || return 1
+    temp_file="$RUSTDESK_APPIMAGE_PATH.new.$$"
+    backup_file="$RUSTDESK_APPIMAGE_PATH.backup.$$"
+
+    cleanup_rustdesk_download() {
+        rm -f -- "$temp_file"
+        if [ -f "$backup_file" ] && [ ! -e "$RUSTDESK_APPIMAGE_PATH" ]; then
+            mv -- "$backup_file" "$RUSTDESK_APPIMAGE_PATH" 2>/dev/null || true
+        else
+            rm -f -- "$backup_file"
+        fi
+    }
+    trap cleanup_rustdesk_download EXIT
+    trap 'exit 130' INT TERM
+
+    echo "正在从123云盘下载RustDesk，最长等待 $RUSTDESK_DOWNLOAD_TIMEOUT 秒..."
+    if ! curl \
+        --fail \
+        --location \
+        --show-error \
+        --progress-bar \
+        --proto '=https' \
+        --proto-redir '=https' \
+        --connect-timeout 15 \
+        --max-time "$RUSTDESK_DOWNLOAD_TIMEOUT" \
+        --retry 2 \
+        --retry-delay 2 \
+        --retry-all-errors \
+        --output "$temp_file" \
+        "$RUSTDESK_DOWNLOAD_URL"; then
+        echo "RustDesk下载失败或超时，已停止；原有版本未受影响。"
+        return 1
+    fi
+
+    if ! rustdesk_appimage_is_valid "$temp_file"; then
+        echo "RustDesk下载文件不完整或格式不正确，已丢弃。"
+        return 1
+    fi
+    actual_sha256="$(calculate_sha256 "$temp_file" || true)"
+    if [ -z "$actual_sha256" ] || \
+        [ "$actual_sha256" != "$(printf '%s' "$RUSTDESK_SHA256" | tr '[:upper:]' '[:lower:]')" ]; then
+        echo "RustDesk安装包校验失败，已丢弃；原有版本未受影响。"
+        return 1
+    fi
+    chmod 0755 "$temp_file" || return 1
+
+    if [ -e "$RUSTDESK_APPIMAGE_PATH" ]; then
+        mv -- "$RUSTDESK_APPIMAGE_PATH" "$backup_file" || return 1
+    fi
+    if ! mv -- "$temp_file" "$RUSTDESK_APPIMAGE_PATH"; then
+        echo "RustDesk文件替换失败，正在恢复原有版本。"
+        return 1
+    fi
+    rm -f -- "$backup_file"
+    trap - EXIT INT TERM
+
+    echo "RustDesk安装完成：$RUSTDESK_APPIMAGE_PATH"
+    log "RustDesk 123云盘AppImage安装完成: $RUSTDESK_APPIMAGE_PATH"
+)
+
 firefox_install_is_valid() {
     [ -x "$FIREFOX_INSTALL_DIR/firefox" ] && \
         [ -f "$FIREFOX_INSTALL_DIR/application.ini" ]
@@ -558,6 +647,7 @@ software_is_installed() {
         appimage) qq_appimage_is_valid "$QQ_APPIMAGE_PATH" ;;
         wechat_appimage) wechat_appimage_is_valid "$WECHAT_APPIMAGE_PATH" ;;
         firefox_archive) firefox_install_is_valid ;;
+        rustdesk_appimage) rustdesk_appimage_is_valid "$RUSTDESK_APPIMAGE_PATH" ;;
         *)
             command -v flatpak >/dev/null 2>&1 && \
                 flatpak info "$SOFTWARE_APP_ID" >/dev/null 2>&1
@@ -585,6 +675,10 @@ create_software_shortcut() {
             exec_line="\"$FIREFOX_INSTALL_DIR/firefox\" %u"
             icon_name="$FIREFOX_INSTALL_DIR/browser/chrome/icons/default/default128.png"
             application_file="$application_dir/zhoukeer-firefox.desktop"
+            ;;
+        rustdesk_appimage)
+            exec_line="\"$RUSTDESK_APPIMAGE_PATH\""
+            icon_name="rustdesk"
             ;;
         *)
             exec_line="flatpak run $SOFTWARE_APP_ID"
@@ -677,6 +771,11 @@ install_software() {
         create_software_shortcut
         return $?
     fi
+    if [ "$SOFTWARE_INSTALL_MODE" = "rustdesk_appimage" ]; then
+        install_rustdesk_appimage || return 1
+        create_software_shortcut
+        return $?
+    fi
 
     require_command flatpak || return 1
     require_command timeout || {
@@ -715,7 +814,7 @@ show_software_status() {
     local installed_count=0
 
     echo "常用软件与远程协助安装状态："
-    for target in wechat qq browser rustdesk anydesk; do
+    for target in wechat qq browser rustdesk; do
         software_details "$target" || return 1
         if software_is_installed; then
             echo "✓ $SOFTWARE_NAME：已安装"
@@ -724,14 +823,14 @@ show_software_status() {
             echo "- $SOFTWARE_NAME：未安装"
         fi
     done
-    echo "已安装：$installed_count / 5"
+    echo "已安装：$installed_count / 4"
 }
 
 repair_software_shortcuts() {
     local target
     local repaired=0
 
-    for target in wechat qq browser rustdesk anydesk; do
+    for target in wechat qq browser rustdesk; do
         software_details "$target" || return 1
         if software_is_installed; then
             create_software_shortcut || return 1
@@ -744,9 +843,9 @@ repair_software_shortcuts() {
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
-        wechat|qq|browser|rustdesk|anydesk) install_software "$1" ;;
+        wechat|qq|browser|rustdesk) install_software "$1" ;;
         status) require_command od && show_software_status ;;
         repair-shortcuts) require_command od && repair_software_shortcuts ;;
-        *) echo "用法: $0 {wechat|qq|browser|rustdesk|anydesk|status|repair-shortcuts}"; exit 1 ;;
+        *) echo "用法: $0 {wechat|qq|browser|rustdesk|status|repair-shortcuts}"; exit 1 ;;
     esac
 fi

@@ -3,6 +3,8 @@
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TMP_ROOT="$(mktemp -d)"
+trap 'rm -rf -- "$TMP_ROOT"' EXIT
 
 grep -Fq 'https://www.mhhf.com/Deck/decky/v.3.2.6/PluginLoader' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e' \
@@ -39,7 +41,7 @@ grep -Fq '选择名称以 Linux 开头的可用版本' "$PROJECT_ROOT/modules/pl
 grep -Fq 'Steam Deck 机身右下角“三个点（…）”按钮' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_feature_plugins()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'print_feature_plugin_status()' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'CheatDeck 的入口在游戏库中选中游戏后的齿轮/右键菜单内' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'CheatDeck 安装完成后可在 Decky 右侧栏显示' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_all_plugin_packages()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_zhoukeer_localizer()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'copy_zhoukeer_localizer' "$PROJECT_ROOT/install.sh"
@@ -61,5 +63,20 @@ fi
 
 output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg || true)"
 printf '%s\n' "$output" | grep -Fq '仅支持真实 SteamOS 环境'
+
+# 小黄鸭的目录名和 plugin.json 内名称不同，紧凑或带空格的 JSON 都应识别。
+PLUGIN_ROOT="$TMP_ROOT/plugins"
+for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck; do
+    mkdir -p "$PLUGIN_ROOT/$plugin_dir/dist"
+    printf 'bundle\n' > "$PLUGIN_ROOT/$plugin_dir/dist/index.js"
+done
+printf '{"name":"小黄鸭"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
+printf '{ "name": "Decky-Framegen" }\n' > "$PLUGIN_ROOT/Decky-Framegen/plugin.json"
+printf '{"name": "CheatDeck"}\n' > "$PLUGIN_ROOT/CheatDeck/plugin.json"
+status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
+    bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"
+printf '%s\n' "$status_output" | grep -Fq '✓ 小黄鸭（LSFG-VK）：已写入 Decky'
+printf '%s\n' "$status_output" | grep -Fq '✓ FSR4（Decky-Framegen）：已写入 Decky'
+printf '%s\n' "$status_output" | grep -Fq '✓ CheatDeck：已写入 Decky'
 
 echo "PASS: Decky国内源、独立功能插件和完整清单配置检查通过"

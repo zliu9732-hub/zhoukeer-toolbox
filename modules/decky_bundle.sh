@@ -16,7 +16,7 @@ DECKY_BUNDLE_MARKER="zhoukeer-decky-bundle-queued"
 DECKY_BUNDLE_TMP_DIR=""
 
 # Names must exactly match the official Decky store database.
-DECKY_OFFICIAL_PLUGIN_NAMES='["CSS Loader","vibrantDeck","Animation Changer","Audio Loader","SteamGridDB","PowerTools","Storage Cleaner","AutoFlatpaks","Bluetooth","ProtonDB Badges","Deck Settings","HLTB for Deck","PlayCount","TabMaster","Game Theme Music","Wine Cellar","Pause Games","Controller Tools","Volume Mixer","Battery Tracker","PlayTime","Free Loader","DeckMTP","MangoPeel"]'
+DECKY_OFFICIAL_PLUGIN_NAMES='["CSS Loader","vibrantDeck","Animation Changer","Audio Loader","SteamGridDB","PowerTools","Storage Cleaner","AutoFlatpaks","Bluetooth","ProtonDB Badges","Deck Settings","HLTB for Deck","PlayCount","TabMaster","Wine Cellar","Pause Games","Controller Tools","Volume Mixer","Battery Tracker","PlayTime","Free Loader","DeckMTP","MangoPeel"]'
 
 json_quote() {
     local value="$1"
@@ -120,7 +120,7 @@ call_decky_frontend() {
 }
 
 confirm_bundle_install() {
-    local plugin_count="${1:-24}"
+    local plugin_count="${1:-23}"
     local include_custom="${2:-1}"
 
     echo "将从Decky官方商店读取 $plugin_count 个插件的最新版本，并交给Decky内置安装器。"
@@ -147,7 +147,7 @@ install_recommended_decky_plugins() {
     local code
     local response
     local official_names="${DECKY_BUNDLE_OFFICIAL_NAMES_JSON:-$DECKY_OFFICIAL_PLUGIN_NAMES}"
-    local plugin_count="${DECKY_BUNDLE_PLUGIN_COUNT:-24}"
+    local plugin_count="${DECKY_BUNDLE_PLUGIN_COUNT:-23}"
     local include_custom="${DECKY_BUNDLE_INCLUDE_CUSTOM:-1}"
 
     detect_platform

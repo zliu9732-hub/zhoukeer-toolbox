@@ -54,6 +54,8 @@ gui_plugin_menu="$(sed -n '/^plugin_menu()/,/^}/p' "$GUI_FILE")"
 touch_plugin_preflight="$(sed -n '/^plugin_store_preflight()/,/^}/p' "$MAIN_FILE")"
 touch_dual_menu="$(sed -n '/^dual_system_menu()/,/^}/p' "$MAIN_FILE")"
 gui_dual_menu="$(sed -n '/^dual_system_menu()/,/^}/p' "$GUI_FILE")"
+touch_remote_menu="$(sed -n '/^remote_assistance_menu()/,/^}/p' "$MAIN_FILE")"
+gui_remote_menu="$(sed -n '/^remote_menu()/,/^}/p' "$GUI_FILE")"
 
 assert_contains "$touch_software_menu" 'Firefox 浏览器' "触控常用软件菜单缺少 Firefox"
 assert_contains "$touch_software_menu" 'modules/software.sh" browser' "触控菜单未调用 Firefox 安装"
@@ -66,6 +68,11 @@ assert_contains "$gui_software_menu" 'modules/ge_proton.sh" install' "图形菜�
 assert_not_contains "$touch_software_menu" 'protonup' "触控菜单仍包含 ProtonUp-Qt"
 assert_not_contains "$gui_software_menu" 'protonup' "图形菜单仍包含 ProtonUp-Qt"
 assert_not_contains "$(cat "$SOFTWARE_FILE")" 'protonup' "软件安装模块仍接受 ProtonUp-Qt"
+for remote_menu in "$touch_remote_menu" "$gui_remote_menu"; do
+    assert_contains "$remote_menu" 'RustDesk' "远程协助菜单缺少 RustDesk"
+    assert_contains "$remote_menu" '123云盘' "RustDesk 菜单未说明123云盘来源"
+    assert_not_contains "$remote_menu" 'AnyDesk' "远程协助菜单仍包含 AnyDesk"
+done
 
 for plugin_menu in "$touch_plugin_menu" "$gui_plugin_menu"; do
     assert_contains "$plugin_menu" '一键安装常用功能插件' "插件商城菜单缺少常用功能插件一键安装"
@@ -78,7 +85,8 @@ for plugin_menu in "$touch_plugin_menu" "$gui_plugin_menu"; do
     assert_contains "$plugin_menu" '一键清空已装插件' "插件商城菜单缺少插件清空入口"
     assert_contains "$plugin_menu" 'modules/plugin_store.sh" uninstall' "插件卸载入口调用错误"
     assert_contains "$plugin_menu" '清空已装 Decky 插件' "插件清空缺少触控确认页"
-    assert_contains "$plugin_menu" '29款' "插件商城主菜单未显示当前插件总数"
+    assert_contains "$plugin_menu" '28款' "插件商城主菜单未显示当前插件总数"
+    assert_not_contains "$plugin_menu" 'Game Theme Music' "报错插件仍出现在商城名单"
     assert_contains "$plugin_menu" 'SimpleDeckyTDP' "插件商城描述缺少SimpleDeckyTDP"
     assert_contains "$plugin_menu" 'Unifideck' "插件商城描述缺少Unifideck"
     assert_not_contains "$plugin_menu" '123插件' "插件商城菜单不应按123插件单独分类"

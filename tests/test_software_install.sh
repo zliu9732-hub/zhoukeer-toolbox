@@ -58,6 +58,9 @@ JSON
     https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_x86_64.AppImage)
         printf '\177ELFtest-wechat-appimage\n' > "$output"
         ;;
+    *rustdesk-1.4.8-x86_64.AppImage)
+        printf '\177ELFtest-rustdesk-appimage\n' > "$output"
+        ;;
     *firefox-152.0.6.tar.xz)
         cp "$state/firefox.tar.xz" "$output"
         ;;
@@ -254,37 +257,32 @@ bash "$PROJECT_ROOT/modules/software.sh" browser >/dev/null
 [ -x "$FIREFOX_SHORTCUT" ]
 [ "$(grep -c 'firefox-152.0.6.tar.xz$' "$STATE_DIR/curl-urls")" -eq 1 ]
 
-# 远程协助：RustDesk 与 AnyDesk 都必须使用用户级 Flatpak，并创建可点击的桌面图标。
+# RustDesk 使用123云盘 AppImage，不依赖 Flatpak，并创建可点击的桌面图标。
+if command -v sha256sum >/dev/null 2>&1; then
+    RUSTDESK_TEST_SHA256="$(printf '\177ELFtest-rustdesk-appimage\n' | sha256sum | awk '{print $1}')"
+else
+    RUSTDESK_TEST_SHA256="$(printf '\177ELFtest-rustdesk-appimage\n' | shasum -a 256 | awk '{print $1}')"
+fi
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \
 FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_RUSTDESK_APPIMAGE_PATH="$STATE_DIR/apps/RustDesk.AppImage" \
+ZHOUKEER_RUSTDESK_SHA256="$RUSTDESK_TEST_SHA256" \
+ZHOUKEER_RUSTDESK_MIN_BYTES=4 \
 ZHOUKEER_AUTO_CONFIRM=1 \
 bash "$PROJECT_ROOT/modules/software.sh" rustdesk >/dev/null
 
 RUSTDESK_SHORTCUT="$HOME_DIR/Desktop/RustDesk.desktop"
+[ -x "$STATE_DIR/apps/RustDesk.AppImage" ]
 [ -x "$RUSTDESK_SHORTCUT" ]
-grep -Fq 'Exec=flatpak run com.rustdesk.RustDesk' "$RUSTDESK_SHORTCUT"
-grep -Fq 'install --user --noninteractive -y flathub-cn com.rustdesk.RustDesk' \
-    "$STATE_DIR/commands"
-grep -Fq 'modify --user flathub-cn --url=https://mirror.sjtu.edu.cn/flathub' \
-    "$STATE_DIR/commands"
-grep -Fq 'modify --user flathub-ustc --url=https://mirrors.ustc.edu.cn/flathub' \
-    "$STATE_DIR/commands"
-
-PATH="$BIN_DIR:$PATH" \
-HOME="$HOME_DIR" \
-FLATPAK_TEST_STATE="$STATE_DIR" \
-ZHOUKEER_AUTO_CONFIRM=1 \
-bash "$PROJECT_ROOT/modules/software.sh" anydesk >/dev/null
-
-ANYDESK_SHORTCUT="$HOME_DIR/Desktop/AnyDesk.desktop"
-[ -x "$ANYDESK_SHORTCUT" ]
-grep -Fq 'Exec=flatpak run com.anydesk.Anydesk' "$ANYDESK_SHORTCUT"
-grep -Fq 'install --user --noninteractive -y flathub-cn com.anydesk.Anydesk' \
-    "$STATE_DIR/commands"
+grep -Fq "Exec=\"$STATE_DIR/apps/RustDesk.AppImage\"" "$RUSTDESK_SHORTCUT"
+grep -Fq 'Icon=rustdesk' "$RUSTDESK_SHORTCUT"
+grep -Fq '1846467258.cdn.123clouddisk.com/1846467258/%E8%A7%86%E9%A2%91/rustdesk-1.4.8-x86_64.AppImage' \
+    "$STATE_DIR/curl-urls"
+! grep -Fiq 'anydesk' "$PROJECT_ROOT/modules/software.sh"
 
 # 两个国内缓存都失败时必须停止，不能继续寻找官方源。
-rm -f "$STATE_DIR/installed.com.rustdesk.RustDesk"
+rm -f "$STATE_DIR/installed.com.qq.QQ"
 set +e
 failure_output="$(
     PATH="$BIN_DIR:$PATH" \
@@ -292,7 +290,7 @@ failure_output="$(
     FLATPAK_TEST_STATE="$STATE_DIR" \
     FLATPAK_TEST_FAIL_INSTALL=1 \
     ZHOUKEER_AUTO_CONFIRM=1 \
-    bash "$PROJECT_ROOT/modules/software.sh" rustdesk 2>&1
+    bash "$PROJECT_ROOT/modules/software.sh" qq 2>&1
 )"
 failure_status=$?
 set -e
@@ -300,7 +298,7 @@ set -e
 printf '%s\n' "$failure_output" | grep -Fq '两个国内缓存均失败或超时'
 printf '%s\n' "$failure_output" | grep -Fq '不再连接Flathub官方源'
 [ "$(printf '%s\n' "$failure_output" | grep -c '正在从 flathub-.*安装\|正在从 flathub-cn 安装')" -eq 2 ]
-! grep -Fq ' flathub com.rustdesk.RustDesk' "$STATE_DIR/commands"
+! grep -Fq ' flathub com.qq.QQ' "$STATE_DIR/commands"
 ! grep -Fq 'https://dl.flathub.org/repo/summary.idx' "$STATE_DIR/curl-urls"
 
 echo "PASS: 微信、QQ、Firefox完整包、国内Flatpak双缓存和桌面快捷方式测试通过"

@@ -16,14 +16,14 @@ GUI_ICON="$PROJECT_ROOT/assets/icon-round.png"
 DECKY_OFFICIAL_PLUGIN_NAMES=(
     "CSS Loader" "vibrantDeck" "Animation Changer" "Audio Loader" "SteamGridDB"
     "PowerTools" "Storage Cleaner" "AutoFlatpaks" "Bluetooth" "ProtonDB Badges"
-    "Deck Settings" "HLTB for Deck" "PlayCount" "TabMaster" "Game Theme Music"
+    "Deck Settings" "HLTB for Deck" "PlayCount" "TabMaster"
     "Wine Cellar" "Pause Games" "Controller Tools" "Volume Mixer" "Battery Tracker"
     "PlayTime" "Free Loader" "DeckMTP" "MangoPeel"
 )
 DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "自定义界面样式" "调整界面配色" "更换开机动画" "更换系统音效" "自动补游戏封面"
     "性能与功耗控制" "清理游戏缓存" "自动更新应用" "管理蓝牙设备" "显示兼容性评分"
-    "更多 Deck 设置" "显示通关时长" "记录游玩次数" "整理游戏库标签" "播放游戏主题音乐"
+    "更多 Deck 设置" "显示通关时长" "记录游玩次数" "整理游戏库标签"
     "管理 Wine 与 Proton" "后台自动暂停游戏" "手柄辅助工具" "分应用调节音量" "查看电池状态"
     "记录游戏时长" "下载功能扩展" "USB 文件传输" "优化 Steam 界面"
 )
@@ -103,20 +103,14 @@ remote_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "选择远程协助工具" \
-            rustdesk "下载 RustDesk（可在软件内自行配置服务器）" \
-            anydesk "下载 AnyDesk（社区维护的 Flathub 包）" \
+            rustdesk "下载 RustDesk（123云盘国内直链）" \
             todesk "ToDesk" \
             back "返回主菜单")" || return 0
         case "$choice" in
             rustdesk)
-                gui_confirm "将以当前用户身份安装 RustDesk，并创建桌面图标；不会写入或修改 RustDesk 服务器配置。是否继续？" && \
+                gui_confirm "将从123云盘国内直链下载 RustDesk AppImage，并创建桌面图标；不会写入或修改 RustDesk 服务器配置。是否继续？" && \
                     run_gui_action "下载 RustDesk" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" rustdesk
-                ;;
-            anydesk)
-                gui_confirm "将以当前用户身份安装 AnyDesk 的 Flathub 社区包，并创建桌面图标。是否继续？" && \
-                    run_gui_action "下载 AnyDesk" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/software.sh" anydesk
                 ;;
             todesk)
                 gui_confirm "ToDesk 使用前必须先在游戏模式完成：① Steam键→设置→系统，开启“启用开发者模式”；② 设置侧栏→开发者→杂项，开启“使用旧版X11桌面模式”；③ 重新进入桌面模式。ToDesk安装会临时关闭只读保护并在完成后恢复。是否已完成全部设置并继续？" && \
@@ -144,7 +138,7 @@ plugin_menu() {
         choice="$(gui_dialog --menu "Decky Loader 插件商城" \
             install "安装或更新 Decky Loader" \
             features "一键安装常用功能插件（小黄鸭、FSR4、CheatDeck）" \
-            all "一键安装当前列表全部插件（共29款）" \
+            all "一键安装当前列表全部插件（共28款）" \
             browse "浏览官方插件（分页｜中文说明）" \
             localizer "安装周克儿汉化（测试版）" \
             uninstall "一键清空已装插件" \
@@ -161,7 +155,7 @@ plugin_menu() {
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" features
                 ;;
             all)
-                gui_confirm "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将安装 Decky、3款独立功能插件和26款精选插件，其中包括 SimpleDeckyTDP 与 Unifideck；商店插件仍需在Steam界面确认。是否继续？" && \
+                gui_confirm "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将安装 Decky、3款独立功能插件和25款精选插件，其中包括 SimpleDeckyTDP 与 Unifideck；商店插件仍需在Steam界面确认。是否继续？" && \
                     run_gui_action "安装当前列表全部插件" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" all
                 ;;
@@ -458,7 +452,7 @@ main_gui_menu() {
             new-machine "⭐ 一键新机初始化" \
             software "📦 常用软件" \
             remote "🖥 远程协助" \
-            plugins "🧩 插件商城（29款插件）" \
+            plugins "🧩 插件商城（28款插件）" \
             settings "⚙️ 系统设置" \
             dual "💿 双系统设置" \
             optimization "🛠 系统优化" \

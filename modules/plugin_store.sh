@@ -1120,11 +1120,14 @@ feature_plugin_is_present() {
     local directory_name="$2"
     local expected_name="$3"
     local plugin_dir="$plugin_root/$directory_name"
+    local actual_name
 
     [ -d "$plugin_dir" ] && \
         [ -f "$plugin_dir/plugin.json" ] && \
-        [ -s "$plugin_dir/dist/index.js" ] && \
-        grep -Fq "\"name\": \"$expected_name\"" "$plugin_dir/plugin.json"
+        [ -s "$plugin_dir/dist/index.js" ] || return 1
+    actual_name="$(sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+        "$plugin_dir/plugin.json" | head -n 1)"
+    [ "$actual_name" = "$expected_name" ]
 }
 
 print_feature_plugin_status() {
@@ -1133,7 +1136,7 @@ print_feature_plugin_status() {
 
     echo ""
     echo "========== 常用功能插件状态 =========="
-    if feature_plugin_is_present "$plugin_root" "Decky LSFG-VK" "Decky LSFG-VK"; then
+    if feature_plugin_is_present "$plugin_root" "Decky LSFG-VK" "小黄鸭"; then
         echo "✓ 小黄鸭（LSFG-VK）：已写入 Decky"
     else
         echo "✗ 小黄鸭（LSFG-VK）：未找到完整插件文件"
@@ -1154,7 +1157,7 @@ print_feature_plugin_status() {
 
     echo ""
     echo "说明：插件侧栏中的 Decky-Framegen 就是 FSR4；“系统主题”属于 CSS Loader，不是本次三件套。"
-    echo "CheatDeck 的入口在游戏库中选中游戏后的齿轮/右键菜单内，不会作为第三个侧栏图标显示。"
+    echo "CheatDeck 安装完成后可在 Decky 右侧栏显示。"
     echo "若刚安装完仍未生效，请完全退出游戏模式后重新进入一次，让 Decky 重新加载插件。"
     return "$missing"
 }
@@ -1200,7 +1203,7 @@ install_feature_plugins() {
 }
 
 install_all_plugin_packages() {
-    echo "将依次处理 Decky Loader、3款独立功能插件和26款精选插件，其中包括SimpleDeckyTDP与Unifideck。"
+    echo "将依次处理 Decky Loader、3款独立功能插件和25款精选插件，其中包括SimpleDeckyTDP与Unifideck。"
     echo "官方推荐插件仍由 Decky 内置安装器在 Steam 界面中确认。"
 
     install_plugin_store || return 1

@@ -118,18 +118,10 @@ if [ -x "$APP_DIR/firefox/firefox" ]; then
 else
     echo "- Firefox：未安装"
 fi
-if command -v flatpak >/dev/null 2>&1; then
-    for app_entry in \
-        'RustDesk:com.rustdesk.RustDesk' \
-        'AnyDesk:com.anydesk.Anydesk'; do
-        app_name="${app_entry%%:*}"
-        app_id="${app_entry#*:}"
-        if flatpak info "$app_id" >/dev/null 2>&1; then
-            echo "- $app_name：已安装"
-        else
-            echo "- $app_name：未安装"
-        fi
-    done
+if [ -x "$APP_DIR/RustDesk.AppImage" ]; then
+    echo "- RustDesk：已安装（123云盘AppImage）"
+else
+    echo "- RustDesk：未安装"
 fi
 
 if [ -f "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/logger.sh" ]; then

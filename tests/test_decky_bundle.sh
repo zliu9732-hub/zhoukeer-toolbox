@@ -38,7 +38,6 @@ for plugin in \
     "HLTB for Deck" \
     "PlayCount" \
     "TabMaster" \
-    "Game Theme Music" \
     "Wine Cellar" \
     "Pause Games" \
     "Controller Tools" \
@@ -50,6 +49,10 @@ for plugin in \
     "MangoPeel"; do
     assert_contains "$DECKY_OFFICIAL_PLUGIN_NAMES" "\"$plugin\"" "官方推荐清单缺少 $plugin"
 done
+
+if printf '%s\n' "$DECKY_OFFICIAL_PLUGIN_NAMES" | grep -Fq 'Game Theme Music'; then
+    fail "报错的 Game Theme Music 仍在官方推荐清单"
+fi
 
 javascript="$(build_decky_bundle_javascript "")"
 assert_contains "$javascript" "https://plugins.deckbrew.xyz/plugins" "未使用Decky官方商店"

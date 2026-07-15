@@ -183,11 +183,6 @@ const TRANSLATIONS = [
         strings: { "Tabs": "标签页", "Library": "游戏库", "Settings": "设置" }
     },
     {
-        plugin: "Game Theme Music",
-        chineseName: "Game Theme Music（主题音乐）",
-        strings: { "Theme Music": "主题音乐", "Enable": "启用", "Volume": "音量" }
-    },
-    {
         plugin: "Wine Cellar",
         chineseName: "Wine Cellar（Wine 管理）",
         strings: { "Versions": "版本", "Install": "安装", "Remove": "移除" }

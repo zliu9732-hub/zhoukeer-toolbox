@@ -37,14 +37,14 @@ NEXT_CATEGORY="home"
 DECKY_OFFICIAL_PLUGIN_NAMES=(
     "CSS Loader" "vibrantDeck" "Animation Changer" "Audio Loader" "SteamGridDB"
     "PowerTools" "Storage Cleaner" "AutoFlatpaks" "Bluetooth" "ProtonDB Badges"
-    "Deck Settings" "HLTB for Deck" "PlayCount" "TabMaster" "Game Theme Music"
+    "Deck Settings" "HLTB for Deck" "PlayCount" "TabMaster"
     "Wine Cellar" "Pause Games" "Controller Tools" "Volume Mixer" "Battery Tracker"
     "PlayTime" "Free Loader" "DeckMTP" "MangoPeel"
 )
 DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "自定义界面样式" "调整界面配色" "更换开机动画" "更换系统音效" "自动补游戏封面"
     "性能与功耗控制" "清理游戏缓存" "自动更新应用" "管理蓝牙设备" "显示兼容性评分"
-    "更多 Deck 设置" "显示通关时长" "记录游玩次数" "整理游戏库标签" "播放游戏主题音乐"
+    "更多 Deck 设置" "显示通关时长" "记录游玩次数" "整理游戏库标签"
     "管理 Wine 与 Proton" "后台自动暂停游戏" "手柄辅助工具" "分应用调节音量" "查看电池状态"
     "记录游戏时长" "下载功能扩展" "USB 文件传输" "优化 Steam 界面"
 )
@@ -189,17 +189,15 @@ remote_assistance_menu() {
 
     while true; do
         draw_category_frame remote "远程协助" "安装完成后会自动在桌面创建启动图标"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "下载 RustDesk" "无需系统权限；可在软件内自行配置服务器"
-        ui_touch_button 10 '\033[1;97;48;5;24m' "下载 AnyDesk" "通过用户级 Flatpak 安装，不修改系统只读分区"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "查看设置步骤并安装 ToDesk" "需先开启开发者模式和旧版 X11 桌面模式"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "下载 RustDesk" "123云盘国内直链；无需系统权限"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "查看设置步骤并安装 ToDesk" "需先开启开发者模式和旧版 X11 桌面模式"
         ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:rustdesk right:10-11:anydesk right:13-14:todesk right:17-18:home)"
+        choice="$(read_touch_menu right:7-8:rustdesk right:11-12:todesk right:17-18:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            rustdesk) confirm_and_run "下载 RustDesk" "用户级安装，不会写入或修改你的 RustDesk 服务器配置" bash "$PROJECT_ROOT/modules/software.sh" rustdesk ;;
-            anydesk) confirm_and_run "下载 AnyDesk" "用户级安装，完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" anydesk ;;
+            rustdesk) confirm_and_run "下载 RustDesk" "从123云盘国内直链安装，不会写入或修改你的 RustDesk 服务器配置" bash "$PROJECT_ROOT/modules/software.sh" rustdesk ;;
             todesk) todesk_preflight ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -306,10 +304,10 @@ plugin_store_menu() {
     local choice
 
     while true; do
-        draw_category_frame plugins "插件商城" "Decky内置安装器、29款插件与商店最新版"
+        draw_category_frame plugins "插件商城" "Decky内置安装器、28款插件与商店最新版"
         ui_touch_button 6 '\033[1;97;48;5;24m' "安装或更新 Decky Loader" "使用经过固定校验的国内安装源"
         ui_touch_button 8 '\033[1;97;48;5;24m' "一键安装常用功能插件" "小黄鸭、FSR4、CheatDeck 一次装好"
-        ui_touch_button 10 '\033[1;97;48;5;30m' "一键安装当前列表全部插件" "3款独立功能 + 26款精选插件，共29款"
+        ui_touch_button 10 '\033[1;97;48;5;30m' "一键安装当前列表全部插件" "3款独立功能 + 25款精选插件，共28款"
         ui_touch_button 12 '\033[1;97;48;5;24m' "浏览官方插件（分页）" "每页 5 个插件，均附中文功能说明"
         ui_touch_button 14 '\033[1;97;48;5;24m' "安装周克儿汉化（测试版）" "首批基础词库，不修改原插件文件"
         ui_touch_button 16 '\033[1;97;48;5;124m' "一键清空已装插件" "删除插件根目录全部内容，不删除 Decky 本体"
@@ -321,7 +319,7 @@ plugin_store_menu() {
         case "$choice" in
             install) confirm_and_run "Decky Loader插件商城" "安装前请先回游戏模式：Steam键→设置→系统→开启“启用开发者模式”；再到开发者菜单开启“CEF远程调试”。完成后回桌面模式继续。将使用国内镜像安装器，执行前会校验固定 SHA256" bash "$PROJECT_ROOT/modules/plugin_store.sh" store ;;
             features) confirm_and_run "安装常用功能插件" "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将依次安装小黄鸭、FSR4 和 CheatDeck；单项失败不会覆盖旧版本" bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
-            all) confirm_and_run "安装当前列表全部插件" "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将安装 Decky、3款独立功能插件和26款精选插件，其中包括 SimpleDeckyTDP 与 Unifideck；商店插件仍需在Steam界面确认" bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
+            all) confirm_and_run "安装当前列表全部插件" "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将安装 Decky、3款独立功能插件和25款精选插件，其中包括 SimpleDeckyTDP 与 Unifideck；商店插件仍需在Steam界面确认" bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
             browse) plugin_official_touch_pages ;;
             localizer) confirm_and_run "安装周克儿汉化" "这是独立的 Decky 汉化层测试版：不会改写原插件文件，首批仅覆盖基础文案。安装后请回游戏模式，在 Decky 菜单中启用。是否继续？" bash "$PROJECT_ROOT/modules/plugin_store.sh" localizer ;;
             uninstall) confirm_and_run "清空已装 Decky 插件" "将删除 homebrew/plugins 根目录内的全部插件文件和插件设置；Decky Loader 本体不会被删除。是否继续？" bash "$PROJECT_ROOT/modules/plugin_store.sh" uninstall ;;
@@ -620,8 +618,8 @@ home_menu() {
     draw_category_frame "" "欢迎使用" "全界面只需点击，无需输入任何数字或字母"
     ui_panel_line 8 '\033[1;38;5;220m' "⭐ 新机初始化：国内源、软件、Decky、ToDesk"
     ui_panel_line 9 '\033[1;38;5;45m' "💻 常用软件：微信、QQ、Firefox 浏览器"
-    ui_panel_line 10 '\033[1;38;5;45m' "📡 远程协助：RustDesk、AnyDesk、ToDesk"
-    ui_panel_line 11 '\033[1;38;5;45m' "🧩 插件商城：Decky、29款插件、官方商城分页"
+    ui_panel_line 10 '\033[1;38;5;45m' "📡 远程协助：RustDesk、ToDesk"
+    ui_panel_line 11 '\033[1;38;5;45m' "🧩 插件商城：Decky、28款插件、官方商城分页"
     ui_panel_line 12 '\033[1;38;5;45m' "⚙ 系统设置：国内源、加速器、密码、设备信息"
     ui_panel_line 13 '\033[1;38;5;45m' "💿 双系统设置：互通盘、双引导菜单"
     ui_panel_line 14 '\033[1;38;5;114m' "🚀 系统优化：缓存清理、性能建议、问题修复"
