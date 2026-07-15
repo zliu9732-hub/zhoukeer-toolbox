@@ -376,11 +376,15 @@ optimization_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "系统优化与维护" \
+            diagnose "游戏启动诊断（不删除游戏文件）" \
             steam "Steam Deck 优化" \
             cleanup "系统清理" \
             fixall "一键修复模式" \
             back "返回主菜单")" || return 0
         case "$choice" in
+            diagnose)
+                run_gui_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose
+                ;;
             steam) steam_optimization_menu ;;
             cleanup) cleanup_menu ;;
             fixall)

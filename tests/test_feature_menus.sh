@@ -43,6 +43,8 @@ touch_software_menu="$(sed -n '/^common_software_menu()/,/^}/p' "$MAIN_FILE")"
 gui_software_menu="$(sed -n '/^software_menu()/,/^}/p' "$GUI_FILE")"
 touch_settings_menu="$(sed -n '/^system_settings_menu()/,/^}/p' "$MAIN_FILE")"
 gui_settings_menu="$(sed -n '/^settings_menu()/,/^}/p' "$GUI_FILE")"
+touch_optimization_menu="$(sed -n '/^system_optimization_menu()/,/^}/p' "$MAIN_FILE")"
+gui_optimization_menu="$(sed -n '/^optimization_menu()/,/^}/p' "$GUI_FILE")"
 touch_plugin_menu="$(sed -n '/^plugin_store_menu()/,/^}/p' "$MAIN_FILE")"
 gui_plugin_menu="$(sed -n '/^plugin_menu()/,/^}/p' "$GUI_FILE")"
 touch_plugin_preflight="$(sed -n '/^plugin_store_preflight()/,/^}/p' "$MAIN_FILE")"
@@ -76,6 +78,14 @@ for plugin_menu in "$touch_plugin_menu" "$gui_plugin_menu"; do
     assert_contains "$plugin_menu" '启用开发者模式' "插件商城缺少开发者模式前置说明"
     assert_contains "$plugin_menu" 'CEF远程调试' "插件商城缺少CEF远程调试前置说明"
 done
+
+for optimization_menu in "$touch_optimization_menu" "$gui_optimization_menu"; do
+    assert_contains "$optimization_menu" '游戏启动诊断' "系统优化缺少游戏启动诊断入口"
+    assert_contains "$optimization_menu" 'modules/game_diagnose.sh" diagnose' "游戏启动诊断入口调用错误"
+done
+
+assert_contains "$(cat "$PROJECT_ROOT/modules/game_diagnose.sh")" '不会删除游戏、兼容数据或缓存' \
+    "游戏启动诊断缺少只读安全说明"
 
 assert_contains "$touch_plugin_preflight" '启用开发者模式' "插件商城打开前缺少开发者模式说明"
 assert_contains "$touch_plugin_preflight" 'CEF 远程调试' "插件商城打开前缺少CEF远程调试说明"
