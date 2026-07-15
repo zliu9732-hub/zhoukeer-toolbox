@@ -482,6 +482,14 @@ EOF
 cp "$DESKTOP_FILE" "$APPLICATION_FILE"
 chmod +x "$DESKTOP_FILE" "$APPLICATION_FILE"
 
+# 更新工具箱时，为已安装的Firefox刷新URL处理器，供战网等应用调用。
+if [ -x "$INSTALL_DIR/apps/firefox/firefox" ] && \
+    [ -f "$INSTALL_DIR/modules/software.sh" ]; then
+    ZHOUKEER_AUTO_CONFIRM=1 \
+        bash "$INSTALL_DIR/modules/software.sh" browser || \
+        echo "Firefox网页链接处理器刷新失败，可在工具箱中重新点击安装Firefox。"
+fi
+
 if [ -f "$INSTALL_DIR/core/env.sh" ]; then
     # shellcheck disable=SC1091
     source "$INSTALL_DIR/core/env.sh"

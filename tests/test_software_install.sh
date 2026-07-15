@@ -90,6 +90,21 @@ cat > "$BIN_DIR/locale" <<'EOF'
 printf 'C\nC.UTF-8\n'
 EOF
 
+cat > "$BIN_DIR/xdg-mime" <<'EOF'
+#!/bin/sh
+printf 'xdg-mime %s\n' "$*" >> "${FLATPAK_TEST_STATE:?}/desktop-calls"
+EOF
+
+cat > "$BIN_DIR/xdg-settings" <<'EOF'
+#!/bin/sh
+printf 'xdg-settings %s\n' "$*" >> "${FLATPAK_TEST_STATE:?}/desktop-calls"
+EOF
+
+cat > "$BIN_DIR/update-desktop-database" <<'EOF'
+#!/bin/sh
+printf 'update-desktop-database %s\n' "$*" >> "${FLATPAK_TEST_STATE:?}/desktop-calls"
+EOF
+
 cat > "$BIN_DIR/flatpak" <<'EOF'
 #!/bin/sh
 state="${FLATPAK_TEST_STATE:?}"
@@ -134,6 +149,7 @@ EOF
 chmod +x "$BIN_DIR"/*
 : > "$STATE_DIR/commands"
 : > "$STATE_DIR/curl-urls"
+: > "$STATE_DIR/desktop-calls"
 
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \
@@ -210,15 +226,26 @@ ZHOUKEER_AUTO_CONFIRM=1 \
 bash "$PROJECT_ROOT/modules/software.sh" browser >/dev/null
 
 FIREFOX_SHORTCUT="$HOME_DIR/Desktop/Firefox浏览器.desktop"
+FIREFOX_APPLICATION="$HOME_DIR/.local/share/applications/zhoukeer-firefox.desktop"
 [ -x "$STATE_DIR/apps/firefox/firefox" ]
 [ -x "$FIREFOX_SHORTCUT" ]
+[ -x "$FIREFOX_APPLICATION" ]
 [ ! -e "$HOME_DIR/Desktop/Chrome浏览器.desktop" ]
 [ ! -e "$HOME_DIR/Desktop/Chromium浏览器.desktop" ]
 grep -Fq 'Name=Firefox浏览器' "$FIREFOX_SHORTCUT"
-grep -Fq "Exec=\"$STATE_DIR/apps/firefox/firefox\"" "$FIREFOX_SHORTCUT"
+grep -Fq "Exec=\"$STATE_DIR/apps/firefox/firefox\" %u" "$FIREFOX_SHORTCUT"
 grep -Fq "Icon=$STATE_DIR/apps/firefox/browser/chrome/icons/default/default128.png" \
     "$FIREFOX_SHORTCUT"
 grep -Fq 'Categories=Network;WebBrowser;' "$FIREFOX_SHORTCUT"
+grep -Fq 'MimeType=text/html;x-scheme-handler/http;x-scheme-handler/https;' \
+    "$FIREFOX_APPLICATION"
+grep -Fxq 'xdg-mime default zhoukeer-firefox.desktop text/html' "$STATE_DIR/desktop-calls"
+grep -Fxq 'xdg-mime default zhoukeer-firefox.desktop x-scheme-handler/http' \
+    "$STATE_DIR/desktop-calls"
+grep -Fxq 'xdg-mime default zhoukeer-firefox.desktop x-scheme-handler/https' \
+    "$STATE_DIR/desktop-calls"
+grep -Fxq 'xdg-settings set default-web-browser zhoukeer-firefox.desktop' \
+    "$STATE_DIR/desktop-calls"
 grep -Fq '1846467258.cdn.123clouddisk.com/1846467258/工具箱/firefox-152.0.6.tar.xz' \
     "$STATE_DIR/curl-urls"
 ! grep -Fq 'org.chromium.Chromium' "$STATE_DIR/commands"

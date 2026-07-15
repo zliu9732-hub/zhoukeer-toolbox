@@ -569,6 +569,8 @@ software_is_installed() {
 create_software_shortcut() {
     local desktop_dir="$HOME/Desktop"
     local desktop_file="$desktop_dir/$SOFTWARE_DESKTOP_NAME.desktop"
+    local application_dir="$HOME/.local/share/applications"
+    local application_file=""
     local exec_line icon_name
 
     case "$SOFTWARE_INSTALL_MODE" in
@@ -581,8 +583,9 @@ create_software_shortcut() {
             icon_name="wechat"
             ;;
         firefox_archive)
-            exec_line="\"$FIREFOX_INSTALL_DIR/firefox\""
+            exec_line="\"$FIREFOX_INSTALL_DIR/firefox\" %u"
             icon_name="$FIREFOX_INSTALL_DIR/browser/chrome/icons/default/default128.png"
+            application_file="$application_dir/zhoukeer-firefox.desktop"
             ;;
         *)
             exec_line="flatpak run $SOFTWARE_APP_ID"
@@ -607,6 +610,31 @@ Terminal=false
 Categories=$SOFTWARE_CATEGORIES
 EOF
     chmod +x "$desktop_file" || return 1
+
+    if [ "$SOFTWARE_INSTALL_MODE" = "firefox_archive" ]; then
+        mkdir -p "$application_dir" || return 1
+        cat >> "$desktop_file" <<'EOF'
+MimeType=text/html;x-scheme-handler/http;x-scheme-handler/https;
+StartupNotify=true
+StartupWMClass=firefox
+EOF
+        cp "$desktop_file" "$application_file" || return 1
+        chmod +x "$application_file" || return 1
+
+        if command -v update-desktop-database >/dev/null 2>&1; then
+            update-desktop-database "$application_dir" >/dev/null 2>&1 || true
+        fi
+        if command -v xdg-mime >/dev/null 2>&1; then
+            xdg-mime default zhoukeer-firefox.desktop text/html >/dev/null 2>&1 || true
+            xdg-mime default zhoukeer-firefox.desktop x-scheme-handler/http >/dev/null 2>&1 || true
+            xdg-mime default zhoukeer-firefox.desktop x-scheme-handler/https >/dev/null 2>&1 || true
+        fi
+        if command -v xdg-settings >/dev/null 2>&1; then
+            xdg-settings set default-web-browser zhoukeer-firefox.desktop >/dev/null 2>&1 || true
+        fi
+        echo "已注册Firefox为网页链接处理器，支持战网调用浏览器登录。"
+        log "Firefox已注册为默认网页链接处理器"
+    fi
 
     echo "已创建桌面快捷方式：$desktop_file"
     log "$SOFTWARE_NAME 桌面快捷方式已创建: $desktop_file"
