@@ -81,9 +81,21 @@ remote_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "选择远程协助工具" \
+            rustdesk "下载 RustDesk（可在软件内自行配置服务器）" \
+            anydesk "下载 AnyDesk（社区维护的 Flathub 包）" \
             todesk "ToDesk" \
             back "返回主菜单")" || return 0
         case "$choice" in
+            rustdesk)
+                gui_confirm "将以当前用户身份安装 RustDesk，并创建桌面图标；不会写入或修改 RustDesk 服务器配置。是否继续？" && \
+                    run_gui_action "下载 RustDesk" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/software.sh" rustdesk
+                ;;
+            anydesk)
+                gui_confirm "将以当前用户身份安装 AnyDesk 的 Flathub 社区包，并创建桌面图标。是否继续？" && \
+                    run_gui_action "下载 AnyDesk" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/software.sh" anydesk
+                ;;
             todesk)
                 gui_confirm "ToDesk 使用前必须先在游戏模式完成：① Steam键→设置→系统，开启“启用开发者模式”；② 设置侧栏→开发者→杂项，开启“使用旧版X11桌面模式”；③ 重新进入桌面模式。ToDesk安装会临时关闭只读保护并在完成后恢复。是否已完成全部设置并继续？" && \
                     run_gui_action "安装ToDesk" env ZHOUKEER_AUTO_CONFIRM=1 \

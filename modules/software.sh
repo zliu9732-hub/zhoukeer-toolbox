@@ -36,6 +36,18 @@ software_details() {
             SOFTWARE_APP_ID="com.google.Chrome"
             SOFTWARE_CATEGORIES="Network;WebBrowser;"
             ;;
+        rustdesk)
+            SOFTWARE_NAME="RustDesk"
+            SOFTWARE_DESKTOP_NAME="RustDesk"
+            SOFTWARE_APP_ID="com.rustdesk.RustDesk"
+            SOFTWARE_CATEGORIES="Network;RemoteAccess;"
+            ;;
+        anydesk)
+            SOFTWARE_NAME="AnyDesk"
+            SOFTWARE_DESKTOP_NAME="AnyDesk"
+            SOFTWARE_APP_ID="com.anydesk.Anydesk"
+            SOFTWARE_CATEGORIES="Network;RemoteAccess;"
+            ;;
         *)
             echo "未知软件: $1"
             return 1
@@ -52,6 +64,9 @@ confirm_software_install() {
     case "$SOFTWARE_APP_ID" in
         com.tencent.WeChat|com.qq.QQ)
             echo "注意：Flathub页面将该应用标记为非腾讯官方验证的社区封装。"
+            ;;
+        com.anydesk.Anydesk)
+            echo "注意：AnyDesk 的 Flathub 包由社区维护；首次启动请按软件提示授权。"
             ;;
     esac
 
@@ -240,7 +255,7 @@ install_software() {
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
-        wechat|qq|browser) install_software "$1" ;;
-        *) echo "用法: $0 {wechat|qq|browser}"; exit 1 ;;
+        wechat|qq|browser|rustdesk|anydesk) install_software "$1" ;;
+        *) echo "用法: $0 {wechat|qq|browser|rustdesk|anydesk}"; exit 1 ;;
     esac
 fi

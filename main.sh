@@ -167,15 +167,18 @@ remote_assistance_menu() {
     local choice
 
     while true; do
-        draw_category_frame remote "远程协助" "ToDesk 使用前必须先完成 Steam 游戏模式设置"
-        ui_panel_line 7 '\033[1;38;5;220m' "⚠ 先开启开发者模式和旧版 X11 桌面模式"
-        ui_touch_button 10 '\033[1;97;48;5;24m' "查看设置步骤并安装 ToDesk" "未完成设置时，请勿直接启动 ToDesk"
+        draw_category_frame remote "远程协助" "安装完成后会自动在桌面创建启动图标"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "下载 RustDesk" "无需系统权限；可在软件内自行配置服务器"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "下载 AnyDesk" "通过用户级 Flatpak 安装，不修改系统只读分区"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "查看设置步骤并安装 ToDesk" "需先开启开发者模式和旧版 X11 桌面模式"
         ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:10-11:todesk right:17-18:home)"
+        choice="$(read_touch_menu right:7-8:rustdesk right:10-11:anydesk right:13-14:todesk right:17-18:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
+            rustdesk) confirm_and_run "下载 RustDesk" "用户级安装，不会写入或修改你的 RustDesk 服务器配置" bash "$PROJECT_ROOT/modules/software.sh" rustdesk ;;
+            anydesk) confirm_and_run "下载 AnyDesk" "用户级安装，完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" anydesk ;;
             todesk) todesk_preflight ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac

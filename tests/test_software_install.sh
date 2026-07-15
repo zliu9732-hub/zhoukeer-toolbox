@@ -146,4 +146,29 @@ bash "$PROJECT_ROOT/modules/software.sh" browser >/dev/null
 [ -x "$CHROME_SHORTCUT" ]
 [ "$(grep -c 'com.google.Chrome$' "$STATE_DIR/commands")" -eq 1 ]
 
-echo "PASS: 国内Flatpak源、微信和Chrome桌面快捷方式测试通过"
+# 远程协助：RustDesk 与 AnyDesk 都必须使用用户级 Flatpak，并创建可点击的桌面图标。
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" rustdesk >/dev/null
+
+RUSTDESK_SHORTCUT="$HOME_DIR/Desktop/RustDesk.desktop"
+[ -x "$RUSTDESK_SHORTCUT" ]
+grep -Fq 'Exec=flatpak run com.rustdesk.RustDesk' "$RUSTDESK_SHORTCUT"
+grep -Fq 'install --user --noninteractive -y flathub-cn com.rustdesk.RustDesk' \
+    "$STATE_DIR/commands"
+
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" anydesk >/dev/null
+
+ANYDESK_SHORTCUT="$HOME_DIR/Desktop/AnyDesk.desktop"
+[ -x "$ANYDESK_SHORTCUT" ]
+grep -Fq 'Exec=flatpak run com.anydesk.Anydesk' "$ANYDESK_SHORTCUT"
+grep -Fq 'install --user --noninteractive -y flathub-cn com.anydesk.Anydesk' \
+    "$STATE_DIR/commands"
+
+echo "PASS: 国内Flatpak源、常用软件和远程协助桌面快捷方式测试通过"
