@@ -43,8 +43,9 @@ grep -Fq 'FillStyle=Crop' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
 grep -Fq 'Wallpaper=@WALLPAPER@' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
 grep -Fq 'WallpaperOpacity=0.35' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
 grep -Fq "label_color='\\033[1;38;5;45m'" "$PROJECT_ROOT/core/ui.sh"
-grep -Fq 'Exec=bash "$INSTALL_DIR/launch.sh"' "$PROJECT_ROOT/install.sh"
-grep -Fq 'launch_basic' "$PROJECT_ROOT/launch.sh"
+grep -Fq 'Exec=/usr/bin/env bash "$INSTALL_DIR/launch.sh"' "$PROJECT_ROOT/install.sh"
+grep -Fq 'supports_konsole_option' "$PROJECT_ROOT/launch.sh"
+grep -Fq 'launcher.log' "$PROJECT_ROOT/launch.sh"
 if grep -Eq -- '--hide-(menubar|toolbars|tabbar)' "$PROJECT_ROOT/launch.sh" "$PROJECT_ROOT/install.sh"; then
     echo "FAIL: 启动流程仍包含旧版 Konsole 可能不支持的参数"
     exit 1

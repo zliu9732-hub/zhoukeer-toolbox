@@ -460,7 +460,7 @@ cat > "$DESKTOP_FILE" <<EOF
 Type=Application
 Name=周克儿工具箱
 Comment=Steam Deck工具箱
-Exec=bash "$INSTALL_DIR/launch.sh"
+Exec=/usr/bin/env bash "$INSTALL_DIR/launch.sh"
 Icon=$ICON_ENTRY
 Terminal=false
 Categories=Utility;
