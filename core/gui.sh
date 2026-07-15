@@ -272,7 +272,7 @@ settings_menu() {
             accelerator "Steamcommunity 302" \
             set-password "设置系统密码" \
             change-password "修改系统密码" \
-            info "查看系统信息" \
+            info "一键体检（不修改系统）" \
             back "返回主菜单")" || return 0
         case "$choice" in
             source)
@@ -293,7 +293,7 @@ settings_menu() {
                     run_gui_action "修改系统密码" \
                         bash "$PROJECT_ROOT/modules/password.sh" change
                 ;;
-            info) run_gui_action "系统信息" bash "$PROJECT_ROOT/core/detect.sh" --report ;;
+            info) run_gui_action "一键体检" bash "$PROJECT_ROOT/core/detect.sh" --health ;;
             back) return 0 ;;
         esac
     done

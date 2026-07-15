@@ -467,12 +467,12 @@ system_settings_menu() {
     local choice
 
     while true; do
-        draw_category_frame settings "系统设置" "下载源、Steam加速、系统密码和设备信息"
+        draw_category_frame settings "系统设置" "下载源、Steam加速、系统密码和一键体检"
         ui_touch_button 7 '\033[1;97;48;5;24m' "添加国内下载源" "自动测速后优先使用更快的用户级 Flatpak 源"
         ui_touch_button 9 '\033[1;97;48;5;24m' "Steamcommunity 302" "安装、查看状态或安全卸载 Steam 加速器"
         ui_touch_button 11 '\033[1;97;48;5;24m' "设置系统密码" "明文保存到桌面；同一用户运行的软件也能读取"
         ui_touch_button 13 '\033[1;97;48;5;24m' "修改系统密码" "同步更新明文记录；同一用户软件也能读取"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "查看系统信息" "SteamOS 版本、剩余空间、网络状态和基础环境"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "一键体检" "检查空间、网络、Steam、Decky 和常用软件；不修改系统"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:7-8:source right:9-10:accelerator right:11-12:set-password right:13-14:change-password right:15-16:info right:18-19:home)"
@@ -483,7 +483,7 @@ system_settings_menu() {
             accelerator) steam_accelerator_touch_menu ;;
             set-password) confirm_and_run "设置系统密码" "新密码将明文保存到桌面管理员密码.txt；所有以当前用户身份运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" set ;;
             change-password) confirm_and_run "修改系统密码" "将读取旧记录并明文保存新密码；所有以当前用户身份运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;
-            info) run_action "系统信息" bash "$PROJECT_ROOT/core/detect.sh" --report ;;
+            info) run_action "一键体检" bash "$PROJECT_ROOT/core/detect.sh" --health ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "settings" ] || return 0
