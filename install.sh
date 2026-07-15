@@ -374,7 +374,7 @@ copy_zhoukeer_localizer() {
     local relative_file
 
     # Decky 运行只需要清单与构建后的前端文件，不把开发依赖带入更新包。
-    for relative_file in plugin.json README.md LICENSE dist/index.js; do
+    for relative_file in plugin.json package.json README.md LICENSE dist/index.js; do
         if [ -f "$source_dir/$relative_file" ]; then
             copy_file "$source_dir/$relative_file" \
                 "$STAGING_DIR/decky-plugins/zhoukeer-localizer/$relative_file"

@@ -511,6 +511,21 @@ install_decky_zip() {
     trap - EXIT INT TERM
 }
 
+reload_decky_plugins() {
+    local success_message="$1"
+
+    if command -v systemctl >/dev/null 2>&1 && command -v sudo >/dev/null 2>&1; then
+        if toolbox_sudo systemctl restart "$DECKY_SERVICE_NAME"; then
+            echo "$success_message"
+            return 0
+        fi
+        echo "插件文件已变更，但 Decky 重载未完成。请完全退出游戏模式后重新进入一次。"
+        return 0
+    fi
+
+    echo "插件文件已变更。请完全退出游戏模式后重新进入一次，让 Decky 重新扫描插件目录。"
+}
+
 install_zhoukeer_localizer() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local source_dir="$PROJECT_ROOT/decky-plugins/zhoukeer-localizer"
@@ -531,16 +546,48 @@ install_zhoukeer_localizer() {
         return 1
     }
     echo "周克儿汉化文件已安装，正在让 Decky 重新扫描插件目录..."
-    if command -v systemctl >/dev/null 2>&1 && command -v sudo >/dev/null 2>&1; then
-        if toolbox_sudo systemctl restart "$DECKY_SERVICE_NAME"; then
-            echo "Decky 已重新加载。返回游戏模式后，在插件列表中打开“周克儿汉化”。"
-        else
-            echo "汉化文件已安装，但 Decky 重载未完成。请完全退出游戏模式后重新进入一次。"
-        fi
-    else
-        echo "汉化文件已安装。请完全退出游戏模式后重新进入一次，再在插件列表中打开“周克儿汉化”。"
-    fi
+    reload_decky_plugins "Decky 已重新加载。返回游戏模式后，在插件列表中打开“周克儿汉化”。"
     log "周克儿汉化安装完成"
+}
+
+uninstall_all_decky_plugins() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local entry
+    local removed=0
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "Decky 插件卸载仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    if [ -L "$plugin_root" ] || [ ! -d "$plugin_root" ]; then
+        echo "Decky 插件目录异常，已停止卸载。"
+        return 1
+    fi
+    prepare_plugin_root "$plugin_root" || return 1
+    command -v kdialog >/dev/null 2>&1 || {
+        echo "当前桌面缺少确认窗口。请在 SteamOS 桌面模式运行工具箱后重试。"
+        return 1
+    }
+    kdialog --title "确认清空 Decky 插件" --warningyesno \
+        "确定清空插件根目录内的所有 Decky 插件吗？这会删除全部插件文件和插件设置，但不会删除 Decky Loader 本体。" \
+        --yes-label "全部删除" --no-label "取消" >/dev/null 2>&1 || {
+        echo "已取消卸载。"
+        return 0
+    }
+
+    for entry in "$plugin_root"/* "$plugin_root"/.[!.]* "$plugin_root"/..?*; do
+        [ -e "$entry" ] || [ -L "$entry" ] || continue
+        run_plugin_file_operation rm -rf -- "$entry" || {
+            echo "清空失败，已停止；未处理的插件仍保留。"
+            return 1
+        }
+        removed=$((removed + 1))
+    done
+
+    echo "已清空插件根目录：共删除 $removed 个项目。"
+    reload_decky_plugins "Decky 已重新加载，插件列表已清空。"
+    log "Decky插件根目录已清空: $removed 项"
 }
 
 open_lossless_store() {
@@ -1174,6 +1221,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         cheatdeck) install_configured_plugin cheatdeck ;;
         localizer) install_zhoukeer_localizer ;;
         feature-status) print_feature_plugin_status ;;
+        uninstall) uninstall_all_decky_plugins ;;
         features) install_feature_plugins ;;
         all) install_all_plugin_packages ;;
         lsfg-import)

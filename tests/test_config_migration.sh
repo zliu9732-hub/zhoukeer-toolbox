@@ -206,6 +206,7 @@ test_localizer_runtime_files_packaged() {
     run_installer "$case_root/home" "$install_dir"
 
     [ -s "$localizer_dir/plugin.json" ] || fail "更新包缺少周克儿汉化清单"
+    [ -s "$localizer_dir/package.json" ] || fail "更新包缺少周克儿汉化模块声明"
     [ -s "$localizer_dir/dist/index.js" ] || fail "更新包缺少周克儿汉化运行文件"
     [ ! -e "$localizer_dir/node_modules" ] || fail "更新包不应包含周克儿汉化开发依赖"
 }
