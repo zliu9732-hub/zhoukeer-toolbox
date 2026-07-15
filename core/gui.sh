@@ -403,8 +403,7 @@ game_tools_gui_menu() {
             epic "安装 Epic 并 Add to Steam" \
             battlenet "安装战网并 Add to Steam" \
             diagnose "游戏启动诊断（不删除游戏文件）" \
-            shortcuts "掌机常用快捷键" \
-            peripherals "外接设备检查（只读）" \
+            center "攻略与安全中心" \
             back "返回系统优化")" || return 0
         case "$choice" in
             epic)
@@ -416,8 +415,30 @@ game_tools_gui_menu() {
                     run_gui_action "安装战网并 Add to Steam" bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
                 ;;
             diagnose) run_gui_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
+            center) support_center_gui_menu ;;
+            back) return 0 ;;
+        esac
+    done
+}
+
+support_center_gui_menu() {
+    local choice
+
+    while true; do
+        choice="$(gui_dialog --menu "攻略与安全中心" \
+            guides "中文兼容攻略卡" \
+            shortcuts "掌机常用快捷键" \
+            peripherals "外接设备检查（只读）" \
+            records "新手安全说明与操作记录导出" \
+            back "返回游戏与掌机助手")" || return 0
+        case "$choice" in
+            guides) run_gui_action "中文兼容攻略卡" bash "$PROJECT_ROOT/modules/game_guides.sh" show ;;
             shortcuts) run_gui_action "掌机常用快捷键" bash "$PROJECT_ROOT/modules/handheld_helper.sh" shortcuts ;;
             peripherals) run_gui_action "外接设备检查" bash "$PROJECT_ROOT/modules/handheld_helper.sh" peripherals ;;
+            records)
+                run_gui_action "新手安全说明" bash "$PROJECT_ROOT/modules/safety_center.sh" guide
+                run_gui_action "操作记录" bash "$PROJECT_ROOT/modules/safety_center.sh" records
+                ;;
             back) return 0 ;;
         esac
     done

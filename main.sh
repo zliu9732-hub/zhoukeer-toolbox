@@ -549,21 +549,46 @@ game_tools_touch_menu() {
         ui_touch_button 7 '\033[1;97;48;5;24m' "安装 Epic 并 Add to Steam" "下载官方 MSI；安装后把原 Steam 条目目标换成主 EXE"
         ui_touch_button 10 '\033[1;97;48;5;24m' "安装战网并 Add to Steam" "下载官方 EXE；安装后把原 Steam 条目目标换成主 EXE"
         ui_touch_button 13 '\033[1;97;48;5;24m' "游戏启动诊断" "检查 Steam、兼容层、空间和日志；不删除游戏文件"
-        ui_touch_button 16 '\033[1;97;48;5;24m' "掌机常用快捷键 / 外接设备" "快捷键说明及显示器、蓝牙设备只读检查"
+        ui_touch_button 16 '\033[1;97;48;5;24m' "攻略与安全中心" "中文兼容攻略、掌机说明和操作记录导出"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统优化" "查看清理和修复功能"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:epic right:10-11:battlenet right:13-14:diagnose right:16-17:handheld right:18-19:optimize)"
+        choice="$(read_touch_menu right:7-8:epic right:10-11:battlenet right:13-14:diagnose right:16-17:center right:18-19:optimize)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
             epic) confirm_and_run "安装 Epic 并 Add to Steam" "下载官方 MSI 到桌面；随后按提示右键 Add to Steam 并手动选择 PE 或 GE-Proton 10-4" bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
             battlenet) confirm_and_run "安装战网并 Add to Steam" "下载官方 EXE 到桌面；随后按提示右键 Add to Steam 并手动选择 PE 或 GE-Proton 10-4" bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
             diagnose) run_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
-            handheld)
-                run_action "掌机常用快捷键" bash "$PROJECT_ROOT/modules/handheld_helper.sh" shortcuts
-                run_action "外接设备检查" bash "$PROJECT_ROOT/modules/handheld_helper.sh" peripherals
-                ;;
+            center) support_center_touch_menu ;;
             optimize) NEXT_CATEGORY="optimize"; return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = "optimize" ] || return 0
+    done
+}
+
+support_center_touch_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame optimize "攻略与安全中心" "常见中文兼容指引、掌机说明和可导出的操作记录"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "中文兼容攻略卡" "启动器、Proton、手柄、反作弊、性能和空间建议"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "掌机常用快捷键" "键盘、触控板、扳机鼠标与回游戏模式说明"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "外接设备检查" "只读检查显示器和蓝牙设备状态"
+        ui_touch_button 16 '\033[1;97;48;5;24m' "新手安全与操作记录" "说明高风险操作并导出最近 80 条工具箱记录"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回游戏与掌机助手" "查看启动器和游戏诊断"
+        ui_prompt
+        choice="$(read_touch_menu right:7-8:guides right:10-11:shortcuts right:13-14:peripherals right:16-17:records right:18-19:game-tools)"
+        if apply_navigation "$choice"; then return 0; fi
+
+        case "$choice" in
+            guides) run_action "中文兼容攻略卡" bash "$PROJECT_ROOT/modules/game_guides.sh" show ;;
+            shortcuts) run_action "掌机常用快捷键" bash "$PROJECT_ROOT/modules/handheld_helper.sh" shortcuts ;;
+            peripherals) run_action "外接设备检查" bash "$PROJECT_ROOT/modules/handheld_helper.sh" peripherals ;;
+            records)
+                run_action "新手安全说明" bash "$PROJECT_ROOT/modules/safety_center.sh" guide
+                run_action "操作记录" bash "$PROJECT_ROOT/modules/safety_center.sh" records
+                ;;
+            game-tools) NEXT_CATEGORY="optimize"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "optimize" ] || return 0
     done
