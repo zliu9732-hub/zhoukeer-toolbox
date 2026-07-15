@@ -10,7 +10,7 @@ PACKAGE_PATH="$DIST_DIR/$PACKAGE_NAME"
 VERSIONED_PACKAGE_NAME="zhoukeer-toolbox-$VERSION.tar.gz"
 VERSIONED_PACKAGE_PATH="$DIST_DIR/$VERSIONED_PACKAGE_NAME"
 SHA256SUMS_PATH="$DIST_DIR/SHA256SUMS"
-VERIFY_FILES="VERSION main.sh modules/software.sh core/gui.sh"
+VERIFY_FILES="VERSION main.sh install.sh modules/software.sh core/gui.sh assets/icon.png assets/icon-round.svg"
 
 mkdir -p "$DIST_DIR"
 

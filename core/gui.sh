@@ -10,7 +10,7 @@ source "$PROJECT_ROOT/core/ui.sh"
 source "$PROJECT_ROOT/core/logger.sh"
 
 GUI_TITLE="周克儿工具箱 V4"
-GUI_ICON="$PROJECT_ROOT/assets/icon.png"
+GUI_ICON="$PROJECT_ROOT/assets/icon-round.svg"
 
 # Decky 官方商店插件：保留英文官方名，后面附小白可理解的中文作用。
 DECKY_OFFICIAL_PLUGIN_NAMES=(

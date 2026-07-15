@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <clipPath id="round-icon">
+      <circle cx="256" cy="256" r="246" />
+    </clipPath>
+  </defs>
+  <image
+    href="icon.png"
+    width="512"
+    height="512"
+    preserveAspectRatio="xMidYMid slice"
+    clip-path="url(#round-icon)"
+  />
+</svg>
