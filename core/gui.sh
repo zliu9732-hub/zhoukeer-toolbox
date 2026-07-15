@@ -332,7 +332,7 @@ steam_optimization_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "Steam Deck 优化" \
+        choice="$(gui_dialog --menu "SteamOS 掌机优化" \
             download-cache "清理 Steam 下载缓存" \
             performance "查看性能模式建议" \
             shader-cache "清理着色器缓存" \
@@ -340,7 +340,7 @@ steam_optimization_menu() {
         case "$choice" in
             download-cache|shader-cache)
                 gui_confirm "该操作会清理对应缓存目录，是否继续？" && \
-                    run_gui_action "Steam Deck优化" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    run_gui_action "SteamOS掌机优化" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/steam.sh" "$choice"
                 ;;
             performance)
@@ -377,7 +377,7 @@ optimization_menu() {
     while true; do
         choice="$(gui_dialog --menu "系统优化与维护" \
             game-tools "游戏与掌机助手" \
-            steam "Steam Deck 优化" \
+            steam "SteamOS 掌机优化" \
             cleanup "系统清理" \
             fixall "一键修复模式" \
             back "返回主菜单")" || return 0

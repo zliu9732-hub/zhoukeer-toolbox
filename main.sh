@@ -260,7 +260,7 @@ steam_touch_menu() {
     local choice
 
     while true; do
-        draw_category_frame optimize "Steam Deck 优化" "安全处理 Steam 缓存，并查看性能建议"
+        draw_category_frame optimize "SteamOS 掌机优化" "安全处理 Steam 缓存，并查看性能建议"
         ui_touch_button 8 '\033[1;97;48;5;24m' "清理 Steam 下载缓存" "删除未完成的下载残留"
         ui_touch_button 11 '\033[1;97;48;5;24m' "查看性能模式建议" "只读检查，不修改系统"
         ui_touch_button 14 '\033[1;97;48;5;24m' "清理着色器缓存" "释放空间，游戏会在下次启动时重建"
@@ -522,7 +522,7 @@ system_optimization_menu() {
     while true; do
         draw_category_frame optimize "系统优化" "缓存清理、性能建议和常见问题修复"
         ui_touch_button 7 '\033[1;97;48;5;24m' "游戏与掌机助手" "非 Steam 入库、启动诊断、快捷键和外接设备检查"
-        ui_touch_button 10 '\033[1;97;48;5;24m' "Steam Deck 优化" "下载缓存、着色器缓存和性能建议"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "SteamOS 掌机优化" "下载缓存、着色器缓存和性能建议"
         ui_touch_button 13 '\033[1;97;48;5;24m' "系统清理" "安全释放用户缓存和 Steam 缓存"
         ui_touch_button 16 '\033[1;97;48;5;24m' "一键修复模式" "检测网络并处理常见下载问题"
         ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"

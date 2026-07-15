@@ -10,12 +10,29 @@ UI_SEPARATOR_COL=32
 UI_PANEL_COL=35
 UI_LAST_ROW=20
 
+ui_detect_layout() {
+    local columns="${COLUMNS:-}"
+
+    if ! [[ "$columns" =~ ^[0-9]+$ ]]; then
+        columns="$(tput cols 2>/dev/null || printf '120')"
+    fi
+
+    # 小屏掌机常见的窄终端下收紧导航栏，保留右侧至少 50 列内容空间。
+    if [ "$columns" -le 104 ]; then
+        UI_SIDEBAR_WIDTH=25
+        UI_SEPARATOR_COL=28
+        UI_PANEL_COL=31
+    fi
+}
+
+ui_detect_layout
+
 logo() {
 echo -e "${BLUE}"
 cat << "EOL"
 ====================================
    📦 周克儿工具箱 v4
-   Steam Deck Toolbox
+   SteamOS Handheld Toolbox
 ====================================
 EOL
 echo -e "${NC}"
@@ -55,7 +72,8 @@ ui_panel_line() {
 
     ui_resolve_text_color "$color"
     ui_move "$row" "$UI_PANEL_COL"
-    printf '%b%s%b' "$UI_THEME_COLOR" "$text" "$NC"
+    # 文字使用短暗底，保留壁纸氛围但不再让人物图案干扰阅读。
+    printf '\033[48;5;234m %b%s \033[0m' "$UI_THEME_COLOR" "$text"
 }
 
 # 每个分类是两行高的大按钮，内部值只用于程序识别，界面不显示字母或数字。
@@ -66,18 +84,18 @@ ui_sidebar_item() {
     local selected="$4"
     local show_separator="${5:-1}"
     local marker='  '
-    local foreground='\033[1;38;5;250m'
+    local foreground='\033[1;38;5;252;48;5;234m'
     local separator='\033[38;5;239m'
 
     if [ "$value" = "$selected" ]; then
         marker='▶ '
-        foreground='\033[1;38;5;203m'
+        foreground='\033[1;38;5;255;48;5;52m'
         separator='\033[38;5;203m'
     fi
 
-    # 侧栏保持透明，只用短标记和细横线表示层级，避免遮挡黑白背景。
+    # 左侧用短暗底建立稳定导航层级，选中项只使用低饱和红色强调。
     ui_move "$row" 3
-    printf '%b%s%s%b' "$foreground" "$marker" "$label" "$NC"
+    printf '%b %s%s %b' "$foreground" "$marker" "$label" "$NC"
     if [ "$show_separator" = "1" ]; then
         ui_move "$((row + 1))" 3
         printf '%b──────────────────────────%b' "$separator" "$NC"
@@ -90,18 +108,19 @@ ui_touch_button() {
     local label="$3"
     local hint="${4:-}"
     local label_color='\033[1;38;5;255m'
+    local rail_color='\033[38;5;203m'
 
     # 右侧按钮保持透明，让黑白背景能够完整显示；颜色仅用于区分文字状态。
     case "$color" in
-        *'48;5;114'*) label_color='\033[1;38;5;203m' ;;
-        *'48;5;160'*) label_color='\033[1;38;5;203m' ;;
-        *'48;5;238'*) label_color='\033[1;38;5;245m' ;;
+        *'48;5;114'*) label_color='\033[1;38;5;255m' ;;
+        *'48;5;160'*) label_color='\033[1;38;5;255m'; rail_color='\033[38;5;203m' ;;
+        *'48;5;238'*) label_color='\033[1;38;5;250m'; rail_color='\033[38;5;245m' ;;
     esac
 
     ui_move "$row" "$UI_PANEL_COL"
-    printf '%b●  %s%b' "$label_color" "$label" "$NC"
+    printf '\033[48;5;234m%b▌ %b%s \033[0m' "$rail_color" "$label_color" "$label"
     ui_move "$((row + 1))" "$UI_PANEL_COL"
-    printf '\033[38;5;250m   %s%b' "$hint" "$NC"
+    printf '\033[48;5;234m\033[38;5;250m  %s \033[0m' "$hint"
 }
 
 draw_category_frame() {
@@ -112,7 +131,10 @@ draw_category_frame() {
 
     printf '\033[0m\033[2J\033[H'
 
-    # 采用无间隔的两行触控区，确保在 Steam Deck 实际可见的 20 行内完整显示。
+    ui_move 1 3
+    printf '\033[1;38;5;245m功能导航\033[0m'
+
+    # 采用无间隔的两行触控区，确保各类 SteamOS 掌机的小屏终端内完整显示。
     ui_sidebar_item 2 init "◆ 新机初始化" "$selected"
     ui_sidebar_item 4 software "▣ 常用软件" "$selected"
     ui_sidebar_item 6 remote "⌁ 远程协助" "$selected"
@@ -127,28 +149,28 @@ draw_category_frame() {
     row=2
     while [ "$row" -le "$UI_LAST_ROW" ]; do
         ui_move "$row" "$UI_SEPARATOR_COL"
-        printf '\033[38;5;203m│\033[0m'
+        printf '\033[38;5;239m│\033[0m'
         row=$((row + 1))
     done
 
-    ui_panel_line 2 '\033[1;38;5;203m' "◆ 周克儿工具箱 V4"
-    ui_panel_line 3 '\033[1;38;5;45m' "Steam Deck Toolbox"
-    ui_panel_line 4 '\033[38;5;203m' "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    ui_panel_line 5 '\033[1;38;5;220m' "$title"
-    ui_panel_line 6 '\033[1;38;5;45m' "$subtitle"
+    ui_panel_line 2 '\033[1;38;5;203m' "◆ 周克儿工具箱  ·  V4"
+    ui_panel_line 3 '\033[1;38;5;45m' "STEAMOS 掌机  /  中文工具"
+    ui_panel_line 4 '\033[38;5;203m' "────────────────────────────────────────"
+    ui_panel_line 5 '\033[1;38;5;220m' "▌ $title"
+    ui_panel_line 6 '\033[1;38;5;45m' "  $subtitle"
 }
 
 draw_disclaimer_frame() {
     printf '\033[0m\033[2J\033[H'
 
     ui_move 2 6
-    printf '\033[1;38;5;203m◆ 周克儿工具箱 V4\033[0m'
+    printf '\033[1;38;5;203;48;5;234m ◆ 周克儿工具箱  ·  V4 \033[0m'
     ui_move 3 6
-    printf '\033[38;5;203m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m'
+    printf '\033[38;5;203m────────────────────────────────────────────────────────────\033[0m'
     ui_move 5 6
-    printf '\033[1;38;5;255m使用说明与免责声明\033[0m'
+    printf '\033[1;38;5;255;48;5;234m ▌ 使用说明与免责声明 \033[0m'
     ui_move 6 6
-    printf '\033[38;5;250m请阅读以下内容，知悉后再开始使用\033[0m'
+    printf '\033[38;5;250;48;5;234m  请阅读以下内容，知悉后再开始使用 \033[0m'
 }
 
 ui_disclaimer_line() {
@@ -158,7 +180,7 @@ ui_disclaimer_line() {
 
     ui_resolve_text_color "$color"
     ui_move "$row" 6
-    printf '%b%s%b' "$UI_THEME_COLOR" "$text" "$NC"
+    printf '\033[48;5;234m %b%s \033[0m' "$UI_THEME_COLOR" "$text"
 }
 
 ui_disclaimer_button() {
@@ -169,14 +191,14 @@ ui_disclaimer_button() {
 
     ui_resolve_text_color "$color"
     ui_move "$row" 8
-    printf '%b◆  %s%b' "$UI_THEME_COLOR" "$label" "$NC"
+    printf '\033[48;5;234m%b▌  %s \033[0m' "$UI_THEME_COLOR" "$label"
     ui_move "$((row + 1))" 11
-    printf '\033[38;5;250m%s%b' "$hint" "$NC"
+    printf '\033[48;5;234m\033[38;5;250m  %s \033[0m' "$hint"
 }
 
 ui_prompt() {
     ui_move "$UI_LAST_ROW" "$UI_PANEL_COL"
-    printf '\033[0m\033[2K\033[1;38;5;203m请用触屏或触控板点击大按钮\033[0m'
+    printf '\033[0m\033[2K\033[1;38;5;255;48;5;234m 触屏或触控板点击功能 \033[0m'
 }
 
 enable_mouse_tracking() {
