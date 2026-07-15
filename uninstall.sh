@@ -19,7 +19,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEFAULT_INSTALL_DIR="$HOME/.local/share/zhoukeer-toolbox"
 CONFIG_BACKUP_DIR="$HOME/.config/zhoukeer-toolbox"
 LOG_BACKUP_DIR="$HOME/.local/state/zhoukeer-toolbox"
-PASSWORD_RECORD="$HOME/Desktop/密码.txt"
+PASSWORD_RECORD="$HOME/Desktop/管理员密码.txt"
 
 confirm_action() {
     local prompt="$1"

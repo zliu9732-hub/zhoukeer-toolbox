@@ -43,14 +43,47 @@ touch_software_menu="$(sed -n '/^common_software_menu()/,/^}/p' "$MAIN_FILE")"
 gui_software_menu="$(sed -n '/^software_menu()/,/^}/p' "$GUI_FILE")"
 touch_settings_menu="$(sed -n '/^system_settings_menu()/,/^}/p' "$MAIN_FILE")"
 gui_settings_menu="$(sed -n '/^settings_menu()/,/^}/p' "$GUI_FILE")"
+touch_plugin_menu="$(sed -n '/^plugin_store_menu()/,/^}/p' "$MAIN_FILE")"
+gui_plugin_menu="$(sed -n '/^plugin_menu()/,/^}/p' "$GUI_FILE")"
+touch_dual_menu="$(sed -n '/^dual_system_menu()/,/^}/p' "$MAIN_FILE")"
+gui_dual_menu="$(sed -n '/^dual_system_menu()/,/^}/p' "$GUI_FILE")"
 
 assert_contains "$touch_software_menu" 'Chrome 浏览器' "触控常用软件菜单缺少 Chrome"
 assert_contains "$touch_software_menu" 'modules/software.sh" browser' "触控菜单未调用 Chrome 安装"
 assert_contains "$gui_software_menu" 'Chrome 浏览器' "图形常用软件菜单缺少 Chrome"
 assert_contains "$gui_software_menu" 'modules/software.sh" browser' "图形菜单未调用 Chrome 安装"
+assert_contains "$touch_software_menu" 'GE-Proton 兼容层' "触控常用软件菜单缺少GE-Proton"
+assert_contains "$touch_software_menu" 'modules/ge_proton.sh" install' "触控菜单未调用GE-Proton安装"
+assert_contains "$gui_software_menu" 'GE-Proton 兼容层' "图形常用软件菜单缺少GE-Proton"
+assert_contains "$gui_software_menu" 'modules/ge_proton.sh" install' "图形菜单未调用GE-Proton安装"
 assert_not_contains "$touch_software_menu" 'protonup' "触控菜单仍包含 ProtonUp-Qt"
 assert_not_contains "$gui_software_menu" 'protonup' "图形菜单仍包含 ProtonUp-Qt"
 assert_not_contains "$(cat "$SOFTWARE_FILE")" 'protonup' "软件安装模块仍接受 ProtonUp-Qt"
+
+for plugin_menu in "$touch_plugin_menu" "$gui_plugin_menu"; do
+    assert_contains "$plugin_menu" '一键安装常用功能插件' "插件商城菜单缺少常用功能插件一键安装"
+    assert_contains "$plugin_menu" 'modules/plugin_store.sh" features' "常用功能插件入口调用错误"
+    assert_contains "$plugin_menu" '一键安装当前列表全部插件' "插件商城菜单缺少全部插件一键安装"
+    assert_contains "$plugin_menu" 'modules/plugin_store.sh" all' "全部插件入口调用错误"
+    assert_contains "$plugin_menu" '浏览官方插件' "插件商城菜单缺少官方插件分页入口"
+    assert_contains "$plugin_menu" '启用开发者模式' "插件商城缺少开发者模式前置说明"
+    assert_contains "$plugin_menu" 'CEF远程调试' "插件商城缺少CEF远程调试前置说明"
+done
+
+touch_plugin_pages="$(sed -n '/^plugin_official_touch_pages()/,/^}/p' "$MAIN_FILE")"
+gui_plugin_pages="$(sed -n '/^plugin_official_gui_pages()/,/^}/p' "$GUI_FILE")"
+for plugin_pages in "$touch_plugin_pages" "$gui_plugin_pages"; do
+    assert_contains "$plugin_pages" 'modules/decky_bundle.sh" plugin' "官方插件分页未调用单插件安装"
+    assert_contains "$plugin_pages" 'DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS' "官方插件分页缺少中文功能说明"
+done
+
+for dual_menu in "$touch_dual_menu" "$gui_dual_menu"; do
+    assert_contains "$dual_menu" '双系统设置' "缺少双系统设置菜单"
+    assert_contains "$dual_menu" 'modules/dual_system.sh" mount' "双系统菜单未接入互通盘挂载"
+    assert_contains "$dual_menu" 'modules/dual_system.sh" add' "双系统菜单未接入双引导添加"
+    assert_contains "$dual_menu" 'modules/dual_system.sh" remove' "双系统菜单未接入双引导隐藏"
+    assert_contains "$dual_menu" 'modules/dual_system.sh" protect' "双系统菜单未接入互通盘保护"
+done
 
 for settings_menu in "$touch_settings_menu" "$gui_settings_menu"; do
     assert_contains "$settings_menu" '添加国内下载源' "系统设置缺少国内下载源"

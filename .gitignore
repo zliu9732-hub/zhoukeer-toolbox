@@ -19,7 +19,7 @@ logs/
 
 # 本地运行产物
 apps/
-密码.txt
+管理员密码.txt
 
 # Release版本化产物（dist中的稳定更新包和SHA256SUMS需要提交）
 dist/zhoukeer-toolbox-*.tar.gz

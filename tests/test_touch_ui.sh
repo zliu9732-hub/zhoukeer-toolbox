@@ -57,7 +57,7 @@ grep -Fq 'any:15-16:agree any:18-19:exit' "$PROJECT_ROOT/main.sh"
 grep -Fq '闲鱼：超级妹宝双叶' "$PROJECT_ROOT/main.sh"
 grep -Fq '作者本人的123云盘提供' "$PROJECT_ROOT/main.sh"
 grep -Fq '欢迎来闲鱼支持作者' "$PROJECT_ROOT/main.sh"
-grep -Fq '小黄鸭（LSFG-VK）' "$PROJECT_ROOT/main.sh"
+grep -Fq '一键安装常用功能插件' "$PROJECT_ROOT/main.sh"
 if sed -n '/ui_touch_button()/,/^}/p' "$PROJECT_ROOT/core/ui.sh" | grep -Fq "printf '%b%-50s%b'"; then
     echo "FAIL: 右侧按钮仍在绘制整块色块"
     exit 1
@@ -71,8 +71,10 @@ if printf '%s\n%s\n' "$sidebar_source" "$frame_source" | grep -Eq '48;5;(24|45)'
 fi
 printf '%s\n' "$sidebar_source" | grep -Fq "marker='▌ '"
 printf '%s\n' "$sidebar_source" | grep -Fq '──────────────────────────'
-grep -Fq 'ui_sidebar_item 14 changelog "📋 更新日志"' "$PROJECT_ROOT/core/ui.sh"
-grep -Fq 'left:14-15:nav-changelog' "$PROJECT_ROOT/main.sh"
+grep -Fq 'ui_sidebar_item 12 dual "💿 双系统设置"' "$PROJECT_ROOT/core/ui.sh"
+grep -Fq 'ui_sidebar_item 16 changelog "📋 更新日志"' "$PROJECT_ROOT/core/ui.sh"
+grep -Fq 'left:12-13:nav-dual' "$PROJECT_ROOT/main.sh"
+grep -Fq 'left:16-17:nav-changelog' "$PROJECT_ROOT/main.sh"
 grep -Fq 'changelog) changelog_menu' "$PROJECT_ROOT/main.sh"
 
 echo "PASS: 纯触控、透明按钮、免责声明、字体和背景主题测试通过"

@@ -8,7 +8,9 @@ trap 'rm -rf "$TMP_ROOT"' EXIT
 
 BIN_DIR="$TMP_ROOT/bin"
 HOME_DIR="$TMP_ROOT/home"
-CALL_LOG="$TMP_ROOT/konsole-call.log"
+CALL_LOG="$TMP_ROOT/terminal-call.log"
+LAUNCH_LOG="$TMP_ROOT/launcher.log"
+DIALOG_LOG="$TMP_ROOT/dialog.log"
 mkdir -p "$BIN_DIR" "$HOME_DIR/.local/share/konsole"
 touch "$HOME_DIR/.local/share/konsole/ZhoukeerToolbox.profile"
 
@@ -18,17 +20,42 @@ if [ "${1:-}" = "--help" ]; then
     printf '%s\n' "${FAKE_KONSOLE_HELP:-}"
     exit 0
 fi
-printf '%s\n' "$*" >> "$FAKE_KONSOLE_CALL_LOG"
+printf 'konsole %s\n' "$*" >> "$FAKE_TERMINAL_CALL_LOG"
+case "${FAKE_KONSOLE_FAILURE:-none}" in
+    profile)
+        case " $* " in *' --profile '*) exit 23 ;; esac
+        ;;
+    all) exit 24 ;;
+esac
 exit 0
 SCRIPT
 chmod +x "$BIN_DIR/konsole"
 
+cat > "$BIN_DIR/xterm" <<'SCRIPT'
+#!/bin/bash
+printf 'xterm %s\n' "$*" >> "$FAKE_TERMINAL_CALL_LOG"
+exit "${FAKE_XTERM_STATUS:-0}"
+SCRIPT
+chmod +x "$BIN_DIR/xterm"
+
+cat > "$BIN_DIR/kdialog" <<'SCRIPT'
+#!/bin/bash
+printf '%s\n' "$*" >> "$FAKE_DIALOG_LOG"
+SCRIPT
+chmod +x "$BIN_DIR/kdialog"
+
 run_launcher() {
     : > "$CALL_LOG"
+    : > "$LAUNCH_LOG"
+    : > "$DIALOG_LOG"
     HOME="$HOME_DIR" \
     PATH="$BIN_DIR:/usr/bin:/bin" \
-    FAKE_KONSOLE_CALL_LOG="$CALL_LOG" \
+    ZHOUKEER_LAUNCH_LOG="$LAUNCH_LOG" \
+    FAKE_TERMINAL_CALL_LOG="$CALL_LOG" \
+    FAKE_DIALOG_LOG="$DIALOG_LOG" \
     FAKE_KONSOLE_HELP="$1" \
+    FAKE_KONSOLE_FAILURE="${2:-none}" \
+    FAKE_XTERM_STATUS="${3:-0}" \
         bash "$PROJECT_ROOT/launch.sh"
 }
 
@@ -50,4 +77,51 @@ if grep -Fq -- '--geometry' "$CALL_LOG"; then
     exit 1
 fi
 
-echo "PASS: Konsole窗口参数兼容与回退测试通过"
+run_launcher $'--profile\n--workdir\n--geometry' profile
+if [ "$(grep -c '^konsole ' "$CALL_LOG")" -ne 2 ]; then
+    echo "FAIL: 主题启动失败后未进入Konsole兼容模式"
+    exit 1
+fi
+sed -n '2p' "$CALL_LOG" | grep -Fq -- '--geometry 1220x740'
+if sed -n '2p' "$CALL_LOG" | grep -Fq -- '--profile'; then
+    echo "FAIL: Konsole兼容模式仍使用主题参数"
+    exit 1
+fi
+
+run_launcher $'--profile\n--workdir\n--geometry' all
+grep -Fq 'xterm -e bash' "$CALL_LOG"
+grep -Fq 'Konsole 各级启动均不可用' "$LAUNCH_LOG"
+
+mv "$BIN_DIR/konsole" "$BIN_DIR/konsole.disabled"
+mv "$BIN_DIR/xterm" "$BIN_DIR/xterm.disabled"
+if run_launcher '' none 1; then
+    echo "FAIL: 没有可用终端时启动器错误返回成功"
+    exit 1
+fi
+grep -Fq '周克儿工具箱启动失败' "$DIALOG_LOG"
+grep -Fq "$LAUNCH_LOG" "$DIALOG_LOG"
+
+FAIL_APP="$TMP_ROOT/failing-app"
+mkdir -p "$FAIL_APP"
+cp "$PROJECT_ROOT/launch.sh" "$FAIL_APP/launch.sh"
+cat > "$FAIL_APP/main.sh" <<'SCRIPT'
+#!/bin/bash
+echo "模拟主程序错误" >&2
+exit 37
+SCRIPT
+chmod +x "$FAIL_APP/launch.sh" "$FAIL_APP/main.sh"
+: > "$LAUNCH_LOG"
+: > "$DIALOG_LOG"
+if HOME="$HOME_DIR" \
+    PATH="$BIN_DIR:/usr/bin:/bin" \
+    ZHOUKEER_LAUNCH_LOG="$LAUNCH_LOG" \
+    FAKE_DIALOG_LOG="$DIALOG_LOG" \
+        bash "$FAIL_APP/launch.sh" --run-main; then
+    echo "FAIL: 主程序异常退出时启动器错误返回成功"
+    exit 1
+fi
+grep -Fq '模拟主程序错误' "$LAUNCH_LOG"
+grep -Fq '主程序结束：状态码=37' "$LAUNCH_LOG"
+grep -Fq '主程序异常退出（状态码：37）' "$DIALOG_LOG"
+
+echo "PASS: 启动器多级兼容、失败提示与独立日志测试通过"

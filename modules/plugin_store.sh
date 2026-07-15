@@ -1033,6 +1033,56 @@ install_configured_plugin() {
     esac
 }
 
+install_feature_plugins() {
+    local plugin
+    local failed=0
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "功能插件安装仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+
+    echo "将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。"
+    echo "已安装的插件会以新版本安全替换；单项失败不会覆盖该插件的旧版本。"
+    for plugin in lsfg fsr4 cheatdeck; do
+        echo ""
+        case "$plugin" in
+            lsfg) echo "========== 小黄鸭（LSFG-VK） ==========" ;;
+            fsr4) echo "========== FSR4（Decky Framegen） ==========" ;;
+            cheatdeck) echo "========== CheatDeck ==========" ;;
+        esac
+        if ! install_configured_plugin "$plugin"; then
+            failed=1
+            echo "该插件未完成，继续尝试其余插件。"
+        fi
+    done
+
+    if [ "$failed" -eq 0 ]; then
+        echo "三款常用功能插件已全部安装完成。"
+        log "常用功能插件整组安装完成"
+        return 0
+    fi
+
+    echo "部分功能插件未完成，请查看上方提示后单独重试。"
+    return 1
+}
+
+install_all_plugin_packages() {
+    echo "将依次处理 Decky Loader、三款常用功能插件和当前列表的官方推荐插件。"
+    echo "官方推荐插件仍由 Decky 内置安装器在 Steam 界面中确认。"
+
+    install_plugin_store || return 1
+    install_feature_plugins || return 1
+    if ! bash "$PROJECT_ROOT/modules/decky_bundle.sh" install; then
+        echo "官方推荐插件清单未完成提交；小黄鸭、FSR4 和 CheatDeck 的结果请查看上方提示。"
+        return 1
+    fi
+
+    echo "当前列表全部插件的安装流程已完成。"
+    log "全部插件安装流程完成"
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-store}" in
         store) install_plugin_store ;;
@@ -1041,6 +1091,8 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         lsfg-import-select) select_and_import_lossless_backup ;;
         fsr4) install_configured_plugin fsr4 ;;
         cheatdeck) install_configured_plugin cheatdeck ;;
+        features) install_feature_plugins ;;
+        all) install_all_plugin_packages ;;
         lsfg-import)
             [ -n "${2:-}" ] || {
                 echo "用法: $0 lsfg-import /本地/备份文件"

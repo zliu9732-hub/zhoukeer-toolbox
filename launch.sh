@@ -5,87 +5,269 @@ set -u
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROFILE_FILE="$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
 WINDOW_SIZE="1220x740"
-LOG_DIR="$PROJECT_ROOT/logs"
-LAUNCH_LOG="$LOG_DIR/launcher.log"
+STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+LAUNCH_LOG="${ZHOUKEER_LAUNCH_LOG:-$STATE_HOME/zhoukeer-toolbox/launcher.log}"
 
-mkdir -p "$LOG_DIR" 2>/dev/null || true
+prepare_launcher_log() {
+    local fallback_log
 
-launcher_log() {
-    printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >> "$LAUNCH_LOG" 2>/dev/null || true
+    if mkdir -p "$(dirname "$LAUNCH_LOG")" 2>/dev/null && \
+        touch "$LAUNCH_LOG" 2>/dev/null; then
+        chmod 600 "$LAUNCH_LOG" 2>/dev/null || true
+        return 0
+    fi
+
+    fallback_log="${TMPDIR:-/tmp}/zhoukeer-toolbox-launcher-${UID:-user}.log"
+    LAUNCH_LOG="$fallback_log"
+    touch "$LAUNCH_LOG" 2>/dev/null || return 1
+    chmod 600 "$LAUNCH_LOG" 2>/dev/null || true
 }
 
-if ! command -v konsole >/dev/null 2>&1; then
-    if command -v kdialog >/dev/null 2>&1; then
-        kdialog --error "未找到 Konsole，无法启动周克儿工具箱。"
+launcher_log() {
+    printf '%s [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$$" "$*" \
+        >> "$LAUNCH_LOG" 2>/dev/null || true
+}
+
+show_launch_error() {
+    local title="$1"
+    local message="$2"
+
+    launcher_log "错误：${title}；${message//$'\n'/；}"
+
+    if command -v kdialog >/dev/null 2>&1 && \
+        kdialog --title "$title" --error "$message" >/dev/null 2>&1; then
+        return 0
     fi
+    if command -v zenity >/dev/null 2>&1 && \
+        zenity --error --title="$title" --text="$message" >/dev/null 2>&1; then
+        return 0
+    fi
+    if command -v xmessage >/dev/null 2>&1 && \
+        xmessage -center "$title
+
+$message" >/dev/null 2>&1; then
+        return 0
+    fi
+    if command -v notify-send >/dev/null 2>&1 && \
+        notify-send -u critical "$title" "$message" >/dev/null 2>&1; then
+        return 0
+    fi
+
+    printf '%s\n%s\n' "$title" "$message" >&2
+    return 1
+}
+
+run_startup_update() {
+    local default_install_dir="$HOME/.local/share/zhoukeer-toolbox"
+    local status
+
+    [ "${ZHOUKEER_AUTO_UPDATE:-1}" != "0" ] || return 0
+    [ "$(uname -s 2>/dev/null || echo unknown)" = "Linux" ] || return 0
+    [ -r "$PROJECT_ROOT/update.sh" ] || return 0
+
+    if [ ! -f "$PROJECT_ROOT/.zhoukeer-installed" ] && \
+        [ "$PROJECT_ROOT" != "$default_install_dir" ] && \
+        [ "${ZHOUKEER_AUTO_UPDATE_FORCE:-0}" != "1" ]; then
+        launcher_log "跳过自动更新：当前目录不是受管理的安装目录"
+        return 0
+    fi
+
+    printf '%s\n' "正在检查工具箱更新..."
+    launcher_log "开始启动自动更新检测"
+    if command -v tee >/dev/null 2>&1; then
+        bash "$PROJECT_ROOT/update.sh" --startup 2>&1 | tee -a "$LAUNCH_LOG"
+        status=${PIPESTATUS[0]}
+    else
+        bash "$PROJECT_ROOT/update.sh" --startup >> "$LAUNCH_LOG" 2>&1
+        status=$?
+    fi
+
+    if [ "$status" -eq 0 ]; then
+        launcher_log "启动自动更新检测完成"
+    else
+        launcher_log "启动自动更新检测失败：状态码=${status}；继续当前版本"
+        printf '%s\n' "自动更新暂时不可用，继续启动当前版本。"
+    fi
+    return 0
+}
+
+run_main() {
+    local status
+    local message
+
+    run_startup_update
+    launcher_log "主程序开始：$PROJECT_ROOT/main.sh --touch"
+    if [ ! -r "$PROJECT_ROOT/main.sh" ]; then
+        message="主程序文件缺失或无法读取：
+$PROJECT_ROOT/main.sh
+
+启动日志：$LAUNCH_LOG"
+        show_launch_error "周克儿工具箱启动失败" "$message" || true
+        return 1
+    fi
+
+    if command -v tee >/dev/null 2>&1; then
+        ZHOUKEER_LAUNCHED=1 bash "$PROJECT_ROOT/main.sh" --touch \
+            2> >(tee -a "$LAUNCH_LOG" >&2)
+        status=$?
+    else
+        ZHOUKEER_LAUNCHED=1 bash "$PROJECT_ROOT/main.sh" --touch
+        status=$?
+    fi
+
+    launcher_log "主程序结束：状态码=$status"
+    if [ "$status" -eq 0 ]; then
+        return 0
+    fi
+
+    message="主程序异常退出（状态码：${status}）。
+请把启动日志发给维护者排查：
+$LAUNCH_LOG"
+    if ! show_launch_error "周克儿工具箱运行失败" "$message"; then
+        if [ -r /dev/tty ] && [ -w /dev/tty ]; then
+            printf '按回车键关闭窗口...' > /dev/tty
+            read -r _ < /dev/tty || true
+        fi
+    fi
+    return "$status"
+}
+
+prepare_launcher_log || true
+
+case "${1:-}" in
+    --run-main)
+        run_main
+        exit $?
+        ;;
+    "") ;;
+    *)
+        show_launch_error "周克儿工具箱启动失败" \
+            "启动器收到未知参数：$1
+启动日志：$LAUNCH_LOG" || true
+        exit 2
+        ;;
+esac
+
+launcher_log "启动请求：目录=$PROJECT_ROOT 系统=$(uname -s 2>/dev/null || echo unknown)"
+
+if [ ! -r "$PROJECT_ROOT/main.sh" ]; then
+    show_launch_error "周克儿工具箱启动失败" \
+        "安装可能不完整，未找到主程序：
+$PROJECT_ROOT/main.sh
+
+启动日志：$LAUNCH_LOG" || true
     exit 1
 fi
 
-KONSOLE_HELP="$(konsole --help 2>/dev/null || true)"
+RUN_COMMAND=(bash "$PROJECT_ROOT/launch.sh" --run-main)
+KONSOLE_HELP=""
 
 supports_konsole_option() {
     printf '%s\n' "$KONSOLE_HELP" | grep -q -- "$1"
 }
 
-build_window_args() {
-    KONSOLE_WINDOW_MODE="default"
+try_terminal() {
+    local label="$1"
+    shift
+
+    launcher_log "尝试启动：${label}；命令=$1"
+    "$@"
+    local status=$?
+    if [ "$status" -eq 0 ]; then
+        launcher_log "启动命令已接受：$label"
+        return 0
+    fi
+
+    launcher_log "启动失败：${label}；状态码=$status"
+    return "$status"
+}
+
+try_konsole_levels() {
+    local optional_args=()
+    local window_mode="默认尺寸"
+
+    command -v konsole >/dev/null 2>&1 || return 1
+    KONSOLE_HELP="$(konsole --help 2>/dev/null || true)"
 
     if supports_konsole_option '--geometry'; then
-        KONSOLE_WINDOW_MODE="geometry"
+        optional_args+=(--geometry "$WINDOW_SIZE")
+        window_mode="窗口 $WINDOW_SIZE"
     elif supports_konsole_option '--fullscreen'; then
-        # 新版 SteamOS 的 Konsole 可能移除了 --geometry；全屏仍能保证触控区域完整。
-        KONSOLE_WINDOW_MODE="fullscreen"
-    else
-        launcher_log "Konsole 不支持 --geometry/--fullscreen，使用默认窗口尺寸"
+        optional_args+=(--fullscreen)
+        window_mode="全屏"
     fi
-}
-
-launch_konsole() {
-    local use_profile="$1"
-    local args=()
-
-    case "$KONSOLE_WINDOW_MODE" in
-        geometry) args+=(--geometry "$WINDOW_SIZE") ;;
-        fullscreen) args+=(--fullscreen) ;;
-    esac
-
-    if [ "$use_profile" = "1" ]; then
-        args+=(--profile "$PROFILE_FILE")
-    fi
-
     if supports_konsole_option '--workdir'; then
-        args+=(--workdir "$PROJECT_ROOT")
+        optional_args+=(--workdir "$PROJECT_ROOT")
     fi
 
-    launcher_log "启动 Konsole：profile=$use_profile args=${args[*]:-none}"
-    konsole "${args[@]}" \
-        -e env ZHOUKEER_LAUNCHED=1 bash "$PROJECT_ROOT/main.sh" --touch
+    if [ -f "$PROFILE_FILE" ] && supports_konsole_option '--profile'; then
+        if try_terminal "Konsole 完整主题（${window_mode}）" \
+            konsole "${optional_args[@]}" --profile "$PROFILE_FILE" \
+            -e "${RUN_COMMAND[@]}"; then
+            return 0
+        fi
+    fi
+
+    if [ "${#optional_args[@]}" -gt 0 ]; then
+        if try_terminal "Konsole 兼容模式（${window_mode}）" \
+            konsole "${optional_args[@]}" -e "${RUN_COMMAND[@]}"; then
+            return 0
+        fi
+    fi
+
+    try_terminal "Konsole 最小参数模式" konsole -e "${RUN_COMMAND[@]}"
 }
 
-build_window_args
-
-# SteamOS 不同版本捆绑的 Konsole 参数不完全一致。
-# 只在当前版本明确提供 --profile 时启用大字体与背景主题；
-# 否则回退到已在 Steam Deck 真机运行过的基础启动参数。
-if [ -f "$PROFILE_FILE" ] && supports_konsole_option '--profile'; then
-    launch_konsole 1
-    launch_status=$?
-
-    if [ "$launch_status" -eq 0 ]; then
-        exit 0
+try_fallback_terminals() {
+    if command -v x-terminal-emulator >/dev/null 2>&1 && \
+        try_terminal "系统默认终端" x-terminal-emulator -e "${RUN_COMMAND[@]}"; then
+        return 0
     fi
+    if command -v gnome-terminal >/dev/null 2>&1 && \
+        try_terminal "GNOME Terminal" gnome-terminal \
+            --working-directory="$PROJECT_ROOT" -- "${RUN_COMMAND[@]}"; then
+        return 0
+    fi
+    if command -v qterminal >/dev/null 2>&1 && \
+        try_terminal "QTerminal" qterminal --workdir "$PROJECT_ROOT" \
+            -e "${RUN_COMMAND[@]}"; then
+        return 0
+    fi
+    if command -v kitty >/dev/null 2>&1 && \
+        try_terminal "Kitty" kitty --directory "$PROJECT_ROOT" "${RUN_COMMAND[@]}"; then
+        return 0
+    fi
+    if command -v alacritty >/dev/null 2>&1 && \
+        try_terminal "Alacritty" alacritty --working-directory "$PROJECT_ROOT" \
+            -e "${RUN_COMMAND[@]}"; then
+        return 0
+    fi
+    if command -v xterm >/dev/null 2>&1 && \
+        try_terminal "XTerm" xterm -e "${RUN_COMMAND[@]}"; then
+        return 0
+    fi
+    return 1
+}
 
-    launcher_log "主题启动失败，状态码=$launch_status，回退到基础启动"
+if try_konsole_levels; then
+    exit 0
 fi
 
-launch_konsole 0
-launch_status=$?
-
-if [ "$launch_status" -ne 0 ]; then
-    launcher_log "基础启动失败，状态码=$launch_status"
-    if command -v kdialog >/dev/null 2>&1; then
-        kdialog --error "周克儿工具箱启动失败。\n日志：$LAUNCH_LOG"
-    fi
+launcher_log "Konsole 各级启动均不可用，尝试备用终端"
+if try_fallback_terminals; then
+    exit 0
 fi
 
-exit "$launch_status"
+if [ -t 0 ] && [ -t 1 ]; then
+    launcher_log "图形终端均不可用，使用当前终端直接启动"
+    run_main
+    exit $?
+fi
+
+show_launch_error "周克儿工具箱启动失败" \
+    "未能启动 Konsole 或其他兼容终端。
+请检查终端程序是否完整，或在 Konsole 中运行：
+bash \"$PROJECT_ROOT/main.sh\"
+
+启动日志：$LAUNCH_LOG" || true
+exit 1

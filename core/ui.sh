@@ -51,6 +51,7 @@ ui_sidebar_item() {
     local value="$2"
     local label="$3"
     local selected="$4"
+    local show_separator="${5:-1}"
     local marker='  '
     local foreground='\033[1;97m'
     local separator='\033[38;5;240m'
@@ -64,8 +65,10 @@ ui_sidebar_item() {
     # 侧栏保持透明，只用短标记和细横线表示层级，避免遮挡黑白背景。
     ui_move "$row" 3
     printf '%b%s%s%b' "$foreground" "$marker" "$label" "$NC"
-    ui_move "$((row + 1))" 3
-    printf '%b──────────────────────────%b' "$separator" "$NC"
+    if [ "$show_separator" = "1" ]; then
+        ui_move "$((row + 1))" 3
+        printf '%b──────────────────────────%b' "$separator" "$NC"
+    fi
 }
 
 ui_touch_button() {
@@ -102,10 +105,11 @@ draw_category_frame() {
     ui_sidebar_item 6 remote "📡 远程协助" "$selected"
     ui_sidebar_item 8 plugins "🧩 插件商城" "$selected"
     ui_sidebar_item 10 settings "⚙  系统设置" "$selected"
-    ui_sidebar_item 12 optimize "🚀 系统优化" "$selected"
-    ui_sidebar_item 14 changelog "📋 更新日志" "$selected"
-    ui_sidebar_item 16 update "🔄 工具箱更新" "$selected"
-    ui_sidebar_item 18 exit "✖  退出工具箱" "$selected"
+    ui_sidebar_item 12 dual "💿 双系统设置" "$selected"
+    ui_sidebar_item 14 optimize "🚀 系统优化" "$selected"
+    ui_sidebar_item 16 changelog "📋 更新日志" "$selected"
+    ui_sidebar_item 18 update "🔄 工具箱更新" "$selected"
+    ui_sidebar_item 20 exit "✖  退出工具箱" "$selected" 0
 
     row=2
     while [ "$row" -le "$UI_LAST_ROW" ]; do

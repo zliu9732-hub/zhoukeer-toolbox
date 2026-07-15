@@ -25,7 +25,7 @@ load_non_root_identity() {
 }
 
 show_plaintext_password_warning() {
-    echo "重要提示：新密码会以明文写入桌面“密码.txt”。"
+    echo "重要提示：新密码会以明文写入桌面“管理员密码.txt”。"
     echo "文件权限固定为 600，但所有以当前用户身份运行的软件都可能读取它。"
     echo "工具箱只在需要管理员权限时读取，不会上传或写入日志。"
 }
@@ -239,7 +239,7 @@ change_system_password() {
     show_plaintext_password_warning
     echo ""
     if ! load_toolbox_password; then
-        echo "桌面“密码.txt”不存在或未通过安全检查，请先使用“设置系统密码”。"
+        echo "桌面“管理员密码.txt”不存在或未通过安全检查，请先使用“设置系统密码”。"
         return 1
     fi
     current_password="$TOOLBOX_PASSWORD"

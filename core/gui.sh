@@ -12,6 +12,22 @@ source "$PROJECT_ROOT/core/logger.sh"
 GUI_TITLE="周克儿工具箱 V4"
 GUI_ICON="$PROJECT_ROOT/assets/icon.png"
 
+# Decky 官方商店插件：保留英文官方名，后面附小白可理解的中文作用。
+DECKY_OFFICIAL_PLUGIN_NAMES=(
+    "CSS Loader" "vibrantDeck" "Animation Changer" "Audio Loader" "SteamGridDB"
+    "PowerTools" "Storage Cleaner" "AutoFlatpaks" "Bluetooth" "ProtonDB Badges"
+    "Deck Settings" "HLTB for Deck" "PlayCount" "TabMaster" "Game Theme Music"
+    "Wine Cellar" "Pause Games" "Controller Tools" "Volume Mixer" "Battery Tracker"
+    "PlayTime" "Free Loader" "DeckMTP" "MangoPeel"
+)
+DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
+    "自定义界面样式" "调整界面配色" "更换开机动画" "更换系统音效" "自动补游戏封面"
+    "性能与功耗控制" "清理游戏缓存" "自动更新应用" "管理蓝牙设备" "显示兼容性评分"
+    "更多 Deck 设置" "显示通关时长" "记录游玩次数" "整理游戏库标签" "播放游戏主题音乐"
+    "管理 Wine 与 Proton" "后台自动暂停游戏" "手柄辅助工具" "分应用调节音量" "查看电池状态"
+    "记录游戏时长" "下载功能扩展" "USB 文件传输" "优化 Steam 界面"
+)
+
 gui_dialog() {
     if [ -f "$GUI_ICON" ]; then
         kdialog --title "$GUI_TITLE" --icon "$GUI_ICON" "$@"
@@ -54,6 +70,7 @@ software_menu() {
             wechat "微信" \
             qq "QQ" \
             browser "Chrome 浏览器" \
+            ge-proton "GE-Proton 兼容层" \
             back "返回主菜单")" || return 0
         case "$choice" in
             wechat)
@@ -70,6 +87,11 @@ software_menu() {
                 gui_confirm "将安装Chrome浏览器并自动创建桌面图标，是否继续？" && \
                     run_gui_action "安装Chrome浏览器" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" browser
+                ;;
+            ge-proton)
+                gui_confirm "将把GE-Proton安装到Steam兼容工具目录；完成后需要完全重启Steam。是否继续？" && \
+                    run_gui_action "安装GE-Proton兼容层" \
+                    bash "$PROJECT_ROOT/modules/ge_proton.sh" install
                 ;;
             back) return 0 ;;
         esac
@@ -112,30 +134,115 @@ plugin_menu() {
     while true; do
         choice="$(gui_dialog --menu "Decky Loader 插件商城" \
             install "安装或更新 Decky Loader" \
-            lsfg "小黄鸭（LSFG-VK）" \
-            fsr4 "FSR4（Decky Framegen）" \
-            cheatdeck "CheatDeck" \
+            features "一键安装常用功能插件（小黄鸭、FSR4、CheatDeck）" \
+            all "一键安装当前列表全部插件" \
+            browse "浏览官方插件（分页｜中文说明）" \
             back "返回主菜单")" || return 0
         case "$choice" in
             install)
-                gui_confirm "将运行已校验的 Decky 国内安装器，是否继续？" && \
+                gui_confirm "安装前请先回到游戏模式：① Steam键→设置→系统→开启“启用开发者模式”；② 设置侧栏→开发者→开启“CEF远程调试”。完成后再回桌面模式继续。将运行已校验的 Decky 国内安装器，是否继续？" && \
                     run_gui_action "安装Decky Loader" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" store
                 ;;
-            lsfg)
-                gui_confirm "安装后可打开Steam正版页面，或选择自己合法取得的本地备份，是否继续？" && \
-                    run_gui_action "安装小黄鸭" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg
+            features)
+                gui_confirm "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将依次安装小黄鸭、FSR4 和 CheatDeck；单项失败不会覆盖旧版本。是否继续？" && \
+                    run_gui_action "安装常用功能插件" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" features
                 ;;
-            fsr4)
-                gui_confirm "将安装FSR4到Decky插件目录，是否继续？" && \
-                    run_gui_action "安装FSR4" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4
+            all)
+                gui_confirm "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将安装 Decky、三款功能插件和 24 个官方推荐插件；官方插件仍需在Steam界面确认。是否继续？" && \
+                    run_gui_action "安装当前列表全部插件" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" all
                 ;;
-            cheatdeck)
-                gui_confirm "将安装CheatDeck到Decky插件目录，是否继续？" && \
-                    run_gui_action "安装CheatDeck" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck
+            browse)
+                plugin_official_gui_pages
+                ;;
+            back) return 0 ;;
+        esac
+    done
+}
+
+plugin_official_gui_pages() {
+    local choice
+    local page=0
+    local page_size=8
+    local total="${#DECKY_OFFICIAL_PLUGIN_NAMES[@]}"
+    local total_pages=$(((total + page_size - 1) / page_size))
+    local start
+    local end
+    local index
+    local -a menu_args
+
+    while true; do
+        start=$((page * page_size))
+        end=$((start + page_size))
+        [ "$end" -le "$total" ] || end="$total"
+        menu_args=(--menu "官方插件（第 $((page + 1)) / $total_pages 页）")
+        for ((index = start; index < end; index++)); do
+            menu_args+=("plugin-$index" "${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}｜${DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS[$index]}")
+        done
+        if [ "$page" -gt 0 ]; then
+            menu_args+=(previous "上一页")
+        else
+            menu_args+=(back "返回插件商城")
+        fi
+        if [ "$page" -lt $((total_pages - 1)) ]; then
+            menu_args+=(next "下一页")
+        else
+            menu_args+=(back-last "返回插件商城")
+        fi
+
+        choice="$(gui_dialog "${menu_args[@]}")" || return 0
+        case "$choice" in
+            plugin-*)
+                index="${choice#plugin-}"
+                gui_confirm "${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}：${DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS[$index]}。安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将由 Decky 官方商店安装，是否继续？" && \
+                    run_gui_action "安装 ${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/decky_bundle.sh" plugin "${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}"
+                ;;
+            previous) page=$((page - 1)) ;;
+            next) page=$((page + 1)) ;;
+            back|back-last) return 0 ;;
+        esac
+    done
+}
+
+dual_system_menu() {
+    local choice
+
+    while true; do
+        choice="$(gui_dialog --menu "双系统设置" \
+            mount "一键挂载互通盘" \
+            protect "保护双系统互通盘（只读）" \
+            unprotect "恢复互通盘写入" \
+            add "添加 Steam Deck 双引导" \
+            remove "删除 Steam Deck 双引导（等待时间设为 0）" \
+            back "返回主菜单")" || return 0
+        case "$choice" in
+            mount)
+                gui_confirm "将自动挂载唯一的未挂载 NTFS/exFAT 分区，并创建互通盘快捷入口。是否继续？" && \
+                    run_gui_action "挂载互通盘" \
+                    bash "$PROJECT_ROOT/modules/dual_system.sh" mount
+                ;;
+            protect)
+                gui_confirm "将重新以只读模式挂载互通盘，SteamOS 下无法写入或删除该盘文件。是否继续？" && \
+                    run_gui_action "保护双系统互通盘" \
+                    bash "$PROJECT_ROOT/modules/dual_system.sh" protect
+                ;;
+            unprotect)
+                gui_confirm "将重新以可写模式挂载互通盘，恢复 SteamOS 下的正常读写。是否继续？" && \
+                    run_gui_action "恢复互通盘写入" \
+                    bash "$PROJECT_ROOT/modules/dual_system.sh" unprotect
+                ;;
+            add)
+                gui_confirm "将启用已有的 systemd-boot 菜单并备份配置，不会安装或重写 EFI 引导程序。是否继续？" && \
+                    run_gui_action "添加 Steam Deck 双引导" \
+                    bash "$PROJECT_ROOT/modules/dual_system.sh" add
+                ;;
+            remove)
+                gui_confirm "将把 systemd-boot 菜单等待时间设为 0 秒；不会删除 SteamOS、Windows 或 EFI 启动项。是否继续？" && \
+                    run_gui_action "删除 Steam Deck 双引导" \
+                    bash "$PROJECT_ROOT/modules/dual_system.sh" remove
                 ;;
             back) return 0 ;;
         esac
@@ -163,7 +270,7 @@ settings_menu() {
                 steam_accelerator_gui_menu
                 ;;
             set-password)
-                gui_confirm "警告：新密码会明文保存到桌面密码.txt；所有以当前用户身份运行的软件都可能读取。确认继续？" && \
+                gui_confirm "警告：新密码会明文保存到桌面管理员密码.txt；所有以当前用户身份运行的软件都可能读取。确认继续？" && \
                     run_gui_action "设置系统密码" \
                         bash "$PROJECT_ROOT/modules/password.sh" set
                 ;;
@@ -282,6 +389,7 @@ main_gui_menu() {
             remote "🖥 远程协助" \
             plugins "🧩 插件商城" \
             settings "⚙️ 系统设置" \
+            dual "💿 双系统设置" \
             optimization "🛠 系统优化" \
             changelog "📋 更新日志" \
             update "🔄 更新工具箱" \
@@ -297,6 +405,7 @@ main_gui_menu() {
             remote) remote_menu ;;
             plugins) plugin_menu ;;
             settings) settings_menu ;;
+            dual) dual_system_menu ;;
             optimization) optimization_menu ;;
             changelog)
                 gui_dialog --textbox "$PROJECT_ROOT/CHANGELOG.md" 900 650

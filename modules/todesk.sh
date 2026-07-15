@@ -92,7 +92,7 @@ show_todesk_warning() {
     echo ""
     echo "该操作将："
     echo "- 下载约80MB的第三方ToDesk软件包并校验SHA256"
-    echo "- 优先读取桌面密码.txt自动验证，记录不可用时由系统询问"
+    echo "- 优先读取桌面管理员密码.txt自动验证，记录不可用时由系统询问"
     echo "- 临时关闭SteamOS只读保护"
     echo "- 使用pacman安装系统软件并启用todeskd服务"
     echo "- 完成后恢复SteamOS只读保护"

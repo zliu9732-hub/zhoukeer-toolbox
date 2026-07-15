@@ -21,6 +21,7 @@ CONFIG_FILE="$INSTALL_DIR/config/settings.conf"
 CONFIG_EXAMPLE_FILE="$SOURCE_ROOT/config/settings.example.conf"
 
 CONFIG_MIGRATION_VARIABLES=(
+    DUAL_BOOT_TIMEOUT
     TODESK_ARCHIVE_URL
     TODESK_PACKAGE_NAME
     TODESK_PACKAGE_SHA256
@@ -34,6 +35,15 @@ CONFIG_MIGRATION_VARIABLES=(
     DECKY_FSR4_SHA256
     DECKY_CHEATDECK_URL
     DECKY_CHEATDECK_SHA256
+    DECKY_SIMPLE_TDP_URL
+    DECKY_SIMPLE_TDP_VERSION
+    DECKY_SIMPLE_TDP_SHA256
+    DECKY_UNIFIDECK_URL
+    DECKY_UNIFIDECK_VERSION
+    DECKY_UNIFIDECK_SHA256
+    GE_PROTON_URL
+    GE_PROTON_VERSION
+    GE_PROTON_SHA256
 )
 CONFIG_MIGRATION_KEYS=()
 CONFIG_MIGRATION_DEFAULTS=()
@@ -368,6 +378,9 @@ copy_dir_files modules
 copy_dir_files utils
 copy_dir_files config
 copy_dir_files assets
+
+# 标记由安装器管理的目录，启动器只在这类目录中执行自动更新。
+printf '%s\n' "zhoukeer-toolbox" > "$STAGING_DIR/.zhoukeer-installed"
 
 # RustDesk 已从工具箱退役。更新时同步清除主配置和历史备份里的服务器字段，
 # 避免旧 ID、中继、API 或公钥继续留在安装目录中。

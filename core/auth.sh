@@ -5,7 +5,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
 
 resolve_password_record_path() {
     local xdg_desktop
-    local default_record="$HOME/Desktop/密码.txt"
+    local default_record="$HOME/Desktop/管理员密码.txt"
 
     if [ -n "${ZHOUKEER_PASSWORD_RECORD:-}" ]; then
         printf '%s\n' "$ZHOUKEER_PASSWORD_RECORD"
@@ -19,7 +19,7 @@ resolve_password_record_path() {
         xdg_desktop="$(xdg-user-dir DESKTOP 2>/dev/null || true)"
         case "$xdg_desktop" in
             "$HOME"/*)
-                printf '%s/密码.txt\n' "${xdg_desktop%/}"
+                printf '%s/管理员密码.txt\n' "${xdg_desktop%/}"
                 return 0
                 ;;
         esac
@@ -62,15 +62,15 @@ password_record_metadata_is_safe() {
 
     PASSWORD_RECORD_ERROR=""
     if [ ! -e "$file" ] && [ ! -L "$file" ]; then
-        PASSWORD_RECORD_ERROR="桌面没有找到密码.txt"
+        PASSWORD_RECORD_ERROR="桌面没有找到管理员密码.txt"
         return 1
     fi
     if [ ! -f "$file" ] || [ -L "$file" ]; then
-        PASSWORD_RECORD_ERROR="密码.txt不是普通文件或是符号链接"
+        PASSWORD_RECORD_ERROR="管理员密码.txt不是普通文件或是符号链接"
         return 1
     fi
     if [ ! -r "$file" ]; then
-        PASSWORD_RECORD_ERROR="当前用户无法读取密码.txt"
+        PASSWORD_RECORD_ERROR="当前用户无法读取管理员密码.txt"
         return 1
     fi
 
@@ -83,35 +83,35 @@ password_record_metadata_is_safe() {
     esac
 
     file_uid="$(password_record_stat owner "$file")" || {
-        PASSWORD_RECORD_ERROR="无法读取密码.txt的所有者"
+        PASSWORD_RECORD_ERROR="无法读取管理员密码.txt的所有者"
         return 1
     }
     file_mode="$(password_record_stat mode "$file")" || {
-        PASSWORD_RECORD_ERROR="无法读取密码.txt的权限"
+        PASSWORD_RECORD_ERROR="无法读取管理员密码.txt的权限"
         return 1
     }
     link_count="$(password_record_stat links "$file")" || {
-        PASSWORD_RECORD_ERROR="无法检查密码.txt的链接数量"
+        PASSWORD_RECORD_ERROR="无法检查管理员密码.txt的链接数量"
         return 1
     }
     file_size="$(password_record_stat size "$file")" || {
-        PASSWORD_RECORD_ERROR="无法读取密码.txt的大小"
+        PASSWORD_RECORD_ERROR="无法读取管理员密码.txt的大小"
         return 1
     }
 
     if [ "$file_uid" != "$current_uid" ]; then
-        PASSWORD_RECORD_ERROR="密码.txt不属于当前用户"
+        PASSWORD_RECORD_ERROR="管理员密码.txt不属于当前用户"
         return 1
     fi
     if [ "$link_count" != "1" ]; then
-        PASSWORD_RECORD_ERROR="密码.txt存在额外硬链接"
+        PASSWORD_RECORD_ERROR="管理员密码.txt存在额外硬链接"
         return 1
     fi
     case "$file_size" in
-        ''|*[!0-9]*) PASSWORD_RECORD_ERROR="密码.txt大小异常"; return 1 ;;
+        ''|*[!0-9]*) PASSWORD_RECORD_ERROR="管理员密码.txt大小异常"; return 1 ;;
     esac
     if [ "$file_size" -le 0 ] || [ "$file_size" -gt 4096 ]; then
-        PASSWORD_RECORD_ERROR="密码.txt为空或内容过大"
+        PASSWORD_RECORD_ERROR="管理员密码.txt为空或内容过大"
         return 1
     fi
 
@@ -122,7 +122,7 @@ password_record_metadata_is_safe() {
             file_mode="$(password_record_stat mode "$file" 2>/dev/null || true)"
         fi
         if [ "$file_mode" != "600" ]; then
-            PASSWORD_RECORD_ERROR="密码.txt权限不是600且自动修复失败"
+            PASSWORD_RECORD_ERROR="管理员密码.txt权限不是600且自动修复失败"
             return 1
         fi
         echo "已自动修复旧密码文件权限。" >&2
@@ -140,7 +140,7 @@ load_toolbox_password() {
     field_count="$(LC_ALL=C awk 'index($0, "密码：") == 1 || index($0, "密码:") == 1 { count++ } END { print count + 0 }' \
         "$PASSWORD_RECORD" 2>/dev/null)" || return 1
     if [ "$field_count" != "1" ]; then
-        PASSWORD_RECORD_ERROR="密码.txt中必须且只能有一行“密码：...”"
+        PASSWORD_RECORD_ERROR="管理员密码.txt中必须且只能有一行“密码：...”"
         return 1
     fi
 
@@ -213,7 +213,7 @@ capture_existing_admin_password() {
     # 插件安装可能在子 shell 中运行，标准输入不一定仍被标记为 TTY；
     # 直接使用当前 Konsole 的控制终端，避免落回 sudo 后反复询问。
     [ -r /dev/tty ] && [ -w /dev/tty ] || return 1
-    printf '%s\n' "桌面尚未创建密码.txt。" > /dev/tty
+    printf '%s\n' "桌面尚未创建管理员密码.txt。" > /dev/tty
     printf '%s\n' "请输入一次当前管理员密码；验证成功后会自动保存到桌面，后续操作无需重复输入。" > /dev/tty
     printf '%s\n' "注意：密码将按你的设置以明文保存，仅限本机工具箱使用。" > /dev/tty
     printf '当前管理员密码（输入时不会显示）：' > /dev/tty
@@ -299,7 +299,7 @@ toolbox_sudo() {
     fi
 
     if ! load_toolbox_password; then
-        if [ "$PASSWORD_RECORD_ERROR" = "桌面没有找到密码.txt" ] && \
+        if [ "$PASSWORD_RECORD_ERROR" = "桌面没有找到管理员密码.txt" ] && \
             capture_existing_admin_password; then
             :
         else

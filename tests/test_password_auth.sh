@@ -7,12 +7,12 @@ TMP_ROOT="$(mktemp -d)"
 BIN_DIR="$TMP_ROOT/bin"
 HOME_DIR="$TMP_ROOT/home"
 STATE_DIR="$TMP_ROOT/state"
-PASSWORD_FILE="$HOME_DIR/Desktop/密码.txt"
+PASSWORD_FILE="$HOME_DIR/Desktop/管理员密码.txt"
 PASSWORD_TEST_UID="$(id -u)"
 export PASSWORD_TEST_UID
 
-grep -Fxq '密码.txt' "$PROJECT_ROOT/.gitignore" || {
-    echo "FAIL: .gitignore 未排除密码.txt" >&2
+grep -Fxq '管理员密码.txt' "$PROJECT_ROOT/.gitignore" || {
+    echo "FAIL: .gitignore 未排除管理员密码.txt" >&2
     exit 1
 }
 

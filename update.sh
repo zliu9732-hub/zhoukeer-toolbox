@@ -3,10 +3,14 @@
 set -u
 
 DRY_RUN=0
+STARTUP_MODE=0
 for arg in "$@"; do
     case "$arg" in
         --dry-run)
             DRY_RUN=1
+            ;;
+        --startup)
+            STARTUP_MODE=1
             ;;
         *)
             echo "未知参数: $arg"
@@ -23,6 +27,8 @@ BRANCH="${ZHOUKEER_BRANCH:-main}"
 
 CONNECT_TIMEOUT="${ZHOUKEER_CONNECT_TIMEOUT:-10}"
 MAX_TIME="${ZHOUKEER_MAX_TIME:-120}"
+VERSION_CONNECT_TIMEOUT="${ZHOUKEER_VERSION_CONNECT_TIMEOUT:-3}"
+VERSION_MAX_TIME="${ZHOUKEER_VERSION_MAX_TIME:-10}"
 
 GITEE_RAW_BASE="${ZHOUKEER_GITEE_RAW_BASE:-https://gitee.com/$GITEE_OWNER/$REPO_NAME/raw/$BRANCH}"
 GITHUB_RAW_BASE="${ZHOUKEER_GITHUB_RAW_BASE:-https://raw.githubusercontent.com/$GITHUB_OWNER/$REPO_NAME/$BRANCH}"
@@ -72,6 +78,35 @@ download_one() {
         --retry-all-errors \
         --output "$output" \
         "$url"
+}
+
+download_version_one() {
+    local url="$1"
+    local output="$2"
+    local label="$3"
+
+    echo "检查版本($label)..."
+    rm -f -- "$output"
+    curl \
+        --fail \
+        --location \
+        --silent \
+        --show-error \
+        --proto '=https' \
+        --proto-redir '=https' \
+        --connect-timeout "$VERSION_CONNECT_TIMEOUT" \
+        --max-time "$VERSION_MAX_TIME" \
+        --output "$output" \
+        "$url"
+}
+
+valid_release_version() {
+    local value="$1"
+
+    [ -n "$value" ] && [ "${#value}" -le 64 ] || return 1
+    case "$value" in
+        *[!A-Za-z0-9._+-]*) return 1 ;;
+    esac
 }
 
 valid_sha256() {
@@ -144,6 +179,26 @@ download_verified_package() {
     local package_file="$1"
     local checksum_file="$2"
 
+    if [ "${VERSION_SOURCE:-}" = "GitHub" ]; then
+        if download_verified_package_from \
+            "GitHub" "$GITHUB_PACKAGE_URL" "$GITHUB_CHECKSUM_URL" \
+            "$package_file" "$checksum_file"; then
+            DOWNLOAD_SOURCE="GitHub"
+            return 0
+        fi
+
+        echo "GitHub包或校验文件不可用，切换Gitee备用源。"
+        if download_verified_package_from \
+            "Gitee" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
+            "$package_file" "$checksum_file"; then
+            DOWNLOAD_SOURCE="Gitee"
+            return 0
+        fi
+
+        echo "更新包验证失败：GitHub和Gitee均不可用。旧版本不会被覆盖。"
+        return 1
+    fi
+
     if download_verified_package_from \
         "Gitee" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
@@ -163,24 +218,21 @@ download_verified_package() {
     return 1
 }
 
-download_with_fallback() {
+download_version_with_fallback() {
     local output="$1"
-    local label="$2"
-    local gitee_url="$3"
-    local github_url="$4"
 
-    if download_one "$gitee_url" "$output" "Gitee"; then
-        DOWNLOAD_SOURCE="Gitee"
+    if download_version_one "$GITEE_VERSION_URL" "$output" "Gitee"; then
+        VERSION_SOURCE="Gitee"
         return 0
     fi
 
-    echo "Gitee下载失败，切换GitHub备用源。"
-    if download_one "$github_url" "$output" "GitHub"; then
-        DOWNLOAD_SOURCE="GitHub"
+    echo "Gitee版本检测失败，切换GitHub备用源。"
+    if download_version_one "$GITHUB_VERSION_URL" "$output" "GitHub"; then
+        VERSION_SOURCE="GitHub"
         return 0
     fi
 
-    echo "$label 下载失败：Gitee和GitHub均不可用。旧版本不会被覆盖。"
+    echo "版本检测失败：Gitee和GitHub均不可用。旧版本不会被覆盖。"
     return 1
 }
 
@@ -191,7 +243,13 @@ echo " 周克儿工具箱 V4 自更新"
 echo "================================"
 echo "当前目录: $PROJECT_ROOT"
 echo "分支: $BRANCH"
-echo "模式: $([ "$DRY_RUN" -eq 1 ] && echo dry-run || echo update)"
+if [ "$DRY_RUN" -eq 1 ]; then
+    echo "模式: dry-run"
+elif [ "$STARTUP_MODE" -eq 1 ]; then
+    echo "模式: startup-auto-update"
+else
+    echo "模式: update"
+fi
 echo ""
 
 if [ "$SYSTEM" = "Darwin" ]; then
@@ -208,6 +266,7 @@ need_command curl
 need_command tar
 
 if [ "$DRY_RUN" -eq 1 ]; then
+    echo "[dry-run] 将先比较本地 VERSION 与远程 VERSION"
     echo "[dry-run] 将优先下载: $GITEE_PACKAGE_URL"
     echo "[dry-run] GitHub备用: $GITHUB_PACKAGE_URL"
     echo "[dry-run] 将更新目录: $PROJECT_ROOT"
@@ -215,37 +274,109 @@ if [ "$DRY_RUN" -eq 1 ]; then
     exit 0
 fi
 
+LOCK_DIR=""
+if [ "$STARTUP_MODE" -eq 1 ]; then
+    STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+    LOCK_DIR="$STATE_HOME/zhoukeer-toolbox/auto-update.lock"
+    mkdir -p "$(dirname "$LOCK_DIR")" || exit 1
+    if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+        LOCK_PID="$(sed -n '1p' "$LOCK_DIR/pid" 2>/dev/null || true)"
+        case "$LOCK_PID" in
+            ''|*[!0-9]*)
+                LOCK_MTIME="$(stat -c '%Y' "$LOCK_DIR" 2>/dev/null || true)"
+                NOW="$(date '+%s')"
+                case "$LOCK_MTIME" in
+                    ''|*[!0-9]*) LOCK_MTIME="$NOW" ;;
+                esac
+                if [ $((NOW - LOCK_MTIME)) -lt 300 ]; then
+                    echo "已有自动更新任务正在准备，本次继续启动当前版本。"
+                    exit 0
+                fi
+                LOCK_PID=""
+                ;;
+        esac
+        if [ -n "$LOCK_PID" ] && kill -0 "$LOCK_PID" 2>/dev/null; then
+            echo "已有自动更新任务正在运行，本次继续启动当前版本。"
+            exit 0
+        fi
+        rm -rf -- "$LOCK_DIR"
+        if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+            echo "无法取得自动更新锁，本次继续启动当前版本。"
+            exit 0
+        fi
+    fi
+    printf '%s\n' "$$" > "$LOCK_DIR/pid"
+fi
+
 TMP_DIR="$(mktemp -d)"
 PACKAGE_FILE="$TMP_DIR/zhoukeer-toolbox.tar.gz"
 VERSION_FILE="$TMP_DIR/VERSION"
 CHECKSUM_FILE="$TMP_DIR/SHA256SUMS"
+EXTRACT_DIR="$TMP_DIR/extracted"
 
 cleanup() {
     rm -rf "$TMP_DIR"
+    if [ -n "$LOCK_DIR" ] && \
+        [ "$(sed -n '1p' "$LOCK_DIR/pid" 2>/dev/null || true)" = "$$" ]; then
+        rm -rf -- "$LOCK_DIR"
+    fi
 }
 trap cleanup EXIT
 
 echo "[1/4] 获取版本信息..."
-if download_with_fallback "$VERSION_FILE" "版本信息" "$GITEE_VERSION_URL" "$GITHUB_VERSION_URL"; then
-    VERSION="$(tr -d '\r\n' < "$VERSION_FILE")"
+if download_version_with_fallback "$VERSION_FILE"; then
+    REMOTE_VERSION="$(tr -d '\r\n' < "$VERSION_FILE")"
+    if ! valid_release_version "$REMOTE_VERSION"; then
+        echo "远程版本格式无效，旧版本不会被覆盖。"
+        exit 1
+    fi
 else
-    VERSION="unknown"
+    if [ "$STARTUP_MODE" -eq 1 ]; then
+        echo "自动更新检测暂时不可用。"
+        exit 1
+    fi
+    REMOTE_VERSION="unknown"
 fi
-echo "远程版本: $VERSION"
+LOCAL_VERSION="unknown"
+if [ -r "$PROJECT_ROOT/VERSION" ]; then
+    LOCAL_VERSION="$(tr -d '\r\n' < "$PROJECT_ROOT/VERSION")"
+fi
+echo "本地版本: $LOCAL_VERSION"
+echo "远程版本: $REMOTE_VERSION"
+
+if [ "$REMOTE_VERSION" != "unknown" ] && [ "$LOCAL_VERSION" = "$REMOTE_VERSION" ]; then
+    echo "当前已是最新版本，无需更新。"
+    exit 0
+fi
 
 echo "[2/4] 下载并校验更新包..."
 download_verified_package "$PACKAGE_FILE" "$CHECKSUM_FILE" || exit 1
 echo "下载源: $DOWNLOAD_SOURCE"
 
 echo "[3/4] 解压更新包..."
-tar -xzf "$PACKAGE_FILE" -C "$TMP_DIR"
-INSTALLER_PATH="$(find "$TMP_DIR" -mindepth 1 -maxdepth 2 -type f -name install.sh -print | head -n 1)"
+mkdir -p "$EXTRACT_DIR"
+tar -xzf "$PACKAGE_FILE" -C "$EXTRACT_DIR"
+INSTALLER_PATH="$(find "$EXTRACT_DIR" -mindepth 1 -maxdepth 2 -type f -name install.sh -print | head -n 1)"
 
 if [ -z "$INSTALLER_PATH" ] || [ ! -f "$INSTALLER_PATH" ]; then
     echo "更新包不完整：未找到 install.sh。旧版本不会被覆盖。"
     exit 1
 fi
 PACKAGE_DIR="$(dirname "$INSTALLER_PATH")"
+
+if [ "$REMOTE_VERSION" != "unknown" ]; then
+    if [ ! -r "$PACKAGE_DIR/VERSION" ]; then
+        echo "更新包不完整：缺少VERSION。旧版本不会被覆盖。"
+        exit 1
+    fi
+    PACKAGE_VERSION="$(tr -d '\r\n' < "$PACKAGE_DIR/VERSION")"
+    if [ "$PACKAGE_VERSION" != "$REMOTE_VERSION" ]; then
+        echo "更新包版本与检测结果不一致。旧版本不会被覆盖。"
+        echo "检测版本: $REMOTE_VERSION"
+        echo "包内版本: $PACKAGE_VERSION"
+        exit 1
+    fi
+fi
 
 if ! find "$PACKAGE_DIR" -type f -name '*.sh' -exec bash -n {} \;; then
     echo "更新包包含Shell语法错误，旧版本不会被覆盖。"

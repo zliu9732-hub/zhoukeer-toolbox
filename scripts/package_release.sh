@@ -23,7 +23,7 @@ tar \
     --exclude="apps" \
     --exclude="*.save" \
     --exclude="*.bak.*" \
-    --exclude="密码.txt" \
+    --exclude="管理员密码.txt" \
     --exclude="config/settings.conf" \
     -czf "$PACKAGE_PATH" .
 
