@@ -16,7 +16,7 @@
 - 插件商城：下载并校验Decky国内镜像安装器后启动安装；推荐插件整组安装会实时读取Decky官方商店最新版并交给Decky内置安装器统一确认，非官方插件可使用123云盘成品ZIP分流；小黄鸭、FSR4和CheatDeck继续提供独立入口。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
 
 使用小黄鸭前，安装完成后请在 Steam 正版页面打开游戏右侧齿轮，进入“属性 → 测试版”，选择名称以 Linux 开头的可用版本；随后进入游戏模式，按 Steam Deck 机身右下角的“三个点（…）”按钮，在打开的菜单中依次点击插头图标 → 小黄鸭 → 安装 LSFG。
-- 常用软件与远程协助：微信、QQ、Chrome、RustDesk、AnyDesk 会在安装前测速，优先选择较快的用户级 Flatpak 来源；失败会自动重试、切换备用源，并在成功后创建桌面快捷方式，不修改SteamOS只读分区。
+- 常用软件与远程协助：微信和QQ直接从腾讯官网国内 CDN 安装官方 AppImage；Firefox 使用123云盘国内直链提供的 Linux x86_64 中文完整包；RustDesk、AnyDesk 会在上海交大和中科大 Flatpak 缓存间测速、限时切换。安装成功后会创建桌面快捷方式，不修改SteamOS只读分区。
 - GE-Proton兼容层：从固定的123云盘直链下载并校验SHA256，安装到Steam用户的 `compatibilitytools.d` 目录，不需要管理员权限。
 - ToDesk：使用固定的第三方SteamOS适配包并校验SHA256，安装完成后恢复只读保护。
 - Steam Deck 优化：清理 Steam 下载缓存、着色器缓存，并提供性能模式提示。
@@ -201,7 +201,7 @@ bash bootstrap.sh
 - SteamOS 是否能正确识别。
 - Steam 下载缓存和着色器缓存路径是否符合当前 SteamOS 版本。
 - ToDesk安装后是否恢复SteamOS只读保护、服务是否启动、桌面入口是否存在。
-- Decky、微信、QQ和Chrome浏览器在当前SteamOS版本是否能正常安装、创建桌面快捷方式并启动。
+- Decky、微信、QQ和Firefox浏览器在当前SteamOS版本是否能正常安装、创建桌面快捷方式并启动。
 - 用户级Flathub国内缓存是否可用，官方Flathub备用源是否仍然保留。
 - Steamcommunity 302官方Linux AMD64包是否能正常安装；用户在官方GUI启用“开机运行—后台服务(无界面)”后是否按预期启动，以及退出/卸载后hosts、DNS、证书和本机代理是否正确恢复。
 - 设置/修改SteamOS密码后，桌面 `管理员密码.txt` 是否为明文新密码且权限为 `600`；工具箱sudo自动验证失败时是否安全回退到系统原生提示。

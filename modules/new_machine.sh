@@ -20,7 +20,7 @@ show_initialization_plan() {
     echo "✓ 微信"
     echo "✓ QQ"
     echo "✓ ToDesk"
-    echo "✓ Chrome 浏览器"
+    echo "✓ Firefox 浏览器"
     echo "✓ 工具箱快捷方式检查"
     echo "✓ 国内下载源与网络检测"
     echo ""
@@ -122,7 +122,7 @@ run_new_machine_initialization() {
         bash "$PROJECT_ROOT/modules/software.sh" qq
     run_step "ToDesk" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/todesk.sh" --install
-    run_step "Chrome 浏览器" env ZHOUKEER_AUTO_CONFIRM=1 \
+    run_step "Firefox 浏览器" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/software.sh" browser
     skip_step "权限修复" "未发现具体故障时不应批量重置用户或系统权限"
     run_step "创建快捷方式" check_toolbox_shortcuts

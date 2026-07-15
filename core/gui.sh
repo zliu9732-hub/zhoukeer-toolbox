@@ -69,23 +69,23 @@ software_menu() {
         choice="$(gui_dialog --menu "选择要安装的软件" \
             wechat "微信" \
             qq "QQ" \
-            browser "Chrome 浏览器" \
+            browser "Firefox 浏览器" \
             ge-proton "GE-Proton 兼容层" \
             back "返回主菜单")" || return 0
         case "$choice" in
             wechat)
-                gui_confirm "将优先通过国内Flathub缓存安装微信，并自动创建桌面图标。是否继续？" && \
+                gui_confirm "将从微信Linux版官网下载官方x86_64 AppImage，并自动创建桌面图标。是否继续？" && \
                     run_gui_action "安装微信" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" wechat
                 ;;
             qq)
-                gui_confirm "将优先通过国内Flathub缓存安装QQ，并自动创建桌面图标。是否继续？" && \
+                gui_confirm "将从腾讯QQ官网国内CDN下载官方AppImage，并自动创建桌面图标。是否继续？" && \
                     run_gui_action "安装QQ" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" qq
                 ;;
             browser)
-                gui_confirm "将安装Chrome浏览器并自动创建桌面图标，是否继续？" && \
-                    run_gui_action "安装Chrome浏览器" env ZHOUKEER_AUTO_CONFIRM=1 \
+                gui_confirm "将从123云盘国内直链下载Firefox Linux x86_64中文完整包并安装到工具箱目录，不依赖Flatpak。是否继续？" && \
+                    run_gui_action "安装Firefox浏览器" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" browser
                 ;;
             ge-proton)
@@ -271,7 +271,7 @@ settings_menu() {
             back "返回主菜单")" || return 0
         case "$choice" in
             source)
-                gui_confirm "将添加用户级Flathub国内缓存并保留官方备用源；软件安装时会测速并自动优先使用较快来源。是否继续？" && \
+                gui_confirm "将添加上海交大和中科大两个用户级Flathub缓存；软件安装只在两个国内缓存间测速切换，其他来源保持不变。是否继续？" && \
                     run_gui_action "添加国内下载源" \
                     bash "$PROJECT_ROOT/modules/domestic_source.sh" enable
                 ;;
@@ -406,7 +406,7 @@ main_gui_menu() {
 
         case "$choice" in
             new-machine)
-                gui_confirm "初始化包含ToDesk。开始前请先在游戏模式完成：① Steam键→设置→系统→开启开发者模式；② 设置侧栏→开发者→杂项→开启“使用旧版X11桌面模式”；③ 重新进入桌面模式。确认已完成后，将依次处理国内源、Decky、微信、QQ、Chrome和ToDesk。是否开始？" && \
+                gui_confirm "初始化包含ToDesk。开始前请先在游戏模式完成：① Steam键→设置→系统→开启开发者模式；② 设置侧栏→开发者→杂项→开启“使用旧版X11桌面模式”；③ 重新进入桌面模式。确认已完成后，将依次处理国内源、Decky、微信、QQ、Firefox和ToDesk。是否开始？" && \
                     run_gui_action "一键新机初始化" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/new_machine.sh"
                 ;;

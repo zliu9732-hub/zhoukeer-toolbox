@@ -18,16 +18,17 @@ configure_domestic_source() {
     require_command flatpak || return 1
     require_command curl || return 1
 
-    echo "正在添加用户级 Flathub 国内缓存源..."
-    echo "不会修改 SteamOS 只读系统分区，官方 Flathub 仍保留为备用。"
+    echo "正在添加上海交大和中科大两个用户级 Flathub 缓存源..."
+    echo "不会修改 SteamOS 只读系统分区，也不会删除用户已有的其他来源。"
     if ! ensure_flatpak_remotes; then
-        echo "国内下载源配置失败，现有软件和官方源保持不变。"
+        echo "国内下载源配置失败，现有软件和其他下载源保持不变。"
         return 1
     fi
 
-    echo "国内下载源配置完成：$FLATHUB_CN_REMOTE"
-    echo "镜像地址：$FLATHUB_CN_URL"
-    log "Flathub国内下载源配置完成"
+    echo "国内下载源配置完成：${FLATHUB_CN_REMOTE}、${FLATHUB_CN_FALLBACK_REMOTE}"
+    echo "上海交大：$FLATHUB_CN_URL"
+    echo "中科大：$FLATHUB_CN_FALLBACK_URL"
+    log "Flathub国内双缓存源配置完成"
 }
 
 show_domestic_source_status() {

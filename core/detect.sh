@@ -56,12 +56,24 @@ else
     echo "网络状态：未检测到默认网络路由"
 fi
 
+echo "应用安装状态："
+if [ -x "$APP_DIR/QQ.AppImage" ]; then
+    echo "- QQ：已安装（腾讯官方AppImage）"
+else
+    echo "- QQ：未安装"
+fi
+if [ -x "$APP_DIR/WeChat.AppImage" ]; then
+    echo "- 微信：已安装（腾讯官方AppImage）"
+else
+    echo "- 微信：未安装"
+fi
+if [ -x "$APP_DIR/firefox/firefox" ]; then
+    echo "- Firefox：已安装（完整包）"
+else
+    echo "- Firefox：未安装"
+fi
 if command -v flatpak >/dev/null 2>&1; then
-    echo "应用安装状态："
     for app_entry in \
-        '微信:com.tencent.WeChat' \
-        'QQ:com.qq.QQ' \
-        'Chrome:com.google.Chrome' \
         'RustDesk:com.rustdesk.RustDesk' \
         'AnyDesk:com.anydesk.Anydesk'; do
         app_name="${app_entry%%:*}"

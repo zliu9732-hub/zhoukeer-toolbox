@@ -105,16 +105,19 @@ run_enable() {
         HOME="$HOME_DIR" \
         DOMESTIC_SOURCE_TEST_STATE="$STATE_DIR" \
         ZHOUKEER_FLATHUB_CN_URL="https://mirror.test.invalid/flathub" \
+        ZHOUKEER_FLATHUB_CN_FALLBACK_URL="https://fallback.test.invalid/flathub" \
         bash "$PROJECT_ROOT/modules/domestic_source.sh" enable
 }
 
 output="$(run_enable)"
-printf '%s\n' "$output" | grep -Fq '国内下载源配置完成：flathub-cn' || \
-    fail "成功输出缺少国内源名称"
+printf '%s\n' "$output" | grep -Fq '国内下载源配置完成：flathub-cn、flathub-ustc' || \
+    fail "成功输出缺少两个国内源名称"
 grep -Fxq 'flathub-cn' "$STATE_DIR/remotes" || fail "未添加国内缓存源"
-grep -Fxq 'flathub' "$STATE_DIR/remotes" || fail "未保留官方备用源"
+grep -Fxq 'flathub-ustc' "$STATE_DIR/remotes" || fail "未添加国内备用缓存源"
 grep -Fq 'remote-modify --user flathub-cn --url=https://mirror.test.invalid/flathub' \
     "$STATE_DIR/commands" || fail "国内缓存地址配置错误"
+grep -Fq 'remote-modify --user flathub-ustc --url=https://fallback.test.invalid/flathub' \
+    "$STATE_DIR/commands" || fail "国内备用缓存地址配置错误"
 grep -Fxq 'https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo' \
     "$STATE_DIR/curl-urls" || fail "未通过假 curl 获取签名配置"
 [ ! -e "$STATE_DIR/sudo-calls" ] || fail "用户级国内源配置不应调用 sudo"
@@ -123,8 +126,8 @@ grep -Fxq 'https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo' \
 run_enable >/dev/null
 [ "$(grep -c '^remote-add .* flathub-cn ' "$STATE_DIR/commands")" -eq 1 ] || \
     fail "重复启用时再次添加了国内源"
-[ "$(grep -c '^remote-add .* flathub ' "$STATE_DIR/commands")" -eq 1 ] || \
-    fail "重复启用时再次添加了官方源"
+[ "$(grep -c '^remote-add .* flathub-ustc ' "$STATE_DIR/commands")" -eq 1 ] || \
+    fail "重复启用时再次添加了国内备用源"
 
 status_output="$(
     PATH="$BIN_DIR:$PATH" \
@@ -133,6 +136,6 @@ status_output="$(
         bash "$PROJECT_ROOT/modules/domestic_source.sh" status
 )"
 printf '%s\n' "$status_output" | grep -Fq 'flathub-cn' || fail "状态输出缺少国内源"
-printf '%s\n' "$status_output" | grep -Fq 'flathub' || fail "状态输出缺少官方源"
+printf '%s\n' "$status_output" | grep -Fq 'flathub-ustc' || fail "状态输出缺少国内备用源"
 
-echo "PASS: 国内下载源启用、幂等性、状态和无sudo测试通过"
+echo "PASS: 国内双缓存源启用、幂等性、状态和无sudo测试通过"

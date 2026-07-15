@@ -10,6 +10,7 @@ PACKAGE_PATH="$DIST_DIR/$PACKAGE_NAME"
 VERSIONED_PACKAGE_NAME="zhoukeer-toolbox-$VERSION.tar.gz"
 VERSIONED_PACKAGE_PATH="$DIST_DIR/$VERSIONED_PACKAGE_NAME"
 SHA256SUMS_PATH="$DIST_DIR/SHA256SUMS"
+VERIFY_FILES="VERSION main.sh modules/software.sh core/gui.sh"
 
 mkdir -p "$DIST_DIR"
 
@@ -26,6 +27,15 @@ tar \
     --exclude="管理员密码.txt" \
     --exclude="config/settings.conf" \
     -czf "$PACKAGE_PATH" .
+
+for packaged_file in $VERIFY_FILES; do
+    if ! tar -xOf "$PACKAGE_PATH" "./$packaged_file" | \
+        cmp -s - "$PROJECT_ROOT/$packaged_file"; then
+        echo "发布包内容与当前源码不一致：$packaged_file"
+        rm -f -- "$PACKAGE_PATH" "$SHA256SUMS_PATH"
+        exit 1
+    fi
+done
 
 cp "$PACKAGE_PATH" "$VERSIONED_PACKAGE_PATH"
 

@@ -49,10 +49,10 @@ touch_plugin_preflight="$(sed -n '/^plugin_store_preflight()/,/^}/p' "$MAIN_FILE
 touch_dual_menu="$(sed -n '/^dual_system_menu()/,/^}/p' "$MAIN_FILE")"
 gui_dual_menu="$(sed -n '/^dual_system_menu()/,/^}/p' "$GUI_FILE")"
 
-assert_contains "$touch_software_menu" 'Chrome 浏览器' "触控常用软件菜单缺少 Chrome"
-assert_contains "$touch_software_menu" 'modules/software.sh" browser' "触控菜单未调用 Chrome 安装"
-assert_contains "$gui_software_menu" 'Chrome 浏览器' "图形常用软件菜单缺少 Chrome"
-assert_contains "$gui_software_menu" 'modules/software.sh" browser' "图形菜单未调用 Chrome 安装"
+assert_contains "$touch_software_menu" 'Firefox 浏览器' "触控常用软件菜单缺少 Firefox"
+assert_contains "$touch_software_menu" 'modules/software.sh" browser' "触控菜单未调用 Firefox 安装"
+assert_contains "$gui_software_menu" 'Firefox 浏览器' "图形常用软件菜单缺少 Firefox"
+assert_contains "$gui_software_menu" 'modules/software.sh" browser' "图形菜单未调用 Firefox 安装"
 assert_contains "$touch_software_menu" 'GE-Proton 兼容层' "触控常用软件菜单缺少GE-Proton"
 assert_contains "$touch_software_menu" 'modules/ge_proton.sh" install' "触控菜单未调用GE-Proton安装"
 assert_contains "$gui_software_menu" 'GE-Proton 兼容层' "图形常用软件菜单缺少GE-Proton"
@@ -129,8 +129,8 @@ assert_contains "$new_machine_preflight" '使用旧版 X11 桌面模式' "新机
 assert_contains "$(cat "$NEW_MACHINE_FILE")" 'modules/domestic_source.sh" enable' \
     "新机初始化未启用国内源"
 assert_contains "$(cat "$NEW_MACHINE_FILE")" 'modules/software.sh" browser' \
-    "新机初始化未安装 Chrome"
+    "新机初始化未安装 Firefox"
 assert_not_contains "$(cat "$NEW_MACHINE_FILE")" 'protonup' \
     "新机初始化仍包含 ProtonUp-Qt"
 
-echo "PASS: Chrome和系统设置新入口菜单契约测试通过"
+echo "PASS: Firefox和系统设置新入口菜单契约测试通过"

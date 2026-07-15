@@ -166,7 +166,7 @@ common_software_menu() {
         draw_category_frame software "常用软件" "国内缓存优先，安装完成自动创建桌面图标"
         ui_touch_button 7 '\033[1;97;48;5;24m' "微信" "安装或修复微信，同步创建桌面快捷方式"
         ui_touch_button 10 '\033[1;97;48;5;24m' "QQ" "安装或修复 QQ，同步创建桌面快捷方式"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "Chrome 浏览器" "安装浏览器并创建桌面快捷方式"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "Firefox 浏览器" "安装完整包，不依赖Flatpak下载源"
         ui_touch_button 16 '\033[1;97;48;5;24m' "GE-Proton 兼容层" "安装到Steam兼容工具目录，无需管理员权限"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -174,9 +174,9 @@ common_software_menu() {
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            wechat) confirm_and_run "安装微信" "国内缓存优先；完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" wechat ;;
-            qq) confirm_and_run "安装QQ" "国内缓存优先；完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" qq ;;
-            browser) confirm_and_run "安装Chrome浏览器" "国内缓存优先；完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" browser ;;
+            wechat) confirm_and_run "安装微信" "腾讯官网AppImage；失败时保留原有版本" bash "$PROJECT_ROOT/modules/software.sh" wechat ;;
+            qq) confirm_and_run "安装QQ" "从腾讯官网国内CDN下载；完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" qq ;;
+            browser) confirm_and_run "安装Firefox浏览器" "完整包安装；失败时保留原有版本" bash "$PROJECT_ROOT/modules/software.sh" browser ;;
             ge-proton) confirm_and_run "安装GE-Proton兼容层" "安装到Steam compatibilitytools.d目录；完成后需要重启Steam" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -543,7 +543,7 @@ changelog_menu() {
     while true; do
         draw_category_frame changelog "更新日志" "周克儿工具箱 V4 · 2026-07-14"
         ui_panel_line 7 '\033[1;38;5;114m' "✓ 新增纯触控分类界面、黑白背景和工具箱图标"
-        ui_panel_line 9 '\033[1;38;5;45m' "✓ 新增国内下载源、Chrome 和 Steamcommunity 302"
+        ui_panel_line 9 '\033[1;38;5;45m' "✓ 新增国内双缓存、Firefox 和 Steamcommunity 302"
         ui_panel_line 11 '\033[1;38;5;45m' "✓ 新增系统密码设置、修改和自动验证"
         ui_panel_line 13 '\033[1;38;5;45m' "✓ 完善 Decky、常用插件、ToDesk 和新机初始化"
         ui_panel_line 15 '\033[1;38;5;220m' "✓ 修复旧版密码记录无法识别的问题"
@@ -560,7 +560,7 @@ home_menu() {
 
     draw_category_frame "" "欢迎使用" "全界面只需点击，无需输入任何数字或字母"
     ui_panel_line 8 '\033[1;38;5;220m' "⭐ 第一次使用：点击左侧“新机初始化”"
-    ui_panel_line 10 '\033[1;38;5;45m' "💻 常用软件：微信、QQ、Chrome 浏览器"
+    ui_panel_line 10 '\033[1;38;5;45m' "💻 常用软件：微信、QQ、Firefox 浏览器"
     ui_panel_line 12 '\033[1;38;5;45m' "📡 远程协助：RustDesk、AnyDesk、ToDesk"
     ui_panel_line 14 '\033[1;38;5;45m' "🧩 插件商城：Decky、小黄鸭、FSR4、CheatDeck"
     ui_panel_line 16 '\033[1;38;5;45m' "⚙  系统设置：国内源、加速器、密码"
