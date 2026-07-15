@@ -38,10 +38,15 @@ grep -Fq '未检测到 Steam 库中的 Lossless Scaling' "$PROJECT_ROOT/modules/
 grep -Fq '选择名称以 Linux 开头的可用版本' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Steam Deck 机身右下角“三个点（…）”按钮' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_feature_plugins()' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'print_feature_plugin_status()' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'CheatDeck 的入口在游戏库中选中游戏后的齿轮/右键菜单内' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_all_plugin_packages()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_zhoukeer_localizer()' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'copy_zhoukeer_localizer' "$PROJECT_ROOT/install.sh"
+grep -Fq '"$source_dir/dist/index.js"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'localizer) install_zhoukeer_localizer' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'features) install_feature_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'feature-status) print_feature_plugin_status' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'all) install_all_plugin_packages' "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Fq 'Lossless Scaling.rar' "$PROJECT_ROOT/modules/plugin_store.sh" || \
     grep -Fq '1846467258.cdn.123clouddisk.com/1846467258/工具箱/Lossless' \

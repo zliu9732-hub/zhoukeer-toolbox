@@ -312,9 +312,10 @@ plugin_store_menu() {
         ui_touch_button 10 '\033[1;97;48;5;30m' "一键安装当前列表全部插件" "3款独立功能 + 26款精选插件，共29款"
         ui_touch_button 12 '\033[1;97;48;5;24m' "浏览官方插件（分页）" "每页 5 个插件，均附中文功能说明"
         ui_touch_button 14 '\033[1;97;48;5;24m' "安装周克儿汉化（测试版）" "首批基础词库，不修改原插件文件"
+        ui_touch_button 16 '\033[1;97;48;5;24m' "检查常用三件套状态" "确认小黄鸭、FSR4、CheatDeck 是否已写入"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:6-7:install right:8-9:features right:10-11:all right:12-13:browse right:14-15:localizer right:18-19:home)"
+        choice="$(read_touch_menu right:6-7:install right:8-9:features right:10-11:all right:12-13:browse right:14-15:localizer right:16-17:feature-status right:18-19:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -323,6 +324,7 @@ plugin_store_menu() {
             all) confirm_and_run "安装当前列表全部插件" "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将安装 Decky、3款独立功能插件和26款精选插件，其中包括 SimpleDeckyTDP 与 Unifideck；商店插件仍需在Steam界面确认" bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
             browse) plugin_official_touch_pages ;;
             localizer) confirm_and_run "安装周克儿汉化" "这是独立的 Decky 汉化层测试版：不会改写原插件文件，首批仅覆盖基础文案。安装后请回游戏模式，在 Decky 菜单中启用。是否继续？" bash "$PROJECT_ROOT/modules/plugin_store.sh" localizer ;;
+            feature-status) run_with_pause bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "plugins" ] || return 0

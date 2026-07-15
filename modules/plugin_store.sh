@@ -1056,6 +1056,50 @@ install_configured_plugin() {
     esac
 }
 
+feature_plugin_is_present() {
+    local plugin_root="$1"
+    local directory_name="$2"
+    local expected_name="$3"
+    local plugin_dir="$plugin_root/$directory_name"
+
+    [ -d "$plugin_dir" ] && \
+        [ -f "$plugin_dir/plugin.json" ] && \
+        [ -s "$plugin_dir/dist/index.js" ] && \
+        grep -Fq "\"name\": \"$expected_name\"" "$plugin_dir/plugin.json"
+}
+
+print_feature_plugin_status() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local missing=0
+
+    echo ""
+    echo "========== 常用功能插件状态 =========="
+    if feature_plugin_is_present "$plugin_root" "Decky LSFG-VK" "Decky LSFG-VK"; then
+        echo "✓ 小黄鸭（LSFG-VK）：已写入 Decky"
+    else
+        echo "✗ 小黄鸭（LSFG-VK）：未找到完整插件文件"
+        missing=1
+    fi
+    if feature_plugin_is_present "$plugin_root" "Decky-Framegen" "Decky-Framegen"; then
+        echo "✓ FSR4（Decky-Framegen）：已写入 Decky"
+    else
+        echo "✗ FSR4（Decky-Framegen）：未找到完整插件文件"
+        missing=1
+    fi
+    if feature_plugin_is_present "$plugin_root" "CheatDeck" "CheatDeck"; then
+        echo "✓ CheatDeck：已写入 Decky"
+    else
+        echo "✗ CheatDeck：未找到完整插件文件"
+        missing=1
+    fi
+
+    echo ""
+    echo "说明：插件侧栏中的 Decky-Framegen 就是 FSR4；“系统主题”属于 CSS Loader，不是本次三件套。"
+    echo "CheatDeck 的入口在游戏库中选中游戏后的齿轮/右键菜单内，不会作为第三个侧栏图标显示。"
+    echo "若刚安装完仍未生效，请完全退出游戏模式后重新进入一次，让 Decky 重新加载插件。"
+    return "$missing"
+}
+
 install_feature_plugins() {
     local plugin
     local failed=0
@@ -1081,8 +1125,13 @@ install_feature_plugins() {
         fi
     done
 
+    if ! print_feature_plugin_status; then
+        failed=1
+        echo "至少有一项插件文件未写入完成，请单独重试对应项目。"
+    fi
+
     if [ "$failed" -eq 0 ]; then
-        echo "三款常用功能插件已全部安装完成。"
+        echo "三款常用功能插件已全部安装完成，并已确认文件写入 Decky 目录。"
         log "常用功能插件整组安装完成"
         return 0
     fi
@@ -1115,6 +1164,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         fsr4) install_configured_plugin fsr4 ;;
         cheatdeck) install_configured_plugin cheatdeck ;;
         localizer) install_zhoukeer_localizer ;;
+        feature-status) print_feature_plugin_status ;;
         features) install_feature_plugins ;;
         all) install_all_plugin_packages ;;
         lsfg-import)

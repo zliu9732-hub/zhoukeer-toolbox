@@ -369,6 +369,19 @@ copy_dir_files() {
     done
 }
 
+copy_zhoukeer_localizer() {
+    local source_dir="$SOURCE_ROOT/decky-plugins/zhoukeer-localizer"
+    local relative_file
+
+    # Decky 运行只需要清单与构建后的前端文件，不把开发依赖带入更新包。
+    for relative_file in plugin.json README.md LICENSE dist/index.js; do
+        if [ -f "$source_dir/$relative_file" ]; then
+            copy_file "$source_dir/$relative_file" \
+                "$STAGING_DIR/decky-plugins/zhoukeer-localizer/$relative_file"
+        fi
+    done
+}
+
 for file in main.sh main_old.sh launch.sh install.sh uninstall.sh update.sh bootstrap.sh i README.md VERSION .gitignore; do
     if [ -f "$SOURCE_ROOT/$file" ]; then
         copy_file "$SOURCE_ROOT/$file" "$STAGING_DIR/$file"
@@ -380,6 +393,7 @@ copy_dir_files modules
 copy_dir_files utils
 copy_dir_files config
 copy_dir_files assets
+copy_zhoukeer_localizer
 
 # 标记由安装器管理的目录，启动器只在这类目录中执行自动更新。
 printf '%s\n' "zhoukeer-toolbox" > "$STAGING_DIR/.zhoukeer-installed"

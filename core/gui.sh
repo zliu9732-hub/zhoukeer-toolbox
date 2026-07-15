@@ -147,6 +147,7 @@ plugin_menu() {
             all "一键安装当前列表全部插件（共29款）" \
             browse "浏览官方插件（分页｜中文说明）" \
             localizer "安装周克儿汉化（测试版）" \
+            feature-status "检查常用三件套状态" \
             back "返回主菜单")" || return 0
         case "$choice" in
             install)
@@ -170,6 +171,9 @@ plugin_menu() {
             localizer)
                 gui_confirm "这是独立的 Decky 汉化层测试版：不会改写原插件文件，首批仅覆盖基础文案。安装后请回游戏模式，在 Decky 菜单中启用。是否继续？" && \
                     run_gui_action "安装周克儿汉化" bash "$PROJECT_ROOT/modules/plugin_store.sh" localizer
+                ;;
+            feature-status)
+                run_gui_action "检查常用三件套状态" bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status
                 ;;
             back) return 0 ;;
         esac

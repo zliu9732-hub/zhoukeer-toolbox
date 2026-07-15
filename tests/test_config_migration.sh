@@ -198,11 +198,24 @@ test_dry_run_has_no_side_effects() {
         fail "dry-run 缺少无副作用提示"
 }
 
+test_localizer_runtime_files_packaged() {
+    local case_root="$TMP_ROOT/localizer"
+    local install_dir="$case_root/install"
+    local localizer_dir="$install_dir/decky-plugins/zhoukeer-localizer"
+
+    run_installer "$case_root/home" "$install_dir"
+
+    [ -s "$localizer_dir/plugin.json" ] || fail "更新包缺少周克儿汉化清单"
+    [ -s "$localizer_dir/dist/index.js" ] || fail "更新包缺少周克儿汉化运行文件"
+    [ ! -e "$localizer_dir/node_modules" ] || fail "更新包不应包含周克儿汉化开发依赖"
+}
+
 test_blank_config_migration
 test_custom_config_preserved
 test_retired_rustdesk_config_removed
 test_retired_decky_installer_config_removed
 test_missing_config_created
 test_dry_run_has_no_side_effects
+test_localizer_runtime_files_packaged
 
 echo "PASS: 配置迁移测试全部通过"
