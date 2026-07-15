@@ -36,10 +36,10 @@ Steam Deck桌面快捷方式会通过兼容启动器打开约 `1220×740` 的双
 
 ## 一行命令安装
 
-在 Steam Deck 桌面模式打开 Konsole，推荐使用更短的 Gitee 国内入口：
+在 Steam Deck 桌面模式打开 Konsole，使用最短可靠安装指令：
 
 ```bash
-curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/i|sh
+curl -L https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/i|sh
 ```
 
 完整入口：
