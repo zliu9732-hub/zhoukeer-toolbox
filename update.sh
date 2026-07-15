@@ -67,6 +67,9 @@ download_one() {
         --proto-redir '=https' \
         --connect-timeout "$CONNECT_TIMEOUT" \
         --max-time "$MAX_TIME" \
+        --retry 2 \
+        --retry-delay 2 \
+        --retry-all-errors \
         --output "$output" \
         "$url"
 }

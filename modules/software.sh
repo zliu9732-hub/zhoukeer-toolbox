@@ -15,6 +15,10 @@ FLATHUB_REPO_FILE_FALLBACK="https://dl.flathub.org/repo/flathub.flatpakrepo"
 FLATHUB_APPREF_BASE="https://flathub.org/repo/appstream"
 FLATPAK_INSTALL_TIMEOUT="${ZHOUKEER_FLATPAK_INSTALL_TIMEOUT:-1800}"
 FLATPAK_APPREF_TIMEOUT="${ZHOUKEER_FLATPAK_APPREF_TIMEOUT:-300}"
+FLATPAK_INSTALL_RETRIES="${ZHOUKEER_FLATPAK_INSTALL_RETRIES:-2}"
+FLATPAK_SOURCE_PROBE_TIMEOUT="${ZHOUKEER_FLATPAK_SOURCE_PROBE_TIMEOUT:-8}"
+INSTALL_PRIMARY_REMOTE="$FLATHUB_CN_REMOTE"
+INSTALL_FALLBACK_REMOTE="$FLATHUB_OFFICIAL_REMOTE"
 
 software_details() {
     case "$1" in
@@ -156,22 +160,63 @@ run_flatpak_install() {
     local remote="$1"
     local locale_name="C"
     local utf8_locale
+    local attempt=1
 
     utf8_locale="$(locale -a 2>/dev/null | awk 'tolower($0) ~ /^c\.(utf-8|utf8)$/ { print; exit }')"
     if [ -n "$utf8_locale" ]; then
         locale_name="$utf8_locale"
     fi
 
-    if command -v timeout >/dev/null 2>&1; then
-        LC_ALL="$locale_name" LANG="$locale_name" \
-            timeout --foreground "$FLATPAK_INSTALL_TIMEOUT" \
-            flatpak install --user --noninteractive -y \
-            "$remote" "$SOFTWARE_APP_ID"
+    while [ "$attempt" -le "$FLATPAK_INSTALL_RETRIES" ]; do
+        echo "正在从 $remote 安装（第 $attempt/$FLATPAK_INSTALL_RETRIES 次尝试）..."
+        if command -v timeout >/dev/null 2>&1; then
+            if LC_ALL="$locale_name" LANG="$locale_name" \
+                timeout --foreground "$FLATPAK_INSTALL_TIMEOUT" \
+                flatpak install --user --noninteractive -y "$remote" "$SOFTWARE_APP_ID"; then
+                return 0
+            fi
+        elif LC_ALL="$locale_name" LANG="$locale_name" \
+            flatpak install --user --noninteractive -y "$remote" "$SOFTWARE_APP_ID"; then
+            return 0
+        fi
+        attempt=$((attempt + 1))
+    done
+    return 1
+}
+
+measure_source_seconds() {
+    local url="$1"
+    local elapsed
+
+    elapsed="$(curl --fail --location --silent --output /dev/null \
+        --connect-timeout "$FLATPAK_SOURCE_PROBE_TIMEOUT" \
+        --max-time "$FLATPAK_SOURCE_PROBE_TIMEOUT" \
+        --write-out '%{time_total}' "$url" 2>/dev/null || true)"
+    case "$elapsed" in
+        ''|*[!0-9.]*|.*) return 1 ;;
+        *) printf '%s\n' "$elapsed" ;;
+    esac
+}
+
+choose_install_remotes() {
+    local domestic_seconds official_seconds
+
+    INSTALL_PRIMARY_REMOTE="$FLATHUB_CN_REMOTE"
+    INSTALL_FALLBACK_REMOTE="$FLATHUB_OFFICIAL_REMOTE"
+    domestic_seconds="$(measure_source_seconds "$FLATHUB_CN_URL/summary.idx" || true)"
+    official_seconds="$(measure_source_seconds "https://dl.flathub.org/repo/summary.idx" || true)"
+
+    if [ -n "$domestic_seconds" ] && [ -n "$official_seconds" ] && \
+        awk "BEGIN { exit !($official_seconds < $domestic_seconds) }"; then
+        INSTALL_PRIMARY_REMOTE="$FLATHUB_OFFICIAL_REMOTE"
+        INSTALL_FALLBACK_REMOTE="$FLATHUB_CN_REMOTE"
+        echo "测速结果：官方源更快（官方 ${official_seconds}s，国内源 ${domestic_seconds}s）。"
+    elif [ -n "$domestic_seconds" ]; then
+        echo "测速结果：优先使用国内源（${domestic_seconds}s）。"
     else
-        LC_ALL="$locale_name" LANG="$locale_name" \
-            flatpak install --user --noninteractive -y \
-            "$remote" "$SOFTWARE_APP_ID"
+        echo "测速未完成，默认优先使用国内源。"
     fi
+    log "$SOFTWARE_NAME 下载源顺序: $INSTALL_PRIMARY_REMOTE -> $INSTALL_FALLBACK_REMOTE"
 }
 
 run_flatpak_appref_install() {
@@ -231,10 +276,11 @@ install_software() {
         echo "Flathub远程源配置失败，将尝试官方安装描述直装。"
     fi
 
-    echo "正在通过国内缓存安装 $SOFTWARE_NAME..."
-    if ! run_flatpak_install "$FLATHUB_CN_REMOTE"; then
-        echo "国内缓存安装失败或超时，切换Flathub官方备用源。"
-        if ! run_flatpak_install "$FLATHUB_OFFICIAL_REMOTE" && \
+    choose_install_remotes
+    echo "正在安装 $SOFTWARE_NAME..."
+    if ! run_flatpak_install "$INSTALL_PRIMARY_REMOTE"; then
+        echo "$INSTALL_PRIMARY_REMOTE 安装失败或超时，切换备用源 $INSTALL_FALLBACK_REMOTE。"
+        if ! run_flatpak_install "$INSTALL_FALLBACK_REMOTE" && \
             ! run_flatpak_appref_install; then
             echo "$SOFTWARE_NAME 安装失败，不会继续无限等待。"
             log "$SOFTWARE_NAME Flatpak安装失败"
@@ -253,9 +299,43 @@ install_software() {
     create_software_shortcut
 }
 
+show_software_status() {
+    local target
+    local installed_count=0
+
+    echo "常用软件与远程协助安装状态："
+    for target in wechat qq browser rustdesk anydesk; do
+        software_details "$target" || return 1
+        if flatpak info "$SOFTWARE_APP_ID" >/dev/null 2>&1; then
+            echo "✓ $SOFTWARE_NAME：已安装"
+            installed_count=$((installed_count + 1))
+        else
+            echo "- $SOFTWARE_NAME：未安装"
+        fi
+    done
+    echo "已安装：$installed_count / 5"
+}
+
+repair_software_shortcuts() {
+    local target
+    local repaired=0
+
+    for target in wechat qq browser rustdesk anydesk; do
+        software_details "$target" || return 1
+        if flatpak info "$SOFTWARE_APP_ID" >/dev/null 2>&1; then
+            create_software_shortcut || return 1
+            repaired=$((repaired + 1))
+        fi
+    done
+    echo "已修复 $repaired 个已安装应用的桌面图标。"
+    log "已修复 $repaired 个应用桌面图标"
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         wechat|qq|browser|rustdesk|anydesk) install_software "$1" ;;
-        *) echo "用法: $0 {wechat|qq|browser|rustdesk|anydesk}"; exit 1 ;;
+        status) require_command flatpak && show_software_status ;;
+        repair-shortcuts) require_command flatpak && repair_software_shortcuts ;;
+        *) echo "用法: $0 {wechat|qq|browser|rustdesk|anydesk|status|repair-shortcuts}"; exit 1 ;;
     esac
 fi

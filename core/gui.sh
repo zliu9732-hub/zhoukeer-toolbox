@@ -155,7 +155,7 @@ settings_menu() {
             back "返回主菜单")" || return 0
         case "$choice" in
             source)
-                gui_confirm "将添加用户级Flathub国内缓存并保留官方备用源，是否继续？" && \
+                gui_confirm "将添加用户级Flathub国内缓存并保留官方备用源；软件安装时会测速并自动优先使用较快来源。是否继续？" && \
                     run_gui_action "添加国内下载源" \
                     bash "$PROJECT_ROOT/modules/domestic_source.sh" enable
                 ;;
@@ -172,7 +172,7 @@ settings_menu() {
                     run_gui_action "修改系统密码" \
                         bash "$PROJECT_ROOT/modules/password.sh" change
                 ;;
-            info) run_gui_action "系统信息" bash "$PROJECT_ROOT/core/detect.sh" ;;
+            info) run_gui_action "系统信息" bash "$PROJECT_ROOT/core/detect.sh" --report ;;
             back) return 0 ;;
         esac
     done
