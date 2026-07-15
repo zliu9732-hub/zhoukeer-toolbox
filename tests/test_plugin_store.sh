@@ -39,6 +39,8 @@ grep -Fq '选择名称以 Linux 开头的可用版本' "$PROJECT_ROOT/modules/pl
 grep -Fq 'Steam Deck 机身右下角“三个点（…）”按钮' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_feature_plugins()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_all_plugin_packages()' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'install_zhoukeer_localizer()' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'localizer) install_zhoukeer_localizer' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'features) install_feature_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'all) install_all_plugin_packages' "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Fq 'Lossless Scaling.rar' "$PROJECT_ROOT/modules/plugin_store.sh" || \

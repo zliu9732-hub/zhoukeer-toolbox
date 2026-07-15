@@ -1,0 +1,10 @@
+{
+  "name": "周克儿汉化",
+  "author": "闲鱼双叶",
+  "flags": [],
+  "api_version": 1,
+  "publish": {
+    "tags": ["localization", "utility"],
+    "description": "为已知 Decky 插件提供可维护的中文词库和作者署名。"
+  }
+}

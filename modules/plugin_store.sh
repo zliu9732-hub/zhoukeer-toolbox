@@ -511,6 +511,29 @@ install_decky_zip() {
     trap - EXIT INT TERM
 }
 
+install_zhoukeer_localizer() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local source_dir="$PROJECT_ROOT/decky-plugins/zhoukeer-localizer"
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "周克儿汉化仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    if [ -L "$source_dir" ] || [ ! -f "$source_dir/plugin.json" ] || [ ! -s "$source_dir/dist/index.js" ]; then
+        echo "周克儿汉化组件不完整，请更新工具箱后再试。"
+        return 1
+    fi
+    prepare_plugin_root "$plugin_root" || return 1
+
+    install_tree_atomically "$source_dir" "$plugin_root" "zhoukeer-localizer" || {
+        echo "周克儿汉化安装失败，已尽量保留旧版本。"
+        return 1
+    }
+    echo "周克儿汉化已安装。请返回游戏模式，在 Decky 插件列表中打开“周克儿汉化”。"
+    log "周克儿汉化安装完成"
+}
+
 open_lossless_store() {
     echo "正在打开 Lossless Scaling 的 Steam 正版页面..."
     if command -v xdg-open >/dev/null 2>&1; then
@@ -1091,6 +1114,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         lsfg-import-select) select_and_import_lossless_backup ;;
         fsr4) install_configured_plugin fsr4 ;;
         cheatdeck) install_configured_plugin cheatdeck ;;
+        localizer) install_zhoukeer_localizer ;;
         features) install_feature_plugins ;;
         all) install_all_plugin_packages ;;
         lsfg-import)

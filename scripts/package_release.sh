@@ -10,23 +10,30 @@ PACKAGE_PATH="$DIST_DIR/$PACKAGE_NAME"
 VERSIONED_PACKAGE_NAME="zhoukeer-toolbox-$VERSION.tar.gz"
 VERSIONED_PACKAGE_PATH="$DIST_DIR/$VERSIONED_PACKAGE_NAME"
 SHA256SUMS_PATH="$DIST_DIR/SHA256SUMS"
-VERIFY_FILES="VERSION main.sh install.sh modules/software.sh core/gui.sh assets/icon.png assets/icon-round.png"
+VERIFY_FILES="VERSION main.sh install.sh modules/software.sh modules/plugin_store.sh core/gui.sh assets/icon.png assets/icon-round.png decky-plugins/zhoukeer-localizer/dist/index.js"
+PACKAGE_SOURCES=()
 
 mkdir -p "$DIST_DIR"
 
 cd "$PROJECT_ROOT" || exit 1
 
+shopt -s nullglob
+for source_path in ./* ./.[!.]* ./..?*; do
+    [ "$source_path" = "./dist" ] && continue
+    PACKAGE_SOURCES+=("$source_path")
+done
+
 tar \
     --exclude=".git" \
     --exclude=".DS_Store" \
-    --exclude="dist" \
     --exclude="logs" \
     --exclude="apps" \
+    --exclude="decky-plugins/*/node_modules" \
     --exclude="*.save" \
     --exclude="*.bak.*" \
     --exclude="管理员密码.txt" \
     --exclude="config/settings.conf" \
-    -czf "$PACKAGE_PATH" .
+    -czf "$PACKAGE_PATH" "${PACKAGE_SOURCES[@]}"
 
 for packaged_file in $VERIFY_FILES; do
     if ! tar -xOf "$PACKAGE_PATH" "./$packaged_file" | \
