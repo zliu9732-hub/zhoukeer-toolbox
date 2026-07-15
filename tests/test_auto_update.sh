@@ -15,6 +15,9 @@ CURL_LOG="$STATE_DIR/curl.log"
 mkdir -p "$BIN_DIR" "$INSTALL_DIR" "$RELEASE_DIR" "$REMOTE_DIR/dist" "$STATE_DIR"
 
 cp "$PROJECT_ROOT/update.sh" "$INSTALL_DIR/update.sh"
+grep -Fq 'VERSION_CONNECT_TIMEOUT="${ZHOUKEER_VERSION_CONNECT_TIMEOUT:-8}"' "$INSTALL_DIR/update.sh"
+grep -Fq 'VERSION_MAX_TIME="${ZHOUKEER_VERSION_MAX_TIME:-30}"' "$INSTALL_DIR/update.sh"
+grep -Fq -- '--retry 3' "$INSTALL_DIR/update.sh"
 printf '%s\n' '4.0.0' > "$INSTALL_DIR/VERSION"
 
 cat > "$RELEASE_DIR/install.sh" <<'SCRIPT'

@@ -25,10 +25,11 @@ GITHUB_OWNER="${ZHOUKEER_GITHUB_OWNER:-zliu9732-hub}"
 REPO_NAME="${ZHOUKEER_REPO_NAME:-zhoukeer-toolbox}"
 BRANCH="${ZHOUKEER_BRANCH:-main}"
 
-CONNECT_TIMEOUT="${ZHOUKEER_CONNECT_TIMEOUT:-10}"
-MAX_TIME="${ZHOUKEER_MAX_TIME:-120}"
-VERSION_CONNECT_TIMEOUT="${ZHOUKEER_VERSION_CONNECT_TIMEOUT:-3}"
-VERSION_MAX_TIME="${ZHOUKEER_VERSION_MAX_TIME:-10}"
+# Gitee 首次跳转到国内 CDN 偶尔较慢，不能因一次短暂网络波动立刻改走 GitHub。
+CONNECT_TIMEOUT="${ZHOUKEER_CONNECT_TIMEOUT:-20}"
+MAX_TIME="${ZHOUKEER_MAX_TIME:-600}"
+VERSION_CONNECT_TIMEOUT="${ZHOUKEER_VERSION_CONNECT_TIMEOUT:-8}"
+VERSION_MAX_TIME="${ZHOUKEER_VERSION_MAX_TIME:-30}"
 
 GITEE_RAW_BASE="${ZHOUKEER_GITEE_RAW_BASE:-https://gitee.com/$GITEE_OWNER/$REPO_NAME/raw/$BRANCH}"
 GITHUB_RAW_BASE="${ZHOUKEER_GITHUB_RAW_BASE:-https://raw.githubusercontent.com/$GITHUB_OWNER/$REPO_NAME/$BRANCH}"
@@ -96,6 +97,9 @@ download_version_one() {
         --proto-redir '=https' \
         --connect-timeout "$VERSION_CONNECT_TIMEOUT" \
         --max-time "$VERSION_MAX_TIME" \
+        --retry 3 \
+        --retry-delay 2 \
+        --retry-all-errors \
         --output "$output" \
         "$url"
 }

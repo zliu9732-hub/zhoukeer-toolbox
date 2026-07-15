@@ -530,7 +530,16 @@ install_zhoukeer_localizer() {
         echo "周克儿汉化安装失败，已尽量保留旧版本。"
         return 1
     }
-    echo "周克儿汉化已安装。请返回游戏模式，在 Decky 插件列表中打开“周克儿汉化”。"
+    echo "周克儿汉化文件已安装，正在让 Decky 重新扫描插件目录..."
+    if command -v systemctl >/dev/null 2>&1 && command -v sudo >/dev/null 2>&1; then
+        if toolbox_sudo systemctl restart "$DECKY_SERVICE_NAME"; then
+            echo "Decky 已重新加载。返回游戏模式后，在插件列表中打开“周克儿汉化”。"
+        else
+            echo "汉化文件已安装，但 Decky 重载未完成。请完全退出游戏模式后重新进入一次。"
+        fi
+    else
+        echo "汉化文件已安装。请完全退出游戏模式后重新进入一次，再在插件列表中打开“周克儿汉化”。"
+    fi
     log "周克儿汉化安装完成"
 }
 

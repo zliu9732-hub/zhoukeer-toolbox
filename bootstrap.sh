@@ -21,8 +21,9 @@ REPO_NAME="${ZHOUKEER_REPO_NAME:-zhoukeer-toolbox}"
 BRANCH="${ZHOUKEER_BRANCH:-main}"
 INSTALL_DIR="${ZHOUKEER_INSTALL_DIR:-$HOME/.local/share/zhoukeer-toolbox}"
 
-CONNECT_TIMEOUT="${ZHOUKEER_CONNECT_TIMEOUT:-10}"
-MAX_TIME="${ZHOUKEER_MAX_TIME:-120}"
+# 国内 CDN 初次连接可能较慢；保留足够时间和重试后才使用 GitHub 备用源。
+CONNECT_TIMEOUT="${ZHOUKEER_CONNECT_TIMEOUT:-20}"
+MAX_TIME="${ZHOUKEER_MAX_TIME:-600}"
 
 GITEE_RAW_BASE="${ZHOUKEER_GITEE_RAW_BASE:-https://gitee.com/$GITEE_OWNER/$REPO_NAME/raw/$BRANCH}"
 GITHUB_RAW_BASE="${ZHOUKEER_GITHUB_RAW_BASE:-https://raw.githubusercontent.com/$GITHUB_OWNER/$REPO_NAME/$BRANCH}"
@@ -67,6 +68,9 @@ download_one() {
         --proto-redir '=https' \
         --connect-timeout "$CONNECT_TIMEOUT" \
         --max-time "$MAX_TIME" \
+        --retry 3 \
+        --retry-delay 2 \
+        --retry-all-errors \
         --output "$output" \
         "$url"
 }
