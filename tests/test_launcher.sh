@@ -71,9 +71,8 @@ run_launcher $'--profile\n--workdir\n--geometry'
 grep -Fq -- '--geometry 1220x740' "$CALL_LOG"
 
 run_launcher $'--profile\n--workdir\n--fullscreen'
-grep -Fq -- '--fullscreen' "$CALL_LOG"
-if grep -Fq -- '--geometry' "$CALL_LOG"; then
-    echo "FAIL: 仅支持 --fullscreen 时错误传入了 --geometry"
+if grep -Fq -- '--fullscreen' "$CALL_LOG"; then
+    echo "FAIL: 启动器不应把全屏作为窗口大小后备方案"
     exit 1
 fi
 

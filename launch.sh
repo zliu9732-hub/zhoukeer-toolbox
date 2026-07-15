@@ -192,9 +192,8 @@ try_konsole_levels() {
     if supports_konsole_option '--geometry'; then
         optional_args+=(--geometry "$WINDOW_SIZE")
         window_mode="窗口 $WINDOW_SIZE"
-    elif supports_konsole_option '--fullscreen'; then
-        optional_args+=(--fullscreen)
-        window_mode="全屏"
+    # 某些 SteamOS 版本不支持 --geometry，但支持 --fullscreen。
+    # 不把全屏当作后备方案：用户从桌面图标启动时应始终保留正常窗口。
     fi
     if supports_konsole_option '--workdir'; then
         optional_args+=(--workdir "$PROJECT_ROOT")
