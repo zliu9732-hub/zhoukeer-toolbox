@@ -10,7 +10,7 @@ PACKAGE_PATH="$DIST_DIR/$PACKAGE_NAME"
 VERSIONED_PACKAGE_NAME="zhoukeer-toolbox-$VERSION.tar.gz"
 VERSIONED_PACKAGE_PATH="$DIST_DIR/$VERSIONED_PACKAGE_NAME"
 SHA256SUMS_PATH="$DIST_DIR/SHA256SUMS"
-VERIFY_FILES="VERSION main.sh install.sh modules/software.sh modules/plugin_store.sh modules/game_launchers.sh scripts/steam_shortcut.py core/gui.sh assets/icon.png assets/icon-round.png decky-plugins/zhoukeer-localizer/dist/index.js"
+VERIFY_FILES="VERSION main.sh install.sh modules/software.sh modules/plugin_store.sh modules/game_launchers.sh scripts/steam_shortcut.py scripts/install-decky-plugin.sh core/gui.sh assets/icon.png assets/icon-round.png decky-plugins/zhoukeer-localizer/dist/index.js"
 PACKAGE_SOURCES=()
 
 mkdir -p "$DIST_DIR"

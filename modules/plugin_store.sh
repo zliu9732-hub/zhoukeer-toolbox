@@ -20,6 +20,24 @@ DECKY_UNIT_PATH="${ZHOUKEER_DECKY_UNIT_PATH:-/etc/systemd/system/plugin_loader.s
 DECKY_SERVICE_NAME="plugin_loader.service"
 DECKY_TMP_DIR=""
 
+# 仅迁移工具箱曾写入的固定123默认值；用户自定义地址保持不动。
+LEGACY_DECKY_LSFG_URL="https://1846467258.cdn.123clouddisk.com/1846467258/%E5%B7%A5%E5%85%B7%E7%AE%B1/%E5%B0%8F%E9%BB%84%E9%B8%ADv0.12.3%E6%B1%89%E5%8C%96%E7%89%88.zip"
+LEGACY_DECKY_FSR4_URL="https://1846467258.cdn.123clouddisk.com/1846467258/%E5%B7%A5%E5%85%B7%E7%AE%B1/Decky-Framegen.zip"
+LEGACY_DECKY_CHEATDECK_URL="https://1846467258.cdn.123clouddisk.com/1846467258/%E5%B7%A5%E5%85%B7%E7%AE%B1/CheatDeck.zip"
+
+if [ "${DECKY_LSFG_URL:-}" = "$LEGACY_DECKY_LSFG_URL" ]; then
+    DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
+    DECKY_LSFG_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
+fi
+if [ "${DECKY_FSR4_URL:-}" = "$LEGACY_DECKY_FSR4_URL" ]; then
+    DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip"
+    DECKY_FSR4_SHA256="236dc5aef5c908d905a848d7e448689634479ab61cd9184154ba8a725b3f2089"
+fi
+if [ "${DECKY_CHEATDECK_URL:-}" = "$LEGACY_DECKY_CHEATDECK_URL" ]; then
+    DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.2.1/CheatDeck.zip"
+    DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
+fi
+
 cleanup_decky_tmp() {
     if [ -n "$DECKY_TMP_DIR" ] && [ -d "$DECKY_TMP_DIR" ]; then
         rm -rf -- "$DECKY_TMP_DIR"
@@ -355,7 +373,7 @@ download_verified_package() {
         return 1
     fi
 
-    echo "正在从123云盘下载 $name ..."
+    echo "正在从固定官方发布地址下载 $name ..."
     if ! curl \
         --fail \
         --location \

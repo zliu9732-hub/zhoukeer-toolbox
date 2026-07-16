@@ -46,6 +46,18 @@ Steam Deck桌面快捷方式会通过兼容启动器打开约 `1280×860` 的双
 curl -L https://jktool.icu/i | sh
 ```
 
+## 三款插件独立安装
+
+以下命令只下载原作者 GitHub Release 的固定版本，下载后会校验 SHA256 并原子替换 Decky 插件目录；不使用或转存第三方 ZIP。运行前请先安装 Decky Loader。
+
+```bash
+curl -fsSL https://jktool.icu/scripts/install-decky-plugin.sh | bash -s -- lsfg
+curl -fsSL https://jktool.icu/scripts/install-decky-plugin.sh | bash -s -- framegen
+curl -fsSL https://jktool.icu/scripts/install-decky-plugin.sh | bash -s -- cheatdeck
+```
+
+安装后完全退出游戏模式再重新进入一次，让 Decky 重新扫描插件。小黄鸭、Decky-Framegen 和 CheatDeck 的插件作者分别为 xXJSONDeruloXx、xXJSONDeruloXx、SheffeyG，请支持原作者。
+
 ### Gitee 国内源（备用）
 
 在 Steam Deck 桌面模式打开 Konsole，使用最短可靠安装指令：

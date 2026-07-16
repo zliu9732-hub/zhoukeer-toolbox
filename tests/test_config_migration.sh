@@ -88,7 +88,7 @@ test_blank_config_migration() {
     assert_value "$config_file" TODESK_PACKAGE_SHA256 \
         "60026e9a7163611cd5feba6ed3d246fa4c9763cb95c04e07da09052243e12a29"
     assert_value "$config_file" DECKY_LSFG_SHA256 \
-        "5355c6df656775fa467445c7787604bc159b8d8b97e5364bedb02a5d2e0ab677"
+        "13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
     assert_value "$config_file" DECKY_LOADER_SHA256 \
         "30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e"
     assert_value "$config_file" DECKY_SERVICE_SHA256 \

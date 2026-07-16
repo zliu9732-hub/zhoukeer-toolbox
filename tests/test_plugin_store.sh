@@ -23,12 +23,14 @@ if grep -Fq 'https://www.mhhf.com/Deck/install.sh' "$PROJECT_ROOT/modules/plugin
     echo "FAIL: 不应继续下载或执行Decky外层安装脚本"
     exit 1
 fi
-grep -Fq 'DECKY_LSFG_SHA256="5355c6df656775fa467445c7787604bc159b8d8b97e5364bedb02a5d2e0ab677"' \
+grep -Fq 'DECKY_LSFG_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"' \
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'DECKY_FSR4_SHA256="236dc5aef5c908d905a848d7e448689634479ab61cd9184154ba8a725b3f2089"' \
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"' \
     "$PROJECT_ROOT/config/settings.example.conf"
+grep -Fq 'LEGACY_DECKY_LSFG_URL' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_tree_atomically' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Lossless Scaling 的 Steam 正版页面' "$PROJECT_ROOT/modules/plugin_store.sh"
