@@ -1,5 +1,10 @@
 # 周克儿工具箱更新日志
 
+## V4.0.36 公开版 — 2026-07-16
+
+- Epic 和战网改为自动写入 Steam 非 Steam 游戏列表，不再要求客户右键 Add to Steam 或手动寻找安装后的主 EXE。
+- 首次从 Steam 使用 PE 或 GE-Proton 10.0-4 完成官方安装后，后台会检测同一 `compatdata/pfx/drive_c` 的 EpicGamesLauncher.exe 或 Battle.net.exe，安全退出 Steam、切换原条目目标并重新启动 Steam；重复执行不会生成重复条目。
+
 ## V4.0.35 公开版 — 2026-07-16
 
 - 修复周克儿汉化插件“能打开但没有实际效果”：不再依赖 Decky 容易变化的卡片 class 名，改为持续扫描并替换已知可见文案；插件名称带版本号时也能识别。

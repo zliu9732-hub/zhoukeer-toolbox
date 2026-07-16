@@ -406,19 +406,19 @@ game_tools_gui_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "游戏与掌机助手" \
-            epic "安装 Epic 并 Add to Steam" \
-            battlenet "安装战网并 Add to Steam" \
+            epic "安装 Epic 并自动入库" \
+            battlenet "安装战网并自动入库" \
             diagnose "游戏启动诊断（不删除游戏文件）" \
             center "攻略与安全中心" \
             back "返回系统优化")" || return 0
         case "$choice" in
             epic)
-                gui_confirm "下载 Epic 官方 MSI 到桌面。安装包 Add to Steam 后选择 PE 或 GE-Proton 10-4；安装完成后在同一个 Steam 条目里把目标换成真正的 EpicGamesLauncher.exe。是否继续？" && \
-                    run_gui_action "安装 Epic 并 Add to Steam" bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
+                gui_confirm "会安全重启 Steam 后写入 Epic 官方 MSI 的非 Steam 游戏条目。首次在 Steam 里选择 PE 或 GE-Proton 10.0-4 并完成官方安装；工具箱会自动将原条目切换到 EpicGamesLauncher.exe。是否继续？" && \
+                    run_gui_action "安装 Epic 并自动入库" bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
                 ;;
             battlenet)
-                gui_confirm "下载战网官方 EXE 到桌面。安装包 Add to Steam 后选择 PE 或 GE-Proton 10-4；安装完成后在同一个 Steam 条目里把目标换成真正的 Battle.net.exe。是否继续？" && \
-                    run_gui_action "安装战网并 Add to Steam" bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
+                gui_confirm "会安全重启 Steam 后写入战网官方 EXE 的非 Steam 游戏条目。首次在 Steam 里选择 PE 或 GE-Proton 10.0-4 并完成官方安装；工具箱会自动将原条目切换到 Battle.net.exe。是否继续？" && \
+                    run_gui_action "安装战网并自动入库" bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
                 ;;
             diagnose) run_gui_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
             center) support_center_gui_menu ;;

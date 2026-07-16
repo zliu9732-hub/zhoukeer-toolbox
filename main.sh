@@ -550,8 +550,8 @@ game_tools_touch_menu() {
 
     while true; do
         draw_category_frame optimize "游戏与掌机助手" "安全检测和引导，不删除游戏或修改 Steam 游戏库"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "安装 Epic 并 Add to Steam" "下载官方 MSI；安装后把原 Steam 条目目标换成主 EXE"
-        ui_touch_button 10 '\033[1;97;48;5;24m' "安装战网并 Add to Steam" "下载官方 EXE；安装后把原 Steam 条目目标换成主 EXE"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "安装 Epic 并自动入库" "官方 MSI 入 Steam；安装后自动切换到主 EXE"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "安装战网并自动入库" "官方 EXE 入 Steam；安装后自动切换到主 EXE"
         ui_touch_button 13 '\033[1;97;48;5;24m' "游戏启动诊断" "检查 Steam、兼容层、空间和日志；不删除游戏文件"
         ui_touch_button 16 '\033[1;97;48;5;24m' "攻略与安全中心" "中文兼容攻略、掌机说明和操作记录导出"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统优化" "查看清理和修复功能"
@@ -560,8 +560,8 @@ game_tools_touch_menu() {
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            epic) confirm_and_run "安装 Epic 并 Add to Steam" "下载官方 MSI 到桌面；随后按提示右键 Add to Steam 并手动选择 PE 或 GE-Proton 10-4" bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
-            battlenet) confirm_and_run "安装战网并 Add to Steam" "下载官方 EXE 到桌面；随后按提示右键 Add to Steam 并手动选择 PE 或 GE-Proton 10-4" bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
+            epic) confirm_and_run "安装 Epic 并自动入库" "会安全重启 Steam 后写入非 Steam 游戏条目。首次在 Steam 里选 PE 或 GE-Proton 10.0-4 并完成官方安装；工具箱会自动切换到 Epic 主 EXE" bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
+            battlenet) confirm_and_run "安装战网并自动入库" "会安全重启 Steam 后写入非 Steam 游戏条目。首次在 Steam 里选 PE 或 GE-Proton 10.0-4 并完成官方安装；工具箱会自动切换到战网主 EXE" bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
             diagnose) run_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
             center) support_center_touch_menu ;;
             optimize) NEXT_CATEGORY="optimize"; return 0 ;;

@@ -99,9 +99,9 @@ for optimization_menu in "$touch_optimization_menu" "$gui_optimization_menu"; do
 done
 
 for game_tools_menu in "$touch_game_tools_menu" "$gui_game_tools_menu"; do
-    assert_contains "$game_tools_menu" '安装 Epic 并 Add to Steam' "游戏助手缺少Epic安装入口"
+    assert_contains "$game_tools_menu" '安装 Epic 并自动入库' "游戏助手缺少Epic安装入口"
     assert_contains "$game_tools_menu" 'modules/game_launchers.sh" epic' "Epic安装入口调用错误"
-    assert_contains "$game_tools_menu" '安装战网并 Add to Steam' "游戏助手缺少战网安装入口"
+    assert_contains "$game_tools_menu" '安装战网并自动入库' "游戏助手缺少战网安装入口"
     assert_contains "$game_tools_menu" 'modules/game_launchers.sh" battlenet' "战网安装入口调用错误"
     assert_contains "$game_tools_menu" '游戏启动诊断' "游戏助手缺少启动诊断入口"
     assert_contains "$game_tools_menu" 'modules/game_diagnose.sh" diagnose' "游戏启动诊断入口调用错误"
