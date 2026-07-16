@@ -18,6 +18,9 @@ python3 "$HELPER" --shortcut-file "$SHORTCUTS" add \
     --name "Epic Games 启动器" --exe "$INSTALLER" --start-dir "$TMP_ROOT"
 python3 "$HELPER" --shortcut-file "$SHORTCUTS" add \
     --name "Epic Games 启动器" --exe "$INSTALLER" --start-dir "$TMP_ROOT" | grep -Fxq existing
+# Steam 自己写出的 shortcuts.vdf 在根对象后可能保留额外结束标记。
+# 模拟客户现有文件，确保更新主 EXE 时不会误报 trailing data，写回后会规范化。
+printf '\010' >> "$SHORTCUTS"
 python3 - "$SHORTCUTS" "$INSTALLER" <<'PY'
 from pathlib import Path
 import sys
@@ -38,6 +41,7 @@ import sys
 data = Path(sys.argv[1]).read_bytes()
 assert sys.argv[3].encode() in data
 assert sys.argv[2].encode() not in data
+assert data.endswith(b"\x08\x08")
 PY
 
 grep -Fq 'steamapps/compatdata' "$MODULE"

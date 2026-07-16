@@ -88,5 +88,12 @@ grep -Fq 'left:16-17:nav-guides' "$PROJECT_ROOT/main.sh"
 grep -Fq 'left:18-19:nav-changelog' "$PROJECT_ROOT/main.sh"
 grep -Fq 'guides) practical_guides_touch_menu' "$PROJECT_ROOT/main.sh"
 grep -Fq 'changelog) changelog_menu' "$PROJECT_ROOT/main.sh"
+changelog_source="$(sed -n '/changelog_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+printf '%s\n' "$changelog_source" | grep -Fq 'CHANGELOG.md'
+printf '%s\n' "$changelog_source" | grep -Fq 'VERSION'
+if printf '%s\n' "$changelog_source" | grep -Fq '2026-07-14'; then
+    echo "FAIL: 更新日志页仍写死旧发布日期"
+    exit 1
+fi
 
 echo "PASS: 纯触控、圆形图标、免责声明、字体和背景主题测试通过"

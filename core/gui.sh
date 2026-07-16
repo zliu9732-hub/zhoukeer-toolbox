@@ -305,27 +305,27 @@ steam_accelerator_gui_menu() {
     while true; do
         choice="$(gui_dialog --menu "Steamcommunity 302" \
             install "安装或更新" \
-            start "一键开启加速服务" \
+            start "一键开启 Steam + GitHub 加速" \
             status "查看运行状态" \
             uninstall "安全卸载" \
             back "返回系统设置")" || return 0
         case "$choice" in
             install)
-                gui_confirm "该工具会使用本机代理，并可能修改hosts/DNS及安装根证书。安装后由你在官方界面选择是否开启后台服务，是否继续？" && \
+                gui_confirm "将下载官方程序并生成 Steam + GitHub 内置规则；首次开启可能请求管理员权限。是否继续？" && \
                     run_gui_action "安装Steamcommunity 302" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/steam_accelerator.sh" install
                 ;;
             start)
-                gui_confirm "将启动官方已配置的 Steamcommunity 302 后台服务；它会使用你已保存的代理、hosts/DNS 和证书设置。是否继续？" && \
+                gui_confirm "工具箱会自动安装（如缺失）并启动官方 CLI，只接管 Steam 与 GitHub。是否继续？" && \
                     run_gui_action "开启 Steamcommunity 302 加速" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/steam_accelerator.sh" start
+                    bash "$PROJECT_ROOT/modules/steam_accelerator.sh" enable
                 ;;
             status)
                 run_gui_action "Steamcommunity 302状态" \
                     bash "$PROJECT_ROOT/modules/steam_accelerator.sh" status
                 ;;
             uninstall)
-                gui_confirm "请先在官方界面禁用后台服务并恢复hosts、DNS和证书。确认继续卸载程序文件？" && \
+                gui_confirm "会停止工具箱启动的进程；官方 systemd、hosts、DNS 和证书需按官方程序另行处理。确认继续？" && \
                     run_gui_action "卸载Steamcommunity 302" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
                 ;;

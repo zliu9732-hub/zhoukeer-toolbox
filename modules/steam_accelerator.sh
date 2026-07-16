@@ -14,6 +14,12 @@ STEAM302_ARCHIVE_SHA256="5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f8
 STEAM302_INSTALL_DIR="$APP_DIR/steamcommunity302"
 STEAM302_DESKTOP_FILE="$HOME/Desktop/Steamcommunity 302.desktop"
 STEAM302_SERVICE_NAME="steamcommunity302.service"
+STEAM302_CLI="$STEAM302_INSTALL_DIR/steamcommunity_302.cli"
+STEAM302_RULES_FILE="$STEAM302_INSTALL_DIR/S302_rules.ini"
+STEAM302_CONFIG_FILE="$STEAM302_INSTALL_DIR/S302.ini"
+STEAM302_PID_FILE="$STEAM302_INSTALL_DIR/.zhoukeer-cli.pid"
+STEAM302_LOG_FILE="$APP_DIR/steamcommunity302.log"
+STEAM302_ENABLED_RULES="Steam_store,Steam_store_unlock,Steam_community,Steam_API,Steam_API_unlock,Steam_community_unlock,steamchat,steamchat_unlock,Steam_cloud_google,steam_update,Steam_broadcast_redir,Steam_broadcast_redir_unlock,imgfix,imgfix_fastly,github"
 STEAM302_CONNECT_TIMEOUT=15
 STEAM302_MAX_TIME=1200
 STEAM302_RETRIES=3
@@ -67,7 +73,7 @@ show_steam302_risk_notice() {
     echo "- 创建桌面快捷方式"
     echo ""
     echo "工具箱不会调用 pacman，不会关闭 SteamOS 只读保护，"
-    echo "也不会自行启用或启动 systemd 系统服务。"
+    echo "也不会创建或启用 systemd 系统服务；一键开启使用官方 CLI 后台进程。"
     echo ""
     echo "重要：官方程序启动加速时会请求管理员权限，并可能安装根证书、"
     echo "修改 hosts 或拦截 DNS。请只开启自己理解并需要的功能。"
@@ -90,7 +96,7 @@ confirm_steam302_uninstall() {
     local answer
 
     echo "将删除 Steamcommunity 302 程序目录和工具箱创建的桌面快捷方式。"
-    echo "不会代替官方程序停止服务、恢复 hosts、移除证书或修改 systemd。"
+    echo "会先停止工具箱启动的官方 CLI；不会代替官方程序恢复 hosts、移除证书或修改 systemd。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi
@@ -104,6 +110,56 @@ steam302_is_installed() {
     [ -d "$STEAM302_INSTALL_DIR" ] && \
         [ -f "$STEAM302_INSTALL_DIR/run_运行.sh" ] && \
         [ -f "$STEAM302_INSTALL_DIR/Steamcommunity_302" ]
+}
+
+steam302_cli_is_running() {
+    local pid
+
+    [ -r "$STEAM302_PID_FILE" ] || return 1
+    pid="$(sed -n '1p' "$STEAM302_PID_FILE" 2>/dev/null || true)"
+    case "$pid" in
+        ''|*[!0-9]*) return 1 ;;
+    esac
+    kill -0 "$pid" >/dev/null 2>&1
+}
+
+ensure_steam302_config() {
+    local temporary_config
+
+    [ -f "$STEAM302_CONFIG_FILE" ] && return 0
+    [ -f "$STEAM302_RULES_FILE" ] || {
+        echo "Steamcommunity 302 缺少官方规则文件 S302_rules.ini。"
+        return 1
+    }
+
+    temporary_config="$(mktemp "$STEAM302_INSTALL_DIR/.S302.ini.XXXXXX")" || return 1
+    if ! awk -v enabled="$STEAM302_ENABLED_RULES" '
+        BEGIN { in_rules = 0; replaced = 0 }
+        /^\[Rules\][[:space:]]*$/ { in_rules = 1 }
+        /^\[/ && $0 !~ /^\[Rules\][[:space:]]*$/ { in_rules = 0 }
+        in_rules && /^[[:space:]]*enabled[[:space:]]*=/ {
+            if (!replaced) {
+                print "enabled = " enabled
+                replaced = 1
+            }
+            next
+        }
+        { print }
+        END { if (!replaced) exit 1 }
+    ' "$STEAM302_RULES_FILE" > "$temporary_config"; then
+        rm -f "$temporary_config"
+        echo "官方规则文件中没有找到 [Rules] enabled 配置项。"
+        return 1
+    fi
+    chmod 644 "$temporary_config" || {
+        rm -f "$temporary_config"
+        return 1
+    }
+    if ! mv -f "$temporary_config" "$STEAM302_CONFIG_FILE"; then
+        rm -f "$temporary_config"
+        return 1
+    fi
+    echo "已生成 Steam + GitHub 内置加速规则。"
 }
 
 steam302_installed_version() {
@@ -130,9 +186,9 @@ steam302_service_exists() {
 confirm_steam302_service_start() {
     local answer
 
-    echo "将启动官方 Steamcommunity 302 后台服务。"
-    echo "该服务会使用你已在官方界面保存的代理、hosts/DNS 和证书设置。"
-    echo "工具箱不会新增或修改这些设置。"
+    echo "将启动官方 Steamcommunity 302 CLI 后台进程。"
+    echo "内置规则只接管 Steam 和 GitHub，不需要客户另开 302 界面。"
+    echo "首次启动可能请求管理员权限，并按官方程序写入代理、hosts/DNS 或根证书。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi
@@ -142,37 +198,100 @@ confirm_steam302_service_start() {
 }
 
 start_steam302_service() {
+    local display_value="${DISPLAY:-:0}"
+    local xauthority_value="${XAUTHORITY:-$HOME/.Xauthority}"
+    local lang_value="${LANG:-C.UTF-8}"
+    local root_start_script
+    local pid
+
     steam302_is_installed || {
         echo "Steamcommunity 302 尚未安装。"
         return 1
     }
-    require_command systemctl || return 1
+    ensure_steam302_config || return 1
     if steam302_service_is_active; then
-        echo "加速服务已在运行。"
+        echo "官方 Steamcommunity 302 服务已在运行。"
         return 0
     fi
-    if ! steam302_service_exists; then
-        echo "尚未找到官方后台服务。"
-        echo "请先打开 Steamcommunity 302 官方界面，完成首次设置并启用“开机运行—后台服务(无界面)”。"
-        echo "完成一次后，之后即可在工具箱中一键启动。"
-        return 1
+    if steam302_cli_is_running; then
+        echo "Steamcommunity 302 内置加速已在运行。"
+        return 0
     fi
 
     confirm_steam302_service_start || {
         echo "已取消启动加速服务。"
         return 0
     }
-    if ! toolbox_sudo systemctl start "$STEAM302_SERVICE_NAME"; then
-        echo "加速服务启动失败，官方设置保持不变。"
+
+    rm -f "$STEAM302_INSTALL_DIR/S302.exit" "$STEAM302_PID_FILE"
+    root_start_script="cd $(printf '%q' "$STEAM302_INSTALL_DIR") && rm -f $(printf '%q' "$STEAM302_INSTALL_DIR/S302.exit") && (nohup ./steamcommunity_302.cli >>$(printf '%q' "$STEAM302_LOG_FILE") 2>&1 </dev/null & printf '%s\\n' \$! >$(printf '%q' "$STEAM302_PID_FILE"))"
+    if ! toolbox_sudo /usr/bin/env -i \
+        PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
+        HOME="/root" \
+        USER="root" \
+        LOGNAME="root" \
+        LANG="$lang_value" \
+        DISPLAY="$display_value" \
+        XAUTHORITY="$xauthority_value" \
+        bash -c "$root_start_script"; then
+        echo "内置加速启动失败：管理员权限未通过或官方 CLI 无法启动。"
         return 1
     fi
-    if steam302_service_is_active; then
-        echo "加速服务已启动。"
+
+    sleep 1
+    pid="$(sed -n '1p' "$STEAM302_PID_FILE" 2>/dev/null || true)"
+    if steam302_cli_is_running; then
+        echo "Steam + GitHub 内置加速已开启。"
+        echo "后台日志：$STEAM302_LOG_FILE"
+        return 0
+    fi
+    echo "官方 CLI 未保持运行，请查看日志：$STEAM302_LOG_FILE"
+    [ -n "$pid" ] && sed -n '1,20p' "$STEAM302_LOG_FILE" 2>/dev/null || true
+    rm -f "$STEAM302_PID_FILE"
+    return 1
+}
+
+stop_steam302_cli() {
+    local pid
+    local attempt
+
+    pid="$(sed -n '1p' "$STEAM302_PID_FILE" 2>/dev/null || true)"
+    if ! steam302_cli_is_running; then
+        rm -f "$STEAM302_PID_FILE"
         return 0
     fi
 
-    echo "systemd 已收到启动请求，但服务未进入运行状态。请在官方界面查看日志。"
-    return 1
+    printf '1\n' > "$STEAM302_INSTALL_DIR/S302.exit" || return 1
+    for attempt in 1 2 3 4 5 6 7 8 9 10; do
+        steam302_cli_is_running || break
+        sleep 1
+    done
+    if steam302_cli_is_running; then
+        toolbox_sudo kill "$pid" >/dev/null 2>&1 || return 1
+    fi
+    rm -f "$STEAM302_PID_FILE"
+}
+
+enable_steam302() {
+    if ! steam302_is_installed; then
+        install_steam302 || return 1
+    fi
+    start_steam302_service
+}
+
+stop_steam302_service() {
+    if steam302_cli_is_running; then
+        stop_steam302_cli || {
+            echo "内置加速停止失败。"
+            return 1
+        }
+        echo "Steam + GitHub 内置加速已停止。"
+    fi
+}
+
+steam302_service_exists() {
+    command -v systemctl >/dev/null 2>&1 || return 1
+    systemctl cat "$STEAM302_SERVICE_NAME" >/dev/null 2>&1
 }
 
 download_steam302_archive() {
@@ -438,12 +557,12 @@ install_steam302() (
         current_version="$(steam302_installed_version)"
         if [ "$current_version" = "$STEAM302_VERSION" ]; then
             echo "Steamcommunity 302 V$STEAM302_VERSION 已安装，正在修复桌面快捷方式。"
+            ensure_steam302_config || return 1
             create_steam302_shortcut || {
                 echo "桌面快捷方式创建失败。"
                 return 1
             }
-            echo "工具箱没有启动或启用任何系统服务。"
-            echo "如需开机加速，请在官方 GUI 中选择“开机运行—后台服务(无界面)”。"
+            echo "Steam + GitHub 内置规则已准备好；点击“一键开启加速”即可运行。"
             return 0
         fi
     fi
@@ -525,15 +644,18 @@ install_steam302() (
         echo "桌面快捷方式创建失败，正在恢复已有版本。"
         return 1
     fi
+    if ! ensure_steam302_config; then
+        echo "内置 Steam + GitHub 规则生成失败，正在恢复已有版本。"
+        return 1
+    fi
 
     STEAM302_SWAP_FINISHED=1
     rm -rf "$STEAM302_BACKUP_DIR"
     STEAM302_BACKUP_DIR=""
     echo "Steamcommunity 302 V$STEAM302_VERSION 安装完成。"
-    echo "工具箱没有启动或启用任何系统服务。"
-    echo "请在桌面模式打开“Steamcommunity 302”快捷方式完成首次设置。"
-    echo "如需开机加速，请在官方 GUI 中选择“开机运行—后台服务(无界面)”。"
-    echo "该选择会涉及管理员权限、根证书以及 hosts / DNS 修改，请按需开启。"
+    echo "已生成 Steam + GitHub 内置加速规则。"
+    echo "现在可直接点击工具箱里的“一键开启加速”，无需另开 302 界面。"
+    echo "首次开启可能涉及管理员权限、根证书以及 hosts / DNS 修改，请按需确认。"
 )
 
 show_steam302_status() {
@@ -556,6 +678,8 @@ show_steam302_status() {
 
     if steam302_service_is_active; then
         echo "后台服务：正在运行"
+    elif steam302_cli_is_running; then
+        echo "内置加速：正在运行（Steam + GitHub）"
     elif steam302_service_is_enabled; then
         echo "后台服务：已设为开机启动，但当前未运行"
     else
@@ -578,15 +702,16 @@ uninstall_steam302() {
         return 0
     }
 
+    stop_steam302_service || return 1
+
     if steam302_service_is_active; then
         echo "拒绝卸载：检测到 $STEAM302_SERVICE_NAME 正在运行。"
-        echo "请先打开官方 GUI 停止服务，并将“开机运行—后台服务(无界面)”改为“禁用”。"
-        echo "确认后台服务已停止且 hosts / DNS 已恢复后，再执行卸载。"
+        echo "请先在官方程序中停止并禁用该 systemd 服务，再执行卸载。"
         return 1
     fi
     if steam302_service_is_enabled; then
         echo "拒绝卸载：检测到 $STEAM302_SERVICE_NAME 仍设为开机启动。"
-        echo "请先在官方 GUI 将“开机运行—后台服务(无界面)”改为“禁用”，再执行卸载。"
+        echo "请先在官方程序中将该 systemd 服务改为禁用，再执行卸载。"
         return 1
     fi
 
@@ -606,16 +731,17 @@ uninstall_steam302() {
     }
 
     echo "Steamcommunity 302 程序文件已删除。"
-    echo "工具箱没有修改 systemd、hosts 或证书；如仍有相关配置，请在官方 GUI 中先完成停用和恢复。"
+    echo "工具箱没有修改 systemd；如仍有 hosts 或证书配置，请按官方程序说明恢复。"
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         install) install_steam302 ;;
         launch) launch_steam302 ;;
-        start) start_steam302_service ;;
+        start|enable) enable_steam302 ;;
+        stop) stop_steam302_service ;;
         status) show_steam302_status ;;
         uninstall) uninstall_steam302 ;;
-        *) echo "用法: $0 {install|launch|start|status|uninstall}"; exit 1 ;;
+        *) echo "用法: $0 {install|launch|start|stop|status|uninstall}"; exit 1 ;;
     esac
 fi

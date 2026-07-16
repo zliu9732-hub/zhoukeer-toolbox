@@ -471,7 +471,7 @@ system_settings_menu() {
     while true; do
         draw_category_frame settings "系统设置" "下载源、Steam加速、系统密码和一键体检"
         ui_touch_button 7 '\033[1;97;48;5;24m' "添加国内下载源" "自动测速后优先使用更快的用户级 Flatpak 源"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "Steamcommunity 302" "安装、查看状态或安全卸载 Steam 加速器"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "Steamcommunity 302" "一键安装并加速 Steam 与 GitHub"
         ui_touch_button 11 '\033[1;97;48;5;24m' "设置系统密码" "明文保存到桌面；同一用户运行的软件也能读取"
         ui_touch_button 13 '\033[1;97;48;5;24m' "修改系统密码" "同步更新明文记录；同一用户软件也能读取"
         ui_touch_button 15 '\033[1;97;48;5;24m' "一键体检" "检查空间、网络、Steam、Decky 和常用软件；不修改系统"
@@ -496,25 +496,25 @@ steam_accelerator_touch_menu() {
     local choice
 
     while true; do
-        draw_category_frame settings "Steamcommunity 302" "官方 Linux AMD64 固定版本，安装包双重校验"
-        ui_touch_button 6 '\033[1;97;48;5;24m' "安装或更新" "首次仍需在官方界面完成设置"
-        ui_touch_button 9 '\033[1;97;48;5;30m' "一键开启加速服务" "启动已配置的官方后台服务"
-        ui_touch_button 12 '\033[1;97;48;5;24m' "查看运行状态" "查看版本、桌面图标和后台服务状态"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "安全卸载" "后台服务仍启用时会拒绝删除"
+        draw_category_frame settings "Steamcommunity 302" "官方 Linux AMD64 固定版本，内置 Steam + GitHub 加速"
+        ui_touch_button 6 '\033[1;97;48;5;24m' "安装或更新" "下载并校验官方程序与内置规则"
+        ui_touch_button 9 '\033[1;97;48;5;30m' "一键开启加速" "自动准备并启动 Steam + GitHub 后台加速"
+        ui_touch_button 12 '\033[1;97;48;5;24m' "查看运行状态" "查看版本、内置进程和后台服务状态"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "安全卸载" "先停止工具箱进程，再删除程序文件"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
         ui_prompt
         choice="$(read_touch_menu right:6-7:install right:9-10:start right:12-13:status right:15-16:uninstall right:18-19:settings)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             install)
-                confirm_and_run "Steamcommunity 302" "涉及本机代理、hosts/DNS和根证书；安装后由你选择是否开启后台服务" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" install
+                confirm_and_run "Steamcommunity 302" "下载官方程序并生成 Steam + GitHub 内置规则；首次开启可能请求管理员权限" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" install
                 ;;
             start)
-                confirm_and_run "开启 Steamcommunity 302 加速" "将启动官方已配置的后台服务；它会使用你已保存的代理、hosts/DNS和证书设置" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" start
+                confirm_and_run "开启 Steamcommunity 302 加速" "工具箱会自动安装（如缺失）并启动官方 CLI，只接管 Steam 与 GitHub" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" enable
                 ;;
             status) run_action "Steamcommunity 302 状态" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" status ;;
             uninstall)
-                confirm_and_run "卸载 Steamcommunity 302" "请先在官方界面禁用后台服务并恢复 hosts、DNS 和证书" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
+                confirm_and_run "卸载 Steamcommunity 302" "会停止工具箱启动的进程；官方 systemd、hosts、DNS 和证书需按官方程序另行处理" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
                 ;;
             settings) NEXT_CATEGORY="settings"; return 0 ;;
         esac
@@ -600,14 +600,39 @@ practical_guides_touch_menu() {
 
 changelog_menu() {
     local choice
+    local release_heading="当前版本"
+    local line
+    local in_latest_release=0
+    local -a release_notes=()
+
+    if [ -r "$PROJECT_ROOT/CHANGELOG.md" ]; then
+        while IFS= read -r line; do
+            case "$line" in
+                "## "*)
+                    if [ "$in_latest_release" -eq 1 ]; then
+                        break
+                    fi
+                    release_heading="${line#\#\# }"
+                    in_latest_release=1
+                    ;;
+                "- "*)
+                    if [ "$in_latest_release" -eq 1 ]; then
+                        release_notes+=("${line#- }")
+                    fi
+                    ;;
+            esac
+        done < "$PROJECT_ROOT/CHANGELOG.md"
+    fi
+
+    if [ -r "$PROJECT_ROOT/VERSION" ]; then
+        release_heading="V$(tr -d '\r\n' < "$PROJECT_ROOT/VERSION") · ${release_heading#*— }"
+    fi
 
     while true; do
-        draw_category_frame changelog "更新日志" "周克儿工具箱 V4 · 2026-07-14"
-        ui_panel_line 7 '\033[1;38;5;114m' "✓ 新增纯触控分类界面、黑白背景和工具箱图标"
-        ui_panel_line 9 '\033[1;38;5;45m' "✓ 新增国内双缓存、Firefox 和 Steamcommunity 302"
-        ui_panel_line 11 '\033[1;38;5;45m' "✓ 新增系统密码设置、修改和自动验证"
-        ui_panel_line 13 '\033[1;38;5;45m' "✓ 完善 Decky、常用插件、ToDesk 和新机初始化"
-        ui_panel_line 15 '\033[1;38;5;220m' "✓ 修复旧版密码记录无法识别的问题"
+        draw_category_frame changelog "更新日志" "$release_heading"
+        ui_panel_line 7 '\033[1;38;5;114m' "✓ ${release_notes[0]:-当前版本已安装，暂无摘要}"
+        ui_panel_line 10 '\033[1;38;5;45m' "✓ ${release_notes[1]:-完整改动以 CHANGELOG.md 为准}"
+        ui_panel_line 13 '\033[1;38;5;220m' "完整日志随工具箱自动更新，不再显示旧版固定日期"
         ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:17-18:home)"

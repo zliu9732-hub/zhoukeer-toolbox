@@ -90,6 +90,7 @@ case "$operation" in
 ./Steamcommunity_302/Steamcommunity_302
 ./Steamcommunity_302/steamcommunity_302.cli
 ./Steamcommunity_302/steamcommunity_302.caddy
+./Steamcommunity_302/S302_rules.ini
 ./Steamcommunity_302/run_运行.sh
 ./Steamcommunity_302/.launcher/
 ./Steamcommunity_302/.launcher/launcher_启动器.sh
@@ -103,6 +104,7 @@ drwxr-xr-x user/group 0 Jan 1 00:00 ./Steamcommunity_302/
 -rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/Steamcommunity_302
 -rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/steamcommunity_302.cli
 -rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/steamcommunity_302.caddy
+-rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/S302_rules.ini
 -rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/run_运行.sh
 drwxr-xr-x user/group 0 Jan 1 00:00 ./Steamcommunity_302/.launcher/
 -rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/.launcher/launcher_启动器.sh
@@ -124,8 +126,17 @@ LIST
 exit 0
 SCRIPT
         printf '%s\n' "${FAKE_PACKAGE_CONTENT:-fresh}" > "$package/Steamcommunity_302"
-        printf 'cli\n' > "$package/steamcommunity_302.cli"
+        cat > "$package/steamcommunity_302.cli" <<'SCRIPT'
+#!/bin/sh
+while [ ! -f S302.exit ]; do sleep 0.1; done
+SCRIPT
         printf 'caddy\n' > "$package/steamcommunity_302.caddy"
+        cat > "$package/S302_rules.ini" <<'INI'
+[Rules]
+enabled = all
+
+[github]
+INI
         cat > "$package/.launcher/launcher_启动器.sh" <<'SCRIPT'
 #!/bin/sh
 exit 0
@@ -246,10 +257,12 @@ SHORTCUT="$HOME_DIR/Desktop/Steamcommunity 302.desktop"
 [ -x "$SHORTCUT" ] || fail "桌面快捷方式未创建"
 grep -Fq "Exec=/usr/bin/env bash \"$PROJECT_ROOT/modules/steam_accelerator.sh\" launch" \
     "$SHORTCUT" || fail "桌面快捷方式没有通过工具箱自动密码入口启动"
-printf '%s\n' "$install_output" | grep -Fq '开机运行—后台服务(无界面)' || \
-    fail "安装完成后缺少官方 GUI 自启动提示"
-printf '%s\n' "$install_output" | grep -Fq '没有启动或启用任何系统服务' || \
-    fail "安装完成后缺少未自动启用服务的说明"
+printf '%s\n' "$install_output" | grep -Fq 'Steam + GitHub 内置加速规则' || \
+    fail "安装完成后缺少内置规则提示"
+[ -f "$TARGET/S302.ini" ] || fail "没有生成内置配置"
+grep -Fq 'enabled = Steam_store,Steam_store_unlock' "$TARGET/S302.ini" || \
+    fail "内置配置没有启用 Steam 规则"
+grep -Fq ',github' "$TARGET/S302.ini" || fail "内置配置没有启用 GitHub 规则"
 
 grep -Fq -- '--connect-timeout 15' "$STATE_DIR/curl.calls" || \
     fail "curl 缺少连接超时"
@@ -272,15 +285,21 @@ printf '%s\n' "$status_output" | grep -Fq 'Steamcommunity 302：已安装' || \
 printf '%s\n' "$status_output" | grep -Fq '版本：14.0.02' || \
     fail "状态未报告版本"
 
-# 一键启动只接受官方已创建的服务单元，不创建或修改服务配置。
-touch "$STATE_DIR/service-unit"
-start_output="$(run_start_service)" || fail "一键启动官方服务失败"
-printf '%s\n' "$start_output" | grep -Fq '加速服务已启动' || \
-    fail "一键启动没有报告成功"
-[ -f "$STATE_DIR/service-active" ] || fail "一键启动没有调用官方服务"
-grep -Fq "start steamcommunity302.service" "$STATE_DIR/systemctl.calls" || \
-    fail "一键启动没有调用 systemctl start"
-rm -f "$STATE_DIR/service-active" "$STATE_DIR/service-unit"
+# 一键启动直接拉起官方 CLI，不要求客户先打开 GUI 或创建 systemd 服务。
+start_output="$(run_start_service)" || fail "一键启动内置加速失败"
+printf '%s\n' "$start_output" | grep -Fq 'Steam + GitHub 内置加速已开启' || \
+    fail "一键启动没有报告内置加速成功"
+[ -f "$TARGET/.zhoukeer-cli.pid" ] || fail "一键启动没有写入 CLI PID"
+stop_output="$(
+    env PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" HOME="$HOME_DIR" \
+        ZHOUKEER_APP_DIR="$APP_ROOT" STEAM302_TEST_STATE="$STATE_DIR" \
+        MODULE="$MODULE" bash -c 'source "$MODULE"; toolbox_sudo() { "$@"; }; stop_steam302_service'
+)" || fail "一键停止内置加速失败"
+printf '%s\n' "$stop_output" | grep -Fq '内置加速已停止' || fail "停止内置加速没有报告成功"
+[ ! -f "$TARGET/.zhoukeer-cli.pid" ] || fail "停止后仍残留 CLI PID"
+if [ -e "$STATE_DIR/systemctl.calls" ] && grep -Fq 'start steamcommunity302.service' "$STATE_DIR/systemctl.calls"; then
+    fail "内置加速不应调用 systemctl start"
+fi
 
 # SHA256 失败时，下载和 staging 都不能破坏已有版本。
 printf '13.0.00\n' > "$TARGET/.zhoukeer-version"
@@ -342,8 +361,8 @@ fi
 [ -d "$TARGET" ] || fail "后台服务运行时删除了程序"
 grep -Fq '正在运行' "$STATE_DIR/active-uninstall.output" || \
     fail "运行中拒绝卸载的提示不明确"
-grep -Fq '官方 GUI' "$STATE_DIR/active-uninstall.output" || \
-    fail "拒绝卸载时没有引导用户在官方 GUI 停止服务"
+grep -Fq '官方程序' "$STATE_DIR/active-uninstall.output" || \
+    fail "拒绝卸载时没有引导用户停止官方服务"
 
 # 即使当前没运行，只要仍启用开机启动也不能留下损坏的 systemd unit。
 rm -f "$STATE_DIR/service-active"

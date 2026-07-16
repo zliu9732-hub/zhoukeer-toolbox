@@ -16,6 +16,7 @@ if (api._version != API_VERSION) {
     console.warn(`[@decky/api] Requested API version ${API_VERSION} but the running loader only supports version ${api._version}. Some features may not work.`);
 }
 const toaster = api.toaster;
+const executeInTab = api.executeInTab;
 const definePlugin = (fn) => {
     return (...args) => {
         return fn(...args);
@@ -257,174 +258,220 @@ const TRANSLATIONS = [
 ];
 
 const ENABLED_KEY = "zhoukeer-localizer-enabled";
-const FOOTER_ATTRIBUTE = "data-zhoukeer-localizer-footer";
-const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "TEXTAREA"]);
-const RESCAN_INTERVAL_MS = 1000;
+const HOST_ENGINE_KEY = "__zhoukeerLocalizerEngine";
+const HOST_TAB_NAMES = [
+    "SP",
+    "Steam",
+    "SharedJSContext",
+    "Steam Shared Context presented by Valve™"
+];
 function readEnabled() {
     return localStorage.getItem(ENABLED_KEY) !== "false";
 }
 function writeEnabled(enabled) {
     localStorage.setItem(ENABLED_KEY, String(enabled));
 }
-function normalizeText(value) {
-    return value.replace(/\s+/g, " ").trim();
-}
-function translationEntryFor(value) {
-    const normalized = normalizeText(value);
-    return TRANSLATIONS.find((entry) => {
-        const names = [entry.plugin, entry.chineseName, ...(entry.aliases ?? [])];
-        return names.some((name) => normalized === name ||
-            new RegExp(`^${escapeRegex(name)}(?:\\s|$)`).test(normalized));
-    });
-}
-function escapeRegex(value) {
-    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-function pluginNameStrings(entry) {
-    return Object.fromEntries([entry.plugin, ...(entry.aliases ?? [])].map((name) => [name, entry.chineseName]));
-}
-function allTranslationStrings() {
-    const strings = {};
-    for (const entry of TRANSLATIONS) {
-        Object.assign(strings, pluginNameStrings(entry), entry.strings);
-    }
-    return strings;
-}
-function translateTextNode(node, strings) {
-    const original = node.nodeValue;
-    if (!original)
-        return 0;
-    const leading = original.match(/^\s*/)?.[0] ?? "";
-    const trailing = original.match(/\s*$/)?.[0] ?? "";
-    const translated = strings[original.trim()];
-    if (!translated || translated === original.trim())
-        return 0;
-    node.nodeValue = `${leading}${translated}${trailing}`;
-    return 1;
-}
-function addAuthorFooter(title) {
-    if (title.parentElement?.querySelector(`[${FOOTER_ATTRIBUTE}]`))
-        return;
-    const footer = document.createElement("div");
-    footer.setAttribute(FOOTER_ATTRIBUTE, "true");
-    footer.textContent = AUTHOR_NOTICE;
-    footer.style.cssText = "font-size:11px;opacity:.62;margin-top:2px;line-height:1.35;";
-    title.insertAdjacentElement("afterend", footer);
-}
-function translateTextIn(root, strings) {
-    let translatedCount = 0;
-    if (root instanceof Text) {
-        if (!SKIP_TAGS.has(root.parentElement?.tagName ?? "")) {
-            translatedCount += translateTextNode(root, strings);
+function hostInstallCode() {
+    const payload = {
+        authorNotice: AUTHOR_NOTICE,
+        entries: TRANSLATIONS.map((entry) => ({
+            names: [entry.plugin, entry.chineseName, ...(entry.aliases ?? [])],
+            chineseName: entry.chineseName,
+            strings: entry.strings
+        }))
+    };
+    return `(() => {
+    const engineKey = ${JSON.stringify(HOST_ENGINE_KEY)};
+    const payload = ${JSON.stringify(payload)};
+    const footerAttribute = "data-zhoukeer-localizer-footer";
+    const skipTags = new Set(["SCRIPT", "STYLE", "TEXTAREA"]);
+    const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();
+    const entries = payload.entries;
+    const strings = Object.assign({}, ...entries.map((entry) => {
+      const names = Object.fromEntries(entry.names.map((name) => [name, entry.chineseName]));
+      return Object.assign(names, entry.strings);
+    }));
+    const entryFor = (value) => {
+      const text = normalize(value);
+      return entries.find((entry) => entry.names.some((name) =>
+        text === name || text.startsWith(name + " ")
+      ));
+    };
+    const translateTextNode = (node) => {
+      const original = node.nodeValue;
+      if (!original || skipTags.has(node.parentElement?.tagName || "")) return 0;
+      const trimmed = original.trim();
+      const translated = strings[trimmed];
+      if (!translated || translated === trimmed) return 0;
+      const leading = original.match(/^\\s*/)?.[0] || "";
+      const trailing = original.match(/\\s*$/)?.[0] || "";
+      node.nodeValue = leading + translated + trailing;
+      return 1;
+    };
+    const translateIn = (root) => {
+      if (!root) return 0;
+      if (root.nodeType === Node.TEXT_NODE) return translateTextNode(root);
+      let count = 0;
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      while (walker.nextNode()) count += translateTextNode(walker.currentNode);
+      return count;
+    };
+    const addFooter = (title) => {
+      if (!title?.parentElement || title.parentElement.querySelector("[" + footerAttribute + "]")) return;
+      const footer = document.createElement("div");
+      footer.setAttribute(footerAttribute, "true");
+      footer.textContent = payload.authorNotice;
+      footer.style.cssText = "font-size:11px;opacity:.62;margin-top:2px;line-height:1.35;";
+      title.insertAdjacentElement("afterend", footer);
+    };
+    const markTitles = (root) => {
+      if (!(root instanceof Element)) return 0;
+      let count = 0;
+      const candidates = [root, ...root.querySelectorAll("*")];
+      for (const element of candidates) {
+        const entry = entryFor(element.textContent);
+        if (!entry) continue;
+        const childHasTitle = [...element.children].some((child) => entryFor(child.textContent));
+        if (childHasTitle) continue;
+        count += translateIn(element);
+        addFooter(element);
+      }
+      return count;
+    };
+    const scan = (root = document.body) => markTitles(root) + translateIn(root);
+
+    window[engineKey]?.stop?.();
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        if (record.type === "characterData") scan(record.target.parentElement);
+        for (const node of record.addedNodes) {
+          scan(node.nodeType === Node.TEXT_NODE ? node.parentElement : node);
         }
-        return translatedCount;
-    }
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-    while (walker.nextNode()) {
-        const node = walker.currentNode;
-        if (!SKIP_TAGS.has(node.parentElement?.tagName ?? "")) {
-            translatedCount += translateTextNode(node, strings);
-        }
-    }
-    return translatedCount;
-}
-function activatePluginTitle(title, entry) {
-    const translatedCount = translateTextIn(title, pluginNameStrings(entry));
-    addAuthorFooter(title);
-    return translatedCount;
-}
-function findKnownPluginTitles(root) {
-    const scanRoot = root instanceof Text ? root.parentElement : root;
-    if (!(scanRoot instanceof HTMLElement))
-        return [];
-    const candidates = [scanRoot, ...Array.from(scanRoot.querySelectorAll("*"))];
-    return candidates.filter((element) => {
-        const entry = translationEntryFor(element.textContent ?? "");
-        return Boolean(entry) && !Array.from(element.children).some((child) => Boolean(translationEntryFor(child.textContent ?? "")));
+      }
     });
+    observer.observe(document.body, { childList: true, characterData: true, subtree: true });
+    const timer = window.setInterval(() => scan(document.body), 1200);
+    window[engineKey] = {
+      scan: () => scan(document.body),
+      stop: () => {
+        observer.disconnect();
+        window.clearInterval(timer);
+        document.querySelectorAll("[" + footerAttribute + "]").forEach((node) => node.remove());
+        delete window[engineKey];
+      }
+    };
+    return window[engineKey].scan();
+  })()`;
 }
-function processNode(root) {
-    const scanRoot = root instanceof Text ? root.parentElement : root;
-    if (!scanRoot)
-        return 0;
-    let translatedCount = 0;
-    // Decky 的插件页面会随版本更换组件类名，不能依赖某个固定卡片结构。
-    // 先翻译所有已知可见文本，再额外标记插件标题并补上作者说明。
-    for (const title of findKnownPluginTitles(scanRoot)) {
-        const entry = translationEntryFor(title.textContent ?? "");
-        if (entry)
-            translatedCount += activatePluginTitle(title, entry);
-    }
-    translatedCount += translateTextIn(scanRoot, allTranslationStrings());
-    return translatedCount;
+function hostCommandCode(command) {
+    return `(() => {
+    const engine = window[${JSON.stringify(HOST_ENGINE_KEY)}];
+    if (!engine) return ${command === "scan" ? "-1" : "0"};
+    const result = engine.${command}();
+    return typeof result === "number" ? result : 0;
+  })()`;
 }
 class TranslationEngine {
-    observer;
-    rescanTimer;
-    start() {
-        if (this.observer || !readEnabled())
-            return;
-        processNode(document.body);
-        this.observer = new MutationObserver((records) => {
-            for (const record of records) {
-                if (record.type === "characterData")
-                    processNode(record.target);
-                for (const node of record.addedNodes)
-                    processNode(node);
+    tabName;
+    active = false;
+    async execute(code) {
+        const candidates = this.tabName
+            ? [this.tabName, ...HOST_TAB_NAMES.filter((name) => name !== this.tabName)]
+            : HOST_TAB_NAMES;
+        for (const tabName of candidates) {
+            const response = await executeInTab(tabName, false, code);
+            if (!response.success)
+                continue;
+            this.tabName = tabName;
+            return typeof response.result === "number" ? response.result : 0;
+        }
+        throw new Error("未找到 Steam GamepadUI 标签页");
+    }
+    async start() {
+        if (!readEnabled())
+            return 0;
+        if (this.active)
+            return this.scan();
+        const count = await this.execute(hostInstallCode());
+        this.active = true;
+        return count;
+    }
+    async stop() {
+        if (this.active) {
+            try {
+                await this.execute(hostCommandCode("stop"));
             }
-        });
-        this.observer.observe(document.body, { childList: true, characterData: true, subtree: true });
-        this.rescanTimer = window.setInterval(() => processNode(document.body), RESCAN_INTERVAL_MS);
+            catch {
+                // Steam may already be closing; local state still needs to be reset.
+            }
+        }
+        this.active = false;
     }
-    stop() {
-        this.observer?.disconnect();
-        this.observer = undefined;
-        if (this.rescanTimer !== undefined)
-            window.clearInterval(this.rescanTimer);
-        this.rescanTimer = undefined;
-    }
-    refresh(enabled) {
+    async refresh(enabled) {
         writeEnabled(enabled);
-        this.stop();
-        if (enabled)
-            this.start();
+        await this.stop();
+        return enabled ? this.start() : 0;
     }
-    scan() {
-        return readEnabled() ? processNode(document.body) : 0;
+    async scan() {
+        if (!readEnabled())
+            return 0;
+        if (!this.active)
+            return this.start();
+        const result = await this.execute(hostCommandCode("scan"));
+        if (result >= 0)
+            return result;
+        this.active = false;
+        return this.start();
     }
 }
 const engine = new TranslationEngine();
+function showEngineError(error) {
+    toaster.toast({
+        title: "周克儿汉化",
+        body: error instanceof Error ? error.message : "无法连接 Steam 主界面。"
+    });
+}
 function Content() {
     const [enabled, setEnabled] = SP_REACT.useState(readEnabled());
-    const toggle = () => {
+    const toggle = async () => {
         const next = !enabled;
         setEnabled(next);
-        engine.refresh(next);
-        toaster.toast({
-            title: "周克儿汉化",
-            body: next ? "汉化层已启用。重新打开插件页面即可生效。" : "汉化层已暂停。"
-        });
+        try {
+            await engine.refresh(next);
+            toaster.toast({
+                title: "周克儿汉化",
+                body: next ? "汉化层已注入 Steam 主界面。" : "汉化层已暂停。"
+            });
+        }
+        catch (error) {
+            showEngineError(error);
+        }
     };
-    const scanNow = () => {
-        const translatedCount = engine.scan();
-        toaster.toast({
-            title: "周克儿汉化",
-            body: translatedCount > 0
-                ? `本次已处理 ${translatedCount} 处文字。`
-                : "未发现可处理文字。请先打开目标插件页面，再点击扫描。"
-        });
+    const scanNow = async () => {
+        try {
+            const translatedCount = await engine.scan();
+            toaster.toast({
+                title: "周克儿汉化",
+                body: translatedCount > 0
+                    ? `本次已处理 ${translatedCount} 处文字。`
+                    : "当前可见页面没有新的已知英文文案。"
+            });
+        }
+        catch (error) {
+            showEngineError(error);
+        }
     };
-    return (SP_JSX.jsxs(DFL.PanelSection, { title: "\u5468\u514B\u513F\u6C49\u5316", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: toggle, children: enabled ? "已启用，点击暂停" : "已暂停，点击启用" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: scanNow, children: "\u7ACB\u5373\u626B\u63CF\u5F53\u524D\u9875\u9762" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs("div", { style: { fontSize: "12px", lineHeight: "1.45", opacity: 0.75 }, children: ["\u5DF2\u63A5\u5165 ", TRANSLATIONS.length, " \u4E2A\u63D2\u4EF6\u7684\u57FA\u7840\u8BCD\u5E93\uFF0C\u4F1A\u6301\u7EED\u626B\u63CF\u52A8\u6001\u52A0\u8F7D\u7684 Decky \u9875\u9762\u3002", SP_JSX.jsx("br", {}), AUTHOR_NOTICE] }) })] }));
+    return (SP_JSX.jsxs(DFL.PanelSection, { title: "\u5468\u514B\u513F\u6C49\u5316", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: toggle, children: enabled ? "已启用，点击暂停" : "已暂停，点击启用" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: scanNow, children: "\u7ACB\u5373\u626B\u63CF\u5F53\u524D\u9875\u9762" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs("div", { style: { fontSize: "12px", lineHeight: "1.45", opacity: 0.75 }, children: ["\u5DF2\u63A5\u5165 ", TRANSLATIONS.length, " \u4E2A\u63D2\u4EF6\u7684\u57FA\u7840\u8BCD\u5E93\uFF0C\u5E76\u6CE8\u5165 Steam \u4E3B\u754C\u9762\u6301\u7EED\u626B\u63CF\u3002", SP_JSX.jsx("br", {}), AUTHOR_NOTICE] }) })] }));
 }
 var index = definePlugin(() => {
-    engine.start();
+    void engine.start().catch(showEngineError);
     return {
         name: "周克儿汉化",
         titleView: SP_JSX.jsx("div", { className: DFL.staticClasses.Title, children: "\u5468\u514B\u513F\u6C49\u5316" }),
         content: SP_JSX.jsx(Content, {}),
         icon: SP_JSX.jsx(FaLanguage, {}),
         onDismount() {
-            engine.stop();
+            void engine.stop();
         }
     };
 });

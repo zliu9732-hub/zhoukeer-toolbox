@@ -106,7 +106,11 @@ def load_shortcuts(path: Path) -> list[list[object]]:
     if key != b"shortcuts":
         raise VdfError("shortcuts.vdf has an unexpected root key")
     entries, offset = parse_object(data, offset)
-    if offset != len(data):
+    # Steam commonly writes a second TYPE_END byte after the named root object.
+    # Older toolbox files used only the object's own terminator; accept both, but
+    # continue rejecting arbitrary suffixes so a damaged VDF is never overwritten.
+    trailing = data[offset:]
+    if len(trailing) > 4 or any(value != TYPE_END for value in trailing):
         raise VdfError("shortcuts.vdf contains trailing data")
     return entries
 
@@ -167,7 +171,9 @@ def make_shortcut(index: int, name: str, exe: str, start_dir: str) -> list[objec
 
 def save_shortcuts(path: Path, entries: list[list[object]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    payload = bytes([TYPE_OBJECT]) + b"shortcuts\0" + encode_object(entries)
+    payload = (
+        bytes([TYPE_OBJECT]) + b"shortcuts\0" + encode_object(entries) + bytes([TYPE_END])
+    )
     fd, temporary_path = tempfile.mkstemp(prefix=".shortcuts.", dir=path.parent)
     try:
         with os.fdopen(fd, "wb") as output:
