@@ -24,6 +24,7 @@ STEAM302_CONNECT_TIMEOUT=15
 STEAM302_MAX_TIME=1200
 STEAM302_RETRIES=3
 STEAM302_LAYOUT_VALIDATION_REVISION="ascii-files-v2"
+STEAM302_PROCESS_CHECK_REVISION="proc-root-v1"
 
 STEAM302_STAGE_DIR=""
 STEAM302_BACKUP_DIR=""
@@ -115,19 +116,66 @@ steam302_is_installed() {
 
 steam302_cli_is_running() {
     local pid
+    local proc_root="${ZHOUKEER_PROC_ROOT:-/proc}"
+    local proc_dir
+    local command_line
 
     [ -r "$STEAM302_PID_FILE" ] || return 1
     pid="$(sed -n '1p' "$STEAM302_PID_FILE" 2>/dev/null || true)"
     case "$pid" in
         ''|*[!0-9]*) return 1 ;;
     esac
-    kill -0 "$pid" >/dev/null 2>&1
+    # 非 Linux 测试环境没有 /proc，保留传统探测作为兼容回退；SteamOS
+    # 始终走下方不发送信号的 /proc 检查。
+    if [ ! -d "$proc_root" ]; then
+        kill -0 "$pid" >/dev/null 2>&1
+        return
+    fi
+    proc_dir="$proc_root/$pid"
+    [ -d "$proc_dir" ] || return 1
+
+    # CLI 由 root 启动，普通 deck 用户对 root 进程执行 kill -0 会得到
+    # EPERM，不能据此判断进程已经退出。/proc 目录可用于无信号探测；
+    # 命令行可读时再核对程序名，避免陈旧 PID 恰好指向其他进程。
+    if [ -r "$proc_dir/cmdline" ]; then
+        command_line="$(tr '\000' ' ' < "$proc_dir/cmdline" 2>/dev/null || true)"
+        case "$command_line" in
+            *steamcommunity_302.cli*) ;;
+            *) return 1 ;;
+        esac
+    fi
+    return 0
+}
+
+steam302_config_has_download_targets() {
+    local enabled_rules
+
+    [ -r "$STEAM302_CONFIG_FILE" ] || return 1
+    enabled_rules="$(awk '
+        BEGIN { in_rules = 0 }
+        /^\[Rules\][[:space:]]*$/ { in_rules = 1; next }
+        /^\[/ { in_rules = 0 }
+        in_rules && /^[[:space:]]*enabled[[:space:]]*=/ {
+            sub(/^[^=]*=[[:space:]]*/, "")
+            print
+            exit
+        }
+    ' "$STEAM302_CONFIG_FILE")"
+    enabled_rules="${enabled_rules//[[:space:]]/}"
+    case ",$enabled_rules," in
+        *,Steam_store,*) ;;
+        *) return 1 ;;
+    esac
+    case ",$enabled_rules," in
+        *,github,*) return 0 ;;
+        *) return 1 ;;
+    esac
 }
 
 ensure_steam302_config() {
     local temporary_config
 
-    [ -f "$STEAM302_CONFIG_FILE" ] && return 0
+    steam302_config_has_download_targets && return 0
     [ -f "$STEAM302_RULES_FILE" ] || {
         echo "Steamcommunity 302 缺少官方规则文件 S302_rules.ini。"
         return 1
@@ -278,6 +326,59 @@ enable_steam302() {
         install_steam302 || return 1
     fi
     start_steam302_service
+}
+
+print_steam302_download_fallback() {
+    echo "自动加速没有启动成功，已暂停本次插件下载。"
+    echo "请打开桌面的“Steamcommunity 302”，勾选 Steam 和 GitHub，然后点击“启动服务”。"
+    echo "确认服务启动后，再回到工具箱重试刚才的插件安装。"
+}
+
+steam302_download_acceleration_is_ready() {
+    steam302_config_has_download_targets || return 1
+    steam302_cli_is_running || steam302_service_is_active
+}
+
+ensure_steam302_for_download() {
+    if steam302_download_acceleration_is_ready; then
+        echo "已检测到 Steam + GitHub 加速正在运行，继续下载插件。"
+        return 0
+    fi
+
+    if steam302_service_is_active; then
+        echo "检测到 302 服务正在运行，但无法确认已同时勾选 Steam 和 GitHub。"
+        print_steam302_download_fallback
+        return 1
+    fi
+
+    echo "未检测到可用的 Steam + GitHub 加速，正在自动准备并启动..."
+    if steam302_cli_is_running; then
+        stop_steam302_cli || {
+            print_steam302_download_fallback
+            return 1
+        }
+    fi
+    if ! steam302_is_installed; then
+        ZHOUKEER_AUTO_CONFIRM=1 install_steam302 || {
+            print_steam302_download_fallback
+            return 1
+        }
+    fi
+    ensure_steam302_config || {
+        print_steam302_download_fallback
+        return 1
+    }
+    ZHOUKEER_AUTO_CONFIRM=1 start_steam302_service || {
+        print_steam302_download_fallback
+        return 1
+    }
+    if steam302_download_acceleration_is_ready; then
+        echo "Steam + GitHub 加速已自动开启，开始下载插件。"
+        return 0
+    fi
+
+    print_steam302_download_fallback
+    return 1
 }
 
 stop_steam302_service() {
@@ -743,7 +844,8 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         start|enable) enable_steam302 ;;
         stop) stop_steam302_service ;;
         status) show_steam302_status ;;
+        ensure) ensure_steam302_for_download ;;
         uninstall) uninstall_steam302 ;;
-        *) echo "用法: $0 {install|launch|start|stop|status|uninstall}"; exit 1 ;;
+        *) echo "用法: $0 {install|launch|start|stop|status|ensure|uninstall}"; exit 1 ;;
     esac
 fi

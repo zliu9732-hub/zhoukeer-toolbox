@@ -10,6 +10,7 @@ HOME_DIR="$TMP_ROOT/home"
 APP_ROOT="$TMP_ROOT/apps"
 STATE_DIR="$TMP_ROOT/state"
 FIXTURE="$TMP_ROOT/steamcommunity302.fixture"
+PROC_ROOT="$TMP_ROOT/proc"
 
 cleanup() {
     rm -rf "$TMP_ROOT"
@@ -209,6 +210,38 @@ grep -Fq 'V14.0.02.tar.gz' "$MODULE" || fail "缺少固定官方版本地址"
 grep -Fq '4b9994102b2256ca5fdf2e806a2c7035' "$MODULE" || fail "缺少官方 MD5"
 grep -Fq '5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f' \
     "$MODULE" || fail "缺少固定 SHA256"
+grep -Fq 'ensure_steam302_for_download()' "$MODULE" || fail "缺少插件下载加速预检"
+grep -Fq '勾选 Steam 和 GitHub' "$MODULE" || fail "自动加速失败时缺少桌面操作提示"
+
+if fallback_output="$(MODULE="$MODULE" bash -c '
+    source "$MODULE"
+    steam302_download_acceleration_is_ready() { return 1; }
+    steam302_service_is_active() { return 1; }
+    steam302_cli_is_running() { return 1; }
+    steam302_is_installed() { return 1; }
+    install_steam302() { return 1; }
+    ensure_steam302_for_download
+' 2>&1)"; then
+    fail "自动加速失败后仍允许继续下载插件"
+fi
+printf '%s\n' "$fallback_output" | grep -Fq '已暂停本次插件下载' || \
+    fail "自动加速失败时没有暂停插件下载"
+printf '%s\n' "$fallback_output" | grep -Fq '勾选 Steam 和 GitHub' || \
+    fail "自动加速失败时没有提示桌面手动操作"
+
+automatic_output="$(MODULE="$MODULE" bash -c '
+    source "$MODULE"
+    acceleration_ready=0
+    steam302_download_acceleration_is_ready() { [ "$acceleration_ready" -eq 1 ]; }
+    steam302_service_is_active() { return 1; }
+    steam302_cli_is_running() { return 1; }
+    steam302_is_installed() { return 0; }
+    ensure_steam302_config() { return 0; }
+    start_steam302_service() { acceleration_ready=1; return 0; }
+    ensure_steam302_for_download
+')" || fail "插件下载前没有自动启动 302"
+printf '%s\n' "$automatic_output" | grep -Fq '加速已自动开启' || \
+    fail "自动启动成功后没有继续插件下载"
 
 launch_function="$(sed -n '/^launch_steam302()/,/^}/p' "$MODULE")"
 printf '%s\n' "$launch_function" | grep -Fq 'toolbox_sudo /usr/bin/env -i' || \
@@ -263,6 +296,23 @@ printf '%s\n' "$install_output" | grep -Fq 'Steam + GitHub 内置加速规则' |
 grep -Fq 'enabled = Steam_store,Steam_store_unlock' "$TARGET/S302.ini" || \
     fail "内置配置没有启用 Steam 规则"
 grep -Fq ',github' "$TARGET/S302.ini" || fail "内置配置没有启用 GitHub 规则"
+
+# 官方 CLI 以 root 身份运行，普通用户不能依赖 kill -0 判断它是否存活。
+# 模拟 /proc 中存在 root 进程，并确保陈旧 PID 不会匹配到其他程序。
+mkdir -p "$PROC_ROOT/4242"
+printf './steamcommunity_302.cli\0' > "$PROC_ROOT/4242/cmdline"
+printf '4242\n' > "$TARGET/.zhoukeer-cli.pid"
+env PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" HOME="$HOME_DIR" \
+    ZHOUKEER_APP_DIR="$APP_ROOT" ZHOUKEER_PROC_ROOT="$PROC_ROOT" MODULE="$MODULE" \
+    bash -c 'source "$MODULE"; steam302_cli_is_running' || \
+    fail "无法通过 /proc 识别 root 身份的官方 CLI"
+printf '/usr/bin/unrelated-process\0' > "$PROC_ROOT/4242/cmdline"
+if env PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" HOME="$HOME_DIR" \
+    ZHOUKEER_APP_DIR="$APP_ROOT" ZHOUKEER_PROC_ROOT="$PROC_ROOT" MODULE="$MODULE" \
+    bash -c 'source "$MODULE"; steam302_cli_is_running'; then
+    fail "陈旧 PID 错误匹配到无关进程"
+fi
+rm -f "$TARGET/.zhoukeer-cli.pid"
 
 grep -Fq -- '--connect-timeout 15' "$STATE_DIR/curl.calls" || \
     fail "curl 缺少连接超时"

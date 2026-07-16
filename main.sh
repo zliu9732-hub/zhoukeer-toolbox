@@ -63,6 +63,8 @@ run_action() {
     shift
 
     disable_mouse_tracking
+    sleep 0.05
+    ui_discard_pending_input
     print_header
     print_section_title "$title"
     echo ""
@@ -181,42 +183,13 @@ common_software_menu() {
             wechat) confirm_and_run "安装微信" "腾讯官网AppImage；失败时保留原有版本" bash "$PROJECT_ROOT/modules/software.sh" wechat ;;
             qq) confirm_and_run "安装QQ" "通过上海交大与中科大 Flathub 国内缓存安装；完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" qq ;;
             browser) confirm_and_run "安装Firefox浏览器" "完整包安装；失败时保留原有版本" bash "$PROJECT_ROOT/modules/software.sh" browser ;;
-            epic) launcher_install_touch_guide epic ;;
-            battlenet) launcher_install_touch_guide battlenet ;;
+            epic) run_action "安装 Epic Games 启动器并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
+            battlenet) run_action "安装战网启动器并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
             ge-proton) confirm_and_run "安装GE-Proton兼容层" "安装到Steam compatibilitytools.d目录；完成后需要重启Steam" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "software" ] || return 0
     done
-}
-
-launcher_install_touch_guide() {
-    local target="$1"
-    local title
-    local choice
-
-    case "$target" in
-        epic) title="Epic Games 启动器" ;;
-        battlenet) title="战网启动器" ;;
-        *) return 1 ;;
-    esac
-
-    draw_category_frame software "$title 一键安装" "兼容层选择、安装前缀和 Steam 入库由工具箱处理"
-    ui_panel_line 7 '\033[1;38;5;114m' "① 自动下载官方 Windows 安装程序"
-    ui_panel_line 9 '\033[1;38;5;45m' "② 自动选择现有 GE-Proton / PE；缺少时自动安装 GE-Proton"
-    ui_panel_line 11 '\033[1;38;5;220m' "③ 弹出官方安装窗口后，只需按官方向导点击安装"
-    ui_panel_line 13 '\033[1;38;5;45m' "④ 安装完成后自动找到主 EXE，并生成 Linux 启动包装器"
-    ui_panel_line 15 '\033[1;38;5;114m' "⑤ 自动写入并重新打开 Steam，库中可直接启动"
-    ui_panel_line 17 '\033[1;38;5;220m' "无需进入兼容性页面，也无需手动点安装器的“开始游戏”"
-    ui_touch_button 20 '\033[1;30;48;5;114m' "开始一键安装" "仅官方安装窗口中的协议与安装按钮需本人确认"
-    ui_touch_button 22 '\033[1;97;48;5;238m' "返回常用软件" "暂不安装"
-    ui_prompt
-    choice="$(read_touch_menu right:20-21:start right:22-23:software)"
-    if apply_navigation "$choice"; then return 0; fi
-    case "$choice" in
-        start) run_action "安装 $title 并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" "$target" ;;
-        software) NEXT_CATEGORY="software" ;;
-    esac
 }
 
 remote_assistance_menu() {

@@ -8,8 +8,12 @@ source "$PROJECT_ROOT/core/platform.sh"
 source "$PROJECT_ROOT/core/logger.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/auth.sh"
+# shellcheck disable=SC1091
+source "$PROJECT_ROOT/modules/steam_accelerator.sh"
 
 load_config
+
+PLUGIN_DOWNLOAD_ACCELERATION_CHECKED=0
 
 DECKY_LOADER_URL="${DECKY_LOADER_URL:-https://www.mhhf.com/Deck/decky/v.3.2.6/PluginLoader}"
 DECKY_LOADER_SHA256="${DECKY_LOADER_SHA256:-30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e}"
@@ -43,6 +47,15 @@ cleanup_decky_tmp() {
         rm -rf -- "$DECKY_TMP_DIR"
     fi
     DECKY_TMP_DIR=""
+}
+
+ensure_plugin_download_acceleration() {
+    if [ "${PLUGIN_DOWNLOAD_ACCELERATION_CHECKED:-0}" -eq 1 ]; then
+        return 0
+    fi
+    echo "正在检查插件下载所需的 Steam / GitHub 加速状态..."
+    ensure_steam302_for_download || return 1
+    PLUGIN_DOWNLOAD_ACCELERATION_CHECKED=1
 }
 
 calculate_decky_sha256() {
@@ -271,6 +284,7 @@ install_plugin_store() (
         echo "已取消插件商城安装。"
         return 0
     }
+    ensure_plugin_download_acceleration || return 1
 
     tmp_dir="$(mktemp -d)" || return 1
     DECKY_TMP_DIR="$tmp_dir"
@@ -1112,6 +1126,7 @@ install_configured_plugin() {
         echo "Decky 插件安装仅支持真实 SteamOS 环境。"
         return 1
     fi
+    ensure_plugin_download_acceleration || return 1
 
     case "$action" in
         lsfg) install_lsfg_bundle ;;
@@ -1136,16 +1151,21 @@ install_configured_plugin() {
 feature_plugin_is_present() {
     local plugin_root="$1"
     local directory_name="$2"
-    local expected_name="$3"
     local plugin_dir="$plugin_root/$directory_name"
     local actual_name
+    local expected_name
+
+    shift 2
 
     [ -d "$plugin_dir" ] && \
         [ -f "$plugin_dir/plugin.json" ] && \
         [ -s "$plugin_dir/dist/index.js" ] || return 1
     actual_name="$(sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
         "$plugin_dir/plugin.json" | head -n 1)"
-    [ "$actual_name" = "$expected_name" ]
+    for expected_name in "$@"; do
+        [ "$actual_name" = "$expected_name" ] && return 0
+    done
+    return 1
 }
 
 print_feature_plugin_status() {
@@ -1154,7 +1174,8 @@ print_feature_plugin_status() {
 
     echo ""
     echo "========== 常用功能插件状态 =========="
-    if feature_plugin_is_present "$plugin_root" "Decky LSFG-VK" "小黄鸭"; then
+    if feature_plugin_is_present \
+        "$plugin_root" "Decky LSFG-VK" "Decky LSFG-VK" "小黄鸭"; then
         echo "✓ 小黄鸭（LSFG-VK）：已写入 Decky"
     else
         echo "✗ 小黄鸭（LSFG-VK）：未找到完整插件文件"
@@ -1189,6 +1210,7 @@ install_feature_plugins() {
         echo "功能插件安装仅支持真实 SteamOS 环境。"
         return 1
     fi
+    ensure_plugin_download_acceleration || return 1
 
     echo "将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。"
     echo "已安装的插件会以新版本安全替换；单项失败不会覆盖该插件的旧版本。"
@@ -1210,8 +1232,11 @@ install_feature_plugins() {
         echo "至少有一项插件文件未写入完成，请单独重试对应项目。"
     fi
 
+    reload_decky_plugins \
+        "Decky 已重新加载；返回游戏模式后，三款插件会出现在插头菜单中。"
+
     if [ "$failed" -eq 0 ]; then
-        echo "三款常用功能插件已全部安装完成，并已确认文件写入 Decky 目录。"
+        echo "三款常用功能插件已全部安装完成，文件已确认并已通知 Decky 重新扫描。"
         log "常用功能插件整组安装完成"
         return 0
     fi

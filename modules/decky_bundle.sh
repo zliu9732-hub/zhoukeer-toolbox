@@ -6,6 +6,8 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../core/env.sh"
 source "$PROJECT_ROOT/core/platform.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/logger.sh"
+# shellcheck disable=SC1091
+source "$PROJECT_ROOT/modules/steam_accelerator.sh"
 
 load_config
 
@@ -182,6 +184,7 @@ install_recommended_decky_plugins() {
         echo "已取消推荐插件安装。"
         return 0
     }
+    ensure_steam302_for_download || return 1
 
     token="$(curl \
         --fail \

@@ -23,6 +23,12 @@ assert_contains() {
 # shellcheck disable=SC1090
 source "$MODULE"
 
+ACCELERATION_CHECK_FILE="$TMP_ROOT/acceleration-checks"
+ensure_steam302_for_download() {
+    printf 'checked\n' >> "$ACCELERATION_CHECK_FILE"
+    return 0
+}
+
 for plugin in \
     "CSS Loader" \
     "vibrantDeck" \
@@ -127,6 +133,7 @@ output="$(
 assert_contains "$output" "安装清单已交给Decky Loader" "整组安装未报告成功提交"
 assert_contains "$(cat "$CAPTURE_FILE")" "utilities/install_plugins" "发送给Steam界面的代码未调用Decky安装器"
 assert_contains "$(cat "$CAPTURE_FILE")" "X-Decky-Version" "发送代码未按Decky版本读取官方商店"
+[ -s "$ACCELERATION_CHECK_FILE" ] || fail "官方商城插件下载前没有检查 Steam/GitHub 加速"
 
 if grep -Eq 'unzip|extractall|homebrew/plugins' "$MODULE"; then
     fail "推荐整组安装不应绕过Decky自行解压插件"

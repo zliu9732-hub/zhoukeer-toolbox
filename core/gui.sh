@@ -90,8 +90,15 @@ software_menu() {
                     run_gui_action "安装Firefox浏览器" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" browser
                 ;;
-            epic|battlenet)
-                launcher_install_gui_guide "$choice"
+            epic)
+                run_gui_action "安装 Epic Games 启动器并自动入库" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
+                ;;
+            battlenet)
+                run_gui_action "安装战网启动器并自动入库" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
                 ;;
             ge-proton)
                 gui_confirm "将把GE-Proton安装到Steam兼容工具目录；完成后需要完全重启Steam。是否继续？" && \
@@ -101,29 +108,6 @@ software_menu() {
             back) return 0 ;;
         esac
     done
-}
-
-launcher_install_gui_guide() {
-    local target="$1"
-    local title
-
-    case "$target" in
-        epic) title="Epic Games 启动器" ;;
-        battlenet) title="战网启动器" ;;
-        *) return 1 ;;
-    esac
-
-    gui_confirm "$title 一键安装说明：
-
-1. 自动下载官方 Windows 安装程序。
-2. 自动选择现有 GE-Proton / Proton Experimental；缺少时自动安装 GE-Proton。
-3. 官方安装窗口弹出后，只需按官方向导确认协议并点击安装。
-4. 安装完成后自动找到主 EXE、生成 Linux 启动包装器并写入 Steam。
-5. Steam 自动重新打开后，可从“非 Steam 游戏”直接启动。
-
-无需进入兼容性页面，也无需手动从 Steam 运行安装器。是否开始？" && \
-        run_gui_action "安装 $title 并自动入库" \
-            bash "$PROJECT_ROOT/modules/game_launchers.sh" "$target"
 }
 
 remote_menu() {

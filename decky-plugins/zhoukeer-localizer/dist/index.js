@@ -259,6 +259,8 @@ const TRANSLATIONS = [
 
 const ENABLED_KEY = "zhoukeer-localizer-enabled";
 const HOST_ENGINE_KEY = "__zhoukeerLocalizerEngine";
+const HOST_ENGINE_REVISION = "multi-tab-v1";
+const DISCOVERY_INTERVAL_MS = 2000;
 const HOST_TAB_NAMES = [
     "SP",
     "Steam",
@@ -273,6 +275,7 @@ function writeEnabled(enabled) {
 }
 function hostInstallCode() {
     const payload = {
+        revision: HOST_ENGINE_REVISION,
         authorNotice: AUTHOR_NOTICE,
         entries: TRANSLATIONS.map((entry) => ({
             names: [entry.plugin, entry.chineseName, ...(entry.aliases ?? [])],
@@ -284,6 +287,12 @@ function hostInstallCode() {
     const engineKey = ${JSON.stringify(HOST_ENGINE_KEY)};
     const payload = ${JSON.stringify(payload)};
     const footerAttribute = "data-zhoukeer-localizer-footer";
+    if (!document.body) return -2;
+    const existingEngine = window[engineKey];
+    if (existingEngine?.revision === payload.revision && typeof existingEngine.scan === "function") {
+      return existingEngine.scan();
+    }
+    existingEngine?.stop?.();
     const skipTags = new Set(["SCRIPT", "STYLE", "TEXTAREA"]);
     const normalize = (value) => String(value || "").replace(/\\s+/g, " ").trim();
     const entries = payload.entries;
@@ -340,7 +349,6 @@ function hostInstallCode() {
     };
     const scan = (root = document.body) => markTitles(root) + translateIn(root);
 
-    window[engineKey]?.stop?.();
     const observer = new MutationObserver((records) => {
       for (const record of records) {
         if (record.type === "characterData") scan(record.target.parentElement);
@@ -352,6 +360,7 @@ function hostInstallCode() {
     observer.observe(document.body, { childList: true, characterData: true, subtree: true });
     const timer = window.setInterval(() => scan(document.body), 1200);
     window[engineKey] = {
+      revision: payload.revision,
       scan: () => scan(document.body),
       stop: () => {
         observer.disconnect();
@@ -372,40 +381,93 @@ function hostCommandCode(command) {
   })()`;
 }
 class TranslationEngine {
-    tabName;
+    activeTabs = new Set();
     active = false;
-    async execute(code) {
-        const candidates = this.tabName
-            ? [this.tabName, ...HOST_TAB_NAMES.filter((name) => name !== this.tabName)]
-            : HOST_TAB_NAMES;
-        for (const tabName of candidates) {
+    discoveryTimer;
+    discoveryTask;
+    async executeOnTab(tabName, code) {
+        try {
             const response = await executeInTab(tabName, false, code);
-            if (!response.success)
-                continue;
-            this.tabName = tabName;
-            return typeof response.result === "number" ? response.result : 0;
+            if (!response.success) {
+                this.activeTabs.delete(tabName);
+                return undefined;
+            }
+            this.activeTabs.add(tabName);
+            const result = Number(response.result);
+            return Number.isFinite(result) ? result : 0;
         }
-        throw new Error("未找到 Steam GamepadUI 标签页");
+        catch {
+            this.activeTabs.delete(tabName);
+            return undefined;
+        }
+    }
+    async discoverOnce(requireConnection) {
+        let connectedTabs = 0;
+        let translatedCount = 0;
+        // Decky can remount a plugin panel in a different Steam tab. Always probe
+        // every known context so a newly selected plugin receives its own observer.
+        for (const tabName of HOST_TAB_NAMES) {
+            let result = await this.executeOnTab(tabName, hostCommandCode("scan"));
+            if (result === undefined)
+                continue;
+            if (result < 0) {
+                result = await this.executeOnTab(tabName, hostInstallCode());
+                if (result === undefined || result < 0)
+                    continue;
+            }
+            connectedTabs += 1;
+            translatedCount += result;
+        }
+        if (requireConnection && connectedTabs === 0) {
+            throw new Error("未找到可监听的 Steam / Decky 页面，请打开一次 Decky 插件菜单后重试。");
+        }
+        return translatedCount;
+    }
+    discover(requireConnection) {
+        if (this.discoveryTask)
+            return this.discoveryTask;
+        const task = this.discoverOnce(requireConnection);
+        this.discoveryTask = task;
+        void task.finally(() => {
+            if (this.discoveryTask === task)
+                this.discoveryTask = undefined;
+        }).catch(() => undefined);
+        return task;
+    }
+    startDiscoveryTimer() {
+        if (this.discoveryTimer !== undefined)
+            return;
+        this.discoveryTimer = window.setInterval(() => {
+            if (!this.active || !readEnabled())
+                return;
+            void this.discover(false).catch(() => undefined);
+        }, DISCOVERY_INTERVAL_MS);
     }
     async start() {
         if (!readEnabled())
             return 0;
         if (this.active)
             return this.scan();
-        const count = await this.execute(hostInstallCode());
         this.active = true;
-        return count;
+        this.startDiscoveryTimer();
+        return this.discover(true);
     }
     async stop() {
-        if (this.active) {
+        this.active = false;
+        if (this.discoveryTimer !== undefined) {
+            window.clearInterval(this.discoveryTimer);
+            this.discoveryTimer = undefined;
+        }
+        await Promise.all(HOST_TAB_NAMES.map(async (tabName) => {
             try {
-                await this.execute(hostCommandCode("stop"));
+                await executeInTab(tabName, false, hostCommandCode("stop"));
             }
             catch {
                 // Steam may already be closing; local state still needs to be reset.
             }
-        }
-        this.active = false;
+        }));
+        this.activeTabs.clear();
+        this.discoveryTask = undefined;
     }
     async refresh(enabled) {
         writeEnabled(enabled);
@@ -417,11 +479,7 @@ class TranslationEngine {
             return 0;
         if (!this.active)
             return this.start();
-        const result = await this.execute(hostCommandCode("scan"));
-        if (result >= 0)
-            return result;
-        this.active = false;
-        return this.start();
+        return this.discover(true);
     }
 }
 const engine = new TranslationEngine();
@@ -461,7 +519,7 @@ function Content() {
             showEngineError(error);
         }
     };
-    return (SP_JSX.jsxs(DFL.PanelSection, { title: "\u5468\u514B\u513F\u6C49\u5316", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: toggle, children: enabled ? "已启用，点击暂停" : "已暂停，点击启用" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: scanNow, children: "\u7ACB\u5373\u626B\u63CF\u5F53\u524D\u9875\u9762" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs("div", { style: { fontSize: "12px", lineHeight: "1.45", opacity: 0.75 }, children: ["\u5DF2\u63A5\u5165 ", TRANSLATIONS.length, " \u4E2A\u63D2\u4EF6\u7684\u57FA\u7840\u8BCD\u5E93\uFF0C\u5E76\u6CE8\u5165 Steam \u4E3B\u754C\u9762\u6301\u7EED\u626B\u63CF\u3002", SP_JSX.jsx("br", {}), AUTHOR_NOTICE] }) })] }));
+    return (SP_JSX.jsxs(DFL.PanelSection, { title: "\u5468\u514B\u513F\u6C49\u5316", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: toggle, children: enabled ? "已启用，点击暂停" : "已暂停，点击启用" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: scanNow, children: "\u7ACB\u5373\u626B\u63CF\u5F53\u524D\u9875\u9762" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs("div", { style: { fontSize: "12px", lineHeight: "1.45", opacity: 0.75 }, children: ["\u5DF2\u63A5\u5165 ", TRANSLATIONS.length, " \u4E2A\u63D2\u4EF6\u7684\u57FA\u7840\u8BCD\u5E93\uFF0C\u4F1A\u81EA\u52A8\u8DDF\u968F\u63D2\u4EF6\u5207\u6362\u5E76\u6301\u7EED\u626B\u63CF\u3002", SP_JSX.jsx("br", {}), AUTHOR_NOTICE] }) })] }));
 }
 var index = definePlugin(() => {
     void engine.start().catch(showEngineError);
