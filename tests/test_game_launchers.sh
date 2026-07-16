@@ -15,6 +15,10 @@ DIRECT_PREFIX="$TMP_ROOT/direct-prefix"
 DIRECT_EXE="$DIRECT_PREFIX/pfx/drive_c/Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe"
 FAKE_PROTON="$TMP_ROOT/GE-Proton-test/proton"
 PROTON_LOG="$TMP_ROOT/proton.log"
+EXISTING_STEAM="$TMP_ROOT/existing-steam"
+EXISTING_SHORTCUTS="$EXISTING_STEAM/userdata/123/config/shortcuts.vdf"
+EXISTING_BATTLENET="$EXISTING_STEAM/steamapps/compatdata/777/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe"
+EXISTING_APP_DIR="$TMP_ROOT/existing-apps"
 
 python3 "$HELPER" --help >/dev/null
 
@@ -109,6 +113,38 @@ grep -Fq 'STEAM_COMPAT_DATA_PATH="$PREFIX_DIR"' "$generated_wrapper" || {
     exit 1
 }
 
+# 客户已经安装过战网时，必须直接包装真实EXE，不能再下载或运行安装器。
+mkdir -p "$(dirname "$EXISTING_SHORTCUTS")" "$(dirname "$EXISTING_BATTLENET")"
+: > "$EXISTING_BATTLENET"
+existing_output="$(
+    MODULE="$MODULE" ZHOUKEER_STEAM_ROOT="$EXISTING_STEAM" \
+        ZHOUKEER_SHORTCUT_FILE="$EXISTING_SHORTCUTS" \
+        ZHOUKEER_PROTON_RUNNER="$FAKE_PROTON" \
+        ZHOUKEER_APP_DIR="$EXISTING_APP_DIR" \
+        ZHOUKEER_SKIP_STEAM_RESTART=1 PROTON_LOG="$PROTON_LOG" \
+        bash -c 'source "$MODULE"; install_launcher battlenet'
+)"
+printf '%s\n' "$existing_output" | grep -Fq '跳过安装包下载' || {
+    echo "FAIL: 已安装战网没有跳过安装包" >&2
+    exit 1
+}
+[ ! -e "$EXISTING_APP_DIR/game-launchers/battlenet/Battle.net-Setup.exe" ] || {
+    echo "FAIL: 已安装战网仍生成了安装器" >&2
+    exit 1
+}
+[ -x "$EXISTING_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" ] || {
+    echo "FAIL: 已安装战网没有生成直接启动包装器" >&2
+    exit 1
+}
+python3 - "$EXISTING_SHORTCUTS" <<'PY'
+from pathlib import Path
+import sys
+
+data = Path(sys.argv[1]).read_bytes()
+assert b"launch-battlenet.sh" in data
+assert b"Battle.net-Setup.exe" not in data
+PY
+
 grep -Fq 'steamapps/compatdata' "$MODULE"
 grep -Fq 'EpicGamesLauncher.exe' "$MODULE"
 grep -Fq 'Battle.net Launcher.exe' "$MODULE"
@@ -116,6 +152,7 @@ grep -Fq 'Battle.net.exe' "$MODULE"
 grep -Fq 'run_launcher_installer' "$MODULE"
 grep -Fq 'create_launcher_wrapper' "$MODULE"
 grep -Fq '无需再选择兼容层' "$MODULE"
+grep -Fq '跳过安装包下载' "$MODULE"
 grep -Fq 'steam_shortcut.py' "$MODULE"
 
 echo "PASS: Steam条目写入、Proton直接安装和主EXE包装器测试通过"

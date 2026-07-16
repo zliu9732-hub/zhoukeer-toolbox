@@ -344,7 +344,7 @@ install_launcher() {
     local command_name
 
     launcher_details "$target" || return 1
-    for command_name in curl od python3; do
+    for command_name in python3 find; do
         command -v "$command_name" >/dev/null 2>&1 || {
             echo "系统缺少 $command_name，无法继续。"
             return 1
@@ -362,22 +362,6 @@ install_launcher() {
     prefix_dir="$launcher_dir/compatdata"
     mkdir -p "$launcher_dir" || return 1
 
-    if [ ! -f "$installer_file" ]; then
-        temp_file="$(mktemp "$launcher_dir/.${target}-installer.XXXXXX")" || return 1
-        trap 'rm -f "$temp_file"' EXIT
-        echo "正在下载 $LAUNCHER_NAME 官方 Windows 安装包..."
-        if ! curl -fL --retry 2 --connect-timeout 15 --max-time "$DOWNLOAD_TIMEOUT" \
-            -o "$temp_file" "$LAUNCHER_URL"; then
-            echo "下载失败或超时，未创建 Steam 条目。"
-            return 1
-        fi
-        verify_installer "$temp_file" || return 1
-        mv -f "$temp_file" "$installer_file" || return 1
-        trap - EXIT
-    fi
-    verify_installer "$installer_file" || return 1
-
-    proton_runner="$(ensure_proton_runner "$steam_root")" || return 1
     installed_file="$(find_launcher_in_prefix "$prefix_dir" || true)"
     if [ -z "$installed_file" ]; then
         installed_file="$(find_installed_launcher "$steam_root" || true)"
@@ -386,11 +370,32 @@ install_launcher() {
             [ -n "$detected_prefix" ] && prefix_dir="$detected_prefix"
         fi
     fi
+    proton_runner="$(ensure_proton_runner "$steam_root")" || return 1
     if [ -z "$installed_file" ]; then
+        for command_name in curl od; do
+            command -v "$command_name" >/dev/null 2>&1 || {
+                echo "系统缺少 $command_name，无法下载安装程序。"
+                return 1
+            }
+        done
+        if [ ! -f "$installer_file" ]; then
+            temp_file="$(mktemp "$launcher_dir/.${target}-installer.XXXXXX")" || return 1
+            trap 'rm -f "$temp_file"' EXIT
+            echo "正在下载 $LAUNCHER_NAME 官方 Windows 安装包..."
+            if ! curl -fL --retry 2 --connect-timeout 15 --max-time "$DOWNLOAD_TIMEOUT" \
+                -o "$temp_file" "$LAUNCHER_URL"; then
+                echo "下载失败或超时，未创建 Steam 条目。"
+                return 1
+            fi
+            verify_installer "$temp_file" || return 1
+            mv -f "$temp_file" "$installer_file" || return 1
+            trap - EXIT
+        fi
+        verify_installer "$installer_file" || return 1
         installed_file="$(run_launcher_installer \
             "$target" "$steam_root" "$installer_file" "$prefix_dir" "$proton_runner")" || return 1
     else
-        echo "已找到现有的 $LAUNCHER_NAME，跳过官方安装步骤。"
+        echo "已找到安装完成的 ${LAUNCHER_NAME}，直接调用主程序并跳过安装包下载。"
     fi
     wrapper_file="$(create_launcher_wrapper \
         "$target" "$steam_root" "$prefix_dir" "$proton_runner" \
