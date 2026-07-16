@@ -1,0 +1,78 @@
+name: Inspect Steamcommunity 302 generated config
+
+on:
+  push:
+    branches: [codex/steam302-inspect]
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    container: archlinux:latest
+    timeout-minutes: 12
+    steps:
+      - name: Install isolated Arch desktop runtime
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm \
+            ca-certificates curl coreutils findutils fontconfig freetype2 \
+            imagemagick libglvnd libice libnetfilter_queue libsm libx11 \
+            libxext libxkbcommon libxrender nss tar ttf-dejavu xdotool \
+            xorg-server-xvfb
+
+      - name: Download verified official package
+        run: |
+          curl --fail --location --show-error --output steam302.tar.gz \
+            https://www.dogfight360.com/blog/wp-content/uploads/2026/02/steamcommunity_302_Linux_AMD64_V14.0.02.tar.gz
+          printf '%s  %s\n' \
+            5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f \
+            steam302.tar.gz | sha256sum --check
+          tar -xzf steam302.tar.gz
+
+      - name: Select Steam and start in virtual display
+        working-directory: Steamcommunity_302
+        env:
+          HOME: /tmp/steam302-home
+        run: |
+          mkdir -p "$HOME"
+          chmod +x Steamcommunity_302 steamcommunity_302.cli steamcommunity_302.caddy
+          Xvfb :99 -screen 0 1280x800x24 > xvfb.log 2>&1 &
+          xvfb_pid=$!
+          export DISPLAY=:99
+          ./Steamcommunity_302 > gui.log 2>&1 &
+          app_pid=$!
+          sleep 12
+          xdotool mousemove 426 185 click 1
+          sleep 3
+          import -display :99 -window root selected.png || true
+          find . "$HOME" -type f -name 'S302.ini' -print -exec cp '{}' S302.after-select.ini \; || true
+          xdotool mousemove 958 188 click 1
+          sleep 20
+          import -display :99 -window root started.png || true
+          find . "$HOME" -type f -name 'S302.ini' -print -exec cp '{}' S302.generated.ini \; || true
+          ps auxww > processes.log
+          xdotool mousemove 958 188 click 1 || true
+          sleep 5
+          kill "$app_pid" 2>/dev/null || true
+          kill "$xvfb_pid" 2>/dev/null || true
+          wait "$app_pid" 2>/dev/null || true
+          wait "$xvfb_pid" 2>/dev/null || true
+          find . -maxdepth 3 -type f -printf '%P\n' | sort > files.log
+
+      - name: Upload generated configuration
+        uses: actions/upload-artifact@v4
+        with:
+          name: steam302-click-inspection
+          path: |
+            Steamcommunity_302/gui.log
+            Steamcommunity_302/selected.png
+            Steamcommunity_302/started.png
+            Steamcommunity_302/S302.after-select.ini
+            Steamcommunity_302/S302.generated.ini
+            Steamcommunity_302/processes.log
+            Steamcommunity_302/files.log
+            Steamcommunity_302/xvfb.log
+          if-no-files-found: warn
+          retention-days: 1
