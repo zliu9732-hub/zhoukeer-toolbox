@@ -32,9 +32,9 @@ grep -Fq 'DECKY_FSR4_SHA256="236dc5aef5c908d905a848d7e448689634479ab61cd9184154b
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"' \
     "$PROJECT_ROOT/config/settings.example.conf"
-grep -Fq 'LEGACY_DECKY_LSFG_URL' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'is_legacy_feature_plugin_url' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'CheatDeck/releases/download/v1.2.1/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq -- '--retry-all-errors' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '第 $attempt/2 轮下载失败' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '两轮均未成功' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -69,9 +69,12 @@ grep -Fq 'uninstall) uninstall_all_decky_plugins' "$PROJECT_ROOT/modules/plugin_
 grep -Fq '不会删除 Decky Loader 本体' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'all) install_all_plugin_packages' "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Fq 'Lossless Scaling.rar' "$PROJECT_ROOT/modules/plugin_store.sh" || \
-    grep -Fq '1846467258.cdn.123clouddisk.com/1846467258/工具箱/Lossless' \
-        "$PROJECT_ROOT/modules/plugin_store.sh"; then
+    grep -Eq 'https?://[^[:space:]]*Lossless' "$PROJECT_ROOT/modules/plugin_store.sh"; then
     echo "FAIL: 付费软件本体不应配置为客户下载源"
+    exit 1
+fi
+if grep -Fqi '云盘' "$PROJECT_ROOT/modules/plugin_store.sh"; then
+    echo "FAIL: 插件下载模块不应保留第三方云盘地址"
     exit 1
 fi
 

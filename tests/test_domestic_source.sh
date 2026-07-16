@@ -83,6 +83,10 @@ case "$command" in
     remote-modify)
         printf 'remote-modify %s\n' "$*" >> "$state/commands"
         ;;
+    remote-ls)
+        printf 'remote-ls %s\n' "$*" >> "$state/commands"
+        printf 'org.mozilla.firefox\n'
+        ;;
     *)
         echo "unexpected flatpak command: $command" >&2
         exit 1
@@ -118,6 +122,14 @@ grep -Fq 'remote-modify --user flathub-cn --url=https://mirror.test.invalid/flat
     "$STATE_DIR/commands" || fail "国内缓存地址配置错误"
 grep -Fq 'remote-modify --user flathub-ustc --url=https://fallback.test.invalid/flathub' \
     "$STATE_DIR/commands" || fail "国内备用缓存地址配置错误"
+grep -Fq 'remote-ls --user flathub-cn --app --columns=application' \
+    "$STATE_DIR/commands" || fail "未验证上海交大应用索引"
+grep -Fq 'remote-ls --user flathub-ustc --app --columns=application' \
+    "$STATE_DIR/commands" || fail "未验证中科大应用索引"
+printf '%s\n' "$output" | grep -Fq '上海交大 Flathub 缓存：应用索引可用。' || \
+    fail "上海交大缓存未显示可用性验证"
+printf '%s\n' "$output" | grep -Fq '中科大 Flathub 缓存：应用索引可用。' || \
+    fail "中科大缓存未显示可用性验证"
 grep -Fxq 'https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo' \
     "$STATE_DIR/curl-urls" || fail "未通过假 curl 获取签名配置"
 [ ! -e "$STATE_DIR/sudo-calls" ] || fail "用户级国内源配置不应调用 sudo"
@@ -138,4 +150,4 @@ status_output="$(
 printf '%s\n' "$status_output" | grep -Fq 'flathub-cn' || fail "状态输出缺少国内源"
 printf '%s\n' "$status_output" | grep -Fq 'flathub-ustc' || fail "状态输出缺少国内备用源"
 
-echo "PASS: 国内双缓存源启用、幂等性、状态和无sudo测试通过"
+echo "PASS: 国内双缓存源启用、应用索引验证、幂等性、状态和无sudo测试通过"

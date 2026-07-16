@@ -119,7 +119,7 @@ else
     echo "- Firefox：未安装"
 fi
 if [ -x "$APP_DIR/RustDesk.AppImage" ]; then
-    echo "- RustDesk：已安装（123云盘AppImage）"
+    echo "- RustDesk：已安装（官方 GitHub AppImage）"
 else
     echo "- RustDesk：未安装"
 fi

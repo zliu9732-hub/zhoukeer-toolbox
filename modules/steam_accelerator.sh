@@ -246,6 +246,19 @@ confirm_steam302_service_start() {
     [ "$answer" = "START" ]
 }
 
+print_steam302_ready_notice() {
+    echo "========================================"
+    echo " GitHub + Steam 加速已开启"
+    echo "========================================"
+    echo "已接管：GitHub、Steam 下载。"
+    echo "现在直接返回工具箱下载插件、兼容层或 RustDesk 即可。"
+    echo "无需再打开 Steamcommunity 302 图形界面，后台服务会继续运行。"
+    echo "如果 GitHub 仍慢或下载失败："
+    echo "1. 打开桌面“Steamcommunity 302”。"
+    echo "2. 勾选 Steam 和 GitHub。"
+    echo "3. 点击“启动服务”，看到服务运行后回工具箱单独重试。"
+}
+
 start_steam302_service() {
     local display_value="${DISPLAY:-:0}"
     local xauthority_value="${XAUTHORITY:-$HOME/.Xauthority}"
@@ -260,10 +273,12 @@ start_steam302_service() {
     ensure_steam302_config || return 1
     if steam302_service_is_active; then
         echo "官方 Steamcommunity 302 服务已在运行。"
+        print_steam302_ready_notice
         return 0
     fi
     if steam302_cli_is_running; then
         echo "Steamcommunity 302 内置加速已在运行。"
+        print_steam302_ready_notice
         return 0
     fi
 
@@ -290,7 +305,7 @@ start_steam302_service() {
     sleep 1
     pid="$(sed -n '1p' "$STEAM302_PID_FILE" 2>/dev/null || true)"
     if steam302_cli_is_running; then
-        echo "Steam + GitHub 内置加速已开启。"
+        print_steam302_ready_notice
         echo "后台日志：$STEAM302_LOG_FILE"
         return 0
     fi
@@ -329,9 +344,15 @@ enable_steam302() {
 }
 
 print_steam302_download_fallback() {
-    echo "自动加速没有启动成功，将使用当前网络继续提交插件安装。"
-    echo "请打开桌面的“Steamcommunity 302”，勾选 Steam 和 GitHub，然后点击“启动服务”。"
-    echo "服务启动后，GitHub 和 Steam 下载会更稳定、更快。"
+    echo "========================================"
+    echo " GitHub + Steam 加速未确认"
+    echo "========================================"
+    echo "工具箱会继续使用当前网络提交下载，但速度或成功率可能受影响。"
+    echo "请按以下步骤手动开启后，再单独重试下载："
+    echo "1. 打开桌面“Steamcommunity 302”。"
+    echo "2. 勾选 Steam 和 GitHub。"
+    echo "3. 点击“启动服务”，确认页面显示服务正在运行。"
+    echo "完成后回到工具箱重新点击刚才的下载按钮。"
 }
 
 steam302_download_acceleration_is_ready() {
@@ -341,7 +362,8 @@ steam302_download_acceleration_is_ready() {
 
 ensure_steam302_for_download() {
     if steam302_download_acceleration_is_ready; then
-        echo "已检测到 Steam + GitHub 加速正在运行，继续下载插件。"
+        print_steam302_ready_notice
+        echo "继续下载。"
         return 0
     fi
 
@@ -373,7 +395,8 @@ ensure_steam302_for_download() {
         return 0
     }
     if steam302_download_acceleration_is_ready; then
-        echo "Steam + GitHub 加速已自动开启，开始下载插件。"
+        print_steam302_ready_notice
+        echo "开始下载。"
         return 0
     fi
 
@@ -665,7 +688,8 @@ install_steam302() (
                 echo "桌面快捷方式创建失败。"
                 return 1
             }
-            echo "Steam + GitHub 内置规则已准备好；点击“一键开启加速”即可运行。"
+            echo "Steam + GitHub 内置规则已准备好。"
+            echo "下一步：在工具箱点击“一键开启加速”；成功后会明确显示“GitHub + Steam 加速已开启”。"
             return 0
         fi
     fi
@@ -757,7 +781,9 @@ install_steam302() (
     STEAM302_BACKUP_DIR=""
     echo "Steamcommunity 302 V$STEAM302_VERSION 安装完成。"
     echo "已生成 Steam + GitHub 内置加速规则。"
-    echo "现在可直接点击工具箱里的“一键开启加速”，无需另开 302 界面。"
+    echo "下一步：返回工具箱点击“一键开启加速”。"
+    echo "开启成功后无需另开 302 界面，可直接下载 GitHub 插件和 Steam 内容。"
+    echo "若自动开启失败，请打开桌面“Steamcommunity 302”，勾选 Steam 和 GitHub 后点击“启动服务”。"
     echo "首次开启可能涉及管理员权限、根证书以及 hosts / DNS 修改，请按需确认。"
 )
 

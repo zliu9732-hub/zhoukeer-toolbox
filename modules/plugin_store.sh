@@ -26,34 +26,13 @@ DECKY_TMP_DIR=""
 LSFG_OFFICIAL_DIRECTORY="Decky LSFG-VK"
 LSFG_OFFICIAL_VERSION="0.12.5"
 
-# 旧版本将三款插件指向工具箱 123 目录；这些路径可能过期，统一迁移到
-# 作者固定 Release。其他插件的用户自定义下载地址不会受影响。
-LEGACY_DECKY_LSFG_URL="https://1846467258.cdn.123clouddisk.com/1846467258/%E5%B7%A5%E5%85%B7%E7%AE%B1/%E5%B0%8F%E9%BB%84%E9%B8%ADv0.12.3%E6%B1%89%E5%8C%96%E7%89%88.zip"
-LEGACY_DECKY_FSR4_URL="https://1846467258.cdn.123clouddisk.com/1846467258/%E5%B7%A5%E5%85%B7%E7%AE%B1/Decky-Framegen.zip"
-LEGACY_DECKY_CHEATDECK_URL="https://1846467258.cdn.123clouddisk.com/1846467258/%E5%B7%A5%E5%85%B7%E7%AE%B1/CheatDeck.zip"
-
-is_legacy_feature_plugin_url() {
-    case "${1:-}" in
-        "https://1846467258.cdn.123clouddisk.com/1846467258/"*) return 0 ;;
-        *) return 1 ;;
-    esac
-}
-
-if [ "${DECKY_LSFG_URL:-}" = "$LEGACY_DECKY_LSFG_URL" ] || \
-    is_legacy_feature_plugin_url "${DECKY_LSFG_URL:-}"; then
-    DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
-    DECKY_LSFG_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
-fi
-if [ "${DECKY_FSR4_URL:-}" = "$LEGACY_DECKY_FSR4_URL" ] || \
-    is_legacy_feature_plugin_url "${DECKY_FSR4_URL:-}"; then
-    DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip"
-    DECKY_FSR4_SHA256="236dc5aef5c908d905a848d7e448689634479ab61cd9184154ba8a725b3f2089"
-fi
-if [ "${DECKY_CHEATDECK_URL:-}" = "$LEGACY_DECKY_CHEATDECK_URL" ] || \
-    is_legacy_feature_plugin_url "${DECKY_CHEATDECK_URL:-}"; then
-    DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.2.1/CheatDeck.zip"
-    DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
-fi
+# 三款功能插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
+DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
+DECKY_LSFG_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
+DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip"
+DECKY_FSR4_SHA256="236dc5aef5c908d905a848d7e448689634479ab61cd9184154ba8a725b3f2089"
+DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.2.1/CheatDeck.zip"
+DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
 
 cleanup_decky_tmp() {
     if [ -n "$DECKY_TMP_DIR" ] && [ -d "$DECKY_TMP_DIR" ]; then
@@ -443,7 +422,7 @@ download_verified_package() {
     done
 
     echo "$name 下载失败，两轮均未成功，未改动现有文件。"
-    echo "请确认桌面的 Steamcommunity 302 已勾选 Steam 和 GitHub 并点击“启动服务”，再单独重试该插件。"
+    print_steam302_download_fallback
     return 1
 }
 

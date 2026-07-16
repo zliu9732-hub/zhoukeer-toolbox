@@ -222,7 +222,7 @@ fallback_output="$(MODULE="$MODULE" bash -c '
     install_steam302() { return 1; }
     ensure_steam302_for_download
 ' 2>&1)" || fail "自动加速失败后不应阻断插件安装"
-printf '%s\n' "$fallback_output" | grep -Fq '将使用当前网络继续提交插件安装' || \
+printf '%s\n' "$fallback_output" | grep -Fq '工具箱会继续使用当前网络提交下载' || \
     fail "自动加速失败时没有继续提交插件安装"
 printf '%s\n' "$fallback_output" | grep -Fq '勾选 Steam 和 GitHub' || \
     fail "自动加速失败时没有提示桌面手动操作"
@@ -238,7 +238,7 @@ automatic_output="$(MODULE="$MODULE" bash -c '
     start_steam302_service() { acceleration_ready=1; return 0; }
     ensure_steam302_for_download
 ')" || fail "插件下载前没有自动启动 302"
-printf '%s\n' "$automatic_output" | grep -Fq '加速已自动开启' || \
+printf '%s\n' "$automatic_output" | grep -Fq 'GitHub + Steam 加速已开启' || \
     fail "自动启动成功后没有继续插件下载"
 
 launch_function="$(sed -n '/^launch_steam302()/,/^}/p' "$MODULE")"
@@ -335,7 +335,7 @@ printf '%s\n' "$status_output" | grep -Fq '版本：14.0.02' || \
 
 # 一键启动直接拉起官方 CLI，不要求客户先打开 GUI 或创建 systemd 服务。
 start_output="$(run_start_service)" || fail "一键启动内置加速失败"
-printf '%s\n' "$start_output" | grep -Fq 'Steam + GitHub 内置加速已开启' || \
+printf '%s\n' "$start_output" | grep -Fq 'GitHub + Steam 加速已开启' || \
     fail "一键启动没有报告内置加速成功"
 [ -f "$TARGET/.zhoukeer-cli.pid" ] || fail "一键启动没有写入 CLI PID"
 stop_output="$(

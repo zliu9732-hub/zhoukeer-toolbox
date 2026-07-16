@@ -78,7 +78,8 @@ assert_not_contains "$gui_software_menu" 'protonup' "图形菜单仍包含 Proto
 assert_not_contains "$(cat "$SOFTWARE_FILE")" 'protonup' "软件安装模块仍接受 ProtonUp-Qt"
 for remote_menu in "$touch_remote_menu" "$gui_remote_menu"; do
     assert_contains "$remote_menu" 'RustDesk' "远程协助菜单缺少 RustDesk"
-    assert_contains "$remote_menu" '123云盘' "RustDesk 菜单未说明123云盘来源"
+    assert_contains "$remote_menu" 'GitHub Release' "RustDesk 菜单未说明作者官方来源"
+    assert_not_contains "$remote_menu" '云盘' "远程协助菜单不应保留第三方云盘描述"
     assert_not_contains "$remote_menu" 'AnyDesk' "远程协助菜单仍包含 AnyDesk"
 done
 

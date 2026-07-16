@@ -71,7 +71,7 @@ second_output="$(
 printf '%s\n' "$second_output" | grep -Fq '未覆盖任何文件' || \
     fail "已有目录时缺少不覆盖提示"
 
-if grep -Eq '123clouddisk.*Lossless|Lossless[^[:space:]]*\.rar.*https?://' "$MODULE"; then
+if grep -Eq 'https?://[^[:space:]]*Lossless|Lossless[^[:space:]]*\.rar.*https?://' "$MODULE"; then
     fail "模块中不应包含付费软件本体下载源"
 fi
 

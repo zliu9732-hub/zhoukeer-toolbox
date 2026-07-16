@@ -116,7 +116,7 @@ show_disclaimer() {
         ui_disclaimer_line 9 '\033[38;5;45m' "支持免费使用；禁止商业、销售、转卖或借此盈利"
         ui_disclaimer_line 10 '\033[38;5;45m' "下载内容均来自官方免费发布或开源项目"
         ui_disclaimer_line 11 '\033[38;5;45m' "不包含付费软件本体、破解或商业授权"
-        ui_disclaimer_line 12 '\033[38;5;220m' "部分国内下载分流由作者本人的123云盘提供"
+        ui_disclaimer_line 12 '\033[38;5;220m' "第三方软件与插件均从作者或官方发布页获取"
         ui_disclaimer_line 13 '\033[1;38;5;114m' "喜欢本工具，欢迎来闲鱼支持作者"
         ui_disclaimer_line 14 '\033[38;5;220m' "若有侵权，请及时联系作者删除"
         ui_disclaimer_button 15 '\033[1;38;5;114m' "知悉并开始使用" "点击即表示已阅读上述说明"
@@ -197,7 +197,7 @@ remote_assistance_menu() {
 
     while true; do
         draw_category_frame remote "远程协助" "安装完成后会自动在桌面创建启动图标"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "下载 RustDesk" "123云盘国内直链；无需系统权限"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "下载 RustDesk" "作者 GitHub Release；无需系统权限"
         ui_touch_button 11 '\033[1;97;48;5;24m' "查看设置步骤并安装 ToDesk" "需先开启开发者模式和旧版 X11 桌面模式"
         ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -205,7 +205,7 @@ remote_assistance_menu() {
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            rustdesk) confirm_and_run "下载 RustDesk" "从123云盘国内直链安装，不会写入或修改你的 RustDesk 服务器配置" bash "$PROJECT_ROOT/modules/software.sh" rustdesk ;;
+            rustdesk) confirm_and_run "下载 RustDesk" "从作者 GitHub Release 安装，不会写入或修改你的 RustDesk 服务器配置" bash "$PROJECT_ROOT/modules/software.sh" rustdesk ;;
             todesk) todesk_preflight ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac

@@ -12,6 +12,7 @@ FLATHUB_CN_FALLBACK_REMOTE="flathub-ustc"
 FLATHUB_CN_URL="${ZHOUKEER_FLATHUB_CN_URL:-https://mirror.sjtu.edu.cn/flathub}"
 FLATHUB_CN_FALLBACK_URL="${ZHOUKEER_FLATHUB_CN_FALLBACK_URL:-https://mirrors.ustc.edu.cn/flathub}"
 FLATHUB_REPO_FILE_PRIMARY="https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo"
+FLATHUB_REPO_FILE_FALLBACK="https://mirrors.ustc.edu.cn/flathub/flathub.flatpakrepo"
 FLATHUB_OFFICIAL_REMOTE="flathub"
 FLATHUB_OFFICIAL_REPO_FILE="https://dl.flathub.org/repo/flathub.flatpakrepo"
 FLATPAK_INSTALL_TIMEOUT="${ZHOUKEER_FLATPAK_INSTALL_TIMEOUT:-300}"
@@ -31,9 +32,9 @@ WECHAT_APPIMAGE_PATH="${ZHOUKEER_WECHAT_APPIMAGE_PATH:-$APP_DIR/WeChat.AppImage}
 WECHAT_DOWNLOAD_TIMEOUT="${ZHOUKEER_WECHAT_DOWNLOAD_TIMEOUT:-900}"
 WECHAT_MIN_BYTES="${ZHOUKEER_WECHAT_MIN_BYTES:-104857600}"
 
-RUSTDESK_DOWNLOAD_URL="${ZHOUKEER_RUSTDESK_DOWNLOAD_URL:-https://1846467258.cdn.123clouddisk.com/1846467258/%E8%A7%86%E9%A2%91/rustdesk-1.4.8-x86_64.AppImage}"
+RUSTDESK_DOWNLOAD_URL="${ZHOUKEER_RUSTDESK_DOWNLOAD_URL:-https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-x86_64.AppImage}"
 RUSTDESK_APPIMAGE_PATH="${ZHOUKEER_RUSTDESK_APPIMAGE_PATH:-$APP_DIR/RustDesk.AppImage}"
-RUSTDESK_SHA256="${ZHOUKEER_RUSTDESK_SHA256:-ae1ec1a6f4f92da41acad6d166a362bd39bbbd02bb70265641558696c2509ccb}"
+RUSTDESK_SHA256="${ZHOUKEER_RUSTDESK_SHA256:-7902cd60a4f29817eebe2668a15c9a1952ac690e8f7b07bfe7620fedd4e28217}"
 RUSTDESK_DOWNLOAD_TIMEOUT="${ZHOUKEER_RUSTDESK_DOWNLOAD_TIMEOUT:-600}"
 RUSTDESK_MIN_BYTES="${ZHOUKEER_RUSTDESK_MIN_BYTES:-10485760}"
 
@@ -90,10 +91,10 @@ confirm_software_install() {
             ;;
         flatpak_official)
             echo "将从官方 Flathub 安装 Firefox（org.mozilla.firefox）。"
-            echo "不使用123云盘或国内镜像，Firefox 后续可在系统内自动更新。"
+            echo "使用官方 Flathub，Firefox 后续可在系统内自动更新。"
             ;;
         rustdesk_appimage)
-            echo "将从123云盘国内直链下载RustDesk x86_64 AppImage。"
+            echo "将从 RustDesk 作者 GitHub Release 下载 x86_64 AppImage。"
             echo "安装位置：$RUSTDESK_APPIMAGE_PATH"
             echo "下载最长等待 $RUSTDESK_DOWNLOAD_TIMEOUT 秒，失败后会保留旧版本。"
             ;;
@@ -117,26 +118,32 @@ confirm_software_install() {
 
 download_flathub_repo_file() {
     local destination="$1"
+    local source
 
-    echo "正在从上海交大镜像获取Flathub签名配置..."
-    if curl \
-        --fail \
-        --location \
-        --silent \
-        --show-error \
-        --proto '=https' \
-        --proto-redir '=https' \
-        --connect-timeout 10 \
-        --max-time 30 \
-        --retry 2 \
-        --output "$destination" \
-        "$FLATHUB_REPO_FILE_PRIMARY" && \
-        grep -q '^\[Flatpak Repo\]$' "$destination" && \
-        grep -q '^GPGKey=' "$destination"; then
-        return 0
-    fi
+    for source in \
+        "$FLATHUB_REPO_FILE_PRIMARY" \
+        "$FLATHUB_REPO_FILE_FALLBACK" \
+        "$FLATHUB_OFFICIAL_REPO_FILE"; do
+        echo "正在获取 Flathub 签名配置..."
+        if curl \
+            --fail \
+            --location \
+            --silent \
+            --show-error \
+            --proto '=https' \
+            --proto-redir '=https' \
+            --connect-timeout 10 \
+            --max-time 30 \
+            --retry 2 \
+            --output "$destination" \
+            "$source" && \
+            grep -q '^\[Flatpak Repo\]$' "$destination" && \
+            grep -q '^GPGKey=' "$destination"; then
+            return 0
+        fi
+        rm -f -- "$destination"
+    done
 
-    rm -f -- "$destination"
     echo "无法获取Flathub签名配置。"
     return 1
 }
@@ -516,7 +523,7 @@ install_rustdesk_appimage() (
     trap cleanup_rustdesk_download EXIT
     trap 'exit 130' INT TERM
 
-    echo "正在从123云盘下载RustDesk，最长等待 $RUSTDESK_DOWNLOAD_TIMEOUT 秒..."
+    echo "正在从 RustDesk 作者 GitHub Release 下载，最长等待 $RUSTDESK_DOWNLOAD_TIMEOUT 秒..."
     if ! curl \
         --fail \
         --location \
@@ -558,7 +565,7 @@ install_rustdesk_appimage() (
     trap - EXIT INT TERM
 
     echo "RustDesk安装完成：$RUSTDESK_APPIMAGE_PATH"
-    log "RustDesk 123云盘AppImage安装完成: $RUSTDESK_APPIMAGE_PATH"
+    log "RustDesk 官方GitHub Release AppImage安装完成: $RUSTDESK_APPIMAGE_PATH"
 )
 
 firefox_install_is_valid() {

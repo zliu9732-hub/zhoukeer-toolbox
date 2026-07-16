@@ -86,7 +86,7 @@ software_menu() {
                     bash "$PROJECT_ROOT/modules/software.sh" qq
                 ;;
             browser)
-                gui_confirm "将从官方 Flathub 安装 Firefox（org.mozilla.firefox），不使用123云盘或国内镜像。是否继续？" && \
+                gui_confirm "将从官方 Flathub 安装 Firefox（org.mozilla.firefox）。是否继续？" && \
                     run_gui_action "安装Firefox浏览器" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" browser
                 ;;
@@ -115,12 +115,12 @@ remote_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "选择远程协助工具" \
-            rustdesk "下载 RustDesk（123云盘国内直链）" \
+            rustdesk "下载 RustDesk（作者 GitHub Release）" \
             todesk "ToDesk" \
             back "返回主菜单")" || return 0
         case "$choice" in
             rustdesk)
-                gui_confirm "将从123云盘国内直链下载 RustDesk AppImage，并创建桌面图标；不会写入或修改 RustDesk 服务器配置。是否继续？" && \
+                gui_confirm "将从 RustDesk 作者 GitHub Release 下载 AppImage，并创建桌面图标；不会写入或修改 RustDesk 服务器配置。是否继续？" && \
                     run_gui_action "下载 RustDesk" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" rustdesk
                 ;;

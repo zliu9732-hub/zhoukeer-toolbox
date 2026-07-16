@@ -17,6 +17,15 @@ DECKY_ARTIFACT_BASE="${DECKY_ARTIFACT_BASE:-https://cdn.tzatzikiweeb.moe/file/st
 DECKY_BUNDLE_MARKER="zhoukeer-decky-bundle-queued"
 DECKY_BUNDLE_TMP_DIR=""
 
+# 这两款不在官方数据库中的插件固定使用作者 Release，避免旧安装保留的
+# 配置继续把客户导向已退役的第三方下载地址。
+DECKY_SIMPLE_TDP_URL="${ZHOUKEER_DECKY_SIMPLE_TDP_URL:-https://github.com/aarron-lee/SimpleDeckyTDP/releases/download/v1.0.5/SimpleDeckyTDP.zip}"
+DECKY_SIMPLE_TDP_VERSION="${ZHOUKEER_DECKY_SIMPLE_TDP_VERSION:-v1.0.5}"
+DECKY_SIMPLE_TDP_SHA256="${ZHOUKEER_DECKY_SIMPLE_TDP_SHA256:-ebf1c68147b6300ee17c2d7ea00a9cfe9ac1c78af78d364d9d306ac64a2cc057}"
+DECKY_UNIFIDECK_URL="${ZHOUKEER_DECKY_UNIFIDECK_URL:-https://github.com/mubaraknumann/unifideck/releases/download/Release-0.7/unifideck.prod.v0.7.0.zip}"
+DECKY_UNIFIDECK_VERSION="${ZHOUKEER_DECKY_UNIFIDECK_VERSION:-0.7.0}"
+DECKY_UNIFIDECK_SHA256="${ZHOUKEER_DECKY_UNIFIDECK_SHA256:-4715b74d0033b8c1587040e90c1d19b925c7110c7723926605aa62128c4c03e0}"
+
 # Names must exactly match the official Decky store database.
 DECKY_OFFICIAL_PLUGIN_NAMES='["CSS Loader","vibrantDeck","Animation Changer","Audio Loader","SteamGridDB","PowerTools","Storage Cleaner","AutoFlatpaks","Bluetooth","ProtonDB Badges","Deck Settings","HLTB for Deck","PlayCount","TabMaster","Wine Cellar","Pause Games","Controller Tools","Volume Mixer","Battery Tracker","PlayTime","Free Loader","DeckMTP","MangoPeel"]'
 
@@ -52,7 +61,7 @@ append_custom_plugin_json() {
 
     [ -n "$url" ] || return 0
     if ! valid_https_url "$url" || ! valid_sha256 "$sha256"; then
-        echo "$name 的123云盘地址或SHA256配置无效，已停止。"
+        echo "$name 的 GitHub Release 地址或SHA256配置无效，已停止。"
         return 1
     fi
     [ ! -s "$output" ] || separator=","
@@ -149,7 +158,7 @@ confirm_bundle_install() {
 
     echo "将从Decky官方商店读取 $plugin_count 个插件的最新版本，并交给Decky内置安装器。"
     if [ "$include_custom" = "1" ]; then
-        echo "SimpleDeckyTDP和Unifideck仅在已配置123云盘成品ZIP时加入。"
+        echo "SimpleDeckyTDP和Unifideck使用作者 GitHub Release 加入安装队列。"
     fi
     echo "PowerTools与SimpleDeckyTDP功能有重叠，请安装后只保留一套性能参数控制。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then

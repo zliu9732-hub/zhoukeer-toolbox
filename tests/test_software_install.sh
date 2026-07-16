@@ -58,7 +58,7 @@ JSON
     https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_x86_64.AppImage)
         printf '\177ELFtest-wechat-appimage\n' > "$output"
         ;;
-    *rustdesk-1.4.8-x86_64.AppImage)
+    *rustdesk-1.4.9-x86_64.AppImage)
         printf '\177ELFtest-rustdesk-appimage\n' > "$output"
         ;;
     *firefox-152.0.6.tar.xz)
@@ -208,7 +208,7 @@ bash "$PROJECT_ROOT/modules/software.sh" qq >/dev/null
 [ -x "$QQ_SHORTCUT" ]
 [ "$(grep -c 'com.qq.QQ' "$STATE_DIR/commands")" -eq 1 ]
 
-# Firefox 使用官方 Flathub，不经过123云盘或国内缓存。
+# Firefox 使用官方 Flathub，不经过第三方下载分流或国内缓存。
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \
 FLATPAK_TEST_STATE="$STATE_DIR" \
@@ -238,7 +238,7 @@ bash "$PROJECT_ROOT/modules/software.sh" browser >/dev/null
 [ -x "$FIREFOX_SHORTCUT" ]
 [ "$(grep -c 'org.mozilla.firefox' "$STATE_DIR/commands")" -eq 1 ]
 
-# RustDesk 使用123云盘 AppImage，不依赖 Flatpak，并创建可点击的桌面图标。
+# RustDesk 使用作者 GitHub Release 的 AppImage，不依赖 Flatpak，并创建可点击的桌面图标。
 if command -v sha256sum >/dev/null 2>&1; then
     RUSTDESK_TEST_SHA256="$(printf '\177ELFtest-rustdesk-appimage\n' | sha256sum | awk '{print $1}')"
 else
@@ -258,7 +258,7 @@ RUSTDESK_SHORTCUT="$HOME_DIR/Desktop/RustDesk.desktop"
 [ -x "$RUSTDESK_SHORTCUT" ]
 grep -Fq "Exec=\"$STATE_DIR/apps/RustDesk.AppImage\"" "$RUSTDESK_SHORTCUT"
 grep -Fq 'Icon=rustdesk' "$RUSTDESK_SHORTCUT"
-grep -Fq '1846467258.cdn.123clouddisk.com/1846467258/%E8%A7%86%E9%A2%91/rustdesk-1.4.8-x86_64.AppImage' \
+grep -Fq 'https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-x86_64.AppImage' \
     "$STATE_DIR/curl-urls"
 ! grep -Fiq 'anydesk' "$PROJECT_ROOT/modules/software.sh"
 
