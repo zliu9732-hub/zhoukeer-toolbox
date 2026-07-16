@@ -1,0 +1,45 @@
+name: Inspect Steamcommunity 302 CLI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Download official Linux package
+        run: |
+          curl --fail --location --show-error \
+            --output steam302.tar.gz \
+            https://www.dogfight360.com/blog/wp-content/uploads/2026/02/steamcommunity_302_Linux_AMD64_V14.0.02.tar.gz
+          printf '%s  %s\n' \
+            5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f \
+            steam302.tar.gz | sha256sum --check
+          tar -xzf steam302.tar.gz
+
+      - name: Inspect CLI without root privileges
+        working-directory: Steamcommunity_302
+        run: |
+          chmod +x steamcommunity_302.cli steamcommunity_302.caddy
+          timeout 10s ./steamcommunity_302.cli --help > cli-help.log 2>&1 || true
+          timeout 15s ./steamcommunity_302.cli > cli-run.log 2>&1 || true
+          find . -maxdepth 2 -type f -printf '%P\n' | sort > generated-files.log
+          if [ -f S302.ini ]; then
+            cp S302.ini S302.generated.ini
+          fi
+
+      - name: Upload inspection output
+        uses: actions/upload-artifact@v4
+        with:
+          name: steam302-cli-inspection
+          path: |
+            Steamcommunity_302/cli-help.log
+            Steamcommunity_302/cli-run.log
+            Steamcommunity_302/generated-files.log
+            Steamcommunity_302/S302.generated.ini
+          if-no-files-found: warn
+          retention-days: 1
