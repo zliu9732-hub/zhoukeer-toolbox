@@ -211,6 +211,45 @@ test_localizer_runtime_files_packaged() {
     [ ! -e "$localizer_dir/node_modules" ] || fail "更新包不应包含周克儿汉化开发依赖"
 }
 
+test_runtime_scripts_packaged() {
+    local case_root="$TMP_ROOT/runtime-scripts"
+    local install_dir="$case_root/install"
+
+    run_installer "$case_root/home" "$install_dir"
+
+    [ -s "$install_dir/scripts/steam_shortcut.py" ] || \
+        fail "安装目录缺少 Epic/战网 Steam 入库组件"
+    [ -x "$install_dir/scripts/install-decky-plugin.sh" ] || \
+        fail "安装目录缺少可执行的 Decky 官方插件安装脚本"
+}
+
+test_install_from_replaced_workdir() {
+    local case_root="$TMP_ROOT/replaced-workdir"
+    local install_dir="$case_root/install"
+    local output
+
+    mkdir -p "$case_root/home" "$install_dir"
+    printf 'old install\n' > "$install_dir/old-version.txt"
+    output="$(
+        cd "$install_dir"
+        (
+            uname() {
+                echo Linux
+            }
+            export -f uname
+            HOME="$case_root/home" \
+                ZHOUKEER_INSTALL_DIR="$install_dir" \
+                bash "$PROJECT_ROOT/install.sh" 2>&1
+        )
+    )" || fail "从旧安装目录内执行更新失败"
+
+    if printf '%s\n' "$output" | grep -Eq 'getcwd|无法访问父目录|No such file or directory'; then
+        fail "替换安装目录时仍产生失效工作目录错误"
+    fi
+    [ -s "$install_dir/scripts/steam_shortcut.py" ] || \
+        fail "替换更新后 Steam 入库组件缺失"
+}
+
 test_blank_config_migration
 test_custom_config_preserved
 test_retired_rustdesk_config_removed
@@ -218,5 +257,7 @@ test_retired_decky_installer_config_removed
 test_missing_config_created
 test_dry_run_has_no_side_effects
 test_localizer_runtime_files_packaged
+test_runtime_scripts_packaged
+test_install_from_replaced_workdir
 
 echo "PASS: 配置迁移测试全部通过"

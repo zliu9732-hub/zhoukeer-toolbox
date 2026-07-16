@@ -12,7 +12,9 @@ RELEASE_DIR="$TMP_ROOT/release"
 REMOTE_DIR="$TMP_ROOT/remote"
 STATE_DIR="$TMP_ROOT/state"
 CURL_LOG="$STATE_DIR/curl.log"
-mkdir -p "$BIN_DIR" "$INSTALL_DIR" "$RELEASE_DIR" "$REMOTE_DIR/dist" "$STATE_DIR"
+mkdir -p \
+    "$BIN_DIR" "$INSTALL_DIR" "$RELEASE_DIR" "$REMOTE_DIR/dist" \
+    "$STATE_DIR" "$TMP_ROOT/home"
 
 cp "$PROJECT_ROOT/update.sh" "$INSTALL_DIR/update.sh"
 grep -Fq 'VERSION_CONNECT_TIMEOUT="${ZHOUKEER_VERSION_CONNECT_TIMEOUT:-8}"' "$INSTALL_DIR/update.sh"
@@ -119,17 +121,22 @@ touch "$FAKE_APP/.zhoukeer-installed"
 cat > "$FAKE_APP/update.sh" <<'SCRIPT'
 #!/bin/bash
 printf '%s\n' "$*" > "$FAKE_STARTUP_CALL"
+[ -z "${FAKE_UPDATE_CWD:-}" ] || printf '%s\n' "$PWD" > "$FAKE_UPDATE_CWD"
 exit "${FAKE_UPDATE_STATUS:-0}"
 SCRIPT
 cat > "$FAKE_APP/main.sh" <<'SCRIPT'
 #!/bin/bash
 touch "$FAKE_MAIN_CALLED"
+[ -z "${FAKE_MAIN_CWD:-}" ] || printf '%s\n' "$PWD" > "$FAKE_MAIN_CWD"
 SCRIPT
 chmod +x "$FAKE_APP/launch.sh" "$FAKE_APP/update.sh" "$FAKE_APP/main.sh"
 
 FAKE_STARTUP_CALL="$STATE_DIR/startup.call" \
 FAKE_MAIN_CALLED="$STATE_DIR/main.called" \
+FAKE_UPDATE_CWD="$STATE_DIR/update.cwd" \
+FAKE_MAIN_CWD="$STATE_DIR/main.cwd" \
 FAKE_UPDATE_STATUS=9 \
+HOME="$TMP_ROOT/home" \
 ZHOUKEER_LAUNCH_LOG="$STATE_DIR/launcher.log" \
 PATH="$BIN_DIR:/usr/bin:/bin" \
     bash "$FAKE_APP/launch.sh" --run-main >/dev/null
@@ -139,5 +146,13 @@ test -f "$STATE_DIR/main.called" || {
     exit 1
 }
 grep -Fq '继续当前版本' "$STATE_DIR/launcher.log"
+[ "$(cat "$STATE_DIR/update.cwd")" = "$TMP_ROOT/home" ] || {
+    echo "FAIL: 启动更新前没有离开可能被替换的安装目录"
+    exit 1
+}
+[ "$(cat "$STATE_DIR/main.cwd")" = "$FAKE_APP" ] || {
+    echo "FAIL: 更新后没有进入当前安装目录再启动主程序"
+    exit 1
+}
 
 echo "PASS: 启动检测、自动更新、版本跳过和失败回退测试通过"

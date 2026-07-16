@@ -402,6 +402,8 @@ if ! find "$PACKAGE_DIR" -type f -name '*.sh' -exec bash -n {} \;; then
 fi
 
 echo "[4/4] 调用安装器..."
+# 安装器会原子替换 PROJECT_ROOT；从安装目录内启动更新时必须先离开旧目录。
+cd "$HOME" 2>/dev/null || cd "$(dirname "$PROJECT_ROOT")" 2>/dev/null || cd / || exit 1
 ZHOUKEER_INSTALL_DIR="$PROJECT_ROOT" bash "$INSTALLER_PATH"
 
 # 安装目录采用原子替换；恢复当前工作目录，避免调用方继续引用已删除的旧目录。

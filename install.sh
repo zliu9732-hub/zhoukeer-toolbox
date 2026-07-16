@@ -393,6 +393,7 @@ copy_dir_files modules
 copy_dir_files utils
 copy_dir_files config
 copy_dir_files assets
+copy_dir_files scripts
 copy_zhoukeer_localizer
 
 # 标记由安装器管理的目录，启动器只在这类目录中执行自动更新。
@@ -428,6 +429,12 @@ if ! find "$STAGING_DIR" -type f -name '*.sh' -exec bash -n {} \;; then
     exit 1
 fi
 find "$STAGING_DIR" -maxdepth 3 -type f -name "*.sh" -exec chmod +x {} +
+
+# 安装目录即将被原子替换。先离开它，避免从工具箱内部发起更新时，
+# 当前 Shell 落在已删除目录并持续输出 getcwd/chdir 错误。
+if ! cd "$INSTALL_PARENT" 2>/dev/null; then
+    cd "$HOME" 2>/dev/null || cd / || exit 1
+fi
 
 if [ -d "$INSTALL_DIR" ]; then
     SWAP_STARTED=1

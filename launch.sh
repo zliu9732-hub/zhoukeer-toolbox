@@ -74,6 +74,10 @@ run_startup_update() {
 
     printf '%s\n' "正在检查工具箱更新..."
     launcher_log "开始启动自动更新检测"
+
+    # Konsole 默认工作目录就是安装目录，更新时该目录会被原子替换。
+    # 提前移到稳定目录，更新后再进入新版本，避免父进程保留已删除的 cwd。
+    cd "$HOME" 2>/dev/null || cd / || true
     if command -v tee >/dev/null 2>&1; then
         bash "$PROJECT_ROOT/update.sh" --startup 2>&1 | tee -a "$LAUNCH_LOG"
         status=${PIPESTATUS[0]}
@@ -81,6 +85,7 @@ run_startup_update() {
         bash "$PROJECT_ROOT/update.sh" --startup >> "$LAUNCH_LOG" 2>&1
         status=$?
     fi
+    cd "$PROJECT_ROOT" 2>/dev/null || cd "$HOME" 2>/dev/null || cd / || true
 
     if [ "$status" -eq 0 ]; then
         launcher_log "启动自动更新检测完成"
