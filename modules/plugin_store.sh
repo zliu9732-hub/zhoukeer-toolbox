@@ -26,20 +26,31 @@ DECKY_TMP_DIR=""
 LSFG_OFFICIAL_DIRECTORY="Decky LSFG-VK"
 LSFG_OFFICIAL_VERSION="0.12.5"
 
-# 仅迁移工具箱曾写入的固定123默认值；用户自定义地址保持不动。
+# 旧版本将三款插件指向工具箱 123 目录；这些路径可能过期，统一迁移到
+# 作者固定 Release。其他插件的用户自定义下载地址不会受影响。
 LEGACY_DECKY_LSFG_URL="https://1846467258.cdn.123clouddisk.com/1846467258/%E5%B7%A5%E5%85%B7%E7%AE%B1/%E5%B0%8F%E9%BB%84%E9%B8%ADv0.12.3%E6%B1%89%E5%8C%96%E7%89%88.zip"
 LEGACY_DECKY_FSR4_URL="https://1846467258.cdn.123clouddisk.com/1846467258/%E5%B7%A5%E5%85%B7%E7%AE%B1/Decky-Framegen.zip"
 LEGACY_DECKY_CHEATDECK_URL="https://1846467258.cdn.123clouddisk.com/1846467258/%E5%B7%A5%E5%85%B7%E7%AE%B1/CheatDeck.zip"
 
-if [ "${DECKY_LSFG_URL:-}" = "$LEGACY_DECKY_LSFG_URL" ]; then
+is_legacy_feature_plugin_url() {
+    case "${1:-}" in
+        "https://1846467258.cdn.123clouddisk.com/1846467258/"*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+if [ "${DECKY_LSFG_URL:-}" = "$LEGACY_DECKY_LSFG_URL" ] || \
+    is_legacy_feature_plugin_url "${DECKY_LSFG_URL:-}"; then
     DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
     DECKY_LSFG_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
 fi
-if [ "${DECKY_FSR4_URL:-}" = "$LEGACY_DECKY_FSR4_URL" ]; then
+if [ "${DECKY_FSR4_URL:-}" = "$LEGACY_DECKY_FSR4_URL" ] || \
+    is_legacy_feature_plugin_url "${DECKY_FSR4_URL:-}"; then
     DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip"
     DECKY_FSR4_SHA256="236dc5aef5c908d905a848d7e448689634479ab61cd9184154ba8a725b3f2089"
 fi
-if [ "${DECKY_CHEATDECK_URL:-}" = "$LEGACY_DECKY_CHEATDECK_URL" ]; then
+if [ "${DECKY_CHEATDECK_URL:-}" = "$LEGACY_DECKY_CHEATDECK_URL" ] || \
+    is_legacy_feature_plugin_url "${DECKY_CHEATDECK_URL:-}"; then
     DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.2.1/CheatDeck.zip"
     DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
 fi
@@ -383,42 +394,57 @@ download_verified_package() {
     local expected_sha256="$3"
     local output="$4"
     local actual_sha256
+    local curl_status
+    local attempt
+    local retry_options=(--retry 5 --retry-delay 2)
 
     if [ -z "$url" ] || [ -z "$expected_sha256" ]; then
         echo "$name 的下载配置不完整，请先更新工具箱。"
         return 1
     fi
 
-    echo "正在从固定官方发布地址下载 $name ..."
-    if ! curl \
-        --fail \
-        --location \
-        --show-error \
-        --progress-bar \
-        --proto '=https' \
-        --proto-redir '=https' \
-        --connect-timeout 15 \
-        --max-time 1200 \
-        --retry 3 \
-        --retry-delay 2 \
-        --output "$output" \
-        "$url"; then
-        rm -f -- "$output"
-        echo "$name 下载失败，未改动现有文件。"
-        return 1
+    # SteamOS 自带 curl 支持 retry-all-errors；老版本则保持普通重试，
+    # 不因一个未知参数而让整项安装直接失败。
+    if curl --help all 2>/dev/null | grep -Fq -- '--retry-all-errors'; then
+        retry_options+=(--retry-all-errors)
     fi
 
-    actual_sha256="$(calculate_decky_sha256 "$output")" || {
+    for attempt in 1 2; do
         rm -f -- "$output"
-        echo "无法校验 $name，已停止安装。"
-        return 1
-    }
-    if [ "$actual_sha256" != "$expected_sha256" ]; then
+        echo "正在从作者官方 Release 下载 $name（第 $attempt/2 轮）..."
+        if curl \
+            --fail \
+            --location \
+            --show-error \
+            --progress-bar \
+            --proto '=https' \
+            --proto-redir '=https' \
+            --connect-timeout 15 \
+            --max-time 1200 \
+            "${retry_options[@]}" \
+            --output "$output" \
+            "$url"; then
+            actual_sha256="$(calculate_decky_sha256 "$output")" || {
+                rm -f -- "$output"
+                echo "无法校验 $name，已停止安装。"
+                return 1
+            }
+            if [ "$actual_sha256" = "$expected_sha256" ]; then
+                echo "$name 下载完成并通过完整性校验。"
+                return 0
+            fi
+            echo "$name 第 $attempt/2 轮下载不完整，校验失败，正在重新获取。"
+        else
+            curl_status=$?
+            echo "$name 第 $attempt/2 轮下载失败（curl 退出码：$curl_status）。"
+        fi
         rm -f -- "$output"
-        echo "$name 下载不完整，校验失败，已删除临时文件。"
-        return 1
-    fi
-    echo "$name 下载完成并通过完整性校验。"
+        [ "$attempt" -eq 2 ] || sleep 3
+    done
+
+    echo "$name 下载失败，两轮均未成功，未改动现有文件。"
+    echo "请确认桌面的 Steamcommunity 302 已勾选 Steam 和 GitHub 并点击“启动服务”，再单独重试该插件。"
+    return 1
 }
 
 archive_paths_are_safe() {

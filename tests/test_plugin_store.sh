@@ -33,7 +33,11 @@ grep -Fq 'DECKY_FSR4_SHA256="236dc5aef5c908d905a848d7e448689634479ab61cd9184154b
 grep -Fq 'DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"' \
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'LEGACY_DECKY_LSFG_URL' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'is_legacy_feature_plugin_url' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq -- '--retry-all-errors' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '第 $attempt/2 轮下载失败' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '两轮均未成功' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_tree_atomically' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Lossless Scaling 的 Steam 正版页面' "$PROJECT_ROOT/modules/plugin_store.sh"
