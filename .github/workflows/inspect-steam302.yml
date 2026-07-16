@@ -43,3 +43,49 @@ jobs:
             Steamcommunity_302/S302.generated.ini
           if-no-files-found: warn
           retention-days: 1
+
+  inspect-arch-gui:
+    runs-on: ubuntu-24.04
+    container: archlinux:latest
+    timeout-minutes: 12
+    steps:
+      - name: Install Arch Linux runtime dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm \
+            ca-certificates curl coreutils findutils grep libnetfilter_queue \
+            nss tar xdotool xorg-server-xvfb
+
+      - name: Download official Linux package
+        run: |
+          curl --fail --location --show-error \
+            --output steam302.tar.gz \
+            https://www.dogfight360.com/blog/wp-content/uploads/2026/02/steamcommunity_302_Linux_AMD64_V14.0.02.tar.gz
+          printf '%s  %s\n' \
+            5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f \
+            steam302.tar.gz | sha256sum --check
+          tar -xzf steam302.tar.gz
+
+      - name: Start official GUI in an isolated virtual display
+        working-directory: Steamcommunity_302
+        env:
+          HOME: /tmp/steam302-home
+        run: |
+          mkdir -p "$HOME"
+          chmod +x Steamcommunity_302 steamcommunity_302.cli steamcommunity_302.caddy
+          xvfb-run -a timeout 30s ./Steamcommunity_302 > arch-gui.log 2>&1 || true
+          find . -maxdepth 2 -type f -printf '%P\n' | sort > arch-generated-files.log
+          if [ -f S302.ini ]; then
+            cp S302.ini S302.arch.generated.ini
+          fi
+
+      - name: Upload Arch GUI inspection output
+        uses: actions/upload-artifact@v4
+        with:
+          name: steam302-arch-gui-inspection
+          path: |
+            Steamcommunity_302/arch-gui.log
+            Steamcommunity_302/arch-generated-files.log
+            Steamcommunity_302/S302.arch.generated.ini
+          if-no-files-found: warn
+          retention-days: 1
