@@ -1,4 +1,4 @@
-export const AUTHOR_NOTICE = "闲鱼双叶汉化制作，请支持汉化者";
+export const AUTHOR_NOTICE = "闲鱼双叶汉化制作，请支持插件原作者与汉化者";
 
 export type TranslationEntry = {
   plugin: string;

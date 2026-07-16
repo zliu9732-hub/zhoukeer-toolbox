@@ -140,7 +140,7 @@ plugin_menu() {
             features "一键安装常用功能插件（小黄鸭、FSR4、CheatDeck）" \
             all "一键安装当前列表全部插件（共28款）" \
             browse "浏览官方插件（分页｜中文说明）" \
-            localizer "安装周克儿汉化（测试版）" \
+            localizer "安装周克儿汉化（修复版）" \
             uninstall "一键清空已装插件" \
             back "返回主菜单")" || return 0
         case "$choice" in
@@ -163,7 +163,7 @@ plugin_menu() {
                 plugin_official_gui_pages
                 ;;
             localizer)
-                gui_confirm "这是独立的 Decky 汉化层测试版：不会改写原插件文件，首批仅覆盖基础文案。安装后请回游戏模式，在 Decky 菜单中启用。是否继续？" && \
+                gui_confirm "这是独立的 Decky 汉化层修复版：不会改写原插件文件，会持续处理已知可见文案。安装后请回游戏模式，在 Decky 菜单中启用。是否继续？" && \
                     run_gui_action "安装周克儿汉化" bash "$PROJECT_ROOT/modules/plugin_store.sh" localizer
                 ;;
             uninstall)

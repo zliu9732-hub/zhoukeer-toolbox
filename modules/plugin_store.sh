@@ -545,9 +545,9 @@ install_zhoukeer_localizer() {
         echo "周克儿汉化安装失败，已尽量保留旧版本。"
         return 1
     }
-    echo "周克儿汉化文件已安装，正在让 Decky 重新扫描插件目录..."
-    reload_decky_plugins "Decky 已重新加载。返回游戏模式后，在插件列表中打开“周克儿汉化”。"
-    log "周克儿汉化安装完成"
+    echo "周克儿汉化修复版已安装，正在让 Decky 重新扫描插件目录..."
+    reload_decky_plugins "Decky 已重新加载。返回游戏模式后，在插件列表中打开“周克儿汉化”，再打开需要汉化的插件页面。"
+    log "周克儿汉化修复版安装完成"
 }
 
 uninstall_all_decky_plugins() {

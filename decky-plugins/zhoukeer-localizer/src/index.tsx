@@ -11,7 +11,6 @@ import { AUTHOR_NOTICE, TRANSLATIONS, type TranslationEntry } from "./translatio
 
 const ENABLED_KEY = "zhoukeer-localizer-enabled";
 const FOOTER_ATTRIBUTE = "data-zhoukeer-localizer-footer";
-const PLUGIN_ROOT_ATTRIBUTE = "data-zhoukeer-localizer-plugin";
 const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "TEXTAREA"]);
 const RESCAN_INTERVAL_MS = 1000;
 
@@ -23,19 +22,37 @@ function writeEnabled(enabled: boolean): void {
   localStorage.setItem(ENABLED_KEY, String(enabled));
 }
 
+function normalizeText(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
 function translationEntryFor(value: string): TranslationEntry | undefined {
-  const normalized = value.trim();
-  return TRANSLATIONS.find((entry) =>
-    normalized === entry.plugin ||
-    normalized === entry.chineseName ||
-    (entry.aliases ?? []).includes(normalized)
-  );
+  const normalized = normalizeText(value);
+  return TRANSLATIONS.find((entry) => {
+    const names = [entry.plugin, entry.chineseName, ...(entry.aliases ?? [])];
+    return names.some((name) =>
+      normalized === name ||
+      new RegExp(`^${escapeRegex(name)}(?:\\s|$)`).test(normalized)
+    );
+  });
+}
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function pluginNameStrings(entry: TranslationEntry): Record<string, string> {
   return Object.fromEntries(
     [entry.plugin, ...(entry.aliases ?? [])].map((name) => [name, entry.chineseName])
   );
+}
+
+function allTranslationStrings(): Record<string, string> {
+  const strings: Record<string, string> = {};
+  for (const entry of TRANSLATIONS) {
+    Object.assign(strings, pluginNameStrings(entry), entry.strings);
+  }
+  return strings;
 }
 
 function translateTextNode(node: Text, strings: Record<string, string>): number {
@@ -78,24 +95,8 @@ function translateTextIn(root: Node, strings: Record<string, string>): number {
   return translatedCount;
 }
 
-function findPluginRoot(title: HTMLElement): HTMLElement | undefined {
-  let candidate: HTMLElement | null = title.parentElement;
-  for (let level = 0; candidate && level < 6; level += 1, candidate = candidate.parentElement) {
-    if (candidate.querySelector('[class*="PanelSectionRow"]')) return candidate;
-  }
-  return undefined;
-}
-
 function activatePluginTitle(title: HTMLElement, entry: TranslationEntry): number {
-  let translatedCount = translateTextIn(title, pluginNameStrings(entry));
-  const pluginRoot = findPluginRoot(title);
-  if (!pluginRoot) return translatedCount;
-
-  pluginRoot.setAttribute(PLUGIN_ROOT_ATTRIBUTE, entry.plugin);
-  translatedCount += translateTextIn(pluginRoot, {
-    ...pluginNameStrings(entry),
-    ...entry.strings
-  });
+  const translatedCount = translateTextIn(title, pluginNameStrings(entry));
   addAuthorFooter(title);
   return translatedCount;
 }
@@ -117,19 +118,13 @@ function processNode(root: Node): number {
   if (!scanRoot) return 0;
 
   let translatedCount = 0;
-  const activeRoot = scanRoot instanceof HTMLElement
-    ? scanRoot.closest<HTMLElement>(`[${PLUGIN_ROOT_ATTRIBUTE}]`)
-    : undefined;
-  if (activeRoot) {
-    const plugin = activeRoot.getAttribute(PLUGIN_ROOT_ATTRIBUTE);
-    const entry = TRANSLATIONS.find((item) => item.plugin === plugin);
-    if (entry) translatedCount += translateTextIn(scanRoot, entry.strings);
-  }
-
+  // Decky 的插件页面会随版本更换组件类名，不能依赖某个固定卡片结构。
+  // 先翻译所有已知可见文本，再额外标记插件标题并补上作者说明。
   for (const title of findKnownPluginTitles(scanRoot)) {
     const entry = translationEntryFor(title.textContent ?? "");
     if (entry) translatedCount += activatePluginTitle(title, entry);
   }
+  translatedCount += translateTextIn(scanRoot, allTranslationStrings());
   return translatedCount;
 }
 
@@ -207,7 +202,7 @@ function Content() {
       </PanelSectionRow>
       <PanelSectionRow>
         <div style={{ fontSize: "12px", lineHeight: "1.45", opacity: 0.75 }}>
-          已接入 {TRANSLATIONS.length} 个插件的基础词库，并会兼容扫描动态加载的 Decky 页面。
+          已接入 {TRANSLATIONS.length} 个插件的基础词库，会持续扫描动态加载的 Decky 页面。
           <br />
           {AUTHOR_NOTICE}
         </div>

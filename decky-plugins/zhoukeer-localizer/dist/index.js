@@ -82,7 +82,7 @@ function FaLanguage (props) {
   return GenIcon({"attr":{"viewBox":"0 0 640 512"},"child":[{"tag":"path","attr":{"d":"M152.1 236.2c-3.5-12.1-7.8-33.2-7.8-33.2h-.5s-4.3 21.1-7.8 33.2l-11.1 37.5H163zM616 96H336v320h280c13.3 0 24-10.7 24-24V120c0-13.3-10.7-24-24-24zm-24 120c0 6.6-5.4 12-12 12h-11.4c-6.9 23.6-21.7 47.4-42.7 69.9 8.4 6.4 17.1 12.5 26.1 18 5.5 3.4 7.3 10.5 4.1 16.2l-7.9 13.9c-3.4 5.9-10.9 7.8-16.7 4.3-12.6-7.8-24.5-16.1-35.4-24.9-10.9 8.7-22.7 17.1-35.4 24.9-5.8 3.5-13.3 1.6-16.7-4.3l-7.9-13.9c-3.2-5.6-1.4-12.8 4.2-16.2 9.3-5.7 18-11.7 26.1-18-7.9-8.4-14.9-17-21-25.7-4-5.7-2.2-13.6 3.7-17.1l6.5-3.9 7.3-4.3c5.4-3.2 12.4-1.7 16 3.4 5 7 10.8 14 17.4 20.9 13.5-14.2 23.8-28.9 30-43.2H412c-6.6 0-12-5.4-12-12v-16c0-6.6 5.4-12 12-12h64v-16c0-6.6 5.4-12 12-12h16c6.6 0 12 5.4 12 12v16h64c6.6 0 12 5.4 12 12zM0 120v272c0 13.3 10.7 24 24 24h280V96H24c-13.3 0-24 10.7-24 24zm58.9 216.1L116.4 167c1.7-4.9 6.2-8.1 11.4-8.1h32.5c5.1 0 9.7 3.3 11.4 8.1l57.5 169.1c2.6 7.8-3.1 15.9-11.4 15.9h-22.9a12 12 0 0 1-11.5-8.6l-9.4-31.9h-60.2l-9.1 31.8c-1.5 5.1-6.2 8.7-11.5 8.7H70.3c-8.2 0-14-8.1-11.4-15.9z"},"child":[]}]})(props);
 }
 
-const AUTHOR_NOTICE = "闲鱼双叶汉化制作，请支持汉化者";
+const AUTHOR_NOTICE = "闲鱼双叶汉化制作，请支持插件原作者与汉化者";
 // Keep every plugin's wording isolated so updates can be reviewed and released in small batches.
 const TRANSLATIONS = [
     {
@@ -258,7 +258,6 @@ const TRANSLATIONS = [
 
 const ENABLED_KEY = "zhoukeer-localizer-enabled";
 const FOOTER_ATTRIBUTE = "data-zhoukeer-localizer-footer";
-const PLUGIN_ROOT_ATTRIBUTE = "data-zhoukeer-localizer-plugin";
 const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "TEXTAREA"]);
 const RESCAN_INTERVAL_MS = 1000;
 function readEnabled() {
@@ -267,14 +266,29 @@ function readEnabled() {
 function writeEnabled(enabled) {
     localStorage.setItem(ENABLED_KEY, String(enabled));
 }
+function normalizeText(value) {
+    return value.replace(/\s+/g, " ").trim();
+}
 function translationEntryFor(value) {
-    const normalized = value.trim();
-    return TRANSLATIONS.find((entry) => normalized === entry.plugin ||
-        normalized === entry.chineseName ||
-        (entry.aliases ?? []).includes(normalized));
+    const normalized = normalizeText(value);
+    return TRANSLATIONS.find((entry) => {
+        const names = [entry.plugin, entry.chineseName, ...(entry.aliases ?? [])];
+        return names.some((name) => normalized === name ||
+            new RegExp(`^${escapeRegex(name)}(?:\\s|$)`).test(normalized));
+    });
+}
+function escapeRegex(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 function pluginNameStrings(entry) {
     return Object.fromEntries([entry.plugin, ...(entry.aliases ?? [])].map((name) => [name, entry.chineseName]));
+}
+function allTranslationStrings() {
+    const strings = {};
+    for (const entry of TRANSLATIONS) {
+        Object.assign(strings, pluginNameStrings(entry), entry.strings);
+    }
+    return strings;
 }
 function translateTextNode(node, strings) {
     const original = node.nodeValue;
@@ -314,24 +328,8 @@ function translateTextIn(root, strings) {
     }
     return translatedCount;
 }
-function findPluginRoot(title) {
-    let candidate = title.parentElement;
-    for (let level = 0; candidate && level < 6; level += 1, candidate = candidate.parentElement) {
-        if (candidate.querySelector('[class*="PanelSectionRow"]'))
-            return candidate;
-    }
-    return undefined;
-}
 function activatePluginTitle(title, entry) {
-    let translatedCount = translateTextIn(title, pluginNameStrings(entry));
-    const pluginRoot = findPluginRoot(title);
-    if (!pluginRoot)
-        return translatedCount;
-    pluginRoot.setAttribute(PLUGIN_ROOT_ATTRIBUTE, entry.plugin);
-    translatedCount += translateTextIn(pluginRoot, {
-        ...pluginNameStrings(entry),
-        ...entry.strings
-    });
+    const translatedCount = translateTextIn(title, pluginNameStrings(entry));
     addAuthorFooter(title);
     return translatedCount;
 }
@@ -350,20 +348,14 @@ function processNode(root) {
     if (!scanRoot)
         return 0;
     let translatedCount = 0;
-    const activeRoot = scanRoot instanceof HTMLElement
-        ? scanRoot.closest(`[${PLUGIN_ROOT_ATTRIBUTE}]`)
-        : undefined;
-    if (activeRoot) {
-        const plugin = activeRoot.getAttribute(PLUGIN_ROOT_ATTRIBUTE);
-        const entry = TRANSLATIONS.find((item) => item.plugin === plugin);
-        if (entry)
-            translatedCount += translateTextIn(scanRoot, entry.strings);
-    }
+    // Decky 的插件页面会随版本更换组件类名，不能依赖某个固定卡片结构。
+    // 先翻译所有已知可见文本，再额外标记插件标题并补上作者说明。
     for (const title of findKnownPluginTitles(scanRoot)) {
         const entry = translationEntryFor(title.textContent ?? "");
         if (entry)
             translatedCount += activatePluginTitle(title, entry);
     }
+    translatedCount += translateTextIn(scanRoot, allTranslationStrings());
     return translatedCount;
 }
 class TranslationEngine {
@@ -422,7 +414,7 @@ function Content() {
                 : "未发现可处理文字。请先打开目标插件页面，再点击扫描。"
         });
     };
-    return (SP_JSX.jsxs(DFL.PanelSection, { title: "\u5468\u514B\u513F\u6C49\u5316", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: toggle, children: enabled ? "已启用，点击暂停" : "已暂停，点击启用" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: scanNow, children: "\u7ACB\u5373\u626B\u63CF\u5F53\u524D\u9875\u9762" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs("div", { style: { fontSize: "12px", lineHeight: "1.45", opacity: 0.75 }, children: ["\u5DF2\u63A5\u5165 ", TRANSLATIONS.length, " \u4E2A\u63D2\u4EF6\u7684\u57FA\u7840\u8BCD\u5E93\uFF0C\u5E76\u4F1A\u517C\u5BB9\u626B\u63CF\u52A8\u6001\u52A0\u8F7D\u7684 Decky \u9875\u9762\u3002", SP_JSX.jsx("br", {}), AUTHOR_NOTICE] }) })] }));
+    return (SP_JSX.jsxs(DFL.PanelSection, { title: "\u5468\u514B\u513F\u6C49\u5316", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: toggle, children: enabled ? "已启用，点击暂停" : "已暂停，点击启用" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", onClick: scanNow, children: "\u7ACB\u5373\u626B\u63CF\u5F53\u524D\u9875\u9762" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs("div", { style: { fontSize: "12px", lineHeight: "1.45", opacity: 0.75 }, children: ["\u5DF2\u63A5\u5165 ", TRANSLATIONS.length, " \u4E2A\u63D2\u4EF6\u7684\u57FA\u7840\u8BCD\u5E93\uFF0C\u4F1A\u6301\u7EED\u626B\u63CF\u52A8\u6001\u52A0\u8F7D\u7684 Decky \u9875\u9762\u3002", SP_JSX.jsx("br", {}), AUTHOR_NOTICE] }) })] }));
 }
 var index = definePlugin(() => {
     engine.start();
