@@ -54,7 +54,9 @@ jobs:
           pacman -Syu --noconfirm
           pacman -S --noconfirm \
             ca-certificates curl coreutils findutils grep libnetfilter_queue \
-            nss tar xdotool xorg-server-xvfb
+            fontconfig freetype2 imagemagick libglvnd libice libsm libx11 \
+            libxext libxkbcommon libxrender nss tar ttf-dejavu xdotool \
+            xorg-server-xvfb
 
       - name: Download official Linux package
         run: |
@@ -73,11 +75,24 @@ jobs:
         run: |
           mkdir -p "$HOME"
           chmod +x Steamcommunity_302 steamcommunity_302.cli steamcommunity_302.caddy
-          xvfb-run -a timeout 30s ./Steamcommunity_302 > arch-gui.log 2>&1 || true
+          Xvfb :99 -screen 0 1280x800x24 > xvfb.log 2>&1 &
+          xvfb_pid=$!
+          export DISPLAY=:99
+          ./Steamcommunity_302 > arch-gui.log 2>&1 &
+          app_pid=$!
+          sleep 15
+          xdotool search --name '.*' getwindowname %@ > arch-windows.log 2>&1 || true
+          import -display :99 -window root arch-gui.png || true
+          sleep 5
+          kill "$app_pid" 2>/dev/null || true
+          wait "$app_pid" 2>/dev/null || true
+          kill "$xvfb_pid" 2>/dev/null || true
+          wait "$xvfb_pid" 2>/dev/null || true
           find . -maxdepth 2 -type f -printf '%P\n' | sort > arch-generated-files.log
           if [ -f S302.ini ]; then
             cp S302.ini S302.arch.generated.ini
           fi
+          find "$HOME" -maxdepth 5 -type f -printf '%p\n' | sort > arch-home-files.log
 
       - name: Upload Arch GUI inspection output
         uses: actions/upload-artifact@v4
@@ -85,7 +100,11 @@ jobs:
           name: steam302-arch-gui-inspection
           path: |
             Steamcommunity_302/arch-gui.log
+            Steamcommunity_302/arch-gui.png
             Steamcommunity_302/arch-generated-files.log
+            Steamcommunity_302/arch-home-files.log
+            Steamcommunity_302/arch-windows.log
+            Steamcommunity_302/xvfb.log
             Steamcommunity_302/S302.arch.generated.ini
           if-no-files-found: warn
           retention-days: 1
