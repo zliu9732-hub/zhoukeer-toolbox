@@ -8,8 +8,8 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../core/env.sh"
 source "$PROJECT_ROOT/core/logger.sh"
 
 DOWNLOAD_TIMEOUT="${ZHOUKEER_LAUNCHER_DOWNLOAD_TIMEOUT:-600}"
-WATCH_TIMEOUT="${ZHOUKEER_LAUNCHER_WATCH_TIMEOUT:-7200}"
-WATCH_INTERVAL="${ZHOUKEER_LAUNCHER_WATCH_INTERVAL:-10}"
+POST_INSTALL_TIMEOUT="${ZHOUKEER_LAUNCHER_POST_INSTALL_TIMEOUT:-300}"
+POST_INSTALL_INTERVAL="${ZHOUKEER_LAUNCHER_POST_INSTALL_INTERVAL:-5}"
 STEAM_SHORTCUT_HELPER="$PROJECT_ROOT/scripts/steam_shortcut.py"
 
 launcher_details() {
@@ -20,7 +20,7 @@ launcher_details() {
             LAUNCHER_URL="https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi"
             LAUNCHER_MIN_BYTES=52428800
             LAUNCHER_MAGIC="d0cf11e0"
-            LAUNCHER_TARGET_RELATIVE="Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe"
+            LAUNCHER_TARGET_RELATIVES="Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe"
             ;;
         battlenet)
             LAUNCHER_NAME="战网启动器"
@@ -28,7 +28,7 @@ launcher_details() {
             LAUNCHER_URL="https://www.battle.net/download/getInstallerForGame?os=win&installer=Battle.net-Setup.exe"
             LAUNCHER_MIN_BYTES=1048576
             LAUNCHER_MAGIC="4d5a"
-            LAUNCHER_TARGET_RELATIVE="Program Files (x86)/Battle.net/Battle.net.exe"
+            LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Battle.net/Battle.net Launcher.exe\nProgram Files (x86)/Battle.net/Battle.net.exe'
             ;;
         *)
             echo "未知启动器: $1"
@@ -138,16 +138,96 @@ start_steam() {
     "$steam_bin" >/dev/null 2>&1 &
 }
 
+find_launcher_in_prefix() {
+    local prefix_dir="$1"
+    local relative_path
+
+    while IFS= read -r relative_path; do
+        [ -n "$relative_path" ] || continue
+        if [ -f "$prefix_dir/pfx/drive_c/$relative_path" ]; then
+            printf '%s\n' "$prefix_dir/pfx/drive_c/$relative_path"
+            return 0
+        fi
+    done <<< "$LAUNCHER_TARGET_RELATIVES"
+    return 1
+}
+
 find_installed_launcher() {
     local steam_root="$1"
-    local relative_path="$2"
+    local relative_path
     local candidate
 
     [ -d "$steam_root/steamapps/compatdata" ] || return 1
-    candidate="$(find "$steam_root/steamapps/compatdata" -type f \
-        -path "*/pfx/drive_c/$relative_path" -print -quit 2>/dev/null)"
-    [ -n "$candidate" ] || return 1
-    printf '%s\n' "$candidate"
+    while IFS= read -r relative_path; do
+        [ -n "$relative_path" ] || continue
+        candidate="$(find "$steam_root/steamapps/compatdata" -type f \
+            -path "*/pfx/drive_c/$relative_path" -print -quit 2>/dev/null)"
+        if [ -n "$candidate" ]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done <<< "$LAUNCHER_TARGET_RELATIVES"
+    return 1
+}
+
+find_proton_runner() {
+    local steam_root="$1"
+    local compatibility_root
+    local candidate
+
+    if [ -n "${ZHOUKEER_PROTON_RUNNER:-}" ] && [ -x "$ZHOUKEER_PROTON_RUNNER" ]; then
+        printf '%s\n' "$ZHOUKEER_PROTON_RUNNER"
+        return 0
+    fi
+
+    for compatibility_root in \
+        "$HOME/.steam/root/compatibilitytools.d" \
+        "$HOME/.steam/steam/compatibilitytools.d" \
+        "$HOME/.local/share/Steam/compatibilitytools.d" \
+        "$steam_root/compatibilitytools.d"; do
+        [ -d "$compatibility_root" ] || continue
+        candidate="$(find "$compatibility_root" -mindepth 2 -maxdepth 2 \
+            -type f -path '*/GE-Proton*/proton' -perm -u+x -print 2>/dev/null | \
+            sort -V | tail -n 1)"
+        if [ -n "$candidate" ]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+
+    for candidate in \
+        "$steam_root/steamapps/common/Proton - Experimental/proton" \
+        "$steam_root/steamapps/common/Proton 10.0/proton"; do
+        if [ -x "$candidate" ]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+ensure_proton_runner() {
+    local steam_root="$1"
+    local runner
+
+    runner="$(find_proton_runner "$steam_root" || true)"
+    if [ -n "$runner" ]; then
+        printf '%s\n' "$runner"
+        return 0
+    fi
+
+    echo "未检测到可直接调用的 GE-Proton 或 Proton Experimental。" >&2
+    echo "正在自动安装工具箱内置的 GE-Proton，完成后继续启动官方安装器..." >&2
+    if ! bash "$PROJECT_ROOT/modules/ge_proton.sh" install >&2; then
+        echo "GE-Proton 自动安装失败，启动器尚未写入 Steam。" >&2
+        return 1
+    fi
+    runner="$(find_proton_runner "$steam_root" || true)"
+    [ -n "$runner" ] || {
+        echo "GE-Proton 已安装，但没有找到 proton 启动文件。" >&2
+        return 1
+    }
+    printf '%s\n' "$runner"
 }
 
 notify_launcher_ready() {
@@ -160,44 +240,93 @@ notify_launcher_ready() {
     echo "$message"
 }
 
-watch_for_installed_launcher() {
+run_launcher_installer() {
     local target="$1"
     local steam_root="$2"
-    local shortcut_file="$3"
-    local installer_file="$4"
+    local installer_file="$3"
+    local prefix_dir="$4"
+    local proton_runner="$5"
+    local status=0
     local elapsed=0
     local installed_file
 
     launcher_details "$target" || return 1
-    while [ "$elapsed" -lt "$WATCH_TIMEOUT" ]; do
-        installed_file="$(find_installed_launcher "$steam_root" "$LAUNCHER_TARGET_RELATIVE" || true)"
+    mkdir -p "$prefix_dir" || return 1
+    echo "正在使用 $(basename "$(dirname "$proton_runner")") 直接打开 $LAUNCHER_NAME 官方安装器..." >&2
+    echo "请在弹出的官方窗口中按提示完成安装；无需进入 Steam 选择兼容层。" >&2
+
+    case "$target" in
+        epic)
+            STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" \
+            STEAM_COMPAT_DATA_PATH="$prefix_dir" \
+            STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
+                "$proton_runner" run msiexec /i "$installer_file" || status=$?
+            ;;
+        battlenet)
+            STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" \
+            STEAM_COMPAT_DATA_PATH="$prefix_dir" \
+            STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
+                "$proton_runner" run "$installer_file" || status=$?
+            ;;
+    esac
+
+    while [ "$elapsed" -le "$POST_INSTALL_TIMEOUT" ]; do
+        installed_file="$(find_launcher_in_prefix "$prefix_dir" || true)"
         if [ -n "$installed_file" ]; then
-            stop_steam_for_vdf || return 1
-            python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" update \
-                --old-exe "$installer_file" --new-exe "$installed_file" || return 1
-            start_steam
-            notify_launcher_ready "$LAUNCHER_NAME"
-            log "$LAUNCHER_NAME 已自动切换到安装后的主EXE: $installed_file"
+            printf '%s\n' "$installed_file"
             return 0
         fi
-        sleep "$WATCH_INTERVAL"
-        elapsed=$((elapsed + WATCH_INTERVAL))
+        [ "$elapsed" -eq 0 ] && echo "官方安装器已退出，正在确认主程序文件..." >&2
+        sleep "$POST_INSTALL_INTERVAL"
+        elapsed=$((elapsed + POST_INSTALL_INTERVAL))
     done
-    echo "$LAUNCHER_NAME 安装监测已到时；下次点击工具箱中的同一安装项会重新检测。"
-    return 0
+    echo "没有在预期位置找到 $LAUNCHER_NAME 主程序。" >&2
+    if [ "$status" -ne 0 ]; then
+        echo "官方安装器退出码：$status" >&2
+    fi
+    echo "请确认没有在官方安装窗口中取消安装，然后重试。已下载的安装包和前缀会保留。" >&2
+    return 1
 }
 
-start_launcher_watch() {
+create_launcher_wrapper() {
     local target="$1"
     local steam_root="$2"
-    local shortcut_file="$3"
-    local installer_file="$4"
-    local log_dir="$APP_DIR/game-launchers/logs"
+    local prefix_dir="$3"
+    local proton_runner="$4"
+    local installed_file="$5"
+    local launcher_dir="$6"
+    local wrapper_file="$launcher_dir/launch-$target.sh"
+    local temporary_wrapper
 
-    mkdir -p "$log_dir" || return 1
-    nohup /usr/bin/env bash "$PROJECT_ROOT/modules/game_launchers.sh" watch \
-        "$target" "$steam_root" "$shortcut_file" "$installer_file" \
-        > "$log_dir/${target}-watch.log" 2>&1 &
+    temporary_wrapper="$(mktemp "$launcher_dir/.launch-${target}.XXXXXX")" || return 1
+    {
+        printf '%s\n' '#!/bin/bash' 'set -u'
+        printf 'STEAM_ROOT=%q\n' "$steam_root"
+        printf 'PREFIX_DIR=%q\n' "$prefix_dir"
+        printf 'PROTON_RUNNER=%q\n' "$proton_runner"
+        printf 'TARGET_EXE=%q\n' "$installed_file"
+        printf '%s\n' \
+            'if [ ! -x "$PROTON_RUNNER" ] || [ ! -f "$TARGET_EXE" ]; then' \
+            '    echo "启动器或兼容层文件缺失，请重新执行周克儿工具箱里的安装项。"' \
+            '    exit 1' \
+            'fi' \
+            'export STEAM_COMPAT_CLIENT_INSTALL_PATH="$STEAM_ROOT"' \
+            'export STEAM_COMPAT_DATA_PATH="$PREFIX_DIR"' \
+            'export STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0' \
+            'exec "$PROTON_RUNNER" run "$TARGET_EXE"'
+    } > "$temporary_wrapper" || {
+        rm -f "$temporary_wrapper"
+        return 1
+    }
+    chmod +x "$temporary_wrapper" || {
+        rm -f "$temporary_wrapper"
+        return 1
+    }
+    mv -f "$temporary_wrapper" "$wrapper_file" || {
+        rm -f "$temporary_wrapper"
+        return 1
+    }
+    printf '%s\n' "$wrapper_file"
 }
 
 install_launcher() {
@@ -207,8 +336,12 @@ install_launcher() {
     local temp_file
     local steam_root
     local shortcut_file
-    local shortcut_exe
+    local proton_runner
+    local prefix_dir
+    local wrapper_file
     local installed_file
+    local detected_prefix
+    local command_name
 
     launcher_details "$target" || return 1
     for command_name in curl od python3; do
@@ -226,6 +359,7 @@ install_launcher() {
     shortcut_file="$(find_shortcut_file "$steam_root")" || return 1
     launcher_dir="$APP_DIR/game-launchers/$target"
     installer_file="$launcher_dir/$LAUNCHER_FILE_NAME"
+    prefix_dir="$launcher_dir/compatdata"
     mkdir -p "$launcher_dir" || return 1
 
     if [ ! -f "$installer_file" ]; then
@@ -243,30 +377,39 @@ install_launcher() {
     fi
     verify_installer "$installer_file" || return 1
 
-    installed_file="$(find_installed_launcher "$steam_root" "$LAUNCHER_TARGET_RELATIVE" || true)"
-    shortcut_exe="${installed_file:-$installer_file}"
+    proton_runner="$(ensure_proton_runner "$steam_root")" || return 1
+    installed_file="$(find_launcher_in_prefix "$prefix_dir" || true)"
+    if [ -z "$installed_file" ]; then
+        installed_file="$(find_installed_launcher "$steam_root" || true)"
+        if [ -n "$installed_file" ]; then
+            detected_prefix="${installed_file%%/pfx/drive_c/*}"
+            [ -n "$detected_prefix" ] && prefix_dir="$detected_prefix"
+        fi
+    fi
+    if [ -z "$installed_file" ]; then
+        installed_file="$(run_launcher_installer \
+            "$target" "$steam_root" "$installer_file" "$prefix_dir" "$proton_runner")" || return 1
+    else
+        echo "已找到现有的 $LAUNCHER_NAME，跳过官方安装步骤。"
+    fi
+    wrapper_file="$(create_launcher_wrapper \
+        "$target" "$steam_root" "$prefix_dir" "$proton_runner" \
+        "$installed_file" "$launcher_dir")" || return 1
 
     stop_steam_for_vdf || return 1
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" add \
-        --name "$LAUNCHER_NAME" --exe "$shortcut_exe" \
-        --start-dir "$(dirname "$shortcut_exe")" || return 1
-    if [ -z "$installed_file" ]; then
-        start_launcher_watch "$target" "$steam_root" "$shortcut_file" "$installer_file" || return 1
-    fi
+        --name "$LAUNCHER_NAME" --exe "$wrapper_file" \
+        --start-dir "$launcher_dir" || return 1
     start_steam
 
-    if [ -n "$installed_file" ]; then
-        echo "$LAUNCHER_NAME 已安装，已确认 Steam 条目直接指向主 EXE。"
-    else
-        echo "$LAUNCHER_NAME 已加入 Steam 非 Steam 游戏列表。"
-        echo "首次请在 Steam 库运行它，并在兼容性中选择 PE 或 GE-Proton 10.0-4 后完成官方安装。"
-        echo "工具箱会检测同一 compatdata/pfx/drive_c 内的主 EXE，并自动把原 Steam 条目切换到启动器本体。"
-    fi
-    log "$LAUNCHER_NAME 安装器已下载或复用，并已加入Steam: $shortcut_exe"
+    notify_launcher_ready "$LAUNCHER_NAME"
+    echo "Steam 已重新打开；进入“非 Steam 游戏”即可直接启动，无需再选择兼容层。"
+    log "$LAUNCHER_NAME 已通过包装器加入Steam: $wrapper_file -> $installed_file"
 }
 
-case "${1:-}" in
-    epic|battlenet) install_launcher "$1" ;;
-    watch) watch_for_installed_launcher "${2:-}" "${3:-}" "${4:-}" "${5:-}" ;;
-    *) echo "用法: $0 {epic|battlenet}"; exit 1 ;;
-esac
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    case "${1:-}" in
+        epic|battlenet) install_launcher "$1" ;;
+        *) echo "用法: $0 {epic|battlenet}"; exit 1 ;;
+    esac
+fi

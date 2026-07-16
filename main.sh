@@ -165,25 +165,58 @@ common_software_menu() {
     local choice
 
     while true; do
-        draw_category_frame software "常用软件" "国内缓存优先，安装完成自动创建桌面图标"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "微信" "安装或修复微信，同步创建桌面快捷方式"
-        ui_touch_button 10 '\033[1;97;48;5;24m' "QQ" "安装或修复 QQ，同步创建桌面快捷方式"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "Firefox 浏览器" "官方 Flathub 安装，支持自动更新"
-        ui_touch_button 16 '\033[1;97;48;5;24m' "GE-Proton 兼容层" "安装到Steam兼容工具目录，无需管理员权限"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        draw_category_frame software "常用软件" "Linux 软件与 Windows 游戏启动器集中安装"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "微信" "安装或修复微信，同步创建桌面快捷方式"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "QQ" "安装或修复 QQ，同步创建桌面快捷方式"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "Firefox 浏览器" "官方 Flathub 安装，支持自动更新"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "Epic Games 启动器" "自动兼容安装并入库，完成后直接启动"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "战网启动器" "自动兼容安装并入库，完成后直接启动"
+        ui_touch_button 20 '\033[1;97;48;5;24m' "GE-Proton 兼容层" "安装到 Steam 兼容工具目录，无需管理员权限"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:wechat right:10-11:qq right:13-14:browser right:16-17:ge-proton right:18-19:home)"
+        choice="$(read_touch_menu right:5-6:wechat right:8-9:qq right:11-12:browser right:14-15:epic right:17-18:battlenet right:20-21:ge-proton right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
             wechat) confirm_and_run "安装微信" "腾讯官网AppImage；失败时保留原有版本" bash "$PROJECT_ROOT/modules/software.sh" wechat ;;
             qq) confirm_and_run "安装QQ" "通过上海交大与中科大 Flathub 国内缓存安装；完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" qq ;;
             browser) confirm_and_run "安装Firefox浏览器" "完整包安装；失败时保留原有版本" bash "$PROJECT_ROOT/modules/software.sh" browser ;;
+            epic) launcher_install_touch_guide epic ;;
+            battlenet) launcher_install_touch_guide battlenet ;;
             ge-proton) confirm_and_run "安装GE-Proton兼容层" "安装到Steam compatibilitytools.d目录；完成后需要重启Steam" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "software" ] || return 0
     done
+}
+
+launcher_install_touch_guide() {
+    local target="$1"
+    local title
+    local choice
+
+    case "$target" in
+        epic) title="Epic Games 启动器" ;;
+        battlenet) title="战网启动器" ;;
+        *) return 1 ;;
+    esac
+
+    draw_category_frame software "$title 一键安装" "兼容层选择、安装前缀和 Steam 入库由工具箱处理"
+    ui_panel_line 7 '\033[1;38;5;114m' "① 自动下载官方 Windows 安装程序"
+    ui_panel_line 9 '\033[1;38;5;45m' "② 自动选择现有 GE-Proton / PE；缺少时自动安装 GE-Proton"
+    ui_panel_line 11 '\033[1;38;5;220m' "③ 弹出官方安装窗口后，只需按官方向导点击安装"
+    ui_panel_line 13 '\033[1;38;5;45m' "④ 安装完成后自动找到主 EXE，并生成 Linux 启动包装器"
+    ui_panel_line 15 '\033[1;38;5;114m' "⑤ 自动写入并重新打开 Steam，库中可直接启动"
+    ui_panel_line 17 '\033[1;38;5;220m' "无需进入兼容性页面，也无需手动点安装器的“开始游戏”"
+    ui_touch_button 20 '\033[1;30;48;5;114m' "开始一键安装" "仅官方安装窗口中的协议与安装按钮需本人确认"
+    ui_touch_button 22 '\033[1;97;48;5;238m' "返回常用软件" "暂不安装"
+    ui_prompt
+    choice="$(read_touch_menu right:20-21:start right:22-23:software)"
+    if apply_navigation "$choice"; then return 0; fi
+    case "$choice" in
+        start) run_action "安装 $title 并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" "$target" ;;
+        software) NEXT_CATEGORY="software" ;;
+    esac
 }
 
 remote_assistance_menu() {
@@ -527,44 +560,21 @@ system_optimization_menu() {
 
     while true; do
         draw_category_frame optimize "系统优化" "缓存清理、性能建议和常见问题修复"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "游戏与掌机助手" "Epic、战网自动入库与游戏启动诊断"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "游戏启动诊断" "检查 Steam、兼容层、空间和日志；不删除游戏文件"
         ui_touch_button 10 '\033[1;97;48;5;24m' "SteamOS 掌机优化" "下载缓存、着色器缓存和性能建议"
         ui_touch_button 13 '\033[1;97;48;5;24m' "系统清理" "安全释放用户缓存和 Steam 缓存"
         ui_touch_button 16 '\033[1;97;48;5;24m' "一键修复模式" "检测网络并处理常见下载问题"
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:game-tools right:10-11:steam right:13-14:clean right:16-17:fix right:20-21:home)"
+        choice="$(read_touch_menu right:7-8:diagnose right:10-11:steam right:13-14:clean right:16-17:fix right:20-21:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            game-tools) game_tools_touch_menu ;;
+            diagnose) run_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
             steam) steam_touch_menu ;;
             clean) clean_touch_menu ;;
             fix) confirm_and_run "一键修复模式" "检测网络并安全清理 Steam 下载缓存" bash "$PROJECT_ROOT/modules/fixall.sh" ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
-        esac
-        [ "$NEXT_CATEGORY" = "optimize" ] || return 0
-    done
-}
-
-game_tools_touch_menu() {
-    local choice
-
-    while true; do
-        draw_category_frame optimize "游戏与掌机助手" "安全检测和引导，不删除游戏或修改 Steam 游戏库"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "安装 Epic 并自动入库" "官方 MSI 入 Steam；安装后自动切换到主 EXE"
-        ui_touch_button 10 '\033[1;97;48;5;24m' "安装战网并自动入库" "官方 EXE 入 Steam；安装后自动切换到主 EXE"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "游戏启动诊断" "检查 Steam、兼容层、空间和日志；不删除游戏文件"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统优化" "查看清理和修复功能"
-        ui_prompt
-        choice="$(read_touch_menu right:7-8:epic right:10-11:battlenet right:14-15:diagnose right:18-19:optimize)"
-        if apply_navigation "$choice"; then return 0; fi
-
-        case "$choice" in
-            epic) confirm_and_run "安装 Epic 并自动入库" "会安全重启 Steam 后写入非 Steam 游戏条目。首次在 Steam 里选 PE 或 GE-Proton 10.0-4 并完成官方安装；工具箱会自动切换到 Epic 主 EXE" bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
-            battlenet) confirm_and_run "安装战网并自动入库" "会安全重启 Steam 后写入非 Steam 游戏条目。首次在 Steam 里选 PE 或 GE-Proton 10.0-4 并完成官方安装；工具箱会自动切换到战网主 EXE" bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
-            diagnose) run_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
-            optimize) NEXT_CATEGORY="optimize"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "optimize" ] || return 0
     done

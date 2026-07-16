@@ -194,6 +194,14 @@ def add_shortcut(args: argparse.Namespace) -> None:
         if entry[0] == TYPE_OBJECT and entry_value(entry, b"exe") == quoted_exe:
             print("existing")
             return
+    for entry in entries:
+        if entry[0] != TYPE_OBJECT or entry_value(entry, b"appname") != args.name:
+            continue
+        set_string(entry, "exe", quoted_exe)
+        set_string(entry, "StartDir", quote_path(args.start_dir))
+        save_shortcuts(args.shortcut_file, entries)
+        print("updated")
+        return
     entries.append(make_shortcut(next_index(entries), args.name, args.exe, args.start_dir))
     save_shortcuts(args.shortcut_file, entries)
     print("added")

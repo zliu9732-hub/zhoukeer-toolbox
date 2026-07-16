@@ -364,12 +364,13 @@ validate_steam302_archive_layout() {
             if (entry ~ /^\// || entry ~ /(^|\/)\.\.(\/|$)/) exit 1
             if (entry != "Steamcommunity_302" &&
                 entry !~ /^Steamcommunity_302\//) exit 1
-            if (entry == "Steamcommunity_302/run_运行.sh") found_run = 1
             if (entry == "Steamcommunity_302/Steamcommunity_302") found_app = 1
-            if (entry == "Steamcommunity_302/.launcher/launcher_启动器.sh") found_launcher = 1
+            if (entry == "Steamcommunity_302/steamcommunity_302.cli") found_cli = 1
+            if (entry == "Steamcommunity_302/S302_rules.ini") found_rules = 1
+            if (entry == "Steamcommunity_302/.launcher/302_icon.ico") found_icon = 1
         }
         END {
-            if (!found_run || !found_app || !found_launcher) exit 1
+            if (!found_app || !found_cli || !found_rules || !found_icon) exit 1
         }
     '; then
         echo "Steamcommunity 302 安装包目录结构异常，拒绝解压。"

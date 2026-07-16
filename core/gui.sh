@@ -70,6 +70,8 @@ software_menu() {
             wechat "微信" \
             qq "QQ" \
             browser "Firefox 浏览器" \
+            epic "Epic Games 启动器（自动入库）" \
+            battlenet "战网启动器（自动入库）" \
             ge-proton "GE-Proton 兼容层" \
             back "返回主菜单")" || return 0
         case "$choice" in
@@ -88,6 +90,9 @@ software_menu() {
                     run_gui_action "安装Firefox浏览器" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" browser
                 ;;
+            epic|battlenet)
+                launcher_install_gui_guide "$choice"
+                ;;
             ge-proton)
                 gui_confirm "将把GE-Proton安装到Steam兼容工具目录；完成后需要完全重启Steam。是否继续？" && \
                     run_gui_action "安装GE-Proton兼容层" \
@@ -96,6 +101,29 @@ software_menu() {
             back) return 0 ;;
         esac
     done
+}
+
+launcher_install_gui_guide() {
+    local target="$1"
+    local title
+
+    case "$target" in
+        epic) title="Epic Games 启动器" ;;
+        battlenet) title="战网启动器" ;;
+        *) return 1 ;;
+    esac
+
+    gui_confirm "$title 一键安装说明：
+
+1. 自动下载官方 Windows 安装程序。
+2. 自动选择现有 GE-Proton / Proton Experimental；缺少时自动安装 GE-Proton。
+3. 官方安装窗口弹出后，只需按官方向导确认协议并点击安装。
+4. 安装完成后自动找到主 EXE、生成 Linux 启动包装器并写入 Steam。
+5. Steam 自动重新打开后，可从“非 Steam 游戏”直接启动。
+
+无需进入兼容性页面，也无需手动从 Steam 运行安装器。是否开始？" && \
+        run_gui_action "安装 $title 并自动入库" \
+            bash "$PROJECT_ROOT/modules/game_launchers.sh" "$target"
 }
 
 remote_menu() {
@@ -382,13 +410,13 @@ optimization_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "系统优化与维护" \
-            game-tools "游戏与掌机助手" \
+            diagnose "游戏启动诊断（不删除游戏文件）" \
             steam "SteamOS 掌机优化" \
             cleanup "系统清理" \
             fixall "一键修复模式" \
             back "返回主菜单")" || return 0
         case "$choice" in
-            game-tools) game_tools_gui_menu ;;
+            diagnose) run_gui_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
             steam) steam_optimization_menu ;;
             cleanup) cleanup_menu ;;
             fixall)
@@ -396,30 +424,6 @@ optimization_menu() {
                     run_gui_action "一键修复模式" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/fixall.sh"
                 ;;
-            back) return 0 ;;
-        esac
-    done
-}
-
-game_tools_gui_menu() {
-    local choice
-
-    while true; do
-        choice="$(gui_dialog --menu "游戏与掌机助手" \
-            epic "安装 Epic 并自动入库" \
-            battlenet "安装战网并自动入库" \
-            diagnose "游戏启动诊断（不删除游戏文件）" \
-            back "返回系统优化")" || return 0
-        case "$choice" in
-            epic)
-                gui_confirm "会安全重启 Steam 后写入 Epic 官方 MSI 的非 Steam 游戏条目。首次在 Steam 里选择 PE 或 GE-Proton 10.0-4 并完成官方安装；工具箱会自动将原条目切换到 EpicGamesLauncher.exe。是否继续？" && \
-                    run_gui_action "安装 Epic 并自动入库" bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
-                ;;
-            battlenet)
-                gui_confirm "会安全重启 Steam 后写入战网官方 EXE 的非 Steam 游戏条目。首次在 Steam 里选择 PE 或 GE-Proton 10.0-4 并完成官方安装；工具箱会自动将原条目切换到 Battle.net.exe。是否继续？" && \
-                    run_gui_action "安装战网并自动入库" bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
-                ;;
-            diagnose) run_gui_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
             back) return 0 ;;
         esac
     done

@@ -91,10 +91,10 @@ case "$operation" in
 ./Steamcommunity_302/steamcommunity_302.cli
 ./Steamcommunity_302/steamcommunity_302.caddy
 ./Steamcommunity_302/S302_rules.ini
-./Steamcommunity_302/run_运行.sh
+./Steamcommunity_302/run_\350\277\220\350\241\214.sh
 ./Steamcommunity_302/.launcher/
-./Steamcommunity_302/.launcher/launcher_启动器.sh
-./Steamcommunity_302/.launcher/setup_desktop_生成桌面快捷方式.sh
+./Steamcommunity_302/.launcher/launcher_\345\220\257\345\212\250\345\231\250.sh
+./Steamcommunity_302/.launcher/setup_desktop_\347\224\237\346\210\220\346\241\214\351\235\242\345\277\253\346\215\267\346\226\271\345\274\217.sh
 ./Steamcommunity_302/.launcher/302_icon.ico
 LIST
         ;;
