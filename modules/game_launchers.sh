@@ -10,6 +10,7 @@ source "$PROJECT_ROOT/core/logger.sh"
 DOWNLOAD_TIMEOUT="${ZHOUKEER_LAUNCHER_DOWNLOAD_TIMEOUT:-600}"
 POST_INSTALL_TIMEOUT="${ZHOUKEER_LAUNCHER_POST_INSTALL_TIMEOUT:-300}"
 POST_INSTALL_INTERVAL="${ZHOUKEER_LAUNCHER_POST_INSTALL_INTERVAL:-5}"
+BATTLE_NET_FIRST_ATTEMPT_TIMEOUT="${ZHOUKEER_BATTLENET_FIRST_ATTEMPT_TIMEOUT:-75}"
 STEAM_SHORTCUT_HELPER="$PROJECT_ROOT/scripts/steam_shortcut.py"
 
 launcher_details() {
@@ -206,6 +207,60 @@ find_proton_runner() {
     return 1
 }
 
+find_proton_experimental_runner() {
+    local steam_root="$1"
+    local candidate
+
+    for candidate in \
+        "$steam_root/steamapps/common/Proton - Experimental/proton" \
+        "$HOME/.steam/root/compatibilitytools.d/Proton - Experimental/proton"; do
+        if [ -x "$candidate" ]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+find_proton_10_runner() {
+    local steam_root="$1"
+    local candidate
+
+    candidate="$(find "$steam_root/steamapps/common" -mindepth 2 -maxdepth 2 \
+        -type f -path '*/Proton 10.0*/proton' -perm -u+x -print 2>/dev/null | \
+        LC_ALL=C sort | tail -n 1)"
+    if [ -n "$candidate" ]; then
+        printf '%s\n' "$candidate"
+        return 0
+    fi
+    return 1
+}
+
+find_battlenet_alternate_runner() {
+    local steam_root="$1"
+    local current_runner="$2"
+    local alternate
+
+    # Battle.net 在不同客户端版本下对 PE 和 Proton 10.0-4 的兼容性不同。
+    # 首次失败时只在这两套官方兼容层间切换，不会随意更换用户的 GE-Proton。
+    case "$current_runner" in
+        *'/Proton - Experimental/proton')
+            alternate="$(find_proton_10_runner "$steam_root" || true)"
+            ;;
+        *'/Proton 10.0'*'/proton')
+            alternate="$(find_proton_experimental_runner "$steam_root" || true)"
+            ;;
+        *)
+            alternate="$(find_proton_10_runner "$steam_root" || true)"
+            [ -n "$alternate" ] || \
+                alternate="$(find_proton_experimental_runner "$steam_root" || true)"
+            ;;
+    esac
+
+    [ -n "$alternate" ] && [ "$alternate" != "$current_runner" ] || return 1
+    printf '%s\n' "$alternate"
+}
+
 ensure_proton_runner() {
     local steam_root="$1"
     local runner
@@ -230,14 +285,86 @@ ensure_proton_runner() {
     printf '%s\n' "$runner"
 }
 
+ensure_battlenet_runner() {
+    local steam_root="$1"
+    local runner
+
+    # 战网只在 PE 与 Proton 10.0-4 之间自动选择，避免客户还要进入
+    # Steam 兼容性页面手动试错。显式设置的调试兼容层仍优先保留。
+    if [ -n "${ZHOUKEER_PROTON_RUNNER:-}" ] && [ -x "$ZHOUKEER_PROTON_RUNNER" ]; then
+        printf '%s\n' "$ZHOUKEER_PROTON_RUNNER"
+        return 0
+    fi
+    runner="$(find_proton_experimental_runner "$steam_root" || true)"
+    if [ -n "$runner" ]; then
+        printf '%s\n' "$runner"
+        return 0
+    fi
+    runner="$(find_proton_10_runner "$steam_root" || true)"
+    if [ -n "$runner" ]; then
+        printf '%s\n' "$runner"
+        return 0
+    fi
+
+    # 两套官方兼容层都不存在时，才回退到工具箱原有的 GE-Proton 方案，
+    # 并在首次失败后提示用户安装 PE 或 Proton 10.0-4。
+    ensure_proton_runner "$steam_root"
+}
+
 notify_launcher_ready() {
     local name="$1"
-    local message="$name 已安装完成，Steam 条目已自动切换到启动器本体。"
+    local message="$name 已安装完成，Steam 条目和桌面启动图标都已生成。"
 
     if command -v notify-send >/dev/null 2>&1; then
         notify-send "周克儿工具箱" "$message" >/dev/null 2>&1 || true
     fi
     echo "$message"
+}
+
+desktop_exec_escape() {
+    local value="$1"
+
+    case "$value" in
+        *$'\n'*|*$'\r'*) return 1 ;;
+    esac
+    value="${value//\\/\\\\}"
+    value="${value//\"/\\\"}"
+    printf '"%s"' "$value"
+}
+
+create_launcher_desktop_shortcut() {
+    local name="$1"
+    local wrapper_file="$2"
+    local launcher_dir="$3"
+    local desktop_dir="$HOME/Desktop"
+    local desktop_file="$desktop_dir/$name.desktop"
+    local temporary_file
+    local escaped_wrapper
+    local escaped_dir
+
+    escaped_wrapper="$(desktop_exec_escape "$wrapper_file")" || return 1
+    escaped_dir="$(desktop_exec_escape "$launcher_dir")" || return 1
+    mkdir -p -- "$desktop_dir" || return 1
+    temporary_file="$(mktemp "$desktop_dir/.${name}.XXXXXX")" || return 1
+    {
+        printf '%s\n' '[Desktop Entry]' 'Type=Application'
+        printf 'Name=%s\n' "$name"
+        printf 'Exec=%s\n' "$escaped_wrapper"
+        printf 'Path=%s\n' "$escaped_dir"
+        printf '%s\n' 'Icon=steam' 'Terminal=false' 'Categories=Game;'
+    } > "$temporary_file" || {
+        rm -f -- "$temporary_file"
+        return 1
+    }
+    chmod 755 "$temporary_file" || {
+        rm -f -- "$temporary_file"
+        return 1
+    }
+    mv -f -- "$temporary_file" "$desktop_file" || {
+        rm -f -- "$temporary_file"
+        return 1
+    }
+    printf '%s\n' "$desktop_file"
 }
 
 run_launcher_installer() {
@@ -249,6 +376,7 @@ run_launcher_installer() {
     local status=0
     local elapsed=0
     local installed_file
+    local timeout="${6:-$POST_INSTALL_TIMEOUT}"
 
     launcher_details "$target" || return 1
     mkdir -p "$prefix_dir" || return 1
@@ -270,7 +398,7 @@ run_launcher_installer() {
             ;;
     esac
 
-    while [ "$elapsed" -le "$POST_INSTALL_TIMEOUT" ]; do
+    while [ "$elapsed" -le "$timeout" ]; do
         installed_file="$(find_launcher_in_prefix "$prefix_dir" || true)"
         if [ -n "$installed_file" ]; then
             printf '%s\n' "$installed_file"
@@ -286,6 +414,34 @@ run_launcher_installer() {
     fi
     echo "请确认没有在官方安装窗口中取消安装，然后重试。已下载的安装包和前缀会保留。" >&2
     return 1
+}
+
+run_battlenet_installer_with_fallback() {
+    local steam_root="$1"
+    local installer_file="$2"
+    local prefix_dir="$3"
+    local primary_runner="$4"
+    local alternate_runner
+
+    local installed_file
+
+    if installed_file="$(run_launcher_installer battlenet "$steam_root" "$installer_file" "$prefix_dir" \
+        "$primary_runner" "$BATTLE_NET_FIRST_ATTEMPT_TIMEOUT")"; then
+        printf '%s|%s\n' "$installed_file" "$primary_runner"
+        return 0
+    fi
+
+    alternate_runner="$(find_battlenet_alternate_runner "$steam_root" "$primary_runner" || true)"
+    if [ -z "$alternate_runner" ]; then
+        echo "战网首次启动失败，未找到另一套 Proton Experimental 或 Proton 10.0-4 可切换。" >&2
+        echo "请在 Steam 的兼容工具列表安装其中一套后，再点击工具箱中的战网安装。" >&2
+        return 1
+    fi
+
+    echo "战网首次未完成，正在从 $(basename "$(dirname "$primary_runner")") 切换到 $(basename "$(dirname "$alternate_runner")") 重试..." >&2
+    installed_file="$(run_launcher_installer battlenet "$steam_root" "$installer_file" "$prefix_dir" \
+        "$alternate_runner")" || return 1
+    printf '%s|%s\n' "$installed_file" "$alternate_runner"
 }
 
 create_launcher_wrapper() {
@@ -341,6 +497,8 @@ install_launcher() {
     local wrapper_file
     local installed_file
     local detected_prefix
+    local desktop_shortcut
+    local battlenet_result
     local command_name
 
     launcher_details "$target" || return 1
@@ -370,7 +528,11 @@ install_launcher() {
             [ -n "$detected_prefix" ] && prefix_dir="$detected_prefix"
         fi
     fi
-    proton_runner="$(ensure_proton_runner "$steam_root")" || return 1
+    if [ "$target" = "battlenet" ]; then
+        proton_runner="$(ensure_battlenet_runner "$steam_root")" || return 1
+    else
+        proton_runner="$(ensure_proton_runner "$steam_root")" || return 1
+    fi
     if [ -z "$installed_file" ]; then
         for command_name in curl od; do
             command -v "$command_name" >/dev/null 2>&1 || {
@@ -392,8 +554,19 @@ install_launcher() {
             trap - EXIT
         fi
         verify_installer "$installer_file" || return 1
-        installed_file="$(run_launcher_installer \
-            "$target" "$steam_root" "$installer_file" "$prefix_dir" "$proton_runner")" || return 1
+        if [ "$target" = "battlenet" ]; then
+            battlenet_result="$(run_battlenet_installer_with_fallback \
+                "$steam_root" "$installer_file" "$prefix_dir" "$proton_runner")" || return 1
+            installed_file="${battlenet_result%%|*}"
+            proton_runner="${battlenet_result#*|}"
+            [ -n "$installed_file" ] && [ "$proton_runner" != "$battlenet_result" ] || {
+                echo "战网兼容层重试结果异常，未创建 Steam 条目。"
+                return 1
+            }
+        else
+            installed_file="$(run_launcher_installer \
+                "$target" "$steam_root" "$installer_file" "$prefix_dir" "$proton_runner")" || return 1
+        fi
     else
         echo "已找到安装完成的 ${LAUNCHER_NAME}，直接调用主程序并跳过安装包下载。"
     fi
@@ -405,10 +578,17 @@ install_launcher() {
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" add \
         --name "$LAUNCHER_NAME" --exe "$wrapper_file" \
         --start-dir "$launcher_dir" || return 1
+    if ! desktop_shortcut="$(create_launcher_desktop_shortcut \
+        "$LAUNCHER_NAME" "$wrapper_file" "$launcher_dir")"; then
+        echo "Steam 条目已写入，但桌面启动图标创建失败：$HOME/Desktop"
+        desktop_shortcut=""
+    fi
     start_steam
 
     notify_launcher_ready "$LAUNCHER_NAME"
     echo "Steam 已重新打开；进入“非 Steam 游戏”即可直接启动，无需再选择兼容层。"
+    [ -n "$desktop_shortcut" ] && echo "桌面启动图标：$desktop_shortcut"
+    echo "关闭 Epic 或战网登录窗口只会退出启动器，不会删除安装；之后可从 Steam 或桌面图标再次打开。"
     log "$LAUNCHER_NAME 已通过包装器加入Steam: $wrapper_file -> $installed_file"
 }
 

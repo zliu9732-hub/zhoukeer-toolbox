@@ -213,7 +213,7 @@ grep -Fq '5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f' \
 grep -Fq 'ensure_steam302_for_download()' "$MODULE" || fail "缺少插件下载加速预检"
 grep -Fq '勾选 Steam 和 GitHub' "$MODULE" || fail "自动加速失败时缺少桌面操作提示"
 
-if fallback_output="$(MODULE="$MODULE" bash -c '
+fallback_output="$(MODULE="$MODULE" bash -c '
     source "$MODULE"
     steam302_download_acceleration_is_ready() { return 1; }
     steam302_service_is_active() { return 1; }
@@ -221,11 +221,9 @@ if fallback_output="$(MODULE="$MODULE" bash -c '
     steam302_is_installed() { return 1; }
     install_steam302() { return 1; }
     ensure_steam302_for_download
-' 2>&1)"; then
-    fail "自动加速失败后仍允许继续下载插件"
-fi
-printf '%s\n' "$fallback_output" | grep -Fq '已暂停本次插件下载' || \
-    fail "自动加速失败时没有暂停插件下载"
+' 2>&1)" || fail "自动加速失败后不应阻断插件安装"
+printf '%s\n' "$fallback_output" | grep -Fq '将使用当前网络继续提交插件安装' || \
+    fail "自动加速失败时没有继续提交插件安装"
 printf '%s\n' "$fallback_output" | grep -Fq '勾选 Steam 和 GitHub' || \
     fail "自动加速失败时没有提示桌面手动操作"
 

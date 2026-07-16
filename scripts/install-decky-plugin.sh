@@ -64,6 +64,41 @@ run_file_operation() {
     fi
 }
 
+remove_legacy_lsfg_directories() {
+    local legacy_name
+    local legacy_dir
+    local manifest_name
+    local removed=0
+
+    [ "$PLUGIN_ID" = "lsfg" ] || return 0
+    # 旧工具箱的中文目录会被 Decky 当作另一款插件加载，只删除清单也确认
+    # 为 LSFG 的固定旧目录，避免影响用户的其他插件。
+    for legacy_name in "小黄鸭" "LSFG-VK" "decky-lsfg-vk" "Decky.LSFG-VK"; do
+        legacy_dir="$PLUGIN_ROOT/$legacy_name"
+        [ -d "$legacy_dir" ] && [ ! -L "$legacy_dir" ] && \
+            [ -f "$legacy_dir/plugin.json" ] || continue
+        manifest_name="$(sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+            "$legacy_dir/plugin.json" | head -n 1)"
+        case "$manifest_name" in
+            "Decky LSFG-VK"|"LSFG-VK"|"小黄鸭") ;;
+            *) continue ;;
+        esac
+        run_file_operation rm -rf -- "$legacy_dir" || continue
+        removed=$((removed + 1))
+    done
+    [ "$removed" -eq 0 ] || \
+        echo "已清理 $removed 个旧小黄鸭目录，只保留官方 $PLUGIN_DIRECTORY。"
+}
+
+reload_decky_plugins() {
+    if command -v systemctl >/dev/null 2>&1 && command -v sudo >/dev/null 2>&1 && \
+        sudo systemctl restart plugin_loader.service; then
+        echo "Decky 已重新加载。"
+        return 0
+    fi
+    echo "插件文件已写入，请完全退出游戏模式后重新进入一次，让 Decky 重新扫描。"
+}
+
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf -- "$TMP_DIR"' EXIT INT TERM
 ARCHIVE="$TMP_DIR/plugin.zip"
@@ -121,8 +156,9 @@ if ! run_file_operation mv -- "$STAGING_DIR" "$TARGET_DIR"; then
     exit 1
 fi
 run_file_operation rm -rf -- "$BACKUP_DIR"
+remove_legacy_lsfg_directories
+reload_decky_plugins
 
 echo "$PLUGIN_NAME 已安装到 $TARGET_DIR"
 echo "来源：$PLUGIN_URL"
 echo "插件作者：$PLUGIN_AUTHOR，请支持插件原作者。"
-echo "请完全退出游戏模式后重新进入一次，让 Decky 重新扫描插件。"

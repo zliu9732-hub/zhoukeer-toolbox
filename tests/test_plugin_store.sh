@@ -82,6 +82,7 @@ for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck; do
     printf 'bundle\n' > "$PLUGIN_ROOT/$plugin_dir/dist/index.js"
 done
 printf '{"name":"Decky LSFG-VK"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
+printf '{"version":"0.12.5"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
 printf '{ "name": "Decky-Framegen" }\n' > "$PLUGIN_ROOT/Decky-Framegen/plugin.json"
 printf '{"name": "CheatDeck"}\n' > "$PLUGIN_ROOT/CheatDeck/plugin.json"
 status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
@@ -95,5 +96,14 @@ legacy_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
     bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"
 printf '%s\n' "$legacy_status_output" | \
     grep -Fq '✓ 小黄鸭（LSFG-VK）：已写入 Decky'
+
+printf '{"version":"0.12.1"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
+if stale_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
+    bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"; then
+    echo "FAIL: 旧版小黄鸭不应被识别为官方 0.12.5" >&2
+    exit 1
+fi
+printf '%s\n' "$stale_status_output" | \
+    grep -Fq '检测到版本 0.12.1，请重新安装官方 0.12.5'
 
 echo "PASS: Decky国内源、独立功能插件和完整清单配置检查通过"

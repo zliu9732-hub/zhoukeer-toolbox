@@ -329,9 +329,9 @@ enable_steam302() {
 }
 
 print_steam302_download_fallback() {
-    echo "自动加速没有启动成功，已暂停本次插件下载。"
+    echo "自动加速没有启动成功，将使用当前网络继续提交插件安装。"
     echo "请打开桌面的“Steamcommunity 302”，勾选 Steam 和 GitHub，然后点击“启动服务”。"
-    echo "确认服务启动后，再回到工具箱重试刚才的插件安装。"
+    echo "服务启动后，GitHub 和 Steam 下载会更稳定、更快。"
 }
 
 steam302_download_acceleration_is_ready() {
@@ -348,29 +348,29 @@ ensure_steam302_for_download() {
     if steam302_service_is_active; then
         echo "检测到 302 服务正在运行，但无法确认已同时勾选 Steam 和 GitHub。"
         print_steam302_download_fallback
-        return 1
+        return 0
     fi
 
     echo "未检测到可用的 Steam + GitHub 加速，正在自动准备并启动..."
     if steam302_cli_is_running; then
         stop_steam302_cli || {
             print_steam302_download_fallback
-            return 1
+            return 0
         }
     fi
     if ! steam302_is_installed; then
         ZHOUKEER_AUTO_CONFIRM=1 install_steam302 || {
             print_steam302_download_fallback
-            return 1
+            return 0
         }
     fi
     ensure_steam302_config || {
         print_steam302_download_fallback
-        return 1
+        return 0
     }
     ZHOUKEER_AUTO_CONFIRM=1 start_steam302_service || {
         print_steam302_download_fallback
-        return 1
+        return 0
     }
     if steam302_download_acceleration_is_ready; then
         echo "Steam + GitHub 加速已自动开启，开始下载插件。"
@@ -378,7 +378,7 @@ ensure_steam302_for_download() {
     fi
 
     print_steam302_download_fallback
-    return 1
+    return 0
 }
 
 stop_steam302_service() {

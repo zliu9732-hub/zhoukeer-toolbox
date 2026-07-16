@@ -19,6 +19,7 @@ EXISTING_STEAM="$TMP_ROOT/existing-steam"
 EXISTING_SHORTCUTS="$EXISTING_STEAM/userdata/123/config/shortcuts.vdf"
 EXISTING_BATTLENET="$EXISTING_STEAM/steamapps/compatdata/777/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe"
 EXISTING_APP_DIR="$TMP_ROOT/existing-apps"
+FAKE_HOME="$TMP_ROOT/home"
 
 python3 "$HELPER" --help >/dev/null
 
@@ -113,6 +114,58 @@ grep -Fq 'STEAM_COMPAT_DATA_PATH="$PREFIX_DIR"' "$generated_wrapper" || {
     exit 1
 }
 
+# 战网第一次不能用当前兼容层时，必须在 PE 与 Proton 10.0-4 间自动切换。
+PE_RUNNER="$TMP_ROOT/steam/steamapps/common/Proton - Experimental/proton"
+P10_RUNNER="$TMP_ROOT/steam/steamapps/common/Proton 10.0-4/proton"
+mkdir -p "$(dirname "$PE_RUNNER")" "$(dirname "$P10_RUNNER")"
+cat > "$PE_RUNNER" <<'SCRIPT'
+#!/bin/bash
+exit 1
+SCRIPT
+cat > "$P10_RUNNER" <<'SCRIPT'
+#!/bin/bash
+target="$STEAM_COMPAT_DATA_PATH/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe"
+mkdir -p "$(dirname "$target")"
+: > "$target"
+SCRIPT
+chmod +x "$PE_RUNNER" "$P10_RUNNER"
+alternate_runner="$(MODULE="$MODULE" STEAM_ROOT="$TMP_ROOT/steam" CURRENT_RUNNER="$PE_RUNNER" \
+    bash -c '
+        source "$MODULE"
+        find_battlenet_alternate_runner "$STEAM_ROOT" "$CURRENT_RUNNER"
+    ')"
+[ "$alternate_runner" = "$P10_RUNNER" ] || {
+    echo "FAIL: 战网没有从 PE 自动切换到 Proton 10.0-4" >&2
+    exit 1
+}
+alternate_runner="$(MODULE="$MODULE" STEAM_ROOT="$TMP_ROOT/steam" CURRENT_RUNNER="$P10_RUNNER" \
+    bash -c '
+        source "$MODULE"
+        find_battlenet_alternate_runner "$STEAM_ROOT" "$CURRENT_RUNNER"
+    ')"
+[ "$alternate_runner" = "$PE_RUNNER" ] || {
+    echo "FAIL: 战网没有从 Proton 10.0-4 自动切换到 PE" >&2
+    exit 1
+}
+
+BATTLE_NET_INSTALLER="$TMP_ROOT/Battle.net-Setup.exe"
+: > "$BATTLE_NET_INSTALLER"
+battlenet_result="$(MODULE="$MODULE" TMP_ROOT="$TMP_ROOT" PE_RUNNER="$PE_RUNNER" \
+    P10_RUNNER="$P10_RUNNER" BATTLE_NET_INSTALLER="$BATTLE_NET_INSTALLER" \
+    bash -c '
+        source "$MODULE"
+        BATTLE_NET_FIRST_ATTEMPT_TIMEOUT=0
+        POST_INSTALL_TIMEOUT=0
+        POST_INSTALL_INTERVAL=1
+        run_battlenet_installer_with_fallback "$TMP_ROOT/steam" "$BATTLE_NET_INSTALLER" \
+            "$TMP_ROOT/battlenet-prefix" "$PE_RUNNER"
+    ')"
+expected_battlenet="$TMP_ROOT/battlenet-prefix/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe"
+[ "$battlenet_result" = "$expected_battlenet|$P10_RUNNER" ] || {
+    echo "FAIL: 战网重试后没有将 Proton 10.0-4 写入启动包装器" >&2
+    exit 1
+}
+
 # 客户已经安装过战网时，必须直接包装真实EXE，不能再下载或运行安装器。
 mkdir -p "$(dirname "$EXISTING_SHORTCUTS")" "$(dirname "$EXISTING_BATTLENET")"
 : > "$EXISTING_BATTLENET"
@@ -120,8 +173,8 @@ existing_output="$(
     MODULE="$MODULE" ZHOUKEER_STEAM_ROOT="$EXISTING_STEAM" \
         ZHOUKEER_SHORTCUT_FILE="$EXISTING_SHORTCUTS" \
         ZHOUKEER_PROTON_RUNNER="$FAKE_PROTON" \
-        ZHOUKEER_APP_DIR="$EXISTING_APP_DIR" \
-        ZHOUKEER_SKIP_STEAM_RESTART=1 PROTON_LOG="$PROTON_LOG" \
+    ZHOUKEER_APP_DIR="$EXISTING_APP_DIR" \
+        HOME="$FAKE_HOME" ZHOUKEER_SKIP_STEAM_RESTART=1 PROTON_LOG="$PROTON_LOG" \
         bash -c 'source "$MODULE"; install_launcher battlenet'
 )"
 printf '%s\n' "$existing_output" | grep -Fq '跳过安装包下载' || {
@@ -134,6 +187,10 @@ printf '%s\n' "$existing_output" | grep -Fq '跳过安装包下载' || {
 }
 [ -x "$EXISTING_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" ] || {
     echo "FAIL: 已安装战网没有生成直接启动包装器" >&2
+    exit 1
+}
+[ -x "$FAKE_HOME/Desktop/战网启动器.desktop" ] || {
+    echo "FAIL: 已安装战网没有创建持久桌面启动图标" >&2
     exit 1
 }
 python3 - "$EXISTING_SHORTCUTS" <<'PY'
@@ -154,5 +211,7 @@ grep -Fq 'create_launcher_wrapper' "$MODULE"
 grep -Fq '无需再选择兼容层' "$MODULE"
 grep -Fq '跳过安装包下载' "$MODULE"
 grep -Fq 'steam_shortcut.py' "$MODULE"
+grep -Fq 'run_battlenet_installer_with_fallback' "$MODULE"
+grep -Fq 'create_launcher_desktop_shortcut' "$MODULE"
 
 echo "PASS: Steam条目写入、Proton直接安装和主EXE包装器测试通过"

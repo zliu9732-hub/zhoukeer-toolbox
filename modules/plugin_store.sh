@@ -23,6 +23,8 @@ DECKY_HOMEBREW_DIR="${ZHOUKEER_DECKY_HOMEBREW_DIR:-$HOME/homebrew}"
 DECKY_UNIT_PATH="${ZHOUKEER_DECKY_UNIT_PATH:-/etc/systemd/system/plugin_loader.service}"
 DECKY_SERVICE_NAME="plugin_loader.service"
 DECKY_TMP_DIR=""
+LSFG_OFFICIAL_DIRECTORY="Decky LSFG-VK"
+LSFG_OFFICIAL_VERSION="0.12.5"
 
 # 仅迁移工具箱曾写入的固定123默认值；用户自定义地址保持不动。
 LEGACY_DECKY_LSFG_URL="https://1846467258.cdn.123clouddisk.com/1846467258/%E5%B7%A5%E5%85%B7%E7%AE%B1/%E5%B0%8F%E9%BB%84%E9%B8%ADv0.12.3%E6%B1%89%E5%8C%96%E7%89%88.zip"
@@ -1074,13 +1076,50 @@ select_and_import_lossless_backup() {
 }
 
 install_lsfg_bundle() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+
     install_decky_zip \
         "小黄鸭（LSFG-VK）" \
         "${DECKY_LSFG_URL:-}" \
         "${DECKY_LSFG_SHA256:-}" \
-        "Decky LSFG-VK" || return 1
+        "$LSFG_OFFICIAL_DIRECTORY" || return 1
+    remove_legacy_lsfg_directories "$plugin_root"
 
     check_lossless_scaling_installation
+}
+
+remove_legacy_lsfg_directories() {
+    local plugin_root="$1"
+    local legacy_name
+    local legacy_dir
+    local manifest_name
+    local removed=0
+
+    # 旧工具箱曾把同一插件安装在中文或仓库名目录。Decky 会把它们当成
+    # 独立插件继续加载，导致界面仍显示旧版本；只删除名称和清单都能确认的旧副本。
+    for legacy_name in "小黄鸭" "LSFG-VK" "decky-lsfg-vk" "Decky.LSFG-VK"; do
+        legacy_dir="$plugin_root/$legacy_name"
+        [ -e "$legacy_dir" ] || [ -L "$legacy_dir" ] || continue
+        if [ -L "$legacy_dir" ]; then
+            echo "发现旧小黄鸭符号链接，未自动删除：$legacy_dir"
+            continue
+        fi
+        [ -d "$legacy_dir" ] && [ -f "$legacy_dir/plugin.json" ] || continue
+        manifest_name="$(sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+            "$legacy_dir/plugin.json" | head -n 1)"
+        case "$manifest_name" in
+            "Decky LSFG-VK"|"LSFG-VK"|"小黄鸭") ;;
+            *) continue ;;
+        esac
+        run_plugin_file_operation rm -rf -- "$legacy_dir" || {
+            echo "旧小黄鸭目录未能清理：$legacy_dir"
+            continue
+        }
+        removed=$((removed + 1))
+    done
+    if [ "$removed" -gt 0 ]; then
+        echo "已清理 $removed 个旧小黄鸭目录，只保留官方 $LSFG_OFFICIAL_DIRECTORY。"
+    fi
 }
 
 check_lossless_scaling_installation() {
@@ -1120,6 +1159,7 @@ print_lossless_linux_branch_tip() {
 
 install_configured_plugin() {
     local action="$1"
+    local reload_after_install="${2:-1}"
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
@@ -1145,7 +1185,19 @@ install_configured_plugin() {
                 "CheatDeck"
             ;;
         *) return 1 ;;
-    esac
+    esac || return 1
+
+    if [ "$reload_after_install" = "1" ]; then
+        reload_decky_plugins "Decky 已重新加载，返回游戏模式后可在插头菜单看到新插件。"
+    fi
+}
+
+decky_plugin_version() {
+    local plugin_dir="$1"
+
+    [ -f "$plugin_dir/package.json" ] || return 1
+    sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+        "$plugin_dir/package.json" | head -n 1
 }
 
 feature_plugin_is_present() {
@@ -1171,12 +1223,19 @@ feature_plugin_is_present() {
 print_feature_plugin_status() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local missing=0
+    local lsfg_version
 
     echo ""
     echo "========== 常用功能插件状态 =========="
     if feature_plugin_is_present \
         "$plugin_root" "Decky LSFG-VK" "Decky LSFG-VK" "小黄鸭"; then
-        echo "✓ 小黄鸭（LSFG-VK）：已写入 Decky"
+        lsfg_version="$(decky_plugin_version "$plugin_root/$LSFG_OFFICIAL_DIRECTORY" || true)"
+        if [ "$lsfg_version" = "$LSFG_OFFICIAL_VERSION" ]; then
+            echo "✓ 小黄鸭（LSFG-VK）：已写入 Decky，官方版本 $lsfg_version"
+        else
+            echo "✗ 小黄鸭（LSFG-VK）：检测到版本 ${lsfg_version:-未知}，请重新安装官方 $LSFG_OFFICIAL_VERSION"
+            missing=1
+        fi
     else
         echo "✗ 小黄鸭（LSFG-VK）：未找到完整插件文件"
         missing=1
@@ -1221,7 +1280,7 @@ install_feature_plugins() {
             fsr4) echo "========== FSR4（Decky Framegen） ==========" ;;
             cheatdeck) echo "========== CheatDeck ==========" ;;
         esac
-        if ! install_configured_plugin "$plugin"; then
+        if ! install_configured_plugin "$plugin" 0; then
             failed=1
             echo "该插件未完成，继续尝试其余插件。"
         fi
