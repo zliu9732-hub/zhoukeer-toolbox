@@ -38,7 +38,15 @@
 
 Steam Deck桌面快捷方式会通过兼容启动器打开约 `1220×740` 的双栏 Konsole 界面，并使用 17 号字体和最多 20 行的紧凑布局。直接运行 `main.sh` 也会自动转入专用主题窗口。启动器会依次尝试完整主题、无主题兼容参数、Konsole最小参数和系统中的其他终端；主程序异常退出或所有终端均不可用时会显示明确提示。独立启动日志保存在 `~/.local/state/zhoukeer-toolbox/launcher.log`，不与业务操作日志混用。免责声明使用独立页面，确认按钮始终保留在可见区域；左侧分类、右侧功能和确认按钮都是两行高的大点击区，只响应触屏或触控板，不显示也不接受数字/字母菜单输入。管理员验证可使用下文说明的密码便利模式；记录缺失、失效或系统拒绝自动验证时，仍会显示SteamOS原生密码提示。
 
-## 一行命令安装
+## 一行命令安装（推荐）
+
+### 最短安装（使用自有域名 jktool.icu）
+
+```bash
+curl -L https://jktool.icu/i | sh
+```
+
+### Gitee 国内源（备用）
 
 在 Steam Deck 桌面模式打开 Konsole，使用最短可靠安装指令：
 
@@ -56,12 +64,6 @@ GitHub 备用源：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/bootstrap.sh | bash
-```
-
-未来绑定域名后，目标形式是：
-
-```bash
-curl -fsSL https://jktool.icu/i | bash
 ```
 
 默认安装目录：
