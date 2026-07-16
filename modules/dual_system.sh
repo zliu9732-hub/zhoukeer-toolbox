@@ -264,14 +264,15 @@ resolve_boot_path() {
 validate_systemd_boot() {
     local boot_path="$1"
 
-    require_command bootctl || return 1
-    if ! bootctl is-installed >/dev/null 2>&1; then
-        echo "未检测到可用的 systemd-boot，已停止以免修改错误的启动分区。"
-        return 1
-    fi
     if [ ! -d "$boot_path/loader" ]; then
         echo "启动分区缺少 loader 目录，已停止。"
         return 1
+    fi
+
+    # SteamOS 的 bootctl 可能因当前 ESP 识别方式返回非零，但已解析到的
+    # loader 目录才是本次唯一要修改的位置，不能因此误报双引导操作失败。
+    if command -v bootctl >/dev/null 2>&1 && ! bootctl is-installed >/dev/null 2>&1; then
+        echo "提示：bootctl 未确认当前 ESP；将只修改已找到的 loader.conf。"
     fi
 }
 
@@ -293,6 +294,11 @@ write_loader_timeout() {
     boot_path="$(resolve_boot_path)" || return 1
     validate_systemd_boot "$boot_path" || return 1
     loader_conf="$boot_path/loader/loader.conf"
+    echo "正在修改引导菜单：$loader_conf"
+    toolbox_sudo true || {
+        echo "管理员权限验证失败，请检查桌面的管理员密码记录后重试。"
+        return 1
+    }
     temporary="$(mktemp)" || return 1
     backup="无（原配置不存在）"
 

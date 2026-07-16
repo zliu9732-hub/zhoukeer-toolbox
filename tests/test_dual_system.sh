@@ -33,7 +33,7 @@ DUAL_BOOT_TIMEOUT=5
 bootctl() {
     case "${1:-}" in
         --print-boot-path|--print-esp-path) printf '%s\n' "$BOOT_PATH" ;;
-        is-installed) return 0 ;;
+        is-installed) return 1 ;;
         *) return 1 ;;
     esac
 }

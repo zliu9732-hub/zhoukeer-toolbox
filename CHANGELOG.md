@@ -1,5 +1,9 @@
 # 周克儿工具箱更新日志
 
+## V4.0.48 公开版 — 2026-07-16
+
+- 修复双系统菜单添加和隐藏可能被 `bootctl` 错误识别 ESP 而同时失败的问题：已找到 `loader` 目录时只修改对应的 `loader.conf`，并在管理员权限验证失败时明确提示原因。
+
 ## V4.0.47 公开版 — 2026-07-16
 
 - RustDesk、GE-Proton、SimpleDeckyTDP 与 Unifideck 统一使用作者 GitHub Release 并固定 SHA256 校验，不再提供第三方云盘下载。
