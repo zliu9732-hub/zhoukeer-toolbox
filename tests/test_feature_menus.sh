@@ -47,8 +47,8 @@ touch_optimization_menu="$(sed -n '/^system_optimization_menu()/,/^}/p' "$MAIN_F
 gui_optimization_menu="$(sed -n '/^optimization_menu()/,/^}/p' "$GUI_FILE")"
 touch_game_tools_menu="$(sed -n '/^game_tools_touch_menu()/,/^}/p' "$MAIN_FILE")"
 gui_game_tools_menu="$(sed -n '/^game_tools_gui_menu()/,/^}/p' "$GUI_FILE")"
-touch_support_center_menu="$(sed -n '/^support_center_touch_menu()/,/^}/p' "$MAIN_FILE")"
-gui_support_center_menu="$(sed -n '/^support_center_gui_menu()/,/^}/p' "$GUI_FILE")"
+touch_practical_guides_menu="$(sed -n '/^practical_guides_touch_menu()/,/^}/p' "$MAIN_FILE")"
+gui_practical_guides_menu="$(sed -n '/^practical_guides_gui_menu()/,/^}/p' "$GUI_FILE")"
 touch_plugin_menu="$(sed -n '/^plugin_store_menu()/,/^}/p' "$MAIN_FILE")"
 gui_plugin_menu="$(sed -n '/^plugin_menu()/,/^}/p' "$GUI_FILE")"
 touch_plugin_preflight="$(sed -n '/^plugin_store_preflight()/,/^}/p' "$MAIN_FILE")"
@@ -105,15 +105,18 @@ for game_tools_menu in "$touch_game_tools_menu" "$gui_game_tools_menu"; do
     assert_contains "$game_tools_menu" 'modules/game_launchers.sh" battlenet' "战网安装入口调用错误"
     assert_contains "$game_tools_menu" '游戏启动诊断' "游戏助手缺少启动诊断入口"
     assert_contains "$game_tools_menu" 'modules/game_diagnose.sh" diagnose' "游戏启动诊断入口调用错误"
-    assert_contains "$game_tools_menu" '攻略与安全中心' "游戏助手缺少攻略与安全中心入口"
+    assert_not_contains "$game_tools_menu" '攻略与安全中心' "游戏助手仍保留已拆分的攻略入口"
 done
 
-for support_center_menu in "$touch_support_center_menu" "$gui_support_center_menu"; do
-    assert_contains "$support_center_menu" '中文兼容攻略卡' "安全中心缺少中文兼容攻略"
-    assert_contains "$support_center_menu" '掌机常用快捷键' "安全中心缺少掌机快捷键"
-    assert_contains "$support_center_menu" '外接设备检查' "安全中心缺少外接设备检查"
-    assert_contains "$support_center_menu" '操作记录' "安全中心缺少操作记录入口"
-    assert_contains "$support_center_menu" 'modules/safety_center.sh" records' "操作记录入口调用错误"
+assert_contains "$(cat "$MAIN_FILE")" 'nav-guides) NEXT_CATEGORY="guides"' "触控主菜单缺少实用指南导航"
+assert_contains "$(cat "$GUI_FILE")" 'guides "📖 实用指南"' "图形主菜单缺少实用指南导航"
+
+for practical_guides_menu in "$touch_practical_guides_menu" "$gui_practical_guides_menu"; do
+    assert_contains "$practical_guides_menu" '中文兼容攻略卡' "实用指南缺少中文兼容攻略"
+    assert_contains "$practical_guides_menu" '掌机常用快捷键' "实用指南缺少掌机快捷键"
+    assert_contains "$practical_guides_menu" '外接设备检查' "实用指南缺少外接设备检查"
+    assert_contains "$practical_guides_menu" '操作记录' "实用指南缺少操作记录入口"
+    assert_contains "$practical_guides_menu" 'modules/safety_center.sh" records' "操作记录入口调用错误"
 done
 
 assert_contains "$(cat "$PROJECT_ROOT/modules/game_diagnose.sh")" '不会删除游戏、兼容数据或缓存' \

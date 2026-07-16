@@ -4,7 +4,7 @@ set -u
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROFILE_FILE="$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
-WINDOW_SIZE="1220x740"
+WINDOW_SIZE="1280x860"
 STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 LAUNCH_LOG="${ZHOUKEER_LAUNCH_LOG:-$STATE_HOME/zhoukeer-toolbox/launcher.log}"
 

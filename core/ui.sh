@@ -5,10 +5,10 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../utils/colors.sh"
 # shellcheck disable=SC1091
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
 
-UI_SIDEBAR_WIDTH=29
-UI_SEPARATOR_COL=32
-UI_PANEL_COL=35
-UI_LAST_ROW=20
+UI_SIDEBAR_WIDTH=31
+UI_SEPARATOR_COL=34
+UI_PANEL_COL=37
+UI_LAST_ROW=24
 
 ui_detect_layout() {
     local columns="${COLUMNS:-}"
@@ -19,9 +19,9 @@ ui_detect_layout() {
 
     # 小屏掌机常见的窄终端下收紧导航栏，保留右侧至少 50 列内容空间。
     if [ "$columns" -le 104 ]; then
-        UI_SIDEBAR_WIDTH=25
-        UI_SEPARATOR_COL=28
-        UI_PANEL_COL=31
+        UI_SIDEBAR_WIDTH=27
+        UI_SEPARATOR_COL=30
+        UI_PANEL_COL=33
     fi
 }
 
@@ -135,7 +135,7 @@ draw_category_frame() {
     ui_move 1 3
     printf '\033[1;38;5;245m功能导航\033[0m'
 
-    # 采用无间隔的两行触控区，确保各类 SteamOS 掌机的小屏终端内完整显示。
+    # 两行点击区配合更高窗口，为每一类功能留出清晰的阅读间距。
     ui_sidebar_item 2 init "◆ 新机初始化" "$selected"
     ui_sidebar_item 4 software "▣ 常用软件" "$selected"
     ui_sidebar_item 6 remote "⌁ 远程协助" "$selected"
@@ -143,9 +143,10 @@ draw_category_frame() {
     ui_sidebar_item 10 settings "⚙ 系统设置" "$selected"
     ui_sidebar_item 12 dual "◫ 双系统设置" "$selected"
     ui_sidebar_item 14 optimize "▲ 系统优化" "$selected"
-    ui_sidebar_item 16 changelog "▤ 更新日志" "$selected"
-    ui_sidebar_item 18 update "↻ 工具箱更新" "$selected"
-    ui_sidebar_item 20 exit "× 退出工具箱" "$selected" 0
+    ui_sidebar_item 16 guides "▤ 实用指南" "$selected"
+    ui_sidebar_item 18 changelog "▤ 更新日志" "$selected"
+    ui_sidebar_item 20 update "↻ 工具箱更新" "$selected"
+    ui_sidebar_item 22 exit "× 退出工具箱" "$selected" 0
 
     row=2
     while [ "$row" -le "$UI_LAST_ROW" ]; do

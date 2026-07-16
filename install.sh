@@ -480,7 +480,7 @@ Name=周克儿工具箱
 Parent=FALLBACK/
 TerminalColumns=102
 TerminalMargin=6
-TerminalRows=22
+TerminalRows=28
 EOF
 fi
 

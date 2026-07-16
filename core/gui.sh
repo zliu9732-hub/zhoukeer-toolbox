@@ -409,7 +409,6 @@ game_tools_gui_menu() {
             epic "安装 Epic 并自动入库" \
             battlenet "安装战网并自动入库" \
             diagnose "游戏启动诊断（不删除游戏文件）" \
-            center "攻略与安全中心" \
             back "返回系统优化")" || return 0
         case "$choice" in
             epic)
@@ -421,22 +420,21 @@ game_tools_gui_menu() {
                     run_gui_action "安装战网并自动入库" bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
                 ;;
             diagnose) run_gui_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
-            center) support_center_gui_menu ;;
             back) return 0 ;;
         esac
     done
 }
 
-support_center_gui_menu() {
+practical_guides_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "攻略与安全中心" \
+        choice="$(gui_dialog --menu "实用指南" \
             guides "中文兼容攻略卡" \
             shortcuts "掌机常用快捷键" \
             peripherals "外接设备检查（只读）" \
             records "新手安全说明与操作记录导出" \
-            back "返回游戏与掌机助手")" || return 0
+            back "返回主菜单")" || return 0
         case "$choice" in
             guides) run_gui_action "中文兼容攻略卡" bash "$PROJECT_ROOT/modules/game_guides.sh" show ;;
             shortcuts) run_gui_action "掌机常用快捷键" bash "$PROJECT_ROOT/modules/handheld_helper.sh" shortcuts ;;
@@ -462,6 +460,7 @@ main_gui_menu() {
             settings "⚙️ 系统设置" \
             dual "💿 双系统设置" \
             optimization "🛠 系统优化" \
+            guides "📖 实用指南" \
             changelog "📋 更新日志" \
             update "🔄 更新工具箱" \
             exit "❌ 退出")" || exit 0
@@ -478,6 +477,7 @@ main_gui_menu() {
             settings) settings_menu ;;
             dual) dual_system_menu ;;
             optimization) optimization_menu ;;
+            guides) practical_guides_gui_menu ;;
             changelog)
                 gui_dialog --textbox "$PROJECT_ROOT/CHANGELOG.md" 900 650
                 ;;

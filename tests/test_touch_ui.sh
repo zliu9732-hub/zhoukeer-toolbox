@@ -36,9 +36,9 @@ run_choice_test '\033[<64;40;13M\033[<32;40;13M\033[<0;40;18M' "cancel" "right:1
 run_choice_test '\033[<0;15;5M' "software" "left:4-5:software"
 
 grep -Fq 'Font=Noto Sans Mono CJK SC,17' "$PROJECT_ROOT/install.sh"
-grep -Fq 'TerminalRows=22' "$PROJECT_ROOT/install.sh"
-grep -Fq 'UI_LAST_ROW=20' "$PROJECT_ROOT/core/ui.sh"
-grep -Fq 'WINDOW_SIZE="1220x740"' "$PROJECT_ROOT/launch.sh"
+grep -Fq 'TerminalRows=28' "$PROJECT_ROOT/install.sh"
+grep -Fq 'UI_LAST_ROW=24' "$PROJECT_ROOT/core/ui.sh"
+grep -Fq 'WINDOW_SIZE="1280x860"' "$PROJECT_ROOT/launch.sh"
 grep -Fq 'FillStyle=Crop' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
 grep -Fq 'Wallpaper=@WALLPAPER@' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
 grep -Fq 'WallpaperOpacity=0.35' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in"
@@ -77,13 +77,16 @@ printf '%s\n' "$sidebar_source" | grep -Fq "marker='▶ '"
 printf '%s\n' "$sidebar_source" | grep -Fq '──────────────────────────'
 grep -Fq 'ui_sidebar_item 2 init "◆ 新机初始化"' "$PROJECT_ROOT/core/ui.sh"
 grep -Fq 'ui_sidebar_item 12 dual "◫ 双系统设置"' "$PROJECT_ROOT/core/ui.sh"
-grep -Fq 'ui_sidebar_item 16 changelog "▤ 更新日志"' "$PROJECT_ROOT/core/ui.sh"
+grep -Fq 'ui_sidebar_item 16 guides "▤ 实用指南"' "$PROJECT_ROOT/core/ui.sh"
+grep -Fq 'ui_sidebar_item 18 changelog "▤ 更新日志"' "$PROJECT_ROOT/core/ui.sh"
 if printf '%s\n' "$frame_source" | grep -Eq '⭐|💻|📡|🧩|💿|🚀|📋|🔄|✖'; then
     echo "FAIL: 左侧菜单仍包含彩色Emoji图标"
     exit 1
 fi
 grep -Fq 'left:12-13:nav-dual' "$PROJECT_ROOT/main.sh"
-grep -Fq 'left:16-17:nav-changelog' "$PROJECT_ROOT/main.sh"
+grep -Fq 'left:16-17:nav-guides' "$PROJECT_ROOT/main.sh"
+grep -Fq 'left:18-19:nav-changelog' "$PROJECT_ROOT/main.sh"
+grep -Fq 'guides) practical_guides_touch_menu' "$PROJECT_ROOT/main.sh"
 grep -Fq 'changelog) changelog_menu' "$PROJECT_ROOT/main.sh"
 
 echo "PASS: 纯触控、圆形图标、免责声明、字体和背景主题测试通过"

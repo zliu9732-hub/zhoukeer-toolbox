@@ -136,9 +136,10 @@ read_touch_menu() {
         left:10-11:nav-settings \
         left:12-13:nav-dual \
         left:14-15:nav-optimize \
-        left:16-17:nav-changelog \
-        left:18-19:nav-update \
-        left:20-20:nav-exit \
+        left:16-17:nav-guides \
+        left:18-19:nav-changelog \
+        left:20-21:nav-update \
+        left:22-23:nav-exit \
         "$@"
 }
 
@@ -151,6 +152,7 @@ apply_navigation() {
         nav-settings) NEXT_CATEGORY="settings" ;;
         nav-dual) NEXT_CATEGORY="dual" ;;
         nav-optimize) NEXT_CATEGORY="optimize" ;;
+        nav-guides) NEXT_CATEGORY="guides" ;;
         nav-changelog) NEXT_CATEGORY="changelog" ;;
         nav-update) NEXT_CATEGORY="update" ;;
         nav-exit) NEXT_CATEGORY="exit" ;;
@@ -525,13 +527,13 @@ system_optimization_menu() {
 
     while true; do
         draw_category_frame optimize "系统优化" "缓存清理、性能建议和常见问题修复"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "游戏与掌机助手" "非 Steam 入库、启动诊断、快捷键和外接设备检查"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "游戏与掌机助手" "Epic、战网自动入库与游戏启动诊断"
         ui_touch_button 10 '\033[1;97;48;5;24m' "SteamOS 掌机优化" "下载缓存、着色器缓存和性能建议"
         ui_touch_button 13 '\033[1;97;48;5;24m' "系统清理" "安全释放用户缓存和 Steam 缓存"
         ui_touch_button 16 '\033[1;97;48;5;24m' "一键修复模式" "检测网络并处理常见下载问题"
-        ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:game-tools right:10-11:steam right:13-14:clean right:16-17:fix right:18-19:home)"
+        choice="$(read_touch_menu right:7-8:game-tools right:10-11:steam right:13-14:clean right:16-17:fix right:20-21:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -552,49 +554,47 @@ game_tools_touch_menu() {
         draw_category_frame optimize "游戏与掌机助手" "安全检测和引导，不删除游戏或修改 Steam 游戏库"
         ui_touch_button 7 '\033[1;97;48;5;24m' "安装 Epic 并自动入库" "官方 MSI 入 Steam；安装后自动切换到主 EXE"
         ui_touch_button 10 '\033[1;97;48;5;24m' "安装战网并自动入库" "官方 EXE 入 Steam；安装后自动切换到主 EXE"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "游戏启动诊断" "检查 Steam、兼容层、空间和日志；不删除游戏文件"
-        ui_touch_button 16 '\033[1;97;48;5;24m' "攻略与安全中心" "中文兼容攻略、掌机说明和操作记录导出"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "游戏启动诊断" "检查 Steam、兼容层、空间和日志；不删除游戏文件"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统优化" "查看清理和修复功能"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:epic right:10-11:battlenet right:13-14:diagnose right:16-17:center right:18-19:optimize)"
+        choice="$(read_touch_menu right:7-8:epic right:10-11:battlenet right:14-15:diagnose right:18-19:optimize)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
             epic) confirm_and_run "安装 Epic 并自动入库" "会安全重启 Steam 后写入非 Steam 游戏条目。首次在 Steam 里选 PE 或 GE-Proton 10.0-4 并完成官方安装；工具箱会自动切换到 Epic 主 EXE" bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
             battlenet) confirm_and_run "安装战网并自动入库" "会安全重启 Steam 后写入非 Steam 游戏条目。首次在 Steam 里选 PE 或 GE-Proton 10.0-4 并完成官方安装；工具箱会自动切换到战网主 EXE" bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
             diagnose) run_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
-            center) support_center_touch_menu ;;
             optimize) NEXT_CATEGORY="optimize"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "optimize" ] || return 0
     done
 }
 
-support_center_touch_menu() {
+practical_guides_touch_menu() {
     local choice
 
     while true; do
-        draw_category_frame optimize "攻略与安全中心" "常见中文兼容指引、掌机说明和可导出的操作记录"
+        draw_category_frame guides "实用指南" "常见中文兼容指引、掌机说明和可导出的操作记录"
         ui_touch_button 7 '\033[1;97;48;5;24m' "中文兼容攻略卡" "启动器、Proton、手柄、反作弊、性能和空间建议"
         ui_touch_button 10 '\033[1;97;48;5;24m' "掌机常用快捷键" "键盘、触控板、扳机鼠标与回游戏模式说明"
         ui_touch_button 13 '\033[1;97;48;5;24m' "外接设备检查" "只读检查显示器和蓝牙设备状态"
         ui_touch_button 16 '\033[1;97;48;5;24m' "新手安全与操作记录" "说明高风险操作并导出最近 80 条工具箱记录"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回游戏与掌机助手" "查看启动器和游戏诊断"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:guides right:10-11:shortcuts right:13-14:peripherals right:16-17:records right:18-19:game-tools)"
+        choice="$(read_touch_menu right:7-8:guides-card right:10-11:shortcuts right:13-14:peripherals right:16-17:records right:18-19:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            guides) run_action "中文兼容攻略卡" bash "$PROJECT_ROOT/modules/game_guides.sh" show ;;
+            guides-card) run_action "中文兼容攻略卡" bash "$PROJECT_ROOT/modules/game_guides.sh" show ;;
             shortcuts) run_action "掌机常用快捷键" bash "$PROJECT_ROOT/modules/handheld_helper.sh" shortcuts ;;
             peripherals) run_action "外接设备检查" bash "$PROJECT_ROOT/modules/handheld_helper.sh" peripherals ;;
             records)
                 run_action "新手安全说明" bash "$PROJECT_ROOT/modules/safety_center.sh" guide
                 run_action "操作记录" bash "$PROJECT_ROOT/modules/safety_center.sh" records
                 ;;
-            game-tools) NEXT_CATEGORY="optimize"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
         esac
-        [ "$NEXT_CATEGORY" = "optimize" ] || return 0
+        [ "$NEXT_CATEGORY" = "guides" ] || return 0
     done
 }
 
@@ -627,8 +627,9 @@ home_menu() {
     ui_panel_line 12 '\033[1;38;5;45m' "⚙ 系统设置：国内源、加速器、密码、设备信息"
     ui_panel_line 13 '\033[1;38;5;45m' "💿 双系统设置：互通盘、双引导菜单"
     ui_panel_line 14 '\033[1;38;5;114m' "🚀 系统优化：缓存清理、性能建议、问题修复"
-    ui_panel_line 15 '\033[1;38;5;114m' "📋 更新日志：查看版本改动和修复内容"
-    ui_panel_line 16 '\033[1;38;5;114m' "🔄 工具箱更新：检查并更新到最新版本"
+    ui_panel_line 16 '\033[1;38;5;114m' "📖 实用指南：兼容攻略、快捷键、外接设备和记录"
+    ui_panel_line 17 '\033[1;38;5;114m' "📋 更新日志：查看版本改动和修复内容"
+    ui_panel_line 18 '\033[1;38;5;114m' "🔄 工具箱更新：检查并更新到最新版本"
     ui_prompt
     choice="$(read_touch_menu)"
     apply_navigation "$choice" || true
@@ -647,6 +648,7 @@ while true; do
         settings) system_settings_menu ;;
         dual) dual_system_menu ;;
         optimize) system_optimization_menu ;;
+        guides) practical_guides_touch_menu ;;
         changelog) changelog_menu ;;
         update)
             confirm_and_run "更新工具箱" "下载、校验并安全替换为最新版本" bash "$PROJECT_ROOT/update.sh"
