@@ -27,6 +27,7 @@ MAX_TIME="${ZHOUKEER_MAX_TIME:-600}"
 
 GITEE_RAW_BASE="${ZHOUKEER_GITEE_RAW_BASE:-https://gitee.com/$GITEE_OWNER/$REPO_NAME/raw/$BRANCH}"
 GITHUB_RAW_BASE="${ZHOUKEER_GITHUB_RAW_BASE:-https://raw.githubusercontent.com/$GITHUB_OWNER/$REPO_NAME/$BRANCH}"
+DOMAIN_RAW_BASE="${ZHOUKEER_DOMAIN_RAW_BASE:-https://jktool.icu}"
 PACKAGE_NAME="${ZHOUKEER_PACKAGE_NAME:-zhoukeer-toolbox.tar.gz}"
 GITEE_PACKAGE_URL="${ZHOUKEER_GITEE_PACKAGE_URL:-$GITEE_RAW_BASE/dist/$PACKAGE_NAME}"
 GITHUB_PACKAGE_URL="${ZHOUKEER_GITHUB_PACKAGE_URL:-$GITHUB_RAW_BASE/dist/$PACKAGE_NAME}"
@@ -34,6 +35,9 @@ GITEE_VERSION_URL="${ZHOUKEER_GITEE_VERSION_URL:-$GITEE_RAW_BASE/VERSION}"
 GITHUB_VERSION_URL="${ZHOUKEER_GITHUB_VERSION_URL:-$GITHUB_RAW_BASE/VERSION}"
 GITEE_CHECKSUM_URL="${ZHOUKEER_GITEE_CHECKSUM_URL:-$GITEE_RAW_BASE/dist/SHA256SUMS}"
 GITHUB_CHECKSUM_URL="${ZHOUKEER_GITHUB_CHECKSUM_URL:-$GITHUB_RAW_BASE/dist/SHA256SUMS}"
+DOMAIN_VERSION_URL="${ZHOUKEER_DOMAIN_VERSION_URL:-$DOMAIN_RAW_BASE/VERSION}"
+DOMAIN_PACKAGE_URL="${ZHOUKEER_DOMAIN_PACKAGE_URL:-$DOMAIN_RAW_BASE/dist/$PACKAGE_NAME}"
+DOMAIN_CHECKSUM_URL="${ZHOUKEER_DOMAIN_CHECKSUM_URL:-$DOMAIN_RAW_BASE/dist/SHA256SUMS}"
 
 need_command() {
     if ! command -v "$1" >/dev/null 2>&1; then
@@ -146,6 +150,12 @@ download_verified_package() {
     local checksum_file="$2"
 
     if download_verified_package_from \
+        "域名" "$DOMAIN_PACKAGE_URL" "$DOMAIN_CHECKSUM_URL" \
+        "$package_file" "$checksum_file"; then
+        DOWNLOAD_SOURCE="域名"
+        return 0
+    fi
+    if download_verified_package_from \
         "Gitee" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
         DOWNLOAD_SOURCE="Gitee"
@@ -160,16 +170,21 @@ download_verified_package() {
         return 0
     fi
 
-    echo "安装包验证失败：Gitee和GitHub均不可用。"
+    echo "安装包验证失败。"
     return 1
 }
 
 download_with_fallback() {
     local output="$1"
     local label="$2"
-    local gitee_url="$3"
-    local github_url="$4"
+    local domain_url="$3"
+    local gitee_url="$4"
+    local github_url="$5"
 
+    if download_one "$domain_url" "$output" "域名"; then
+        DOWNLOAD_SOURCE="域名"
+        return 0
+    fi
     if download_one "$gitee_url" "$output" "Gitee"; then
         DOWNLOAD_SOURCE="Gitee"
         return 0
@@ -181,7 +196,7 @@ download_with_fallback() {
         return 0
     fi
 
-    echo "$label 下载失败：Gitee和GitHub均不可用。"
+    echo "$label 下载失败。"
     return 1
 }
 
@@ -209,7 +224,7 @@ need_command curl
 need_command tar
 
 if [ "$DRY_RUN" -eq 1 ]; then
-    echo "[dry-run] 将优先从Gitee获取版本: $GITEE_VERSION_URL"
+    echo "[dry-run] 将优先从域名获取版本: $DOMAIN_VERSION_URL"
     echo "[dry-run] Gitee发布包: $GITEE_PACKAGE_URL"
     echo "[dry-run] GitHub备用包: $GITHUB_PACKAGE_URL"
     echo "[dry-run] 将安装到: $INSTALL_DIR"
@@ -228,7 +243,7 @@ cleanup() {
 trap cleanup EXIT
 
 echo "[1/4] 获取版本信息..."
-if download_with_fallback "$VERSION_FILE" "版本信息" "$GITEE_VERSION_URL" "$GITHUB_VERSION_URL"; then
+if download_with_fallback "$VERSION_FILE" "版本信息" "$DOMAIN_VERSION_URL" "$GITEE_VERSION_URL" "$GITHUB_VERSION_URL"; then
     VERSION="$(tr -d '\r\n' < "$VERSION_FILE")"
 else
     VERSION="unknown"

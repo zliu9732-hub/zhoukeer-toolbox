@@ -33,6 +33,7 @@ VERSION_MAX_TIME="${ZHOUKEER_VERSION_MAX_TIME:-30}"
 
 GITEE_RAW_BASE="${ZHOUKEER_GITEE_RAW_BASE:-https://gitee.com/$GITEE_OWNER/$REPO_NAME/raw/$BRANCH}"
 GITHUB_RAW_BASE="${ZHOUKEER_GITHUB_RAW_BASE:-https://raw.githubusercontent.com/$GITHUB_OWNER/$REPO_NAME/$BRANCH}"
+DOMAIN_RAW_BASE="${ZHOUKEER_DOMAIN_RAW_BASE:-https://jktool.icu}"
 PACKAGE_NAME="${ZHOUKEER_PACKAGE_NAME:-zhoukeer-toolbox.tar.gz}"
 GITEE_PACKAGE_URL="${ZHOUKEER_GITEE_PACKAGE_URL:-$GITEE_RAW_BASE/dist/$PACKAGE_NAME}"
 GITHUB_PACKAGE_URL="${ZHOUKEER_GITHUB_PACKAGE_URL:-$GITHUB_RAW_BASE/dist/$PACKAGE_NAME}"
@@ -40,6 +41,9 @@ GITEE_VERSION_URL="${ZHOUKEER_GITEE_VERSION_URL:-$GITEE_RAW_BASE/VERSION}"
 GITHUB_VERSION_URL="${ZHOUKEER_GITHUB_VERSION_URL:-$GITHUB_RAW_BASE/VERSION}"
 GITEE_CHECKSUM_URL="${ZHOUKEER_GITEE_CHECKSUM_URL:-$GITEE_RAW_BASE/dist/SHA256SUMS}"
 GITHUB_CHECKSUM_URL="${ZHOUKEER_GITHUB_CHECKSUM_URL:-$GITHUB_RAW_BASE/dist/SHA256SUMS}"
+DOMAIN_VERSION_URL="${ZHOUKEER_DOMAIN_VERSION_URL:-$DOMAIN_RAW_BASE/VERSION}"
+DOMAIN_PACKAGE_URL="${ZHOUKEER_DOMAIN_PACKAGE_URL:-$DOMAIN_RAW_BASE/dist/$PACKAGE_NAME}"
+DOMAIN_CHECKSUM_URL="${ZHOUKEER_DOMAIN_CHECKSUM_URL:-$DOMAIN_RAW_BASE/dist/SHA256SUMS}"
 
 need_command() {
     if ! command -v "$1" >/dev/null 2>&1; then
@@ -192,6 +196,12 @@ download_verified_package() {
         fi
 
         echo "GitHub包或校验文件不可用，切换Gitee备用源。"
+    if download_verified_package_from \
+        "域名" "$DOMAIN_PACKAGE_URL" "$DOMAIN_CHECKSUM_URL" \
+        "$package_file" "$checksum_file"; then
+        DOWNLOAD_SOURCE="域名"
+        return 0
+    fi
         if download_verified_package_from \
             "Gitee" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
             "$package_file" "$checksum_file"; then
@@ -225,6 +235,10 @@ download_verified_package() {
 download_version_with_fallback() {
     local output="$1"
 
+    if download_version_one "$DOMAIN_VERSION_URL" "$output" "域名"; then
+        VERSION_SOURCE="域名"
+        return 0
+    fi
     if download_version_one "$GITEE_VERSION_URL" "$output" "Gitee"; then
         VERSION_SOURCE="Gitee"
         return 0
@@ -271,7 +285,7 @@ need_command tar
 
 if [ "$DRY_RUN" -eq 1 ]; then
     echo "[dry-run] 将先比较本地 VERSION 与远程 VERSION"
-    echo "[dry-run] 将优先下载: $GITEE_PACKAGE_URL"
+    echo "[dry-run] 将优先下载域名: $DOMAIN_PACKAGE_URL"
     echo "[dry-run] GitHub备用: $GITHUB_PACKAGE_URL"
     echo "[dry-run] 将更新目录: $PROJECT_ROOT"
     echo "[dry-run] 不会下载、解压或覆盖任何文件。"

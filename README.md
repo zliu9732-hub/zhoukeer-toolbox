@@ -61,7 +61,7 @@ curl -fsSL https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/
 未来绑定域名后，目标形式是：
 
 ```bash
-curl -fsSL https://我的域名/i | bash
+curl -fsSL https://jktool.icu/i | bash
 ```
 
 默认安装目录：
