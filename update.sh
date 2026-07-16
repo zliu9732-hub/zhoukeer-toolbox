@@ -30,6 +30,7 @@ CONNECT_TIMEOUT="${ZHOUKEER_CONNECT_TIMEOUT:-20}"
 MAX_TIME="${ZHOUKEER_MAX_TIME:-600}"
 VERSION_CONNECT_TIMEOUT="${ZHOUKEER_VERSION_CONNECT_TIMEOUT:-8}"
 VERSION_MAX_TIME="${ZHOUKEER_VERSION_MAX_TIME:-30}"
+CACHE_BUSTER="${ZHOUKEER_CACHE_BUSTER:-$(date '+%s')-$$}"
 
 GITEE_RAW_BASE="${ZHOUKEER_GITEE_RAW_BASE:-https://gitee.com/$GITEE_OWNER/$REPO_NAME/raw/$BRANCH}"
 GITHUB_RAW_BASE="${ZHOUKEER_GITHUB_RAW_BASE:-https://raw.githubusercontent.com/$GITHUB_OWNER/$REPO_NAME/$BRANCH}"
@@ -52,6 +53,13 @@ need_command() {
     fi
 }
 
+cache_busted_url() {
+    case "$1" in
+        *\?*) printf '%s&zhoukeer_cb=%s\n' "$1" "$CACHE_BUSTER" ;;
+        *) printf '%s?zhoukeer_cb=%s\n' "$1" "$CACHE_BUSTER" ;;
+    esac
+}
+
 sha256_file() {
     if command -v sha256sum >/dev/null 2>&1; then
         sha256sum "$1" | awk '{print $1}'
@@ -67,9 +75,11 @@ download_one() {
     local url="$1"
     local output="$2"
     local label="$3"
+    local request_url
 
     echo "尝试下载($label): $url"
     rm -f -- "$output"
+    request_url="$(cache_busted_url "$url")"
     curl \
         --fail \
         --location \
@@ -82,16 +92,18 @@ download_one() {
         --retry-delay 2 \
         --retry-all-errors \
         --output "$output" \
-        "$url"
+        "$request_url"
 }
 
 download_version_one() {
     local url="$1"
     local output="$2"
     local label="$3"
+    local request_url
 
     echo "检查版本($label)..."
     rm -f -- "$output"
+    request_url="$(cache_busted_url "$url")"
     curl \
         --fail \
         --location \
@@ -105,7 +117,7 @@ download_version_one() {
         --retry-delay 2 \
         --retry-all-errors \
         --output "$output" \
-        "$url"
+        "$request_url"
 }
 
 valid_release_version() {

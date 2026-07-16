@@ -53,7 +53,8 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 printf '%s\n' "$url" >> "$FAKE_CURL_LOG"
-case "$url" in
+clean_url="${url%%\?*}"
+case "$clean_url" in
     */dist/zhoukeer-toolbox.tar.gz) source="$FAKE_REMOTE_DIR/dist/zhoukeer-toolbox.tar.gz" ;;
     */dist/SHA256SUMS) source="$FAKE_REMOTE_DIR/dist/SHA256SUMS" ;;
     */VERSION) source="$FAKE_REMOTE_DIR/VERSION" ;;
@@ -81,6 +82,7 @@ if [ "$(tr -d '\r\n' < "$INSTALL_DIR/VERSION")" != '4.1.0' ]; then
 fi
 grep -Fq '/dist/zhoukeer-toolbox.tar.gz' "$CURL_LOG"
 grep -Fq '/dist/SHA256SUMS' "$CURL_LOG"
+grep -Fq 'zhoukeer_cb=' "$CURL_LOG"
 
 : > "$CURL_LOG"
 run_update > "$STATE_DIR/latest.output"

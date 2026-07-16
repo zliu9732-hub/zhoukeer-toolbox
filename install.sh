@@ -428,6 +428,13 @@ if ! find "$STAGING_DIR" -type f -name '*.sh' -exec bash -n {} \;; then
     echo "新版本包含Shell语法错误，旧版本保持不变。"
     exit 1
 fi
+if ! grep -Fq 'STEAM302_LAYOUT_VALIDATION_REVISION="ascii-files-v2"' \
+    "$STAGING_DIR/modules/steam_accelerator.sh" || \
+    ! grep -Fq 'run_launcher_installer()' \
+    "$STAGING_DIR/modules/game_launchers.sh"; then
+    echo "新版本关键模块不完整，旧版本保持不变。"
+    exit 1
+fi
 find "$STAGING_DIR" -maxdepth 3 -type f -name "*.sh" -exec chmod +x {} +
 
 # 安装目录即将被原子替换。先离开它，避免从工具箱内部发起更新时，
