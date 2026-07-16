@@ -16,12 +16,12 @@
 - 插件商城：当前完整清单共28款，包括小黄鸭、FSR4、CheatDeck三款独立功能插件，以及包含SimpleDeckyTDP和Unifideck在内的25款精选插件；支持全部一键安装、商店插件分页浏览、单项安装和三件套文件状态检查。Decky-Framegen 即 FSR4，CheatDeck 安装完成后也可在 Decky 右侧栏显示。另有独立的“周克儿汉化（测试版）”，通过词库覆盖已知 Decky 文案，不修改原插件文件。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
 
 使用小黄鸭前，安装完成后请在 Steam 正版页面打开游戏右侧齿轮，进入“属性 → 测试版”，选择名称以 Linux 开头的可用版本；随后进入游戏模式，按 Steam Deck 机身右下角的“三个点（…）”按钮，在打开的菜单中依次点击插头图标 → 小黄鸭 → 安装 LSFG。
-- 常用软件与远程协助：微信直接从腾讯官网国内 CDN 安装官方 AppImage；QQ 会在上海交大和中科大 Flatpak 缓存间测速、限时切换，避开腾讯 QQ AppImage CDN 的 403 限制；RustDesk 与 Firefox 使用123云盘国内直链提供的 Linux x86_64 完整包。安装成功后会创建桌面快捷方式，不修改SteamOS只读分区。
+- 常用软件与远程协助：微信直接从腾讯官网国内 CDN 安装官方 AppImage；QQ 会在上海交大和中科大 Flatpak 缓存间测速、限时切换，避开腾讯 QQ AppImage CDN 的 403 限制；Firefox 使用官方 Flathub 的 `org.mozilla.firefox`，RustDesk 使用123云盘国内直链提供的 AppImage。安装成功后会创建桌面快捷方式，不修改SteamOS只读分区。
 - GE-Proton兼容层：从固定的123云盘直链下载并校验SHA256，安装到Steam用户的 `compatibilitytools.d` 目录，不需要管理员权限。
 - ToDesk：使用固定的第三方SteamOS适配包并校验SHA256，安装完成后恢复只读保护。
 - Steam Deck 优化：清理 Steam 下载缓存、着色器缓存，并提供性能模式提示。
 - 国内下载源：添加用户级Flathub国内缓存，同时保留官方Flathub作为备用；应用下载时会测速并自动排序，不修改SteamOS只读系统分区。
-- Steam加速器：使用Steamcommunity 302官方Linux AMD64固定安装包；工具箱只负责安装，不会自动启用加速服务。
+- Steam加速器：使用Steamcommunity 302官方Linux AMD64固定安装包；首次在官方界面完成设置后，工具箱可一键启动其已有后台服务，不会改写其代理、hosts/DNS 或证书规则。
 - 系统密码：支持设置或修改当前SteamOS用户密码，并可启用用户明确选择的明文密码便利模式。
 - 安全清理：清理前必须确认，避免误删。
 - 一键修复模式：执行网络检测、Steam 下载缓存清理建议和 DNS 处理提示。

@@ -166,7 +166,7 @@ common_software_menu() {
         draw_category_frame software "常用软件" "国内缓存优先，安装完成自动创建桌面图标"
         ui_touch_button 7 '\033[1;97;48;5;24m' "微信" "安装或修复微信，同步创建桌面快捷方式"
         ui_touch_button 10 '\033[1;97;48;5;24m' "QQ" "安装或修复 QQ，同步创建桌面快捷方式"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "Firefox 浏览器" "安装完整包，不依赖Flatpak下载源"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "Firefox 浏览器" "官方 Flathub 安装，支持自动更新"
         ui_touch_button 16 '\033[1;97;48;5;24m' "GE-Proton 兼容层" "安装到Steam兼容工具目录，无需管理员权限"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -495,16 +495,20 @@ steam_accelerator_touch_menu() {
 
     while true; do
         draw_category_frame settings "Steamcommunity 302" "官方 Linux AMD64 固定版本，安装包双重校验"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "安装或更新" "安装后在官方界面按需开启后台服务"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "查看运行状态" "查看版本、桌面图标和后台服务状态"
-        ui_touch_button 14 '\033[1;97;48;5;160m' "安全卸载" "后台服务仍启用时会拒绝删除"
-        ui_touch_button 17 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
+        ui_touch_button 6 '\033[1;97;48;5;24m' "安装或更新" "首次仍需在官方界面完成设置"
+        ui_touch_button 9 '\033[1;97;48;5;30m' "一键开启加速服务" "启动已配置的官方后台服务"
+        ui_touch_button 12 '\033[1;97;48;5;24m' "查看运行状态" "查看版本、桌面图标和后台服务状态"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "安全卸载" "后台服务仍启用时会拒绝删除"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
         ui_prompt
-        choice="$(read_touch_menu right:8-9:install right:11-12:status right:14-15:uninstall right:17-18:settings)"
+        choice="$(read_touch_menu right:6-7:install right:9-10:start right:12-13:status right:15-16:uninstall right:18-19:settings)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             install)
                 confirm_and_run "Steamcommunity 302" "涉及本机代理、hosts/DNS和根证书；安装后由你选择是否开启后台服务" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" install
+                ;;
+            start)
+                confirm_and_run "开启 Steamcommunity 302 加速" "将启动官方已配置的后台服务；它会使用你已保存的代理、hosts/DNS和证书设置" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" start
                 ;;
             status) run_action "Steamcommunity 302 状态" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" status ;;
             uninstall)

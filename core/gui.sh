@@ -84,7 +84,7 @@ software_menu() {
                     bash "$PROJECT_ROOT/modules/software.sh" qq
                 ;;
             browser)
-                gui_confirm "将从123云盘国内直链下载Firefox Linux x86_64中文完整包并安装到工具箱目录，不依赖Flatpak。是否继续？" && \
+                gui_confirm "将从官方 Flathub 安装 Firefox（org.mozilla.firefox），不使用123云盘或国内镜像。是否继续？" && \
                     run_gui_action "安装Firefox浏览器" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" browser
                 ;;
@@ -305,6 +305,7 @@ steam_accelerator_gui_menu() {
     while true; do
         choice="$(gui_dialog --menu "Steamcommunity 302" \
             install "安装或更新" \
+            start "一键开启加速服务" \
             status "查看运行状态" \
             uninstall "安全卸载" \
             back "返回系统设置")" || return 0
@@ -313,6 +314,11 @@ steam_accelerator_gui_menu() {
                 gui_confirm "该工具会使用本机代理，并可能修改hosts/DNS及安装根证书。安装后由你在官方界面选择是否开启后台服务，是否继续？" && \
                     run_gui_action "安装Steamcommunity 302" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/steam_accelerator.sh" install
+                ;;
+            start)
+                gui_confirm "将启动官方已配置的 Steamcommunity 302 后台服务；它会使用你已保存的代理、hosts/DNS 和证书设置。是否继续？" && \
+                    run_gui_action "开启 Steamcommunity 302 加速" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/steam_accelerator.sh" start
                 ;;
             status)
                 run_gui_action "Steamcommunity 302状态" \

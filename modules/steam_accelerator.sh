@@ -122,6 +122,59 @@ steam302_service_is_enabled() {
     systemctl is-enabled --quiet "$STEAM302_SERVICE_NAME" >/dev/null 2>&1
 }
 
+steam302_service_exists() {
+    command -v systemctl >/dev/null 2>&1 || return 1
+    systemctl cat "$STEAM302_SERVICE_NAME" >/dev/null 2>&1
+}
+
+confirm_steam302_service_start() {
+    local answer
+
+    echo "将启动官方 Steamcommunity 302 后台服务。"
+    echo "该服务会使用你已在官方界面保存的代理、hosts/DNS 和证书设置。"
+    echo "工具箱不会新增或修改这些设置。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        return 0
+    fi
+
+    read -r -p "确认启动请输入 START：" answer
+    [ "$answer" = "START" ]
+}
+
+start_steam302_service() {
+    steam302_is_installed || {
+        echo "Steamcommunity 302 尚未安装。"
+        return 1
+    }
+    require_command systemctl || return 1
+    if steam302_service_is_active; then
+        echo "加速服务已在运行。"
+        return 0
+    fi
+    if ! steam302_service_exists; then
+        echo "尚未找到官方后台服务。"
+        echo "请先打开 Steamcommunity 302 官方界面，完成首次设置并启用“开机运行—后台服务(无界面)”。"
+        echo "完成一次后，之后即可在工具箱中一键启动。"
+        return 1
+    fi
+
+    confirm_steam302_service_start || {
+        echo "已取消启动加速服务。"
+        return 0
+    }
+    if ! toolbox_sudo systemctl start "$STEAM302_SERVICE_NAME"; then
+        echo "加速服务启动失败，官方设置保持不变。"
+        return 1
+    fi
+    if steam302_service_is_active; then
+        echo "加速服务已启动。"
+        return 0
+    fi
+
+    echo "systemd 已收到启动请求，但服务未进入运行状态。请在官方界面查看日志。"
+    return 1
+}
+
 download_steam302_archive() {
     local destination="$1"
 
@@ -560,8 +613,9 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         install) install_steam302 ;;
         launch) launch_steam302 ;;
+        start) start_steam302_service ;;
         status) show_steam302_status ;;
         uninstall) uninstall_steam302 ;;
-        *) echo "用法: $0 {install|launch|status|uninstall}"; exit 1 ;;
+        *) echo "用法: $0 {install|launch|start|status|uninstall}"; exit 1 ;;
     esac
 fi

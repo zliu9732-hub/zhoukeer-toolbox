@@ -85,11 +85,33 @@ build_custom_plugins_json() {
         "${DECKY_UNIFIDECK_SHA256:-}" || return 1
 }
 
-build_decky_bundle_javascript() {
+build_decky_bundle_javascript_legacy() {
     local custom_plugins="$1"
     local official_names="${2:-$DECKY_OFFICIAL_PLUGIN_NAMES}"
 
     printf '%s' "(function(){const m=$(json_quote "$DECKY_BUNDLE_MARKER");const on=$official_names;const c=[$custom_plugins];const su=$(json_quote "$DECKY_STORE_URL");const ab=$(json_quote "$DECKY_ARTIFACT_BASE");if(typeof DeckyBackend==="undefined"){console.error("no back");return m;}DeckyPluginLoader.updateVersion().then(function(v){return fetch(su,{headers:{"X-Decky-Version":v.current}});}).then(function(r){if(!r.ok)throw Error("http"+r.status);return r.json();}).then(function(s){var b=new Map(s.map(function(p){return[p.name,p];}));DeckyBackend.call("loader/get_plugins").then(function(i){var iv=new Map(i.map(function(p){return[p.name,String(p.version||"")];}));var rq=[];var p;for(var n of on){p=b.get(n);var l=p.versions&&p.versions[0];if(!l||!l.hash)continue;if(iv.get(n)===String(l.name))continue;rq.push({name:n,artifact:l.artifact||ab+"/"+l.hash+".zip",version:String(l.name),hash:l.hash,install_type:iv.has(n)?2:0});}for(var pg of c){if(iv.get(pg.name)===String(pg.version))continue;rq.push({name:pg.name,artifact:pg.artifact,version:String(pg.version),hash:pg.hash,install_type:iv.has(pg.name)?2:0});}if(rq.length)DeckyBackend.call("utilities/install_plugins",rq);});}).catch(function(e){console.error("zkeer:",e);});return m;})()"
+}
+
+build_decky_bundle_javascript() {
+    local custom_plugins="$1"
+    local official_names="${2:-$DECKY_OFFICIAL_PLUGIN_NAMES}"
+
+    # Wait for Decky to compare versions and accept the request before returning
+    # a marker. This prevents the terminal from reporting an unconfirmed install.
+    printf '%s\n' \
+        "(async function(){" \
+        "const m=$(json_quote "$DECKY_BUNDLE_MARKER");const on=$official_names;const c=[$custom_plugins];" \
+        "const su=$(json_quote "$DECKY_STORE_URL");const ab=$(json_quote "$DECKY_ARTIFACT_BASE");" \
+        "try{if(typeof DeckyBackend===\"undefined\")throw Error(\"DeckyBackend unavailable\");" \
+        "const v=await DeckyPluginLoader.updateVersion();const r=await fetch(su,{headers:{\"X-Decky-Version\":v.current}});" \
+        "if(!r.ok)throw Error(\"http\"+r.status);const s=await r.json();" \
+        "const b=new Map(s.map(function(p){return[p.name,p];}));const i=await DeckyBackend.call(\"loader/get_plugins\");" \
+        "const iv=new Map(i.map(function(p){return[p.name,String(p.version||\"\")];}));const rq=[];let p;" \
+        "for(const n of on){p=b.get(n);const l=p.versions&&p.versions[0];if(!l||!l.hash)continue;if(iv.get(n)===String(l.name))continue;" \
+        "rq.push({name:n,artifact:l.artifact||ab+\"/\"+l.hash+\".zip\",version:String(l.name),hash:l.hash,install_type:iv.has(n)?2:0});}" \
+        "for(const pg of c){if(iv.get(pg.name)===String(pg.version))continue;rq.push({name:pg.name,artifact:pg.artifact,version:String(pg.version),hash:pg.hash,install_type:iv.has(pg.name)?2:0});}" \
+        "if(!rq.length)return m+\":current\";await DeckyBackend.call(\"utilities/install_plugins\",rq);return m+\":queued:\"+rq.length;" \
+        "}catch(e){console.error(\"zkeer:\",e);return m+\":failed\";}})()"
 }
 
 call_decky_frontend() {
@@ -100,7 +122,7 @@ call_decky_frontend() {
     local response
 
     for tab in "SharedJSContext" "Steam Shared Context presented by Valve™" "Steam" "SP"; do
-        payload="{\"tab\":$(json_quote "$tab"),\"run_async\":false,\"code\":$(json_quote "$code")}"
+        payload="{\"tab\":$(json_quote "$tab"),\"run_async\":true,\"code\":$(json_quote "$code")}"
         response="$(curl \
             --fail \
             --silent \
@@ -192,14 +214,22 @@ install_recommended_decky_plugins() {
         return 1
     }
 
-    if [[ "$response" == *"$DECKY_BUNDLE_MARKER:current"* ]]; then
-        echo "所选插件已经全部是当前最新版，无需重复安装。"
-        log "Decky推荐插件检查完成: 已是最新版"
-    else
-        echo "安装清单已交给Decky Loader。"
-        echo "请在Steam界面的Decky确认窗口中核对清单并点击安装，后续下载和权限处理均由Decky完成。"
-        log "Decky推荐插件安装请求已提交"
-    fi
+    case "$response" in
+        *"$DECKY_BUNDLE_MARKER:current"*)
+            echo "所选插件已经全部是当前最新版，无需重复安装。"
+            log "Decky推荐插件检查完成: 已是最新版"
+            ;;
+        *"$DECKY_BUNDLE_MARKER:queued:"*)
+            echo "安装清单已交给Decky Loader。"
+            echo "请在Steam界面的Decky确认窗口中核对清单并点击安装，后续下载和权限处理均由Decky完成。"
+            log "Decky推荐插件安装请求已提交"
+            ;;
+        *)
+            echo "Decky未能确认插件安装请求，未将其显示为成功。"
+            echo "请确认游戏模式或大屏幕模式正在运行，并打开一次 Decky 菜单后重试。"
+            return 1
+            ;;
+    esac
 
     cleanup_decky_bundle_tmp
     trap - EXIT INT TERM

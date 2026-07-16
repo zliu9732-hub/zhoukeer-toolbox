@@ -129,6 +129,7 @@ draw_category_frame() {
     local subtitle="$3"
     local row
 
+    ui_discard_pending_input
     printf '\033[0m\033[2J\033[H'
 
     ui_move 1 3
@@ -161,6 +162,7 @@ draw_category_frame() {
 }
 
 draw_disclaimer_frame() {
+    ui_discard_pending_input
     printf '\033[0m\033[2J\033[H'
 
     ui_move 2 6
@@ -203,11 +205,20 @@ ui_prompt() {
 
 enable_mouse_tracking() {
     # 1000: 按键事件；1002: 按下后移动；1006: SGR 坐标，兼容 Konsole 触屏。
-    printf '\033[?25l\033[?1000h\033[?1002h\033[?1006h'
+    printf '\033[?1003l\033[?1015l\033[?25l\033[?1000h\033[?1002h\033[?1006h'
 }
 
 disable_mouse_tracking() {
-    printf '\033[?1006l\033[?1002l\033[?1000l\033[?25h'
+    printf '\033[?1006l\033[?1015l\033[?1003l\033[?1002l\033[?1000l\033[?25h'
+}
+
+ui_discard_pending_input() {
+    local ignored
+
+    # 切换页面后，触控板的松开事件有时会迟到；丢弃它，避免显示为文本残留。
+    while IFS= read -rsn1 -t 0.01 ignored; do
+        :
+    done
 }
 
 char_code() {

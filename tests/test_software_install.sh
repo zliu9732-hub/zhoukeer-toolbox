@@ -208,54 +208,35 @@ bash "$PROJECT_ROOT/modules/software.sh" qq >/dev/null
 [ -x "$QQ_SHORTCUT" ]
 [ "$(grep -c 'com.qq.QQ' "$STATE_DIR/commands")" -eq 1 ]
 
-# Firefox 使用完整压缩包，不经过 Flatpak。
-touch "$HOME_DIR/Desktop/Chrome浏览器.desktop" \
-    "$HOME_DIR/Desktop/Chromium浏览器.desktop"
+# Firefox 使用官方 Flathub，不经过123云盘或国内缓存。
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \
 FLATPAK_TEST_STATE="$STATE_DIR" \
-ZHOUKEER_FIREFOX_INSTALL_DIR="$STATE_DIR/apps/firefox" \
-ZHOUKEER_FIREFOX_MIN_BYTES=4 \
 ZHOUKEER_AUTO_CONFIRM=1 \
 bash "$PROJECT_ROOT/modules/software.sh" browser >/dev/null
 
 FIREFOX_SHORTCUT="$HOME_DIR/Desktop/Firefox浏览器.desktop"
-FIREFOX_APPLICATION="$HOME_DIR/.local/share/applications/zhoukeer-firefox.desktop"
-[ -x "$STATE_DIR/apps/firefox/firefox" ]
 [ -x "$FIREFOX_SHORTCUT" ]
-[ -x "$FIREFOX_APPLICATION" ]
-[ ! -e "$HOME_DIR/Desktop/Chrome浏览器.desktop" ]
-[ ! -e "$HOME_DIR/Desktop/Chromium浏览器.desktop" ]
 grep -Fq 'Name=Firefox浏览器' "$FIREFOX_SHORTCUT"
-grep -Fq "Exec=\"$STATE_DIR/apps/firefox/firefox\" %u" "$FIREFOX_SHORTCUT"
-grep -Fq "Icon=$STATE_DIR/apps/firefox/browser/chrome/icons/default/default128.png" \
-    "$FIREFOX_SHORTCUT"
+grep -Fq 'Exec=flatpak run org.mozilla.firefox' "$FIREFOX_SHORTCUT"
+grep -Fq 'Icon=org.mozilla.firefox' "$FIREFOX_SHORTCUT"
 grep -Fq 'Categories=Network;WebBrowser;' "$FIREFOX_SHORTCUT"
-grep -Fq 'MimeType=text/html;x-scheme-handler/http;x-scheme-handler/https;' \
-    "$FIREFOX_APPLICATION"
-grep -Fxq 'xdg-mime default zhoukeer-firefox.desktop text/html' "$STATE_DIR/desktop-calls"
-grep -Fxq 'xdg-mime default zhoukeer-firefox.desktop x-scheme-handler/http' \
-    "$STATE_DIR/desktop-calls"
-grep -Fxq 'xdg-mime default zhoukeer-firefox.desktop x-scheme-handler/https' \
-    "$STATE_DIR/desktop-calls"
-grep -Fxq 'xdg-settings set default-web-browser zhoukeer-firefox.desktop' \
-    "$STATE_DIR/desktop-calls"
-grep -Fq '1846467258.cdn.123clouddisk.com/1846467258/工具箱/firefox-152.0.6.tar.xz' \
-    "$STATE_DIR/curl-urls"
-! grep -Fq 'org.chromium.Chromium' "$STATE_DIR/commands"
+grep -Fq 'install --user --noninteractive -y flathub org.mozilla.firefox' "$STATE_DIR/commands"
+[ -f "$STATE_DIR/installed.org.mozilla.firefox" ]
+! grep -Fq 'firefox-152.0.6.tar.xz' "$STATE_DIR/curl-urls"
+! grep -Fq 'flathub-cn org.mozilla.firefox' "$STATE_DIR/commands"
+! grep -Fq 'flathub-ustc org.mozilla.firefox' "$STATE_DIR/commands"
 
-# Firefox 已安装时只修复快捷方式，不重复下载。
+# Firefox 已安装时只修复快捷方式，不重复安装。
 rm -f "$FIREFOX_SHORTCUT"
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \
 FLATPAK_TEST_STATE="$STATE_DIR" \
-ZHOUKEER_FIREFOX_INSTALL_DIR="$STATE_DIR/apps/firefox" \
-ZHOUKEER_FIREFOX_MIN_BYTES=4 \
 ZHOUKEER_AUTO_CONFIRM=1 \
 bash "$PROJECT_ROOT/modules/software.sh" browser >/dev/null
 
 [ -x "$FIREFOX_SHORTCUT" ]
-[ "$(grep -c 'firefox-152.0.6.tar.xz$' "$STATE_DIR/curl-urls")" -eq 1 ]
+[ "$(grep -c 'org.mozilla.firefox' "$STATE_DIR/commands")" -eq 1 ]
 
 # RustDesk 使用123云盘 AppImage，不依赖 Flatpak，并创建可点击的桌面图标。
 if command -v sha256sum >/dev/null 2>&1; then
@@ -301,4 +282,4 @@ printf '%s\n' "$failure_output" | grep -Fq '不再连接Flathub官方源'
 ! grep -Fq ' flathub com.qq.QQ' "$STATE_DIR/commands"
 ! grep -Fq 'https://dl.flathub.org/repo/summary.idx' "$STATE_DIR/curl-urls"
 
-echo "PASS: 微信、QQ、Firefox完整包、国内Flatpak双缓存和桌面快捷方式测试通过"
+echo "PASS: 微信、QQ、Firefox官方Flathub、国内Flatpak双缓存和桌面快捷方式测试通过"

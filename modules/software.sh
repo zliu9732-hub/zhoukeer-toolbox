@@ -12,6 +12,8 @@ FLATHUB_CN_FALLBACK_REMOTE="flathub-ustc"
 FLATHUB_CN_URL="${ZHOUKEER_FLATHUB_CN_URL:-https://mirror.sjtu.edu.cn/flathub}"
 FLATHUB_CN_FALLBACK_URL="${ZHOUKEER_FLATHUB_CN_FALLBACK_URL:-https://mirrors.ustc.edu.cn/flathub}"
 FLATHUB_REPO_FILE_PRIMARY="https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo"
+FLATHUB_OFFICIAL_REMOTE="flathub"
+FLATHUB_OFFICIAL_REPO_FILE="https://dl.flathub.org/repo/flathub.flatpakrepo"
 FLATPAK_INSTALL_TIMEOUT="${ZHOUKEER_FLATPAK_INSTALL_TIMEOUT:-300}"
 FLATPAK_INSTALL_RETRIES="${ZHOUKEER_FLATPAK_INSTALL_RETRIES:-1}"
 FLATPAK_SOURCE_PROBE_TIMEOUT="${ZHOUKEER_FLATPAK_SOURCE_PROBE_TIMEOUT:-8}"
@@ -28,11 +30,6 @@ WECHAT_APPIMAGE_URL="${ZHOUKEER_WECHAT_APPIMAGE_URL:-https://dldir1v6.qq.com/wei
 WECHAT_APPIMAGE_PATH="${ZHOUKEER_WECHAT_APPIMAGE_PATH:-$APP_DIR/WeChat.AppImage}"
 WECHAT_DOWNLOAD_TIMEOUT="${ZHOUKEER_WECHAT_DOWNLOAD_TIMEOUT:-900}"
 WECHAT_MIN_BYTES="${ZHOUKEER_WECHAT_MIN_BYTES:-104857600}"
-
-FIREFOX_DOWNLOAD_URL="${ZHOUKEER_FIREFOX_DOWNLOAD_URL:-https://1846467258.cdn.123clouddisk.com/1846467258/工具箱/firefox-152.0.6.tar.xz}"
-FIREFOX_INSTALL_DIR="${ZHOUKEER_FIREFOX_INSTALL_DIR:-$APP_DIR/firefox}"
-FIREFOX_DOWNLOAD_TIMEOUT="${ZHOUKEER_FIREFOX_DOWNLOAD_TIMEOUT:-600}"
-FIREFOX_MIN_BYTES="${ZHOUKEER_FIREFOX_MIN_BYTES:-52428800}"
 
 RUSTDESK_DOWNLOAD_URL="${ZHOUKEER_RUSTDESK_DOWNLOAD_URL:-https://1846467258.cdn.123clouddisk.com/1846467258/%E8%A7%86%E9%A2%91/rustdesk-1.4.8-x86_64.AppImage}"
 RUSTDESK_APPIMAGE_PATH="${ZHOUKEER_RUSTDESK_APPIMAGE_PATH:-$APP_DIR/RustDesk.AppImage}"
@@ -59,8 +56,8 @@ software_details() {
         browser)
             SOFTWARE_NAME="Firefox浏览器"
             SOFTWARE_DESKTOP_NAME="Firefox浏览器"
-            SOFTWARE_APP_ID=""
-            SOFTWARE_INSTALL_MODE="firefox_archive"
+            SOFTWARE_APP_ID="org.mozilla.firefox"
+            SOFTWARE_INSTALL_MODE="flatpak_official"
             SOFTWARE_CATEGORIES="Network;WebBrowser;"
             ;;
         rustdesk)
@@ -91,10 +88,9 @@ confirm_software_install() {
             echo "安装位置：$WECHAT_APPIMAGE_PATH"
             echo "下载最长等待 $WECHAT_DOWNLOAD_TIMEOUT 秒，失败后会保留旧版本。"
             ;;
-        firefox_archive)
-            echo "将从123云盘国内直链下载Firefox Linux x86_64中文完整包。"
-            echo "安装位置：$FIREFOX_INSTALL_DIR"
-            echo "下载最长等待 $FIREFOX_DOWNLOAD_TIMEOUT 秒，失败后会保留旧版本。"
+        flatpak_official)
+            echo "将从官方 Flathub 安装 Firefox（org.mozilla.firefox）。"
+            echo "不使用123云盘或国内镜像，Firefox 后续可在系统内自动更新。"
             ;;
         rustdesk_appimage)
             echo "将从123云盘国内直链下载RustDesk x86_64 AppImage。"
@@ -216,6 +212,28 @@ run_flatpak_install() {
         attempt=$((attempt + 1))
     done
     return 1
+}
+
+ensure_official_flathub_remote() {
+    if flatpak_remote_exists "$FLATHUB_OFFICIAL_REMOTE"; then
+        return 0
+    fi
+
+    echo "正在添加官方 Flathub 源..."
+    flatpak remote-add --user --if-not-exists \
+        "$FLATHUB_OFFICIAL_REMOTE" "$FLATHUB_OFFICIAL_REPO_FILE"
+}
+
+install_official_firefox_flatpak() {
+    echo "正在从官方 Flathub 安装 Firefox..."
+    if ! ensure_official_flathub_remote; then
+        echo "官方 Flathub 源配置失败，已停止。"
+        return 1
+    fi
+    if ! run_flatpak_install "$FLATHUB_OFFICIAL_REMOTE"; then
+        echo "Firefox 官方 Flathub 安装失败或超时，已停止。"
+        return 1
+    fi
 }
 
 measure_source_seconds() {
@@ -646,7 +664,6 @@ software_is_installed() {
     case "$SOFTWARE_INSTALL_MODE" in
         appimage) qq_appimage_is_valid "$QQ_APPIMAGE_PATH" ;;
         wechat_appimage) wechat_appimage_is_valid "$WECHAT_APPIMAGE_PATH" ;;
-        firefox_archive) firefox_install_is_valid ;;
         rustdesk_appimage) rustdesk_appimage_is_valid "$RUSTDESK_APPIMAGE_PATH" ;;
         *)
             command -v flatpak >/dev/null 2>&1 && \
@@ -671,11 +688,6 @@ create_software_shortcut() {
             exec_line="\"$WECHAT_APPIMAGE_PATH\""
             icon_name="wechat"
             ;;
-        firefox_archive)
-            exec_line="\"$FIREFOX_INSTALL_DIR/firefox\" %u"
-            icon_name="$FIREFOX_INSTALL_DIR/browser/chrome/icons/default/default128.png"
-            application_file="$application_dir/zhoukeer-firefox.desktop"
-            ;;
         rustdesk_appimage)
             exec_line="\"$RUSTDESK_APPIMAGE_PATH\""
             icon_name="rustdesk"
@@ -687,11 +699,6 @@ create_software_shortcut() {
     esac
 
     mkdir -p "$desktop_dir" || return 1
-    if [ "$SOFTWARE_INSTALL_MODE" = "firefox_archive" ]; then
-        rm -f -- \
-            "$desktop_dir/Chrome浏览器.desktop" \
-            "$desktop_dir/Chromium浏览器.desktop"
-    fi
     cat > "$desktop_file" <<EOF
 [Desktop Entry]
 Type=Application
@@ -703,31 +710,6 @@ Terminal=false
 Categories=$SOFTWARE_CATEGORIES
 EOF
     chmod +x "$desktop_file" || return 1
-
-    if [ "$SOFTWARE_INSTALL_MODE" = "firefox_archive" ]; then
-        mkdir -p "$application_dir" || return 1
-        cat >> "$desktop_file" <<'EOF'
-MimeType=text/html;x-scheme-handler/http;x-scheme-handler/https;
-StartupNotify=true
-StartupWMClass=firefox
-EOF
-        cp "$desktop_file" "$application_file" || return 1
-        chmod +x "$application_file" || return 1
-
-        if command -v update-desktop-database >/dev/null 2>&1; then
-            update-desktop-database "$application_dir" >/dev/null 2>&1 || true
-        fi
-        if command -v xdg-mime >/dev/null 2>&1; then
-            xdg-mime default zhoukeer-firefox.desktop text/html >/dev/null 2>&1 || true
-            xdg-mime default zhoukeer-firefox.desktop x-scheme-handler/http >/dev/null 2>&1 || true
-            xdg-mime default zhoukeer-firefox.desktop x-scheme-handler/https >/dev/null 2>&1 || true
-        fi
-        if command -v xdg-settings >/dev/null 2>&1; then
-            xdg-settings set default-web-browser zhoukeer-firefox.desktop >/dev/null 2>&1 || true
-        fi
-        echo "已注册Firefox为网页链接处理器，支持战网调用浏览器登录。"
-        log "Firefox已注册为默认网页链接处理器"
-    fi
 
     echo "已创建桌面快捷方式：$desktop_file"
     log "$SOFTWARE_NAME 桌面快捷方式已创建: $desktop_file"
@@ -765,12 +747,6 @@ install_software() {
         create_software_shortcut
         return $?
     fi
-    if [ "$SOFTWARE_INSTALL_MODE" = "firefox_archive" ]; then
-        require_command tar || return 1
-        install_firefox_archive || return 1
-        create_software_shortcut
-        return $?
-    fi
     if [ "$SOFTWARE_INSTALL_MODE" = "rustdesk_appimage" ]; then
         install_rustdesk_appimage || return 1
         create_software_shortcut
@@ -782,6 +758,17 @@ install_software() {
         echo "系统缺少限时运行组件，为避免安装无限卡住，已停止。"
         return 1
     }
+    if [ "$SOFTWARE_INSTALL_MODE" = "flatpak_official" ]; then
+        install_official_firefox_flatpak || return 1
+        if ! software_is_installed; then
+            echo "$SOFTWARE_NAME 安装命令结束，但未检测到已安装应用。"
+            return 1
+        fi
+        echo "$SOFTWARE_NAME 安装完成。"
+        log "$SOFTWARE_NAME 官方 Flathub 安装完成"
+        create_software_shortcut
+        return $?
+    fi
     if ! ensure_flatpak_remotes; then
         echo "国内Flathub缓存源配置失败，已停止，不会转连官方源。"
         return 1

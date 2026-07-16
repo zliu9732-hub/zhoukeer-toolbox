@@ -58,11 +58,13 @@ javascript="$(build_decky_bundle_javascript "")"
 assert_contains "$javascript" "https://plugins.deckbrew.xyz/plugins" "未使用Decky官方商店"
 assert_contains "$javascript" "loader/get_plugins" "未读取Decky已安装插件"
 assert_contains "$javascript" "utilities/install_plugins" "未调用Decky内置批量安装"
-assert_contains "$javascript" "installedVersions.get(name)===String(latest.name)" "未跳过已是最新版的插件"
-assert_contains "$javascript" "latest.hash+'.zip'" "未按Decky官方哈希构造发布包地址"
+assert_contains "$javascript" "if(iv.get(n)===String(l.name))continue" "未跳过已是最新版的插件"
+assert_contains "$javascript" "l.hash+\".zip\"" "未按Decky官方哈希构造发布包地址"
+assert_contains "$javascript" "m+\":current\"" "未返回已是最新版状态"
+assert_contains "$javascript" "m+\":queued:\"+rq.length" "未返回安装请求状态"
 
 single_javascript="$(build_decky_bundle_javascript "" '["SteamGridDB"]')"
-assert_contains "$single_javascript" 'const officialNames=["SteamGridDB"]' "单插件安装未限制为选中的官方插件"
+assert_contains "$single_javascript" 'const on=["SteamGridDB"]' "单插件安装未限制为选中的官方插件"
 grep -Fq 'install_single_official_plugin()' "$MODULE" || fail "缺少单插件安装入口"
 grep -Fq 'install_single_official_plugin "$2"' "$MODULE" || fail "单插件安装命令未注册"
 
@@ -111,7 +113,7 @@ curl() {
             ;;
         */methods/execute_in_tab)
             printf '%s' "$data" > "$CAPTURE_FILE"
-            printf '%s' '{"result":{"success":true,"result":"zhoukeer-decky-bundle-queued:24"},"success":true}'
+            printf '%s' '{"result":{"success":true,"result":"zhoukeer-decky-bundle-queued:queued:24"},"success":true}'
             ;;
         *) return 1 ;;
     esac

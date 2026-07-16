@@ -149,6 +149,11 @@ printf '%s\n' "$*" >> "${STEAM302_TEST_STATE:?}/systemctl.calls"
 case "${1:-}" in
     is-active) [ -f "$STEAM302_TEST_STATE/service-active" ] ;;
     is-enabled) [ -f "$STEAM302_TEST_STATE/service-enabled" ] ;;
+    cat) [ -f "$STEAM302_TEST_STATE/service-unit" ] ;;
+    start)
+        [ -f "$STEAM302_TEST_STATE/service-unit" ] || exit 96
+        touch "$STEAM302_TEST_STATE/service-active"
+        ;;
     *) exit 96 ;;
 esac
 EOF
@@ -175,6 +180,17 @@ run_module() {
         TAR_MODE="${TAR_MODE:-ok}" \
         FAKE_PACKAGE_CONTENT="${FAKE_PACKAGE_CONTENT:-fresh}" \
         bash "$MODULE" "$@"
+}
+
+run_start_service() {
+    env \
+        PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" \
+        HOME="$HOME_DIR" \
+        ZHOUKEER_APP_DIR="$APP_ROOT" \
+        ZHOUKEER_AUTO_CONFIRM=1 \
+        STEAM302_TEST_STATE="$STATE_DIR" \
+        MODULE="$MODULE" \
+        bash -c 'source "$MODULE"; toolbox_sudo() { "$@"; }; start_steam302_service'
 }
 
 bash -n "$MODULE" || fail "模块语法检查失败"
@@ -255,6 +271,16 @@ printf '%s\n' "$status_output" | grep -Fq 'Steamcommunity 302：已安装' || \
     fail "状态未报告已安装"
 printf '%s\n' "$status_output" | grep -Fq '版本：14.0.02' || \
     fail "状态未报告版本"
+
+# 一键启动只接受官方已创建的服务单元，不创建或修改服务配置。
+touch "$STATE_DIR/service-unit"
+start_output="$(run_start_service)" || fail "一键启动官方服务失败"
+printf '%s\n' "$start_output" | grep -Fq '加速服务已启动' || \
+    fail "一键启动没有报告成功"
+[ -f "$STATE_DIR/service-active" ] || fail "一键启动没有调用官方服务"
+grep -Fq "start steamcommunity302.service" "$STATE_DIR/systemctl.calls" || \
+    fail "一键启动没有调用 systemctl start"
+rm -f "$STATE_DIR/service-active" "$STATE_DIR/service-unit"
 
 # SHA256 失败时，下载和 staging 都不能破坏已有版本。
 printf '13.0.00\n' > "$TARGET/.zhoukeer-version"
