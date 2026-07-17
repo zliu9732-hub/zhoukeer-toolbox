@@ -171,8 +171,8 @@ common_software_menu() {
         ui_touch_button 5 '\033[1;97;48;5;24m' "微信" "安装或修复微信"
         ui_touch_button 8 '\033[1;97;48;5;24m' "QQ" "安装或修复 QQ"
         ui_touch_button 11 '\033[1;97;48;5;24m' "Firefox 浏览器" "官方 Flathub 安装，支持自动更新"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "Epic Games 启动器" "去 Steam 非 Steam 游戏找到 Epic 并点击开始游戏" \
-        ui_touch_button 17 '\033[1;97;48;5;24m' "战网启动器" "去 Steam 非 Steam 游戏找到战网并点击开始游戏"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "Epic Games 启动器" "添加至 Steam 库，在非 Steam 游戏中启动" \
+        ui_touch_button 17 '\033[1;97;48;5;24m' "战网启动器" "添加至 Steam 库，在非 Steam 游戏中启动"
         ui_touch_button 20 '\033[1;97;48;5;24m' "GE-Proton 兼容层" "安装到兼容工具目录，无需管理员权限"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
