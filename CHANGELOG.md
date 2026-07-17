@@ -1,4 +1,9 @@
 
+## V4.0.91 公开版 — 2026-07-18
+
+- 战网优先使用 Battle.net.exe（主程序）而非 Battle.net Launcher.exe（更新器），前者更支持 --no-sleep。
+- 修改文件：`modules/game_launchers.sh`。
+
 ## V4.0.90 公开版 — 2026-07-18
 
 - 修复战网按钮文字被 Epic 行尾反斜杠吞掉的问题。
