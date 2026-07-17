@@ -168,12 +168,12 @@ common_software_menu() {
 
     while true; do
         draw_category_frame software "常用软件" "Linux 软件与 Windows 游戏启动器集中安装"
-        ui_touch_button 5 '\033[1;97;48;5;24m' "微信" "安装或修复微信，同步创建桌面快捷方式"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "QQ" "安装或修复 QQ，同步创建桌面快捷方式"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "微信" "安装或修复微信"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "QQ" "安装或修复 QQ"
         ui_touch_button 11 '\033[1;97;48;5;24m' "Firefox 浏览器" "官方 Flathub 安装，支持自动更新"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "Epic Games 启动器" "安装后去 Steam 非 Steam 游戏找到 Epic 并点击开始游戏
-        ui_touch_button 17 '\033[1;97;48;5;24m' "战网启动器" "安装后去 Steam 非 Steam 游戏找到战网并点击开始游戏
-        ui_touch_button 20 '\033[1;97;48;5;24m' "GE-Proton 兼容层" "安装到 Steam 兼容工具目录，无需管理员权限"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "Epic Games 启动器" "去 Steam 非 Steam 游戏找到 Epic 并点击开始游戏" \
+        ui_touch_button 17 '\033[1;97;48;5;24m' "战网启动器" "去 Steam 非 Steam 游戏找到战网并点击开始游戏"
+        ui_touch_button 20 '\033[1;97;48;5;24m' "GE-Proton 兼容层" "安装到兼容工具目录，无需管理员权限"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:5-6:wechat right:8-9:qq right:11-12:browser right:14-15:epic right:17-18:battlenet right:20-21:ge-proton right:22-23:home)"
