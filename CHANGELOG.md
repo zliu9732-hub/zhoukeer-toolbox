@@ -1,4 +1,9 @@
 
+## V4.1.4 公开版 — 2026-07-18
+
+- 安装 Chrome/Edge/Bottles/Protontricks 后自动从 Flatpak exports 复制桌面快捷方式。
+- 修改文件：`modules/software.sh`。
+
 ## V4.1.3 公开版 — 2026-07-18
 
 - 修复 v4.1.2 按钮标签替换未生效的问题。

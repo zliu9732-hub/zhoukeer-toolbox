@@ -992,7 +992,7 @@ system_setup() {
 install_flatpak_app() {
     local app_id="$1"
     local app_name="$2"
-    local _fp_src
+    local _fp_src _fp_desk
 
     echo "正在安装 $app_name..."
     for _fp_src in Sjtu Ustc flathub; do
@@ -1000,6 +1000,8 @@ install_flatpak_app() {
             echo "  从 $_fp_src 安装..."
             if flatpak install -y "$_fp_src" "$app_id" 2>/dev/null; then
                 echo "$app_name 安装完成。"
+                _fp_desk="$(find "$HOME/.local/share/flatpak/exports/share/applications" /var/lib/flatpak/exports/share/applications -name "${app_id}.desktop" 2>/dev/null | head -1)"
+                [ -n "$_fp_desk" ] && cp "$_fp_desk" "$HOME/Desktop/" 2>/dev/null && chmod +x "$HOME/Desktop/${app_id}.desktop" 2>/dev/null && echo "  桌面快捷方式已创建。"
                 log "$app_name Flatpak 安装完成"
                 return 0
             fi
@@ -1008,6 +1010,8 @@ install_flatpak_app() {
             echo "  从 $_fp_src 安装(system)..."
             if toolbox_sudo flatpak install -y "$_fp_src" "$app_id" 2>/dev/null; then
                 echo "$app_name 安装完成。"
+                _fp_desk="$(find "$HOME/.local/share/flatpak/exports/share/applications" /var/lib/flatpak/exports/share/applications -name "${app_id}.desktop" 2>/dev/null | head -1)"
+                [ -n "$_fp_desk" ] && cp "$_fp_desk" "$HOME/Desktop/" 2>/dev/null && chmod +x "$HOME/Desktop/${app_id}.desktop" 2>/dev/null && echo "  桌面快捷方式已创建。"
                 log "$app_name Flatpak 安装完成"
                 return 0
             fi
@@ -1015,12 +1019,14 @@ install_flatpak_app() {
         echo "  $_fp_src 不可用，尝试下一个..."
     done
 
-    # 兜底：尝试官方 flathub（无需预先配置 remote）
+    # 兜底
     if command -v flatpak >/dev/null 2>&1; then
         echo "  尝试从 flathub 官方源安装..."
         if toolbox_sudo flatpak install --system -y flathub "$app_id" 2>/dev/null || \
            flatpak install --user -y flathub "$app_id" 2>/dev/null; then
             echo "$app_name 安装完成。"
+            _fp_desk="$(find "$HOME/.local/share/flatpak/exports/share/applications" /var/lib/flatpak/exports/share/applications -name "${app_id}.desktop" 2>/dev/null | head -1)"
+            [ -n "$_fp_desk" ] && cp "$_fp_desk" "$HOME/Desktop/" 2>/dev/null && chmod +x "$HOME/Desktop/${app_id}.desktop" 2>/dev/null && echo "  桌面快捷方式已创建。"
             log "$app_name Flatpak 安装完成"
             return 0
         fi
