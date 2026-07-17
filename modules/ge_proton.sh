@@ -6,7 +6,6 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../core/env.sh"
 source "$PROJECT_ROOT/core/logger.sh"
 
 load_config
-: "${GITHUB_MIRRORS:=https://ghproxy.net/ https://gh.api.99988866.xyz/}"
 
 # 固定使用作者 GitHub Release，防止旧安装保留的配置重新启用退役下载地址。
 # 测试或紧急诊断可以通过 ZHOUKEER_GE_PROTON_* 环境变量明确覆盖。

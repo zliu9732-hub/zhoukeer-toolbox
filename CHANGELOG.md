@@ -1,4 +1,12 @@
 
+## V4.0.54 公开版 — 2026-07-17
+
+- GITHUB_MIRRORS 默认值统一到 core/env.sh 的 load_config() 中，各模块不再各自维护 fallback。
+- 新增 software.sh 的 load_config 调用。
+
+
+
+
 ## V4.0.53 公开版 — 2026-07-17
 
 - GitHub 镜像提取为统一配置 `GITHUB_MIRRORS`，定义在 `config/settings.example.conf`，各模块通过变量引用，不再硬编码镜像地址。

@@ -210,7 +210,7 @@ grep -Fq 'V14.0.02.tar.gz' "$MODULE" || fail "缺少固定官方版本地址"
 grep -Fq '4b9994102b2256ca5fdf2e806a2c7035' "$MODULE" || fail "缺少官方 MD5"
 grep -Fq '5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f' \
     "$MODULE" || fail "缺少固定 SHA256"
-grep -Fq 'ensure_steam302_for_download()' "$MODULE" || fail "缺少插件下载加速预检"
+grep -Fq 'ensure_steam302_for_download()' "$MODULE" || fail "缺少 Steamcommunity 302 工具函数"
 grep -Fq '继续使用当前网络下载' "$MODULE" || fail "未加速时缺少当前网络继续下载提示"
 
 fallback_output="$(MODULE="$MODULE" bash -c '

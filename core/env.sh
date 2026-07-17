@@ -32,4 +32,7 @@ load_config() {
         # shellcheck disable=SC1090
         source "$CONFIG_EXAMPLE_FILE"
     fi
+
+    # GitHub 镜像默认值（配置未提供时使用）
+    : "${GITHUB_MIRRORS:=https://ghproxy.net/ https://gh.api.99988866.xyz/}"
 }

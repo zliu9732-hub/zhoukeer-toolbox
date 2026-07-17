@@ -7,7 +7,8 @@ source "$PROJECT_ROOT/core/platform.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/logger.sh"
 
-: "${GITHUB_MIRRORS:=https://ghproxy.net/ https://gh.api.99988866.xyz/}"
+load_config
+
 FLATHUB_CN_REMOTE="flathub-cn"
 FLATHUB_CN_FALLBACK_REMOTE="flathub-ustc"
 FLATHUB_CN_URL="${ZHOUKEER_FLATHUB_CN_URL:-https://mirror.sjtu.edu.cn/flathub}"

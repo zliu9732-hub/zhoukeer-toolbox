@@ -12,7 +12,6 @@ source "$PROJECT_ROOT/core/auth.sh"
 source "$PROJECT_ROOT/modules/steam_accelerator.sh"
 
 load_config
-: "${GITHUB_MIRRORS:=https://ghproxy.net/ https://gh.api.99988866.xyz/}"
 
 DECKY_LOADER_URL="${DECKY_LOADER_URL:-https://www.mhhf.com/Deck/decky/v.3.2.6/PluginLoader}"
 DECKY_LOADER_SHA256="${DECKY_LOADER_SHA256:-30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e}"
