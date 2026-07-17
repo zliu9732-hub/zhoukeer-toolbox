@@ -183,6 +183,8 @@ ensure_flatpak_remotes() {
         rm -f -- "$repo_file"
         return 1
     fi
+    # 国内镜像关闭 GPG 校验
+    timeout --foreground 30 flatpak remote-modify --no-gpg-verify --user "$FLATHUB_CN_REMOTE" 2>/dev/null || true
 
     if ! flatpak_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE"; then
         echo "正在添加中科大Flathub缓存源..."
@@ -198,6 +200,7 @@ ensure_flatpak_remotes() {
         rm -f -- "$repo_file"
         return 1
     fi
+    timeout --foreground 30 flatpak remote-modify --no-gpg-verify --user "$FLATHUB_CN_FALLBACK_REMOTE" 2>/dev/null || true
 
     rm -f -- "$repo_file"
 }
