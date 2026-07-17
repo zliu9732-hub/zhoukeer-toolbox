@@ -1,4 +1,9 @@
 
+## V4.0.92 公开版 — 2026-07-18
+
+- 战网兼容层优先使用 GE-Proton（含官方额外补丁，对战网更新服务兼容性更好），其次 Proton 10.0-4 / PE。
+- 修改文件：`modules/game_launchers.sh`。
+
 ## V4.0.91 公开版 — 2026-07-18
 
 - 战网优先使用 Battle.net.exe（主程序）而非 Battle.net Launcher.exe（更新器），前者更支持 --no-sleep。
