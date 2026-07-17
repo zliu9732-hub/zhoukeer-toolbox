@@ -404,6 +404,8 @@ install_official_qq_appimage() (
         --retry 2 \
         --retry-delay 2 \
         --retry-all-errors \
+        -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+        --referer "https://im.qq.com/" \
         --output "$temp_file" \
         "$appimage_url"; then
         echo "QQ下载失败或超时，已停止；原有版本未受影响。"

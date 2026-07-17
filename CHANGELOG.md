@@ -1,4 +1,9 @@
 
+## V4.0.57 公开版 — 2026-07-17
+
+- 修复 QQ 下载失败（腾讯 CDN 403）的问题：QQ AppImage 下载 curl 增加浏览器 User-Agent 和 Referer 头，模拟浏览器请求绕过 CDN 限制。
+- 修改文件：`modules/software.sh`。
+
 ## V4.0.56 公开版 — 2026-07-17
 
 - 下载优先级改为 Gitee → GitHub → 域名（jktool.icu），避免部分网络下 .icu 域名连接被重置时更新失败。
