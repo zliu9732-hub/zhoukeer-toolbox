@@ -1,4 +1,12 @@
 
+## V4.0.74 公开版 — 2026-07-17
+
+- 新增 system_setup、flatpak_mirror_delete、flatpak_mirror_reset 函数并接入菜单。
+- 修改文件：`modules/software.sh`、`modules/domestic_source.sh`、`main.sh`。
+
+
+
+
 ## V4.0.73 公开版 — 2026-07-17
 
 - 修复所有子菜单侧栏导航无法返回主菜单的问题：nav-* 处理器改为调用 apply_navigation 更新 NEXT_CATEGORY 后再返回。

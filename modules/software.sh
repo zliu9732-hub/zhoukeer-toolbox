@@ -940,13 +940,47 @@ install_firefox_sjtu() {
     log "Firefox Flatpak 通过交大镜像安装完成"
 }
 
+
+system_setup() {
+    echo "系统初始化"
+
+    if sudo -n true 2>/dev/null; then
+        echo "  - sudo 已可用，跳过密码设置"
+    else
+        echo "  - 请设置系统密码"
+        passwd
+    fi
+
+    echo "  - 关闭 SteamOS 只读保护"
+    sudo steamos-readonly disable
+
+    echo "  - 初始化 pacman 密钥"
+    sudo pacman-key --init
+    sudo pacman-key --populate archlinux
+
+    if pacman -Q firefox 2>/dev/null; then
+        echo "  - Firefox 已安装，跳过"
+    else
+        echo "  - 安装 Firefox"
+        sudo pacman -S firefox --noconfirm
+    fi
+
+    echo "  - 配置国内 Flatpak 镜像"
+    sudo flatpak remote-add --if-not-exists Sjtu \
+        https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo
+    flatpak remote-modify Sjtu --url=https://mirror.sjtu.edu.cn/flathub
+
+    echo "系统初始化完成"
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         wechat|qq|browser|rustdesk) install_software "$1" ;;
         firefox-pacman) install_firefox_pacman ;;
         firefox-sjtu) install_firefox_sjtu ;;
+        system-setup) system_setup ;;
         status) require_command od && show_software_status ;;
         repair-shortcuts) require_command od && repair_software_shortcuts ;;
-        *) echo "用法: $0 {wechat|qq|browser|rustdesk|firefox-pacman|firefox-sjtu|status|repair-shortcuts}"; exit 1 ;;
+        *) echo "用法: $0 {wechat|qq|browser|rustdesk|firefox-pacman|firefox-sjtu|system-setup|status|repair-shortcuts}"; exit 1 ;;
     esac
 fi

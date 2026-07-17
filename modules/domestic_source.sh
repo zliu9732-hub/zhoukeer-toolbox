@@ -188,11 +188,24 @@ init_domestic_flatpak() {
 setup_flatpak_sjtu() {
     init_domestic_flatpak
 }
+
+flatpak_mirror_delete() {
+    echo "  - 删除 SJTU 镜像源"
+    sudo flatpak remote-delete Sjtu 2>/dev/null &&         echo "  - Sjtu 已删除" || echo "  - Sjtu 不存在"
+}
+
+flatpak_mirror_reset() {
+    echo "  - 重置官方 Flathub 源"
+    sudo flatpak remote-modify flathub --url=https://flathub.org/repo &&         echo "  - flathub 已重置" || echo "  - 重置失败"
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-enable}" in
         enable) configure_domestic_source ;;
         status) show_domestic_source_status ;;
         init-domestic) init_domestic_flatpak ;;
-        *) echo "用法: $0 {enable|status|init-domestic}"; exit 1 ;;
+        mirror-delete) flatpak_mirror_delete ;;
+        mirror-reset) flatpak_mirror_reset ;;
+        *) echo "用法: $0 {enable|status|init-domestic|mirror-delete|mirror-reset}"; exit 1 ;;
     esac
 fi
