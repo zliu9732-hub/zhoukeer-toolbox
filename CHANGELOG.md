@@ -1,4 +1,9 @@
 
+## V4.1.1 公开版 — 2026-07-18
+
+- 重构 install_flatpak_app：移除 install 级 --no-gpg-verify（由远程级控制），增加官方 flathub 兜底和失败提示。
+- 修改文件：`modules/software.sh`。
+
 ## V4.1.0 公开版 — 2026-07-18
 
 - 安装 Chrome/Edge/Bottles/Moonlight 等 Flatpak 应用时自动用 toolbox_sudo 提权，不再弹密码。

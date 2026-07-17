@@ -996,12 +996,9 @@ install_flatpak_app() {
 
     echo "正在安装 $app_name..."
     for _fp_src in Sjtu Ustc flathub; do
-        local _fp_opts=""
-        # 国内镜像关闭 GPG 校验避免签名错误
-        case "$_fp_src" in Sjtu|Ustc) _fp_opts="--no-gpg-verify" ;; esac
         if flatpak remote-list --user 2>/dev/null | grep -q "$_fp_src"; then
             echo "  从 $_fp_src 安装..."
-            if flatpak install -y $_fp_opts "$_fp_src" "$app_id" 2>/dev/null; then
+            if flatpak install -y "$_fp_src" "$app_id" 2>/dev/null; then
                 echo "$app_name 安装完成。"
                 log "$app_name Flatpak 安装完成"
                 return 0
@@ -1009,13 +1006,25 @@ install_flatpak_app() {
         fi
         if flatpak remote-list --system 2>/dev/null | grep -q "$_fp_src"; then
             echo "  从 $_fp_src 安装(system)..."
-            if toolbox_sudo flatpak install -y $_fp_opts "$_fp_src" "$app_id" 2>/dev/null; then
+            if toolbox_sudo flatpak install -y "$_fp_src" "$app_id" 2>/dev/null; then
                 echo "$app_name 安装完成。"
                 log "$app_name Flatpak 安装完成"
                 return 0
             fi
         fi
+        echo "  $_fp_src 不可用，尝试下一个..."
     done
+
+    # 兜底：尝试官方 flathub（无需预先配置 remote）
+    if command -v flatpak >/dev/null 2>&1; then
+        echo "  尝试从 flathub 官方源安装..."
+        if toolbox_sudo flatpak install --system -y flathub "$app_id" 2>/dev/null || \
+           flatpak install --user -y flathub "$app_id" 2>/dev/null; then
+            echo "$app_name 安装完成。"
+            log "$app_name Flatpak 安装完成"
+            return 0
+        fi
+    fi
 
     echo "$app_name 安装失败。"
     return 1
