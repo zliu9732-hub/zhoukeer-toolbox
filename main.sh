@@ -178,7 +178,7 @@ common_software_menu() {
         ui_prompt
         choice="$(read_touch_menu right:5-6:wechat right:8-9:qq right:11-12:browser right:14-15:epic right:17-18:battlenet right:20-21:ge-proton right:22-23:home)"
         case "$choice" in
-            nav-*) return 0 ;;
+            nav-*) apply_navigation "$choice"; return 0 ;;
         esac
 
         case "$choice" in
@@ -401,7 +401,7 @@ plugin_official_touch_pages() {
             right:16-17:previous \
             right:18-19:next)"
         case "$choice" in
-            nav-*) return 0 ;;
+            nav-*) apply_navigation "$choice"; return 0 ;;
         esac
 
         case "$choice" in
