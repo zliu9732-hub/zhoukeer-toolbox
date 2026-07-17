@@ -852,11 +852,57 @@ repair_software_shortcuts() {
     log "已修复 $repaired 个应用桌面图标"
 }
 
+
+
+install_firefox_pacman() {
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "此方式仅支持 SteamOS 环境。"
+        return 1
+    fi
+    for cmd in steamos-readonly pacman pacman-key; do
+        require_command "$cmd" || return 1
+    done
+
+    echo "将通过 pacman 安装 Firefox 到系统分区。"
+    echo "将临时关闭 SteamOS 只读保护，安装完成后恢复。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
+        local answer
+        read -r -p "确认安装请输入 INSTALL：" answer
+        [ "$answer" = "INSTALL" ] || { echo "已取消。"; return 0; }
+    fi
+
+    toolbox_sudo true || { echo "管理员权限验证失败。"; return 1; }
+
+    echo "第 1 步：关闭 SteamOS 只读保护..."
+    toolbox_sudo steamos-readonly disable || { echo "关闭只读保护失败。"; return 1; }
+
+    echo "第 2 步：初始化 pacman 密钥..."
+    toolbox_sudo pacman-key --init || { echo "pacman-key 初始化失败。"; toolbox_sudo steamos-readonly enable 2>/dev/null; return 1; }
+    toolbox_sudo pacman-key --populate || { echo "pacman-key 填充失败。"; toolbox_sudo steamos-readonly enable 2>/dev/null; return 1; }
+
+    echo "第 3 步：安装 Firefox..."
+    toolbox_sudo pacman -S firefox --noconfirm || {
+        echo "Firefox 安装失败。"
+        toolbox_sudo steamos-readonly enable 2>/dev/null
+        return 1
+    }
+
+    echo "第 4 步：恢复 SteamOS 只读保护..."
+    toolbox_sudo steamos-readonly enable || {
+        echo "警告：未恢复只读保护，请手动执行: sudo steamos-readonly enable"
+    }
+
+    echo "Firefox 安装完成（系统级 pacman 安装）。"
+    log "Firefox 通过 pacman 安装完成"
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         wechat|qq|browser|rustdesk) install_software "$1" ;;
+        firefox-pacman) install_firefox_pacman ;;
         status) require_command od && show_software_status ;;
         repair-shortcuts) require_command od && repair_software_shortcuts ;;
-        *) echo "用法: $0 {wechat|qq|browser|rustdesk|status|repair-shortcuts}"; exit 1 ;;
+        *) echo "用法: $0 {wechat|qq|browser|rustdesk|firefox-pacman|status|repair-shortcuts}"; exit 1 ;;
     esac
 fi

@@ -183,6 +183,7 @@ common_software_menu() {
             wechat) confirm_and_run "安装微信" "腾讯官网AppImage；失败时保留原有版本" bash "$PROJECT_ROOT/modules/software.sh" wechat ;;
             qq) confirm_and_run "安装QQ" "通过上海交大与中科大 Flathub 国内缓存安装；完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" qq ;;
             browser) confirm_and_run "安装Firefox浏览器" "完整包安装；失败时保留原有版本" bash "$PROJECT_ROOT/modules/software.sh" browser ;;
+            firefox-pacman) confirm_and_run "Firefox(pacman系统安装)" "临时关闭只读保护，通过 pacman 安装到系统分区" bash "$PROJECT_ROOT/modules/software.sh" firefox-pacman ;;
             epic) run_action "安装 Epic Games 启动器并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
             battlenet) run_action "安装战网启动器并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
             ge-proton) confirm_and_run "安装GE-Proton兼容层" "安装到Steam compatibilitytools.d目录；完成后需要重启Steam" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
@@ -498,11 +499,12 @@ system_settings_menu() {
         ui_touch_button 15 '\033[1;97;48;5;24m' "一键体检" "检查空间、网络、Steam、Decky 和常用软件；不修改系统"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:source right:9-10:accelerator right:11-12:set-password right:13-14:change-password right:15-16:info right:18-19:home)"
+        choice="$(read_touch_menu right:7-8:source right:9-10:sjtu right:11-12:accelerator right:13-14:set-password right:15-16:change-password right:17-18:info right:20-21:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
             source) confirm_and_run "添加国内下载源" "只添加用户级 Flatpak 国内缓存，不修改只读分区" bash "$PROJECT_ROOT/modules/domestic_source.sh" enable ;;
+            sjtu) confirm_and_run "添加交大 Flatpak 镜像" "添加上海交大 Flathub 国内镜像源（系统级）" bash "$PROJECT_ROOT/modules/domestic_source.sh" sjtu ;;
             accelerator) steam_accelerator_touch_menu ;;
             set-password) confirm_and_run "设置系统密码" "新密码将明文保存到桌面管理员密码.txt；所有以当前用户身份运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" set ;;
             change-password) confirm_and_run "修改系统密码" "将读取旧记录并明文保存新密码；所有以当前用户身份运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;

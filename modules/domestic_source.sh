@@ -67,10 +67,42 @@ show_domestic_source_status() {
         flatpak remotes --user 2>/dev/null || true
 }
 
+
+
+setup_flatpak_sjtu() {
+    is_linux || { echo "仅支持 Linux/SteamOS。"; return 1; }
+    require_command flatpak || return 1
+    require_command sudo || return 1
+
+    echo "将添加上海交大 Flathub 国内镜像源（系统级）。"
+    echo "该源对所有用户生效，适合配合 pacman 安装的 Flatpak 应用使用。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
+        local answer
+        read -r -p "确认添加请输入 YES：" answer
+        [ "$answer" = "YES" ] || { echo "已取消。"; return 0; }
+    fi
+
+    echo "正在添加交大 Flathub 镜像..."
+    sudo flatpak remote-add --if-not-exists Sjtu https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo || {
+        echo "添加远程源失败。"
+        return 1
+    }
+
+    sudo flatpak remote-modify Sjtu --url=https://mirror.sjtu.edu.cn/flathub || {
+        echo "修改源地址失败。"
+        return 1
+    }
+
+    echo "交大 Flathub 镜像源已添加。"
+    echo "安装应用时指定源：flatpak install Sjtu 应用ID"
+    log "交大 Flathub 镜像源已添加"
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-enable}" in
         enable) configure_domestic_source ;;
         status) show_domestic_source_status ;;
-        *) echo "用法: $0 {enable|status}"; exit 1 ;;
+        sjtu) setup_flatpak_sjtu ;;
+        *) echo "用法: $0 {enable|status|sjtu}"; exit 1 ;;
     esac
 fi

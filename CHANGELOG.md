@@ -1,4 +1,10 @@
 
+## V4.0.66 公开版 — 2026-07-17
+
+- 新增 Firefox pacman 系统级安装：临时关闭只读保护，通过 pacman 安装到系统分区。
+- 新增交大 Flatpak 镜像源（系统级）添加：适合配合 pacman 安装的 Flatpak 应用。
+- 修改文件：`modules/software.sh`、`modules/domestic_source.sh`、`main.sh`。
+
 ## V4.0.65 公开版 — 2026-07-17
 
 - 安装 rEFInd 前增加 EFI 引导项检测：发现非标准引导项时列出并让用户确认，避免影响客户机器上已有的引导配置。
