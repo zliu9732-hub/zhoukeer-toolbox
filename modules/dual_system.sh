@@ -407,7 +407,21 @@ install_refind() {
     local refind_extract="$tmp_refind/refind"
 
     echo "正在下载 rEFInd V$REFIND_VERSION..."
-    if ! curl -fL --connect-timeout 15 --max-time 300 --retry 3         -o "$refind_zip" "$REFIND_URL"; then
+    local _rf_ok=0 _rf_url _rf_mirror
+    for _rf_mirror in $GITHUB_MIRRORS ""; do
+        if [ -n "$_rf_mirror" ]; then
+            _rf_url="${_rf_mirror}${REFIND_URL}"
+        else
+            _rf_url="$REFIND_URL"
+        fi
+        if curl -fL --connect-timeout 15 --max-time 300 --retry 2 \
+            -o "$refind_zip" "$_rf_url" 2>/dev/null; then
+            _rf_ok=1
+            break
+        fi
+        rm -f "$refind_zip"
+    done
+    if [ "$_rf_ok" -ne 1 ]; then
         rm -rf "$tmp_refind"
         echo "rEFInd 下载失败。"
         return 1

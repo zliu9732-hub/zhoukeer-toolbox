@@ -1,4 +1,9 @@
 
+## V4.0.63 公开版 — 2026-07-17
+
+- rEFInd 下载增加 GitHub 镜像回退，优先走 ghproxy.net / gh.api.99988866.xyz 加速。
+- 修改文件：`modules/dual_system.sh`。
+
 ## V4.0.62 公开版 — 2026-07-17
 
 - 新增 rEFInd 图形引导管理器安装/卸载功能：开机显示 SteamOS / Windows 系统图标供选择，替代 systemd-boot 文本菜单。
