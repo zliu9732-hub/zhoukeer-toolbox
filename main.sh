@@ -177,7 +177,9 @@ common_software_menu() {
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:5-6:wechat right:8-9:qq right:11-12:browser right:14-15:epic right:17-18:battlenet right:20-21:ge-proton right:22-23:home)"
-        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            nav-*) return 0 ;;
+        esac
 
         case "$choice" in
             wechat) confirm_and_run "安装微信" "腾讯官网AppImage；失败时保留原有版本" bash "$PROJECT_ROOT/modules/software.sh" wechat ;;
@@ -334,7 +336,6 @@ plugin_store_menu() {
             uninstall) confirm_and_run "清空已装 Decky 插件" "将删除 homebrew/plugins 根目录内的全部插件文件和插件设置；Decky Loader 本体不会被删除。是否继续？" bash "$PROJECT_ROOT/modules/plugin_store.sh" uninstall ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
-        [ "$NEXT_CATEGORY" = "plugins" ] || return 0
     done
 }
 
@@ -399,7 +400,9 @@ plugin_official_touch_pages() {
             right:14-15:plugin-$((start + 4)) \
             right:16-17:previous \
             right:18-19:next)"
-        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            nav-*) return 0 ;;
+        esac
 
         case "$choice" in
             plugin-*)
@@ -426,7 +429,6 @@ plugin_official_touch_pages() {
                 fi
                 ;;
         esac
-        [ "$NEXT_CATEGORY" = "plugins" ] || return 0
     done
 }
 
