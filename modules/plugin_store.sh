@@ -13,8 +13,6 @@ source "$PROJECT_ROOT/modules/steam_accelerator.sh"
 
 load_config
 
-PLUGIN_DOWNLOAD_ACCELERATION_CHECKED=0
-
 DECKY_LOADER_URL="${DECKY_LOADER_URL:-https://www.mhhf.com/Deck/decky/v.3.2.6/PluginLoader}"
 DECKY_LOADER_SHA256="${DECKY_LOADER_SHA256:-30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e}"
 DECKY_SERVICE_URL="${DECKY_SERVICE_URL:-https://www.mhhf.com/Deck/decky/plugin_loader-release.service}"
@@ -39,15 +37,6 @@ cleanup_decky_tmp() {
         rm -rf -- "$DECKY_TMP_DIR"
     fi
     DECKY_TMP_DIR=""
-}
-
-ensure_plugin_download_acceleration() {
-    if [ "${PLUGIN_DOWNLOAD_ACCELERATION_CHECKED:-0}" -eq 1 ]; then
-        return 0
-    fi
-    echo "正在检测可选的 Steam / GitHub 加速状态..."
-    ensure_steam302_for_download || return 1
-    PLUGIN_DOWNLOAD_ACCELERATION_CHECKED=1
 }
 
 calculate_decky_sha256() {
@@ -276,7 +265,6 @@ install_plugin_store() (
         echo "已取消插件商城安装。"
         return 0
     }
-    ensure_plugin_download_acceleration || return 1
 
     tmp_dir="$(mktemp -d)" || return 1
     DECKY_TMP_DIR="$tmp_dir"
@@ -1171,7 +1159,6 @@ install_configured_plugin() {
         echo "Decky 插件安装仅支持真实 SteamOS 环境。"
         return 1
     fi
-    ensure_plugin_download_acceleration || return 1
 
     case "$action" in
         lsfg) install_lsfg_bundle ;;
@@ -1274,7 +1261,6 @@ install_feature_plugins() {
         echo "功能插件安装仅支持真实 SteamOS 环境。"
         return 1
     fi
-    ensure_plugin_download_acceleration || return 1
 
     echo "将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。"
     echo "已安装的插件会以新版本安全替换；单项失败不会覆盖该插件的旧版本。"

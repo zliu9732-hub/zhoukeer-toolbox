@@ -14,8 +14,6 @@ grep -Fq 'https://www.mhhf.com/Deck/decky/plugin_loader-release.service' \
 grep -Fq '64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_decky_component' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'ensure_plugin_download_acceleration' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'ensure_steam302_for_download' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '勾选 Steam 和 GitHub' "$PROJECT_ROOT/modules/steam_accelerator.sh"
 grep -Fq 'render_decky_service' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'rollback_decky_install' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -52,7 +50,7 @@ grep -Fq 'install_feature_plugins()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'print_feature_plugin_status()' "$PROJECT_ROOT/modules/plugin_store.sh"
 feature_install_function="$(sed -n '/^install_feature_plugins()/,/^}/p' \
     "$PROJECT_ROOT/modules/plugin_store.sh")"
-printf '%s\n' "$feature_install_function" | grep -Fq 'ensure_plugin_download_acceleration'
+printf '%s\n' "$feature_install_function" | grep -Fq '小黄鸭（LSFG-VK）'
 printf '%s\n' "$feature_install_function" | grep -Fq 'reload_decky_plugins'
 printf '%s\n' "$feature_install_function" | grep -Fq '三款插件会出现在插头菜单中'
 grep -Fq 'CheatDeck 安装完成后可在 Decky 右侧栏显示' "$PROJECT_ROOT/modules/plugin_store.sh"

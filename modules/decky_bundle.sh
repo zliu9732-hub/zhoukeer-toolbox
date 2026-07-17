@@ -193,7 +193,7 @@ install_recommended_decky_plugins() {
         echo "已取消推荐插件安装。"
         return 0
     }
-    ensure_steam302_for_download || return 1
+    # Steam/GitHub 加速非必需，下载慢时可去系统设置启用 Steamcommunity 302
 
     token="$(curl \
         --fail \
