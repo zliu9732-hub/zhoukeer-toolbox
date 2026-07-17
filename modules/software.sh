@@ -60,7 +60,7 @@ software_details() {
             SOFTWARE_NAME="Firefox浏览器"
             SOFTWARE_DESKTOP_NAME="Firefox浏览器"
             SOFTWARE_APP_ID="org.mozilla.firefox"
-            SOFTWARE_INSTALL_MODE="flatpak_official"
+            SOFTWARE_INSTALL_MODE="flatpak"
             SOFTWARE_CATEGORIES="Network;WebBrowser;"
             ;;
         rustdesk)

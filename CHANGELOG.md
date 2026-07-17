@@ -1,4 +1,9 @@
 
+## V4.0.58 公开版 — 2026-07-17
+
+- 修复新机初始化时 Firefox 安装卡死的问题：Firefox 改为使用国内 Flathub 镜像源（交大/中科大），不再连接官方 Flathub（dl.flathub.org 在国内几乎不可用）。
+- 修改文件：`modules/software.sh`。
+
 ## V4.0.57 公开版 — 2026-07-17
 
 - 修复 QQ 下载失败（腾讯 CDN 403）的问题：QQ AppImage 下载 curl 增加浏览器 User-Agent 和 Referer 头，模拟浏览器请求绕过 CDN 限制。
