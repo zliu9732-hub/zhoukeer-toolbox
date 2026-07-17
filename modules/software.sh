@@ -1006,7 +1006,7 @@ install_flatpak_app() {
         fi
         if flatpak remote-list --system 2>/dev/null | grep -q "$_fp_src"; then
             echo "  从 $_fp_src 安装(system)..."
-            if sudo flatpak install -y "$_fp_src" "$app_id" 2>/dev/null; then
+            if toolbox_sudo flatpak install -y "$_fp_src" "$app_id" 2>/dev/null; then
                 echo "$app_name 安装完成。"
                 log "$app_name Flatpak 安装完成"
                 return 0
