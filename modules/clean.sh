@@ -11,7 +11,38 @@ clean_action() {
             safe_remove_contents "$HOME/.steam/steam/steamapps/downloading" "Steam下载残留"
             ;;
         shader-cache)
-            safe_remove_contents "$HOME/.steam/steam/steamapps/shadercache" "Steam着色器缓存"
+            echo "正在清理 Steam 着色器缓存..."
+            local _cc_cleaned=0 _cc_dir _cc_vdf _cc_path
+            for _cc_dir in \
+                "$HOME/.steam/steam/steamapps/shadercache" \
+                "$HOME/.local/share/Steam/steamapps/shadercache"; do
+                if [ -d "$_cc_dir" ]; then
+                    sudo find "$_cc_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null
+                    _cc_cleaned=$((_cc_cleaned + 1))
+                fi
+            done
+            for _cc_vdf in \
+                "$HOME/.steam/steam/steamapps/libraryfolders.vdf" \
+                "$HOME/.local/share/Steam/steamapps/libraryfolders.vdf"; do
+                [ -r "$_cc_vdf" ] || continue
+                while IFS= read -r _cc_path; do
+                    case "$_cc_path" in
+                        /*)
+                            _cc_dir="$_cc_path/steamapps/shadercache"
+                            if [ -d "$_cc_dir" ]; then
+                                sudo find "$_cc_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null
+                                _cc_cleaned=$((_cc_cleaned + 1))
+                            fi
+                            ;;
+                    esac
+                done < <(sed -n 's/^[[:space:]]*"path"[[:space:]]*"\([^"]*\)".*/\1/p' "$_cc_vdf" 2>/dev/null)
+            done
+            if [ "$_cc_cleaned" -gt 0 ]; then
+                echo "已清理 $_cc_cleaned 个 Steam 库的着色器缓存。"
+                log "已清理 $_cc_cleaned 个 Steam 库的着色器缓存"
+            else
+                echo "未找到 Steam 着色器缓存目录。"
+            fi
             ;;
         user-cache)
             safe_remove_contents "$HOME/.cache" "Linux用户缓存"

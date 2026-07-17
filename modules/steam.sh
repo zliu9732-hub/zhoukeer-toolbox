@@ -16,7 +16,38 @@ steam_action() {
             log "显示Steam Deck性能模式建议"
             ;;
         shader-cache)
-            safe_remove_contents "$HOME/.steam/steam/steamapps/shadercache" "Steam着色器缓存"
+            echo "正在清理 Steam 着色器缓存..."
+            local _ss_cleaned=0 _ss_dir _ss_vdf _ss_path
+            for _ss_dir in \
+                "$HOME/.steam/steam/steamapps/shadercache" \
+                "$HOME/.local/share/Steam/steamapps/shadercache"; do
+                if [ -d "$_ss_dir" ]; then
+                    sudo find "$_ss_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null
+                    _ss_cleaned=$((_ss_cleaned + 1))
+                fi
+            done
+            for _ss_vdf in \
+                "$HOME/.steam/steam/steamapps/libraryfolders.vdf" \
+                "$HOME/.local/share/Steam/steamapps/libraryfolders.vdf"; do
+                [ -r "$_ss_vdf" ] || continue
+                while IFS= read -r _ss_path; do
+                    case "$_ss_path" in
+                        /*)
+                            _ss_dir="$_ss_path/steamapps/shadercache"
+                            if [ -d "$_ss_dir" ]; then
+                                sudo find "$_ss_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null
+                                _ss_cleaned=$((_ss_cleaned + 1))
+                            fi
+                            ;;
+                    esac
+                done < <(sed -n 's/^[[:space:]]*"path"[[:space:]]*"\([^"]*\)".*/\1/p' "$_ss_vdf" 2>/dev/null)
+            done
+            if [ "$_ss_cleaned" -gt 0 ]; then
+                echo "已清理 $_ss_cleaned 个 Steam 库的着色器缓存。"
+                log "已清理 $_ss_cleaned 个 Steam 库的着色器缓存"
+            else
+                echo "未找到 Steam 着色器缓存目录。"
+            fi
             ;;
         *)
             echo "未知优化项目: $1"
