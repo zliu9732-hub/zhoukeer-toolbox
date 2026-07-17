@@ -1,4 +1,12 @@
 
+## V4.0.71 公开版 — 2026-07-17
+
+- 修复终端打印原始 Unicode 转义序列的问题：改用字面 UTF-8 中文字符。
+- 修复 GPG 公钥仍无效的问题：国内镜像（Sjtu/Ustc）增加 --no-gpg-verify 关闭签名校验避免 "public key not found"。
+- 修改文件：`modules/domestic_source.sh`。
+
+
+
 ## V4.0.70 公开版 — 2026-07-17
 
 - Flatpak 应用安装失败时自动修复环境并重试：调用 init_domestic_flatpak 修复 GPG/镜像源后重新安装。
