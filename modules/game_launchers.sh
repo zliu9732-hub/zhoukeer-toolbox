@@ -289,15 +289,10 @@ ensure_battlenet_runner() {
     local steam_root="$1"
     local runner
 
-    # 战网只在 PE 与 Proton 10.0-4 之间自动选择，避免客户还要进入
-    # Steam 兼容性页面手动试错。显式设置的调试兼容层仍优先保留。
+    # 战网优先使用 Proton 10.0-4，其次 PE，最后 GE-Proton 兜底。
+    # 显式设置的调试兼容层仍优先保留。
     if [ -n "${ZHOUKEER_PROTON_RUNNER:-}" ] && [ -x "$ZHOUKEER_PROTON_RUNNER" ]; then
         printf '%s\n' "$ZHOUKEER_PROTON_RUNNER"
-        return 0
-    fi
-    runner="$(find_proton_experimental_runner "$steam_root" || true)"
-    if [ -n "$runner" ]; then
-        printf '%s\n' "$runner"
         return 0
     fi
     runner="$(find_proton_10_runner "$steam_root" || true)"
@@ -305,9 +300,16 @@ ensure_battlenet_runner() {
         printf '%s\n' "$runner"
         return 0
     fi
+    runner="$(find_proton_experimental_runner "$steam_root" || true)"
+    if [ -n "$runner" ]; then
+        printf '%s\n' "$runner"
+        return 0
+    fi
 
-    # 两套官方兼容层都不存在时，才回退到工具箱原有的 GE-Proton 方案，
-    # 并在首次失败后提示用户安装 PE 或 Proton 10.0-4。
+    # Proton 10.0-4 和 PE 都不存在时提示用户安装，最后 GE-Proton 兜底。
+    echo "未找到 Proton 10.0-4 或 Proton Experimental。"
+    echo "请在 Steam → 设置 → 兼容性中，为任意游戏选择 Proton 10.0-4"
+    echo "Steam 会自动下载该兼容层，下载完成后重新安装战网即可。"
     ensure_proton_runner "$steam_root"
 }
 
