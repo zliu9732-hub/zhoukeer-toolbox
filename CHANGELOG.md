@@ -1,4 +1,9 @@
 
+## V4.0.94 公开版 — 2026-07-18
+
+- 常用软件菜单新增：Google Chrome、Microsoft Edge、Bottles (红酒杯)、Moonlight 串流。
+- 修改文件：`modules/software.sh`、`main.sh`。
+
 ## V4.0.93 公开版 — 2026-07-18
 
 - Proton 兼容层搜索改为 Proton Experimental 优先（Epic 和战网均受影响）。

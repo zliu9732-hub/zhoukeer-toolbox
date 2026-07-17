@@ -987,14 +987,49 @@ system_setup() {
     echo "系统初始化完成"
 }
 
+
+
+install_flatpak_app() {
+    local app_id="$1"
+    local app_name="$2"
+    local _fp_src
+
+    echo "正在安装 $app_name..."
+    for _fp_src in Sjtu Ustc flathub; do
+        if flatpak remote-list --user 2>/dev/null | grep -q "$_fp_src"; then
+            echo "  从 $_fp_src 安装..."
+            if flatpak install -y "$_fp_src" "$app_id" 2>/dev/null; then
+                echo "$app_name 安装完成。"
+                log "$app_name Flatpak 安装完成"
+                return 0
+            fi
+        fi
+        if flatpak remote-list --system 2>/dev/null | grep -q "$_fp_src"; then
+            echo "  从 $_fp_src 安装(system)..."
+            if sudo flatpak install -y "$_fp_src" "$app_id" 2>/dev/null; then
+                echo "$app_name 安装完成。"
+                log "$app_name Flatpak 安装完成"
+                return 0
+            fi
+        fi
+    done
+
+    echo "$app_name 安装失败。"
+    return 1
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         wechat|qq|browser|rustdesk) install_software "$1" ;;
         firefox-pacman) install_firefox_pacman ;;
         firefox-sjtu) install_firefox_sjtu ;;
         system-setup) system_setup ;;
+        chrome) install_flatpak_app "com.google.Chrome" "Google Chrome" ;;
+        edge) install_flatpak_app "com.microsoft.Edge" "Microsoft Edge" ;;
+        bottles) install_flatpak_app "com.usebottles.bottles" "Bottles" ;;
+        moonlight) install_flatpak_app "com.limelight_stream.Moonlight" "Moonlight" ;;
         status) require_command od && show_software_status ;;
         repair-shortcuts) require_command od && repair_software_shortcuts ;;
-        *) echo "用法: $0 {wechat|qq|browser|rustdesk|firefox-pacman|firefox-sjtu|system-setup|status|repair-shortcuts}"; exit 1 ;;
+        *) echo "用法: $0 {wechat|qq|browser|rustdesk|firefox-pacman|firefox-sjtu|chrome|edge|bottles|moonlight|system-setup|status|repair-shortcuts}"; exit 1 ;;
     esac
 fi

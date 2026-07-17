@@ -169,26 +169,29 @@ common_software_menu() {
     while true; do
         draw_category_frame software "常用软件" "Linux 软件与 Windows 游戏启动器集中安装"
         ui_touch_button 5 '\033[1;97;48;5;24m' "微信" "安装或修复微信"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "QQ" "安装或修复 QQ"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "Firefox 浏览器" "官方 Flathub 安装，支持自动更新"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "Epic Games 启动器" "添加至 Steam 库，在非 Steam 游戏中启动"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "战网启动器" "添加至 Steam 库，在非 Steam 游戏中启动"
-        ui_touch_button 20 '\033[1;97;48;5;24m' "GE-Proton 兼容层" "安装到兼容工具目录，无需管理员权限"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "QQ" "安装或修复 QQ"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "Google Chrome" "Flathub 安装，支持自动更新"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "Microsoft Edge" "Flathub 安装，支持自动更新"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "Bottles 红酒杯" "运行 Windows 应用与游戏"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "Moonlight" "局域网高帧率低延迟游戏串流"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "Epic Games 启动器" "添加至 Steam 库"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "战网启动器" "添加至 Steam 库"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:wechat right:8-9:qq right:11-12:browser right:14-15:epic right:17-18:battlenet right:20-21:ge-proton right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:wechat right:7-8:qq right:9-10:chrome right:11-12:edge right:13-14:bottles right:15-16:moonlight right:17-18:epic right:19-20:battlenet right:22-23:home)"
         case "$choice" in
             nav-*) apply_navigation "$choice"; return 0 ;;
         esac
 
         case "$choice" in
             wechat) confirm_and_run "安装微信" "腾讯官网AppImage；失败时保留原有版本" bash "$PROJECT_ROOT/modules/software.sh" wechat ;;
-            qq) confirm_and_run "安装QQ" "通过上海交大与中科大 Flathub 国内缓存安装；完成后自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" qq ;;
-            browser) confirm_and_run "安装Firefox浏览器" "完整包安装；失败时保留原有版本" bash "$PROJECT_ROOT/modules/software.sh" browser ;;
-            firefox-pacman) confirm_and_run "Firefox(pacman系统安装)" "临时关闭只读保护，通过 pacman 安装到系统分区" bash "$PROJECT_ROOT/modules/software.sh" firefox-pacman ;;
+            qq) confirm_and_run "安装QQ" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" qq ;;
+            chrome) confirm_and_run "安装 Google Chrome" "Flathub 安装，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" chrome ;;
+            edge) confirm_and_run "安装 Microsoft Edge" "Flathub 安装，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" edge ;;
+            bottles) confirm_and_run "安装 Bottles 红酒杯" "运行 Windows 应用与游戏" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
+            moonlight) confirm_and_run "安装 Moonlight" "局域网高帧率低延迟游戏串流" bash "$PROJECT_ROOT/modules/software.sh" moonlight ;;
             epic) run_action "安装 Epic Games 启动器并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
             battlenet) run_action "安装战网启动器并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
-            ge-proton) confirm_and_run "安装GE-Proton兼容层" "安装到Steam compatibilitytools.d目录；完成后需要重启Steam" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "software" ] || return 0
