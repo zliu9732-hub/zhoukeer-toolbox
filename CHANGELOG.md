@@ -1,4 +1,10 @@
 
+## V4.0.93 公开版 — 2026-07-18
+
+- Proton 兼容层搜索改为 Proton Experimental 优先（Epic 和战网均受影响）。
+- 修复上一版对 game_launchers.sh 的损坏。
+- 修改文件：`modules/game_launchers.sh`。
+
 ## V4.0.92 公开版 — 2026-07-18
 
 - 战网兼容层优先使用 GE-Proton（含官方额外补丁，对战网更新服务兼容性更好），其次 Proton 10.0-4 / PE。

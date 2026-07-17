@@ -177,10 +177,22 @@ find_proton_runner() {
     local candidate
 
     if [ -n "${ZHOUKEER_PROTON_RUNNER:-}" ] && [ -x "$ZHOUKEER_PROTON_RUNNER" ]; then
-        printf '%s\n' "$ZHOUKEER_PROTON_RUNNER"
+        printf '%s
+' "$ZHOUKEER_PROTON_RUNNER"
         return 0
     fi
 
+    # Proton Experimental 优先
+    for candidate in \
+        "$steam_root/steamapps/common/Proton - Experimental/proton" \
+        "$steam_root/steamapps/common/Proton 10.0/proton"; do
+        if [ -x "$candidate" ]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+
+    # 其次 GE-Proton
     for compatibility_root in \
         "$HOME/.steam/root/compatibilitytools.d" \
         "$HOME/.steam/steam/compatibilitytools.d" \
@@ -196,14 +208,6 @@ find_proton_runner() {
         fi
     done
 
-    for candidate in \
-        "$steam_root/steamapps/common/Proton - Experimental/proton" \
-        "$steam_root/steamapps/common/Proton 10.0/proton"; do
-        if [ -x "$candidate" ]; then
-            printf '%s\n' "$candidate"
-            return 0
-        fi
-    done
     return 1
 }
 
