@@ -150,23 +150,25 @@ download_verified_package() {
     local checksum_file="$2"
 
     if download_verified_package_from \
-        "域名" "$DOMAIN_PACKAGE_URL" "$DOMAIN_CHECKSUM_URL" \
-        "$package_file" "$checksum_file"; then
-        DOWNLOAD_SOURCE="域名"
-        return 0
-    fi
-    if download_verified_package_from \
         "Gitee" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
         DOWNLOAD_SOURCE="Gitee"
         return 0
     fi
 
-    echo "Gitee包或校验文件不可用，切换GitHub备用源。"
+    echo "Gitee不可用，切换GitHub备用源。"
     if download_verified_package_from \
         "GitHub" "$GITHUB_PACKAGE_URL" "$GITHUB_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
         DOWNLOAD_SOURCE="GitHub"
+        return 0
+    fi
+
+    echo "GitHub不可用，切换域名源。"
+    if download_verified_package_from \
+        "域名" "$DOMAIN_PACKAGE_URL" "$DOMAIN_CHECKSUM_URL" \
+        "$package_file" "$checksum_file"; then
+        DOWNLOAD_SOURCE="域名"
         return 0
     fi
 
@@ -181,18 +183,20 @@ download_with_fallback() {
     local gitee_url="$4"
     local github_url="$5"
 
-    if download_one "$domain_url" "$output" "域名"; then
-        DOWNLOAD_SOURCE="域名"
-        return 0
-    fi
     if download_one "$gitee_url" "$output" "Gitee"; then
         DOWNLOAD_SOURCE="Gitee"
         return 0
     fi
 
-    echo "Gitee下载失败，切换GitHub备用源。"
+    echo "Gitee不可用，切换GitHub备用源。"
     if download_one "$github_url" "$output" "GitHub"; then
         DOWNLOAD_SOURCE="GitHub"
+        return 0
+    fi
+
+    echo "GitHub不可用，切换域名源。"
+    if download_one "$domain_url" "$output" "域名"; then
+        DOWNLOAD_SOURCE="域名"
         return 0
     fi
 

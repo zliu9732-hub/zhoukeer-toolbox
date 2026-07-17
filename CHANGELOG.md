@@ -1,4 +1,9 @@
 
+## V4.0.56 公开版 — 2026-07-17
+
+- 下载优先级改为 Gitee → GitHub → 域名（jktool.icu），避免部分网络下 .icu 域名连接被重置时更新失败。
+- 修改文件：`bootstrap.sh`、`update.sh`。
+
 ## V4.0.55 公开版 — 2026-07-17
 
 - 修复 macOS 打包带入 Apple 扩展属性（LIBARCHIVE.xattr.com.apple.provenance）导致 SteamOS 解压时大量警告的问题：打包脚本 `package_release.sh` 改用 `--no-xattrs`。

@@ -247,10 +247,6 @@ download_verified_package() {
 download_version_with_fallback() {
     local output="$1"
 
-    if download_version_one "$DOMAIN_VERSION_URL" "$output" "域名"; then
-        VERSION_SOURCE="域名"
-        return 0
-    fi
     if download_version_one "$GITEE_VERSION_URL" "$output" "Gitee"; then
         VERSION_SOURCE="Gitee"
         return 0
@@ -259,6 +255,12 @@ download_version_with_fallback() {
     echo "Gitee版本检测失败，切换GitHub备用源。"
     if download_version_one "$GITHUB_VERSION_URL" "$output" "GitHub"; then
         VERSION_SOURCE="GitHub"
+        return 0
+    fi
+
+    echo "GitHub版本检测失败，切换域名源。"
+    if download_version_one "$DOMAIN_VERSION_URL" "$output" "域名"; then
+        VERSION_SOURCE="域名"
         return 0
     fi
 
