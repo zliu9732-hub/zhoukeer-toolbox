@@ -175,10 +175,9 @@ common_software_menu() {
         ui_touch_button 13 '\033[1;97;48;5;24m' "Bottles 红酒杯" "运行 Windows 应用与游戏"
         ui_touch_button 15 '\033[1;97;48;5;24m' "Moonlight" "局域网高帧率低延迟游戏串流"
         ui_touch_button 17 '\033[1;97;48;5;24m' "Epic Games 启动器" "添加至 Steam 库"
-        ui_touch_button 19 '\033[1;97;48;5;24m' "战网启动器" "添加至 Steam 库"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:wechat right:7-8:qq right:9-10:chrome right:11-12:edge right:13-14:bottles right:15-16:moonlight right:17-18:epic right:19-20:battlenet right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:wechat right:7-8:qq right:9-10:chrome right:11-12:edge right:13-14:bottles right:15-16:moonlight right:17-18:epic  right:22-23:home)"
         case "$choice" in
             nav-*) apply_navigation "$choice"; return 0 ;;
         esac
@@ -191,7 +190,7 @@ common_software_menu() {
             bottles) confirm_and_run "安装 Bottles 红酒杯" "运行 Windows 应用与游戏" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
             moonlight) confirm_and_run "安装 Moonlight" "局域网高帧率低延迟游戏串流" bash "$PROJECT_ROOT/modules/software.sh" moonlight ;;
             epic) run_action "安装 Epic Games 启动器并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
-            battlenet) run_action "安装战网启动器并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
+
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "software" ] || return 0

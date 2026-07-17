@@ -1280,9 +1280,27 @@ install_feature_plugins() {
     for plugin in lsfg fsr4 cheatdeck; do
         echo ""
         case "$plugin" in
-            lsfg) echo "========== 小黄鸭（LSFG-VK） ==========" ;;
-            fsr4) echo "========== FSR4（Decky Framegen） ==========" ;;
-            cheatdeck) echo "========== CheatDeck ==========" ;;
+            lsfg)
+                echo "========== 小黄鸭（LSFG-VK） =========="
+                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK"; then
+                    echo "[已跳过] 小黄鸭已安装"
+                    continue
+                fi
+                ;;
+            fsr4)
+                echo "========== FSR4（Decky Framegen） =========="
+                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "Decky-Framegen" "Decky-Framegen"; then
+                    echo "[已跳过] FSR4 已安装"
+                    continue
+                fi
+                ;;
+            cheatdeck)
+                echo "========== CheatDeck =========="
+                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "CheatDeck" "CheatDeck"; then
+                    echo "[已跳过] CheatDeck 已安装"
+                    continue
+                fi
+                ;;
         esac
         if ! install_configured_plugin "$plugin" 0; then
             failed=1
