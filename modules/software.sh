@@ -799,15 +799,28 @@ install_software() {
     fi
 
     choose_install_remotes
-    echo "正在安装 $SOFTWARE_NAME..."
-    if ! run_flatpak_install "$INSTALL_PRIMARY_REMOTE"; then
+    local _fr_retry=0
+    while [ "$_fr_retry" -le 1 ]; do
+        echo "正在安装 $SOFTWARE_NAME..."
+        if run_flatpak_install "$INSTALL_PRIMARY_REMOTE"; then
+            break
+        fi
         echo "$INSTALL_PRIMARY_REMOTE 安装失败或超时，切换备用源 $INSTALL_FALLBACK_REMOTE。"
-        if ! run_flatpak_install "$INSTALL_FALLBACK_REMOTE"; then
-            echo "两个国内缓存均失败或超时，已停止，不再连接Flathub官方源。"
+        if run_flatpak_install "$INSTALL_FALLBACK_REMOTE"; then
+            break
+        fi
+        if [ "$_fr_retry" -eq 0 ]; then
+            echo "安装失败，正在修复 Flatpak 环境后重试..."
+            bash "$PROJECT_ROOT/modules/domestic_source.sh" init-domestic 2>/dev/null || true
+            ensure_flatpak_remotes 2>/dev/null || true
+            choose_install_remotes 2>/dev/null || true
+            _fr_retry=1
+        else
+            echo "两个国内缓存均失败或超时，已停止。"
             log "$SOFTWARE_NAME Flatpak安装失败"
             return 1
         fi
-    fi
+    done
 
     if ! software_is_installed; then
         echo "$SOFTWARE_NAME 安装命令结束，但未检测到已安装应用。"

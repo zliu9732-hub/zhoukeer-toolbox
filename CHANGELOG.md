@@ -1,4 +1,12 @@
 
+## V4.0.70 公开版 — 2026-07-17
+
+- Flatpak 应用安装失败时自动修复环境并重试：调用 init_domestic_flatpak 修复 GPG/镜像源后重新安装。
+- 修改文件：`modules/software.sh`。
+
+
+
+
 ## V4.0.69 公开版 — 2026-07-17
 
 - 新增 `init_domestic_flatpak` 函数：一键修复 GPG 公钥、配置交大/中科大镜像、刷新 AppStream，解决 "public key not found" 和应用索引不可读问题。
