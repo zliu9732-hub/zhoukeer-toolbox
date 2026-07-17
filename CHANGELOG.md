@@ -1,4 +1,9 @@
 
+## V4.0.59 公开版 — 2026-07-17
+
+- 所有 Flatpak 网络操作（remote-add、remote-modify、remote-ls）统一增加 30 秒超时，防止因网络不通导致工具卡死。
+- 修改文件：`modules/software.sh`、`modules/domestic_source.sh`。
+
 ## V4.0.58 公开版 — 2026-07-17
 
 - 修复新机初始化时 Firefox 安装卡死的问题：Firefox 改为使用国内 Flathub 镜像源（交大/中科大），不再连接官方 Flathub（dl.flathub.org 在国内几乎不可用）。

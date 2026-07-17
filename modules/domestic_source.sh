@@ -16,7 +16,7 @@ verify_domestic_flatpak_remote() {
     local applications
 
     echo "正在验证 $label 应用索引..."
-    applications="$(flatpak remote-ls --user "$remote" --app --columns=application 2>/dev/null)" || {
+    applications="$(timeout --foreground 30 flatpak remote-ls --user "$remote" --app --columns=application 2>/dev/null)" || {
         echo "$label 无法读取应用索引，请检查网络后重试。"
         return 1
     }
@@ -39,6 +39,7 @@ configure_domestic_source() {
         return 1
     }
     require_command flatpak || return 1
+    require_command timeout || return 1
     require_command curl || return 1
 
     echo "正在添加上海交大和中科大两个用户级 Flathub 缓存源..."
@@ -60,6 +61,7 @@ configure_domestic_source() {
 
 show_domestic_source_status() {
     require_command flatpak || return 1
+    require_command timeout || return 1
     echo "当前用户的 Flatpak 下载源："
     flatpak remotes --user --show-details 2>/dev/null || \
         flatpak remotes --user 2>/dev/null || true

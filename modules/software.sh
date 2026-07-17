@@ -168,14 +168,14 @@ ensure_flatpak_remotes() {
 
     if ! flatpak_remote_exists "$FLATHUB_CN_REMOTE"; then
         echo "正在添加Flathub国内缓存源..."
-        if ! flatpak remote-add --user --if-not-exists \
+        if ! timeout --foreground 30 flatpak remote-add --user --if-not-exists \
             "$FLATHUB_CN_REMOTE" "$repo_file"; then
             rm -f -- "$repo_file"
             return 1
         fi
     fi
 
-    if ! flatpak remote-modify --user "$FLATHUB_CN_REMOTE" \
+    if ! timeout --foreground 30 flatpak remote-modify --user "$FLATHUB_CN_REMOTE" \
         --url="$FLATHUB_CN_URL"; then
         echo "无法配置上海交大Flathub缓存源。"
         rm -f -- "$repo_file"
@@ -184,13 +184,13 @@ ensure_flatpak_remotes() {
 
     if ! flatpak_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE"; then
         echo "正在添加中科大Flathub缓存源..."
-        if ! flatpak remote-add --user --if-not-exists \
+        if ! timeout --foreground 30 flatpak remote-add --user --if-not-exists \
             "$FLATHUB_CN_FALLBACK_REMOTE" "$repo_file"; then
             rm -f -- "$repo_file"
             return 1
         fi
     fi
-    if ! flatpak remote-modify --user "$FLATHUB_CN_FALLBACK_REMOTE" \
+    if ! timeout --foreground 30 flatpak remote-modify --user "$FLATHUB_CN_FALLBACK_REMOTE" \
         --url="$FLATHUB_CN_FALLBACK_URL"; then
         echo "无法配置中科大Flathub缓存源。"
         rm -f -- "$repo_file"
@@ -229,7 +229,7 @@ ensure_official_flathub_remote() {
     fi
 
     echo "正在添加官方 Flathub 源..."
-    flatpak remote-add --user --if-not-exists \
+    timeout --foreground 30 flatpak remote-add --user --if-not-exists \
         "$FLATHUB_OFFICIAL_REMOTE" "$FLATHUB_OFFICIAL_REPO_FILE"
 }
 
