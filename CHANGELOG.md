@@ -1,4 +1,12 @@
 
+## V4.0.77 公开版 — 2026-07-17
+
+- 修复国内源验证失败问题：验证前先刷新 AppStream；自动检测源级别（system/user）；超时从 30 秒增至 60 秒。
+- 修改文件：`modules/domestic_source.sh`。
+
+
+
+
 ## V4.0.76 公开版 — 2026-07-17
 
 - system_setup 增加 sudo -n 快速路径：sudo 缓存有效时直接使用，无需交互；无效时才走 toolbox_sudo 自动提权。
