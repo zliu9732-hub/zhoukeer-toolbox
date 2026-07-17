@@ -17,9 +17,7 @@ mkdir -p "$DIST_DIR"
 
 cd "$PROJECT_ROOT" || exit 1
 
-# macOS 的 BSD tar 会默认带入 Apple 扩展属性；SteamOS 解压时只会产生无意义警告。
-export COPYFILE_DISABLE=1
-
+# macOS 打包时排除扩展属性，避免 SteamOS 解压时产生无关警告
 shopt -s nullglob
 for source_path in ./* ./.[!.]* ./..?*; do
     [ "$source_path" = "./dist" ] && continue
@@ -27,6 +25,7 @@ for source_path in ./* ./.[!.]* ./..?*; do
 done
 
 tar \
+    --no-xattrs \
     --exclude=".git" \
     --exclude=".DS_Store" \
     --exclude="logs" \

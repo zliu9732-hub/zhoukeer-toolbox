@@ -255,7 +255,7 @@ download_verified_package "$PACKAGE_FILE" "$CHECKSUM_FILE" || exit 1
 echo "下载源: $DOWNLOAD_SOURCE"
 
 echo "[3/4] 解压并检查安装器..."
-tar -xzf "$PACKAGE_FILE" -C "$TMP_DIR"
+tar --no-xattrs -xzf "$PACKAGE_FILE" -C "$TMP_DIR"
 INSTALLER_PATH="$(find "$TMP_DIR" -mindepth 1 -maxdepth 2 -type f -name install.sh -print | head -n 1)"
 
 if [ -z "$INSTALLER_PATH" ] || [ ! -f "$INSTALLER_PATH" ]; then

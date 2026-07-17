@@ -385,7 +385,7 @@ echo "下载源: $DOWNLOAD_SOURCE"
 
 echo "[3/4] 解压更新包..."
 mkdir -p "$EXTRACT_DIR"
-tar -xzf "$PACKAGE_FILE" -C "$EXTRACT_DIR"
+tar --no-xattrs -xzf "$PACKAGE_FILE" -C "$EXTRACT_DIR"
 INSTALLER_PATH="$(find "$EXTRACT_DIR" -mindepth 1 -maxdepth 2 -type f -name install.sh -print | head -n 1)"
 
 if [ -z "$INSTALLER_PATH" ] || [ ! -f "$INSTALLER_PATH" ]; then

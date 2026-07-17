@@ -1,4 +1,10 @@
 
+## V4.0.55 公开版 — 2026-07-17
+
+- 修复 macOS 打包带入 Apple 扩展属性（LIBARCHIVE.xattr.com.apple.provenance）导致 SteamOS 解压时大量警告的问题：打包脚本 `package_release.sh` 改用 `--no-xattrs`。
+- 修复解压后部分文件权限异常导致 `install.sh` 复制时报"无法以读取模式打开"的问题：`bootstrap.sh` 和 `update.sh` 解压时也使用 `--no-xattrs`。
+- 重新构建 dist 发布包。
+
 ## V4.0.54 公开版 — 2026-07-17
 
 - GITHUB_MIRRORS 默认值统一到 core/env.sh 的 load_config() 中，各模块不再各自维护 fallback。
