@@ -1,4 +1,9 @@
 
+## V4.0.64 公开版 — 2026-07-17
+
+- rEFInd 移除改为更安全的"隐藏/恢复"：隐藏 = timeout 设为 0（开机直接进系统），恢复 = 改回 timeout 10（显示选择画面），不再删除文件和 EFI 引导项。
+- 修改文件：`modules/dual_system.sh`、`main.sh`。
+
 ## V4.0.63 公开版 — 2026-07-17
 
 - rEFInd 下载增加 GitHub 镜像回退，优先走 ghproxy.net / gh.api.99988866.xyz 加速。

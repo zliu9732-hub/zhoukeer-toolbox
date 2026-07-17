@@ -542,9 +542,10 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         add) enable_dual_boot_menu ;;
         remove) hide_dual_boot_menu ;;
         refind-install) install_refind ;;
-        refind-remove) remove_refind ;;
+        refind-hide) refind_hide_menu ;;
+        refind-show) refind_show_menu ;;
         *)
-            echo "用法: $0 {mount|protect|unprotect|add|remove|refind-install|refind-remove}"
+            echo "用法: $0 {mount|protect|unprotect|add|remove|refind-install|refind-hide|refind-show}"
             exit 1
             ;;
     esac
