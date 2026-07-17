@@ -1,4 +1,9 @@
 
+## V4.0.95 公开版 — 2026-07-18
+
+- 常用软件新增 Protontricks（修复与配置 Steam 游戏 Proton 环境），更新 Bottles/Moonlight 中文描述。
+- 修改文件：`modules/software.sh`、`main.sh`。
+
 ## V4.0.94 公开版 — 2026-07-18
 
 - 常用软件菜单新增：Google Chrome、Microsoft Edge、Bottles (红酒杯)、Moonlight 串流。

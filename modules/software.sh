@@ -1026,10 +1026,11 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         system-setup) system_setup ;;
         chrome) install_flatpak_app "com.google.Chrome" "Google Chrome" ;;
         edge) install_flatpak_app "com.microsoft.Edge" "Microsoft Edge" ;;
+        protontricks) install_flatpak_app "com.github.Matoking.protontricks" "Protontricks" ;;
         bottles) install_flatpak_app "com.usebottles.bottles" "Bottles" ;;
         moonlight) install_flatpak_app "com.limelight_stream.Moonlight" "Moonlight" ;;
         status) require_command od && show_software_status ;;
         repair-shortcuts) require_command od && repair_software_shortcuts ;;
-        *) echo "用法: $0 {wechat|qq|browser|rustdesk|firefox-pacman|firefox-sjtu|chrome|edge|bottles|moonlight|system-setup|status|repair-shortcuts}"; exit 1 ;;
+        *) echo "用法: $0 {wechat|qq|browser|rustdesk|firefox-pacman|firefox-sjtu|chrome|edge|protontricks|bottles|moonlight|system-setup|status|repair-shortcuts}"; exit 1 ;;
     esac
 fi
