@@ -1,4 +1,12 @@
 
+## V4.0.76 公开版 — 2026-07-17
+
+- system_setup 增加 sudo -n 快速路径：sudo 缓存有效时直接使用，无需交互；无效时才走 toolbox_sudo 自动提权。
+- 修改文件：`modules/software.sh`。
+
+
+
+
 ## V4.0.75 公开版 — 2026-07-17
 
 - system_setup、flatpak_mirror_delete、flatpak_mirror_reset 改为使用 toolbox_sudo 读取桌面密码文件自动提权，不再强制 passwd。
