@@ -1,4 +1,9 @@
 
+## V4.0.97 公开版 — 2026-07-18
+
+- 彻底移除战网安装功能：删除 launcher_details 战网分支、ensure_battlenet_runner、find_battlenet_alternate_runner、run_battlenet_installer_with_fallback 及 CLI 入口。
+- 修改文件：`modules/game_launchers.sh`。
+
 ## V4.0.96 公开版 — 2026-07-18
 
 - 一键安装全部插件增加已安装检测，已装插件跳过并显示 "[已跳过] 已安装"。
