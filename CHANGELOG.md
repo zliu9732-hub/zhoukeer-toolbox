@@ -1,4 +1,12 @@
 
+## V4.0.80 公开版 — 2026-07-17
+
+- 初始化国内 Flatpak 源时同步添加用户级国内镜像（flathub-cn/flathub-ustc）并关闭 GPG 校验，确保 Firefox 等应用安装可使用。
+- 修改文件：`modules/domestic_source.sh`。
+
+
+
+
 ## V4.0.79 公开版 — 2026-07-17
 
 - 修复国内镜像（flathub-cn/flathub-ustc）仍报 GPG 签名错误的问题：用户级源添加后也关闭 GPG 校验。

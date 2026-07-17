@@ -159,6 +159,16 @@ init_domestic_flatpak() {
         # 国内镜像使用 --no-gpg-verify 绕过签名问题
         sudo flatpak remote-modify --no-gpg-verify "$_name_" 2>/dev/null &&             echo "  - $_name_ 已关闭 GPG 校验"
     done
+    # 同时添加用户级国内源（供 flatpak install --user 使用）
+    for _ul_pair_ in "$FLATHUB_CN_REMOTE|$FLATHUB_CN_URL" "$FLATHUB_CN_FALLBACK_REMOTE|$FLATHUB_CN_FALLBACK_URL"; do
+        local _ul_name_="${_ul_pair_%%|*}"
+        local _ul_url_="${_ul_pair_##*|}"
+        if ! flatpak remote-list --user 2>/dev/null | grep -q "$_ul_name_"; then
+            flatpak remote-add --user --if-not-exists "$_ul_name_" "$_ul_url_/flathub.flatpakrepo" 2>/dev/null &&                 echo "  - $_ul_name_ (用户级) 已添加"
+        fi
+        flatpak remote-modify --user "$_ul_name_" --url="$_ul_url_" 2>/dev/null
+        flatpak remote-modify --no-gpg-verify --user "$_ul_name_" 2>/dev/null &&             echo "  - $_ul_name_ (用户级) 已关闭 GPG 校验"
+    done
 
     # ----- 第 5 步: 刷新 AppStream -----
     echo "[5/6] 刷新应用索引..."
