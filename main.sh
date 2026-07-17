@@ -172,8 +172,8 @@ common_software_menu() {
         ui_touch_button 7 '\033[1;97;48;5;24m' "QQ" "安装或修复 QQ"
         ui_touch_button 9 '\033[1;97;48;5;24m' "Google Chrome" "Flathub 安装，支持自动更新"
         ui_touch_button 11 '\033[1;97;48;5;24m' "Microsoft Edge" "Flathub 安装，支持自动更新"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "Bottles 红酒杯" "运行 Windows 应用与游戏"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "Moonlight" "局域网高帧率低延迟游戏串流"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "[Protontricks] 红酒杯" "修复与配置 Steam 游戏 Proton 环境"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "[Bottles] 酒瓶" "独立运行第三方 Windows 应用与游戏"
         ui_touch_button 17 '\033[1;97;48;5;24m' "Epic Games 启动器" "添加至 Steam 库"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
