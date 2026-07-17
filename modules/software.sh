@@ -7,6 +7,7 @@ source "$PROJECT_ROOT/core/platform.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/logger.sh"
 
+: "${GITHUB_MIRRORS:=https://ghproxy.net/ https://gh.api.99988866.xyz/}"
 FLATHUB_CN_REMOTE="flathub-cn"
 FLATHUB_CN_FALLBACK_REMOTE="flathub-ustc"
 FLATHUB_CN_URL="${ZHOUKEER_FLATHUB_CN_URL:-https://mirror.sjtu.edu.cn/flathub}"
@@ -524,11 +525,13 @@ install_rustdesk_appimage() (
     trap 'exit 130' INT TERM
 
     echo "正在从 RustDesk 作者 GitHub Release 下载，最长等待 $RUSTDESK_DOWNLOAD_TIMEOUT 秒..."
-    local _dl_ok=0 _dl_url
-    for _dl_url in \
-        "https://ghproxy.net/$RUSTDESK_DOWNLOAD_URL" \
-        "https://gh.api.99988866.xyz/$RUSTDESK_DOWNLOAD_URL" \
-        "$RUSTDESK_DOWNLOAD_URL"; do
+    local _dl_ok=0 _dl_url _mirror
+    for _mirror in $GITHUB_MIRRORS ""; do
+        if [ -n "$_mirror" ]; then
+            _dl_url="${_mirror}${RUSTDESK_DOWNLOAD_URL}"
+        else
+            _dl_url="$RUSTDESK_DOWNLOAD_URL"
+        fi
         if curl \
             --fail \
             --location \

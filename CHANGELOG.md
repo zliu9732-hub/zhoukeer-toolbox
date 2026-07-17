@@ -1,4 +1,12 @@
 
+## V4.0.53 公开版 — 2026-07-17
+
+- GitHub 镜像提取为统一配置 `GITHUB_MIRRORS`，定义在 `config/settings.example.conf`，各模块通过变量引用，不再硬编码镜像地址。
+- 修改文件：`modules/ge_proton.sh`、`modules/software.sh`、`modules/plugin_store.sh`、`config/settings.example.conf`。
+
+
+
+
 ## V4.0.52 公开版 — 2026-07-17
 
 - GitHub 下载自动回退：下载 GE-Proton、RustDesk、Decky 功能插件时，自动尝试 ghproxy.net、gh.api.99988866.xyz 两个国内镜像，镜像不可用时回退 GitHub 官方源。

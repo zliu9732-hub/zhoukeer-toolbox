@@ -12,6 +12,7 @@ source "$PROJECT_ROOT/core/auth.sh"
 source "$PROJECT_ROOT/modules/steam_accelerator.sh"
 
 load_config
+: "${GITHUB_MIRRORS:=https://ghproxy.net/ https://gh.api.99988866.xyz/}"
 
 DECKY_LOADER_URL="${DECKY_LOADER_URL:-https://www.mhhf.com/Deck/decky/v.3.2.6/PluginLoader}"
 DECKY_LOADER_SHA256="${DECKY_LOADER_SHA256:-30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e}"
@@ -378,11 +379,13 @@ download_verified_package() {
 
     for attempt in 1 2; do
         rm -f -- "$output"
-        local _dl_ok=0 _dl_url
-        for _dl_url in \
-            "https://ghproxy.net/$url" \
-            "https://gh.api.99988866.xyz/$url" \
-            "$url"; do
+        local _dl_ok=0 _dl_url _mirror
+        for _mirror in $GITHUB_MIRRORS ""; do
+            if [ -n "$_mirror" ]; then
+                _dl_url="${_mirror}${url}"
+            else
+                _dl_url="$url"
+            fi
             echo "正在下载 $name（第 $attempt/2 轮）..."
             if curl \
                 --fail \

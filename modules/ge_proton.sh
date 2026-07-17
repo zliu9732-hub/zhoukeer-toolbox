@@ -6,6 +6,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../core/env.sh"
 source "$PROJECT_ROOT/core/logger.sh"
 
 load_config
+: "${GITHUB_MIRRORS:=https://ghproxy.net/ https://gh.api.99988866.xyz/}"
 
 # 固定使用作者 GitHub Release，防止旧安装保留的配置重新启用退役下载地址。
 # 测试或紧急诊断可以通过 ZHOUKEER_GE_PROTON_* 环境变量明确覆盖。
@@ -192,11 +193,13 @@ install_ge_proton() {
     mkdir -p "$extract_dir" || return 1
 
     echo "正在下载 $GE_PROTON_VERSION..."
-    local _dl_ok=0 _dl_url
-    for _dl_url in \
-        "https://ghproxy.net/$GE_PROTON_URL" \
-        "https://gh.api.99988866.xyz/$GE_PROTON_URL" \
-        "$GE_PROTON_URL"; do
+    local _dl_ok=0 _dl_url _mirror
+    for _mirror in $GITHUB_MIRRORS ""; do
+        if [ -n "$_mirror" ]; then
+            _dl_url="${_mirror}${GE_PROTON_URL}"
+        else
+            _dl_url="$GE_PROTON_URL"
+        fi
         if curl \
             --fail \
             --location \
