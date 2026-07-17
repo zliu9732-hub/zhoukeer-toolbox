@@ -6,6 +6,10 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../core/env.sh"
 source "$PROJECT_ROOT/core/platform.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/logger.sh"
+# shellcheck disable=SC1091
+source "$PROJECT_ROOT/core/auth.sh"
+# shellcheck disable=SC1091
+source "$PROJECT_ROOT/core/platform.sh"
 # 复用常用软件模块中已经过测试的 Flathub 国内缓存配置。
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/modules/software.sh"

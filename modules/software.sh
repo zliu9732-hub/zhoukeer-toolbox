@@ -6,6 +6,8 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../core/env.sh"
 source "$PROJECT_ROOT/core/platform.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/logger.sh"
+# shellcheck disable=SC1091
+source "$PROJECT_ROOT/core/auth.sh"
 
 load_config
 
@@ -943,33 +945,32 @@ install_firefox_sjtu() {
 
 system_setup() {
     echo "系统初始化"
-
-    if sudo -n true 2>/dev/null; then
-        echo "  - sudo 已可用，跳过密码设置"
-    else
-        echo "  - 请设置系统密码"
-        passwd
-    fi
+    echo "  - 验证管理员权限"
+    toolbox_sudo true || { echo "管理员权限验证失败。"; return 1; }
 
     echo "  - 关闭 SteamOS 只读保护"
-    sudo steamos-readonly disable
+    toolbox_sudo steamos-readonly disable || { echo "关闭只读保护失败。"; return 1; }
 
     echo "  - 初始化 pacman 密钥"
-    sudo pacman-key --init
-    sudo pacman-key --populate archlinux
+    toolbox_sudo pacman-key --init || true
+    toolbox_sudo pacman-key --populate archlinux || true
 
     if pacman -Q firefox 2>/dev/null; then
         echo "  - Firefox 已安装，跳过"
     else
         echo "  - 安装 Firefox"
-        sudo pacman -S firefox --noconfirm
+        toolbox_sudo pacman -S firefox --noconfirm || {
+            toolbox_sudo steamos-readonly enable 2>/dev/null
+            echo "Firefox 安装失败。"; return 1
+        }
     fi
 
     echo "  - 配置国内 Flatpak 镜像"
-    sudo flatpak remote-add --if-not-exists Sjtu \
-        https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo
-    flatpak remote-modify Sjtu --url=https://mirror.sjtu.edu.cn/flathub
+    toolbox_sudo flatpak remote-add --if-not-exists Sjtu \
+        https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo || true
+    flatpak remote-modify Sjtu --url=https://mirror.sjtu.edu.cn/flathub || true
 
+    toolbox_sudo steamos-readonly enable || true
     echo "系统初始化完成"
 }
 

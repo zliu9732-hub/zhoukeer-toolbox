@@ -1,4 +1,12 @@
 
+## V4.0.75 公开版 — 2026-07-17
+
+- system_setup、flatpak_mirror_delete、flatpak_mirror_reset 改为使用 toolbox_sudo 读取桌面密码文件自动提权，不再强制 passwd。
+- 为 software.sh 和 domestic_source.sh 添加 core/auth.sh 支持。
+- 修改文件：`modules/software.sh`、`modules/domestic_source.sh`。
+
+
+
 ## V4.0.74 公开版 — 2026-07-17
 
 - 新增 system_setup、flatpak_mirror_delete、flatpak_mirror_reset 函数并接入菜单。
