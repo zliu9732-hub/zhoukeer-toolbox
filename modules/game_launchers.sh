@@ -21,7 +21,7 @@ launcher_details() {
             LAUNCHER_URL="https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi"
             LAUNCHER_MIN_BYTES=52428800
             LAUNCHER_MAGIC="d0cf11e0"
-            LAUNCHER_TARGET_RELATIVES="Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe"
+            LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe\nProgram Files/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe'
             ;;
         battlenet)
             LAUNCHER_NAME="战网启动器"

@@ -1,4 +1,14 @@
 
+## V4.0.81 公开版 — 2026-07-18
+
+- 修复 Epic 安装后找不到主程序：增加 Program Files/Epic Games/... 路径（不带 "(x86)"）。
+- 修复战网装了打不开：找不到 PE 时通过 Steam 自动安装 Proton Experimental。
+- 修改文件：`modules/game_launchers.sh`。
+
+
+
+
+
 ## V4.0.80 公开版 — 2026-07-17
 
 - 初始化国内 Flatpak 源时同步添加用户级国内镜像（flathub-cn/flathub-ustc）并关闭 GPG 校验，确保 Firefox 等应用安装可使用。
