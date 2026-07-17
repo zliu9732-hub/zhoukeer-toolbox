@@ -455,12 +455,17 @@ create_launcher_wrapper() {
     local temporary_wrapper
 
     temporary_wrapper="$(mktemp "$launcher_dir/.launch-${target}.XXXXXX")" || return 1
+    local _bn_args=""
+    if [ "$target" = "battlenet" ]; then
+        _bn_args='--no-sleep --disable-p2p'
+    fi
     {
         printf '%s\n' '#!/bin/bash' 'set -u'
         printf 'STEAM_ROOT=%q\n' "$steam_root"
         printf 'PREFIX_DIR=%q\n' "$prefix_dir"
         printf 'PROTON_RUNNER=%q\n' "$proton_runner"
         printf 'TARGET_EXE=%q\n' "$installed_file"
+        printf 'TARGET_ARGS=%q\n' "$_bn_args"
         printf '%s\n' \
             'if [ ! -x "$PROTON_RUNNER" ] || [ ! -f "$TARGET_EXE" ]; then' \
             '    echo "启动器或兼容层文件缺失，请重新执行周克儿工具箱里的安装项。"' \
@@ -469,7 +474,7 @@ create_launcher_wrapper() {
             'export STEAM_COMPAT_CLIENT_INSTALL_PATH="$STEAM_ROOT"' \
             'export STEAM_COMPAT_DATA_PATH="$PREFIX_DIR"' \
             'export STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0' \
-            'exec "$PROTON_RUNNER" run "$TARGET_EXE"'
+            'exec "$PROTON_RUNNER" run "$TARGET_EXE" $TARGET_ARGS'
     } > "$temporary_wrapper" || {
         rm -f "$temporary_wrapper"
         return 1
