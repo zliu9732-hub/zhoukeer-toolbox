@@ -43,7 +43,7 @@ safe_remove_contents() {
     fi
 
     if confirm_action "将清理 $label: $target，是否继续？"; then
-        find "$target" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+        sudo find "$target" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
         local status=$?
         if [ "$status" -eq 0 ]; then
             echo "已清理: $label"
