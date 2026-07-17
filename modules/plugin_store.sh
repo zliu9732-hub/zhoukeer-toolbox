@@ -1340,6 +1340,24 @@ install_all_plugin_packages() {
     log "全部插件安装流程完成"
 }
 
+
+install_25_plugins() {
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "精选插件安装仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    echo "将从 Decky 官方商店批量安装 25 款精选插件，其中包括 SimpleDeckyTDP 与 Unifideck。"
+    echo "不会安装小黄鸭、FSR4 和 CheatDeck（请在常用功能插件中单独安装）。"
+    echo "官方推荐插件仍由 Decky 内置安装器在 Steam 界面中确认。"
+    if ! bash "$PROJECT_ROOT/modules/decky_bundle.sh" install; then
+        echo "精选插件安装未完成提交。"
+        return 1
+    fi
+    echo "25 款精选插件的安装流程已完成。"
+    log "25款精选插件安装完成"
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-store}" in
         store) install_plugin_store ;;
@@ -1353,6 +1371,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         uninstall) uninstall_all_decky_plugins ;;
         features) install_feature_plugins ;;
         all) install_all_plugin_packages ;;
+        curated-25) install_25_plugins ;;
         lsfg-import)
             [ -n "${2:-}" ] || {
                 echo "用法: $0 lsfg-import /本地/备份文件"

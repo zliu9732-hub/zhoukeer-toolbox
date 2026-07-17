@@ -320,7 +320,7 @@ plugin_store_menu() {
         draw_category_frame plugins "插件商城" "Decky内置安装器、28款插件与商店最新版"
         ui_touch_button 6 '\033[1;97;48;5;24m' "安装或更新 Decky Loader" "使用经过固定校验的国内安装源"
         ui_touch_button 8 '\033[1;97;48;5;24m' "一键安装常用功能插件" "小黄鸭、FSR4、CheatDeck 一次装好"
-        ui_touch_button 10 '\033[1;97;48;5;30m' "一键安装当前列表全部插件" "3款独立功能 + 25款精选插件，共28款"
+        ui_touch_button 10 '\033[1;97;48;5;30m' "一键安装25个精选插件" "不含小黄鸭/FSR4/CheatDeck，可单独安装"
         ui_touch_button 12 '\033[1;97;48;5;24m' "浏览官方插件（分页）" "每页 5 个插件，均附中文功能说明"
         ui_touch_button 14 '\033[1;97;48;5;24m' "安装周克儿汉化（修复版）" "持续扫描已知文案，不修改原插件文件"
         ui_touch_button 16 '\033[1;97;48;5;124m' "一键清空已装插件" "删除插件根目录全部内容，不删除 Decky 本体"

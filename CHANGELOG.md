@@ -1,4 +1,9 @@
 
+## V4.0.98 公开版 — 2026-07-18
+
+- 插件商城菜单"一键安装全部插件"改为"一键安装25个精选插件"，独立调用 install_25_plugins，排除小黄鸭/FSR4/CheatDeck。
+- 修改文件：`modules/plugin_store.sh`、`main.sh`。
+
 ## V4.0.97 公开版 — 2026-07-18
 
 - 彻底移除战网安装功能：删除 launcher_details 战网分支、ensure_battlenet_runner、find_battlenet_alternate_runner、run_battlenet_installer_with_fallback 及 CLI 入口。
