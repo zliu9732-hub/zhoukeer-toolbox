@@ -368,6 +368,78 @@ ensure_steam302_for_download() {
     return 0
 }
 
+steam302_setup_autostart() {
+    local service_file="/etc/systemd/system/$STEAM302_SERVICE_NAME"
+
+    if steam302_service_exists; then
+        echo "Steamcommunity 302 系统服务已存在，跳过创建。"
+    else
+        echo "正在创建 Steamcommunity 302 开机自启服务..."
+        local tmp_service
+        tmp_service="$(mktemp)" || return 1
+        cat > "$tmp_service" << SERVICE_EOF
+[Unit]
+Description=Steamcommunity 302 (Steam + GitHub Acceleration)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=$STEAM302_CLI
+WorkingDirectory=$STEAM302_INSTALL_DIR
+Restart=on-failure
+RestartSec=10
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
+SERVICE_EOF
+        if ! toolbox_sudo install -m 0644 "$tmp_service" "$service_file"; then
+            rm -f "$tmp_service"
+            echo "开机自启服务创建失败。"
+            return 1
+        fi
+        rm -f "$tmp_service"
+        toolbox_sudo systemctl daemon-reload >/dev/null 2>&1 || true
+        echo "已创建开机自启服务。"
+    fi
+
+    if ! steam302_service_is_enabled; then
+        echo "正在启用开机自启..."
+        toolbox_sudo systemctl enable "$STEAM302_SERVICE_NAME" >/dev/null 2>&1 || {
+            echo "开机自启启用失败。"
+            return 1
+        }
+        echo "已启用开机自启，下次开机将自动加速 Steam + GitHub。"
+    fi
+
+    # 启动（如果未运行）
+    if steam302_service_is_active; then
+        echo "Steamcommunity 302 服务正在运行。"
+    else
+        echo "正在启动后台服务..."
+        toolbox_sudo systemctl start "$STEAM302_SERVICE_NAME" >/dev/null 2>&1 || {
+            echo "系统服务启动失败，将使用内置加速方式重试。"
+            return 1
+        }
+        sleep 1
+        if steam302_service_is_active; then
+            echo "后台服务已启动。"
+        fi
+    fi
+}
+
+steam302_remove_autostart() {
+    echo "正在停止并移除开机自启服务..."
+    if steam302_service_exists; then
+        toolbox_sudo systemctl disable --now "$STEAM302_SERVICE_NAME" >/dev/null 2>&1 || true
+        toolbox_sudo rm -f "/etc/systemd/system/$STEAM302_SERVICE_NAME"
+        toolbox_sudo systemctl daemon-reload >/dev/null 2>&1 || true
+        echo "已移除开机自启服务。"
+    fi
+}
+
 stop_steam302_service() {
     if steam302_cli_is_running; then
         stop_steam302_cli || {
@@ -745,10 +817,14 @@ install_steam302() (
     STEAM302_BACKUP_DIR=""
     echo "Steamcommunity 302 V$STEAM302_VERSION 安装完成。"
     echo "已生成 Steam + GitHub 内置加速规则。"
-    echo "下一步：返回工具箱点击“一键开启加速”。"
-    echo "开启成功后无需另开 302 界面，可直接下载 GitHub 插件和 Steam 内容。"
-    echo "若自动开启失败，请打开桌面“Steamcommunity 302”，勾选 Steam 和 GitHub 后点击“启动服务”。"
-    echo "首次开启可能涉及管理员权限、根证书以及 hosts / DNS 修改，请按需确认。"
+    echo ""
+    echo "正在自动开启后台加速服务和开机自启..."
+    ZHOUKEER_AUTO_CONFIRM=1 steam302_setup_autostart || \
+        echo "提示：开机自启设置未完成，可在系统设置中手动配置。"
+    ZHOUKEER_AUTO_CONFIRM=1 start_steam302_service || \
+        echo "提示：加速服务未启动，可在系统设置中手动开启。"
+    echo ""
+    echo "安装完成。若上方有提示，按提示在系统设置中处理即可。"
 )
 
 show_steam302_status() {
@@ -795,6 +871,7 @@ uninstall_steam302() {
         return 0
     }
 
+    steam302_remove_autostart
     stop_steam302_service || return 1
 
     if steam302_service_is_active; then
