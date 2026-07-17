@@ -1,4 +1,10 @@
 
+## V4.0.68 公开版 — 2026-07-17
+
+- 修复 Flatpak 国内镜像 GPG 公钥缺失和应用索引无法读取的问题：新增 GPG 公钥下载导入、官方源/镜像源双路回退、`flatpak update --appstream` 强制刷新元数据。
+- 新增发布部署脚本 `scripts/deploy_release.sh`，支持自动打包、打标签、双推（GitHub + Gitee）。
+- 修改文件：`modules/domestic_source.sh`、`scripts/deploy_release.sh`。
+
 ## V4.0.67 公开版 — 2026-07-17
 
 - 完善交大 Flatpak 镜像配置函数：现在会自动安装 Flatpak（如缺失）、添加官方源、添加交大镜像。
