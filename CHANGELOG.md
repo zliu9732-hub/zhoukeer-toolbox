@@ -1,4 +1,10 @@
 
+## V4.1.0 公开版 — 2026-07-18
+
+- 安装 Chrome/Edge/Bottles/Moonlight 等 Flatpak 应用时自动用 toolbox_sudo 提权，不再弹密码。
+- 国内镜像安装追加 --no-gpg-verify 绕过签名错误。
+- 修改文件：`modules/software.sh`。
+
 ## V4.0.99 公开版 — 2026-07-18
 
 - 修复移除战网时误删 run_launcher_installer 函数导致 Epic 安装中断的问题。
