@@ -71,31 +71,52 @@ show_domestic_source_status() {
 
 setup_flatpak_sjtu() {
     is_linux || { echo "仅支持 Linux/SteamOS。"; return 1; }
-    require_command flatpak || return 1
     require_command sudo || return 1
 
-    echo "将添加上海交大 Flathub 国内镜像源（系统级）。"
+    echo "将安装 Flatpak 并配置国内镜像源（上海交大）。"
     echo "该源对所有用户生效，适合配合 pacman 安装的 Flatpak 应用使用。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
         local answer
-        read -r -p "确认添加请输入 YES：" answer
+        read -r -p "确认配置请输入 YES：" answer
         [ "$answer" = "YES" ] || { echo "已取消。"; return 0; }
     fi
 
-    echo "正在添加交大 Flathub 镜像..."
+    if ! command -v flatpak >/dev/null 2>&1; then
+        echo "第 1 步：安装 Flatpak..."
+        for cmd in steamos-readonly pacman pacman-key; do
+            command -v "$cmd" >/dev/null 2>&1 || { echo "缺少命令: $cmd"; return 1; }
+        done
+        toolbox_sudo steamos-readonly disable || { echo "关闭只读保护失败。"; return 1; }
+        toolbox_sudo pacman-key --init || true
+        toolbox_sudo pacman-key --populate || true
+        toolbox_sudo pacman -S flatpak --noconfirm || {
+            toolbox_sudo steamos-readonly enable 2>/dev/null
+            echo "Flatpak 安装失败。"
+            return 1
+        }
+        toolbox_sudo steamos-readonly enable || echo "警告：恢复只读保护失败。"
+    else
+        echo "Flatpak 已安装，跳过。"
+    fi
+
+    echo "第 2 步：添加官方 Flathub 源..."
+    sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo || {
+        echo "添加官方源失败，继续配置镜像源。"
+    }
+
+    echo "第 3 步：添加交大镜像源..."
     sudo flatpak remote-add --if-not-exists Sjtu https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo || {
-        echo "添加远程源失败。"
+        echo "添加镜像源失败。"
         return 1
     }
-
     sudo flatpak remote-modify Sjtu --url=https://mirror.sjtu.edu.cn/flathub || {
-        echo "修改源地址失败。"
+        echo "重定向镜像源地址失败。"
         return 1
     }
 
-    echo "交大 Flathub 镜像源已添加。"
-    echo "安装应用时指定源：flatpak install Sjtu 应用ID"
-    log "交大 Flathub 镜像源已添加"
+    echo "交大 Flathub 镜像源已配置完成。"
+    echo "安装应用：flatpak install Sjtu 应用ID"
+    log "交大 Flathub 镜像源已配置"
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then

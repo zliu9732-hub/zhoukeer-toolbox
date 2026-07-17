@@ -1,4 +1,10 @@
 
+## V4.0.67 公开版 — 2026-07-17
+
+- 完善交大 Flatpak 镜像配置函数：现在会自动安装 Flatpak（如缺失）、添加官方源、添加交大镜像。
+- 新增 Firefox 交大镜像安装（flatpak install Sjtu firefox）。
+- 修改文件：`modules/domestic_source.sh`、`modules/software.sh`。
+
 ## V4.0.66 公开版 — 2026-07-17
 
 - 新增 Firefox pacman 系统级安装：临时关闭只读保护，通过 pacman 安装到系统分区。

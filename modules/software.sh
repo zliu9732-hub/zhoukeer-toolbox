@@ -897,12 +897,43 @@ install_firefox_pacman() {
     log "Firefox 通过 pacman 安装完成"
 }
 
+
+
+install_firefox_sjtu() {
+    is_linux || { echo "仅支持 Linux/SteamOS。"; return 1; }
+    require_command flatpak || return 1
+
+    echo "将从上海交大镜像源安装 Firefox（Flatpak 版）。"
+    echo "需要先配置交大镜像源（系统设置 → 交大 Flatpak 镜像）。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
+        local answer
+        read -r -p "确认安装请输入 INSTALL：" answer
+        [ "$answer" = "INSTALL" ] || { echo "已取消。"; return 0; }
+    fi
+
+    if ! flatpak remote-ls --user Sjtu 2>/dev/null | grep -q .; then
+        echo "交大镜像源未配置或不可用，请先在系统设置中添加。"
+        echo "命令：bash modules/domestic_source.sh sjtu"
+        return 1
+    fi
+
+    echo "正在从 Sjtu 源安装 Firefox..."
+    flatpak install Sjtu org.mozilla.firefox -y || {
+        echo "Firefox 安装失败。"
+        return 1
+    }
+
+    echo "Firefox（Flatpak）安装完成。"
+    log "Firefox Flatpak 通过交大镜像安装完成"
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         wechat|qq|browser|rustdesk) install_software "$1" ;;
         firefox-pacman) install_firefox_pacman ;;
+        firefox-sjtu) install_firefox_sjtu ;;
         status) require_command od && show_software_status ;;
         repair-shortcuts) require_command od && repair_software_shortcuts ;;
-        *) echo "用法: $0 {wechat|qq|browser|rustdesk|firefox-pacman|status|repair-shortcuts}"; exit 1 ;;
+        *) echo "用法: $0 {wechat|qq|browser|rustdesk|firefox-pacman|firefox-sjtu|status|repair-shortcuts}"; exit 1 ;;
     esac
 fi
