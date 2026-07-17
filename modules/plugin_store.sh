@@ -378,19 +378,30 @@ download_verified_package() {
 
     for attempt in 1 2; do
         rm -f -- "$output"
-        echo "正在从作者官方 Release 下载 $name（第 $attempt/2 轮）..."
-        if curl \
-            --fail \
-            --location \
-            --show-error \
-            --progress-bar \
-            --proto '=https' \
-            --proto-redir '=https' \
-            --connect-timeout 15 \
-            --max-time 1200 \
-            "${retry_options[@]}" \
-            --output "$output" \
-            "$url"; then
+        local _dl_ok=0 _dl_url
+        for _dl_url in \
+            "https://ghproxy.net/$url" \
+            "https://gh.api.99988866.xyz/$url" \
+            "$url"; do
+            echo "正在下载 $name（第 $attempt/2 轮）..."
+            if curl \
+                --fail \
+                --location \
+                --show-error \
+                --progress-bar \
+                --proto '=https' \
+                --proto-redir '=https' \
+                --connect-timeout 15 \
+                --max-time 1200 \
+                "${retry_options[@]}" \
+                --output "$output" \
+                "$_dl_url"; then
+                _dl_ok=1
+                break
+            fi
+            rm -f -- "$output"
+        done
+        if [ "$_dl_ok" -eq 1 ]; then
             actual_sha256="$(calculate_decky_sha256 "$output")" || {
                 rm -f -- "$output"
                 echo "无法校验 $name，已停止安装。"

@@ -192,19 +192,30 @@ install_ge_proton() {
     mkdir -p "$extract_dir" || return 1
 
     echo "正在下载 $GE_PROTON_VERSION..."
-    if ! curl \
-        --fail \
-        --location \
-        --show-error \
-        --proto '=https' \
-        --proto-redir '=https' \
-        --connect-timeout 15 \
-        --max-time 1800 \
-        --retry 3 \
-        --retry-delay 2 \
-        --retry-all-errors \
-        --output "$archive" \
-        "$GE_PROTON_URL"; then
+    local _dl_ok=0 _dl_url
+    for _dl_url in \
+        "https://ghproxy.net/$GE_PROTON_URL" \
+        "https://gh.api.99988866.xyz/$GE_PROTON_URL" \
+        "$GE_PROTON_URL"; do
+        if curl \
+            --fail \
+            --location \
+            --show-error \
+            --proto '=https' \
+            --proto-redir '=https' \
+            --connect-timeout 15 \
+            --max-time 1800 \
+            --retry 3 \
+            --retry-delay 2 \
+            --retry-all-errors \
+            --output "$archive" \
+            "$_dl_url"; then
+            _dl_ok=1
+            break
+        fi
+        rm -f "$archive"
+    done
+    if [ "$_dl_ok" -ne 1 ]; then
         echo "GE-Proton下载失败。"
         return 1
     fi

@@ -524,20 +524,31 @@ install_rustdesk_appimage() (
     trap 'exit 130' INT TERM
 
     echo "正在从 RustDesk 作者 GitHub Release 下载，最长等待 $RUSTDESK_DOWNLOAD_TIMEOUT 秒..."
-    if ! curl \
-        --fail \
-        --location \
-        --show-error \
-        --progress-bar \
-        --proto '=https' \
-        --proto-redir '=https' \
-        --connect-timeout 15 \
-        --max-time "$RUSTDESK_DOWNLOAD_TIMEOUT" \
-        --retry 2 \
-        --retry-delay 2 \
-        --retry-all-errors \
-        --output "$temp_file" \
-        "$RUSTDESK_DOWNLOAD_URL"; then
+    local _dl_ok=0 _dl_url
+    for _dl_url in \
+        "https://ghproxy.net/$RUSTDESK_DOWNLOAD_URL" \
+        "https://gh.api.99988866.xyz/$RUSTDESK_DOWNLOAD_URL" \
+        "$RUSTDESK_DOWNLOAD_URL"; do
+        if curl \
+            --fail \
+            --location \
+            --show-error \
+            --progress-bar \
+            --proto '=https' \
+            --proto-redir '=https' \
+            --connect-timeout 15 \
+            --max-time "$RUSTDESK_DOWNLOAD_TIMEOUT" \
+            --retry 2 \
+            --retry-delay 2 \
+            --retry-all-errors \
+            --output "$temp_file" \
+            "$_dl_url"; then
+            _dl_ok=1
+            break
+        fi
+        rm -f "$temp_file"
+    done
+    if [ "$_dl_ok" -ne 1 ]; then
         echo "RustDesk下载失败或超时，已停止；原有版本未受影响。"
         return 1
     fi
