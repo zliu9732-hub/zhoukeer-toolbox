@@ -1,4 +1,9 @@
 
+## V4.0.99 公开版 — 2026-07-18
+
+- 修复移除战网时误删 run_launcher_installer 函数导致 Epic 安装中断的问题。
+- 修改文件：`modules/game_launchers.sh`。
+
 ## V4.0.98 公开版 — 2026-07-18
 
 - 插件商城菜单"一键安装全部插件"改为"一键安装25个精选插件"，独立调用 install_25_plugins，排除小黄鸭/FSR4/CheatDeck。

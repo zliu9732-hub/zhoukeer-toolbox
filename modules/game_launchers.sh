@@ -163,6 +163,48 @@ find_installed_launcher() {
     return 1
 }
 
+
+run_launcher_installer() {
+    local target="$1"
+    local steam_root="$2"
+    local installer_file="$3"
+    local prefix_dir="$4"
+    local proton_runner="$5"
+    local status=0
+    local elapsed=0
+    local installed_file
+    local timeout="${6:-$POST_INSTALL_TIMEOUT}"
+
+    launcher_details "$target" || return 1
+    mkdir -p "$prefix_dir" || return 1
+    echo "正在使用 $(basename "$(dirname "$proton_runner")") 直接打开 $LAUNCHER_NAME 官方安装器..." >&2
+    echo "请在弹出的官方窗口中按提示完成安装；无需进入 Steam 选择兼容层。" >&2
+
+    case "$target" in
+        epic)
+            STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root"             STEAM_COMPAT_DATA_PATH="$prefix_dir"             STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0                 "$proton_runner" run msiexec /i "$installer_file" || status=$?
+            ;;
+    esac
+
+    while [ "$elapsed" -le "$timeout" ]; do
+        installed_file="$(find_launcher_in_prefix "$prefix_dir" || true)"
+        if [ -n "$installed_file" ]; then
+            printf '%s
+' "$installed_file"
+            return 0
+        fi
+        [ "$elapsed" -eq 0 ] && echo "官方安装器已退出，正在确认主程序文件..." >&2
+        sleep "$POST_INSTALL_INTERVAL"
+        elapsed=$((elapsed + POST_INSTALL_INTERVAL))
+    done
+    echo "没有在预期位置找到 $LAUNCHER_NAME 主程序。" >&2
+    if [ "$status" -ne 0 ]; then
+        echo "官方安装器退出码：$status" >&2
+    fi
+    echo "请确认没有在官方安装窗口中取消安装，然后重试。已下载的安装包和前缀会保留。" >&2
+    return 1
+}
+
 find_proton_runner() {
     local steam_root="$1"
     local compatibility_root
