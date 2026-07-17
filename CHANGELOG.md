@@ -1,4 +1,10 @@
 
+## V4.0.69 公开版 — 2026-07-17
+
+- 新增 `init_domestic_flatpak` 函数：一键修复 GPG 公钥、配置交大/中科大镜像、刷新 AppStream，解决 "public key not found" 和应用索引不可读问题。
+- 重写 `scripts/deploy_release.sh`：全自动发布脚本，自动递增版本号、打包、提交、打标签、双推，无需人工输入。
+- 修改文件：`modules/domestic_source.sh`、`scripts/deploy_release.sh`、`main.sh`。
+
 ## V4.0.68 公开版 — 2026-07-17
 
 - 修复 Flatpak 国内镜像 GPG 公钥缺失和应用索引无法读取的问题：新增 GPG 公钥下载导入、官方源/镜像源双路回退、`flatpak update --appstream` 强制刷新元数据。

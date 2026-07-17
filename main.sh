@@ -499,12 +499,12 @@ system_settings_menu() {
         ui_touch_button 15 '\033[1;97;48;5;24m' "一键体检" "检查空间、网络、Steam、Decky 和常用软件；不修改系统"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:source right:9-10:sjtu right:11-12:accelerator right:13-14:set-password right:15-16:change-password right:17-18:info right:20-21:home)"
+        choice="$(read_touch_menu right:7-8:source right:9-10:init-domestic right:11-12:accelerator right:13-14:set-password right:15-16:change-password right:17-18:info right:20-21:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
             source) confirm_and_run "添加国内下载源" "只添加用户级 Flatpak 国内缓存，不修改只读分区" bash "$PROJECT_ROOT/modules/domestic_source.sh" enable ;;
-            sjtu) confirm_and_run "添加交大 Flatpak 镜像" "添加上海交大 Flathub 国内镜像源（系统级）" bash "$PROJECT_ROOT/modules/domestic_source.sh" sjtu ;;
+            init-domestic) confirm_and_run "初始化国内 Flatpak 源" "修复 GPG 公钥、配置交大/中科大镜像、刷新 AppStream" bash "$PROJECT_ROOT/modules/domestic_source.sh" init-domestic ;;
             accelerator) steam_accelerator_touch_menu ;;
             set-password) confirm_and_run "设置系统密码" "新密码将明文保存到桌面管理员密码.txt；所有以当前用户身份运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" set ;;
             change-password) confirm_and_run "修改系统密码" "将读取旧记录并明文保存新密码；所有以当前用户身份运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;
