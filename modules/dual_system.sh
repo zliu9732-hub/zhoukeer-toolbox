@@ -14,6 +14,14 @@ load_config
 DUAL_BOOT_TIMEOUT="${DUAL_BOOT_TIMEOUT:-5}"
 SHARED_DRIVE_LINK="${ZHOUKEER_SHARED_DRIVE_LINK:-$HOME/互通盘}"
 
+# rEFInd 图形引导管理器
+REFIND_VERSION="${ZHOUKEER_REFIND_VERSION:-0.14.7}"
+REFIND_URL="${ZHOUKEER_REFIND_URL:-https://github.com/bobafetthotmail/refind-bin-linux/releases/download/v${REFIND_VERSION}/refind-bin-linux-${REFIND_VERSION}.zip}"
+REFIND_ZIP_SHA256="${ZHOUKEER_REFIND_SHA256:-}"
+REFIND_ESP_DIR="/esp/EFI/refind"
+REFIND_BOOT_NUM=""
+
+
 require_steamos() {
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ] && [ "${ZHOUKEER_ALLOW_NON_STEAMOS:-0}" != "1" ]; then
@@ -346,6 +354,7 @@ enable_dual_boot_menu() {
     log "双系统引导菜单已启用: timeout=$DUAL_BOOT_TIMEOUT"
 }
 
+
 hide_dual_boot_menu() {
     local backup
 
@@ -356,6 +365,161 @@ hide_dual_boot_menu() {
     log "双系统引导菜单已隐藏: timeout=0"
 }
 
+refind_esp_is_mounted() {
+    mount | grep -q ' /esp '
+}
+
+refind_mount_esp() {
+    refind_esp_is_mounted && return 0
+    # SteamOS 的 ESP 通常在 /dev/nvme0n1p1
+    local esp_dev
+    esp_dev="$(blkid -L ESP 2>/dev/null || lsblk -nro NAME /dev/nvme0n1p1 2>/dev/null || true)"
+    if [ -n "$esp_dev" ]; then
+        toolbox_sudo mount "/dev/$esp_dev" /esp 2>/dev/null || toolbox_sudo mount /dev/nvme0n1p1 /esp 2>/dev/null || return 1
+    elif [ -b /dev/nvme0n1p1 ]; then
+        toolbox_sudo mount /dev/nvme0n1p1 /esp 2>/dev/null || return 1
+    else
+        return 1
+    fi
+}
+
+install_refind() {
+    require_steamos || return 1
+    for cmd_refind in curl unzip efibootmgr; do
+        require_command "$cmd_refind" || return 1
+    done
+
+    echo "将安装 rEFInd 图形引导管理器到 EFI 分区。"
+    echo "安装后开机将显示系统图标，可选择 SteamOS 或 Windows 启动。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
+        local answer
+        read -r -p "确认安装请输入 INSTALL：" answer
+        [ "$answer" = "INSTALL" ] || { echo "已取消。"; return 0; }
+    fi
+
+    toolbox_sudo true || { echo "管理员权限验证失败。"; return 1; }
+    mkdir -p /esp 2>/dev/null || toolbox_sudo mkdir -p /esp
+    refind_mount_esp || { echo "无法挂载 EFI 分区，请确认 Steam Deck 已开启开发者模式。"; return 1; }
+
+    local tmp_refind
+    tmp_refind="$(mktemp -d)" || return 1
+    local refind_zip="$tmp_refind/refind.zip"
+    local refind_extract="$tmp_refind/refind"
+
+    echo "正在下载 rEFInd V$REFIND_VERSION..."
+    if ! curl -fL --connect-timeout 15 --max-time 300 --retry 3         -o "$refind_zip" "$REFIND_URL"; then
+        rm -rf "$tmp_refind"
+        echo "rEFInd 下载失败。"
+        return 1
+    fi
+
+    mkdir -p "$refind_extract" || { rm -rf "$tmp_refind"; return 1; }
+    unzip -q "$refind_zip" -d "$refind_extract" || { rm -rf "$tmp_refind"; return 1; }
+
+    local refind_dir
+    refind_dir="$(find "$refind_extract" -maxdepth 2 -type d -name refind -print -quit 2>/dev/null)" || true
+    if [ -z "$refind_dir" ] || [ ! -f "$refind_dir/refind_x64.efi" ]; then
+        rm -rf "$tmp_refind"
+        echo "rEFInd 文件不完整。"
+        return 1
+    fi
+
+    echo "正在安装 rEFInd 到 EFI 分区..."
+    toolbox_sudo mkdir -p "$REFIND_ESP_DIR" || { rm -rf "$tmp_refind"; return 1; }
+    toolbox_sudo cp -r "$refind_dir/"* "$REFIND_ESP_DIR/" || { rm -rf "$tmp_refind"; return 1; }
+    toolbox_sudo cp "$refind_dir/refind_x64.efi" "$REFIND_ESP_DIR/bootx64.efi" 2>/dev/null || true
+
+    # 生成 rEFInd 配置
+    local refind_conf="$REFIND_ESP_DIR/refind.conf"
+    local refind_conf_tmp
+    refind_conf_tmp="$(mktemp)" || { rm -rf "$tmp_refind"; return 1; }
+
+    cat > "$refind_conf_tmp" << REFIND_EOF
+# rEFInd 配置 - 由周克儿工具箱生成
+timeout 10
+use_graphics_for osx,linux,windows
+hideui label
+showtools reboot,shutdown,firmware
+
+menuentry "SteamOS" {
+    icon /EFI/refind/icons/os_linux.png
+    volume ESP
+    loader /EFI/steamos/steamcl.efi
+}
+
+menuentry "Windows" {
+    icon /EFI/refind/icons/os_win.png
+    volume ESP
+    loader /EFI/Microsoft/Boot/bootmgfw.efi
+}
+
+menuentry "重启" {
+    icon /EFI/refind/icons/reboot.png
+    reboot
+}
+
+menuentry "关机" {
+    icon /EFI/refind/icons/shutdown.png
+    shutdown
+}
+REFIND_EOF
+
+    toolbox_sudo cp "$refind_conf_tmp" "$refind_conf" || { rm -rf "$tmp_refind"; return 1; }
+    rm -f "$refind_conf_tmp"
+
+    # 注册为默认引导项
+    echo "正在设置 rEFInd 为默认引导管理器..."
+    local refind_efi_path="\EFI\refind\refind_x64.efi"
+    local bootnum
+    bootnum="$(toolbox_sudo efibootmgr --create --disk /dev/nvme0n1 --part 1         --label "rEFInd" --loader "$refind_efi_path" 2>/dev/null |         sed -n 's/^Boot\([0-9]*\).*rEFInd.*/\1/p' || true)"
+    if [ -n "$bootnum" ]; then
+        toolbox_sudo efibootmgr --bootorder "$bootnum,0000" 2>/dev/null || true
+        echo "rEFInd 已设为默认引导项 (Boot$bootnum)。"
+    else
+        echo "警告：无法自动注册 rEFInd，请在 BIOS 设置中手动选择 rEFInd 启动。"
+    fi
+
+    rm -rf "$tmp_refind"
+    echo ""
+    echo "rEFInd V$REFIND_VERSION 安装完成。"
+    echo "下次开机将显示图形引导菜单，可选择 SteamOS 或 Windows。"
+    log "rEFInd 图形引导管理器安装完成"
+}
+
+remove_refind() {
+    require_steamos || return 1
+    require_command efibootmgr || return 1
+
+    echo "将移除 rEFInd 引导管理器。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
+        local answer
+        read -r -p "确认卸载请输入 REMOVE：" answer
+        [ "$answer" = "REMOVE" ] || { echo "已取消。"; return 0; }
+    fi
+
+    toolbox_sudo true || { echo "管理员权限验证失败。"; return 1; }
+
+    # 删除 rEFInd efi 启动项
+    local boot_entry
+    for boot_entry in $(toolbox_sudo efibootmgr 2>/dev/null | sed -n 's/^Boot\([0-9]*\).*rEFInd.*//p'); do
+        toolbox_sudo efibootmgr --delete-bootnum --bootnum "$boot_entry" 2>/dev/null || true
+        echo "已删除引导项 Boot$boot_entry（rEFInd）。"
+    done
+
+    # 删除 rEFInd 文件
+    if toolbox_sudo test -d "$REFIND_ESP_DIR"; then
+        toolbox_sudo rm -rf "$REFIND_ESP_DIR" || {
+            echo "rEFInd 文件删除失败，请确认 /esp 已挂载。"
+            return 1
+        }
+        echo "已删除 rEFInd 文件。"
+    fi
+
+    echo "rEFInd 已移除。下次开机将使用默认引导管理器。"
+    log "rEFInd 图形引导管理器已移除"
+}
+
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         mount) mount_shared_drive ;;
@@ -363,8 +527,10 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         unprotect) restore_shared_drive_write ;;
         add) enable_dual_boot_menu ;;
         remove) hide_dual_boot_menu ;;
+        refind-install) install_refind ;;
+        refind-remove) remove_refind ;;
         *)
-            echo "用法: $0 {mount|protect|unprotect|add|remove}"
+            echo "用法: $0 {mount|protect|unprotect|add|remove|refind-install|refind-remove}"
             exit 1
             ;;
     esac

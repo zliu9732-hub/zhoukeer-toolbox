@@ -433,15 +433,17 @@ dual_system_menu() {
     local choice
 
     while true; do
-        draw_category_frame dual "双系统设置" "互通盘挂载与已存在的 systemd-boot 菜单设置"
+        draw_category_frame dual "双系统设置" "互通盘、systemd-boot 与 rEFInd 图形引导"
         ui_touch_button 7 '\033[1;97;48;5;24m' "一键挂载互通盘" "仅自动挂载唯一的未挂载 NTFS/exFAT 分区"
-        ui_touch_button 9 '\033[1;97;48;5;30m' "保护双系统互通盘" "只读挂载，防止 SteamOS 下误写入或误删除"
+        ui_touch_button 9 '\033[1;97;48;5;30m' "保护双系统互通盘" "只读挂载，防止 SteamOS 下误写入"
         ui_touch_button 11 '\033[1;97;48;5;24m' "恢复互通盘写入" "重新以可写模式挂载互通盘"
-        ui_touch_button 13 '\033[1;97;48;5;30m' "添加 Steam Deck 双引导" "启用启动菜单，默认等待 5 秒"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "删除 Steam Deck 双引导" "仅将菜单等待时间改为 0 秒，不删除系统"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "添加 systemd-boot 引导" "启用启动菜单，默认等待 5 秒"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "删除 systemd-boot 引导" "仅将菜单等待时间改为 0 秒"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "安装图形引导(rEFInd)" "开机显示系统图标让您选择"
+        ui_touch_button 19 '\033[1;97;48;5;160m' "移除图形引导(rEFInd)" "恢复默认引导管理器"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:mount right:9-10:protect right:11-12:unprotect right:13-14:add right:15-16:remove right:18-19:home)"
+        choice="$(read_touch_menu right:7-8:mount right:9-10:protect right:11-12:unprotect right:13-14:add right:15-16:remove right:17-18:refind-install right:19-20:refind-remove right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -458,12 +460,20 @@ dual_system_menu() {
                     bash "$PROJECT_ROOT/modules/dual_system.sh" unprotect
                 ;;
             add)
-                confirm_and_run "添加 Steam Deck 双引导" "只启用已有 systemd-boot 菜单并备份配置；不会安装或重写 EFI 引导程序" \
+                confirm_and_run "添加 systemd-boot 引导" "只启用已有 systemd-boot 菜单并备份配置；不会安装或重写 EFI 引导程序" \
                     bash "$PROJECT_ROOT/modules/dual_system.sh" add
                 ;;
             remove)
-                confirm_and_run "删除 Steam Deck 双引导" "仅把引导菜单等待时间设置为 0 秒；不会删除 SteamOS、Windows 或启动项" \
+                confirm_and_run "删除 systemd-boot 引导" "仅把引导菜单等待时间设置为 0 秒；不会删除 SteamOS、Windows 或启动项" \
                     bash "$PROJECT_ROOT/modules/dual_system.sh" remove
+                ;;
+            refind-install)
+                confirm_and_run "安装 rEFInd 图形引导管理器" "下载并安装 rEFInd 到 EFI 分区，开机显示系统图标。需要管理员权限且 ESP 分区可写" \
+                    bash "$PROJECT_ROOT/modules/dual_system.sh" refind-install
+                ;;
+            refind-remove)
+                confirm_and_run "移除 rEFInd 图形引导管理器" "删除 rEFInd 文件和 EFI 引导项，恢复默认引导" \
+                    bash "$PROJECT_ROOT/modules/dual_system.sh" refind-remove
                 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac

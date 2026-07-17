@@ -1,4 +1,9 @@
 
+## V4.0.62 公开版 — 2026-07-17
+
+- 新增 rEFInd 图形引导管理器安装/卸载功能：开机显示 SteamOS / Windows 系统图标供选择，替代 systemd-boot 文本菜单。
+- 修改文件：`modules/dual_system.sh`、`main.sh`。
+
 ## V4.0.61 公开版 — 2026-07-17
 
 - 修复着色器缓存清理不彻底的问题：之前只清理默认 Steam 库的缓存，现在通过读取 libraryfolders.vdf 发现所有 Steam 库（包括 SD 卡上的），逐一清理。
