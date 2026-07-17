@@ -383,6 +383,64 @@ refind_mount_esp() {
     fi
 }
 
+
+refind_check_existing_entries() {
+    echo "正在检测当前 EFI 引导项..."
+    if ! command -v efibootmgr >/dev/null 2>&1; then
+        echo "提示：缺少 efibootmgr，跳过引导项检测。"
+        return 0
+    fi
+
+    local boot_entries
+    boot_entries="$(toolbox_sudo efibootmgr 2>/dev/null)" || {
+        echo "无法读取 EFI 引导项，跳过检测。"
+        return 0
+    }
+
+    local known_patterns="SteamOS|Windows Boot Manager|UEFI|EFI|rEFInd|Linux-Firmware|Boot Manager"
+    local custom_entries=""
+    local entry_num entry_name
+
+    while IFS= read -r line; do
+        case "$line" in
+            Boot[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]*)
+                entry_name="${line#Boot[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]* }"
+                entry_name="${entry_name#\* }"
+                entry_num="${line:4:4}"
+                # 跳过已知标准的引导项
+                case "$entry_name" in
+                    *SteamOS*|*Windows*Boot*|*UEFI*|*EFI*|*rEFInd*|*Linux*Firmware*|*Boot*Manager*) ;;
+                    *)
+                        if [ -n "$entry_name" ] && [ "${entry_num:-0000}" != "0000" ]; then
+                            custom_entries="$custom_entries  Boot$entry_num - $entry_name"$'
+'
+                        fi
+                        ;;
+                esac
+                ;;
+        esac
+    done <<< "$boot_entries"
+
+    if [ -n "$custom_entries" ]; then
+        echo ""
+        echo "========================================"
+        echo " 发现以下非标准引导项："
+        echo "----------------------------------------"
+        printf '%s' "$custom_entries"
+        echo "========================================"
+        echo "安装 rEFInd 后这些引导项会显示在开机菜单中。"
+        echo "rEFInd 不会删除或修改它们，但引导顺序可能变化。"
+        echo ""
+        if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
+            local answer
+            read -r -p "确认继续安装请输入 YES：" answer
+            [ "$answer" = "YES" ] || { echo "已取消。"; return 1; }
+        fi
+    else
+        echo "未发现非标准引导项，系统环境正常。"
+    fi
+}
+
 install_refind() {
     require_steamos || return 1
     for cmd_refind in curl unzip efibootmgr; do
@@ -398,6 +456,7 @@ install_refind() {
     fi
 
     toolbox_sudo true || { echo "管理员权限验证失败。"; return 1; }
+    refind_check_existing_entries || return 1
     mkdir -p /esp 2>/dev/null || toolbox_sudo mkdir -p /esp
     refind_mount_esp || { echo "无法挂载 EFI 分区，请确认 Steam Deck 已开启开发者模式。"; return 1; }
 
