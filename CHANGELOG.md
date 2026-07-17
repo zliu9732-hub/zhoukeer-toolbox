@@ -1,4 +1,9 @@
 
+## V4.1.2 公开版 — 2026-07-18
+
+- 常用软件菜单分离 Protontricks（红酒杯）和 Bottles（酒瓶），移除 Moonlight。
+- 修改文件：`modules/software.sh`、`main.sh`。
+
 ## V4.1.1 公开版 — 2026-07-18
 
 - 重构 install_flatpak_app：移除 install 级 --no-gpg-verify（由远程级控制），增加官方 flathub 兜底和失败提示。

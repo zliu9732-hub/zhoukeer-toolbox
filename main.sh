@@ -177,7 +177,7 @@ common_software_menu() {
         ui_touch_button 17 '\033[1;97;48;5;24m' "Epic Games 启动器" "添加至 Steam 库"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:wechat right:7-8:qq right:9-10:chrome right:11-12:edge right:13-14:bottles right:15-16:moonlight right:17-18:epic  right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:wechat right:7-8:qq right:9-10:chrome right:11-12:edge right:13-14:protontricks right:15-16:bottles right:17-18:epic right:20-21:home)"
         case "$choice" in
             nav-*) apply_navigation "$choice"; return 0 ;;
         esac
@@ -187,8 +187,8 @@ common_software_menu() {
             qq) confirm_and_run "安装QQ" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" qq ;;
             chrome) confirm_and_run "安装 Google Chrome" "Flathub 安装，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" chrome ;;
             edge) confirm_and_run "安装 Microsoft Edge" "Flathub 安装，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" edge ;;
-            bottles) confirm_and_run "安装 Bottles 红酒杯" "运行 Windows 应用与游戏" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
-            moonlight) confirm_and_run "安装 Moonlight" "局域网高帧率低延迟游戏串流" bash "$PROJECT_ROOT/modules/software.sh" moonlight ;;
+            protontricks) confirm_and_run "安装 Protontricks" "修复与配置 Steam 游戏 Proton 环境" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
+            bottles) confirm_and_run "安装 Bottles" "独立运行第三方 Windows 应用与游戏" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
             epic) run_action "安装 Epic Games 启动器并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
 
             home) NEXT_CATEGORY="home"; return 0 ;;
