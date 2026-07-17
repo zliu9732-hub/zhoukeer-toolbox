@@ -45,7 +45,7 @@ ensure_plugin_download_acceleration() {
     if [ "${PLUGIN_DOWNLOAD_ACCELERATION_CHECKED:-0}" -eq 1 ]; then
         return 0
     fi
-    echo "正在检查插件下载所需的 Steam / GitHub 加速状态..."
+    echo "正在检测可选的 Steam / GitHub 加速状态..."
     ensure_steam302_for_download || return 1
     PLUGIN_DOWNLOAD_ACCELERATION_CHECKED=1
 }

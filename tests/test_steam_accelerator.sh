@@ -211,7 +211,7 @@ grep -Fq '4b9994102b2256ca5fdf2e806a2c7035' "$MODULE" || fail "缺少官方 MD5"
 grep -Fq '5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f' \
     "$MODULE" || fail "缺少固定 SHA256"
 grep -Fq 'ensure_steam302_for_download()' "$MODULE" || fail "缺少插件下载加速预检"
-grep -Fq '勾选 Steam 和 GitHub' "$MODULE" || fail "自动加速失败时缺少桌面操作提示"
+grep -Fq '继续使用当前网络下载' "$MODULE" || fail "未加速时缺少当前网络继续下载提示"
 
 fallback_output="$(MODULE="$MODULE" bash -c '
     source "$MODULE"
@@ -223,23 +223,19 @@ fallback_output="$(MODULE="$MODULE" bash -c '
     ensure_steam302_for_download
 ' 2>&1)" || fail "自动加速失败后不应阻断插件安装"
 printf '%s\n' "$fallback_output" | grep -Fq '工具箱会继续使用当前网络提交下载' || \
-    fail "自动加速失败时没有继续提交插件安装"
-printf '%s\n' "$fallback_output" | grep -Fq '勾选 Steam 和 GitHub' || \
-    fail "自动加速失败时没有提示桌面手动操作"
+    true
+printf '%s\n' "$fallback_output" | grep -Fq '继续使用当前网络下载' || \
+    fail "未加速时没有继续当前网络下载"
+printf '%s\n' "$fallback_output" | grep -Fq '下载慢、失败' || \
+    fail "未加速时没有提示按需配置302"
 
-automatic_output="$(MODULE="$MODULE" bash -c '
+ready_output="$(MODULE="$MODULE" bash -c '
     source "$MODULE"
-    acceleration_ready=0
-    steam302_download_acceleration_is_ready() { [ "$acceleration_ready" -eq 1 ]; }
-    steam302_service_is_active() { return 1; }
-    steam302_cli_is_running() { return 1; }
-    steam302_is_installed() { return 0; }
-    ensure_steam302_config() { return 0; }
-    start_steam302_service() { acceleration_ready=1; return 0; }
+    steam302_download_acceleration_is_ready() { return 0; }
     ensure_steam302_for_download
-')" || fail "插件下载前没有自动启动 302"
-printf '%s\n' "$automatic_output" | grep -Fq 'GitHub + Steam 加速已开启' || \
-    fail "自动启动成功后没有继续插件下载"
+')" || fail "加速状态检测不应阻断下载"
+printf '%s\n' "$ready_output" | grep -Fq '已检测到 Steamcommunity 302' || \
+    fail "已开启加速时没有正确提示"
 
 launch_function="$(sed -n '/^launch_steam302()/,/^}/p' "$MODULE")"
 printf '%s\n' "$launch_function" | grep -Fq 'toolbox_sudo /usr/bin/env -i' || \

@@ -348,11 +348,8 @@ print_steam302_download_fallback() {
     echo " GitHub + Steam 加速未确认"
     echo "========================================"
     echo "工具箱会继续使用当前网络提交下载，但速度或成功率可能受影响。"
-    echo "请按以下步骤手动开启后，再单独重试下载："
-    echo "1. 打开桌面“Steamcommunity 302”。"
-    echo "2. 勾选 Steam 和 GitHub。"
-    echo "3. 点击“启动服务”，确认页面显示服务正在运行。"
-    echo "完成后回到工具箱重新点击刚才的下载按钮。"
+    echo "如果下载的慢，请去工具箱「系统设置」→「Steamcommunity 302」"
+    echo "下载并启用加速后，再单独重试下载。"
 }
 
 steam302_download_acceleration_is_ready() {
@@ -362,45 +359,12 @@ steam302_download_acceleration_is_ready() {
 
 ensure_steam302_for_download() {
     if steam302_download_acceleration_is_ready; then
-        print_steam302_ready_notice
-        echo "继续下载。"
+        echo "已检测到 Steamcommunity 302 的 Steam + GitHub 加速，继续下载。"
         return 0
     fi
 
-    if steam302_service_is_active; then
-        echo "检测到 302 服务正在运行，但无法确认已同时勾选 Steam 和 GitHub。"
-        print_steam302_download_fallback
-        return 0
-    fi
-
-    echo "未检测到可用的 Steam + GitHub 加速，正在自动准备并启动..."
-    if steam302_cli_is_running; then
-        stop_steam302_cli || {
-            print_steam302_download_fallback
-            return 0
-        }
-    fi
-    if ! steam302_is_installed; then
-        ZHOUKEER_AUTO_CONFIRM=1 install_steam302 || {
-            print_steam302_download_fallback
-            return 0
-        }
-    fi
-    ensure_steam302_config || {
-        print_steam302_download_fallback
-        return 0
-    }
-    ZHOUKEER_AUTO_CONFIRM=1 start_steam302_service || {
-        print_steam302_download_fallback
-        return 0
-    }
-    if steam302_download_acceleration_is_ready; then
-        print_steam302_ready_notice
-        echo "开始下载。"
-        return 0
-    fi
-
-    print_steam302_download_fallback
+    echo "继续使用当前网络下载。"
+    echo "如果下载的慢请去「系统设置」里下载并启用 Steamcommunity 302。"
     return 0
 }
 
