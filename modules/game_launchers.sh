@@ -23,6 +23,14 @@ launcher_details() {
             LAUNCHER_MAGIC="d0cf11e0"
             LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe\nProgram Files/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe'
             ;;
+        battlenet)
+            LAUNCHER_NAME="战网启动器"
+            LAUNCHER_FILE_NAME="Battle.net-Setup.exe"
+            LAUNCHER_URL="https://www.battle.net/download/getInstallerForGame?os=win&installer=Battle.net-Setup.exe"
+            LAUNCHER_MIN_BYTES=1048576
+            LAUNCHER_MAGIC="4d5a"
+            LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Battle.net/Battle.net Launcher.exe\nProgram Files (x86)/Battle.net/Battle.net.exe'
+            ;;
         *)
             echo "未知启动器: $1"
             return 1
@@ -184,6 +192,11 @@ run_launcher_installer() {
         epic)
             STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root"             STEAM_COMPAT_DATA_PATH="$prefix_dir"             STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0                 "$proton_runner" run msiexec /i "$installer_file" || status=$?
             ;;
+        battlenet)
+            STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
+                STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
+                "$proton_runner" run "$installer_file" || status=$?
+            ;;
     esac
 
     while [ "$elapsed" -le "$timeout" ]; do
@@ -274,3 +287,97 @@ find_proton_10_runner() {
     return 1
 }
 
+find_battlenet_alternate_runner() {
+    local steam_root="$1" current_runner="$2" candidate
+    for candidate in "$(find_proton_experimental_runner "$steam_root" || true)" "$(find_proton_10_runner "$steam_root" || true)"; do
+        [ -n "$candidate" ] && [ "$candidate" != "$current_runner" ] && {
+            printf '%s\n' "$candidate"
+            return 0
+        }
+    done
+    return 1
+}
+
+create_launcher_wrapper() {
+    local target="$1" steam_root="$2" prefix_dir="$3" proton_runner="$4" launcher_exe="$5" destination_dir="$6"
+    local wrapper="$destination_dir/launch-$target.sh"
+    mkdir -p "$destination_dir" || return 1
+    cat > "$wrapper" <<EOF
+#!/bin/bash
+PREFIX_DIR=$(printf '%q' "$prefix_dir")
+PROTON_RUNNER=$(printf '%q' "$proton_runner")
+LAUNCHER_EXE=$(printf '%q' "$launcher_exe")
+STEAM_ROOT=$(printf '%q' "$steam_root")
+export STEAM_COMPAT_DATA_PATH="\$PREFIX_DIR"
+export STEAM_COMPAT_CLIENT_INSTALL_PATH="\$STEAM_ROOT"
+exec "\$PROTON_RUNNER" run "\$LAUNCHER_EXE"
+EOF
+    chmod +x "$wrapper" || return 1
+    printf '%s\n' "$wrapper"
+}
+
+create_launcher_desktop_shortcut() {
+    local target="$1" wrapper="$2" name
+    case "$target" in
+        epic) name="Epic Games 启动器" ;;
+        battlenet) name="战网启动器" ;;
+        *) return 1 ;;
+    esac
+    mkdir -p "$HOME/Desktop" || return 1
+    cat > "$HOME/Desktop/$name.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=$name
+Exec=$wrapper
+Terminal=false
+Categories=Game;
+EOF
+    chmod +x "$HOME/Desktop/$name.desktop"
+}
+
+run_battlenet_installer_with_fallback() {
+    local steam_root="$1" installer_file="$2" prefix_dir="$3" runner="$4" alternate installed
+    launcher_details battlenet || return 1
+    POST_INSTALL_TIMEOUT="$BATTLE_NET_FIRST_ATTEMPT_TIMEOUT" run_launcher_installer battlenet "$steam_root" "$installer_file" "$prefix_dir" "$runner" || true
+    installed="$(find_launcher_in_prefix "$prefix_dir" || true)"
+    if [ -n "$installed" ]; then
+        printf '%s|%s\n' "$installed" "$runner"
+        return 0
+    fi
+    alternate="$(find_battlenet_alternate_runner "$steam_root" "$runner")" || return 1
+    installed="$(run_launcher_installer battlenet "$steam_root" "$installer_file" "$prefix_dir" "$alternate")" || return 1
+    printf '%s|%s\n' "$installed" "$alternate"
+}
+
+install_launcher() {
+    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file
+    launcher_details "$target" || return 1
+    steam_root="$(find_steam_root)" || return 1
+    launcher_exe="$(find_installed_launcher "$steam_root" || true)"
+    runner="$(find_proton_runner "$steam_root")" || { echo "未找到可用 Proton/GE-Proton。"; return 1; }
+    app_dir="$APP_DIR/game-launchers/$target"
+    mkdir -p "$app_dir" || return 1
+
+    if [ -n "$launcher_exe" ]; then
+        echo "检测到已安装的 ${LAUNCHER_NAME}，跳过安装包下载。"
+        prefix="${launcher_exe%/pfx/drive_c/*}"
+    else
+        echo "当前版本仅支持已安装启动器的自动入库，请先完成官方安装。"
+        return 1
+    fi
+    wrapper="$(create_launcher_wrapper "$target" "$steam_root" "$prefix" "$runner" "$launcher_exe" "$app_dir")" || return 1
+    create_launcher_desktop_shortcut "$target" "$wrapper" || return 1
+    shortcut_file="$(find_shortcut_file "$steam_root")" || return 1
+    stop_steam_for_vdf || return 1
+    python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" add \
+        --name "$LAUNCHER_NAME" --exe "$wrapper" --start-dir "$app_dir" >/dev/null || return 1
+    start_steam
+    echo "$LAUNCHER_NAME 已添加到 Steam 库，无需再选择兼容层。"
+}
+
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    case "${1:-}" in
+        epic|battlenet) install_launcher "$1" ;;
+        *) echo "用法: $0 {epic|battlenet}"; exit 1 ;;
+    esac
+fi

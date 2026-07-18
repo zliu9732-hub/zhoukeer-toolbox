@@ -22,7 +22,8 @@ show_initialization_plan() {
     echo "✓ ToDesk"
     echo "✓ Firefox 浏览器"
     echo "✓ 工具箱快捷方式检查"
-    echo "✓ 国内下载源与网络检测"
+    echo "✓ 国内源初始化：pacman 密钥环、国内 Flatpak 镜像与应用索引"
+    echo "  注意：国内 Flatpak 镜像将关闭软件包签名验证，仅在确认信任镜像时继续。"
     echo ""
     echo "国内源仅添加用户级 Flatpak 缓存，不修改 SteamOS 只读分区。"
     echo "ToDesk和Decky安装过程中仍可能要求输入Steam Deck管理员密码。"
@@ -113,7 +114,7 @@ run_new_machine_initialization() {
 
     run_step "Steam Deck基础检查" basic_steamdeck_check
     run_step "网络检测" check_network
-    run_step "添加国内下载源" bash "$PROJECT_ROOT/modules/domestic_source.sh" enable
+    run_step "初始化国内源" env ZHOUKEER_DOMESTIC_SOURCE_CONFIRMED=1 bash "$PROJECT_ROOT/modules/domestic_source.sh" init-domestic
     run_step "插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh"
     run_step "微信" env ZHOUKEER_AUTO_CONFIRM=1 \

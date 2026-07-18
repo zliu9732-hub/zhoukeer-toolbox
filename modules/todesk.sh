@@ -56,7 +56,12 @@ validate_todesk_settings() {
     local value
 
     for value in TODESK_REPOSITORY_URL TODESK_REPOSITORY_COMMIT TODESK_PACKAGE_NAME TODESK_PACKAGE_SHA256; do
-        eval "[ -n \"\${$value:-}\" ]" || {
+        case "$value" in
+            TODESK_REPOSITORY_URL) [ -n "${TODESK_REPOSITORY_URL:-}" ] ;;
+            TODESK_REPOSITORY_COMMIT) [ -n "${TODESK_REPOSITORY_COMMIT:-}" ] ;;
+            TODESK_PACKAGE_NAME) [ -n "${TODESK_PACKAGE_NAME:-}" ] ;;
+            TODESK_PACKAGE_SHA256) [ -n "${TODESK_PACKAGE_SHA256:-}" ] ;;
+        esac || {
             echo "ToDesk配置缺失: $value"
             return 1
         }

@@ -69,10 +69,11 @@ software_menu() {
         choice="$(gui_dialog --menu "选择要安装的软件" \
             wechat "微信" \
             qq "QQ" \
-            browser "Firefox 浏览器" \
+            chrome "Google Chrome" \
+            edge "Microsoft Edge" \
+            protontricks "Protontricks 红酒杯" \
+            bottles "Bottles 酒瓶" \
             epic "Epic Games 启动器（自动入库）" \
-            battlenet "战网启动器（自动入库）" \
-            ge-proton "GE-Proton 兼容层" \
             back "返回主菜单")" || return 0
         case "$choice" in
             wechat)
@@ -85,25 +86,14 @@ software_menu() {
                     run_gui_action "安装QQ" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" qq
                 ;;
-            browser)
-                gui_confirm "将从官方 Flathub 安装 Firefox（org.mozilla.firefox）。是否继续？" && \
-                    run_gui_action "安装Firefox浏览器" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/software.sh" browser
-                ;;
+            chrome) gui_confirm "将通过 Flatpak 安装 Google Chrome。是否继续？" && run_gui_action "安装 Google Chrome" bash "$PROJECT_ROOT/modules/software.sh" chrome ;;
+            edge) gui_confirm "将通过 Flatpak 安装 Microsoft Edge。是否继续？" && run_gui_action "安装 Microsoft Edge" bash "$PROJECT_ROOT/modules/software.sh" edge ;;
+            protontricks) gui_confirm "将通过 Flatpak 安装 Protontricks。是否继续？" && run_gui_action "安装 Protontricks" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
+            bottles) gui_confirm "将通过 Flatpak 安装 Bottles。是否继续？" && run_gui_action "安装 Bottles" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
             epic)
                 run_gui_action "安装 Epic Games 启动器并自动入库" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
-                ;;
-            battlenet)
-                run_gui_action "安装战网启动器并自动入库" \
-                    env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
-                ;;
-            ge-proton)
-                gui_confirm "将把GE-Proton安装到Steam兼容工具目录；完成后需要完全重启Steam。是否继续？" && \
-                    run_gui_action "安装GE-Proton兼容层" \
-                    bash "$PROJECT_ROOT/modules/ge_proton.sh" install
                 ;;
             back) return 0 ;;
         esac
@@ -281,6 +271,9 @@ settings_menu() {
     while true; do
         choice="$(gui_dialog --menu "系统设置与检测" \
             source "添加国内下载源" \
+            init-domestic "初始化国内源（含 pacman 密钥环）" \
+            restore-official "恢复官方 Flathub 源" \
+            system-components "更新系统组件" \
             accelerator "Steamcommunity 302" \
             set-password "设置系统密码" \
             change-password "修改系统密码" \
@@ -288,9 +281,24 @@ settings_menu() {
             back "返回主菜单")" || return 0
         case "$choice" in
             source)
-                gui_confirm "将添加上海交大和中科大两个用户级Flathub缓存；软件安装只在两个国内缓存间测速切换，其他来源保持不变。是否继续？" && \
+                gui_confirm "将添加 flathub-cn（上海交大）和 flathub-ustc（中科大）。两个远程源会关闭软件包签名验证；仅在信任镜像时继续。是否继续？" && \
                     run_gui_action "添加国内下载源" \
                     bash "$PROJECT_ROOT/modules/domestic_source.sh" enable
+                ;;
+            init-domestic)
+                gui_confirm "将初始化 pacman 密钥环、配置国内 Flatpak 镜像并刷新应用索引。国内 Flatpak 远程源会关闭软件包签名验证；仅在信任镜像时继续。是否继续？" && \
+                    run_gui_action "初始化国内源" \
+                    bash "$PROJECT_ROOT/modules/domestic_source.sh" init-domestic
+                ;;
+            restore-official)
+                gui_confirm "将恢复官方 Flathub 地址与软件包签名验证，不会删除已安装应用。是否继续？" && \
+                    run_gui_action "恢复官方 Flathub 源" \
+                    bash "$PROJECT_ROOT/modules/domestic_source.sh" restore-official
+                ;;
+            system-components)
+                gui_confirm "将更新 pacman 密钥环、系统包与 git；会临时关闭 SteamOS 只读保护，完成后自动恢复。是否继续？" && \
+                    run_gui_action "更新系统组件" \
+                    bash "$PROJECT_ROOT/modules/domestic_source.sh" system-components
                 ;;
             accelerator)
                 steam_accelerator_gui_menu

@@ -63,6 +63,44 @@ configure_domestic_source() {
     log "Flathub国内双缓存源配置完成"
 }
 
+restore_official_flathub() {
+    is_linux || { echo "仅支持 Linux/SteamOS。"; return 1; }
+    require_command flatpak || return 1
+    require_command timeout || return 1
+
+    echo "正在恢复官方 Flathub：$FLATHUB_OFFICIAL_REMOTE"
+    echo "官方地址：https://dl.flathub.org/repo"
+    timeout --foreground 30 flatpak remote-add --user --if-not-exists \
+        "$FLATHUB_OFFICIAL_REMOTE" "$FLATHUB_OFFICIAL_REPO_FILE" || return 1
+    timeout --foreground 30 flatpak remote-modify --user "$FLATHUB_OFFICIAL_REMOTE" \
+        --url=https://dl.flathub.org/repo || return 1
+    timeout --foreground 30 flatpak remote-modify --user --gpg-verify \
+        "$FLATHUB_OFFICIAL_REMOTE" || return 1
+    echo "官方 Flathub 已恢复，并已启用软件包签名验证。"
+}
+
+update_system_components() {
+    is_linux || { echo "仅支持 Linux/SteamOS。"; return 1; }
+    for command_name in steamos-readonly pacman pacman-key; do
+        require_command "$command_name" || return 1
+    done
+
+    echo "将更新 SteamOS 可写系统组件：pacman 密钥环、软件数据库、已安装系统包和 git。"
+    echo "此操作不添加第三方软件仓库；完成后会恢复 SteamOS 只读保护。"
+    toolbox_sudo steamos-readonly disable || return 1
+    if ! toolbox_sudo pacman-key --init || ! toolbox_sudo pacman-key --populate || \
+        ! toolbox_sudo pacman -Syu --needed --noconfirm git; then
+        toolbox_sudo steamos-readonly enable 2>/dev/null || true
+        echo "系统组件更新失败，已尝试恢复只读保护。"
+        return 1
+    fi
+    toolbox_sudo steamos-readonly enable || {
+        echo "系统组件已更新，但恢复只读保护失败。"
+        return 1
+    }
+    echo "系统组件更新完成。"
+}
+
 show_domestic_source_status() {
     require_command flatpak || return 1
     require_command timeout || return 1
@@ -78,6 +116,9 @@ init_domestic_flatpak() {
     echo " 配置国内 Flatpak 镜像源"
     echo "================================================"
     echo ""
+
+    echo "本操作将初始化 pacman 密钥环，并配置国内 Flatpak 远程源。"
+    confirm_domestic_flatpak_risk
 
     is_linux || { echo "仅支持 Linux/SteamOS。"; return 1; }
     require_command sudo || return 1
@@ -218,8 +259,10 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         enable) configure_domestic_source ;;
         status) show_domestic_source_status ;;
         init-domestic) init_domestic_flatpak ;;
+        restore-official) restore_official_flathub ;;
+        system-components) update_system_components ;;
         mirror-delete) flatpak_mirror_delete ;;
         mirror-reset) flatpak_mirror_reset ;;
-        *) echo "用法: $0 {enable|status|init-domestic|mirror-delete|mirror-reset}"; exit 1 ;;
+        *) echo "用法: $0 {enable|status|init-domestic|restore-official|system-components|mirror-delete|mirror-reset}"; exit 1 ;;
     esac
 fi

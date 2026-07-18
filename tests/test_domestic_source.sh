@@ -100,6 +100,18 @@ printf '%s\n' "$*" >> "${DOMESTIC_SOURCE_TEST_STATE:?}/sudo-calls"
 exit 97
 EOF
 
+cat > "$BIN_DIR/timeout" <<'EOF'
+#!/bin/sh
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --foreground|--preserve-status) shift ;;
+        [0-9]*) shift ;;
+        *) exec "$@" ;;
+    esac
+done
+exit 0
+EOF
+
 chmod +x "$BIN_DIR"/*
 : > "$STATE_DIR/remotes"
 : > "$STATE_DIR/commands"

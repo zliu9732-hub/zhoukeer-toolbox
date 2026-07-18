@@ -14,6 +14,8 @@ load_config
 DUAL_BOOT_TIMEOUT="${DUAL_BOOT_TIMEOUT:-5}"
 SHARED_DRIVE_LINK="${ZHOUKEER_SHARED_DRIVE_LINK:-$HOME/互通盘}"
 
+# rEFInd 原实现保留仅供审阅；当前不会定义或执行其中的 EFI 写入函数。
+REFIND_FEATURE_DISABLED=1
 # rEFInd 图形引导管理器
 REFIND_VERSION="${ZHOUKEER_REFIND_VERSION:-0.14.7}"
 REFIND_URL="${ZHOUKEER_REFIND_URL:-https://github.com/bobafetthotmail/refind-bin-linux/releases/download/v${REFIND_VERSION}/refind-bin-linux-${REFIND_VERSION}.zip}"
@@ -365,6 +367,8 @@ hide_dual_boot_menu() {
     log "双系统引导菜单已隐藏: timeout=0"
 }
 
+# 以下 rEFInd 实现已整体停用，避免暴露任何 EFI 写入函数。
+if false; then
 refind_esp_is_mounted() {
     mount | grep -q ' /esp '
 }
@@ -591,6 +595,7 @@ remove_refind() {
     echo "rEFInd 已移除。下次开机将使用默认引导管理器。"
     log "rEFInd 图形引导管理器已移除"
 }
+fi
 
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
@@ -600,11 +605,12 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         unprotect) restore_shared_drive_write ;;
         add) enable_dual_boot_menu ;;
         remove) hide_dual_boot_menu ;;
-        refind-install) install_refind ;;
-        refind-hide) refind_hide_menu ;;
-        refind-show) refind_show_menu ;;
+        refind-install|refind-hide|refind-show|refind-remove)
+            echo "该功能当前已停用。"
+            exit 1
+            ;;
         *)
-            echo "用法: $0 {mount|protect|unprotect|add|remove|refind-install|refind-hide|refind-show}"
+            echo "用法: $0 {mount|protect|unprotect|add|remove}"
             exit 1
             ;;
     esac

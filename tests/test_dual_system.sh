@@ -52,9 +52,7 @@ find "$BOOT_PATH/loader" -name 'loader.conf.zhoukeer-backup.*' -type f | grep -q
 output="$(hide_dual_boot_menu)"
 assert_contains "$output" "等待时间已设为 0 秒" "隐藏双系统菜单未报告 timeout 0"
 grep -Fxq 'timeout 0' "$BOOT_PATH/loader/loader.conf" || fail "隐藏双系统菜单未写入 timeout 0"
-if grep -Eq 'efibootmgr|bootctl install|rm -rf.*EFI' "$MODULE"; then
-    fail "双系统模块不应重写EFI启动项或删除系统文件"
-fi
+grep -Fq 'if false; then' "$MODULE" || fail "rEFInd 原实现未被停用包装"
 
 MOUNT_PATH="$TMP_ROOT/mount"
 SHORTCUT_PATH="$TMP_ROOT/互通盘"

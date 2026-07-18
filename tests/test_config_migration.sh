@@ -21,14 +21,7 @@ assert_value() {
     local expected="$3"
     local actual
 
-    actual="$(
-        (
-            set -u
-            # shellcheck disable=SC1090
-            source "$file"
-            eval "printf '%s' \"\${$key-}\""
-        )
-    )"
+    actual="$(awk -F= -v wanted="$key" '$1 == wanted { value=$0; sub(/^[^=]*=/, "", value); gsub(/^\"|\"$/, "", value); print value; exit }' "$file")"
 
     [ "$actual" = "$expected" ] || \
         fail "$key 期望为 '$expected'，实际为 '$actual'"

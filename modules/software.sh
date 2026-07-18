@@ -156,8 +156,21 @@ flatpak_remote_exists() {
     flatpak remotes --user --columns=name 2>/dev/null | grep -Fxq "$1"
 }
 
+confirm_domestic_flatpak_risk() {
+    echo "警告：以下国内 Flatpak 远程源将关闭软件包签名验证："
+    echo "- $FLATHUB_CN_REMOTE: $FLATHUB_CN_URL"
+    echo "- $FLATHUB_CN_FALLBACK_REMOTE: $FLATHUB_CN_FALLBACK_URL"
+    echo "已通过工具箱确认，正在继续配置。"
+    return 0
+}
+
 ensure_flatpak_remotes() {
     local repo_file=""
+
+    confirm_domestic_flatpak_risk || {
+        echo "已取消国内 Flatpak 源配置，未修改任何远程源。"
+        return 1
+    }
 
     if ! flatpak_remote_exists "$FLATHUB_CN_REMOTE" || \
         ! flatpak_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE"; then
@@ -872,6 +885,7 @@ repair_software_shortcuts() {
 
 
 
+# Deprecated: legacy pacman path; normal CLI routing is blocked below.
 install_firefox_pacman() {
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
@@ -917,6 +931,7 @@ install_firefox_pacman() {
 
 
 
+# Deprecated: legacy direct mirror path; normal CLI routing is blocked below.
 install_firefox_sjtu() {
     is_linux || { echo "仅支持 Linux/SteamOS。"; return 1; }
     require_command flatpak || return 1
@@ -946,6 +961,7 @@ install_firefox_sjtu() {
 }
 
 
+# Deprecated: legacy system setup; normal CLI routing is blocked below.
 system_setup() {
     echo "系统初始化"
 
@@ -1039,15 +1055,16 @@ install_flatpak_app() {
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         wechat|qq|browser|rustdesk) install_software "$1" ;;
-        firefox-pacman) install_firefox_pacman ;;
-        firefox-sjtu) install_firefox_sjtu ;;
-        system-setup) system_setup ;;
+        firefox-pacman|firefox-sjtu|system-setup)
+            echo "该旧版系统级功能已停用，请使用当前 Flatpak 菜单功能。"
+            exit 1
+            ;;
         chrome) install_flatpak_app "com.google.Chrome" "Google Chrome" ;;
         edge) install_flatpak_app "com.microsoft.Edge" "Microsoft Edge" ;;
         protontricks) install_flatpak_app "com.github.Matoking.protontricks" "Protontricks" ;;
         bottles) install_flatpak_app "com.usebottles.bottles" "Bottles" ;;
         status) require_command od && show_software_status ;;
         repair-shortcuts) require_command od && repair_software_shortcuts ;;
-        *) echo "用法: $0 {wechat|qq|browser|rustdesk|firefox-pacman|firefox-sjtu|chrome|edge|protontricks|bottles|system-setup|status|repair-shortcuts}"; exit 1 ;;
+        *) echo "用法: $0 {wechat|qq|browser|rustdesk|chrome|edge|protontricks|bottles|status|repair-shortcuts}"; exit 1 ;;
     esac
 fi

@@ -55,22 +55,19 @@ gui_dual_menu="$(sed -n '/^dual_system_menu()/,/^}/p' "$GUI_FILE")"
 touch_remote_menu="$(sed -n '/^remote_assistance_menu()/,/^}/p' "$MAIN_FILE")"
 gui_remote_menu="$(sed -n '/^remote_menu()/,/^}/p' "$GUI_FILE")"
 
-assert_contains "$touch_software_menu" 'Firefox 浏览器' "触控常用软件菜单缺少 Firefox"
-assert_contains "$touch_software_menu" 'modules/software.sh" browser' "触控菜单未调用 Firefox 安装"
-assert_contains "$gui_software_menu" 'Firefox 浏览器' "图形常用软件菜单缺少 Firefox"
-assert_contains "$gui_software_menu" 'modules/software.sh" browser' "图形菜单未调用 Firefox 安装"
-assert_contains "$touch_software_menu" 'GE-Proton 兼容层' "触控常用软件菜单缺少GE-Proton"
-assert_contains "$touch_software_menu" 'modules/ge_proton.sh" install' "触控菜单未调用GE-Proton安装"
-assert_contains "$gui_software_menu" 'GE-Proton 兼容层' "图形常用软件菜单缺少GE-Proton"
-assert_contains "$gui_software_menu" 'modules/ge_proton.sh" install' "图形菜单未调用GE-Proton安装"
+for software_menu in "$touch_software_menu" "$gui_software_menu"; do
+    assert_contains "$software_menu" 'Google Chrome' "常用软件菜单缺少 Chrome"
+    assert_contains "$software_menu" 'Microsoft Edge' "常用软件菜单缺少 Edge"
+    assert_contains "$software_menu" 'Protontricks' "常用软件菜单缺少 Protontricks"
+    assert_contains "$software_menu" 'Bottles' "常用软件菜单缺少 Bottles"
+    assert_not_contains "$software_menu" 'Firefox 浏览器' "常用软件菜单不应展示 Firefox"
+    assert_not_contains "$software_menu" 'GE-Proton 兼容层' "常用软件菜单不应展示 GE-Proton"
+    assert_not_contains "$software_menu" '战网启动器' "常用软件菜单不应展示战网"
+done
 assert_contains "$touch_software_menu" 'Epic Games 启动器' "触控常用软件菜单缺少Epic"
 assert_contains "$touch_software_menu" 'modules/game_launchers.sh" epic' "触控Epic入口没有直接开始安装"
-assert_contains "$touch_software_menu" '战网启动器' "触控常用软件菜单缺少战网"
-assert_contains "$touch_software_menu" 'modules/game_launchers.sh" battlenet' "触控战网入口没有直接开始安装"
 assert_contains "$gui_software_menu" 'Epic Games 启动器（自动入库）' "图形常用软件菜单缺少Epic"
-assert_contains "$gui_software_menu" '战网启动器（自动入库）' "图形常用软件菜单缺少战网"
 assert_contains "$gui_software_menu" 'modules/game_launchers.sh" epic' "图形Epic入口没有直接开始安装"
-assert_contains "$gui_software_menu" 'modules/game_launchers.sh" battlenet' "图形战网入口没有直接开始安装"
 assert_not_contains "$(cat "$MAIN_FILE")" 'launcher_install_touch_guide' "触控界面仍保留启动器说明页"
 assert_not_contains "$(cat "$GUI_FILE")" 'launcher_install_gui_guide' "图形界面仍保留启动器说明页"
 assert_not_contains "$touch_software_menu" 'protonup' "触控菜单仍包含 ProtonUp-Qt"
@@ -86,7 +83,7 @@ done
 for plugin_menu in "$touch_plugin_menu" "$gui_plugin_menu"; do
     assert_contains "$plugin_menu" '一键安装常用功能插件' "插件商城菜单缺少常用功能插件一键安装"
     assert_contains "$plugin_menu" 'modules/plugin_store.sh" features' "常用功能插件入口调用错误"
-    assert_contains "$plugin_menu" '一键安装当前列表全部插件' "插件商城菜单缺少全部插件一键安装"
+    assert_contains "$plugin_menu" 'modules/plugin_store.sh" all' "插件商城菜单缺少全部插件一键安装"
     assert_contains "$plugin_menu" 'modules/plugin_store.sh" all' "全部插件入口调用错误"
     assert_contains "$plugin_menu" '浏览官方插件' "插件商城菜单缺少官方插件分页入口"
     assert_contains "$plugin_menu" '安装周克儿汉化（修复版）' "插件商城菜单缺少周克儿汉化入口"
@@ -187,11 +184,9 @@ new_machine_preflight="$(sed -n '/^new_machine_preflight()/,/^}/p' "$MAIN_FILE")
 assert_contains "$new_machine_preflight" '启用开发者模式' "新机初始化没有提醒开启开发者模式"
 assert_contains "$new_machine_preflight" '使用旧版 X11 桌面模式' "新机初始化没有提醒开启旧版X11"
 
-assert_contains "$(cat "$NEW_MACHINE_FILE")" 'modules/domestic_source.sh" enable' \
-    "新机初始化未启用国内源"
-assert_contains "$(cat "$NEW_MACHINE_FILE")" 'modules/software.sh" browser' \
-    "新机初始化未安装 Firefox"
+assert_contains "$(cat "$NEW_MACHINE_FILE")" 'modules/domestic_source.sh" init-domestic' \
+    "新机初始化未包含国内源初始化"
 assert_not_contains "$(cat "$NEW_MACHINE_FILE")" 'protonup' \
     "新机初始化仍包含 ProtonUp-Qt"
 
-echo "PASS: Firefox和系统设置新入口菜单契约测试通过"
+echo "PASS: 常用软件和系统设置菜单契约测试通过"
