@@ -62,11 +62,17 @@ grep -Fq 'install_feature_plugins()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'print_feature_plugin_status()' "$PROJECT_ROOT/modules/plugin_store.sh"
 feature_install_function="$(sed -n '/^install_feature_plugins()/,/^}/p' \
     "$PROJECT_ROOT/modules/plugin_store.sh")"
+printf '%s\n' "$feature_install_function" | grep -Fq 'ensure_plugin_store_ready || return 1' || {
+    echo "FAIL: 常用插件组合未先检查插件商城" >&2
+    exit 1
+}
 printf '%s\n' "$feature_install_function" | grep -Fq '小黄鸭（LSFG-VK）'
 printf '%s\n' "$feature_install_function" | grep -Fq 'reload_decky_plugins'
 printf '%s\n' "$feature_install_function" | grep -Fq '三款插件会出现在插头菜单中'
 grep -Fq 'CheatDeck 安装完成后可在 Decky 右侧栏显示' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_all_plugin_packages()' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'decky_plugin_store_is_installed()' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '未检测到插件商城，先安装插件商城。' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_zhoukeer_localizer()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'copy_zhoukeer_localizer' "$PROJECT_ROOT/install.sh"
 grep -Fq 'plugin.json package.json README.md LICENSE dist/index.js' "$PROJECT_ROOT/install.sh"

@@ -211,11 +211,11 @@ common_software_menu() {
 
     while true; do
         draw_category_frame software "常用软件" "安装聊天、浏览器和远程工具"
-        ui_touch_button 5 '\033[1;97;48;5;24m' "微信" "安装适合 SteamOS 的微信"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "QQ" "安装适合 SteamOS 的 QQ"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "Firefox 浏览器" "安装 Firefox 浏览器"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "Chrome 浏览器" "安装 Chrome 浏览器"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "Edge 浏览器" "安装 Edge 浏览器"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "微信"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "QQ"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "Firefox 浏览器"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "Chrome 浏览器"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "Edge 浏览器"
         ui_touch_button 15 '\033[1;97;48;5;24m' "RustDesk 远程协助" "安装开源远程工具"
         ui_touch_button 17 '\033[1;97;48;5;24m' "Windows 软件工具" "安装 Bottles 运行工具"
         ui_touch_button 19 '\033[1;97;48;5;24m' "游戏兼容设置" "安装 Protontricks"
@@ -394,15 +394,15 @@ game_environment_menu() {
         ui_touch_button 11 '\033[1;97;48;5;24m' "游戏中文辅助" "安装中文显示辅助 · 实验功能"
         ui_touch_button 13 '\033[1;97;48;5;24m' "GE 游戏运行组件" "提高 Windows 游戏兼容性"
         ui_touch_button 15 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
-        ui_touch_button 17 '\033[1;97;48;5;160m' "安装 Decky Loader" "前往系统与密码确认 · 高级操作"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:5-6:features right:7-8:all right:9-10:browse right:11-12:localizer right:13-14:ge-proton right:15-16:epic right:17-18:decky-install right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            features) confirm_and_run "安装常用功能插件" "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将依次安装小黄鸭、FSR4 和 CheatDeck；单项失败不会覆盖旧版本" bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
-            all) confirm_and_run "安装插件环境与精选组合" "安装前请先在游戏模式开启开发者模式和 CEF 远程调试。该动作会安装 Decky、常用功能插件和当前精选插件" bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
+            features) confirm_and_run "安装常用插件组合" "未安装插件商城时会先安装插件商城，再继续安装三款插件；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
+            all) confirm_and_run "安装插件环境与精选组合" "未安装插件商城时会先安装插件商城，再继续安装常用与精选插件；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
             browse) plugin_official_touch_pages ;;
             localizer) confirm_and_run "游戏中文辅助" "这是实验功能，不会改写原插件文件；安装后请回游戏模式，在 Decky 菜单中启用" bash "$PROJECT_ROOT/modules/plugin_store.sh" localizer ;;
             ge-proton) confirm_and_run "安装 GE 游戏运行组件" "将安装第三方 GE-Proton 游戏兼容组件" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
@@ -595,7 +595,7 @@ advanced_tools_menu() {
             ui_touch_button 19 '\033[1;97;48;5;30m' "下一页" "查看其他高级功能"
         else
             ui_touch_button 7 '\033[1;97;48;5;160m' "安装 ToDesk" "会修改只读系统 · 高级操作"
-            ui_touch_button 10 '\033[1;97;48;5;160m' "安装 Decky Loader" "会使用管理员权限 · 高级操作"
+            ui_touch_button 10 '\033[1;97;48;5;160m' "安装插件商城" "会使用管理员权限 · 高级操作"
             ui_touch_button 13 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单 · 高级操作"
             ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回软件源和网络设置"
         fi
@@ -613,7 +613,7 @@ advanced_tools_menu() {
             set-password) confirm_and_run "设置管理员密码" "新密码会明文保存到桌面管理员密码.txt；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" set ;;
             change-password) confirm_and_run "修改管理员密码" "将读取旧记录并明文保存新密码；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;
             todesk) todesk_preflight ;;
-            decky-install) confirm_and_run "安装 Decky Loader" "请先在游戏模式开启开发者模式和 CEF 远程调试。安装会使用管理员权限并启动后台服务" bash "$PROJECT_ROOT/modules/plugin_store.sh" store ;;
+            decky-install) confirm_and_run "安装插件商城" "请先在游戏模式开启开发者模式和 CEF 远程调试。安装会使用管理员权限并启动后台服务" bash "$PROJECT_ROOT/modules/plugin_store.sh" store ;;
             dual) dual_system_menu ;;
             next) page=2 ;;
             previous) page=1 ;;

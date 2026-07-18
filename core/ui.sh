@@ -124,8 +124,12 @@ ui_touch_button() {
 
     ui_move "$row" "$UI_PANEL_COL"
     # 临时关闭终端自动换行，过长说明会在右边缘截断，不会挤乱下一行。
-    printf '\033[?7l\033[48;5;234m%b▌ %b%s\033[38;5;245m · %s \033[0m\033[?7h' \
-        "$rail_color" "$label_color" "$label" "$hint"
+    printf '\033[?7l\033[48;5;234m%b▌ %b%s' \
+        "$rail_color" "$label_color" "$label"
+    if [ -n "$hint" ]; then
+        printf '\033[38;5;245m · %s' "$hint"
+    fi
+    printf ' \033[0m\033[?7h'
 }
 
 draw_category_frame() {

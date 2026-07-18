@@ -370,6 +370,29 @@ install_plugin_store() (
     log "Decky Loader固定版本安装完成"
 )
 
+decky_plugin_store_is_installed() {
+    [ -x "$DECKY_HOMEBREW_DIR/services/PluginLoader" ] && \
+        [ -f "$DECKY_UNIT_PATH" ]
+}
+
+ensure_plugin_store_ready() {
+    if decky_plugin_store_is_installed; then
+        echo "已检测到插件商城，开始安装插件。"
+        return 0
+    fi
+
+    echo "未检测到插件商城，先安装插件商城。"
+    install_plugin_store || {
+        echo "插件商城未安装完成，已停止后续插件安装。"
+        return 1
+    }
+    decky_plugin_store_is_installed || {
+        echo "插件商城安装后未通过检查，已停止后续插件安装。"
+        return 1
+    }
+    echo "插件商城已安装完成，继续安装插件。"
+}
+
 download_verified_package() {
     local name="$1"
     local url="$2"
@@ -1309,6 +1332,8 @@ install_feature_plugins() {
         echo "功能插件安装仅支持真实 SteamOS 环境。"
         return 1
     fi
+
+    ensure_plugin_store_ready || return 1
 
     echo "将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。"
     echo "已安装的插件会以新版本安全替换；单项失败不会覆盖该插件的旧版本。"

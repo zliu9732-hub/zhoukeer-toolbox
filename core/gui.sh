@@ -70,11 +70,11 @@ software_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "常用软件｜安装聊天、浏览器和远程工具" \
-            wechat "微信｜安装适合 SteamOS 的微信" \
-            qq "QQ｜安装适合 SteamOS 的 QQ" \
-            browser "Firefox 浏览器｜安装 Firefox 浏览器" \
-            chrome "Chrome 浏览器｜安装 Chrome 浏览器" \
-            edge "Edge 浏览器｜安装 Edge 浏览器" \
+            wechat "微信" \
+            qq "QQ" \
+            browser "Firefox 浏览器" \
+            chrome "Chrome 浏览器" \
+            edge "Edge 浏览器" \
             rustdesk "RustDesk 远程协助｜安装开源远程工具" \
             bottles "Windows 软件工具｜安装 Bottles 运行工具" \
             protontricks "游戏兼容设置｜安装 Protontricks" \
@@ -152,17 +152,17 @@ game_environment_gui_menu() {
             localizer "游戏中文辅助｜安装中文显示辅助｜实验功能" \
             ge-proton "GE 游戏运行组件｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
-            decky-install "安装 Decky Loader｜进入系统与密码确认｜高级操作" \
+            decky-install "安装插件商城｜进入系统与密码确认｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
             features)
-                gui_confirm "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将依次安装小黄鸭、FSR4 和 CheatDeck；单项失败不会覆盖旧版本。是否继续？" && \
-                    run_gui_action "安装常用功能插件" env ZHOUKEER_AUTO_CONFIRM=1 \
+                gui_confirm "未安装插件商城时会先安装插件商城，再继续安装三款插件；会使用管理员权限。是否继续？" && \
+                    run_gui_action "安装常用插件组合" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" features
                 ;;
             all)
-                gui_confirm "安装前请先在游戏模式开启开发者模式和 CEF 远程调试。该动作会安装 Decky、常用功能插件和当前精选插件。是否继续？" && \
+                gui_confirm "未安装插件商城时会先安装插件商城，再继续安装常用与精选插件；会使用管理员权限。是否继续？" && \
                     run_gui_action "安装插件环境与精选组合" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" all
                 ;;
@@ -519,7 +519,7 @@ advanced_tools_gui_menu() {
             set-password "设置管理员密码｜会修改 SteamOS 管理密码｜高级操作" \
             change-password "修改管理员密码｜会更换 SteamOS 管理密码｜高级操作" \
             todesk "安装 ToDesk｜会修改只读系统｜高级操作" \
-            decky-install "安装 Decky Loader｜会使用管理员权限｜高级操作" \
+            decky-install "安装插件商城｜会使用管理员权限｜高级操作" \
             dual "双系统与互通盘｜管理磁盘和开机菜单｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -541,7 +541,7 @@ advanced_tools_gui_menu() {
                 ;;
             decky-install)
                 gui_confirm "请先在游戏模式开启开发者模式和 CEF 远程调试。安装会使用管理员权限并启动后台服务，是否继续？" && \
-                    run_gui_action "安装 Decky Loader" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    run_gui_action "安装插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" store
                 ;;
             dual) dual_system_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;

@@ -61,13 +61,20 @@ for menu in "$touch_software" "$gui_software"; do
         assert_not_contains "$menu" "$hidden" "常用软件不应显示：$hidden"
     done
 done
+touch_software_buttons="$(printf '%s\n' "$touch_software" | grep 'ui_touch_button')"
+gui_software_entries="$(printf '%s\n' "$gui_software" | sed -n '/choice="$(gui_dialog --menu/,/)" || return 0/p')"
+for obsolete_hint in '安装适合 SteamOS 的微信' '安装适合 SteamOS 的 QQ' \
+    '安装 Firefox 浏览器' '安装 Chrome 浏览器' '安装 Edge 浏览器'; do
+    assert_not_contains "$touch_software_buttons" "$obsolete_hint" "触控常用软件仍显示多余说明：$obsolete_hint"
+    assert_not_contains "$gui_software_entries" "$obsolete_hint" "GUI 常用软件仍显示多余说明：$obsolete_hint"
+done
 
 touch_games="$(function_source "$MAIN_FILE" game_environment_menu)"
 gui_games="$(function_source "$GUI_FILE" game_environment_gui_menu)"
 for menu in "$touch_games" "$gui_games"; do
     assert_contains "$menu" '游戏与插件｜插件商城' "插件商城页面标题不统一"
     assert_not_contains "$menu" '游戏与插件｜Decky 插件商城' "插件商城页面仍显示英文标题"
-    for item in '常用插件组合' '插件环境与精选组合' '浏览官方插件' '游戏中文辅助' 'GE 游戏运行组件' 'Epic 游戏启动器' '安装 Decky Loader'; do
+    for item in '常用插件组合' '插件环境与精选组合' '浏览官方插件' '游戏中文辅助' 'GE 游戏运行组件' 'Epic 游戏启动器' '安装插件商城'; do
         assert_contains "$menu" "$item" "游戏环境缺少：$item"
     done
     assert_contains "$menu" '实验功能' "游戏中文辅助缺少实验说明"
@@ -112,7 +119,7 @@ touch_advanced="$(function_source "$MAIN_FILE" advanced_tools_menu)"
 gui_advanced="$(function_source "$GUI_FILE" advanced_tools_gui_menu)"
 for menu in "$touch_advanced" "$gui_advanced"; do
     assert_contains "$menu" '以下功能会修改系统、网络、软件源、密码或磁盘设置' "系统与密码缺少固定警告"
-    for item in '国内软件源' 'Steamcommunity 302' '设置管理员密码' '修改管理员密码' '安装 ToDesk' '安装 Decky Loader' '双系统与互通盘'; do
+    for item in '国内软件源' 'Steamcommunity 302' '设置管理员密码' '修改管理员密码' '安装 ToDesk' '安装插件商城' '双系统与互通盘'; do
         assert_contains "$menu" "$item" "系统与密码缺少：$item"
     done
     for risk_text in 'Flatpak 软件源' '修改 DNS' '管理密码' '修改只读系统' '使用管理员权限' '管理磁盘和开机菜单'; do
