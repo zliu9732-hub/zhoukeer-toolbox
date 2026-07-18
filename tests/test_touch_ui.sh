@@ -63,6 +63,10 @@ if printf '%s\n' "$sidebar_item" | grep -Fq '48;5;234'; then
     fail "侧栏分类仍使用独立黑色底块"
 fi
 
+if grep -Fq '48;5;234' "$PROJECT_ROOT/core/ui.sh"; then
+    fail "触控界面仍残留黑色文字底块"
+fi
+
 password_gate="$(sed -n '/^ensure_password_ready()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$password_gate" | grep -Fq 'modules/password.sh" import' || fail "首次启动缺少现有密码录入入口"
 printf '%s\n' "$password_gate" | grep -Fq 'modules/password.sh" set' || fail "首次启动缺少新密码设置入口"

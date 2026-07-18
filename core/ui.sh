@@ -77,8 +77,7 @@ ui_panel_line() {
 
     ui_resolve_text_color "$color"
     ui_move "$row" "$UI_PANEL_COL"
-    # 文字使用短暗底，保留壁纸氛围但不再让人物图案干扰阅读。
-    printf '\033[48;5;234m %b%s \033[0m' "$UI_THEME_COLOR" "$text"
+    printf ' %b%s \033[0m' "$UI_THEME_COLOR" "$text"
 }
 
 # 每个分类是两行高的大按钮，内部值只用于程序识别，界面不显示字母或数字。
@@ -181,13 +180,13 @@ draw_disclaimer_frame() {
     ui_reset_screen
 
     ui_move 2 6
-    printf '\033[1;38;5;203;48;5;234m ◆ 周克儿工具箱  ·  V4 \033[0m'
+    printf '\033[1;38;5;203m ◆ 周克儿工具箱  ·  V4 \033[0m'
     ui_move 3 6
     printf '\033[38;5;203m────────────────────────────────────────────────────────────\033[0m'
     ui_move 5 6
-    printf '\033[1;38;5;255;48;5;234m ▌ 使用说明与免责声明 \033[0m'
+    printf '\033[1;38;5;255m ▌ 使用说明与免责声明 \033[0m'
     ui_move 6 6
-    printf '\033[38;5;250;48;5;234m  请阅读以下内容，知悉后再开始使用 \033[0m'
+    printf '\033[38;5;250m  请阅读以下内容，知悉后再开始使用 \033[0m'
 }
 
 ui_disclaimer_line() {
@@ -197,7 +196,7 @@ ui_disclaimer_line() {
 
     ui_resolve_text_color "$color"
     ui_move "$row" 6
-    printf '\033[48;5;234m %b%s \033[0m' "$UI_THEME_COLOR" "$text"
+    printf ' %b%s \033[0m' "$UI_THEME_COLOR" "$text"
 }
 
 ui_disclaimer_button() {
@@ -208,14 +207,14 @@ ui_disclaimer_button() {
 
     ui_resolve_text_color "$color"
     ui_move "$row" 8
-    printf '\033[48;5;234m%b▌  %s \033[0m' "$UI_THEME_COLOR" "$label"
+    printf '%b▌  %s \033[0m' "$UI_THEME_COLOR" "$label"
     ui_move "$((row + 1))" 11
-    printf '\033[48;5;234m\033[38;5;250m  %s \033[0m' "$hint"
+    printf '\033[38;5;250m  %s \033[0m' "$hint"
 }
 
 ui_prompt() {
     ui_move "$UI_LAST_ROW" "$UI_PANEL_COL"
-    printf '\033[0m\033[2K\033[38;5;255;48;5;234m 触屏或触控板点击功能 \033[0m'
+    printf '\033[0m\033[2K\033[38;5;255m 触屏或触控板点击功能 \033[0m'
 }
 
 enable_mouse_tracking() {
