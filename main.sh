@@ -132,15 +132,12 @@ show_disclaimer() {
 read_touch_menu() {
     read_menu_choice \
         left:2-3:nav-init \
-        left:4-5:nav-software \
-        left:6-7:nav-remote \
-        left:8-9:nav-plugins \
-        left:10-11:nav-settings \
-        left:12-13:nav-dual \
-        left:14-15:nav-optimize \
-        left:16-17:nav-guides \
-        left:18-19:nav-changelog \
-        left:20-21:nav-update \
+        left:5-6:nav-software \
+        left:8-9:nav-games \
+        left:11-12:nav-network \
+        left:14-15:nav-maintenance \
+        left:17-18:nav-help \
+        left:20-21:nav-advanced \
         left:22-23:nav-exit \
         "$@"
 }
@@ -149,14 +146,18 @@ apply_navigation() {
     case "$1" in
         nav-init) NEXT_CATEGORY="init" ;;
         nav-software) NEXT_CATEGORY="software" ;;
-        nav-remote) NEXT_CATEGORY="remote" ;;
-        nav-plugins) NEXT_CATEGORY="plugins" ;;
-        nav-settings) NEXT_CATEGORY="settings" ;;
-        nav-dual) NEXT_CATEGORY="dual" ;;
-        nav-optimize) NEXT_CATEGORY="optimize" ;;
-        nav-guides) NEXT_CATEGORY="guides" ;;
-        nav-changelog) NEXT_CATEGORY="changelog" ;;
-        nav-update) NEXT_CATEGORY="update" ;;
+        nav-games) NEXT_CATEGORY="games" ;;
+        nav-network) NEXT_CATEGORY="network" ;;
+        nav-maintenance) NEXT_CATEGORY="maintenance" ;;
+        nav-help) NEXT_CATEGORY="help" ;;
+        nav-advanced) NEXT_CATEGORY="advanced" ;;
+        # 旧导航 ID 仅保留兼容，不再显示在首页。
+        nav-remote) NEXT_CATEGORY="software" ;;
+        nav-plugins) NEXT_CATEGORY="games" ;;
+        nav-settings) NEXT_CATEGORY="network" ;;
+        nav-optimize) NEXT_CATEGORY="maintenance" ;;
+        nav-guides|nav-changelog|nav-update) NEXT_CATEGORY="help" ;;
+        nav-dual) NEXT_CATEGORY="advanced" ;;
         nav-exit) NEXT_CATEGORY="exit" ;;
         *) return 1 ;;
     esac
@@ -167,17 +168,18 @@ common_software_menu() {
     local choice
 
     while true; do
-        draw_category_frame software "常用软件" "Linux 软件与 Windows 游戏启动器集中安装"
-        ui_touch_button 5 '\033[1;97;48;5;24m' "微信" "安装或修复微信"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "QQ" "安装或修复 QQ"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "Google Chrome" "Flathub 安装，支持自动更新"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "Microsoft Edge" "Flathub 安装，支持自动更新"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "[Protontricks] 红酒杯" "修复与配置 Steam 游戏 Proton 环境"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "[Bottles] 酒瓶" "独立运行第三方 Windows 应用与游戏"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "Epic Games 启动器" "添加至 Steam 库"
+        draw_category_frame software "常用软件" "安装聊天和远程工具  [会安装软件]"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "微信" "安装适合 SteamOS 的微信  [会安装软件]"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "QQ" "安装适合 SteamOS 的 QQ  [会安装软件]"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "Chrome 浏览器" "安装 Chrome 浏览器  [会安装软件]"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "Edge 浏览器" "安装 Edge 浏览器  [会安装软件]"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "RustDesk 远程协助" "安装开源远程工具  [会安装软件]"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "Windows 软件工具" "安装 Bottles 运行工具  [会安装软件]"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "游戏兼容设置" "安装 Protontricks  [会安装软件]"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam  [会安装软件]"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:wechat right:7-8:qq right:9-10:chrome right:11-12:edge right:13-14:protontricks right:15-16:bottles right:17-18:epic right:20-21:home)"
+        choice="$(read_touch_menu right:5-6:wechat right:7-8:qq right:9-10:chrome right:11-12:edge right:13-14:rustdesk right:15-16:bottles right:17-18:protontricks right:19-20:epic right:22-23:home)"
         case "$choice" in
             nav-*) apply_navigation "$choice"; return 0 ;;
         esac
@@ -187,9 +189,10 @@ common_software_menu() {
             qq) confirm_and_run "安装QQ" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" qq ;;
             chrome) confirm_and_run "安装 Google Chrome" "Flathub 安装，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" chrome ;;
             edge) confirm_and_run "安装 Microsoft Edge" "Flathub 安装，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" edge ;;
+            rustdesk) confirm_and_run "安装 RustDesk 远程协助" "从作者 GitHub Release 安装，不会修改服务器配置" bash "$PROJECT_ROOT/modules/software.sh" rustdesk ;;
             protontricks) confirm_and_run "安装 Protontricks" "修复与配置 Steam 游戏 Proton 环境" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
             bottles) confirm_and_run "安装 Bottles" "独立运行第三方 Windows 应用与游戏" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
-            epic) run_action "安装 Epic Games 启动器并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
+            epic) run_action "安装 Epic 游戏启动器并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
 
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -222,46 +225,71 @@ todesk_preflight() {
     local choice
 
     while true; do
-        draw_category_frame remote "ToDesk 使用前设置" "请先切回 Steam 游戏模式，按顺序完成全部步骤"
+        draw_category_frame advanced "安装 ToDesk" "会修改 SteamOS 只读系统  [会修改只读系统]"
         ui_panel_line 7 '\033[1;38;5;220m' "① 按 Steam 键 → 设置 → 系统"
         ui_panel_line 9 '\033[1;38;5;45m' "② 开启“启用开发者模式”"
         ui_panel_line 11 '\033[1;38;5;45m' "③ 设置侧栏进入“开发者” → 找到“杂项”"
         ui_panel_line 13 '\033[1;38;5;45m' "④ 开启“使用旧版 X11 桌面模式”"
         ui_panel_line 15 '\033[1;38;5;220m' "⑤ 重新进入桌面模式，再安装并启动 ToDesk"
         ui_touch_button 16 '\033[1;30;48;5;114m' "以上设置已完成，继续安装" "点击即确认两项开关均已开启"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回远程协助" "暂不安装"
-        choice="$(read_touch_menu right:16-17:continue right:18-19:back)"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回高级工具" "暂不安装"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        choice="$(read_touch_menu right:16-17:continue right:18-19:back right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             continue)
-                confirm_and_run "ToDesk远程工具" "将自动使用桌面管理员密码.txt验证；缺失时由系统询问" bash "$PROJECT_ROOT/modules/todesk.sh" --install
+                confirm_and_run "安装 ToDesk" "将使用管理员权限并临时修改 SteamOS 只读系统；完成后应恢复只读保护" bash "$PROJECT_ROOT/modules/todesk.sh" --install
                 return 0
                 ;;
-            back) NEXT_CATEGORY="remote"; return 0 ;;
+            back) NEXT_CATEGORY="advanced"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
         esac
     done
 }
 
-new_machine_preflight() {
+new_machine_menu() {
     local choice
 
     while true; do
-        draw_category_frame init "新机初始化前准备" "初始化包含 ToDesk，请先在 Steam 游戏模式完成设置"
+        draw_category_frame init "新机必备" "第一次使用从这里开始  [引导]"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "推荐软件安装" "选择需要的常用软件  [会安装软件]"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "新手使用指南" "查看首次使用步骤  [只读]"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "高级新机初始化" "前往高级工具查看风险  [高级操作]"
+        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类  [普通]"
+        ui_prompt
+        choice="$(read_touch_menu right:7-8:recommended right:11-12:beginner-guide right:15-16:advanced-init right:20-21:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            recommended) NEXT_CATEGORY="software"; return 0 ;;
+            beginner-guide) NEXT_CATEGORY="help"; return 0 ;;
+            advanced-init) NEXT_CATEGORY="advanced"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+    done
+}
+
+advanced_new_machine_preflight() {
+    local choice
+
+    while true; do
+        draw_category_frame advanced "高级新机初始化" "连续安装并配置新机器  [安装软件/修改软件源]"
         ui_panel_line 7 '\033[1;38;5;220m' "① Steam 键 → 设置 → 系统 → 启用开发者模式"
         ui_panel_line 9 '\033[1;38;5;45m' "② 设置侧栏 → 开发者 → 杂项"
         ui_panel_line 11 '\033[1;38;5;45m' "③ 开启“使用旧版 X11 桌面模式”"
         ui_panel_line 13 '\033[1;38;5;220m' "④ 重新进入桌面模式，再开始初始化"
         ui_panel_line 14 '\033[1;38;5;45m' "继续后将安装国内源、常用软件、Decky 和 ToDesk"
         ui_touch_button 16 '\033[1;30;48;5;114m' "设置已完成，开始新机初始化" "点击即确认已开启开发者模式和旧版 X11"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "暂不初始化"
-        choice="$(read_touch_menu right:16-17:start right:18-19:home)"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回高级工具" "暂不初始化  [普通]"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        choice="$(read_touch_menu right:16-17:start right:18-19:advanced right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             start)
-                run_action "一键新机初始化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/new_machine.sh"
-                NEXT_CATEGORY="home"
+                run_action "高级新机初始化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/new_machine.sh"
+                NEXT_CATEGORY="advanced"
                 return 0
                 ;;
+            advanced) NEXT_CATEGORY="advanced"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
     done
@@ -313,29 +341,31 @@ clean_touch_menu() {
     done
 }
 
-plugin_store_menu() {
+game_environment_menu() {
     local choice
 
     while true; do
-        draw_category_frame plugins "插件商城" "Decky内置安装器、28款插件与商店最新版"
-        ui_touch_button 6 '\033[1;97;48;5;24m' "安装或更新 Decky Loader" "使用经过固定校验的国内安装源"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "一键安装常用功能插件" "小黄鸭、FSR4、CheatDeck 一次装好"
-        ui_touch_button 10 '\033[1;97;48;5;30m' "一键安装25个精选插件" "不含小黄鸭/FSR4/CheatDeck，可单独安装"
-        ui_touch_button 12 '\033[1;97;48;5;24m' "浏览官方插件（分页）" "每页 5 个插件，均附中文功能说明"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "安装周克儿汉化（修复版）" "持续扫描已知文案，不修改原插件文件"
-        ui_touch_button 16 '\033[1;97;48;5;124m' "一键清空已装插件" "删除插件根目录全部内容，不删除 Decky 本体"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        draw_category_frame games "游戏环境｜Decky 插件商城" "安装插件和游戏组件  [会安装组件]"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭等三款插件  [会安装插件]"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "插件环境与精选组合" "安装 Decky 与当前组合  [会安装插件]"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用  [会安装插件]"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "游戏中文辅助" "安装中文显示辅助  [实验功能]"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "GE 游戏运行组件" "提高 Windows 游戏兼容性  [会安装组件]"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam  [会安装软件]"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "安装 Decky Loader" "前往高级工具确认  [高级操作]"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类  [普通]"
         ui_prompt
-        choice="$(read_touch_menu right:6-7:install right:8-9:features right:10-11:all right:12-13:browse right:14-15:localizer right:16-17:uninstall right:18-19:home)"
+        choice="$(read_touch_menu right:5-6:features right:7-8:all right:9-10:browse right:11-12:localizer right:13-14:ge-proton right:15-16:epic right:17-18:decky-install right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            install) confirm_and_run "Decky Loader插件商城" "安装前请先回游戏模式：Steam键→设置→系统→开启“启用开发者模式”；再到开发者菜单开启“CEF远程调试”。完成后回桌面模式继续。将使用国内镜像安装器，执行前会校验固定 SHA256" bash "$PROJECT_ROOT/modules/plugin_store.sh" store ;;
             features) confirm_and_run "安装常用功能插件" "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将依次安装小黄鸭、FSR4 和 CheatDeck；单项失败不会覆盖旧版本" bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
-            all) confirm_and_run "安装当前列表全部插件" "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将安装 Decky、3款独立功能插件和25款精选插件，其中包括 SimpleDeckyTDP 与 Unifideck；商店插件仍需在Steam界面确认" bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
+            all) confirm_and_run "安装插件环境与精选组合" "安装前请先在游戏模式开启开发者模式和 CEF 远程调试。该动作会安装 Decky、常用功能插件和当前精选插件" bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
             browse) plugin_official_touch_pages ;;
-            localizer) confirm_and_run "安装周克儿汉化" "这是独立的 Decky 汉化层修复版：不会改写原插件文件，会持续处理已知可见文案。安装后请回游戏模式，在 Decky 菜单中启用。是否继续？" bash "$PROJECT_ROOT/modules/plugin_store.sh" localizer ;;
-            uninstall) confirm_and_run "清空已装 Decky 插件" "将删除 homebrew/plugins 根目录内的全部插件文件和插件设置；Decky Loader 本体不会被删除。是否继续？" bash "$PROJECT_ROOT/modules/plugin_store.sh" uninstall ;;
+            localizer) confirm_and_run "游戏中文辅助" "这是实验功能，不会改写原插件文件；安装后请回游戏模式，在 Decky 菜单中启用" bash "$PROJECT_ROOT/modules/plugin_store.sh" localizer ;;
+            ge-proton) confirm_and_run "安装 GE 游戏运行组件" "将安装第三方 GE-Proton 游戏兼容组件" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
+            epic) run_action "安装 Epic 游戏启动器并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
+            decky-install) NEXT_CATEGORY="advanced"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
     done
@@ -373,7 +403,7 @@ plugin_official_touch_pages() {
     local row
 
     while true; do
-        draw_category_frame plugins "官方插件（第 $((page + 1)) / $total_pages 页）" "点击插件即可安装；每项均来自 Decky 官方商店"
+        draw_category_frame games "官方插件（第 $((page + 1)) / $total_pages 页）" "点击插件即可安装  [会安装插件]"
         start=$((page * DECKY_TOUCH_PAGE_SIZE))
         for slot in 0 1 2 3 4; do
             index=$((start + slot))
@@ -386,13 +416,14 @@ plugin_official_touch_pages() {
         if [ "$page" -gt 0 ]; then
             ui_touch_button 16 '\033[1;97;48;5;238m' "上一页" "查看前一组插件"
         else
-            ui_touch_button 16 '\033[1;97;48;5;238m' "返回插件商城" "查看一键安装功能"
+            ui_touch_button 16 '\033[1;97;48;5;238m' "返回游戏环境" "查看其他游戏组件"
         fi
         if [ "$page" -lt $((total_pages - 1)) ]; then
             ui_touch_button 18 '\033[1;97;48;5;30m' "下一页" "继续查看更多插件"
         else
-            ui_touch_button 18 '\033[1;97;48;5;238m' "返回插件商城" "已是最后一页"
+            ui_touch_button 18 '\033[1;97;48;5;238m' "返回游戏环境" "已是最后一页"
         fi
+        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu \
             right:6-7:plugin-$((start)) \
@@ -401,7 +432,8 @@ plugin_official_touch_pages() {
             right:12-13:plugin-$((start + 3)) \
             right:14-15:plugin-$((start + 4)) \
             right:16-17:previous \
-            right:18-19:next)"
+            right:18-19:next \
+            right:20-21:home)"
         case "$choice" in
             nav-*) apply_navigation "$choice"; return 0 ;;
         esac
@@ -430,6 +462,7 @@ plugin_official_touch_pages() {
                     return 0
                 fi
                 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
         esac
     done
 }
@@ -438,15 +471,16 @@ dual_system_menu() {
     local choice
 
     while true; do
-        draw_category_frame dual "双系统设置" "互通盘与 systemd-boot 启动菜单"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "一键挂载互通盘" "仅自动挂载唯一的未挂载 NTFS/exFAT 分区"
-        ui_touch_button 9 '\033[1;97;48;5;30m' "保护双系统互通盘" "只读挂载，防止 SteamOS 下误写入"
+        draw_category_frame advanced "双系统与互通盘" "磁盘和开机菜单设置  [磁盘/启动高级操作]"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "挂载互通盘" "连接唯一未挂载的共享盘  [高级操作]"
+        ui_touch_button 9 '\033[1;97;48;5;30m' "只读保护互通盘" "防止 SteamOS 误写入  [高级操作]"
         ui_touch_button 11 '\033[1;97;48;5;24m' "恢复互通盘写入" "重新以可写模式挂载互通盘"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "添加 systemd-boot 引导" "启用启动菜单，默认等待 5 秒"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "删除 systemd-boot 引导" "仅将菜单等待时间改为 0 秒"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "显示开机系统菜单" "显示 systemd-boot 5 秒  [高级操作]"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "隐藏开机系统菜单" "将等待时间设置为 0 秒  [高级操作]"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回高级工具" "查看其他高级功能"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:mount right:9-10:protect right:11-12:unprotect right:13-14:add right:15-16:remove right:18-19:home)"
+        choice="$(read_touch_menu right:7-8:mount right:9-10:protect right:11-12:unprotect right:13-14:add right:15-16:remove right:18-19:advanced right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -470,36 +504,105 @@ dual_system_menu() {
                 confirm_and_run "删除 systemd-boot 引导" "仅把引导菜单等待时间设置为 0 秒；不会删除 SteamOS、Windows 或启动项" \
                     bash "$PROJECT_ROOT/modules/dual_system.sh" remove
                 ;;
+            advanced) NEXT_CATEGORY="advanced"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
-        [ "$NEXT_CATEGORY" = "dual" ] || return 0
+        [ "$NEXT_CATEGORY" = "advanced" ] || return 0
     done
 }
 
-system_settings_menu() {
+domestic_source_preflight() {
     local choice
 
     while true; do
-        draw_category_frame settings "系统设置" "软件源、Steam加速、系统密码和一键体检"
-        ui_touch_button 7 '\033[1;97;48;5;30m' "初始化软件源" "一次完成系统组件、国内源与 Discover 软件索引"
-        ui_touch_button 12 '\033[1;97;48;5;24m' "Steamcommunity 302" "一键安装并加速 Steam 与 GitHub"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "设置系统密码" "明文保存到桌面；同一用户运行的软件也能读取"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "修改系统密码" "同步更新明文记录；同一用户软件也能读取"
-        ui_touch_button 19 '\033[1;97;48;5;24m' "一键体检" "检查空间、网络、Steam、Decky 和常用软件；不修改系统"
+        draw_category_frame advanced "国内软件源" "提高国内应用下载速度  [会修改软件源]"
+        ui_panel_line 7 '\033[1;38;5;220m' "远程：flathub-cn｜https://mirror.sjtu.edu.cn/flathub"
+        ui_panel_line 9 '\033[1;38;5;220m' "备用：flathub-ustc｜https://mirrors.ustc.edu.cn/flathub"
+        ui_panel_line 11 '\033[1;38;5;203m' "会修改 Flatpak 软件源，并可能调整 GPG 验证"
+        ui_panel_line 13 '\033[1;38;5;203m' "还会运行 pacman，并临时关闭 SteamOS 只读保护"
+        ui_panel_line 15 '\033[1;38;5;203m' "恢复官方源功能尚未完成，请确认了解后继续"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "确认修改国内软件源" "执行现有初始化动作  [高风险]"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回高级工具" "不做任何修改"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:init-sources right:12-13:accelerator right:15-16:set-password right:17-18:change-password right:19-20:info right:22-23:home)"
+        choice="$(read_touch_menu right:17-18:confirm-source right:19-20:advanced right:22-23:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            confirm-source)
+                run_action "国内软件源" bash "$PROJECT_ROOT/modules/domestic_source.sh" init
+                NEXT_CATEGORY="advanced"
+                return 0
+                ;;
+            advanced) NEXT_CATEGORY="advanced"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+    done
+}
+
+advanced_tools_menu() {
+    local choice
+    local page=1
+
+    while true; do
+        draw_category_frame advanced "高级工具（第 $page / 2 页）" "以下功能会修改系统、网络、软件源、密码或磁盘设置。请确认了解风险后继续。"
+        if [ "$page" -eq 1 ]; then
+            ui_touch_button 7 '\033[1;97;48;5;160m' "高级新机初始化" "连续安装并配置新机器  [安装软件/修改软件源]"
+            ui_touch_button 10 '\033[1;97;48;5;160m' "国内软件源" "会修改 Flatpak 软件源  [会修改软件源]"
+            ui_touch_button 13 '\033[1;97;48;5;160m' "Steamcommunity 302" "可能修改 DNS 和证书  [会修改网络设置]"
+            ui_touch_button 16 '\033[1;97;48;5;160m' "设置管理员密码" "设置 SteamOS 管理密码  [会修改系统密码]"
+            ui_touch_button 19 '\033[1;97;48;5;30m' "下一页" "查看其他高级功能"
+        else
+            ui_touch_button 7 '\033[1;97;48;5;160m' "修改管理员密码" "更换 SteamOS 管理密码  [会修改系统密码]"
+            ui_touch_button 10 '\033[1;97;48;5;160m' "安装 ToDesk" "安装需要系统权限的远程工具  [会修改只读系统]"
+            ui_touch_button 13 '\033[1;97;48;5;160m' "安装 Decky Loader" "安装插件后台服务  [会使用管理员权限]"
+            ui_touch_button 16 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单  [磁盘/启动高级操作]"
+            ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回软件源和网络设置"
+        fi
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        if [ "$page" -eq 1 ]; then
+            choice="$(read_touch_menu right:7-8:advanced-init right:10-11:domestic-source right:13-14:accelerator right:16-17:set-password right:19-20:next right:22-23:home)"
+        else
+            choice="$(read_touch_menu right:7-8:change-password right:10-11:todesk right:13-14:decky-install right:16-17:dual right:19-20:previous right:22-23:home)"
+        fi
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            advanced-init) advanced_new_machine_preflight ;;
+            domestic-source) domestic_source_preflight ;;
+            accelerator) steam_accelerator_touch_menu ;;
+            set-password) confirm_and_run "设置管理员密码" "新密码会明文保存到桌面管理员密码.txt；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" set ;;
+            change-password) confirm_and_run "修改管理员密码" "将读取旧记录并明文保存新密码；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;
+            todesk) todesk_preflight ;;
+            decky-install) confirm_and_run "安装 Decky Loader" "请先在游戏模式开启开发者模式和 CEF 远程调试。安装会使用管理员权限并启动后台服务" bash "$PROJECT_ROOT/modules/plugin_store.sh" store ;;
+            dual) dual_system_menu ;;
+            next) page=2 ;;
+            previous) page=1 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = "advanced" ] || return 0
+    done
+}
+
+network_store_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame network "网络与应用商店" "检查网络和软件源状态  [普通检查]"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "网络状态检查" "检查当前网络是否可用  [只读检查]"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "软件源状态" "查看当前应用下载来源  [只读检查]"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "管理国内源与加速" "进入高级网络设置  [高级操作]"
+        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类  [普通]"
+        ui_prompt
+        choice="$(read_touch_menu right:7-8:network-status right:11-12:source-status right:15-16:manage-advanced right:20-21:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            init-sources) run_action "初始化软件源" bash "$PROJECT_ROOT/modules/domestic_source.sh" init ;;
-            accelerator) steam_accelerator_touch_menu ;;
-            set-password) confirm_and_run "设置系统密码" "新密码将明文保存到桌面管理员密码.txt；所有以当前用户身份运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" set ;;
-            change-password) confirm_and_run "修改系统密码" "将读取旧记录并明文保存新密码；所有以当前用户身份运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;
-            info) run_action "一键体检" bash "$PROJECT_ROOT/core/detect.sh" --health ;;
+            network-status) run_action "网络状态检查" bash "$PROJECT_ROOT/modules/network.sh" ;;
+            source-status) run_action "软件源状态" bash "$PROJECT_ROOT/modules/domestic_source.sh" status ;;
+            manage-advanced) NEXT_CATEGORY="advanced"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
-        [ "$NEXT_CATEGORY" = "settings" ] || return 0
+        [ "$NEXT_CATEGORY" = "network" ] || return 0
     done
 }
 
@@ -507,82 +610,109 @@ steam_accelerator_touch_menu() {
     local choice
 
     while true; do
-        draw_category_frame settings "Steamcommunity 302" "官方 Linux AMD64 固定版本，内置 Steam + GitHub 加速"
+        draw_category_frame advanced "Steamcommunity 302" "可能修改 DNS、证书、hosts 和后台服务  [会修改网络设置]"
         ui_touch_button 6 '\033[1;97;48;5;24m' "安装或更新" "下载并校验官方程序与内置规则"
         ui_touch_button 9 '\033[1;97;48;5;30m' "一键开启加速" "自动准备并启动 Steam + GitHub 后台加速"
         ui_touch_button 12 '\033[1;97;48;5;24m' "查看运行状态" "查看版本、内置进程和后台服务状态"
         ui_touch_button 15 '\033[1;97;48;5;160m' "安全卸载" "先停止工具箱进程，再删除程序文件"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回高级工具" "查看其他高级功能"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:6-7:install right:9-10:start right:12-13:status right:15-16:uninstall right:18-19:settings)"
+        choice="$(read_touch_menu right:6-7:install right:9-10:start right:12-13:status right:15-16:uninstall right:18-19:advanced right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             install)
-                confirm_and_run "Steamcommunity 302" "下载官方程序并生成 Steam + GitHub 内置规则；首次开启可能请求管理员权限" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" install
+                confirm_and_run "Steamcommunity 302" "会下载官方程序，并可能修改 DNS、证书、hosts、后台服务；需要管理员权限" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" install
                 ;;
             start)
-                confirm_and_run "开启 Steamcommunity 302 加速" "工具箱会自动安装（如缺失）并启动官方 CLI，只接管 Steam 与 GitHub" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" enable
+                confirm_and_run "开启 Steamcommunity 302" "会自动安装并启动服务，可能修改 DNS、证书、hosts；需要管理员权限" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" enable
                 ;;
             status) run_action "Steamcommunity 302 状态" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" status ;;
             uninstall)
                 confirm_and_run "卸载 Steamcommunity 302" "会停止工具箱启动的进程；官方 systemd、hosts、DNS 和证书需按官方程序另行处理" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
                 ;;
-            settings) NEXT_CATEGORY="settings"; return 0 ;;
-        esac
-        [ "$NEXT_CATEGORY" = "settings" ] || return 0
-    done
-}
-
-system_optimization_menu() {
-    local choice
-
-    while true; do
-        draw_category_frame optimize "系统优化" "缓存清理、性能建议和常见问题修复"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "游戏启动诊断" "检查 Steam、兼容层、空间和日志；不删除游戏文件"
-        ui_touch_button 10 '\033[1;97;48;5;24m' "SteamOS 掌机优化" "下载缓存、着色器缓存和性能建议"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "系统清理" "安全释放用户缓存和 Steam 缓存"
-        ui_touch_button 16 '\033[1;97;48;5;24m' "一键修复模式" "检测网络并处理常见下载问题"
-        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
-        ui_prompt
-        choice="$(read_touch_menu right:7-8:diagnose right:10-11:steam right:13-14:clean right:16-17:fix right:20-21:home)"
-        if apply_navigation "$choice"; then return 0; fi
-
-        case "$choice" in
-            diagnose) run_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
-            steam) steam_touch_menu ;;
-            clean) clean_touch_menu ;;
-            fix) confirm_and_run "一键修复模式" "检测网络并安全清理 Steam 下载缓存" bash "$PROJECT_ROOT/modules/fixall.sh" ;;
+            advanced) NEXT_CATEGORY="advanced"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
-        [ "$NEXT_CATEGORY" = "optimize" ] || return 0
+        [ "$NEXT_CATEGORY" = "advanced" ] || return 0
     done
 }
 
-practical_guides_touch_menu() {
+maintenance_menu() {
     local choice
 
     while true; do
-        draw_category_frame guides "实用指南" "常见中文兼容指引、掌机说明和可导出的操作记录"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "中文兼容攻略卡" "启动器、Proton、手柄、反作弊、性能和空间建议"
-        ui_touch_button 10 '\033[1;97;48;5;24m' "掌机常用快捷键" "键盘、触控板、扳机鼠标与回游戏模式说明"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "外接设备检查" "只读检查显示器和蓝牙设备状态"
-        ui_touch_button 16 '\033[1;97;48;5;24m' "新手安全与操作记录" "说明高风险操作并导出最近 80 条工具箱记录"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        draw_category_frame maintenance "系统维护" "清理缓存和检查系统  [部分会删除缓存]"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "系统健康检查" "检查空间和常用环境  [会创建文件]"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "游戏启动检查" "检查游戏无法启动原因  [只读检查]"
+        ui_touch_button 9 '\033[1;97;48;5;160m' "清理下载残留" "删除未完成下载文件  [会删除缓存]"
+        ui_touch_button 11 '\033[1;97;48;5;160m' "清理着色器缓存" "释放空间并自动重建  [会删除缓存]"
+        ui_touch_button 13 '\033[1;97;48;5;160m' "清理用户缓存" "清理可重新生成的缓存  [会删除缓存]"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "查看性能建议" "查看推荐性能设置  [只读]"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "常见问题处理" "检测网络并清理下载残留  [会删除缓存]"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类  [普通]"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:guides-card right:10-11:shortcuts right:13-14:peripherals right:16-17:records right:18-19:home)"
+        choice="$(read_touch_menu right:5-6:health right:7-8:diagnose right:9-10:download-cache right:11-12:shader-cache right:13-14:user-cache right:15-16:performance right:17-18:fix right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            guides-card) run_action "中文兼容攻略卡" bash "$PROJECT_ROOT/modules/game_guides.sh" show ;;
+            health) run_action "系统健康检查" bash "$PROJECT_ROOT/core/detect.sh" --health ;;
+            diagnose) run_action "游戏启动检查" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
+            download-cache) confirm_and_run "清理下载残留" "将删除 Steam 未完成的下载残留" bash "$PROJECT_ROOT/modules/clean.sh" download-cache ;;
+            shader-cache) confirm_and_run "清理着色器缓存" "着色器会在下次运行游戏时重新生成" bash "$PROJECT_ROOT/modules/clean.sh" shader-cache ;;
+            user-cache) confirm_and_run "清理用户缓存" "部分应用会在下次启动时重新生成缓存" bash "$PROJECT_ROOT/modules/clean.sh" user-cache ;;
+            performance) run_action "查看性能建议" bash "$PROJECT_ROOT/modules/steam.sh" performance ;;
+            fix) confirm_and_run "常见问题处理" "将检查网络状态并清理 Steam 未完成的下载残留" bash "$PROJECT_ROOT/modules/fixall.sh" ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = "maintenance" ] || return 0
+    done
+}
+
+help_menu() {
+    local choice
+    local page=1
+
+    while true; do
+        draw_category_frame help "检测与帮助（第 $page / 2 页）" "查看信息、指南和日志  [只读为主]"
+        if [ "$page" -eq 1 ]; then
+            ui_touch_button 5 '\033[1;97;48;5;24m' "查看系统信息" "查看系统和设备信息  [只读]"
+            ui_touch_button 7 '\033[1;97;48;5;24m' "导出诊断报告" "保存检查结果到桌面  [会创建文件]"
+            ui_touch_button 9 '\033[1;97;48;5;24m' "新手使用指南" "查看基础操作说明  [只读]"
+            ui_touch_button 11 '\033[1;97;48;5;24m' "游戏兼容指南" "查看游戏运行建议  [只读]"
+            ui_touch_button 13 '\033[1;97;48;5;24m' "掌机常用快捷键" "查看常用按键方法  [只读]"
+            ui_touch_button 15 '\033[1;97;48;5;24m' "外接设备检查" "检查显示器和蓝牙  [只读检查]"
+            ui_touch_button 19 '\033[1;97;48;5;30m' "下一页" "查看记录和工具箱更新"
+        else
+            ui_touch_button 7 '\033[1;97;48;5;24m' "操作记录" "导出最近工具箱记录  [会创建文件]"
+            ui_touch_button 11 '\033[1;97;48;5;24m' "更新日志" "查看版本改动内容  [只读]"
+            ui_touch_button 15 '\033[1;97;48;5;160m' "检查并更新工具箱" "下载并安装最新版本  [会联网并更新]"
+            ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回系统信息和指南"
+        fi
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类  [普通]"
+        ui_prompt
+        if [ "$page" -eq 1 ]; then
+            choice="$(read_touch_menu right:5-6:system-info right:7-8:report right:9-10:new-guide right:11-12:game-guide right:13-14:shortcuts right:15-16:peripherals right:19-20:next right:22-23:home)"
+        else
+            choice="$(read_touch_menu right:7-8:records right:11-12:changelog right:15-16:update right:19-20:previous right:22-23:home)"
+        fi
+        if apply_navigation "$choice"; then return 0; fi
+
+        case "$choice" in
+            system-info) run_action "查看系统信息" bash "$PROJECT_ROOT/core/detect.sh" ;;
+            report) run_action "导出诊断报告" bash "$PROJECT_ROOT/core/detect.sh" --report ;;
+            new-guide) run_action "新手使用指南" bash "$PROJECT_ROOT/modules/safety_center.sh" guide ;;
+            game-guide) run_action "游戏兼容指南" bash "$PROJECT_ROOT/modules/game_guides.sh" show ;;
             shortcuts) run_action "掌机常用快捷键" bash "$PROJECT_ROOT/modules/handheld_helper.sh" shortcuts ;;
             peripherals) run_action "外接设备检查" bash "$PROJECT_ROOT/modules/handheld_helper.sh" peripherals ;;
-            records)
-                run_action "新手安全说明" bash "$PROJECT_ROOT/modules/safety_center.sh" guide
-                run_action "操作记录" bash "$PROJECT_ROOT/modules/safety_center.sh" records
-                ;;
+            records) run_action "操作记录" bash "$PROJECT_ROOT/modules/safety_center.sh" records ;;
+            changelog) changelog_menu ;;
+            update) NEXT_CATEGORY="update"; return 0 ;;
+            next) page=2 ;;
+            previous) page=1 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
-        [ "$NEXT_CATEGORY" = "guides" ] || return 0
+        [ "$NEXT_CATEGORY" = "help" ] || return 0
     done
 }
 
@@ -617,15 +747,19 @@ changelog_menu() {
     fi
 
     while true; do
-        draw_category_frame changelog "更新日志" "$release_heading"
+        draw_category_frame help "更新日志" "$release_heading  [只读]"
         ui_panel_line 7 '\033[1;38;5;114m' "✓ ${release_notes[0]:-当前版本已安装，暂无摘要}"
         ui_panel_line 10 '\033[1;38;5;45m' "✓ ${release_notes[1]:-完整改动以 CHANGELOG.md 为准}"
         ui_panel_line 13 '\033[1;38;5;220m' "完整日志随工具箱自动更新，不再显示旧版固定日期"
-        ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_touch_button 17 '\033[1;97;48;5;238m' "返回检测与帮助" "查看其他说明"
+        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:17-18:home)"
+        choice="$(read_touch_menu right:17-18:help right:20-21:home)"
         if apply_navigation "$choice"; then return 0; fi
-        [ "$choice" = "home" ] && { NEXT_CATEGORY="home"; return 0; }
+        case "$choice" in
+            help) NEXT_CATEGORY="help"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
     done
 }
 
@@ -633,16 +767,13 @@ home_menu() {
     local choice
 
     draw_category_frame "" "欢迎使用" "全界面只需点击，无需输入任何数字或字母"
-    ui_panel_line 8 '\033[1;38;5;220m' "⭐ 新机初始化：国内源、软件、Decky、ToDesk"
-    ui_panel_line 9 '\033[1;38;5;45m' "💻 常用软件：微信、QQ、Firefox 浏览器"
-    ui_panel_line 10 '\033[1;38;5;45m' "📡 远程协助：RustDesk、ToDesk"
-    ui_panel_line 11 '\033[1;38;5;45m' "🧩 插件商城：Decky、28款插件、官方商城分页"
-    ui_panel_line 12 '\033[1;38;5;45m' "⚙ 系统设置：国内源、加速器、密码、设备信息"
-    ui_panel_line 13 '\033[1;38;5;45m' "💿 双系统设置：互通盘、双引导菜单"
-    ui_panel_line 14 '\033[1;38;5;114m' "🚀 系统优化：缓存清理、性能建议、问题修复"
-    ui_panel_line 16 '\033[1;38;5;114m' "📖 实用指南：兼容攻略、快捷键、外接设备和记录"
-    ui_panel_line 17 '\033[1;38;5;114m' "📋 更新日志：查看版本改动和修复内容"
-    ui_panel_line 18 '\033[1;38;5;114m' "🔄 工具箱更新：检查并更新到最新版本"
+    ui_panel_line 8 '\033[1;38;5;220m' "新机必备｜第一次使用从这里开始  [引导]"
+    ui_panel_line 10 '\033[1;38;5;45m' "常用软件｜安装聊天和远程工具  [会安装软件]"
+    ui_panel_line 12 '\033[1;38;5;45m' "游戏环境｜安装插件和游戏组件  [会安装组件]"
+    ui_panel_line 14 '\033[1;38;5;45m' "网络与应用商店｜检查网络和软件源状态  [普通检查]"
+    ui_panel_line 16 '\033[1;38;5;114m' "系统维护｜清理缓存和检查系统  [部分会删除缓存]"
+    ui_panel_line 18 '\033[1;38;5;114m' "检测与帮助｜查看信息、指南和日志  [只读为主]"
+    ui_panel_line 20 '\033[1;38;5;203m' "高级工具｜修改系统和网络设置  [高风险]"
     ui_prompt
     choice="$(read_touch_menu)"
     apply_navigation "$choice" || true
@@ -653,19 +784,23 @@ show_disclaimer
 while true; do
     case "$NEXT_CATEGORY" in
         home) home_menu ;;
-        init) new_machine_preflight ;;
+        init) new_machine_menu ;;
         software) common_software_menu ;;
-        remote) remote_assistance_menu ;;
-        plugins) plugin_store_preflight ;;
-        plugins-menu) plugin_store_menu ;;
-        settings) system_settings_menu ;;
-        dual) dual_system_menu ;;
-        optimize) system_optimization_menu ;;
-        guides) practical_guides_touch_menu ;;
-        changelog) changelog_menu ;;
+        games) game_environment_menu ;;
+        network) network_store_menu ;;
+        maintenance) maintenance_menu ;;
+        help) help_menu ;;
+        advanced) advanced_tools_menu ;;
+        # 旧分类仅保留内部兼容，不再显示在首页。
+        remote) NEXT_CATEGORY="software" ;;
+        plugins|plugins-menu) NEXT_CATEGORY="games" ;;
+        settings) NEXT_CATEGORY="network" ;;
+        dual) NEXT_CATEGORY="advanced" ;;
+        optimize) NEXT_CATEGORY="maintenance" ;;
+        guides|changelog) NEXT_CATEGORY="help" ;;
         update)
-            confirm_and_run "更新工具箱" "下载、校验并安全替换为最新版本" bash "$PROJECT_ROOT/update.sh"
-            [ "$NEXT_CATEGORY" = "update" ] && NEXT_CATEGORY="home"
+            confirm_and_run "检查并更新工具箱" "会联网下载、校验并安全替换为最新版本" bash "$PROJECT_ROOT/update.sh"
+            [ "$NEXT_CATEGORY" = "update" ] && NEXT_CATEGORY="help"
             ;;
         exit)
             log "用户退出工具箱"

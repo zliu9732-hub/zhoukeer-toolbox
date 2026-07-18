@@ -11,6 +11,7 @@ source "$PROJECT_ROOT/core/logger.sh"
 
 GUI_TITLE="周克儿工具箱 V4"
 GUI_ICON="$PROJECT_ROOT/assets/icon-round.png"
+GUI_NAV_HOME=0
 
 # Decky 官方商店插件：保留英文官方名，后面附小白可理解的中文作用。
 DECKY_OFFICIAL_PLUGIN_NAMES=(
@@ -66,15 +67,17 @@ software_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "选择要安装的软件" \
-            wechat "微信" \
-            qq "QQ" \
-            chrome "Google Chrome" \
-            edge "Microsoft Edge" \
-            protontricks "Protontricks 红酒杯" \
-            bottles "Bottles 酒瓶" \
-            epic "Epic Games 启动器（自动入库）" \
-            back "返回主菜单")" || return 0
+        choice="$(gui_dialog --menu "常用软件｜安装聊天和远程工具｜[会安装软件]" \
+            wechat "微信｜安装适合 SteamOS 的微信｜[会安装软件]" \
+            qq "QQ｜安装适合 SteamOS 的 QQ｜[会安装软件]" \
+            chrome "Chrome 浏览器｜安装 Chrome 浏览器｜[会安装软件]" \
+            edge "Edge 浏览器｜安装 Edge 浏览器｜[会安装软件]" \
+            rustdesk "RustDesk 远程协助｜安装开源远程工具｜[会安装软件]" \
+            bottles "Windows 软件工具｜安装 Bottles 运行工具｜[会安装软件]" \
+            protontricks "游戏兼容设置｜安装 Protontricks｜[会安装软件]" \
+            epic "Epic 游戏启动器｜安装并添加到 Steam｜[会安装软件]" \
+            home "返回首页" \
+            nav-exit "退出工具箱")" || return 0
         case "$choice" in
             wechat)
                 gui_confirm "将从微信Linux版官网下载官方x86_64 AppImage，并自动创建桌面图标。是否继续？" && \
@@ -88,14 +91,20 @@ software_menu() {
                 ;;
             chrome) gui_confirm "将通过 Flatpak 安装 Google Chrome。是否继续？" && run_gui_action "安装 Google Chrome" bash "$PROJECT_ROOT/modules/software.sh" chrome ;;
             edge) gui_confirm "将通过 Flatpak 安装 Microsoft Edge。是否继续？" && run_gui_action "安装 Microsoft Edge" bash "$PROJECT_ROOT/modules/software.sh" edge ;;
+            rustdesk)
+                gui_confirm "将从 RustDesk 作者 GitHub Release 下载 AppImage，并创建桌面图标；不会修改服务器配置。是否继续？" && \
+                    run_gui_action "安装 RustDesk 远程协助" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/software.sh" rustdesk
+                ;;
             protontricks) gui_confirm "将通过 Flatpak 安装 Protontricks。是否继续？" && run_gui_action "安装 Protontricks" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
             bottles) gui_confirm "将通过 Flatpak 安装 Bottles。是否继续？" && run_gui_action "安装 Bottles" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
             epic)
-                run_gui_action "安装 Epic Games 启动器并自动入库" \
+                run_gui_action "安装 Epic 游戏启动器并自动入库" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
                 ;;
-            back) return 0 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
         esac
     done
 }
@@ -124,56 +133,52 @@ remote_menu() {
     done
 }
 
-plugin_menu() {
+game_environment_gui_menu() {
     local choice
 
-    gui_notice "插件商城使用前设置：
-① 回到游戏模式，按 Steam 键 → 设置 → 系统；
-② 开启“启用开发者模式”；
-③ 在设置侧栏进入“开发者”菜单；
-④ 开启“CEF 远程调试”；
-⑤ 再回到桌面模式使用本商城。
-
-这两项设置是 Decky 官方插件安装所需的前置条件。"
-
     while true; do
-        choice="$(gui_dialog --menu "Decky Loader 插件商城" \
-            install "安装或更新 Decky Loader" \
-            features "一键安装常用功能插件（小黄鸭、FSR4、CheatDeck）" \
-            all "一键安装当前列表全部插件（共28款）" \
-            browse "浏览官方插件（分页｜中文说明）" \
-            localizer "安装周克儿汉化（修复版）" \
-            uninstall "一键清空已装插件" \
-            back "返回主菜单")" || return 0
+        choice="$(gui_dialog --menu "游戏环境｜Decky 插件商城｜[会安装组件]" \
+            features "常用插件组合｜安装小黄鸭等三款插件｜[会安装插件]" \
+            all "插件环境与精选组合｜安装 Decky 与当前组合｜[会安装插件]" \
+            browse "浏览官方插件｜逐个查看插件作用｜[会安装插件]" \
+            localizer "游戏中文辅助｜安装中文显示辅助｜[实验功能]" \
+            ge-proton "GE 游戏运行组件｜提高 Windows 游戏兼容性｜[会安装组件]" \
+            epic "Epic 游戏启动器｜安装并添加到 Steam｜[会安装软件]" \
+            decky-install "安装 Decky Loader｜进入高级工具确认｜[高级操作]" \
+            home "返回首页" \
+            nav-exit "退出工具箱")" || return 0
         case "$choice" in
-            install)
-                gui_confirm "安装前请先回到游戏模式：① Steam键→设置→系统→开启“启用开发者模式”；② 设置侧栏→开发者→开启“CEF远程调试”。完成后再回桌面模式继续。将运行已校验的 Decky 国内安装器，是否继续？" && \
-                    run_gui_action "安装Decky Loader" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/plugin_store.sh" store
-                ;;
             features)
                 gui_confirm "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将依次安装小黄鸭、FSR4 和 CheatDeck；单项失败不会覆盖旧版本。是否继续？" && \
                     run_gui_action "安装常用功能插件" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" features
                 ;;
             all)
-                gui_confirm "安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将安装 Decky、3款独立功能插件和25款精选插件，其中包括 SimpleDeckyTDP 与 Unifideck；商店插件仍需在Steam界面确认。是否继续？" && \
-                    run_gui_action "安装当前列表全部插件" env ZHOUKEER_AUTO_CONFIRM=1 \
+                gui_confirm "安装前请先在游戏模式开启开发者模式和 CEF 远程调试。该动作会安装 Decky、常用功能插件和当前精选插件。是否继续？" && \
+                    run_gui_action "安装插件环境与精选组合" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" all
                 ;;
             browse)
                 plugin_official_gui_pages
+                [ "$GUI_NAV_HOME" -eq 0 ] || return 0
                 ;;
             localizer)
-                gui_confirm "这是独立的 Decky 汉化层修复版：不会改写原插件文件，会持续处理已知可见文案。安装后请回游戏模式，在 Decky 菜单中启用。是否继续？" && \
-                    run_gui_action "安装周克儿汉化" bash "$PROJECT_ROOT/modules/plugin_store.sh" localizer
+                gui_confirm "这是实验功能，不会改写原插件文件；安装后请回游戏模式，在 Decky 菜单中启用。是否继续？" && \
+                    run_gui_action "游戏中文辅助" bash "$PROJECT_ROOT/modules/plugin_store.sh" localizer
                 ;;
-            uninstall)
-                gui_confirm "清空已装 Decky 插件：将删除插件根目录的全部插件文件和插件设置；Decky Loader 本体不会被删除。是否继续？" && \
-                    run_gui_action "清空已装插件" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/plugin_store.sh" uninstall
+            ge-proton)
+                gui_confirm "将安装第三方 GE-Proton 游戏兼容组件。是否继续？" && \
+                    run_gui_action "安装 GE 游戏运行组件" \
+                    bash "$PROJECT_ROOT/modules/ge_proton.sh" install
                 ;;
-            back) return 0 ;;
+            epic)
+                run_gui_action "安装 Epic 游戏启动器并自动入库" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
+                ;;
+            decky-install) advanced_tools_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
         esac
     done
 }
@@ -200,13 +205,14 @@ plugin_official_gui_pages() {
         if [ "$page" -gt 0 ]; then
             menu_args+=(previous "上一页")
         else
-            menu_args+=(back "返回插件商城")
+            menu_args+=(back "返回游戏环境")
         fi
         if [ "$page" -lt $((total_pages - 1)) ]; then
             menu_args+=(next "下一页")
         else
-            menu_args+=(back-last "返回插件商城")
+            menu_args+=(back-last "返回游戏环境")
         fi
+        menu_args+=(home "返回首页" nav-exit "退出工具箱")
 
         choice="$(gui_dialog "${menu_args[@]}")" || return 0
         case "$choice" in
@@ -219,6 +225,8 @@ plugin_official_gui_pages() {
             previous) page=$((page - 1)) ;;
             next) page=$((page + 1)) ;;
             back|back-last) return 0 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
         esac
     done
 }
@@ -227,13 +235,15 @@ dual_system_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "双系统设置" \
-            mount "一键挂载互通盘" \
-            protect "保护双系统互通盘（只读）" \
-            unprotect "恢复互通盘写入" \
-            add "添加 Steam Deck 双引导" \
-            remove "删除 Steam Deck 双引导（等待时间设为 0）" \
-            back "返回主菜单")" || return 0
+        choice="$(gui_dialog --menu "双系统与互通盘｜磁盘和开机菜单设置｜[磁盘/启动高级操作]" \
+            mount "挂载互通盘｜连接唯一未挂载的共享盘｜[高级操作]" \
+            protect "只读保护互通盘｜防止 SteamOS 误写入｜[高级操作]" \
+            unprotect "恢复互通盘写入｜重新以可写方式挂载｜[高级操作]" \
+            add "显示开机系统菜单｜显示 systemd-boot 5 秒｜[高级操作]" \
+            remove "隐藏开机系统菜单｜将等待时间设为 0 秒｜[高级操作]" \
+            back "返回高级工具" \
+            home "返回首页" \
+            nav-exit "退出工具箱")" || return 0
         case "$choice" in
             mount)
                 gui_confirm "将自动挂载唯一的未挂载 NTFS/exFAT 分区，并创建互通盘快捷入口。是否继续？" && \
@@ -252,50 +262,37 @@ dual_system_menu() {
                 ;;
             add)
                 gui_confirm "将启用已有的 systemd-boot 菜单并备份配置，不会安装或重写 EFI 引导程序。是否继续？" && \
-                    run_gui_action "添加 Steam Deck 双引导" \
+                    run_gui_action "显示开机系统菜单" \
                     bash "$PROJECT_ROOT/modules/dual_system.sh" add
                 ;;
             remove)
                 gui_confirm "将把 systemd-boot 菜单等待时间设为 0 秒；不会删除 SteamOS、Windows 或 EFI 启动项。是否继续？" && \
-                    run_gui_action "删除 Steam Deck 双引导" \
+                    run_gui_action "隐藏开机系统菜单" \
                     bash "$PROJECT_ROOT/modules/dual_system.sh" remove
                 ;;
             back) return 0 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
         esac
     done
 }
 
-settings_menu() {
+network_store_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "系统设置与检测" \
-            init-sources "初始化软件源（系统组件 + 国内源 + Discover）" \
-            accelerator "Steamcommunity 302" \
-            set-password "设置系统密码" \
-            change-password "修改系统密码" \
-            info "一键体检（不修改系统）" \
-            back "返回主菜单")" || return 0
+        choice="$(gui_dialog --menu "网络与应用商店｜检查网络和软件源状态｜[普通检查]" \
+            network-status "网络状态检查｜检查当前网络是否可用｜[只读检查]" \
+            source-status "软件源状态｜查看当前应用下载来源｜[只读检查]" \
+            manage-advanced "管理国内源与加速｜进入高级网络设置｜[高级操作]" \
+            home "返回首页" \
+            nav-exit "退出工具箱")" || return 0
         case "$choice" in
-            init-sources)
-                run_gui_action "初始化软件源" \
-                    bash "$PROJECT_ROOT/modules/domestic_source.sh" init
-                ;;
-            accelerator)
-                steam_accelerator_gui_menu
-                ;;
-            set-password)
-                gui_confirm "警告：新密码会明文保存到桌面管理员密码.txt；所有以当前用户身份运行的软件都可能读取。确认继续？" && \
-                    run_gui_action "设置系统密码" \
-                        bash "$PROJECT_ROOT/modules/password.sh" set
-                ;;
-            change-password)
-                gui_confirm "警告：工具箱会读取旧记录并明文保存新密码；所有以当前用户身份运行的软件都可能读取。确认继续？" && \
-                    run_gui_action "修改系统密码" \
-                        bash "$PROJECT_ROOT/modules/password.sh" change
-                ;;
-            info) run_gui_action "一键体检" bash "$PROJECT_ROOT/core/detect.sh" --health ;;
-            back) return 0 ;;
+            network-status) run_gui_action "网络状态检查" bash "$PROJECT_ROOT/modules/network.sh" ;;
+            source-status) run_gui_action "软件源状态" bash "$PROJECT_ROOT/modules/domestic_source.sh" status ;;
+            manage-advanced) advanced_tools_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
         esac
     done
 }
@@ -304,20 +301,22 @@ steam_accelerator_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "Steamcommunity 302" \
+        choice="$(gui_dialog --menu "Steamcommunity 302｜可能修改 DNS、证书、hosts 和后台服务｜[会修改网络设置]" \
             install "安装或更新" \
             start "一键开启 Steam + GitHub 加速" \
             status "查看运行状态" \
             uninstall "安全卸载" \
-            back "返回系统设置")" || return 0
+            back "返回高级工具" \
+            home "返回首页" \
+            nav-exit "退出工具箱")" || return 0
         case "$choice" in
             install)
-                gui_confirm "将下载官方程序并生成 Steam + GitHub 内置规则；首次开启可能请求管理员权限。是否继续？" && \
+                gui_confirm "会下载官方程序，并可能修改 DNS、证书、hosts、后台服务；需要管理员权限。是否继续？" && \
                     run_gui_action "安装Steamcommunity 302" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/steam_accelerator.sh" install
                 ;;
             start)
-                gui_confirm "工具箱会自动安装（如缺失）并启动官方 CLI，只接管 Steam 与 GitHub。是否继续？" && \
+                gui_confirm "会自动安装并启动服务，可能修改 DNS、证书、hosts；需要管理员权限。是否继续？" && \
                     run_gui_action "开启 Steamcommunity 302 加速" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/steam_accelerator.sh" enable
                 ;;
@@ -331,6 +330,8 @@ steam_accelerator_gui_menu() {
                     bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
                 ;;
             back) return 0 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
         esac
     done
 }
@@ -378,49 +379,152 @@ cleanup_menu() {
     done
 }
 
-optimization_menu() {
+maintenance_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "系统优化与维护" \
-            diagnose "游戏启动诊断（不删除游戏文件）" \
-            steam "SteamOS 掌机优化" \
-            cleanup "系统清理" \
-            fixall "一键修复模式" \
-            back "返回主菜单")" || return 0
+        choice="$(gui_dialog --menu "系统维护｜清理缓存和检查系统｜[部分会删除缓存]" \
+            health "系统健康检查｜检查空间和常用环境｜[会创建文件]" \
+            diagnose "游戏启动检查｜检查游戏无法启动原因｜[只读检查]" \
+            download-cache "清理下载残留｜删除未完成下载文件｜[会删除缓存]" \
+            shader-cache "清理着色器缓存｜释放空间并自动重建｜[会删除缓存]" \
+            user-cache "清理用户缓存｜清理可重新生成的缓存｜[会删除缓存]" \
+            performance "查看性能建议｜查看推荐性能设置｜[只读]" \
+            fix "常见问题处理｜检测网络并清理下载残留｜[会删除缓存]" \
+            home "返回首页" \
+            nav-exit "退出工具箱")" || return 0
         case "$choice" in
-            diagnose) run_gui_action "游戏启动诊断" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
-            steam) steam_optimization_menu ;;
-            cleanup) cleanup_menu ;;
-            fixall)
-                gui_confirm "一键修复会检测网络并清理 Steam 下载缓存，是否继续？" && \
-                    run_gui_action "一键修复模式" env ZHOUKEER_AUTO_CONFIRM=1 \
+            health) run_gui_action "系统健康检查" bash "$PROJECT_ROOT/core/detect.sh" --health ;;
+            diagnose) run_gui_action "游戏启动检查" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
+            download-cache|shader-cache|user-cache)
+                gui_confirm "该操作会删除可重新生成的缓存，是否继续？" && \
+                    run_gui_action "清理缓存" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/clean.sh" "$choice"
+                ;;
+            performance) run_gui_action "查看性能建议" bash "$PROJECT_ROOT/modules/steam.sh" performance ;;
+            fix)
+                gui_confirm "将检查网络状态并清理 Steam 未完成的下载残留，是否继续？" && \
+                    run_gui_action "常见问题处理" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/fixall.sh"
                 ;;
-            back) return 0 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
         esac
     done
 }
 
-practical_guides_gui_menu() {
+help_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "实用指南" \
-            guides "中文兼容攻略卡" \
-            shortcuts "掌机常用快捷键" \
-            peripherals "外接设备检查（只读）" \
-            records "新手安全说明与操作记录导出" \
-            back "返回主菜单")" || return 0
+        choice="$(gui_dialog --menu "检测与帮助｜查看信息、指南和日志｜[只读为主]" \
+            system-info "查看系统信息｜查看系统和设备信息｜[只读]" \
+            report "导出诊断报告｜保存检查结果到桌面｜[会创建文件]" \
+            new-guide "新手使用指南｜查看基础操作说明｜[只读]" \
+            game-guide "游戏兼容指南｜查看游戏运行建议｜[只读]" \
+            shortcuts "掌机常用快捷键｜查看常用按键方法｜[只读]" \
+            peripherals "外接设备检查｜检查显示器和蓝牙｜[只读检查]" \
+            records "操作记录｜导出最近工具箱记录｜[会创建文件]" \
+            changelog "更新日志｜查看版本改动内容｜[只读]" \
+            update "检查并更新工具箱｜下载并安装最新版本｜[会联网并更新]" \
+            home "返回首页" \
+            nav-exit "退出工具箱")" || return 0
         case "$choice" in
-            guides) run_gui_action "中文兼容攻略卡" bash "$PROJECT_ROOT/modules/game_guides.sh" show ;;
+            system-info) run_gui_action "查看系统信息" bash "$PROJECT_ROOT/core/detect.sh" ;;
+            report) run_gui_action "导出诊断报告" bash "$PROJECT_ROOT/core/detect.sh" --report ;;
+            new-guide) run_gui_action "新手使用指南" bash "$PROJECT_ROOT/modules/safety_center.sh" guide ;;
+            game-guide) run_gui_action "游戏兼容指南" bash "$PROJECT_ROOT/modules/game_guides.sh" show ;;
             shortcuts) run_gui_action "掌机常用快捷键" bash "$PROJECT_ROOT/modules/handheld_helper.sh" shortcuts ;;
             peripherals) run_gui_action "外接设备检查" bash "$PROJECT_ROOT/modules/handheld_helper.sh" peripherals ;;
-            records)
-                run_gui_action "新手安全说明" bash "$PROJECT_ROOT/modules/safety_center.sh" guide
-                run_gui_action "操作记录" bash "$PROJECT_ROOT/modules/safety_center.sh" records
+            records) run_gui_action "操作记录" bash "$PROJECT_ROOT/modules/safety_center.sh" records ;;
+            changelog) gui_dialog --textbox "$PROJECT_ROOT/CHANGELOG.md" 900 650 ;;
+            update)
+                gui_confirm "将联网下载经过校验的新版本并替换当前工具箱，是否继续？" && \
+                    run_gui_action "检查并更新工具箱" bash "$PROJECT_ROOT/update.sh"
                 ;;
-            back) return 0 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
+        esac
+    done
+}
+
+new_machine_gui_menu() {
+    local choice
+
+    while true; do
+        choice="$(gui_dialog --menu "新机必备｜第一次使用从这里开始｜[引导]" \
+            recommended "推荐软件安装｜选择需要的常用软件｜[会安装软件]" \
+            beginner-guide "新手使用指南｜查看首次使用步骤｜[只读]" \
+            advanced-init "高级新机初始化｜前往高级工具查看风险｜[高级操作]" \
+            home "返回首页" \
+            nav-exit "退出工具箱")" || return 0
+        case "$choice" in
+            recommended) software_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
+            beginner-guide) help_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
+            advanced-init) advanced_tools_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
+        esac
+    done
+}
+
+domestic_source_gui_preflight() {
+    gui_confirm "国内软件源会修改 Flatpak 软件源，并可能调整 GPG 验证、运行 pacman、临时关闭 SteamOS 只读保护。
+
+远程名称：flathub-cn
+地址：https://mirror.sjtu.edu.cn/flathub
+
+备用名称：flathub-ustc
+地址：https://mirrors.ustc.edu.cn/flathub
+
+恢复官方源功能尚未完成。确认了解风险并继续？" && \
+        run_gui_action "国内软件源" bash "$PROJECT_ROOT/modules/domestic_source.sh" init
+}
+
+advanced_tools_gui_menu() {
+    local choice
+
+    while true; do
+        choice="$(gui_dialog --menu "高级工具｜以下功能会修改系统、网络、软件源、密码或磁盘设置。请确认了解风险后继续。" \
+            advanced-init "高级新机初始化｜连续安装并配置新机器｜[安装软件/修改软件源]" \
+            domestic-source "国内软件源｜会修改 Flatpak 软件源｜[会修改软件源]" \
+            accelerator "Steamcommunity 302｜可能修改 DNS 和证书｜[会修改网络设置]" \
+            set-password "设置管理员密码｜设置 SteamOS 管理密码｜[会修改系统密码]" \
+            change-password "修改管理员密码｜更换 SteamOS 管理密码｜[会修改系统密码]" \
+            todesk "安装 ToDesk｜安装需要系统权限的远程工具｜[会修改只读系统]" \
+            decky-install "安装 Decky Loader｜安装插件后台服务｜[会使用管理员权限]" \
+            dual "双系统与互通盘｜管理磁盘和开机菜单｜[磁盘/启动高级操作]" \
+            home "返回首页" \
+            nav-exit "退出工具箱")" || return 0
+        case "$choice" in
+            advanced-init)
+                gui_confirm "高级新机初始化会连续配置国内软件源并安装多项常用软件、Decky 和 ToDesk。ToDesk 使用前必须开启开发者模式及旧版 X11 桌面模式。确认继续？" && \
+                    run_gui_action "高级新机初始化" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/new_machine.sh"
+                ;;
+            domestic-source) domestic_source_gui_preflight ;;
+            accelerator) steam_accelerator_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
+            set-password)
+                gui_confirm "新密码会明文保存到桌面管理员密码.txt；当前用户运行的软件都可能读取。确认继续？" && \
+                    run_gui_action "设置管理员密码" bash "$PROJECT_ROOT/modules/password.sh" set
+                ;;
+            change-password)
+                gui_confirm "将读取旧记录并明文保存新密码；当前用户运行的软件都可能读取。确认继续？" && \
+                    run_gui_action "修改管理员密码" bash "$PROJECT_ROOT/modules/password.sh" change
+                ;;
+            todesk)
+                gui_confirm "ToDesk 会使用管理员权限并临时修改 SteamOS 只读系统。请先在游戏模式开启开发者模式和旧版 X11 桌面模式。确认继续？" && \
+                    run_gui_action "安装 ToDesk" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/todesk.sh" --install
+                ;;
+            decky-install)
+                gui_confirm "请先在游戏模式开启开发者模式和 CEF 远程调试。安装会使用管理员权限并启动后台服务，是否继续？" && \
+                    run_gui_action "安装 Decky Loader" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" store
+                ;;
+            dual) dual_system_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
         esac
     done
 }
@@ -429,40 +533,26 @@ main_gui_menu() {
     local choice
 
     while true; do
+        GUI_NAV_HOME=0
         choice="$(gui_dialog --menu "请用触屏或触控板选择功能" \
-            new-machine "⭐ 一键新机初始化" \
-            software "📦 常用软件" \
-            remote "🖥 远程协助" \
-            plugins "🧩 插件商城（28款插件）" \
-            settings "⚙️ 系统设置" \
-            dual "💿 双系统设置" \
-            optimization "🛠 系统优化" \
-            guides "📖 实用指南" \
-            changelog "📋 更新日志" \
-            update "🔄 更新工具箱" \
-            exit "❌ 退出")" || exit 0
+            nav-init "新机必备｜第一次使用从这里开始｜[引导]" \
+            nav-software "常用软件｜安装聊天和远程工具｜[会安装软件]" \
+            nav-games "游戏环境｜安装插件和游戏组件｜[会安装组件]" \
+            nav-network "网络与应用商店｜检查网络和软件源状态｜[普通检查]" \
+            nav-maintenance "系统维护｜清理缓存和检查系统｜[部分会删除缓存]" \
+            nav-help "检测与帮助｜查看信息、指南和日志｜[只读为主]" \
+            nav-advanced "高级工具｜修改系统和网络设置｜[高风险]" \
+            nav-exit "退出工具箱")" || exit 0
 
         case "$choice" in
-            new-machine)
-                gui_confirm "初始化包含ToDesk。开始前请先在游戏模式完成：① Steam键→设置→系统→开启开发者模式；② 设置侧栏→开发者→杂项→开启“使用旧版X11桌面模式”；③ 重新进入桌面模式。确认已完成后，将依次处理国内源、Decky、微信、QQ、Firefox和ToDesk。是否开始？" && \
-                    run_gui_action "一键新机初始化" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/new_machine.sh"
-                ;;
-            software) software_menu ;;
-            remote) remote_menu ;;
-            plugins) plugin_menu ;;
-            settings) settings_menu ;;
-            dual) dual_system_menu ;;
-            optimization) optimization_menu ;;
-            guides) practical_guides_gui_menu ;;
-            changelog)
-                gui_dialog --textbox "$PROJECT_ROOT/CHANGELOG.md" 900 650
-                ;;
-            update)
-                gui_confirm "将下载经过 SHA256 校验的新版本，是否继续？" && \
-                    run_gui_action "更新工具箱" bash "$PROJECT_ROOT/update.sh"
-                ;;
-            exit) exit 0 ;;
+            nav-init) new_machine_gui_menu ;;
+            nav-software) software_menu ;;
+            nav-games) game_environment_gui_menu ;;
+            nav-network) network_store_gui_menu ;;
+            nav-maintenance) maintenance_gui_menu ;;
+            nav-help) help_gui_menu ;;
+            nav-advanced) advanced_tools_gui_menu ;;
+            nav-exit) exit 0 ;;
         esac
     done
 }
