@@ -382,6 +382,21 @@ copy_zhoukeer_localizer() {
     done
 }
 
+copy_lsfg_chinese() {
+    local source_dir="$SOURCE_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5"
+    local relative_file
+
+    # 只携带 Decky 运行小黄鸭中文界面所需的已构建文件和后端，开发源码与依赖不进入安装目录。
+    for relative_file in plugin.json package.json LICENSE main.py shared_config.py; do
+        if [ -f "$source_dir/$relative_file" ]; then
+            copy_file "$source_dir/$relative_file" \
+                "$STAGING_DIR/third_party/decky-lsfg-vk-zh-v0.12.5/$relative_file"
+        fi
+    done
+    copy_dir_files third_party/decky-lsfg-vk-zh-v0.12.5/dist
+    copy_dir_files third_party/decky-lsfg-vk-zh-v0.12.5/py_modules
+}
+
 for file in main.sh main_old.sh launch.sh install.sh uninstall.sh update.sh bootstrap.sh i README.md VERSION .gitignore; do
     if [ -f "$SOURCE_ROOT/$file" ]; then
         copy_file "$SOURCE_ROOT/$file" "$STAGING_DIR/$file"
@@ -394,7 +409,7 @@ copy_dir_files utils
 copy_dir_files config
 copy_dir_files assets
 copy_dir_files scripts
-copy_zhoukeer_localizer
+copy_lsfg_chinese
 
 # 标记由安装器管理的目录，启动器只在这类目录中执行自动更新。
 printf '%s\n' "zhoukeer-toolbox" > "$STAGING_DIR/.zhoukeer-installed"

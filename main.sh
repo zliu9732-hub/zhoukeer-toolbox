@@ -397,7 +397,7 @@ game_environment_menu() {
         ui_touch_button 5 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭等三款插件"
         ui_touch_button 7 '\033[1;97;48;5;24m' "插件环境与精选组合" "安装 Decky 与当前组合"
         ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "游戏中文辅助" "安装中文显示辅助 · 实验功能"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "小黄鸭中文界面" "仅适用于 LSFG-VK v0.12.5"
         ui_touch_button 13 '\033[1;97;48;5;24m' "GE 游戏运行组件" "提高 Windows 游戏兼容性"
         ui_touch_button 15 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
         ui_touch_button 17 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
@@ -410,7 +410,7 @@ game_environment_menu() {
             features) confirm_and_run "安装常用插件组合" "未安装插件商城时会先安装插件商城，再继续安装三款插件；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
             all) confirm_and_run "安装插件环境与精选组合" "未安装插件商城时会先安装插件商城，再继续安装常用与精选插件；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
             browse) plugin_official_touch_pages ;;
-            localizer) confirm_and_run "游戏中文辅助" "这是实验功能，不会改写原插件文件；安装后请回游戏模式，在 Decky 菜单中启用" bash "$PROJECT_ROOT/modules/plugin_store.sh" localizer ;;
+            localizer) confirm_and_run "小黄鸭中文界面" "会替换 Decky LSFG-VK v0.12.5 的插件文件；失败会恢复原版目录。后续更新官方插件后需重新安装中文界面" bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh ;;
             ge-proton) confirm_and_run "安装 GE 游戏运行组件" "将安装第三方 GE-Proton 游戏兼容组件" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
             epic) run_action "安装 Epic 游戏启动器并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
             decky-install) NEXT_CATEGORY="advanced"; return 0 ;;

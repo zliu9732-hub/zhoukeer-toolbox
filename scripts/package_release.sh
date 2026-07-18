@@ -10,7 +10,7 @@ PACKAGE_PATH="$DIST_DIR/$PACKAGE_NAME"
 VERSIONED_PACKAGE_NAME="zhoukeer-toolbox-$VERSION.tar.gz"
 VERSIONED_PACKAGE_PATH="$DIST_DIR/$VERSIONED_PACKAGE_NAME"
 SHA256SUMS_PATH="$DIST_DIR/SHA256SUMS"
-VERIFY_FILES="VERSION main.sh install.sh modules/software.sh modules/plugin_store.sh modules/game_launchers.sh scripts/steam_shortcut.py scripts/install-decky-plugin.sh core/gui.sh assets/icon.png assets/icon-round.png decky-plugins/zhoukeer-localizer/dist/index.js"
+VERIFY_FILES="VERSION main.sh install.sh modules/software.sh modules/plugin_store.sh modules/game_launchers.sh scripts/steam_shortcut.py scripts/install-decky-plugin.sh core/gui.sh assets/icon.png assets/icon-round.png third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js"
 PACKAGE_SOURCES=()
 
 mkdir -p "$DIST_DIR"
@@ -21,7 +21,7 @@ cd "$PROJECT_ROOT" || exit 1
 # 只打包 Git 已跟踪文件，避免把本机临时文件或未提交资料带入公开包。
 while IFS= read -r -d '' source_path; do
     case "$source_path" in
-        dist/*) continue ;;
+        dist/*|decky-plugins/zhoukeer-localizer/*) continue ;;
     esac
     PACKAGE_SOURCES+=("./$source_path")
 done < <(git ls-files -z)

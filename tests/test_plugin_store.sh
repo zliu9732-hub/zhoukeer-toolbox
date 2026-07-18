@@ -73,12 +73,26 @@ grep -Fq 'CheatDeck 安装完成后可在 Decky 右侧栏显示' "$PROJECT_ROOT/
 grep -Fq 'install_all_plugin_packages()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'decky_plugin_store_is_installed()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '未检测到插件商城，先安装插件商城。' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'install_zhoukeer_localizer()' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'copy_zhoukeer_localizer' "$PROJECT_ROOT/install.sh"
-grep -Fq 'plugin.json package.json README.md LICENSE dist/index.js' "$PROJECT_ROOT/install.sh"
-grep -Fq '"$source_dir/dist/index.js"' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'install_lsfg_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'restore_lsfg_official()' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'LSFG_ZH_INDEX_SHA256="1fc07145fcb2ce96ccd441c1bf254ab8fff2e8b004119f9275d0776ec706e88f"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '中文汉化：闲鱼双叶' \
+    "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/src/components/Content.tsx"
+grep -Fq '"version": "0.12.5"' \
+    "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/package.json"
+zh_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js" | awk '{print $1}')"
+[ "$zh_actual_sha256" = "1fc07145fcb2ce96ccd441c1bf254ab8fff2e8b004119f9275d0776ec706e88f" ] || {
+    echo "FAIL: 小黄鸭中文构建文件校验值不匹配" >&2
+    exit 1
+}
+if grep -Eq '^copy_zhoukeer_localizer$' "$PROJECT_ROOT/install.sh"; then
+    echo "FAIL: 已停用的扫描式汉化不应继续随安装器复制" >&2
+    exit 1
+fi
+grep -Fq 'copy_lsfg_chinese' "$PROJECT_ROOT/install.sh"
 grep -Fq 'toolbox_sudo systemctl restart "$DECKY_SERVICE_NAME"' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'localizer) install_zhoukeer_localizer' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '旧版通用扫描式汉化已停用' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'features) show_plugin_download_speed_tip; install_feature_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'feature-status) print_feature_plugin_status' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'uninstall) uninstall_all_decky_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"

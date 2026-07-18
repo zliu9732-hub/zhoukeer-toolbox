@@ -155,7 +155,7 @@ game_environment_gui_menu() {
             features "常用插件组合｜安装小黄鸭等三款插件" \
             all "插件环境与精选组合｜安装 Decky 与当前组合" \
             browse "浏览官方插件｜逐个查看插件作用" \
-            localizer "游戏中文辅助｜安装中文显示辅助｜实验功能" \
+            localizer "小黄鸭中文界面｜仅适用于 LSFG-VK v0.12.5" \
             ge-proton "GE 游戏运行组件｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
             decky-install "安装插件商城｜进入系统与密码确认｜高级操作" \
@@ -177,8 +177,8 @@ game_environment_gui_menu() {
                 [ "$GUI_NAV_HOME" -eq 0 ] || return 0
                 ;;
             localizer)
-                gui_confirm "这是实验功能，不会改写原插件文件；安装后请回游戏模式，在 Decky 菜单中启用。是否继续？" && \
-                    run_gui_action "游戏中文辅助" bash "$PROJECT_ROOT/modules/plugin_store.sh" localizer
+                gui_confirm "将替换 Decky LSFG-VK v0.12.5 的插件文件。安装失败会恢复原版目录；官方插件更新后需重新安装中文界面。是否继续？" && \
+                    run_gui_action "小黄鸭中文界面" bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh
                 ;;
             ge-proton)
                 gui_confirm "将安装第三方 GE-Proton 游戏兼容组件。是否继续？" && \

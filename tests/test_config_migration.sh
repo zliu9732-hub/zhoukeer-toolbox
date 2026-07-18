@@ -191,17 +191,19 @@ test_dry_run_has_no_side_effects() {
         fail "dry-run 缺少无副作用提示"
 }
 
-test_localizer_runtime_files_packaged() {
-    local case_root="$TMP_ROOT/localizer"
+test_lsfg_chinese_runtime_files_packaged() {
+    local case_root="$TMP_ROOT/lsfg-chinese"
     local install_dir="$case_root/install"
-    local localizer_dir="$install_dir/decky-plugins/zhoukeer-localizer"
+    local plugin_dir="$install_dir/third_party/decky-lsfg-vk-zh-v0.12.5"
 
     run_installer "$case_root/home" "$install_dir"
 
-    [ -s "$localizer_dir/plugin.json" ] || fail "更新包缺少周克儿汉化清单"
-    [ -s "$localizer_dir/package.json" ] || fail "更新包缺少周克儿汉化模块声明"
-    [ -s "$localizer_dir/dist/index.js" ] || fail "更新包缺少周克儿汉化运行文件"
-    [ ! -e "$localizer_dir/node_modules" ] || fail "更新包不应包含周克儿汉化开发依赖"
+    [ -s "$plugin_dir/plugin.json" ] || fail "更新包缺少小黄鸭中文清单"
+    [ -s "$plugin_dir/package.json" ] || fail "更新包缺少小黄鸭中文模块声明"
+    [ -s "$plugin_dir/LICENSE" ] || fail "更新包缺少小黄鸭原始许可证"
+    [ -s "$plugin_dir/dist/index.js" ] || fail "更新包缺少小黄鸭中文运行文件"
+    [ -d "$plugin_dir/py_modules/lsfg_vk" ] || fail "更新包缺少小黄鸭后端模块"
+    [ ! -e "$plugin_dir/node_modules" ] || fail "更新包不应包含小黄鸭中文开发依赖"
 }
 
 test_runtime_scripts_packaged() {
@@ -249,7 +251,7 @@ test_retired_rustdesk_config_removed
 test_retired_decky_installer_config_removed
 test_missing_config_created
 test_dry_run_has_no_side_effects
-test_localizer_runtime_files_packaged
+test_lsfg_chinese_runtime_files_packaged
 test_runtime_scripts_packaged
 test_install_from_replaced_workdir
 

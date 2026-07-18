@@ -1,0 +1,11 @@
+{
+  "name": "Decky LSFG-VK",
+  "author": "Kurt Himebauch (xXJSONDeruloXx)",
+  "flags": [],
+  "api_version": 1,
+  "publish": {
+    "tags": ["installer", "vulkan", "lsfg", "framegen", "lossless", "scaling"],
+    "description": "在 Steam Deck 上通过 lsfg-vk 兼容层启用无损缩放帧生成。中文汉化：闲鱼双叶。",
+    "image": "https://raw.githubusercontent.com/xXJSONDeruloXx/decky-lsfg-vk/refs/heads/main/assets/Decky_LSFG-VK_Master_1.png"
+  }
+}

@@ -74,10 +74,10 @@ gui_games="$(function_source "$GUI_FILE" game_environment_gui_menu)"
 for menu in "$touch_games" "$gui_games"; do
     assert_contains "$menu" '游戏与插件｜插件商城' "插件商城页面标题不统一"
     assert_not_contains "$menu" '游戏与插件｜Decky 插件商城' "插件商城页面仍显示英文标题"
-    for item in '常用插件组合' '插件环境与精选组合' '浏览官方插件' '游戏中文辅助' 'GE 游戏运行组件' 'Epic 游戏启动器' '安装插件商城'; do
+    for item in '常用插件组合' '插件环境与精选组合' '浏览官方插件' '小黄鸭中文界面' 'GE 游戏运行组件' 'Epic 游戏启动器' '安装插件商城'; do
         assert_contains "$menu" "$item" "游戏环境缺少：$item"
     done
-    assert_contains "$menu" '实验功能' "游戏中文辅助缺少实验说明"
+    assert_contains "$menu" 'LSFG-VK v0.12.5' "小黄鸭中文界面缺少版本限制"
     assert_contains "$menu" '高级操作' "Decky Loader 缺少高级说明"
     assert_not_contains "$menu" '25 个精选插件' "plugin_store all 仍被错误描述为 25 个精选插件"
     assert_not_contains "$menu" '兼容层管理' "不存在的兼容层管理仍可见"

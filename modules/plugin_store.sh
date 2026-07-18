@@ -23,6 +23,8 @@ DECKY_SERVICE_NAME="plugin_loader.service"
 DECKY_TMP_DIR=""
 LSFG_OFFICIAL_DIRECTORY="Decky LSFG-VK"
 LSFG_OFFICIAL_VERSION="0.12.5"
+LSFG_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5"
+LSFG_ZH_INDEX_SHA256="1fc07145fcb2ce96ccd441c1bf254ab8fff2e8b004119f9275d0776ec706e88f"
 
 # 三款功能插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
@@ -1151,6 +1153,57 @@ install_lsfg_bundle() {
     fi
 }
 
+install_lsfg_chinese() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local actual_sha256
+    local bundled_version
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "小黄鸭中文界面仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    if [ -L "$LSFG_ZH_SOURCE_DIR" ] || \
+       [ ! -f "$LSFG_ZH_SOURCE_DIR/plugin.json" ] || \
+       [ ! -f "$LSFG_ZH_SOURCE_DIR/package.json" ] || \
+       [ ! -s "$LSFG_ZH_SOURCE_DIR/dist/index.js" ] || \
+       [ ! -f "$LSFG_ZH_SOURCE_DIR/LICENSE" ]; then
+        echo "小黄鸭 v$LSFG_OFFICIAL_VERSION 中文组件不完整，请更新工具箱后再试。"
+        return 1
+    fi
+    bundled_version="$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+        "$LSFG_ZH_SOURCE_DIR/package.json" | head -n 1)"
+    if [ "$bundled_version" != "$LSFG_OFFICIAL_VERSION" ]; then
+        echo "中文组件版本 $bundled_version 与目标 v$LSFG_OFFICIAL_VERSION 不一致，已停止覆盖。"
+        return 1
+    fi
+    actual_sha256="$(calculate_decky_sha256 "$LSFG_ZH_SOURCE_DIR/dist/index.js")" || return 1
+    if [ "$actual_sha256" != "$LSFG_ZH_INDEX_SHA256" ]; then
+        echo "小黄鸭中文组件校验失败，已停止覆盖。"
+        return 1
+    fi
+    prepare_plugin_root "$plugin_root" || return 1
+    install_tree_atomically "$LSFG_ZH_SOURCE_DIR" "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" || {
+        echo "小黄鸭中文界面安装失败，已尽量保留原版。"
+        return 1
+    }
+    echo "小黄鸭 v$LSFG_OFFICIAL_VERSION 中文界面已安装。"
+    echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
+    reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可看到中文界面。"
+    log "小黄鸭 v$LSFG_OFFICIAL_VERSION 中文界面安装完成"
+}
+
+restore_lsfg_official() {
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "恢复小黄鸭原版仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    install_lsfg_bundle 0 || return 1
+    reload_decky_plugins "小黄鸭官方 v$LSFG_OFFICIAL_VERSION 已恢复。"
+    log "小黄鸭官方 v$LSFG_OFFICIAL_VERSION 已恢复"
+}
+
 remove_legacy_lsfg_directories() {
     local plugin_root="$1"
     local legacy_name
@@ -1428,11 +1481,16 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-store}" in
         store) show_plugin_download_speed_tip; install_plugin_store ;;
         lsfg) show_plugin_download_speed_tip; install_configured_plugin lsfg ;;
+        lsfg-zh) install_lsfg_chinese ;;
+        lsfg-restore) show_plugin_download_speed_tip; restore_lsfg_official ;;
         lsfg-store) open_lossless_store ;;
         lsfg-import-select) select_and_import_lossless_backup ;;
         fsr4) show_plugin_download_speed_tip; install_configured_plugin fsr4 ;;
         cheatdeck) show_plugin_download_speed_tip; install_configured_plugin cheatdeck ;;
-        localizer) install_zhoukeer_localizer ;;
+        localizer)
+            echo "旧版通用扫描式汉化已停用，请使用“小黄鸭中文界面”。"
+            exit 1
+            ;;
         feature-status) print_feature_plugin_status ;;
         uninstall) uninstall_all_decky_plugins ;;
         features) show_plugin_download_speed_tip; install_feature_plugins ;;
