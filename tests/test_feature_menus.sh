@@ -149,8 +149,10 @@ for dual_menu in "$touch_dual_menu" "$gui_dual_menu"; do
 done
 
 for settings_menu in "$touch_settings_menu" "$gui_settings_menu"; do
-    assert_contains "$settings_menu" '添加国内下载源' "系统设置缺少国内下载源"
-    assert_contains "$settings_menu" 'modules/domestic_source.sh" enable' "国内下载源入口调用错误"
+    assert_contains "$settings_menu" '初始化软件源' "系统设置缺少软件源初始化"
+    assert_contains "$settings_menu" 'modules/domestic_source.sh" init' "软件源初始化入口调用错误"
+    assert_not_contains "$settings_menu" '更新系统组件' "系统设置仍显示重复的系统组件入口"
+    assert_not_contains "$settings_menu" '恢复官方 Flathub' "系统设置仍显示已移除的官方源恢复入口"
     assert_matches "$settings_menu" '加速器|Steamcommunity 302' "系统设置缺少 Steam 加速器"
     if [ "$settings_menu" = "$touch_settings_menu" ]; then
         assert_contains "$settings_menu" 'steam_accelerator_touch_menu' "触控Steam加速器入口调用错误"
@@ -184,8 +186,8 @@ new_machine_preflight="$(sed -n '/^new_machine_preflight()/,/^}/p' "$MAIN_FILE")
 assert_contains "$new_machine_preflight" '启用开发者模式' "新机初始化没有提醒开启开发者模式"
 assert_contains "$new_machine_preflight" '使用旧版 X11 桌面模式' "新机初始化没有提醒开启旧版X11"
 
-assert_contains "$(cat "$NEW_MACHINE_FILE")" 'modules/domestic_source.sh" init-domestic' \
-    "新机初始化未包含国内源初始化"
+assert_contains "$(cat "$NEW_MACHINE_FILE")" 'modules/domestic_source.sh" init' \
+    "新机初始化未包含软件源初始化"
 assert_not_contains "$(cat "$NEW_MACHINE_FILE")" 'protonup' \
     "新机初始化仍包含 ProtonUp-Qt"
 

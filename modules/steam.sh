@@ -22,7 +22,7 @@ steam_action() {
                 "$HOME/.steam/steam/steamapps/shadercache" \
                 "$HOME/.local/share/Steam/steamapps/shadercache"; do
                 if [ -d "$_ss_dir" ]; then
-                    sudo find "$_ss_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null
+                    toolbox_sudo find "$_ss_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null
                     _ss_cleaned=$((_ss_cleaned + 1))
                 fi
             done
@@ -35,7 +35,7 @@ steam_action() {
                         /*)
                             _ss_dir="$_ss_path/steamapps/shadercache"
                             if [ -d "$_ss_dir" ]; then
-                                sudo find "$_ss_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null
+                                toolbox_sudo find "$_ss_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null
                                 _ss_cleaned=$((_ss_cleaned + 1))
                             fi
                             ;;

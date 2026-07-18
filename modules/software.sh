@@ -829,7 +829,7 @@ install_software() {
         fi
         if [ "$_fr_retry" -eq 0 ]; then
             echo "安装失败，正在修复 Flatpak 环境后重试..."
-            bash "$PROJECT_ROOT/modules/domestic_source.sh" init-domestic 2>/dev/null || true
+            bash "$PROJECT_ROOT/modules/domestic_source.sh" enable 2>/dev/null || true
             ensure_flatpak_remotes 2>/dev/null || true
             choose_install_remotes 2>/dev/null || true
             _fr_retry=1

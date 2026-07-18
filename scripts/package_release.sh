@@ -18,11 +18,18 @@ mkdir -p "$DIST_DIR"
 cd "$PROJECT_ROOT" || exit 1
 
 # macOS 打包时排除扩展属性，避免 SteamOS 解压时产生无关警告
-shopt -s nullglob
-for source_path in ./* ./.[!.]* ./..?*; do
-    [ "$source_path" = "./dist" ] && continue
-    PACKAGE_SOURCES+=("$source_path")
-done
+# 只打包 Git 已跟踪文件，避免把本机临时文件或未提交资料带入公开包。
+while IFS= read -r -d '' source_path; do
+    case "$source_path" in
+        dist/*) continue ;;
+    esac
+    PACKAGE_SOURCES+=("./$source_path")
+done < <(git ls-files -z)
+
+if [ "${#PACKAGE_SOURCES[@]}" -eq 0 ]; then
+    echo "没有找到可打包的 Git 已跟踪文件。"
+    exit 1
+fi
 
 tar \
     --no-xattrs \

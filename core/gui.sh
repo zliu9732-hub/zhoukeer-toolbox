@@ -270,35 +270,16 @@ settings_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "系统设置与检测" \
-            source "添加国内下载源" \
-            init-domestic "初始化国内源（含 pacman 密钥环）" \
-            restore-official "恢复官方 Flathub 源" \
-            system-components "更新系统组件" \
+            init-sources "初始化软件源（系统组件 + 国内源 + Discover）" \
             accelerator "Steamcommunity 302" \
             set-password "设置系统密码" \
             change-password "修改系统密码" \
             info "一键体检（不修改系统）" \
             back "返回主菜单")" || return 0
         case "$choice" in
-            source)
-                gui_confirm "将添加 flathub-cn（上海交大）和 flathub-ustc（中科大）。两个远程源会关闭软件包签名验证；仅在信任镜像时继续。是否继续？" && \
-                    run_gui_action "添加国内下载源" \
-                    bash "$PROJECT_ROOT/modules/domestic_source.sh" enable
-                ;;
-            init-domestic)
-                gui_confirm "将初始化 pacman 密钥环、配置国内 Flatpak 镜像并刷新应用索引。国内 Flatpak 远程源会关闭软件包签名验证；仅在信任镜像时继续。是否继续？" && \
-                    run_gui_action "初始化国内源" \
-                    bash "$PROJECT_ROOT/modules/domestic_source.sh" init-domestic
-                ;;
-            restore-official)
-                gui_confirm "将恢复官方 Flathub 地址与软件包签名验证，不会删除已安装应用。是否继续？" && \
-                    run_gui_action "恢复官方 Flathub 源" \
-                    bash "$PROJECT_ROOT/modules/domestic_source.sh" restore-official
-                ;;
-            system-components)
-                gui_confirm "将更新 pacman 密钥环、系统包与 git；会临时关闭 SteamOS 只读保护，完成后自动恢复。是否继续？" && \
-                    run_gui_action "更新系统组件" \
-                    bash "$PROJECT_ROOT/modules/domestic_source.sh" system-components
+            init-sources)
+                run_gui_action "初始化软件源" \
+                    bash "$PROJECT_ROOT/modules/domestic_source.sh" init
                 ;;
             accelerator)
                 steam_accelerator_gui_menu

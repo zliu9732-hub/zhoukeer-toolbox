@@ -263,23 +263,6 @@ validate_toolbox_password_value() {
     return "$result"
 }
 
-toolbox_sudo_interactive() {
-    local result
-
-    if [ "${ZHOUKEER_SUDO_INTERACTIVE_FALLBACK:-1}" = "0" ] || \
-        { [ ! -t 0 ] && [ ! -t 1 ]; }; then
-        return 1
-    fi
-
-    if sudo -- "$@"; then
-        result=0
-    else
-        result=$?
-    fi
-    sudo -k >/dev/null 2>&1 || true
-    return "$result"
-}
-
 toolbox_sudo() {
     local result
 
@@ -299,16 +282,10 @@ toolbox_sudo() {
     fi
 
     if ! load_toolbox_password; then
-        if [ "$PASSWORD_RECORD_ERROR" = "桌面没有找到管理员密码.txt" ] && \
-            capture_existing_admin_password; then
-            :
-        else
-            echo "桌面密码记录不可用：${PASSWORD_RECORD_ERROR:-未知原因}"
-            echo "记录位置：$PASSWORD_RECORD"
-            echo "需要管理员权限时，将由系统正常询问密码。"
-            toolbox_sudo_interactive "$@"
-            return $?
-        fi
+        echo "桌面密码记录不可用：${PASSWORD_RECORD_ERROR:-未知原因}"
+        echo "记录位置：$PASSWORD_RECORD"
+        echo "请先在工具箱中使用“设置系统密码”，本操作不会弹出重复密码输入。"
+        return 1
     fi
 
     # 密码只经标准输入建立一次最短暂的 sudo 时间戳，不进入命令参数
@@ -322,12 +299,7 @@ toolbox_sudo() {
     unset TOOLBOX_PASSWORD
     if [ "$result" -ne 0 ]; then
         sudo -k >/dev/null 2>&1 || true
-        if [ "${ZHOUKEER_SUDO_INTERACTIVE_FALLBACK:-1}" != "0" ] && \
-            { [ -t 0 ] || [ -t 1 ]; }; then
-            echo "桌面密码记录未通过验证，将由系统重新询问密码。"
-            toolbox_sudo_interactive "$@"
-            return $?
-        fi
+        echo "管理员密码.txt中的密码未通过验证，请在工具箱中更新密码记录。"
         return "$result"
     fi
 

@@ -4,6 +4,8 @@
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/logger.sh"
+# shellcheck disable=SC1091
+source "$PROJECT_ROOT/core/auth.sh"
 
 confirm_action() {
     local prompt="$1"
@@ -43,7 +45,7 @@ safe_remove_contents() {
     fi
 
     if confirm_action "将清理 $label: $target，是否继续？"; then
-        sudo find "$target" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+        toolbox_sudo find "$target" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
         local status=$?
         if [ "$status" -eq 0 ]; then
             echo "已清理: $label"

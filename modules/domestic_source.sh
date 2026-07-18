@@ -8,9 +8,7 @@ source "$PROJECT_ROOT/core/platform.sh"
 source "$PROJECT_ROOT/core/logger.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/auth.sh"
-# shellcheck disable=SC1091
-source "$PROJECT_ROOT/core/platform.sh"
-# 复用常用软件模块中已经过测试的 Flathub 国内缓存配置。
+# 复用常用软件模块中经过验证的 Flathub 国内缓存配置。
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/modules/software.sh"
 
@@ -20,7 +18,8 @@ verify_domestic_flatpak_remote() {
     local applications
 
     echo "正在验证 $label 应用索引..."
-    applications="$(timeout --foreground 30 flatpak remote-ls --user "$remote" --app --columns=application 2>/dev/null)" || {
+    applications="$(timeout --foreground 30 flatpak remote-ls --user "$remote" \
+        --app --columns=application 2>/dev/null)" || {
         echo "$label 无法读取应用索引，请检查网络后重试。"
         return 1
     }
@@ -32,237 +31,93 @@ verify_domestic_flatpak_remote() {
     echo "${label}：应用索引可用。"
 }
 
-verify_domestic_flatpak_sources() {
-    verify_domestic_flatpak_remote "$FLATHUB_CN_REMOTE" "上海交大 Flathub 缓存" || return 1
-    verify_domestic_flatpak_remote "$FLATHUB_CN_FALLBACK_REMOTE" "中科大 Flathub 缓存" || return 1
-}
-
-configure_domestic_source() {
-    is_linux || {
-        echo "国内下载源配置仅支持 Linux/SteamOS。"
-        return 1
-    }
+configure_domestic_flatpak() {
     require_command flatpak || return 1
     require_command timeout || return 1
     require_command curl || return 1
 
-    echo "正在添加上海交大和中科大两个用户级 Flathub 缓存源..."
-    echo "不会修改 SteamOS 只读系统分区，也不会删除用户已有的其他来源。"
+    echo "[2/3] 配置上海交大和中科大 Flatpak 国内缓存..."
     if ! ensure_flatpak_remotes; then
-        echo "国内下载源配置失败，现有软件和其他下载源保持不变。"
-        return 1
-    fi
-    if ! verify_domestic_flatpak_sources; then
-        echo "国内下载源已写入，但至少一个镜像当前不可用；请稍后重新初始化。"
+        echo "Flatpak 国内缓存配置失败，现有软件和其他来源保持不变。"
         return 1
     fi
 
-    echo "国内下载源配置完成：${FLATHUB_CN_REMOTE}、${FLATHUB_CN_FALLBACK_REMOTE}（应用索引已验证）"
-    echo "上海交大：$FLATHUB_CN_URL"
-    echo "中科大：$FLATHUB_CN_FALLBACK_URL"
-    log "Flathub国内双缓存源配置完成"
+    echo "正在刷新 Discover 软件商店应用索引..."
+    timeout --foreground 180 flatpak update --user --appstream \
+        "$FLATHUB_CN_REMOTE" >/dev/null 2>&1 || true
+    timeout --foreground 180 flatpak update --user --appstream \
+        "$FLATHUB_CN_FALLBACK_REMOTE" >/dev/null 2>&1 || true
+
+    echo "[3/3] 验证 Discover 软件索引..."
+    verify_domestic_flatpak_remote "$FLATHUB_CN_REMOTE" \
+        "上海交大 Flathub 缓存" || return 1
+    verify_domestic_flatpak_remote "$FLATHUB_CN_FALLBACK_REMOTE" \
+        "中科大 Flathub 缓存" || return 1
+
+    echo "国内下载源配置完成：${FLATHUB_CN_REMOTE}、${FLATHUB_CN_FALLBACK_REMOTE}（Discover 应用索引已验证）"
 }
 
-restore_official_flathub() {
-    is_linux || { echo "仅支持 Linux/SteamOS。"; return 1; }
-    require_command flatpak || return 1
-    require_command timeout || return 1
+prepare_system_packages() {
+    local readonly_disabled=0
 
-    echo "正在恢复官方 Flathub：$FLATHUB_OFFICIAL_REMOTE"
-    echo "官方地址：https://dl.flathub.org/repo"
-    timeout --foreground 30 flatpak remote-add --user --if-not-exists \
-        "$FLATHUB_OFFICIAL_REMOTE" "$FLATHUB_OFFICIAL_REPO_FILE" || return 1
-    timeout --foreground 30 flatpak remote-modify --user "$FLATHUB_OFFICIAL_REMOTE" \
-        --url=https://dl.flathub.org/repo || return 1
-    timeout --foreground 30 flatpak remote-modify --user --gpg-verify \
-        "$FLATHUB_OFFICIAL_REMOTE" || return 1
-    echo "官方 Flathub 已恢复，并已启用软件包签名验证。"
-}
-
-update_system_components() {
-    is_linux || { echo "仅支持 Linux/SteamOS。"; return 1; }
     for command_name in steamos-readonly pacman pacman-key; do
         require_command "$command_name" || return 1
     done
 
-    echo "将更新 SteamOS 可写系统组件：pacman 密钥环、软件数据库、已安装系统包和 git。"
-    echo "此操作不添加第三方软件仓库；完成后会恢复 SteamOS 只读保护。"
+    echo "[1/3] 初始化 pacman 密钥环并更新系统软件组件..."
     toolbox_sudo steamos-readonly disable || return 1
-    if ! toolbox_sudo pacman-key --init || ! toolbox_sudo pacman-key --populate || \
-        ! toolbox_sudo pacman -Syu --needed --noconfirm git; then
-        toolbox_sudo steamos-readonly enable 2>/dev/null || true
-        echo "系统组件更新失败，已尝试恢复只读保护。"
+    readonly_disabled=1
+
+    if ! toolbox_sudo pacman-key --init || \
+        ! toolbox_sudo pacman-key --populate || \
+        ! toolbox_sudo pacman -Syu --needed --noconfirm git flatpak; then
+        [ "$readonly_disabled" -eq 0 ] || \
+            toolbox_sudo steamos-readonly enable >/dev/null 2>&1 || true
+        echo "系统软件组件初始化失败，已尝试恢复 SteamOS 只读保护。"
         return 1
     fi
-    toolbox_sudo steamos-readonly enable || {
-        echo "系统组件已更新，但恢复只读保护失败。"
+
+    if ! toolbox_sudo steamos-readonly enable; then
+        echo "系统组件已更新，但恢复 SteamOS 只读保护失败。"
         return 1
-    }
-    echo "系统组件更新完成。"
+    fi
 }
 
-show_domestic_source_status() {
+initialize_software_sources() {
+    is_linux || {
+        echo "初始化软件源仅支持 Linux/SteamOS。"
+        return 1
+    }
+
+    echo "================================================"
+    echo " 初始化软件源"
+    echo "================================================"
+    echo "将自动准备系统包管理、Flatpak 国内缓存和 Discover 应用索引。"
+    echo "管理员权限会读取桌面管理员密码.txt，不会重复询问密码。"
+
+    prepare_system_packages || return 1
+    configure_domestic_flatpak || return 1
+
+    echo ""
+    echo "初始化软件源完成。现在可以正常使用工具箱安装软件，"
+    echo "也可以打开 Discover 软件商店搜索和安装 Flatpak 应用。"
+    echo "上海交大：$FLATHUB_CN_URL"
+    echo "中科大：$FLATHUB_CN_FALLBACK_URL"
+    log "软件源初始化完成：pacman、Flatpak国内双缓存和Discover索引可用"
+}
+
+show_software_source_status() {
     require_command flatpak || return 1
-    require_command timeout || return 1
     echo "当前用户的 Flatpak 下载源："
     flatpak remotes --user --show-details 2>/dev/null || \
         flatpak remotes --user 2>/dev/null || true
 }
 
-
-
-init_domestic_flatpak() {
-    echo "================================================"
-    echo " 配置国内 Flatpak 镜像源"
-    echo "================================================"
-    echo ""
-
-    echo "本操作将初始化 pacman 密钥环，并配置国内 Flatpak 远程源。"
-    confirm_domestic_flatpak_risk
-
-    is_linux || { echo "仅支持 Linux/SteamOS。"; return 1; }
-    require_command sudo || return 1
-
-    # ----- 第 1 步: 下载并导入 Flathub GPG 公钥 -----
-    echo "[1/6] 下载并导入 Flathub GPG 公钥..."
-    local gpg_tmp gpg_key
-    gpg_tmp="$(mktemp -d)" || return 1
-    gpg_key="$gpg_tmp/flathub.gpg"
-
-    if curl -fsL --connect-timeout 10 --max-time 60 -o "$gpg_key"         "https://mirror.sjtu.edu.cn/flathub/flathub.gpg"; then
-        echo "  - 从交大镜像下载 GPG 成功"
-    elif curl -fsL --connect-timeout 10 --max-time 60 -o "$gpg_key"         "https://flathub.org/repo/flathub.gpg"; then
-        echo "  - 从官方源下载 GPG 成功"
-    else
-        echo "  - GPG 公钥下载失败，跳过导入"
-        gpg_key=""
-    fi
-
-    if [ -n "$gpg_key" ] && [ -s "$gpg_key" ]; then
-        for _src_ in flathub Sjtu Ustc; do
-            if flatpak remote-list --system 2>/dev/null | grep -q "$_src_"; then
-                sudo flatpak remote-modify "$_src_" --gpg-import="$gpg_key" 2>/dev/null &&                     echo "  - $_src_ GPG 已导入" ||                     echo "  - $_src_ GPG 导入失败"
-            fi
-        done
-    fi
-    rm -rf "$gpg_tmp"
-
-    # ----- 第 2 步: 安装 Flatpak(如缺失) -----
-    echo "[2/6] 检查 Flatpak..."
-    if ! command -v flatpak >/dev/null 2>&1; then
-        require_command steamos-readonly || return 1
-        require_command pacman || return 1
-        require_command pacman-key || return 1
-        sudo steamos-readonly disable || { echo "  - 关闭只读保护失败"; return 1; }
-        sudo pacman-key --init || true
-        sudo pacman-key --populate || true
-        sudo pacman -S flatpak --noconfirm || {
-            sudo steamos-readonly enable 2>/dev/null
-            echo "  - Flatpak 安装失败"; return 1
-        }
-        sudo steamos-readonly enable || echo "  - 恢复只读保护失败"
-        echo "  - Flatpak 已安装"
-    else
-        echo "  - Flatpak 已存在"
-    fi
-
-    # ----- 第 3 步: 配置官方 Flathub -----
-    echo "[3/6] 配置官方 Flathub..."
-    if ! flatpak remote-list --system 2>/dev/null | grep -q "flathub"; then
-        if ! sudo flatpak remote-add --if-not-exists flathub             https://flathub.org/repo/flathub.flatpakrepo 2>/dev/null; then
-            local _repo_
-            _repo_="$(mktemp)" || return 1
-            curl -fsL --connect-timeout 10 --max-time 60                 -o "$_repo_"                 "https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo" &&                 sudo flatpak remote-add --if-not-exists flathub "$_repo_" 2>/dev/null
-            rm -f "$_repo_"
-        fi
-        echo "  - flathub 已添加"
-    else
-        echo "  - flathub 已存在"
-    fi
-
-    # ----- 第 4 步: 添加国内镜像(关闭 GPG 校验)-----
-    echo "[4/6] 添加国内镜像..."
-    for _pair_ in "Sjtu|https://mirror.sjtu.edu.cn/flathub" "Ustc|https://mirrors.ustc.edu.cn/flathub"; do
-        local _name_="${_pair_%%|*}"
-        local _url_="${_pair_##*|}"
-        if ! flatpak remote-list --system 2>/dev/null | grep -q "$_name_"; then
-            if ! sudo flatpak remote-add --if-not-exists "$_name_"                 "$_url_/flathub.flatpakrepo" 2>/dev/null; then
-                local _r2_
-                _r2_="$(mktemp)" || return 1
-                curl -fsL --connect-timeout 10 --max-time 60                     -o "$_r2_" "$_url_/flathub.flatpakrepo" &&                     sudo flatpak remote-add --if-not-exists "$_name_" "$_r2_" 2>/dev/null
-                rm -f "$_r2_"
-            fi
-            echo "  - $_name_ 已添加"
-        else
-            echo "  - $_name_ 已存在"
-        fi
-        sudo flatpak remote-modify "$_name_" --url="$_url_" 2>/dev/null
-        # 国内镜像使用 --no-gpg-verify 绕过签名问题
-        sudo flatpak remote-modify --no-gpg-verify "$_name_" 2>/dev/null &&             echo "  - $_name_ 已关闭 GPG 校验"
-    done
-    # 同时添加用户级国内源（供 flatpak install --user 使用）
-    for _ul_pair_ in "$FLATHUB_CN_REMOTE|$FLATHUB_CN_URL" "$FLATHUB_CN_FALLBACK_REMOTE|$FLATHUB_CN_FALLBACK_URL"; do
-        local _ul_name_="${_ul_pair_%%|*}"
-        local _ul_url_="${_ul_pair_##*|}"
-        if ! flatpak remote-list --user 2>/dev/null | grep -q "$_ul_name_"; then
-            flatpak remote-add --user --if-not-exists "$_ul_name_" "$_ul_url_/flathub.flatpakrepo" 2>/dev/null &&                 echo "  - $_ul_name_ (用户级) 已添加"
-        fi
-        flatpak remote-modify --user "$_ul_name_" --url="$_ul_url_" 2>/dev/null
-        flatpak remote-modify --no-gpg-verify --user "$_ul_name_" 2>/dev/null &&             echo "  - $_ul_name_ (用户级) 已关闭 GPG 校验"
-    done
-
-    # ----- 第 5 步: 刷新 AppStream -----
-    echo "[5/6] 刷新应用索引..."
-    sudo rm -rf /var/tmp/flatpak-cache-* 2>/dev/null || true
-    rm -rf "$HOME/.local/share/flatpak/repo/tmp" 2>/dev/null || true
-
-    if ! timeout --foreground 180 flatpak update --appstream 2>/dev/null; then
-        for _src_ in flathub Sjtu Ustc; do
-            flatpak remote-list --system 2>/dev/null | grep -q "$_src_" &&                 timeout --foreground 60 flatpak update --appstream --remote="$_src_" 2>/dev/null || true
-        done
-    fi
-    echo "  - AppStream 刷新完成"
-
-    # ----- 第 6 步: 验证 -----
-    echo "[6/6] 验证..."
-    local _ok_=0
-    for _src_ in Sjtu Ustc flathub; do
-        flatpak remote-list --system 2>/dev/null | grep -q "$_src_" || continue
-        if timeout --foreground 30 flatpak remote-ls --system "$_src_" --app             --columns=application 2>/dev/null | grep -qm1 .; then
-            echo "  - $_src_: 正常"
-            _ok_=$((_ok_ + 1))
-        else
-            echo "  - $_src_: 索引暂不可读"
-        fi
-    done
-
-    echo ""
-    echo "完成: $_ok_ 个源可用"
-    log "国内 Flatpak 镜像源初始化完成: $_ok_ 个源可用"
-}
-setup_flatpak_sjtu() {
-    init_domestic_flatpak
-}
-
-flatpak_mirror_delete() {
-    echo "  - 删除 SJTU 镜像源"
-    sudo flatpak remote-delete Sjtu 2>/dev/null &&         echo "  - Sjtu 已删除" || echo "  - Sjtu 不存在"
-}
-
-flatpak_mirror_reset() {
-    echo "  - 重置官方 Flathub 源"
-    sudo flatpak remote-modify flathub --url=https://flathub.org/repo &&         echo "  - flathub 已重置" || echo "  - 重置失败"
-}
-
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-    case "${1:-enable}" in
-        enable) configure_domestic_source ;;
-        status) show_domestic_source_status ;;
-        init-domestic) init_domestic_flatpak ;;
-        restore-official) restore_official_flathub ;;
-        system-components) update_system_components ;;
-        mirror-delete) flatpak_mirror_delete ;;
-        mirror-reset) flatpak_mirror_reset ;;
-        *) echo "用法: $0 {enable|status|init-domestic|restore-official|system-components|mirror-delete|mirror-reset}"; exit 1 ;;
+    case "${1:-init}" in
+        init|init-domestic) initialize_software_sources ;;
+        enable) configure_domestic_flatpak ;;
+        status) show_software_source_status ;;
+        *) echo "用法: $0 {init|enable|status}"; exit 1 ;;
     esac
 fi

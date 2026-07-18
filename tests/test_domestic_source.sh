@@ -87,6 +87,9 @@ case "$command" in
         printf 'remote-ls %s\n' "$*" >> "$state/commands"
         printf 'org.mozilla.firefox\n'
         ;;
+    update)
+        printf 'update %s\n' "$*" >> "$state/commands"
+        ;;
     *)
         echo "unexpected flatpak command: $command" >&2
         exit 1

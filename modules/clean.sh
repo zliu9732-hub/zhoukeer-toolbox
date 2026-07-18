@@ -17,7 +17,7 @@ clean_action() {
                 "$HOME/.steam/steam/steamapps/shadercache" \
                 "$HOME/.local/share/Steam/steamapps/shadercache"; do
                 if [ -d "$_cc_dir" ]; then
-                    sudo find "$_cc_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null
+                    toolbox_sudo find "$_cc_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null
                     _cc_cleaned=$((_cc_cleaned + 1))
                 fi
             done
@@ -30,7 +30,7 @@ clean_action() {
                         /*)
                             _cc_dir="$_cc_path/steamapps/shadercache"
                             if [ -d "$_cc_dir" ]; then
-                                sudo find "$_cc_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null
+                                toolbox_sudo find "$_cc_dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null
                                 _cc_cleaned=$((_cc_cleaned + 1))
                             fi
                             ;;

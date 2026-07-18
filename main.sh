@@ -480,29 +480,23 @@ system_settings_menu() {
     local choice
 
     while true; do
-        draw_category_frame settings "系统设置" "下载源、Steam加速、系统密码和一键体检"
-        ui_touch_button 5 '\033[1;97;48;5;24m' "添加国内下载源" "添加用户级 Flatpak 国内缓存"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "初始化国内源" "含 pacman 密钥环、Flatpak 国内源与应用索引"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "恢复官方 Flathub 源" "恢复官方地址与软件包签名验证"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "Steamcommunity 302" "一键安装并加速 Steam 与 GitHub"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "设置系统密码" "明文保存到桌面；同一用户运行的软件也能读取"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "修改系统密码" "同步更新明文记录；同一用户软件也能读取"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "一键体检" "检查空间、网络、Steam、Decky 和常用软件；不修改系统"
-        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
-        ui_touch_button 22 '\033[1;97;48;5;160m' "更新系统组件" "更新 pacman 密钥环、系统包与 git，完成后恢复只读保护"
+        draw_category_frame settings "系统设置" "软件源、Steam加速、系统密码和一键体检"
+        ui_touch_button 7 '\033[1;97;48;5;30m' "初始化软件源" "一次完成系统组件、国内源与 Discover 软件索引"
+        ui_touch_button 12 '\033[1;97;48;5;24m' "Steamcommunity 302" "一键安装并加速 Steam 与 GitHub"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "设置系统密码" "明文保存到桌面；同一用户运行的软件也能读取"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "修改系统密码" "同步更新明文记录；同一用户软件也能读取"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "一键体检" "检查空间、网络、Steam、Decky 和常用软件；不修改系统"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:source right:7-8:init-domestic right:9-10:restore-official right:11-12:accelerator right:13-14:set-password right:15-16:change-password right:17-18:info right:20-21:home right:22-23:system-components)"
+        choice="$(read_touch_menu right:7-8:init-sources right:12-13:accelerator right:15-16:set-password right:17-18:change-password right:19-20:info right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            source) confirm_and_run "添加国内下载源" "将配置 flathub-cn（上海交大）和 flathub-ustc（中科大）：会关闭这两个远程源的软件包签名验证。仅在信任镜像时继续。" bash "$PROJECT_ROOT/modules/domestic_source.sh" enable ;;
-            init-domestic) confirm_and_run "初始化国内源" "将初始化 pacman 密钥环、配置上海交大/中科大 Flatpak 镜像并刷新索引；两个国内 Flatpak 远程源会关闭软件包签名验证。" bash "$PROJECT_ROOT/modules/domestic_source.sh" init-domestic ;;
-            restore-official) confirm_and_run "恢复官方 Flathub 源" "将恢复 flathub 官方地址与软件包签名验证，不会删除已安装应用。" bash "$PROJECT_ROOT/modules/domestic_source.sh" restore-official ;;
+            init-sources) run_action "初始化软件源" bash "$PROJECT_ROOT/modules/domestic_source.sh" init ;;
             accelerator) steam_accelerator_touch_menu ;;
             set-password) confirm_and_run "设置系统密码" "新密码将明文保存到桌面管理员密码.txt；所有以当前用户身份运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" set ;;
             change-password) confirm_and_run "修改系统密码" "将读取旧记录并明文保存新密码；所有以当前用户身份运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;
             info) run_action "一键体检" bash "$PROJECT_ROOT/core/detect.sh" --health ;;
-            system-components) confirm_and_run "更新系统组件" "将更新 pacman 密钥环、系统包与 git；会临时关闭 SteamOS 只读保护，完成后自动恢复。" bash "$PROJECT_ROOT/modules/domestic_source.sh" system-components ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "settings" ] || return 0

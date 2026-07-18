@@ -4,6 +4,7 @@ set -eu
 
 PLUGIN_ID="${1:-}"
 PLUGIN_ROOT="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+PASSWORD_RECORD="${ZHOUKEER_PASSWORD_RECORD:-$HOME/Desktop/管理员密码.txt}"
 
 case "$PLUGIN_ID" in
     lsfg)
@@ -56,9 +57,39 @@ else
     RUN_AS_ROOT=1
 fi
 
+run_stored_password_sudo() {
+    local stored_password
+
+    if sudo -n true >/dev/null 2>&1; then
+        sudo -n -- "$@"
+        return $?
+    fi
+    [ -f "$PASSWORD_RECORD" ] && [ ! -L "$PASSWORD_RECORD" ] && [ -r "$PASSWORD_RECORD" ] || {
+        echo "未找到可用的管理员密码.txt，无法自动完成管理员验证。"
+        return 1
+    }
+    stored_password="$(sed -n -e 's/^密码：//p' -e 's/^密码://p' "$PASSWORD_RECORD" | tr -d '\r')"
+    [ -n "$stored_password" ] || {
+        echo "管理员密码.txt中没有有效密码字段。"
+        return 1
+    }
+    if ! printf '%s\n' "$stored_password" | sudo -S -p '' -v >/dev/null 2>&1; then
+        stored_password=""
+        unset stored_password
+        echo "管理员密码.txt中的密码验证失败。"
+        return 1
+    fi
+    stored_password=""
+    unset stored_password
+    sudo -n -- "$@"
+    local status=$?
+    sudo -k >/dev/null 2>&1 || true
+    return "$status"
+}
+
 run_file_operation() {
     if [ "$RUN_AS_ROOT" -eq 1 ]; then
-        sudo "$@"
+        run_stored_password_sudo "$@"
     else
         "$@"
     fi
@@ -92,7 +123,7 @@ remove_legacy_lsfg_directories() {
 
 reload_decky_plugins() {
     if command -v systemctl >/dev/null 2>&1 && command -v sudo >/dev/null 2>&1 && \
-        sudo systemctl restart plugin_loader.service; then
+        run_stored_password_sudo systemctl restart plugin_loader.service; then
         echo "Decky 已重新加载。"
         return 0
     fi
