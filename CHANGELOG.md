@@ -1,4 +1,10 @@
 
+## V4.1.5 公开版 — 2026-07-18
+
+- 修复系统设置触控菜单映射，停用 rEFInd 入口并新增官方 Flathub 恢复项。
+- 国内源初始化明确显示镜像信息；系统组件更新独立为单独入口。
+- 加固 `settings.conf` 解析，移除 ToDesk 的 `eval`，补齐 Epic/战网已安装启动器自动入库。
+
 ## V4.1.4 公开版 — 2026-07-18
 
 - 安装 Chrome/Edge/Bottles/Protontricks 后自动从 Flatpak exports 复制桌面快捷方式。
