@@ -202,6 +202,7 @@ test_lsfg_chinese_runtime_files_packaged() {
     [ -s "$plugin_dir/package.json" ] || fail "更新包缺少小黄鸭模块声明"
     [ -s "$plugin_dir/LICENSE" ] || fail "更新包缺少小黄鸭原始许可证"
     [ -s "$plugin_dir/dist/index.js" ] || fail "更新包缺少小黄鸭运行文件"
+    [ ! -e "$plugin_dir/dist/index.js.map" ] || fail "更新包不应包含小黄鸭调试映射"
     [ -d "$plugin_dir/py_modules/lsfg_vk" ] || fail "更新包缺少小黄鸭后端模块"
     [ ! -e "$plugin_dir/node_modules" ] || fail "更新包不应包含小黄鸭开发依赖"
 }

@@ -22,6 +22,21 @@ cd "$PROJECT_ROOT" || exit 1
 while IFS= read -r -d '' source_path; do
     case "$source_path" in
         dist/*|decky-plugins/zhoukeer-localizer/*) continue ;;
+        third_party/decky-lsfg-vk-zh-v0.12.5/dist/*.map) continue ;;
+        # FSR4 的 TypeScript 源码仅用于开发；安装器只会使用下列运行文件。
+        # 不把整套源码塞进自更新包，避免 Gitee 对大文件原始下载返回 403。
+        third_party/decky-framegen-zh-v0.15.6/*)
+            case "$source_path" in
+                third_party/decky-framegen-zh-v0.15.6/plugin.json|\
+                third_party/decky-framegen-zh-v0.15.6/package.json|\
+                third_party/decky-framegen-zh-v0.15.6/LICENSE|\
+                third_party/decky-framegen-zh-v0.15.6/main.py|\
+                third_party/decky-framegen-zh-v0.15.6/dist/assets/*|\
+                third_party/decky-framegen-zh-v0.15.6/dist/index.js|\
+                third_party/decky-framegen-zh-v0.15.6/defaults/*) ;;
+                *) continue ;;
+            esac
+            ;;
     esac
     PACKAGE_SOURCES+=("./$source_path")
 done < <(git ls-files -z)

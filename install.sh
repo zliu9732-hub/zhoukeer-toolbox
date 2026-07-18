@@ -393,7 +393,9 @@ copy_lsfg_chinese() {
                 "$STAGING_DIR/third_party/decky-lsfg-vk-zh-v0.12.5/$relative_file"
         fi
     done
-    copy_dir_files third_party/decky-lsfg-vk-zh-v0.12.5/dist
+    copy_file "$source_dir/dist/index.js" \
+        "$STAGING_DIR/third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js"
+    copy_dir_files third_party/decky-lsfg-vk-zh-v0.12.5/dist/assets
     copy_dir_files third_party/decky-lsfg-vk-zh-v0.12.5/py_modules
 }
 
@@ -408,7 +410,9 @@ copy_fsr4_chinese() {
                 "$STAGING_DIR/third_party/decky-framegen-zh-v0.15.6/$relative_file"
         fi
     done
-    copy_dir_files third_party/decky-framegen-zh-v0.15.6/dist
+    copy_file "$source_dir/dist/index.js" \
+        "$STAGING_DIR/third_party/decky-framegen-zh-v0.15.6/dist/index.js"
+    copy_dir_files third_party/decky-framegen-zh-v0.15.6/dist/assets
     copy_dir_files third_party/decky-framegen-zh-v0.15.6/defaults
 }
 
