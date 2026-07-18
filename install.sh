@@ -386,7 +386,7 @@ copy_lsfg_chinese() {
     local source_dir="$SOURCE_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5"
     local relative_file
 
-    # 只携带 Decky 运行小黄鸭中文界面所需的已构建文件和后端，开发源码与依赖不进入安装目录。
+    # 只携带 Decky 运行小黄鸭所需的已构建文件和后端，开发源码与依赖不进入安装目录。
     for relative_file in plugin.json package.json LICENSE main.py shared_config.py; do
         if [ -f "$source_dir/$relative_file" ]; then
             copy_file "$source_dir/$relative_file" \

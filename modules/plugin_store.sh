@@ -1165,7 +1165,7 @@ install_lsfg_chinese() {
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
-        echo "小黄鸭中文界面仅支持真实 SteamOS 环境。"
+        echo "小黄鸭仅支持真实 SteamOS 环境。"
         return 1
     fi
     if [ -L "$LSFG_ZH_SOURCE_DIR" ] || \
@@ -1189,15 +1189,15 @@ install_lsfg_chinese() {
     fi
     prepare_plugin_root "$plugin_root" || return 1
     install_tree_atomically "$LSFG_ZH_SOURCE_DIR" "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" || {
-        echo "小黄鸭中文界面安装失败，已尽量保留原版。"
+        echo "小黄鸭安装失败，已尽量保留原版。"
         return 1
     }
-    echo "小黄鸭 v$LSFG_OFFICIAL_VERSION 中文界面已安装。"
+    echo "小黄鸭 v$LSFG_OFFICIAL_VERSION 已安装。"
     echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
     if [ "$reload_after" = "1" ]; then
-        reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可看到中文界面。"
+        reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可使用。"
     fi
-    log "小黄鸭 v$LSFG_OFFICIAL_VERSION 中文界面安装完成"
+    log "小黄鸭 v$LSFG_OFFICIAL_VERSION 安装完成"
 }
 
 install_fsr4_chinese() {
@@ -1543,7 +1543,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         fsr4) show_plugin_download_speed_tip; install_configured_plugin fsr4 ;;
         cheatdeck) show_plugin_download_speed_tip; install_configured_plugin cheatdeck ;;
         localizer)
-            echo "旧版通用扫描式汉化已停用，请使用“小黄鸭中文界面”。"
+            echo "旧版通用扫描式汉化已停用，请使用“常用插件组合”。"
             exit 1
             ;;
         feature-status) print_feature_plugin_status ;;
