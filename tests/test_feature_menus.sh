@@ -40,11 +40,11 @@ sidebar="$(function_source "$UI_FILE" draw_category_frame)"
 
 for item in \
     '新机必备｜第一次使用从这里开始' \
-    '常用软件｜安装聊天和远程工具' \
-    '游戏与插件｜插件商城、运行组件和启动器' \
+    '常用软件｜安装聊天、浏览器和远程工具' \
+    '游戏与插件｜浏览插件商城和游戏组件' \
     '网络与应用商店｜检查网络和软件源状态' \
     '维护与帮助｜系统检查、清理、指南和日志' \
-    '高级工具｜修改系统和网络设置'; do
+    '系统与密码｜设置密码和管理系统功能'; do
     assert_contains "$touch_home" "$item" "触控首页缺少：$item"
     assert_contains "$gui_home" "$item" "GUI 首页缺少：$item"
 done
@@ -54,10 +54,10 @@ done
 touch_software="$(function_source "$MAIN_FILE" common_software_menu)"
 gui_software="$(function_source "$GUI_FILE" software_menu)"
 for menu in "$touch_software" "$gui_software"; do
-    for item in '微信' 'QQ' 'Chrome 浏览器' 'Edge 浏览器' 'RustDesk 远程协助' 'Windows 软件工具' '游戏兼容设置' 'Epic 游戏启动器'; do
+    for item in '微信' 'QQ' 'Firefox 浏览器' 'Chrome 浏览器' 'Edge 浏览器' 'RustDesk 远程协助' 'Windows 软件工具' '游戏兼容设置' 'Epic 游戏启动器'; do
         assert_contains "$menu" "$item" "常用软件缺少：$item"
     done
-    for hidden in 'Firefox' '网易云音乐' '战网' 'ToDesk'; do
+    for hidden in '网易云音乐' '战网' 'ToDesk'; do
         assert_not_contains "$menu" "$hidden" "常用软件不应显示：$hidden"
     done
 done
@@ -65,6 +65,8 @@ done
 touch_games="$(function_source "$MAIN_FILE" game_environment_menu)"
 gui_games="$(function_source "$GUI_FILE" game_environment_gui_menu)"
 for menu in "$touch_games" "$gui_games"; do
+    assert_contains "$menu" '游戏与插件｜插件商城' "插件商城页面标题不统一"
+    assert_not_contains "$menu" '游戏与插件｜Decky 插件商城' "插件商城页面仍显示英文标题"
     for item in '常用插件组合' '插件环境与精选组合' '浏览官方插件' '游戏中文辅助' 'GE 游戏运行组件' 'Epic 游戏启动器' '安装 Decky Loader'; do
         assert_contains "$menu" "$item" "游戏环境缺少：$item"
     done
@@ -109,12 +111,12 @@ done
 touch_advanced="$(function_source "$MAIN_FILE" advanced_tools_menu)"
 gui_advanced="$(function_source "$GUI_FILE" advanced_tools_gui_menu)"
 for menu in "$touch_advanced" "$gui_advanced"; do
-    assert_contains "$menu" '以下功能会修改系统、网络、软件源、密码或磁盘设置' "高级工具缺少固定警告"
+    assert_contains "$menu" '以下功能会修改系统、网络、软件源、密码或磁盘设置' "系统与密码缺少固定警告"
     for item in '国内软件源' 'Steamcommunity 302' '设置管理员密码' '修改管理员密码' '安装 ToDesk' '安装 Decky Loader' '双系统与互通盘'; do
-        assert_contains "$menu" "$item" "高级工具缺少：$item"
+        assert_contains "$menu" "$item" "系统与密码缺少：$item"
     done
     for risk_text in 'Flatpak 软件源' '修改 DNS' '管理密码' '修改只读系统' '使用管理员权限' '管理磁盘和开机菜单'; do
-        assert_contains "$menu" "$risk_text" "高级工具缺少风险说明：$risk_text"
+        assert_contains "$menu" "$risk_text" "系统与密码缺少风险说明：$risk_text"
     done
 done
 

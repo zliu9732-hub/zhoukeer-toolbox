@@ -146,7 +146,7 @@ draw_category_frame() {
     ui_sidebar_item 8 games "✦ 游戏与插件" "$selected"
     ui_sidebar_item 11 network "⌁ 网络与应用商店" "$selected"
     ui_sidebar_item 14 support "▤ 维护与帮助" "$selected"
-    ui_sidebar_item 18 advanced "! 高级工具" "$selected" 0
+    ui_sidebar_item 18 advanced "! 系统与密码" "$selected" 0
     ui_sidebar_item 22 exit "× 退出工具箱" "$selected" 0
 
     row=2
@@ -156,11 +156,13 @@ draw_category_frame() {
         row=$((row + 1))
     done
 
-    ui_panel_line 2 '\033[1;38;5;203m' "◆ 周克儿工具箱  ·  V4"
-    ui_panel_line 3 '\033[1;38;5;45m' "STEAMOS 掌机  /  中文工具"
-    ui_panel_line 4 '\033[38;5;203m' "────────────────────────────────────────"
-    ui_panel_line 5 '\033[1;38;5;220m' "▌ $title"
-    ui_panel_line 6 '\033[1;38;5;45m' "  $subtitle"
+    if [ -n "$title" ]; then
+        ui_panel_line 2 '\033[1;38;5;203m' "◆ 周克儿工具箱  ·  V4"
+        ui_panel_line 3 '\033[1;38;5;45m' "STEAMOS 掌机  /  中文工具"
+        ui_panel_line 4 '\033[38;5;203m' "────────────────────────────────────────"
+        ui_panel_line 5 '\033[1;38;5;220m' "▌ $title"
+        ui_panel_line 6 '\033[1;38;5;45m' "  $subtitle"
+    fi
 }
 
 draw_disclaimer_frame() {

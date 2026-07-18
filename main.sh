@@ -205,15 +205,16 @@ common_software_menu() {
         draw_category_frame software "常用软件" "安装聊天、浏览器和远程工具"
         ui_touch_button 5 '\033[1;97;48;5;24m' "微信" "安装适合 SteamOS 的微信"
         ui_touch_button 7 '\033[1;97;48;5;24m' "QQ" "安装适合 SteamOS 的 QQ"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "Chrome 浏览器" "安装 Chrome 浏览器"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "Edge 浏览器" "安装 Edge 浏览器"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "RustDesk 远程协助" "安装开源远程工具"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "Windows 软件工具" "安装 Bottles 运行工具"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "游戏兼容设置" "安装 Protontricks"
-        ui_touch_button 19 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
-        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "Firefox 浏览器" "安装 Firefox 浏览器"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "Chrome 浏览器" "安装 Chrome 浏览器"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "Edge 浏览器" "安装 Edge 浏览器"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "RustDesk 远程协助" "安装开源远程工具"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "Windows 软件工具" "安装 Bottles 运行工具"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "游戏兼容设置" "安装 Protontricks"
+        ui_touch_button 21 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
+        ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:wechat right:7-8:qq right:9-10:chrome right:11-12:edge right:13-14:rustdesk right:15-16:bottles right:17-18:protontricks right:19-20:epic right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:wechat right:7-8:qq right:9-10:browser right:11-12:chrome right:13-14:edge right:15-16:rustdesk right:17-18:bottles right:19-20:protontricks right:21-22:epic right:23-24:home)"
         case "$choice" in
             nav-*) apply_navigation "$choice"; return 0 ;;
         esac
@@ -221,6 +222,7 @@ common_software_menu() {
         case "$choice" in
             wechat) confirm_and_run "安装微信" "腾讯官网AppImage；失败时保留原有版本" bash "$PROJECT_ROOT/modules/software.sh" wechat ;;
             qq) confirm_and_run "安装QQ" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" qq ;;
+            browser) confirm_and_run "安装 Firefox 浏览器" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" browser ;;
             chrome) confirm_and_run "安装 Google Chrome" "Flathub 安装，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" chrome ;;
             edge) confirm_and_run "安装 Microsoft Edge" "Flathub 安装，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" edge ;;
             rustdesk) confirm_and_run "安装 RustDesk 远程协助" "从作者 GitHub Release 安装，不会修改服务器配置" bash "$PROJECT_ROOT/modules/software.sh" rustdesk ;;
@@ -266,7 +268,7 @@ todesk_preflight() {
         ui_panel_line 13 '\033[1;38;5;45m' "④ 开启“使用旧版 X11 桌面模式”"
         ui_panel_line 15 '\033[1;38;5;220m' "⑤ 重新进入桌面模式，再安装并启动 ToDesk"
         ui_touch_button 16 '\033[1;30;48;5;114m' "以上设置已完成，继续安装" "点击即确认两项开关均已开启"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回高级工具" "暂不安装"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统与密码" "暂不安装"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         choice="$(read_touch_menu right:16-17:continue right:18-19:back right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
@@ -377,14 +379,14 @@ game_environment_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "游戏与插件｜Decky 插件商城" "浏览插件商城、运行组件和启动器"
+        draw_category_frame games "游戏与插件｜插件商城" "浏览插件商城、运行组件和启动器"
         ui_touch_button 5 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭等三款插件"
         ui_touch_button 7 '\033[1;97;48;5;24m' "插件环境与精选组合" "安装 Decky 与当前组合"
         ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
         ui_touch_button 11 '\033[1;97;48;5;24m' "游戏中文辅助" "安装中文显示辅助 · 实验功能"
         ui_touch_button 13 '\033[1;97;48;5;24m' "GE 游戏运行组件" "提高 Windows 游戏兼容性"
         ui_touch_button 15 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
-        ui_touch_button 17 '\033[1;97;48;5;160m' "安装 Decky Loader" "前往高级工具确认 · 高级操作"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "安装 Decky Loader" "前往系统与密码确认 · 高级操作"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:5-6:features right:7-8:all right:9-10:browse right:11-12:localizer right:13-14:ge-proton right:15-16:epic right:17-18:decky-install right:22-23:home)"
@@ -509,7 +511,7 @@ dual_system_menu() {
         ui_touch_button 11 '\033[1;97;48;5;24m' "恢复互通盘写入" "重新以可写模式挂载互通盘"
         ui_touch_button 13 '\033[1;97;48;5;24m' "显示开机系统菜单" "显示 systemd-boot 5 秒 · 高级操作"
         ui_touch_button 15 '\033[1;97;48;5;160m' "隐藏开机系统菜单" "将等待时间设置为 0 秒 · 高级操作"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回高级工具" "查看其他高级功能"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统与密码" "查看其他系统功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:7-8:mount right:9-10:protect right:11-12:unprotect right:13-14:add right:15-16:remove right:18-19:advanced right:22-23:home)"
@@ -554,7 +556,7 @@ domestic_source_preflight() {
         ui_panel_line 13 '\033[1;38;5;203m' "还会运行 pacman，并临时关闭 SteamOS 只读保护"
         ui_panel_line 15 '\033[1;38;5;203m' "恢复官方源功能尚未完成，请确认了解后继续"
         ui_touch_button 17 '\033[1;97;48;5;160m' "确认修改国内软件源" "执行现有初始化动作 · 高风险"
-        ui_touch_button 19 '\033[1;97;48;5;238m' "返回高级工具" "不做任何修改"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回系统与密码" "不做任何修改"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:17-18:confirm-source right:19-20:advanced right:22-23:home)"
@@ -576,7 +578,7 @@ advanced_tools_menu() {
     local page=1
 
     while true; do
-        draw_category_frame advanced "高级工具（第 $page / 2 页）" "以下功能会修改系统、网络、软件源、密码或磁盘设置。请确认了解风险后继续。"
+        draw_category_frame advanced "系统与密码（第 $page / 2 页）" "以下功能会修改系统、网络、软件源、密码或磁盘设置。请确认了解风险后继续。"
         if [ "$page" -eq 1 ]; then
             ui_touch_button 7 '\033[1;97;48;5;160m' "国内软件源" "会修改 Flatpak 软件源 · 高级操作"
             ui_touch_button 10 '\033[1;97;48;5;160m' "Steamcommunity 302" "可能修改 DNS 和证书 · 高级操作"
@@ -645,7 +647,7 @@ steam_accelerator_touch_menu() {
         ui_touch_button 9 '\033[1;97;48;5;30m' "一键开启加速" "自动准备并启动 Steam + GitHub 后台加速"
         ui_touch_button 12 '\033[1;97;48;5;24m' "查看运行状态" "检查加速是否开启"
         ui_touch_button 15 '\033[1;97;48;5;160m' "安全卸载" "先停止工具箱进程，再删除程序文件"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回高级工具" "查看其他高级功能"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统与密码" "查看其他系统功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:6-7:install right:9-10:start right:12-13:status right:15-16:uninstall right:18-19:advanced right:22-23:home)"
@@ -815,13 +817,13 @@ changelog_menu() {
 home_menu() {
     local choice
 
-    draw_category_frame "" "欢迎使用" "全界面只需点击，无需输入任何数字或字母"
-    ui_panel_line 8 '\033[1;38;5;220m' "新机必备｜第一次使用从这里开始"
-    ui_panel_line 10 '\033[1;38;5;45m' "常用软件｜安装聊天和远程工具"
-    ui_panel_line 12 '\033[1;38;5;45m' "游戏与插件｜插件商城、运行组件和启动器"
-    ui_panel_line 14 '\033[1;38;5;45m' "网络与应用商店｜检查网络和软件源状态"
-    ui_panel_line 16 '\033[1;38;5;114m' "维护与帮助｜系统检查、清理、指南和日志"
-    ui_panel_line 20 '\033[1;38;5;203m' "高级工具｜修改系统和网络设置 · 高风险"
+    draw_category_frame "" "" ""
+    ui_panel_line 2 '\033[1;38;5;220m' "新机必备｜第一次使用从这里开始"
+    ui_panel_line 5 '\033[1;38;5;45m' "常用软件｜安装聊天、浏览器和远程工具"
+    ui_panel_line 8 '\033[1;38;5;45m' "游戏与插件｜浏览插件商城和游戏组件"
+    ui_panel_line 11 '\033[1;38;5;45m' "网络与应用商店｜检查网络和软件源状态"
+    ui_panel_line 14 '\033[1;38;5;114m' "维护与帮助｜系统检查、清理、指南和日志"
+    ui_panel_line 18 '\033[1;38;5;203m' "系统与密码｜设置密码和管理系统功能"
     ui_prompt
     choice="$(read_touch_menu)"
     apply_navigation "$choice" || true

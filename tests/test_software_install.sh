@@ -208,7 +208,7 @@ bash "$PROJECT_ROOT/modules/software.sh" qq >/dev/null
 [ -x "$QQ_SHORTCUT" ]
 [ "$(grep -c 'com.qq.QQ' "$STATE_DIR/commands")" -eq 1 ]
 
-# Firefox 使用官方 Flathub，不经过第三方下载分流或国内缓存。
+# Firefox 与 QQ 共用两个国内 Flathub 缓存，主缓存成功后不应继续切换来源。
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \
 FLATPAK_TEST_STATE="$STATE_DIR" \
@@ -221,11 +221,11 @@ grep -Fq 'Name=Firefox浏览器' "$FIREFOX_SHORTCUT"
 grep -Fq 'Exec=flatpak run org.mozilla.firefox' "$FIREFOX_SHORTCUT"
 grep -Fq 'Icon=org.mozilla.firefox' "$FIREFOX_SHORTCUT"
 grep -Fq 'Categories=Network;WebBrowser;' "$FIREFOX_SHORTCUT"
-grep -Fq 'install --user --noninteractive -y flathub org.mozilla.firefox' "$STATE_DIR/commands"
+grep -Fq 'install --user --noninteractive -y flathub-cn org.mozilla.firefox' "$STATE_DIR/commands"
 [ -f "$STATE_DIR/installed.org.mozilla.firefox" ]
 ! grep -Fq 'firefox-152.0.6.tar.xz' "$STATE_DIR/curl-urls"
-! grep -Fq 'flathub-cn org.mozilla.firefox' "$STATE_DIR/commands"
 ! grep -Fq 'flathub-ustc org.mozilla.firefox' "$STATE_DIR/commands"
+! grep -Fq ' flathub org.mozilla.firefox' "$STATE_DIR/commands"
 
 # Firefox 已安装时只修复快捷方式，不重复安装。
 rm -f "$FIREFOX_SHORTCUT"
@@ -277,9 +277,10 @@ failure_status=$?
 set -e
 [ "$failure_status" -ne 0 ]
 printf '%s\n' "$failure_output" | grep -Fq '两个国内缓存均失败或超时'
-printf '%s\n' "$failure_output" | grep -Fq '不再连接Flathub官方源'
-[ "$(printf '%s\n' "$failure_output" | grep -c '正在从 flathub-.*安装\|正在从 flathub-cn 安装')" -eq 2 ]
+printf '%s\n' "$failure_output" | grep -Fq '不再额外寻找Flathub官方源'
+# 首轮失败后修复一次 Flatpak 环境，再对两个国内缓存各重试一次。
+[ "$(printf '%s\n' "$failure_output" | grep -c '正在从 flathub-.*安装\|正在从 flathub-cn 安装')" -eq 4 ]
 ! grep -Fq ' flathub com.qq.QQ' "$STATE_DIR/commands"
 ! grep -Fq 'https://dl.flathub.org/repo/summary.idx' "$STATE_DIR/curl-urls"
 
-echo "PASS: 微信、QQ、Firefox官方Flathub、国内Flatpak双缓存和桌面快捷方式测试通过"
+echo "PASS: 微信、QQ、Firefox国内Flatpak双缓存和桌面快捷方式测试通过"

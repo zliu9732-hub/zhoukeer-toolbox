@@ -71,7 +71,7 @@ for entry in \
     'ui_sidebar_item 8 games "✦ 游戏与插件"' \
     'ui_sidebar_item 11 network "⌁ 网络与应用商店"' \
     'ui_sidebar_item 14 support "▤ 维护与帮助"' \
-    'ui_sidebar_item 18 advanced "! 高级工具"' \
+    'ui_sidebar_item 18 advanced "! 系统与密码"' \
     'ui_sidebar_item 22 exit "× 退出工具箱"'; do
     printf '%s\n' "$frame" | grep -Fq -- "$entry" || fail "侧栏缺少：$entry"
 done
@@ -91,8 +91,22 @@ for mapping in \
 done
 
 software="$(sed -n '/^common_software_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
-printf '%s\n' "$software" | grep -Fq 'ui_touch_button 22' || fail "常用软件返回首页文字行错误"
-printf '%s\n' "$software" | grep -Fq 'right:22-23:home' || fail "常用软件返回首页坐标错误"
+printf '%s\n' "$software" | grep -Fq 'ui_touch_button 23' || fail "常用软件返回首页文字行错误"
+printf '%s\n' "$software" | grep -Fq 'right:23-24:home' || fail "常用软件返回首页坐标错误"
+printf '%s\n' "$software" | grep -Fq 'ui_touch_button 9' || fail "Firefox按钮行错误"
+printf '%s\n' "$software" | grep -Fq 'right:9-10:browser' || fail "Firefox触控坐标错误"
+printf '%s\n' "$software" | grep -Fq 'modules/software.sh" browser' || fail "Firefox安装动作缺失"
+
+home="$(sed -n '/^home_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+for aligned_line in \
+    'ui_panel_line 2' \
+    'ui_panel_line 5' \
+    'ui_panel_line 8' \
+    'ui_panel_line 11' \
+    'ui_panel_line 14' \
+    'ui_panel_line 18'; do
+    printf '%s\n' "$home" | grep -Fq "$aligned_line" || fail "首页说明没有与左侧分类对齐：$aligned_line"
+done
 
 changelog="$(sed -n '/^changelog_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$changelog" | grep -Fq 'CHANGELOG.md' || fail "更新日志文件映射缺失"

@@ -72,6 +72,7 @@ software_menu() {
         choice="$(gui_dialog --menu "常用软件｜安装聊天、浏览器和远程工具" \
             wechat "微信｜安装适合 SteamOS 的微信" \
             qq "QQ｜安装适合 SteamOS 的 QQ" \
+            browser "Firefox 浏览器｜安装 Firefox 浏览器" \
             chrome "Chrome 浏览器｜安装 Chrome 浏览器" \
             edge "Edge 浏览器｜安装 Edge 浏览器" \
             rustdesk "RustDesk 远程协助｜安装开源远程工具" \
@@ -90,6 +91,11 @@ software_menu() {
                 gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 QQ，不连接腾讯 QQ AppImage 下载地址。是否继续？" && \
                     run_gui_action "安装QQ" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" qq
+                ;;
+            browser)
+                gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 Firefox。是否继续？" && \
+                    run_gui_action "安装 Firefox 浏览器" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/software.sh" browser
                 ;;
             chrome) gui_confirm "将通过 Flatpak 安装 Google Chrome。是否继续？" && run_gui_action "安装 Google Chrome" bash "$PROJECT_ROOT/modules/software.sh" chrome ;;
             edge) gui_confirm "将通过 Flatpak 安装 Microsoft Edge。是否继续？" && run_gui_action "安装 Microsoft Edge" bash "$PROJECT_ROOT/modules/software.sh" edge ;;
@@ -139,14 +145,14 @@ game_environment_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "游戏与插件｜Decky 插件商城" \
+        choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
             features "常用插件组合｜安装小黄鸭等三款插件" \
             all "插件环境与精选组合｜安装 Decky 与当前组合" \
             browse "浏览官方插件｜逐个查看插件作用" \
             localizer "游戏中文辅助｜安装中文显示辅助｜实验功能" \
             ge-proton "GE 游戏运行组件｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
-            decky-install "安装 Decky Loader｜进入高级工具确认｜高级操作" \
+            decky-install "安装 Decky Loader｜进入系统与密码确认｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -243,7 +249,7 @@ dual_system_menu() {
             unprotect "恢复互通盘写入｜重新以可写方式挂载｜高级操作" \
             add "显示开机系统菜单｜显示 systemd-boot 5 秒｜高级操作" \
             remove "隐藏开机系统菜单｜将等待时间设为 0 秒｜高级操作" \
-            back "返回高级工具" \
+            back "返回系统与密码" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -308,7 +314,7 @@ steam_accelerator_gui_menu() {
             start "一键开启 Steam + GitHub 加速" \
             status "查看运行状态" \
             uninstall "安全卸载" \
-            back "返回高级工具" \
+            back "返回系统与密码" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -507,7 +513,7 @@ advanced_tools_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "高级工具｜以下功能会修改系统、网络、软件源、密码或磁盘设置。请确认了解风险后继续。" \
+        choice="$(gui_dialog --menu "系统与密码｜以下功能会修改系统、网络、软件源、密码或磁盘设置。请确认了解风险后继续。" \
             domestic-source "国内软件源｜会修改 Flatpak 软件源｜高级操作" \
             accelerator "Steamcommunity 302｜可能修改 DNS 和证书｜高级操作" \
             set-password "设置管理员密码｜会修改 SteamOS 管理密码｜高级操作" \
@@ -552,11 +558,11 @@ main_gui_menu() {
         GUI_NAV_HOME=0
         choice="$(gui_dialog --menu "请用触屏或触控板选择功能" \
             nav-init "新机必备｜第一次使用从这里开始" \
-            nav-software "常用软件｜安装聊天和远程工具" \
-            nav-games "游戏与插件｜插件商城、运行组件和启动器" \
+            nav-software "常用软件｜安装聊天、浏览器和远程工具" \
+            nav-games "游戏与插件｜浏览插件商城和游戏组件" \
             nav-network "网络与应用商店｜检查网络和软件源状态" \
             nav-help "维护与帮助｜系统检查、清理、指南和日志" \
-            nav-advanced "高级工具｜修改系统和网络设置｜高风险" \
+            nav-advanced "系统与密码｜设置密码和管理系统功能" \
             nav-exit "退出工具箱")" || exit 0
 
         case "$choice" in

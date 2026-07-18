@@ -69,11 +69,11 @@ touch_maintenance="$(function_source "$MAIN_FILE" maintenance_menu)"
 touch_advanced="$(function_source "$MAIN_FILE" advanced_tools_menu)"
 touch_accelerator="$(function_source "$MAIN_FILE" steam_accelerator_touch_menu)"
 
-assert_contains "$touch_software" 'right:22-23:home' "常用软件返回首页坐标错误"
+assert_contains "$touch_software" 'right:23-24:home' "常用软件返回首页坐标错误"
 assert_contains "$touch_games" 'right:22-23:home' "游戏环境缺少返回首页"
 assert_contains "$touch_network" 'right:20-21:home' "网络与应用商店缺少返回首页"
 assert_contains "$touch_maintenance" 'right:22-23:home' "系统维护缺少返回首页"
-assert_contains "$touch_advanced" 'right:22-23:home' "高级工具缺少返回首页"
+assert_contains "$touch_advanced" 'right:22-23:home' "系统与密码缺少返回首页"
 assert_contains "$touch_accelerator" 'right:22-23:home' "Steamcommunity 302 缺少返回首页"
 
 for file in "$MAIN_FILE" "$GUI_FILE"; do

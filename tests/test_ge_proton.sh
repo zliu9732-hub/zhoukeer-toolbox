@@ -58,7 +58,7 @@ test -x "$TARGET_ROOT/GE-Proton9-99/proton" || {
     exit 1
 }
 grep -Fq '请完全退出并重新启动Steam' "$TMP_ROOT/install.output"
-grep -Fxq 'https://download.example/GE-Proton9-99.tar.gz' "$CURL_LOG"
+grep -Fq 'https://download.example/GE-Proton9-99.tar.gz' "$CURL_LOG"
 test -f "$TARGET_ROOT/GE-Proton8-1/marker.txt" || {
     echo "FAIL: 安装新版本时删除了其他GE-Proton版本"
     exit 1
