@@ -168,15 +168,15 @@ common_software_menu() {
     local choice
 
     while true; do
-        draw_category_frame software "常用软件" "安装聊天和远程工具  [会安装软件]"
-        ui_touch_button 5 '\033[1;97;48;5;24m' "微信" "安装适合 SteamOS 的微信  [会安装软件]"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "QQ" "安装适合 SteamOS 的 QQ  [会安装软件]"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "Chrome 浏览器" "安装 Chrome 浏览器  [会安装软件]"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "Edge 浏览器" "安装 Edge 浏览器  [会安装软件]"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "RustDesk 远程协助" "安装开源远程工具  [会安装软件]"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "Windows 软件工具" "安装 Bottles 运行工具  [会安装软件]"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "游戏兼容设置" "安装 Protontricks  [会安装软件]"
-        ui_touch_button 19 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam  [会安装软件]"
+        draw_category_frame software "常用软件" "安装聊天、浏览器和远程工具"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "微信" "安装适合 SteamOS 的微信"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "QQ" "安装适合 SteamOS 的 QQ"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "Chrome 浏览器" "安装 Chrome 浏览器"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "Edge 浏览器" "安装 Edge 浏览器"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "RustDesk 远程协助" "安装开源远程工具"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "Windows 软件工具" "安装 Bottles 运行工具"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "游戏兼容设置" "安装 Protontricks"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:5-6:wechat right:7-8:qq right:9-10:chrome right:11-12:edge right:13-14:rustdesk right:15-16:bottles right:17-18:protontricks right:19-20:epic right:22-23:home)"
@@ -251,11 +251,11 @@ new_machine_menu() {
     local choice
 
     while true; do
-        draw_category_frame init "新机必备" "第一次使用从这里开始  [引导]"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "推荐软件安装" "选择需要的常用软件  [会安装软件]"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "新手使用指南" "查看首次使用步骤  [只读]"
+        draw_category_frame init "新机必备" "第一次使用从这里开始"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "推荐软件安装" "选择需要的常用软件"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "新手使用指南" "查看首次使用步骤"
         ui_touch_button 15 '\033[1;97;48;5;160m' "高级新机初始化" "前往高级工具查看风险  [高级操作]"
-        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类  [普通]"
+        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:7-8:recommended right:11-12:beginner-guide right:15-16:advanced-init right:20-21:home)"
         if apply_navigation "$choice"; then return 0; fi
@@ -279,7 +279,7 @@ advanced_new_machine_preflight() {
         ui_panel_line 13 '\033[1;38;5;220m' "④ 重新进入桌面模式，再开始初始化"
         ui_panel_line 14 '\033[1;38;5;45m' "继续后将安装国内源、常用软件、Decky 和 ToDesk"
         ui_touch_button 16 '\033[1;30;48;5;114m' "设置已完成，开始新机初始化" "点击即确认已开启开发者模式和旧版 X11"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回高级工具" "暂不初始化  [普通]"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回高级工具" "暂不初始化"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         choice="$(read_touch_menu right:16-17:start right:18-19:advanced right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
@@ -345,15 +345,15 @@ game_environment_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "游戏环境｜Decky 插件商城" "安装插件和游戏组件  [会安装组件]"
-        ui_touch_button 5 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭等三款插件  [会安装插件]"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "插件环境与精选组合" "安装 Decky 与当前组合  [会安装插件]"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用  [会安装插件]"
+        draw_category_frame games "游戏环境｜Decky 插件商城" "安装插件和游戏组件"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭等三款插件"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "插件环境与精选组合" "安装 Decky 与当前组合"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
         ui_touch_button 11 '\033[1;97;48;5;24m' "游戏中文辅助" "安装中文显示辅助  [实验功能]"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "GE 游戏运行组件" "提高 Windows 游戏兼容性  [会安装组件]"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam  [会安装软件]"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "GE 游戏运行组件" "提高 Windows 游戏兼容性"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
         ui_touch_button 17 '\033[1;97;48;5;160m' "安装 Decky Loader" "前往高级工具确认  [高级操作]"
-        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类  [普通]"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:5-6:features right:7-8:all right:9-10:browse right:11-12:localizer right:13-14:ge-proton right:15-16:epic right:17-18:decky-install right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
@@ -403,7 +403,7 @@ plugin_official_touch_pages() {
     local row
 
     while true; do
-        draw_category_frame games "官方插件（第 $((page + 1)) / $total_pages 页）" "点击插件即可安装  [会安装插件]"
+        draw_category_frame games "官方插件（第 $((page + 1)) / $total_pages 页）" "点击插件即可安装"
         start=$((page * DECKY_TOUCH_PAGE_SIZE))
         for slot in 0 1 2 3 4; do
             index=$((start + slot))
@@ -587,11 +587,11 @@ network_store_menu() {
     local choice
 
     while true; do
-        draw_category_frame network "网络与应用商店" "检查网络和软件源状态  [普通检查]"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "网络状态检查" "检查当前网络是否可用  [只读检查]"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "软件源状态" "查看当前应用下载来源  [只读检查]"
+        draw_category_frame network "网络与应用商店" "检查网络和软件源状态"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "网络状态检查" "检查当前网络是否可用"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "软件源状态" "查看当前应用下载来源"
         ui_touch_button 15 '\033[1;97;48;5;160m' "管理国内源与加速" "进入高级网络设置  [高级操作]"
-        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类  [普通]"
+        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:7-8:network-status right:11-12:source-status right:15-16:manage-advanced right:20-21:home)"
         if apply_navigation "$choice"; then return 0; fi
@@ -642,15 +642,15 @@ maintenance_menu() {
     local choice
 
     while true; do
-        draw_category_frame maintenance "系统维护" "清理缓存和检查系统  [部分会删除缓存]"
-        ui_touch_button 5 '\033[1;97;48;5;24m' "系统健康检查" "检查空间和常用环境  [会创建文件]"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "游戏启动检查" "检查游戏无法启动原因  [只读检查]"
+        draw_category_frame maintenance "系统维护" "清理缓存和检查系统"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "系统健康检查" "检查空间和常用环境"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "游戏启动检查" "检查游戏无法启动原因"
         ui_touch_button 9 '\033[1;97;48;5;160m' "清理下载残留" "删除未完成下载文件  [会删除缓存]"
         ui_touch_button 11 '\033[1;97;48;5;160m' "清理着色器缓存" "释放空间并自动重建  [会删除缓存]"
         ui_touch_button 13 '\033[1;97;48;5;160m' "清理用户缓存" "清理可重新生成的缓存  [会删除缓存]"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "查看性能建议" "查看推荐性能设置  [只读]"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "查看性能建议" "查看推荐性能设置"
         ui_touch_button 17 '\033[1;97;48;5;160m' "常见问题处理" "检测网络并清理下载残留  [会删除缓存]"
-        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类  [普通]"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:5-6:health right:7-8:diagnose right:9-10:download-cache right:11-12:shader-cache right:13-14:user-cache right:15-16:performance right:17-18:fix right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
@@ -674,22 +674,22 @@ help_menu() {
     local page=1
 
     while true; do
-        draw_category_frame help "检测与帮助（第 $page / 2 页）" "查看信息、指南和日志  [只读为主]"
+        draw_category_frame help "检测与帮助（第 $page / 2 页）" "查看信息、指南和日志"
         if [ "$page" -eq 1 ]; then
-            ui_touch_button 5 '\033[1;97;48;5;24m' "查看系统信息" "查看系统和设备信息  [只读]"
-            ui_touch_button 7 '\033[1;97;48;5;24m' "导出诊断报告" "保存检查结果到桌面  [会创建文件]"
-            ui_touch_button 9 '\033[1;97;48;5;24m' "新手使用指南" "查看基础操作说明  [只读]"
-            ui_touch_button 11 '\033[1;97;48;5;24m' "游戏兼容指南" "查看游戏运行建议  [只读]"
-            ui_touch_button 13 '\033[1;97;48;5;24m' "掌机常用快捷键" "查看常用按键方法  [只读]"
-            ui_touch_button 15 '\033[1;97;48;5;24m' "外接设备检查" "检查显示器和蓝牙  [只读检查]"
+            ui_touch_button 5 '\033[1;97;48;5;24m' "查看系统信息" "查看系统和设备信息"
+            ui_touch_button 7 '\033[1;97;48;5;24m' "导出诊断报告" "保存检查结果到桌面"
+            ui_touch_button 9 '\033[1;97;48;5;24m' "新手使用指南" "查看基础操作说明"
+            ui_touch_button 11 '\033[1;97;48;5;24m' "游戏兼容指南" "查看游戏运行建议"
+            ui_touch_button 13 '\033[1;97;48;5;24m' "掌机常用快捷键" "查看常用按键方法"
+            ui_touch_button 15 '\033[1;97;48;5;24m' "外接设备检查" "检查显示器和蓝牙"
             ui_touch_button 19 '\033[1;97;48;5;30m' "下一页" "查看记录和工具箱更新"
         else
-            ui_touch_button 7 '\033[1;97;48;5;24m' "操作记录" "导出最近工具箱记录  [会创建文件]"
-            ui_touch_button 11 '\033[1;97;48;5;24m' "更新日志" "查看版本改动内容  [只读]"
+            ui_touch_button 7 '\033[1;97;48;5;24m' "操作记录" "导出最近工具箱记录"
+            ui_touch_button 11 '\033[1;97;48;5;24m' "更新日志" "查看版本改动内容"
             ui_touch_button 15 '\033[1;97;48;5;160m' "检查并更新工具箱" "下载并安装最新版本  [会联网并更新]"
             ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回系统信息和指南"
         fi
-        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类  [普通]"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         if [ "$page" -eq 1 ]; then
             choice="$(read_touch_menu right:5-6:system-info right:7-8:report right:9-10:new-guide right:11-12:game-guide right:13-14:shortcuts right:15-16:peripherals right:19-20:next right:22-23:home)"
@@ -747,7 +747,7 @@ changelog_menu() {
     fi
 
     while true; do
-        draw_category_frame help "更新日志" "$release_heading  [只读]"
+        draw_category_frame help "更新日志" "$release_heading"
         ui_panel_line 7 '\033[1;38;5;114m' "✓ ${release_notes[0]:-当前版本已安装，暂无摘要}"
         ui_panel_line 10 '\033[1;38;5;45m' "✓ ${release_notes[1]:-完整改动以 CHANGELOG.md 为准}"
         ui_panel_line 13 '\033[1;38;5;220m' "完整日志随工具箱自动更新，不再显示旧版固定日期"
@@ -767,12 +767,12 @@ home_menu() {
     local choice
 
     draw_category_frame "" "欢迎使用" "全界面只需点击，无需输入任何数字或字母"
-    ui_panel_line 8 '\033[1;38;5;220m' "新机必备｜第一次使用从这里开始  [引导]"
-    ui_panel_line 10 '\033[1;38;5;45m' "常用软件｜安装聊天和远程工具  [会安装软件]"
-    ui_panel_line 12 '\033[1;38;5;45m' "游戏环境｜安装插件和游戏组件  [会安装组件]"
-    ui_panel_line 14 '\033[1;38;5;45m' "网络与应用商店｜检查网络和软件源状态  [普通检查]"
-    ui_panel_line 16 '\033[1;38;5;114m' "系统维护｜清理缓存和检查系统  [部分会删除缓存]"
-    ui_panel_line 18 '\033[1;38;5;114m' "检测与帮助｜查看信息、指南和日志  [只读为主]"
+    ui_panel_line 8 '\033[1;38;5;220m' "新机必备｜第一次使用从这里开始"
+    ui_panel_line 10 '\033[1;38;5;45m' "常用软件｜安装聊天和远程工具"
+    ui_panel_line 12 '\033[1;38;5;45m' "游戏环境｜安装插件和游戏组件"
+    ui_panel_line 14 '\033[1;38;5;45m' "网络与应用商店｜检查网络和软件源状态"
+    ui_panel_line 16 '\033[1;38;5;114m' "系统维护｜清理缓存和检查系统"
+    ui_panel_line 18 '\033[1;38;5;114m' "检测与帮助｜查看信息、指南和日志"
     ui_panel_line 20 '\033[1;38;5;203m' "高级工具｜修改系统和网络设置  [高风险]"
     ui_prompt
     choice="$(read_touch_menu)"

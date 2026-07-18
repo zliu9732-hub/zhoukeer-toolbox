@@ -67,15 +67,15 @@ software_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "常用软件｜安装聊天和远程工具｜[会安装软件]" \
-            wechat "微信｜安装适合 SteamOS 的微信｜[会安装软件]" \
-            qq "QQ｜安装适合 SteamOS 的 QQ｜[会安装软件]" \
-            chrome "Chrome 浏览器｜安装 Chrome 浏览器｜[会安装软件]" \
-            edge "Edge 浏览器｜安装 Edge 浏览器｜[会安装软件]" \
-            rustdesk "RustDesk 远程协助｜安装开源远程工具｜[会安装软件]" \
-            bottles "Windows 软件工具｜安装 Bottles 运行工具｜[会安装软件]" \
-            protontricks "游戏兼容设置｜安装 Protontricks｜[会安装软件]" \
-            epic "Epic 游戏启动器｜安装并添加到 Steam｜[会安装软件]" \
+        choice="$(gui_dialog --menu "常用软件｜安装聊天、浏览器和远程工具" \
+            wechat "微信｜安装适合 SteamOS 的微信" \
+            qq "QQ｜安装适合 SteamOS 的 QQ" \
+            chrome "Chrome 浏览器｜安装 Chrome 浏览器" \
+            edge "Edge 浏览器｜安装 Edge 浏览器" \
+            rustdesk "RustDesk 远程协助｜安装开源远程工具" \
+            bottles "Windows 软件工具｜安装 Bottles 运行工具" \
+            protontricks "游戏兼容设置｜安装 Protontricks" \
+            epic "Epic 游戏启动器｜安装并添加到 Steam" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -137,13 +137,13 @@ game_environment_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "游戏环境｜Decky 插件商城｜[会安装组件]" \
-            features "常用插件组合｜安装小黄鸭等三款插件｜[会安装插件]" \
-            all "插件环境与精选组合｜安装 Decky 与当前组合｜[会安装插件]" \
-            browse "浏览官方插件｜逐个查看插件作用｜[会安装插件]" \
+        choice="$(gui_dialog --menu "游戏环境｜Decky 插件商城" \
+            features "常用插件组合｜安装小黄鸭等三款插件" \
+            all "插件环境与精选组合｜安装 Decky 与当前组合" \
+            browse "浏览官方插件｜逐个查看插件作用" \
             localizer "游戏中文辅助｜安装中文显示辅助｜[实验功能]" \
-            ge-proton "GE 游戏运行组件｜提高 Windows 游戏兼容性｜[会安装组件]" \
-            epic "Epic 游戏启动器｜安装并添加到 Steam｜[会安装软件]" \
+            ge-proton "GE 游戏运行组件｜提高 Windows 游戏兼容性" \
+            epic "Epic 游戏启动器｜安装并添加到 Steam" \
             decky-install "安装 Decky Loader｜进入高级工具确认｜[高级操作]" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -281,9 +281,9 @@ network_store_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "网络与应用商店｜检查网络和软件源状态｜[普通检查]" \
-            network-status "网络状态检查｜检查当前网络是否可用｜[只读检查]" \
-            source-status "软件源状态｜查看当前应用下载来源｜[只读检查]" \
+        choice="$(gui_dialog --menu "网络与应用商店｜检查网络和软件源状态" \
+            network-status "网络状态检查｜检查当前网络是否可用" \
+            source-status "软件源状态｜查看当前应用下载来源" \
             manage-advanced "管理国内源与加速｜进入高级网络设置｜[高级操作]" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -383,13 +383,13 @@ maintenance_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "系统维护｜清理缓存和检查系统｜[部分会删除缓存]" \
-            health "系统健康检查｜检查空间和常用环境｜[会创建文件]" \
-            diagnose "游戏启动检查｜检查游戏无法启动原因｜[只读检查]" \
+        choice="$(gui_dialog --menu "系统维护｜清理缓存和检查系统" \
+            health "系统健康检查｜检查空间和常用环境" \
+            diagnose "游戏启动检查｜检查游戏无法启动原因" \
             download-cache "清理下载残留｜删除未完成下载文件｜[会删除缓存]" \
             shader-cache "清理着色器缓存｜释放空间并自动重建｜[会删除缓存]" \
             user-cache "清理用户缓存｜清理可重新生成的缓存｜[会删除缓存]" \
-            performance "查看性能建议｜查看推荐性能设置｜[只读]" \
+            performance "查看性能建议｜查看推荐性能设置" \
             fix "常见问题处理｜检测网络并清理下载残留｜[会删除缓存]" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -417,15 +417,15 @@ help_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "检测与帮助｜查看信息、指南和日志｜[只读为主]" \
-            system-info "查看系统信息｜查看系统和设备信息｜[只读]" \
-            report "导出诊断报告｜保存检查结果到桌面｜[会创建文件]" \
-            new-guide "新手使用指南｜查看基础操作说明｜[只读]" \
-            game-guide "游戏兼容指南｜查看游戏运行建议｜[只读]" \
-            shortcuts "掌机常用快捷键｜查看常用按键方法｜[只读]" \
-            peripherals "外接设备检查｜检查显示器和蓝牙｜[只读检查]" \
-            records "操作记录｜导出最近工具箱记录｜[会创建文件]" \
-            changelog "更新日志｜查看版本改动内容｜[只读]" \
+        choice="$(gui_dialog --menu "检测与帮助｜查看信息、指南和日志" \
+            system-info "查看系统信息｜查看系统和设备信息" \
+            report "导出诊断报告｜保存检查结果到桌面" \
+            new-guide "新手使用指南｜查看基础操作说明" \
+            game-guide "游戏兼容指南｜查看游戏运行建议" \
+            shortcuts "掌机常用快捷键｜查看常用按键方法" \
+            peripherals "外接设备检查｜检查显示器和蓝牙" \
+            records "操作记录｜导出最近工具箱记录" \
+            changelog "更新日志｜查看版本改动内容" \
             update "检查并更新工具箱｜下载并安装最新版本｜[会联网并更新]" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -452,9 +452,9 @@ new_machine_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "新机必备｜第一次使用从这里开始｜[引导]" \
-            recommended "推荐软件安装｜选择需要的常用软件｜[会安装软件]" \
-            beginner-guide "新手使用指南｜查看首次使用步骤｜[只读]" \
+        choice="$(gui_dialog --menu "新机必备｜第一次使用从这里开始" \
+            recommended "推荐软件安装｜选择需要的常用软件" \
+            beginner-guide "新手使用指南｜查看首次使用步骤" \
             advanced-init "高级新机初始化｜前往高级工具查看风险｜[高级操作]" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -535,12 +535,12 @@ main_gui_menu() {
     while true; do
         GUI_NAV_HOME=0
         choice="$(gui_dialog --menu "请用触屏或触控板选择功能" \
-            nav-init "新机必备｜第一次使用从这里开始｜[引导]" \
-            nav-software "常用软件｜安装聊天和远程工具｜[会安装软件]" \
-            nav-games "游戏环境｜安装插件和游戏组件｜[会安装组件]" \
-            nav-network "网络与应用商店｜检查网络和软件源状态｜[普通检查]" \
-            nav-maintenance "系统维护｜清理缓存和检查系统｜[部分会删除缓存]" \
-            nav-help "检测与帮助｜查看信息、指南和日志｜[只读为主]" \
+            nav-init "新机必备｜第一次使用从这里开始" \
+            nav-software "常用软件｜安装聊天和远程工具" \
+            nav-games "游戏环境｜安装插件和游戏组件" \
+            nav-network "网络与应用商店｜检查网络和软件源状态" \
+            nav-maintenance "系统维护｜清理缓存和检查系统" \
+            nav-help "检测与帮助｜查看信息、指南和日志" \
             nav-advanced "高级工具｜修改系统和网络设置｜[高风险]" \
             nav-exit "退出工具箱")" || exit 0
 

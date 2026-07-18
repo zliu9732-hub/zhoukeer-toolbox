@@ -137,6 +137,9 @@ for visible in "$MAIN_FILE" "$GUI_FILE"; do
     if grep -Eiq 'refind' "$visible"; then
         fail "可见菜单文件仍出现 rEFInd：$visible"
     fi
+    if grep -Eq '\[(只读|只读检查|会安装软件|会安装插件|会安装组件|会创建文件|普通|普通检查|引导|只读为主|部分会删除缓存)\]' "$visible"; then
+        fail "普通菜单仍包含冗余状态标签：$visible"
+    fi
 done
 
 echo "PASS: 触控与 GUI 的名称、说明、风险标签和功能集合一致"
