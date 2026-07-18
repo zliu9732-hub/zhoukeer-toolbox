@@ -74,15 +74,29 @@ grep -Fq 'install_all_plugin_packages()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'decky_plugin_store_is_installed()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '未检测到插件商城，先安装插件商城。' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_lsfg_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'install_fsr4_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'install_lsfg_chinese 0' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'install_fsr4_chinese 0' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'restore_lsfg_official()' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'LSFG_ZH_INDEX_SHA256="1fc07145fcb2ce96ccd441c1bf254ab8fff2e8b004119f9275d0776ec706e88f"' \
+grep -Fq 'LSFG_ZH_INDEX_SHA256="9ea05e9738191cd0e414b4c4a106a836b65170c1f8b32ccdf2ba792514f122d2"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '中文汉化：闲鱼双叶' \
     "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/src/components/Content.tsx"
+grep -Fq '"name": "小黄鸭"' \
+    "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/plugin.json"
+grep -Fq '"name": "FSR4"' \
+    "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/plugin.json"
+grep -Fq '闲鱼双叶' \
+    "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/plugin.json"
+fsr4_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/dist/index.js" | awk '{print $1}')"
+[ "$fsr4_actual_sha256" = "384e7ddc6dc1695606e9023bba1c968a001439b151a82e5b5f4d734b2318958e" ] || {
+    echo "FAIL: FSR4 中文构建文件校验值不匹配" >&2
+    exit 1
+}
 grep -Fq '"version": "0.12.5"' \
     "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/package.json"
 zh_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js" | awk '{print $1}')"
-[ "$zh_actual_sha256" = "1fc07145fcb2ce96ccd441c1bf254ab8fff2e8b004119f9275d0776ec706e88f" ] || {
+[ "$zh_actual_sha256" = "9ea05e9738191cd0e414b4c4a106a836b65170c1f8b32ccdf2ba792514f122d2" ] || {
     echo "FAIL: 小黄鸭中文构建文件校验值不匹配" >&2
     exit 1
 }

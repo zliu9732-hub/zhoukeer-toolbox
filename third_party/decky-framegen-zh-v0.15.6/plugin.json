@@ -1,0 +1,11 @@
+{
+  "name": "FSR4",
+  "author": "Kurt Himebauch",
+  "flags": [],
+  "api_version": 1,
+  "publish": {
+    "tags": ["DLSS", "Framegen","upscaling","FSR"],
+    "description": "汉化：闲鱼双叶。管理 OptiScaler，为 DirectX 12 游戏提供超分辨率与插帧支持。",
+    "image": "https://raw.githubusercontent.com/xXJSONDeruloXx/Decky-Framegen/refs/heads/main/assets/optiscaler_final.png"
+  }
+}

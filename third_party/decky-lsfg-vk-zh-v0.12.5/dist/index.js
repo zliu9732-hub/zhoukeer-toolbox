@@ -2,7 +2,7 @@
 // @ts-ignore
 
 // Prevents it from being duplicated in output.
-const manifest = {"name":"Decky LSFG-VK","author":"Kurt Himebauch (xXJSONDeruloXx)","flags":[],"api_version":1,"publish":{"tags":["installer","vulkan","lsfg","framegen","lossless","scaling"],"description":"在 Steam Deck 上通过 lsfg-vk 兼容层启用无损缩放帧生成。中文汉化：闲鱼双叶。","image":"https://raw.githubusercontent.com/xXJSONDeruloXx/decky-lsfg-vk/refs/heads/main/assets/Decky_LSFG-VK_Master_1.png"}};
+const manifest = {"name":"小黄鸭","author":"Kurt Himebauch (xXJSONDeruloXx)","flags":[],"api_version":1,"publish":{"tags":["installer","vulkan","lsfg","framegen","lossless","scaling"],"description":"在 Steam Deck 上通过 lsfg-vk 兼容层启用无损缩放帧生成。中文汉化：闲鱼双叶。","image":"https://raw.githubusercontent.com/xXJSONDeruloXx/decky-lsfg-vk/refs/heads/main/assets/Decky_LSFG-VK_Master_1.png"}};
 const API_VERSION = 2;
 const internalAPIConnection = window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit;
 // Initialize
@@ -1584,7 +1584,7 @@ function NerdStuffModal({ closeModal }) {
                     window.SP_REACT.createElement(DFL.ButtonItem, { layout: "below", onClick: closeModal }, "Close")))))));
 }
 
-var flatpakTargetImage = 'http://127.0.0.1:1337/plugins/Decky LSFG-VK/assets/flatpak-target-34f0e3b7.png';
+var flatpakTargetImage = 'http://127.0.0.1:1337/plugins/小黄鸭/assets/flatpak-target-34f0e3b7.png';
 
 const FlatpaksModal = ({ closeModal }) => {
     const [extensionStatus, setExtensionStatus] = SP_REACT.useState(null);
@@ -1875,8 +1875,8 @@ function Content() {
 var index = definePlugin(() => {
     console.log("decky-lsfg-vk plugin initializing");
     return {
-        name: "Decky LSFG-VK",
-        titleView: window.SP_REACT.createElement("div", { className: DFL.staticClasses.Title }, "Decky LSFG-VK"),
+        name: "小黄鸭",
+        titleView: window.SP_REACT.createElement("div", { className: DFL.staticClasses.Title }, "\u5C0F\u9EC4\u9E2D"),
         alwaysRender: true,
         content: window.SP_REACT.createElement(Content, null),
         icon: window.SP_REACT.createElement(GiPlasticDuck, null),

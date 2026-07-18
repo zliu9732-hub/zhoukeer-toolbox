@@ -24,7 +24,11 @@ DECKY_TMP_DIR=""
 LSFG_OFFICIAL_DIRECTORY="Decky LSFG-VK"
 LSFG_OFFICIAL_VERSION="0.12.5"
 LSFG_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5"
-LSFG_ZH_INDEX_SHA256="1fc07145fcb2ce96ccd441c1bf254ab8fff2e8b004119f9275d0776ec706e88f"
+LSFG_ZH_INDEX_SHA256="9ea05e9738191cd0e414b4c4a106a836b65170c1f8b32ccdf2ba792514f122d2"
+FSR4_OFFICIAL_DIRECTORY="Decky-Framegen"
+FSR4_OFFICIAL_VERSION="0.15.6"
+FSR4_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6"
+FSR4_ZH_INDEX_SHA256="384e7ddc6dc1695606e9023bba1c968a001439b151a82e5b5f4d734b2318958e"
 
 # 三款功能插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
@@ -1157,6 +1161,7 @@ install_lsfg_chinese() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local actual_sha256
     local bundled_version
+    local reload_after="${1:-1}"
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
@@ -1189,8 +1194,51 @@ install_lsfg_chinese() {
     }
     echo "小黄鸭 v$LSFG_OFFICIAL_VERSION 中文界面已安装。"
     echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
-    reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可看到中文界面。"
+    if [ "$reload_after" = "1" ]; then
+        reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可看到中文界面。"
+    fi
     log "小黄鸭 v$LSFG_OFFICIAL_VERSION 中文界面安装完成"
+}
+
+install_fsr4_chinese() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local actual_sha256 bundled_version
+    local reload_after="${1:-1}"
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "FSR4 中文界面仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    if [ -L "$FSR4_ZH_SOURCE_DIR" ] || \
+       [ ! -f "$FSR4_ZH_SOURCE_DIR/plugin.json" ] || \
+       [ ! -f "$FSR4_ZH_SOURCE_DIR/package.json" ] || \
+       [ ! -s "$FSR4_ZH_SOURCE_DIR/dist/index.js" ] || \
+       [ ! -f "$FSR4_ZH_SOURCE_DIR/LICENSE" ]; then
+        echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文组件不完整，请更新工具箱后再试。"
+        return 1
+    fi
+    bundled_version="$(sed -n 's/.*\"version\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p' "$FSR4_ZH_SOURCE_DIR/package.json" | head -n 1)"
+    if [ "$bundled_version" != "$FSR4_OFFICIAL_VERSION" ]; then
+        echo "FSR4 中文组件版本 $bundled_version 与目标 v$FSR4_OFFICIAL_VERSION 不一致，已停止覆盖。"
+        return 1
+    fi
+    actual_sha256="$(calculate_decky_sha256 "$FSR4_ZH_SOURCE_DIR/dist/index.js")" || return 1
+    if [ "$actual_sha256" != "$FSR4_ZH_INDEX_SHA256" ]; then
+        echo "FSR4 中文组件校验失败，已停止覆盖。"
+        return 1
+    fi
+    prepare_plugin_root "$plugin_root" || return 1
+    install_tree_atomically "$FSR4_ZH_SOURCE_DIR" "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" || {
+        echo "FSR4 中文界面安装失败，已尽量保留原版。"
+        return 1
+    }
+    echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面已安装（闲鱼双叶汉化）。"
+    echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
+    if [ "$reload_after" = "1" ]; then
+        reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 FSR4 插帧即可看到中文界面。"
+    fi
+    log "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面安装完成"
 }
 
 restore_lsfg_official() {
@@ -1356,7 +1404,7 @@ print_feature_plugin_status() {
         echo "✗ 小黄鸭（LSFG-VK）：未找到完整插件文件"
         missing=1
     fi
-    if feature_plugin_is_present "$plugin_root" "Decky-Framegen" "Decky-Framegen"; then
+    if feature_plugin_is_present "$plugin_root" "Decky-Framegen" "Decky-Framegen" "FSR4"; then
         echo "✓ FSR4（Decky-Framegen）：已写入 Decky"
     else
         echo "✗ FSR4（Decky-Framegen）：未找到完整插件文件"
@@ -1389,7 +1437,7 @@ install_feature_plugins() {
     ensure_plugin_store_ready || return 1
 
     echo "将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。"
-    echo "已安装的插件会以新版本安全替换；单项失败不会覆盖该插件的旧版本。"
+    echo "小黄鸭和 FSR4 完成官方安装后会自动替换为闲鱼双叶汉化；单项失败不会覆盖该插件的旧版本。"
     for plugin in lsfg fsr4 cheatdeck; do
         echo ""
         case "$plugin" in
@@ -1397,13 +1445,15 @@ install_feature_plugins() {
                 echo "========== 小黄鸭（LSFG-VK） =========="
                 if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK"; then
                     echo "[已跳过] 小黄鸭已安装"
+                    if ! install_lsfg_chinese 0; then failed=1; fi
                     continue
                 fi
                 ;;
             fsr4)
                 echo "========== FSR4（Decky Framegen） =========="
-                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "Decky-Framegen" "Decky-Framegen"; then
+                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "Decky-Framegen" "Decky-Framegen" "FSR4"; then
                     echo "[已跳过] FSR4 已安装"
+                    if ! install_fsr4_chinese 0; then failed=1; fi
                     continue
                 fi
                 ;;
@@ -1418,6 +1468,10 @@ install_feature_plugins() {
         if ! install_configured_plugin "$plugin" 0 0; then
             failed=1
             echo "该插件未完成，继续尝试其余插件。"
+        elif [ "$plugin" = "lsfg" ]; then
+            install_lsfg_chinese 0 || failed=1
+        elif [ "$plugin" = "fsr4" ]; then
+            install_fsr4_chinese 0 || failed=1
         fi
     done
 
@@ -1482,6 +1536,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         store) show_plugin_download_speed_tip; install_plugin_store ;;
         lsfg) show_plugin_download_speed_tip; install_configured_plugin lsfg ;;
         lsfg-zh) install_lsfg_chinese ;;
+        fsr4-zh) install_fsr4_chinese ;;
         lsfg-restore) show_plugin_download_speed_tip; restore_lsfg_official ;;
         lsfg-store) open_lossless_store ;;
         lsfg-import-select) select_and_import_lossless_backup ;;

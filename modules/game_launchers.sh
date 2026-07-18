@@ -54,6 +54,27 @@ verify_installer() {
     fi
 }
 
+download_launcher_installer() {
+    local output="$1"
+    local temporary="$output.new.$$"
+
+    require_command curl || return 1
+    rm -f -- "$temporary"
+    echo "正在下载 $LAUNCHER_NAME 官方安装器…"
+    if ! curl --fail --location --show-error --proto '=https' --proto-redir '=https' \
+        --connect-timeout 15 --max-time "$DOWNLOAD_TIMEOUT" --retry 2 --retry-delay 2 \
+        --output "$temporary" "$LAUNCHER_URL"; then
+        rm -f -- "$temporary"
+        echo "$LAUNCHER_NAME 官方安装器下载失败。"
+        return 1
+    fi
+    if ! verify_installer "$temporary"; then
+        rm -f -- "$temporary"
+        return 1
+    fi
+    mv -f -- "$temporary" "$output" || return 1
+}
+
 find_steam_root() {
     local candidate
 
@@ -350,7 +371,7 @@ run_battlenet_installer_with_fallback() {
 }
 
 install_launcher() {
-    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file
+    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file launcher_result
     launcher_details "$target" || return 1
     steam_root="$(find_steam_root)" || return 1
     launcher_exe="$(find_installed_launcher "$steam_root" || true)"
@@ -362,8 +383,16 @@ install_launcher() {
         echo "检测到已安装的 ${LAUNCHER_NAME}，跳过安装包下载。"
         prefix="${launcher_exe%/pfx/drive_c/*}"
     else
-        echo "当前版本仅支持已安装启动器的自动入库，请先完成官方安装。"
-        return 1
+        installer_file="$app_dir/$LAUNCHER_FILE_NAME"
+        download_launcher_installer "$installer_file" || return 1
+        prefix="$app_dir/compatdata"
+        if [ "$target" = "battlenet" ]; then
+            launcher_result="$(run_battlenet_installer_with_fallback "$steam_root" "$installer_file" "$prefix" "$runner")" || return 1
+            launcher_exe="${launcher_result%%|*}"
+            runner="${launcher_result#*|}"
+        else
+            launcher_exe="$(run_launcher_installer "$target" "$steam_root" "$installer_file" "$prefix" "$runner")" || return 1
+        fi
     fi
     wrapper="$(create_launcher_wrapper "$target" "$steam_root" "$prefix" "$runner" "$launcher_exe" "$app_dir")" || return 1
     create_launcher_desktop_shortcut "$target" "$wrapper" || return 1

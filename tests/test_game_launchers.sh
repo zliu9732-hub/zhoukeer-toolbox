@@ -213,5 +213,10 @@ grep -Fq '跳过安装包下载' "$MODULE"
 grep -Fq 'steam_shortcut.py' "$MODULE"
 grep -Fq 'run_battlenet_installer_with_fallback' "$MODULE"
 grep -Fq 'create_launcher_desktop_shortcut' "$MODULE"
+grep -Fq 'download_launcher_installer' "$MODULE"
+if grep -Fq '当前版本仅支持已安装启动器的自动入库' "$MODULE"; then
+    echo "FAIL: Epic 不应限制为仅已安装启动器" >&2
+    exit 1
+fi
 
 echo "PASS: Steam条目写入、Proton直接安装和主EXE包装器测试通过"

@@ -7,8 +7,8 @@ export default definePlugin(() => {
   console.log("decky-lsfg-vk plugin initializing");
 
   return {
-    name: "Decky LSFG-VK",
-    titleView: <div className={staticClasses.Title}>Decky LSFG-VK</div>,
+    name: "小黄鸭",
+    titleView: <div className={staticClasses.Title}>小黄鸭</div>,
     alwaysRender: true,
     content: <Content />,
     icon: <GiPlasticDuck />,

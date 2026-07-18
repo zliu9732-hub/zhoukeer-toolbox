@@ -397,6 +397,21 @@ copy_lsfg_chinese() {
     copy_dir_files third_party/decky-lsfg-vk-zh-v0.12.5/py_modules
 }
 
+copy_fsr4_chinese() {
+    local source_dir="$SOURCE_ROOT/third_party/decky-framegen-zh-v0.15.6"
+    local relative_file
+
+    # 只携带 Decky 运行 FSR4 中文界面所需的已构建文件、后端与默认资源。
+    for relative_file in plugin.json package.json LICENSE main.py; do
+        if [ -f "$source_dir/$relative_file" ]; then
+            copy_file "$source_dir/$relative_file" \
+                "$STAGING_DIR/third_party/decky-framegen-zh-v0.15.6/$relative_file"
+        fi
+    done
+    copy_dir_files third_party/decky-framegen-zh-v0.15.6/dist
+    copy_dir_files third_party/decky-framegen-zh-v0.15.6/defaults
+}
+
 for file in main.sh main_old.sh launch.sh install.sh uninstall.sh update.sh bootstrap.sh i README.md VERSION .gitignore; do
     if [ -f "$SOURCE_ROOT/$file" ]; then
         copy_file "$SOURCE_ROOT/$file" "$STAGING_DIR/$file"
@@ -410,6 +425,7 @@ copy_dir_files config
 copy_dir_files assets
 copy_dir_files scripts
 copy_lsfg_chinese
+copy_fsr4_chinese
 
 # 标记由安装器管理的目录，启动器只在这类目录中执行自动更新。
 printf '%s\n' "zhoukeer-toolbox" > "$STAGING_DIR/.zhoukeer-installed"
