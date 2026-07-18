@@ -70,6 +70,10 @@ case "$command" in
         esac
         ;;
     remote-add)
+        case " $* " in
+            *' --from '*) ;;
+            *) echo "local flatpakrepo missing --from" >&2; exit 1 ;;
+        esac
         remote=""
         for arg in "$@"; do
             case "$arg" in
@@ -137,6 +141,10 @@ grep -Fq 'remote-modify --user flathub-cn --url=https://mirror.test.invalid/flat
     "$STATE_DIR/commands" || fail "国内缓存地址配置错误"
 grep -Fq 'remote-modify --user flathub-ustc --url=https://fallback.test.invalid/flathub' \
     "$STATE_DIR/commands" || fail "国内备用缓存地址配置错误"
+grep -Fq 'remote-add --user --if-not-exists --from flathub-cn ' \
+    "$STATE_DIR/commands" || fail "上海交大配置文件未按 flatpakrepo 解析"
+grep -Fq 'remote-add --user --if-not-exists --from flathub-ustc ' \
+    "$STATE_DIR/commands" || fail "中科大配置文件未按 flatpakrepo 解析"
 grep -Fq 'remote-ls --user flathub-cn --app --columns=application' \
     "$STATE_DIR/commands" || fail "未验证上海交大应用索引"
 grep -Fq 'remote-ls --user flathub-ustc --app --columns=application' \
