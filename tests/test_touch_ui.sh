@@ -109,11 +109,12 @@ for mapping in \
 done
 
 software="$(sed -n '/^common_software_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
-printf '%s\n' "$software" | grep -Fq 'draw_category_frame software "常用软件" "安装聊天、浏览器和远程工具" 0' || fail "常用软件仍显示与首个按钮重叠的分类文字"
-printf '%s\n' "$software" | grep -Fq 'ui_touch_button 23' || fail "常用软件返回首页文字行错误"
-printf '%s\n' "$software" | grep -Fq 'right:23-24:home' || fail "常用软件返回首页坐标错误"
-printf '%s\n' "$software" | grep -Fq 'ui_touch_button 9' || fail "Firefox按钮行错误"
-printf '%s\n' "$software" | grep -Fq 'right:9-10:browser' || fail "Firefox触控坐标错误"
+printf '%s\n' "$software" | grep -Fq 'draw_category_frame software "" "" 0' || fail "常用软件没有释放右侧标题空间"
+printf '%s\n' "$software" | grep -Fq 'ui_touch_button 22' || fail "常用软件返回首页文字行错误"
+printf '%s\n' "$software" | grep -Fq 'right:22-23:home' || fail "常用软件返回首页坐标错误"
+printf '%s\n' "$software" | grep -Fq 'ui_touch_button 6' || fail "Firefox按钮行错误"
+printf '%s\n' "$software" | grep -Fq 'right:6-7:browser' || fail "Firefox触控坐标错误"
+printf '%s\n' "$software" | grep -Fq 'right:14-15:todesk' || fail "ToDesk触控坐标错误"
 printf '%s\n' "$software" | grep -Fq 'modules/software.sh" browser' || fail "Firefox安装动作缺失"
 
 games="$(sed -n '/^game_environment_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"

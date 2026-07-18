@@ -76,6 +76,7 @@ software_menu() {
             chrome "Chrome 浏览器" \
             edge "Edge 浏览器" \
             rustdesk "RustDesk 远程协助｜安装开源远程工具" \
+            todesk "ToDesk 远程协助｜安装前需完成系统设置" \
             bottles "Windows 软件工具｜安装 Bottles 运行工具" \
             protontricks "游戏兼容设置｜安装 Protontricks" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
@@ -103,6 +104,11 @@ software_menu() {
                 gui_confirm "将从 RustDesk 作者 GitHub Release 下载 AppImage，并创建桌面图标；不会修改服务器配置。是否继续？" && \
                     run_gui_action "安装 RustDesk 远程协助" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" rustdesk
+                ;;
+            todesk)
+                gui_confirm "ToDesk 会使用管理员权限并临时修改 SteamOS 只读系统。请先在游戏模式开启开发者模式和旧版 X11 桌面模式。确认继续？" && \
+                    run_gui_action "安装 ToDesk" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/todesk.sh" --install
                 ;;
             protontricks) gui_confirm "将通过 Flatpak 安装 Protontricks。是否继续？" && run_gui_action "安装 Protontricks" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
             bottles) gui_confirm "将通过 Flatpak 安装 Bottles。是否继续？" && run_gui_action "安装 Bottles" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
@@ -518,7 +524,6 @@ advanced_tools_gui_menu() {
             accelerator "Steamcommunity 302｜可能修改 DNS 和证书｜高级操作" \
             set-password "设置管理员密码｜会修改 SteamOS 管理密码｜高级操作" \
             change-password "修改管理员密码｜会更换 SteamOS 管理密码｜高级操作" \
-            todesk "安装 ToDesk｜会修改只读系统｜高级操作" \
             decky-install "安装插件商城｜会使用管理员权限｜高级操作" \
             dual "双系统与互通盘｜管理磁盘和开机菜单｜高级操作" \
             home "返回首页" \
@@ -533,11 +538,6 @@ advanced_tools_gui_menu() {
             change-password)
                 gui_confirm "将读取旧记录并明文保存新密码；当前用户运行的软件都可能读取。确认继续？" && \
                     run_gui_action "修改管理员密码" bash "$PROJECT_ROOT/modules/password.sh" change
-                ;;
-            todesk)
-                gui_confirm "ToDesk 会使用管理员权限并临时修改 SteamOS 只读系统。请先在游戏模式开启开发者模式和旧版 X11 桌面模式。确认继续？" && \
-                    run_gui_action "安装 ToDesk" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/todesk.sh" --install
                 ;;
             decky-install)
                 gui_confirm "请先在游戏模式开启开发者模式和 CEF 远程调试。安装会使用管理员权限并启动后台服务，是否继续？" && \

@@ -210,19 +210,20 @@ common_software_menu() {
     local choice
 
     while true; do
-        draw_category_frame software "常用软件" "安装聊天、浏览器和远程工具" 0
-        ui_touch_button 5 '\033[1;97;48;5;24m' "微信"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "QQ"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "Firefox 浏览器"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "Chrome 浏览器"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "Edge 浏览器"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "RustDesk 远程协助" "安装开源远程工具"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "Windows 软件工具" "安装 Bottles 运行工具"
-        ui_touch_button 19 '\033[1;97;48;5;24m' "游戏兼容设置" "安装 Protontricks"
-        ui_touch_button 21 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
-        ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        draw_category_frame software "" "" 0
+        ui_touch_button 2 '\033[1;97;48;5;24m' "微信"
+        ui_touch_button 4 '\033[1;97;48;5;24m' "QQ"
+        ui_touch_button 6 '\033[1;97;48;5;24m' "Firefox 浏览器"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "Chrome 浏览器"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "Edge 浏览器"
+        ui_touch_button 12 '\033[1;97;48;5;24m' "RustDesk 远程协助" "安装开源远程工具"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "ToDesk 远程协助" "安装前需完成系统设置"
+        ui_touch_button 16 '\033[1;97;48;5;24m' "Windows 软件工具" "安装 Bottles 运行工具"
+        ui_touch_button 18 '\033[1;97;48;5;24m' "游戏兼容设置" "安装 Protontricks"
+        ui_touch_button 20 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:wechat right:7-8:qq right:9-10:browser right:11-12:chrome right:13-14:edge right:15-16:rustdesk right:17-18:bottles right:19-20:protontricks right:21-22:epic right:23-24:home)"
+        choice="$(read_touch_menu right:2-3:wechat right:4-5:qq right:6-7:browser right:8-9:chrome right:10-11:edge right:12-13:rustdesk right:14-15:todesk right:16-17:bottles right:18-19:protontricks right:20-21:epic right:22-23:home)"
         case "$choice" in
             nav-*) apply_navigation "$choice"; return 0 ;;
         esac
@@ -234,6 +235,7 @@ common_software_menu() {
             chrome) confirm_and_run "安装 Google Chrome" "Flathub 安装，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" chrome ;;
             edge) confirm_and_run "安装 Microsoft Edge" "Flathub 安装，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" edge ;;
             rustdesk) confirm_and_run "安装 RustDesk 远程协助" "从作者 GitHub Release 安装，不会修改服务器配置" bash "$PROJECT_ROOT/modules/software.sh" rustdesk ;;
+            todesk) todesk_preflight software ;;
             protontricks) confirm_and_run "安装 Protontricks" "修复与配置 Steam 游戏 Proton 环境" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
             bottles) confirm_and_run "安装 Bottles" "独立运行第三方 Windows 应用与游戏" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
             epic) run_action "安装 Epic 游戏启动器并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
@@ -258,7 +260,7 @@ remote_assistance_menu() {
 
         case "$choice" in
             rustdesk) confirm_and_run "下载 RustDesk" "从作者 GitHub Release 安装，不会写入或修改你的 RustDesk 服务器配置" bash "$PROJECT_ROOT/modules/software.sh" rustdesk ;;
-            todesk) todesk_preflight ;;
+            todesk) todesk_preflight remote ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "remote" ] || return 0
@@ -267,6 +269,10 @@ remote_assistance_menu() {
 
 todesk_preflight() {
     local choice
+    local return_target="${1:-software}"
+    local return_label="返回常用软件"
+
+    [ "$return_target" != "remote" ] || return_label="返回远程协助"
 
     while true; do
         draw_category_frame advanced "安装 ToDesk" "会修改 SteamOS 只读系统 · 高级操作"
@@ -276,7 +282,7 @@ todesk_preflight() {
         ui_panel_line 13 '\033[1;38;5;45m' "④ 开启“使用旧版 X11 桌面模式”"
         ui_panel_line 15 '\033[1;38;5;220m' "⑤ 重新进入桌面模式，再安装并启动 ToDesk"
         ui_touch_button 16 '\033[1;30;48;5;114m' "以上设置已完成，继续安装" "点击即确认两项开关均已开启"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统与密码" "暂不安装"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "$return_label" "暂不安装"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         choice="$(read_touch_menu right:16-17:continue right:18-19:back right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
@@ -285,7 +291,7 @@ todesk_preflight() {
                 confirm_and_run "安装 ToDesk" "将使用管理员权限并临时修改 SteamOS 只读系统；完成后应恢复只读保护" bash "$PROJECT_ROOT/modules/todesk.sh" --install
                 return 0
                 ;;
-            back) NEXT_CATEGORY="advanced"; return 0 ;;
+            back) NEXT_CATEGORY="$return_target"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
     done
@@ -583,40 +589,26 @@ domestic_source_preflight() {
 
 advanced_tools_menu() {
     local choice
-    local page=1
 
     while true; do
-        draw_category_frame advanced "系统与密码（第 $page / 2 页）" "以下功能会修改系统、网络、软件源、密码或磁盘设置。请确认了解风险后继续。"
-        if [ "$page" -eq 1 ]; then
-            ui_touch_button 7 '\033[1;97;48;5;160m' "国内软件源" "会修改 Flatpak 软件源 · 高级操作"
-            ui_touch_button 10 '\033[1;97;48;5;160m' "Steamcommunity 302" "可能修改 DNS 和证书 · 高级操作"
-            ui_touch_button 13 '\033[1;97;48;5;160m' "设置管理员密码" "会修改 SteamOS 管理密码 · 高级操作"
-            ui_touch_button 16 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
-            ui_touch_button 19 '\033[1;97;48;5;30m' "下一页" "查看其他高级功能"
-        else
-            ui_touch_button 7 '\033[1;97;48;5;160m' "安装 ToDesk" "会修改只读系统 · 高级操作"
-            ui_touch_button 10 '\033[1;97;48;5;160m' "安装插件商城" "会使用管理员权限 · 高级操作"
-            ui_touch_button 13 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单 · 高级操作"
-            ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回软件源和网络设置"
-        fi
+        draw_category_frame advanced "系统与密码" "以下功能会修改系统、网络、软件源、密码或磁盘设置。请确认了解风险后继续。"
+        ui_touch_button 7 '\033[1;97;48;5;160m' "国内软件源" "会修改 Flatpak 软件源 · 高级操作"
+        ui_touch_button 9 '\033[1;97;48;5;160m' "Steamcommunity 302" "可能修改 DNS 和证书 · 高级操作"
+        ui_touch_button 11 '\033[1;97;48;5;160m' "设置管理员密码" "会修改 SteamOS 管理密码 · 高级操作"
+        ui_touch_button 13 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "安装插件商城" "会使用管理员权限 · 高级操作"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单 · 高级操作"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        if [ "$page" -eq 1 ]; then
-            choice="$(read_touch_menu right:7-8:domestic-source right:10-11:accelerator right:13-14:set-password right:16-17:change-password right:19-20:next right:22-23:home)"
-        else
-            choice="$(read_touch_menu right:7-8:todesk right:10-11:decky-install right:13-14:dual right:19-20:previous right:22-23:home)"
-        fi
+        choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:set-password right:13-14:change-password right:15-16:decky-install right:17-18:dual right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             domestic-source) domestic_source_preflight ;;
             accelerator) steam_accelerator_touch_menu ;;
             set-password) confirm_and_run "设置管理员密码" "新密码会明文保存到桌面管理员密码.txt；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" set ;;
             change-password) confirm_and_run "修改管理员密码" "将读取旧记录并明文保存新密码；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;
-            todesk) todesk_preflight ;;
             decky-install) confirm_and_run "安装插件商城" "请先在游戏模式开启开发者模式和 CEF 远程调试。安装会使用管理员权限并启动后台服务" bash "$PROJECT_ROOT/modules/plugin_store.sh" store ;;
             dual) dual_system_menu ;;
-            next) page=2 ;;
-            previous) page=1 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "advanced" ] || return 0

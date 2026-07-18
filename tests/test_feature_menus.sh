@@ -54,10 +54,10 @@ done
 touch_software="$(function_source "$MAIN_FILE" common_software_menu)"
 gui_software="$(function_source "$GUI_FILE" software_menu)"
 for menu in "$touch_software" "$gui_software"; do
-    for item in '微信' 'QQ' 'Firefox 浏览器' 'Chrome 浏览器' 'Edge 浏览器' 'RustDesk 远程协助' 'Windows 软件工具' '游戏兼容设置' 'Epic 游戏启动器'; do
+    for item in '微信' 'QQ' 'Firefox 浏览器' 'Chrome 浏览器' 'Edge 浏览器' 'RustDesk 远程协助' 'ToDesk 远程协助' 'Windows 软件工具' '游戏兼容设置' 'Epic 游戏启动器'; do
         assert_contains "$menu" "$item" "常用软件缺少：$item"
     done
-    for hidden in '网易云音乐' '战网' 'ToDesk'; do
+    for hidden in '网易云音乐' '战网'; do
         assert_not_contains "$menu" "$hidden" "常用软件不应显示：$hidden"
     done
 done
@@ -119,10 +119,11 @@ touch_advanced="$(function_source "$MAIN_FILE" advanced_tools_menu)"
 gui_advanced="$(function_source "$GUI_FILE" advanced_tools_gui_menu)"
 for menu in "$touch_advanced" "$gui_advanced"; do
     assert_contains "$menu" '以下功能会修改系统、网络、软件源、密码或磁盘设置' "系统与密码缺少固定警告"
-    for item in '国内软件源' 'Steamcommunity 302' '设置管理员密码' '修改管理员密码' '安装 ToDesk' '安装插件商城' '双系统与互通盘'; do
+    for item in '国内软件源' 'Steamcommunity 302' '设置管理员密码' '修改管理员密码' '安装插件商城' '双系统与互通盘'; do
         assert_contains "$menu" "$item" "系统与密码缺少：$item"
     done
-    for risk_text in 'Flatpak 软件源' '修改 DNS' '管理密码' '修改只读系统' '使用管理员权限' '管理磁盘和开机菜单'; do
+    assert_not_contains "$menu" '安装 ToDesk' "系统与密码不应重复显示 ToDesk"
+    for risk_text in 'Flatpak 软件源' '修改 DNS' '管理密码' '使用管理员权限' '管理磁盘和开机菜单'; do
         assert_contains "$menu" "$risk_text" "系统与密码缺少风险说明：$risk_text"
     done
 done
