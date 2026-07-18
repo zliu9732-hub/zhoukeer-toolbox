@@ -89,18 +89,18 @@ ui_sidebar_item() {
     local selected="$4"
     local show_separator="${5:-1}"
     local marker='  '
-    local foreground='\033[38;5;252;48;5;234m'
+    local foreground='\033[38;5;252m'
     local separator='\033[38;5;239m'
 
     if [ "$value" = "$selected" ]; then
         marker='▶ '
-        foreground='\033[1;38;5;255;48;5;52m'
+        foreground='\033[1;38;5;203m'
         separator='\033[38;5;203m'
     fi
 
-    # 左侧用短暗底建立稳定导航层级，选中项只使用低饱和红色强调。
+    # 左侧分类共用背景，以细线形成连续列表；当前分类使用红色强调。
     ui_move "$row" 3
-    printf '%b %s%s %b' "$foreground" "$marker" "$label" "$NC"
+    printf '%b%s%s%b' "$foreground" "$marker" "$label" "$NC"
     if [ "$show_separator" = "1" ]; then
         ui_move "$((row + 1))" 3
         printf '%b──────────────────────────%b' "$separator" "$NC"
@@ -114,22 +114,26 @@ ui_touch_button() {
     local hint="${4:-}"
     local label_color='\033[38;5;255m'
     local rail_color='\033[38;5;203m'
+    local separator_color='\033[38;5;239m'
 
-    # 名称与说明放在同一行；仍保留两行高的点击区域，兼顾整洁和触控命中率。
+    # 名称与说明放在同一行，第二行作为列表分隔线和触控区域。
     case "$color" in
         *'48;5;114'*) label_color='\033[38;5;255m' ;;
-        *'48;5;160'*) label_color='\033[38;5;255m'; rail_color='\033[38;5;203m' ;;
-        *'48;5;238'*) label_color='\033[38;5;250m'; rail_color='\033[38;5;245m' ;;
+        *'48;5;160'*) label_color='\033[38;5;255m'; rail_color='\033[38;5;203m'; separator_color='\033[38;5;203m' ;;
+        *'48;5;238'*) label_color='\033[38;5;250m'; rail_color='\033[38;5;245m'; separator_color='\033[38;5;239m' ;;
     esac
 
     ui_move "$row" "$UI_PANEL_COL"
     # 临时关闭终端自动换行，过长说明会在右边缘截断，不会挤乱下一行。
-    printf '\033[?7l\033[48;5;234m%b▌ %b%s' \
+    printf '\033[?7l%b▌ %b%s' \
         "$rail_color" "$label_color" "$label"
     if [ -n "$hint" ]; then
         printf '\033[38;5;245m · %s' "$hint"
     fi
     printf ' \033[0m\033[?7h'
+    ui_move "$((row + 1))" "$UI_PANEL_COL"
+    printf '%b────────────────────────────────────────────────────\033[0m' \
+        "$separator_color"
 }
 
 draw_category_frame() {
