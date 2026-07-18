@@ -6,7 +6,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT" || exit 1
 
 CURRENT_VERSION="$(tr -d '\r\n' < VERSION)"
-NEW_VERSION="$(echo "$CURRENT_VERSION" | awk -F. '{printf "%d.%d.%d", $1, $2, $3+1}')"
+NEW_VERSION="$(echo "$CURRENT_VERSION" | awk -F. '{ if ($3 >= 9) printf "%d.%d.0", $1, $2 + 1; else printf "%d.%d.%d", $1, $2, $3 + 1 }')"
 TAG_MESSAGE="v$NEW_VERSION"
 
 printf '%s\n' "$NEW_VERSION" > VERSION
