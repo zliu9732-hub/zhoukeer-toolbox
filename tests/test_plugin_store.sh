@@ -42,6 +42,18 @@ grep -Fq 'Lossless Scaling 的 Steam 正版页面' "$PROJECT_ROOT/modules/plugin
 grep -Fq 'steam://store/993090' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'import_lossless_backup' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'steam://install/993090' "$PROJECT_ROOT/modules/plugin_store.sh"
+
+feature_install="$(sed -n '/^install_feature_plugins()/,/^}/p' "$PROJECT_ROOT/modules/plugin_store.sh")"
+printf '%s\n' "$feature_install" | grep -Fq 'install_configured_plugin "$plugin" 0 0' || {
+    echo "FAIL: 三件套安装没有延后小黄鸭商店跳转" >&2
+    exit 1
+}
+store_line="$(printf '%s\n' "$feature_install" | grep -n 'check_lossless_scaling_installation' | tail -n 1 | cut -d: -f1)"
+loop_line="$(printf '%s\n' "$feature_install" | grep -n 'done' | head -n 1 | cut -d: -f1)"
+[ -n "$store_line" ] && [ -n "$loop_line" ] && [ "$store_line" -gt "$loop_line" ] || {
+    echo "FAIL: 小黄鸭正版页面仍在三件套安装中途打开" >&2
+    exit 1
+}
 grep -Fq 'check_lossless_scaling_installation' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '未检测到 Steam 库中的 Lossless Scaling' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '选择名称以 Linux 开头的可用版本' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -61,11 +73,14 @@ grep -Fq 'plugin.json package.json README.md LICENSE dist/index.js' "$PROJECT_RO
 grep -Fq '"$source_dir/dist/index.js"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'toolbox_sudo systemctl restart "$DECKY_SERVICE_NAME"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'localizer) install_zhoukeer_localizer' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'features) install_feature_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'features) show_plugin_download_speed_tip; install_feature_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'feature-status) print_feature_plugin_status' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'uninstall) uninstall_all_decky_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '不会删除 Decky Loader 本体' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'all) install_all_plugin_packages' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'all) show_plugin_download_speed_tip; install_all_plugin_packages' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '3. 点击启动服务，再返回工具箱重试' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'speed_options=(--speed-limit 65536 --speed-time 30)' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '继续安装 CheatDeck' "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Fq 'Lossless Scaling.rar' "$PROJECT_ROOT/modules/plugin_store.sh" || \
     grep -Eq 'https?://[^[:space:]]*Lossless' "$PROJECT_ROOT/modules/plugin_store.sh"; then
     echo "FAIL: 付费软件本体不应配置为客户下载源"

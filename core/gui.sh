@@ -8,6 +8,8 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
 source "$PROJECT_ROOT/core/ui.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/logger.sh"
+# shellcheck disable=SC1091
+source "$PROJECT_ROOT/core/auth.sh"
 
 GUI_TITLE="周克儿工具箱 V4"
 GUI_ICON="$PROJECT_ROOT/assets/icon-round.png"
@@ -137,7 +139,7 @@ game_environment_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "游戏环境｜Decky 插件商城" \
+        choice="$(gui_dialog --menu "游戏与插件｜Decky 插件商城" \
             features "常用插件组合｜安装小黄鸭等三款插件" \
             all "插件环境与精选组合｜安装 Decky 与当前组合" \
             browse "浏览官方插件｜逐个查看插件作用" \
@@ -205,12 +207,12 @@ plugin_official_gui_pages() {
         if [ "$page" -gt 0 ]; then
             menu_args+=(previous "上一页")
         else
-            menu_args+=(back "返回游戏环境")
+            menu_args+=(back "返回游戏与插件")
         fi
         if [ "$page" -lt $((total_pages - 1)) ]; then
             menu_args+=(next "下一页")
         else
-            menu_args+=(back-last "返回游戏环境")
+            menu_args+=(back-last "返回游戏与插件")
         fi
         menu_args+=(home "返回首页" nav-exit "退出工具箱")
 
@@ -301,8 +303,8 @@ steam_accelerator_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "Steamcommunity 302｜可能修改 DNS、证书、hosts 和后台服务｜高级操作" \
-            install "安装或更新" \
+        choice="$(gui_dialog --menu "Steamcommunity 302｜加速 Steam 和 GitHub" \
+            install "安装或更新 Steamcommunity 302" \
             start "一键开启 Steam + GitHub 加速" \
             status "查看运行状态" \
             uninstall "安全卸载" \
@@ -311,12 +313,12 @@ steam_accelerator_gui_menu() {
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
             install)
-                gui_confirm "会下载官方程序，并可能修改 DNS、证书、hosts、后台服务；需要管理员权限。是否继续？" && \
+                gui_confirm "安装后开启加速会修改网络设置并需要管理员权限。是否继续？" && \
                     run_gui_action "安装Steamcommunity 302" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/steam_accelerator.sh" install
                 ;;
             start)
-                gui_confirm "会自动安装并启动服务，可能修改 DNS、证书、hosts；需要管理员权限。是否继续？" && \
+                gui_confirm "开启加速会修改网络设置并需要管理员权限。是否继续？" && \
                     run_gui_action "开启 Steamcommunity 302 加速" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/steam_accelerator.sh" enable
                 ;;
@@ -454,14 +456,34 @@ new_machine_gui_menu() {
     while true; do
         choice="$(gui_dialog --menu "新机必备｜第一次使用从这里开始" \
             recommended "推荐软件安装｜选择需要的常用软件" \
-            beginner-guide "新手使用指南｜查看首次使用步骤" \
-            advanced-init "高级新机初始化｜前往高级工具查看风险｜高级操作" \
+            advanced-init "新机初始化｜连续安装并配置新机器" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
             recommended) software_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
-            beginner-guide) help_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
-            advanced-init) advanced_tools_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
+            advanced-init)
+                gui_confirm "新机初始化会配置国内软件源，并安装多项常用软件、Decky 和 ToDesk。确认继续？" && \
+                    run_gui_action "新机初始化" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/new_machine.sh"
+                ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
+        esac
+    done
+}
+
+support_gui_menu() {
+    local choice
+
+    while true; do
+        choice="$(gui_dialog --menu "维护与帮助｜系统检查、清理、指南和日志" \
+            maintenance "系统维护｜检查系统、清理缓存和处理常见问题" \
+            help "检测与使用帮助｜查看信息、指南、记录和更新" \
+            home "返回首页" \
+            nav-exit "退出工具箱")" || return 0
+        case "$choice" in
+            maintenance) maintenance_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
+            help) help_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
         esac
@@ -486,7 +508,6 @@ advanced_tools_gui_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "高级工具｜以下功能会修改系统、网络、软件源、密码或磁盘设置。请确认了解风险后继续。" \
-            advanced-init "高级新机初始化｜连续安装软件并修改软件源｜高级操作" \
             domestic-source "国内软件源｜会修改 Flatpak 软件源｜高级操作" \
             accelerator "Steamcommunity 302｜可能修改 DNS 和证书｜高级操作" \
             set-password "设置管理员密码｜会修改 SteamOS 管理密码｜高级操作" \
@@ -497,11 +518,6 @@ advanced_tools_gui_menu() {
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
-            advanced-init)
-                gui_confirm "高级新机初始化会连续配置国内软件源并安装多项常用软件、Decky 和 ToDesk。ToDesk 使用前必须开启开发者模式及旧版 X11 桌面模式。确认继续？" && \
-                    run_gui_action "高级新机初始化" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/new_machine.sh"
-                ;;
             domestic-source) domestic_source_gui_preflight ;;
             accelerator) steam_accelerator_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             set-password)
@@ -537,10 +553,9 @@ main_gui_menu() {
         choice="$(gui_dialog --menu "请用触屏或触控板选择功能" \
             nav-init "新机必备｜第一次使用从这里开始" \
             nav-software "常用软件｜安装聊天和远程工具" \
-            nav-games "游戏环境｜安装插件和游戏组件" \
+            nav-games "游戏与插件｜插件商城、运行组件和启动器" \
             nav-network "网络与应用商店｜检查网络和软件源状态" \
-            nav-maintenance "系统维护｜清理缓存和检查系统" \
-            nav-help "检测与帮助｜查看信息、指南和日志" \
+            nav-help "维护与帮助｜系统检查、清理、指南和日志" \
             nav-advanced "高级工具｜修改系统和网络设置｜高风险" \
             nav-exit "退出工具箱")" || exit 0
 
@@ -549,11 +564,37 @@ main_gui_menu() {
             nav-software) software_menu ;;
             nav-games) game_environment_gui_menu ;;
             nav-network) network_store_gui_menu ;;
-            nav-maintenance) maintenance_gui_menu ;;
-            nav-help) help_gui_menu ;;
+            nav-help) support_gui_menu ;;
             nav-advanced) advanced_tools_gui_menu ;;
             nav-exit) exit 0 ;;
         esac
+    done
+}
+
+ensure_gui_password_ready() {
+    local choice
+
+    if load_toolbox_password >/dev/null 2>&1; then
+        TOOLBOX_PASSWORD=""
+        unset TOOLBOX_PASSWORD
+        return 0
+    fi
+
+    while true; do
+        choice="$(gui_dialog --menu "首次使用必须先准备管理员密码记录，但不会强制修改已有密码。" \
+            import "我已有管理员密码｜输入一次并保存到桌面" \
+            set "我还没有管理员密码｜按系统提示设置新密码" \
+            exit "退出工具箱")" || exit 0
+        case "$choice" in
+            import) run_gui_action "录入现有管理员密码" bash "$PROJECT_ROOT/modules/password.sh" import ;;
+            set) run_gui_action "设置管理员密码" bash "$PROJECT_ROOT/modules/password.sh" set ;;
+            exit) exit 0 ;;
+        esac
+        if load_toolbox_password >/dev/null 2>&1; then
+            TOOLBOX_PASSWORD=""
+            unset TOOLBOX_PASSWORD
+            return 0
+        fi
     done
 }
 
@@ -562,4 +603,5 @@ if ! command -v kdialog >/dev/null 2>&1; then
     exit 1
 fi
 
+ensure_gui_password_ready
 main_gui_menu

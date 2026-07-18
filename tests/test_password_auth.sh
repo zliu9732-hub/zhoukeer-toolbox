@@ -189,9 +189,9 @@ grep -Fq 'CALL' "$STATE_DIR/passwd-calls" || fail "设置密码时未调用 pass
 grep -Fxq "STDIN=<$SET_PASSWORD>" "$STATE_DIR/sudo-stdin" || \
     fail "设置后没有用新密码做假的 sudo 验证"
 
-# 修改密码：旧密码来自记录并自动用于 sudo 验证，新密码由 stdin 输入两次。
+# 修改密码：旧密码来自记录并自动用于 sudo 验证，新密码只输入一次。
 rm -f -- "$STATE_DIR/chpasswd-stdin" "$STATE_DIR/sudo-cache"
-change_output="$(printf '%s\n%s\n' "$CHANGED_PASSWORD" "$CHANGED_PASSWORD" | \
+change_output="$(printf '%s\n' "$CHANGED_PASSWORD" | \
     run_password_module change "$SET_PASSWORD" "$CHANGED_PASSWORD")"
 assert_password_record "$CHANGED_PASSWORD"
 assert_output_hides_password "$change_output" "$SET_PASSWORD"
@@ -200,6 +200,15 @@ grep -Fxq "STDIN=<$SET_PASSWORD>" "$STATE_DIR/sudo-stdin" || \
     fail "修改密码时没有从记录读取旧密码用于假的 sudo 验证"
 [ "$(cat "$STATE_DIR/chpasswd-stdin")" = "deck:$CHANGED_PASSWORD" ] || \
     fail "修改密码时没有把当前用户和新密码交给假的 chpasswd"
+
+# 系统已有管理员密码但桌面没有记录时，只输入一次即可验证并保存。
+rm -f -- "$PASSWORD_FILE" "$STATE_DIR/sudo-cache" "$STATE_DIR/sudo-stdin"
+import_output="$(printf '%s\n' "$CHANGED_PASSWORD" | \
+    run_password_module import "$CHANGED_PASSWORD")"
+assert_password_record "$CHANGED_PASSWORD"
+assert_output_hides_password "$import_output" "$CHANGED_PASSWORD"
+grep -Fxq "STDIN=<$CHANGED_PASSWORD>" "$STATE_DIR/sudo-stdin" || \
+    fail "录入现有密码时没有执行验证"
 
 # auth.sh 读取严格的“密码：...”字段，并在执行管理命令前自动交给 fake sudo。
 rm -f -- "$STATE_DIR/sudo-cache" "$STATE_DIR/sudo-commands" "$STATE_DIR/sudo-stdin"

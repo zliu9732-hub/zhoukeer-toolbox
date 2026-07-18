@@ -43,14 +43,13 @@ for mapping in \
     'left:5-6:nav-software' \
     'left:8-9:nav-games' \
     'left:11-12:nav-network' \
-    'left:14-15:nav-maintenance' \
-    'left:17-18:nav-help' \
-    'left:20-21:nav-advanced' \
+    'left:14-15:nav-help' \
+    'left:18-19:nav-advanced' \
     'left:22-23:nav-exit'; do
     assert_contains "$touch_nav" "$mapping" "触控首页映射缺失：$mapping"
 done
 
-for action in nav-init nav-software nav-games nav-network nav-maintenance nav-help nav-advanced nav-exit; do
+for action in nav-init nav-software nav-games nav-network nav-help nav-advanced nav-exit; do
     assert_contains "$gui_home" "$action" "GUI 首页映射缺失：$action"
 done
 
@@ -59,7 +58,7 @@ for old_action in nav-remote nav-plugins nav-settings nav-dual nav-optimize nav-
     assert_not_contains "$gui_home" "$old_action" "旧导航仍显示在 GUI 首页：$old_action"
 done
 
-for selected in init software games network maintenance help advanced exit; do
+for selected in init software games network support advanced exit; do
     assert_contains "$sidebar" " $selected \"" "侧栏缺少分类：$selected"
 done
 
@@ -88,4 +87,4 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_contains "$source_text" 'modules/steam_accelerator.sh" enable' "Steamcommunity 302 开启动作错误：$file"
 done
 
-echo "PASS: 七分类导航、关键动作和返回坐标映射一致"
+echo "PASS: 六分类导航、关键动作和返回坐标映射一致"

@@ -129,24 +129,60 @@ EOF
 
 capture_and_verify_current_password() {
     local captured_password
-    local attempts=0
 
-    while [ "$attempts" -lt 3 ]; do
-        attempts=$((attempts + 1))
-        printf '请再次输入刚设置的新密码（用于自动验证）：'
-        IFS= read -r -s captured_password || return 1
-        printf '\n'
-        if validate_toolbox_password_value "$captured_password"; then
-            CAPTURED_PASSWORD="$captured_password"
-            captured_password=""
-            unset captured_password
-            return 0
-        fi
+    printf '请最后输入一次刚设置的密码（验证并保存到桌面）：'
+    IFS= read -r -s captured_password || return 1
+    printf '\n'
+    if validate_toolbox_password_value "$captured_password"; then
+        CAPTURED_PASSWORD="$captured_password"
         captured_password=""
         unset captured_password
-        echo "密码验证失败，请确认输入与刚设置的系统密码一致。"
-    done
+        return 0
+    fi
+    captured_password=""
+    unset captured_password
+    echo "密码验证失败，请重新进入设置流程。"
     return 1
+}
+
+import_existing_password() {
+    local action_label="录入现有管理员密码"
+    local current_password
+
+    is_linux || {
+        echo "管理员密码功能仅支持 Linux/SteamOS。"
+        return 1
+    }
+    require_command sudo || return 1
+    load_non_root_identity || return 1
+
+    show_plaintext_password_warning
+    echo ""
+    echo "系统已有管理员密码时，只需在这里输入一次，不会修改原密码。"
+    printf '请输入现有管理员密码（输入时不会显示）：'
+    IFS= read -r -s current_password || return 1
+    printf '\n'
+    [ -n "$current_password" ] || {
+        echo "密码不能为空。"
+        return 1
+    }
+
+    if ! validate_toolbox_password_value "$current_password"; then
+        current_password=""
+        unset current_password
+        echo "密码验证失败，没有修改桌面记录。"
+        return 1
+    fi
+    if ! write_password_record "$action_label" "$current_password"; then
+        current_password=""
+        unset current_password
+        echo "密码验证成功，但桌面记录创建失败。"
+        return 1
+    fi
+    current_password=""
+    unset current_password
+    log "$action_label 完成（桌面密码记录已更新）"
+    echo "现有管理员密码已验证，并保存到桌面管理员密码.txt。"
 }
 
 set_system_password() {
@@ -187,7 +223,6 @@ set_system_password() {
 
 prompt_new_password() {
     local first
-    local second
 
     while true; do
         printf '请输入新密码：'
@@ -197,29 +232,18 @@ prompt_new_password() {
             echo "密码不能为空。"
             continue
         }
-        printf '请再次输入新密码：'
-        IFS= read -r -s second || return 1
-        printf '\n'
-        if [ "$first" = "$second" ]; then
-            case "$first" in
-                *:*)
-                    first=""
-                    second=""
-                    unset first second
-                    echo "密码不能包含冒号，请重新输入。"
-                    continue
-                    ;;
-            esac
-            NEW_PASSWORD="$first"
-            first=""
-            second=""
-            unset first second
-            return 0
-        fi
+        case "$first" in
+            *:*)
+                first=""
+                unset first
+                echo "密码不能包含冒号，请重新输入。"
+                continue
+                ;;
+        esac
+        NEW_PASSWORD="$first"
         first=""
-        second=""
-        unset first second
-        echo "两次输入不一致，请重新输入。"
+        unset first
+        return 0
     done
 }
 
@@ -294,8 +318,9 @@ change_system_password() {
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
+        import) import_existing_password ;;
         set) set_system_password ;;
         change) change_system_password ;;
-        *) echo "用法: $0 {set|change}"; exit 1 ;;
+        *) echo "用法: $0 {import|set|change}"; exit 1 ;;
     esac
 fi

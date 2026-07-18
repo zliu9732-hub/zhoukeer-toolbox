@@ -18,6 +18,8 @@ source "$PROJECT_ROOT/core/env.sh"
 source "$PROJECT_ROOT/core/ui.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/logger.sh"
+# shellcheck disable=SC1091
+source "$PROJECT_ROOT/core/auth.sh"
 
 ensure_runtime_dirs
 
@@ -128,15 +130,50 @@ show_disclaimer() {
     done
 }
 
+ensure_password_ready() {
+    local choice
+
+    if load_toolbox_password >/dev/null 2>&1; then
+        TOOLBOX_PASSWORD=""
+        unset TOOLBOX_PASSWORD
+        return 0
+    fi
+
+    while true; do
+        draw_category_frame "" "首次使用准备" "先准备管理员密码记录，后续安装无需反复输入"
+        ui_panel_line 7 '\033[1;38;5;220m' "首次使用必须完成此步骤，但不会强制修改已有密码"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "我已有管理员密码" "输入一次并保存到桌面，不修改密码"
+        ui_touch_button 15 '\033[1;97;48;5;58m' "我还没有管理员密码" "按系统提示设置新密码"
+        ui_touch_button 20 '\033[1;97;48;5;160m' "退出工具箱" "暂不进行任何操作"
+        ui_prompt
+        choice="$(read_touch_menu right:10-11:import right:15-16:set right:20-21:exit)"
+        case "$choice" in
+            import)
+                run_action "录入现有管理员密码" \
+                    bash "$PROJECT_ROOT/modules/password.sh" import
+                ;;
+            set)
+                run_action "设置管理员密码" \
+                    bash "$PROJECT_ROOT/modules/password.sh" set
+                ;;
+            exit) exit 0 ;;
+        esac
+        if load_toolbox_password >/dev/null 2>&1; then
+            TOOLBOX_PASSWORD=""
+            unset TOOLBOX_PASSWORD
+            return 0
+        fi
+    done
+}
+
 read_touch_menu() {
     read_menu_choice \
         left:2-3:nav-init \
         left:5-6:nav-software \
         left:8-9:nav-games \
         left:11-12:nav-network \
-        left:14-15:nav-maintenance \
-        left:17-18:nav-help \
-        left:20-21:nav-advanced \
+        left:14-15:nav-help \
+        left:18-19:nav-advanced \
         left:22-23:nav-exit \
         "$@"
 }
@@ -147,15 +184,13 @@ apply_navigation() {
         nav-software) NEXT_CATEGORY="software" ;;
         nav-games) NEXT_CATEGORY="games" ;;
         nav-network) NEXT_CATEGORY="network" ;;
-        nav-maintenance) NEXT_CATEGORY="maintenance" ;;
-        nav-help) NEXT_CATEGORY="help" ;;
+        nav-maintenance|nav-help) NEXT_CATEGORY="support" ;;
         nav-advanced) NEXT_CATEGORY="advanced" ;;
         # 旧导航 ID 仅保留兼容，不再显示在首页。
         nav-remote) NEXT_CATEGORY="software" ;;
         nav-plugins) NEXT_CATEGORY="games" ;;
         nav-settings) NEXT_CATEGORY="network" ;;
-        nav-optimize) NEXT_CATEGORY="maintenance" ;;
-        nav-guides|nav-changelog|nav-update) NEXT_CATEGORY="help" ;;
+        nav-optimize|nav-guides|nav-changelog|nav-update) NEXT_CATEGORY="support" ;;
         nav-dual) NEXT_CATEGORY="advanced" ;;
         nav-exit) NEXT_CATEGORY="exit" ;;
         *) return 1 ;;
@@ -251,44 +286,42 @@ new_machine_menu() {
 
     while true; do
         draw_category_frame init "新机必备" "第一次使用从这里开始"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "推荐软件安装" "选择需要的常用软件"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "新手使用指南" "查看首次使用步骤"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "高级新机初始化" "前往高级工具查看风险 · 高级操作"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "推荐软件安装" "选择需要的常用软件"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "新机初始化" "连续安装并配置新机器"
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:recommended right:11-12:beginner-guide right:15-16:advanced-init right:20-21:home)"
+        choice="$(read_touch_menu right:8-9:recommended right:13-14:advanced-init right:20-21:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             recommended) NEXT_CATEGORY="software"; return 0 ;;
-            beginner-guide) NEXT_CATEGORY="help"; return 0 ;;
-            advanced-init) NEXT_CATEGORY="advanced"; return 0 ;;
+            advanced-init) new_machine_preflight; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
     done
 }
 
-advanced_new_machine_preflight() {
+new_machine_preflight() {
     local choice
 
     while true; do
-        draw_category_frame advanced "高级新机初始化" "连续安装软件并修改软件源 · 高级操作"
+        draw_category_frame init "新机初始化" "安装常用软件并配置国内软件源"
         ui_panel_line 7 '\033[1;38;5;220m' "① Steam 键 → 设置 → 系统 → 启用开发者模式"
         ui_panel_line 9 '\033[1;38;5;45m' "② 设置侧栏 → 开发者 → 杂项"
         ui_panel_line 11 '\033[1;38;5;45m' "③ 开启“使用旧版 X11 桌面模式”"
         ui_panel_line 13 '\033[1;38;5;220m' "④ 重新进入桌面模式，再开始初始化"
         ui_panel_line 14 '\033[1;38;5;45m' "继续后将安装国内源、常用软件、Decky 和 ToDesk"
         ui_touch_button 16 '\033[1;30;48;5;114m' "设置已完成，开始新机初始化" "点击即确认已开启开发者模式和旧版 X11"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回高级工具" "暂不初始化"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回新机必备" "暂不初始化"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
-        choice="$(read_touch_menu right:16-17:start right:18-19:advanced right:22-23:home)"
+        choice="$(read_touch_menu right:16-17:start right:18-19:init right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             start)
-                run_action "高级新机初始化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/new_machine.sh"
-                NEXT_CATEGORY="advanced"
+                run_action "新机初始化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/new_machine.sh"
+                NEXT_CATEGORY="init"
                 return 0
                 ;;
-            advanced) NEXT_CATEGORY="advanced"; return 0 ;;
+            init) NEXT_CATEGORY="init"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
     done
@@ -344,7 +377,7 @@ game_environment_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "游戏环境｜Decky 插件商城" "安装插件和游戏组件"
+        draw_category_frame games "游戏与插件｜Decky 插件商城" "浏览插件商城、运行组件和启动器"
         ui_touch_button 5 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭等三款插件"
         ui_touch_button 7 '\033[1;97;48;5;24m' "插件环境与精选组合" "安装 Decky 与当前组合"
         ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
@@ -415,12 +448,12 @@ plugin_official_touch_pages() {
         if [ "$page" -gt 0 ]; then
             ui_touch_button 16 '\033[1;97;48;5;238m' "上一页" "查看前一组插件"
         else
-            ui_touch_button 16 '\033[1;97;48;5;238m' "返回游戏环境" "查看其他游戏组件"
+            ui_touch_button 16 '\033[1;97;48;5;238m' "返回游戏与插件" "查看其他游戏组件"
         fi
         if [ "$page" -lt $((total_pages - 1)) ]; then
             ui_touch_button 18 '\033[1;97;48;5;30m' "下一页" "继续查看更多插件"
         else
-            ui_touch_button 18 '\033[1;97;48;5;238m' "返回游戏环境" "已是最后一页"
+            ui_touch_button 18 '\033[1;97;48;5;238m' "返回游戏与插件" "已是最后一页"
         fi
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -545,28 +578,26 @@ advanced_tools_menu() {
     while true; do
         draw_category_frame advanced "高级工具（第 $page / 2 页）" "以下功能会修改系统、网络、软件源、密码或磁盘设置。请确认了解风险后继续。"
         if [ "$page" -eq 1 ]; then
-            ui_touch_button 7 '\033[1;97;48;5;160m' "高级新机初始化" "连续安装软件并修改软件源 · 高级操作"
-            ui_touch_button 10 '\033[1;97;48;5;160m' "国内软件源" "会修改 Flatpak 软件源 · 高级操作"
-            ui_touch_button 13 '\033[1;97;48;5;160m' "Steamcommunity 302" "可能修改 DNS 和证书 · 高级操作"
-            ui_touch_button 16 '\033[1;97;48;5;160m' "设置管理员密码" "会修改 SteamOS 管理密码 · 高级操作"
+            ui_touch_button 7 '\033[1;97;48;5;160m' "国内软件源" "会修改 Flatpak 软件源 · 高级操作"
+            ui_touch_button 10 '\033[1;97;48;5;160m' "Steamcommunity 302" "可能修改 DNS 和证书 · 高级操作"
+            ui_touch_button 13 '\033[1;97;48;5;160m' "设置管理员密码" "会修改 SteamOS 管理密码 · 高级操作"
+            ui_touch_button 16 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
             ui_touch_button 19 '\033[1;97;48;5;30m' "下一页" "查看其他高级功能"
         else
-            ui_touch_button 7 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
-            ui_touch_button 10 '\033[1;97;48;5;160m' "安装 ToDesk" "会修改只读系统 · 高级操作"
-            ui_touch_button 13 '\033[1;97;48;5;160m' "安装 Decky Loader" "会使用管理员权限 · 高级操作"
-            ui_touch_button 16 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单 · 高级操作"
+            ui_touch_button 7 '\033[1;97;48;5;160m' "安装 ToDesk" "会修改只读系统 · 高级操作"
+            ui_touch_button 10 '\033[1;97;48;5;160m' "安装 Decky Loader" "会使用管理员权限 · 高级操作"
+            ui_touch_button 13 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单 · 高级操作"
             ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回软件源和网络设置"
         fi
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         if [ "$page" -eq 1 ]; then
-            choice="$(read_touch_menu right:7-8:advanced-init right:10-11:domestic-source right:13-14:accelerator right:16-17:set-password right:19-20:next right:22-23:home)"
+            choice="$(read_touch_menu right:7-8:domestic-source right:10-11:accelerator right:13-14:set-password right:16-17:change-password right:19-20:next right:22-23:home)"
         else
-            choice="$(read_touch_menu right:7-8:change-password right:10-11:todesk right:13-14:decky-install right:16-17:dual right:19-20:previous right:22-23:home)"
+            choice="$(read_touch_menu right:7-8:todesk right:10-11:decky-install right:13-14:dual right:19-20:previous right:22-23:home)"
         fi
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
-            advanced-init) advanced_new_machine_preflight ;;
             domestic-source) domestic_source_preflight ;;
             accelerator) steam_accelerator_touch_menu ;;
             set-password) confirm_and_run "设置管理员密码" "新密码会明文保存到桌面管理员密码.txt；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" set ;;
@@ -609,10 +640,10 @@ steam_accelerator_touch_menu() {
     local choice
 
     while true; do
-        draw_category_frame advanced "Steamcommunity 302" "可能修改 DNS、证书、hosts 和后台服务 · 高级操作"
-        ui_touch_button 6 '\033[1;97;48;5;24m' "安装或更新" "下载并校验官方程序与内置规则"
+        draw_category_frame advanced "Steamcommunity 302" "加速 Steam 和 GitHub"
+        ui_touch_button 6 '\033[1;97;48;5;24m' "安装或更新" "安装 Steamcommunity 302"
         ui_touch_button 9 '\033[1;97;48;5;30m' "一键开启加速" "自动准备并启动 Steam + GitHub 后台加速"
-        ui_touch_button 12 '\033[1;97;48;5;24m' "查看运行状态" "查看版本、内置进程和后台服务状态"
+        ui_touch_button 12 '\033[1;97;48;5;24m' "查看运行状态" "检查加速是否开启"
         ui_touch_button 15 '\033[1;97;48;5;160m' "安全卸载" "先停止工具箱进程，再删除程序文件"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回高级工具" "查看其他高级功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -621,10 +652,10 @@ steam_accelerator_touch_menu() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             install)
-                confirm_and_run "Steamcommunity 302" "会下载官方程序，并可能修改 DNS、证书、hosts、后台服务；需要管理员权限" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" install
+                confirm_and_run "Steamcommunity 302" "安装后开启加速会修改网络设置并需要管理员权限" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" install
                 ;;
             start)
-                confirm_and_run "开启 Steamcommunity 302" "会自动安装并启动服务，可能修改 DNS、证书、hosts；需要管理员权限" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" enable
+                confirm_and_run "开启 Steamcommunity 302" "会修改网络设置并需要管理员权限" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" enable
                 ;;
             status) run_action "Steamcommunity 302 状态" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" status ;;
             uninstall)
@@ -637,11 +668,30 @@ steam_accelerator_touch_menu() {
     done
 }
 
+support_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame support "维护与帮助" "系统检查、清理、指南和日志"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "系统维护" "检查系统、清理缓存和处理常见问题"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "检测与使用帮助" "查看信息、指南、记录和更新"
+        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:8-9:maintenance right:13-14:help right:20-21:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            maintenance) maintenance_menu; return 0 ;;
+            help) help_menu; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+    done
+}
+
 maintenance_menu() {
     local choice
 
     while true; do
-        draw_category_frame maintenance "系统维护" "清理缓存和检查系统"
+        draw_category_frame support "系统维护" "清理缓存和检查系统"
         ui_touch_button 5 '\033[1;97;48;5;24m' "系统健康检查" "检查空间和常用环境"
         ui_touch_button 7 '\033[1;97;48;5;24m' "游戏启动检查" "检查游戏无法启动原因"
         ui_touch_button 9 '\033[1;97;48;5;160m' "清理下载残留" "删除未完成下载文件 · 会删除缓存"
@@ -673,7 +723,7 @@ help_menu() {
     local page=1
 
     while true; do
-        draw_category_frame help "检测与帮助（第 $page / 2 页）" "查看信息、指南和日志"
+        draw_category_frame support "检测与帮助（第 $page / 2 页）" "查看信息、指南和日志"
         if [ "$page" -eq 1 ]; then
             ui_touch_button 5 '\033[1;97;48;5;24m' "查看系统信息" "查看系统和设备信息"
             ui_touch_button 7 '\033[1;97;48;5;24m' "导出诊断报告" "保存检查结果到桌面"
@@ -746,7 +796,7 @@ changelog_menu() {
     fi
 
     while true; do
-        draw_category_frame help "更新日志" "$release_heading"
+        draw_category_frame support "更新日志" "$release_heading"
         ui_panel_line 7 '\033[1;38;5;114m' "✓ ${release_notes[0]:-当前版本已安装，暂无摘要}"
         ui_panel_line 10 '\033[1;38;5;45m' "✓ ${release_notes[1]:-完整改动以 CHANGELOG.md 为准}"
         ui_panel_line 13 '\033[1;38;5;220m' "完整日志随工具箱自动更新，不再显示旧版固定日期"
@@ -768,10 +818,9 @@ home_menu() {
     draw_category_frame "" "欢迎使用" "全界面只需点击，无需输入任何数字或字母"
     ui_panel_line 8 '\033[1;38;5;220m' "新机必备｜第一次使用从这里开始"
     ui_panel_line 10 '\033[1;38;5;45m' "常用软件｜安装聊天和远程工具"
-    ui_panel_line 12 '\033[1;38;5;45m' "游戏环境｜安装插件和游戏组件"
+    ui_panel_line 12 '\033[1;38;5;45m' "游戏与插件｜插件商城、运行组件和启动器"
     ui_panel_line 14 '\033[1;38;5;45m' "网络与应用商店｜检查网络和软件源状态"
-    ui_panel_line 16 '\033[1;38;5;114m' "系统维护｜清理缓存和检查系统"
-    ui_panel_line 18 '\033[1;38;5;114m' "检测与帮助｜查看信息、指南和日志"
+    ui_panel_line 16 '\033[1;38;5;114m' "维护与帮助｜系统检查、清理、指南和日志"
     ui_panel_line 20 '\033[1;38;5;203m' "高级工具｜修改系统和网络设置 · 高风险"
     ui_prompt
     choice="$(read_touch_menu)"
@@ -779,6 +828,7 @@ home_menu() {
 }
 
 show_disclaimer
+ensure_password_ready
 
 while true; do
     case "$NEXT_CATEGORY" in
@@ -787,19 +837,17 @@ while true; do
         software) common_software_menu ;;
         games) game_environment_menu ;;
         network) network_store_menu ;;
-        maintenance) maintenance_menu ;;
-        help) help_menu ;;
+        support) support_menu ;;
         advanced) advanced_tools_menu ;;
         # 旧分类仅保留内部兼容，不再显示在首页。
         remote) NEXT_CATEGORY="software" ;;
         plugins|plugins-menu) NEXT_CATEGORY="games" ;;
         settings) NEXT_CATEGORY="network" ;;
         dual) NEXT_CATEGORY="advanced" ;;
-        optimize) NEXT_CATEGORY="maintenance" ;;
-        guides|changelog) NEXT_CATEGORY="help" ;;
+        maintenance|help|optimize|guides|changelog) NEXT_CATEGORY="support" ;;
         update)
             confirm_and_run "检查并更新工具箱" "会联网下载、校验并安全替换为最新版本" bash "$PROJECT_ROOT/update.sh"
-            [ "$NEXT_CATEGORY" = "update" ] && NEXT_CATEGORY="help"
+            [ "$NEXT_CATEGORY" = "update" ] && NEXT_CATEGORY="support"
             ;;
         exit)
             log "用户退出工具箱"

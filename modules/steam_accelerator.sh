@@ -84,10 +84,12 @@ show_steam302_risk_notice() {
 confirm_steam302_install() {
     local answer
 
-    show_steam302_risk_notice
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        echo "正在安装 Steamcommunity 302..."
         return 0
     fi
+
+    show_steam302_risk_notice
 
     echo ""
     read -r -p "确认安装请输入 INSTALL：" answer
@@ -347,9 +349,8 @@ print_steam302_download_fallback() {
     echo "========================================"
     echo " GitHub + Steam 加速未确认"
     echo "========================================"
-    echo "工具箱会继续使用当前网络提交下载，但速度或成功率可能受影响。"
-    echo "如果下载的慢，请去工具箱「系统设置」→「Steamcommunity 302」"
-    echo "下载并启用加速后，再单独重试下载。"
+    echo "如果下载慢或失败，请打开桌面 Steamcommunity 302："
+    echo "勾选 Steam 和 GitHub，点击启动服务，再返回工具箱重试。"
 }
 
 steam302_download_acceleration_is_ready() {
@@ -363,8 +364,8 @@ ensure_steam302_for_download() {
         return 0
     fi
 
-    echo "继续使用当前网络下载。"
-    echo "如果下载的慢请去「系统设置」里下载并启用 Steamcommunity 302。"
+    echo "未检测到 Steam + GitHub 加速。下载慢时请打开桌面 Steamcommunity 302，"
+    echo "勾选 Steam 和 GitHub 并点击启动服务，再返回工具箱重试。"
     return 0
 }
 
@@ -815,16 +816,8 @@ install_steam302() (
     STEAM302_SWAP_FINISHED=1
     rm -rf "$STEAM302_BACKUP_DIR"
     STEAM302_BACKUP_DIR=""
-    echo "Steamcommunity 302 V$STEAM302_VERSION 安装完成。"
-    echo "已生成 Steam + GitHub 内置加速规则。"
-    echo ""
-    echo "正在自动开启后台加速服务和开机自启..."
-    ZHOUKEER_AUTO_CONFIRM=1 steam302_setup_autostart || \
-        echo "提示：开机自启设置未完成，可在系统设置中手动配置。"
-    ZHOUKEER_AUTO_CONFIRM=1 start_steam302_service || \
-        echo "提示：加速服务未启动，可在系统设置中手动开启。"
-    echo ""
-    echo "安装完成。若上方有提示，按提示在系统设置中处理即可。"
+    echo "Steamcommunity 302 安装完成。"
+    echo "Steam + GitHub 加速规则已准备好，请点击“一键开启加速”。"
 )
 
 show_steam302_status() {

@@ -211,7 +211,7 @@ grep -Fq '4b9994102b2256ca5fdf2e806a2c7035' "$MODULE" || fail "缺少官方 MD5"
 grep -Fq '5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f' \
     "$MODULE" || fail "缺少固定 SHA256"
 grep -Fq 'ensure_steam302_for_download()' "$MODULE" || fail "缺少 Steamcommunity 302 工具函数"
-grep -Fq '继续使用当前网络下载' "$MODULE" || fail "未加速时缺少当前网络继续下载提示"
+grep -Fq '未检测到 Steam + GitHub 加速' "$MODULE" || fail "未加速时缺少醒目提示"
 
 fallback_output="$(MODULE="$MODULE" bash -c '
     source "$MODULE"
@@ -222,12 +222,10 @@ fallback_output="$(MODULE="$MODULE" bash -c '
     install_steam302() { return 1; }
     ensure_steam302_for_download
 ' 2>&1)" || fail "自动加速失败后不应阻断插件安装"
-printf '%s\n' "$fallback_output" | grep -Fq '工具箱会继续使用当前网络提交下载' || \
-    true
-printf '%s\n' "$fallback_output" | grep -Fq '继续使用当前网络下载' || \
-    fail "未加速时没有继续当前网络下载"
-printf '%s\n' "$fallback_output" | grep -Fq '下载的慢请去' || \
-    fail "未加速时没有提示按需配置302"
+printf '%s\n' "$fallback_output" | grep -Fq '未检测到 Steam + GitHub 加速' || \
+    fail "未加速时没有醒目提示"
+printf '%s\n' "$fallback_output" | grep -Fq '勾选 Steam 和 GitHub' || \
+    fail "未加速时没有说明 Steam302 配置方法"
 
 ready_output="$(MODULE="$MODULE" bash -c '
     source "$MODULE"

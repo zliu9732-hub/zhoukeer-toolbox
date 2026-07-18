@@ -32,6 +32,21 @@ DECKY_FSR4_SHA256="236dc5aef5c908d905a848d7e448689634479ab61cd9184154ba8a725b3f2
 DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.2.1/CheatDeck.zip"
 DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
 
+show_plugin_download_speed_tip() {
+    echo ""
+    echo "========== 插件下载提示 =========="
+    if steam302_download_acceleration_is_ready; then
+        echo "Steam302 的 Steam + GitHub 加速已开启。"
+    else
+        echo "如果下载慢或失败："
+        echo "1. 打开桌面 Steamcommunity 302"
+        echo "2. 勾选 Steam 和 GitHub"
+        echo "3. 点击启动服务，再返回工具箱重试"
+    fi
+    echo "===================================="
+    echo ""
+}
+
 cleanup_decky_tmp() {
     if [ -n "$DECKY_TMP_DIR" ] && [ -d "$DECKY_TMP_DIR" ]; then
         rm -rf -- "$DECKY_TMP_DIR"
@@ -364,6 +379,7 @@ download_verified_package() {
     local curl_status
     local attempt
     local retry_options=(--retry 5 --retry-delay 2)
+    local speed_options=()
 
     if [ -z "$url" ] || [ -z "$expected_sha256" ]; then
         echo "$name 的下载配置不完整，请先更新工具箱。"
@@ -375,6 +391,13 @@ download_verified_package() {
     if curl --help all 2>/dev/null | grep -Fq -- '--retry-all-errors'; then
         retry_options+=(--retry-all-errors)
     fi
+    case "$name" in
+        FSR4*)
+            # FSR4 只作为可选插件；持续低速时尽快让位给后续 CheatDeck。
+            speed_options=(--speed-limit 65536 --speed-time 30)
+            retry_options=(--retry 0)
+            ;;
+    esac
 
     for attempt in 1 2; do
         rm -f -- "$output"
@@ -386,6 +409,7 @@ download_verified_package() {
                 _dl_url="$url"
             fi
             echo "正在下载 $name（第 $attempt/2 轮）..."
+            curl_status=0
             if curl \
                 --fail \
                 --location \
@@ -396,10 +420,18 @@ download_verified_package() {
                 --connect-timeout 15 \
                 --max-time 1200 \
                 "${retry_options[@]}" \
+                "${speed_options[@]}" \
                 --output "$output" \
                 "$_dl_url"; then
                 _dl_ok=1
                 break
+            else
+                curl_status=$?
+                if [ "$curl_status" -eq 28 ] && [ "${#speed_options[@]}" -gt 0 ]; then
+                    rm -f -- "$output"
+                    echo "$name 下载速度持续过慢，已跳过；继续安装 CheatDeck。"
+                    return 1
+                fi
             fi
             rm -f -- "$output"
         done
@@ -415,7 +447,6 @@ download_verified_package() {
             fi
             echo "$name 第 $attempt/2 轮下载不完整，校验失败，正在重新获取。"
         else
-            curl_status=$?
             echo "$name 第 $attempt/2 轮下载失败（curl 退出码：$curl_status）。"
         fi
         rm -f -- "$output"
@@ -1083,6 +1114,7 @@ select_and_import_lossless_backup() {
 
 install_lsfg_bundle() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local open_store_after="${1:-1}"
 
     install_decky_zip \
         "小黄鸭（LSFG-VK）" \
@@ -1091,7 +1123,9 @@ install_lsfg_bundle() {
         "$LSFG_OFFICIAL_DIRECTORY" || return 1
     remove_legacy_lsfg_directories "$plugin_root"
 
-    check_lossless_scaling_installation
+    if [ "$open_store_after" = "1" ]; then
+        check_lossless_scaling_installation
+    fi
 }
 
 remove_legacy_lsfg_directories() {
@@ -1166,6 +1200,7 @@ print_lossless_linux_branch_tip() {
 install_configured_plugin() {
     local action="$1"
     local reload_after_install="${2:-1}"
+    local open_lsfg_store="${3:-1}"
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
@@ -1174,7 +1209,7 @@ install_configured_plugin() {
     fi
 
     case "$action" in
-        lsfg) install_lsfg_bundle ;;
+        lsfg) install_lsfg_bundle "$open_lsfg_store" ;;
         fsr4)
             install_decky_zip \
                 "FSR4（Decky Framegen）" \
@@ -1302,7 +1337,7 @@ install_feature_plugins() {
                 fi
                 ;;
         esac
-        if ! install_configured_plugin "$plugin" 0; then
+        if ! install_configured_plugin "$plugin" 0 0; then
             failed=1
             echo "该插件未完成，继续尝试其余插件。"
         fi
@@ -1315,6 +1350,12 @@ install_feature_plugins() {
 
     reload_decky_plugins \
         "Decky 已重新加载；返回游戏模式后，三款插件会出现在插头菜单中。"
+
+    # 整组安装全部处理完后再打开正版页面，避免 Steam 窗口打断后两项插件。
+    if feature_plugin_is_present \
+        "$DECKY_PLUGIN_DIR" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭"; then
+        check_lossless_scaling_installation
+    fi
 
     if [ "$failed" -eq 0 ]; then
         echo "三款常用功能插件已全部安装完成，文件已确认并已通知 Decky 重新扫描。"
@@ -1360,18 +1401,18 @@ install_25_plugins() {
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-store}" in
-        store) install_plugin_store ;;
-        lsfg) install_configured_plugin lsfg ;;
+        store) show_plugin_download_speed_tip; install_plugin_store ;;
+        lsfg) show_plugin_download_speed_tip; install_configured_plugin lsfg ;;
         lsfg-store) open_lossless_store ;;
         lsfg-import-select) select_and_import_lossless_backup ;;
-        fsr4) install_configured_plugin fsr4 ;;
-        cheatdeck) install_configured_plugin cheatdeck ;;
+        fsr4) show_plugin_download_speed_tip; install_configured_plugin fsr4 ;;
+        cheatdeck) show_plugin_download_speed_tip; install_configured_plugin cheatdeck ;;
         localizer) install_zhoukeer_localizer ;;
         feature-status) print_feature_plugin_status ;;
         uninstall) uninstall_all_decky_plugins ;;
-        features) install_feature_plugins ;;
-        all) install_all_plugin_packages ;;
-        curated-25) install_25_plugins ;;
+        features) show_plugin_download_speed_tip; install_feature_plugins ;;
+        all) show_plugin_download_speed_tip; install_all_plugin_packages ;;
+        curated-25) show_plugin_download_speed_tip; install_25_plugins ;;
         lsfg-import)
             [ -n "${2:-}" ] || {
                 echo "用法: $0 lsfg-import /本地/备份文件"

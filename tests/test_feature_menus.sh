@@ -41,16 +41,15 @@ sidebar="$(function_source "$UI_FILE" draw_category_frame)"
 for item in \
     '新机必备｜第一次使用从这里开始' \
     '常用软件｜安装聊天和远程工具' \
-    '游戏环境｜安装插件和游戏组件' \
+    '游戏与插件｜插件商城、运行组件和启动器' \
     '网络与应用商店｜检查网络和软件源状态' \
-    '系统维护｜清理缓存和检查系统' \
-    '检测与帮助｜查看信息、指南和日志' \
+    '维护与帮助｜系统检查、清理、指南和日志' \
     '高级工具｜修改系统和网络设置'; do
     assert_contains "$touch_home" "$item" "触控首页缺少：$item"
     assert_contains "$gui_home" "$item" "GUI 首页缺少：$item"
 done
 
-[ "$(printf '%s\n' "$sidebar" | grep -c 'ui_sidebar_item')" -eq 8 ] || fail "触控侧栏不是七分类加退出"
+[ "$(printf '%s\n' "$sidebar" | grep -c 'ui_sidebar_item')" -eq 7 ] || fail "触控侧栏不是六分类加退出"
 
 touch_software="$(function_source "$MAIN_FILE" common_software_menu)"
 gui_software="$(function_source "$GUI_FILE" software_menu)"
@@ -111,10 +110,10 @@ touch_advanced="$(function_source "$MAIN_FILE" advanced_tools_menu)"
 gui_advanced="$(function_source "$GUI_FILE" advanced_tools_gui_menu)"
 for menu in "$touch_advanced" "$gui_advanced"; do
     assert_contains "$menu" '以下功能会修改系统、网络、软件源、密码或磁盘设置' "高级工具缺少固定警告"
-    for item in '高级新机初始化' '国内软件源' 'Steamcommunity 302' '设置管理员密码' '修改管理员密码' '安装 ToDesk' '安装 Decky Loader' '双系统与互通盘'; do
+    for item in '国内软件源' 'Steamcommunity 302' '设置管理员密码' '修改管理员密码' '安装 ToDesk' '安装 Decky Loader' '双系统与互通盘'; do
         assert_contains "$menu" "$item" "高级工具缺少：$item"
     done
-    for risk_text in '修改软件源' '修改 DNS' '管理密码' '修改只读系统' '使用管理员权限' '管理磁盘和开机菜单'; do
+    for risk_text in 'Flatpak 软件源' '修改 DNS' '管理密码' '修改只读系统' '使用管理员权限' '管理磁盘和开机菜单'; do
         assert_contains "$menu" "$risk_text" "高级工具缺少风险说明：$risk_text"
     done
 done

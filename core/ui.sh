@@ -115,7 +115,7 @@ ui_touch_button() {
     local label_color='\033[38;5;255m'
     local rail_color='\033[38;5;203m'
 
-    # 右侧按钮保持透明，让黑白背景能够完整显示；颜色仅用于区分文字状态。
+    # 名称与说明放在同一行；仍保留两行高的点击区域，兼顾整洁和触控命中率。
     case "$color" in
         *'48;5;114'*) label_color='\033[38;5;255m' ;;
         *'48;5;160'*) label_color='\033[38;5;255m'; rail_color='\033[38;5;203m' ;;
@@ -123,9 +123,9 @@ ui_touch_button() {
     esac
 
     ui_move "$row" "$UI_PANEL_COL"
-    printf '\033[48;5;234m%b▌ %b%s \033[0m' "$rail_color" "$label_color" "$label"
-    ui_move "$((row + 1))" "$UI_PANEL_COL"
-    printf '\033[48;5;234m\033[38;5;250m  %s \033[0m' "$hint"
+    # 临时关闭终端自动换行，过长说明会在右边缘截断，不会挤乱下一行。
+    printf '\033[?7l\033[48;5;234m%b▌ %b%s\033[38;5;245m · %s \033[0m\033[?7h' \
+        "$rail_color" "$label_color" "$label" "$hint"
 }
 
 draw_category_frame() {
@@ -143,11 +143,10 @@ draw_category_frame() {
     # 两行点击区配合更高窗口，为每一类功能留出清晰的阅读间距。
     ui_sidebar_item 2 init "◆ 新机必备" "$selected"
     ui_sidebar_item 5 software "▣ 常用软件" "$selected"
-    ui_sidebar_item 8 games "✦ 游戏环境" "$selected"
+    ui_sidebar_item 8 games "✦ 游戏与插件" "$selected"
     ui_sidebar_item 11 network "⌁ 网络与应用商店" "$selected"
-    ui_sidebar_item 14 maintenance "▲ 系统维护" "$selected"
-    ui_sidebar_item 17 help "▤ 检测与帮助" "$selected"
-    ui_sidebar_item 20 advanced "! 高级工具" "$selected" 0
+    ui_sidebar_item 14 support "▤ 维护与帮助" "$selected"
+    ui_sidebar_item 18 advanced "! 高级工具" "$selected" 0
     ui_sidebar_item 22 exit "× 退出工具箱" "$selected" 0
 
     row=2
