@@ -136,6 +136,7 @@ draw_category_frame() {
     local selected="${1:-}"
     local title="$2"
     local subtitle="$3"
+    local show_context="${4:-1}"
     local row
 
     ui_discard_pending_input
@@ -164,8 +165,10 @@ draw_category_frame() {
         ui_panel_line 2 '\033[1;38;5;203m' "◆ 周克儿工具箱  ·  V4"
         ui_panel_line 3 '\033[1;38;5;45m' "STEAMOS 掌机  /  中文工具"
         ui_panel_line 4 '\033[38;5;203m' "────────────────────────────────────────"
-        ui_panel_line 5 '\033[1;38;5;220m' "▌ $title"
-        ui_panel_line 6 '\033[1;38;5;45m' "  $subtitle"
+        if [ "$show_context" = "1" ]; then
+            ui_panel_line 5 '\033[1;38;5;220m' "▌ $title"
+            ui_panel_line 6 '\033[1;38;5;45m' "  $subtitle"
+        fi
     fi
 }
 

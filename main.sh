@@ -210,7 +210,7 @@ common_software_menu() {
     local choice
 
     while true; do
-        draw_category_frame software "常用软件" "安装聊天、浏览器和远程工具"
+        draw_category_frame software "常用软件" "安装聊天、浏览器和远程工具" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "微信"
         ui_touch_button 7 '\033[1;97;48;5;24m' "QQ"
         ui_touch_button 9 '\033[1;97;48;5;24m' "Firefox 浏览器"
@@ -387,7 +387,7 @@ game_environment_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "游戏与插件｜插件商城" "浏览插件商城、运行组件和启动器"
+        draw_category_frame games "游戏与插件｜插件商城" "浏览插件商城、运行组件和启动器" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭等三款插件"
         ui_touch_button 7 '\033[1;97;48;5;24m' "插件环境与精选组合" "安装 Decky 与当前组合"
         ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
