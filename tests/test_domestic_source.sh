@@ -135,6 +135,9 @@ run_enable() {
 output="$(run_enable)"
 printf '%s\n' "$output" | grep -Fq '国内下载源配置完成：flathub-cn、flathub-ustc' || \
     fail "成功输出缺少两个国内源名称"
+if grep -Eq '^(update|remote-ls) ' "$STATE_DIR/commands"; then
+    fail "国内源配置不应刷新或验证 Discover 应用索引"
+fi
 grep -Fxq 'flathub-cn' "$STATE_DIR/remotes" || fail "未添加国内缓存源"
 grep -Fxq 'flathub-ustc' "$STATE_DIR/remotes" || fail "未添加国内备用缓存源"
 grep -Fq 'remote-modify --user flathub-cn --url=https://mirror.test.invalid/flathub' \
@@ -145,17 +148,13 @@ grep -Fq 'remote-add --user --if-not-exists --from flathub-cn ' \
     "$STATE_DIR/commands" || fail "上海交大配置文件未按 flatpakrepo 解析"
 grep -Fq 'remote-add --user --if-not-exists --from flathub-ustc ' \
     "$STATE_DIR/commands" || fail "中科大配置文件未按 flatpakrepo 解析"
-grep -Fq 'remote-ls --user flathub-cn --app --columns=application' \
-    "$STATE_DIR/commands" || fail "未验证上海交大应用索引"
-grep -Fq 'remote-ls --user flathub-ustc --app --columns=application' \
-    "$STATE_DIR/commands" || fail "未验证中科大应用索引"
-printf '%s\n' "$output" | grep -Fq '上海交大 Flathub 缓存：应用索引可用。' || \
-    fail "上海交大缓存未显示可用性验证"
-printf '%s\n' "$output" | grep -Fq '中科大 Flathub 缓存：应用索引可用。' || \
-    fail "中科大缓存未显示可用性验证"
 grep -Fxq 'https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo' \
     "$STATE_DIR/curl-urls" || fail "未通过假 curl 获取签名配置"
 [ ! -e "$STATE_DIR/sudo-calls" ] || fail "用户级国内源配置不应调用 sudo"
+grep -Fq -- '--appstream' "$PROJECT_ROOT/modules/domestic_source.sh" && \
+    fail "国内源模块不应包含 AppStream 强制刷新"
+grep -Fq 'verify_domestic_flatpak_remote' "$PROJECT_ROOT/modules/domestic_source.sh" && \
+    fail "国内源模块不应保留应用索引验证"
 
 # 重复启用只更新镜像地址，不应重复添加两个远程源。
 run_enable >/dev/null
@@ -173,4 +172,4 @@ status_output="$(
 printf '%s\n' "$status_output" | grep -Fq 'flathub-cn' || fail "状态输出缺少国内源"
 printf '%s\n' "$status_output" | grep -Fq 'flathub-ustc' || fail "状态输出缺少国内备用源"
 
-echo "PASS: 国内双缓存源启用、应用索引验证、幂等性、状态和无sudo测试通过"
+echo "PASS: 国内双缓存源启用、跳过Discover索引、幂等性、状态和无sudo测试通过"

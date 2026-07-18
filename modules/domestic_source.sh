@@ -12,49 +12,18 @@ source "$PROJECT_ROOT/core/auth.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/modules/software.sh"
 
-verify_domestic_flatpak_remote() {
-    local remote="$1"
-    local label="$2"
-    local applications
-
-    echo "正在验证 $label 应用索引..."
-    applications="$(timeout --foreground 30 flatpak remote-ls --user "$remote" \
-        --app --columns=application 2>/dev/null)" || {
-        echo "$label 无法读取应用索引，请检查网络后重试。"
-        return 1
-    }
-    if ! printf '%s\n' "$applications" | grep -Fxq 'org.mozilla.firefox'; then
-        echo "$label 返回的应用索引不完整，未确认 Firefox 条目。"
-        return 1
-    fi
-
-    echo "${label}：应用索引可用。"
-}
-
 configure_domestic_flatpak() {
     require_command flatpak || return 1
     require_command timeout || return 1
     require_command curl || return 1
 
-    echo "[2/3] 配置上海交大和中科大 Flatpak 国内缓存..."
+    echo "[2/2] 配置上海交大和中科大 Flatpak 国内缓存..."
     if ! ensure_flatpak_remotes; then
         echo "Flatpak 国内缓存配置失败，现有软件和其他来源保持不变。"
         return 1
     fi
 
-    echo "正在刷新 Discover 软件商店应用索引..."
-    timeout --foreground 180 flatpak update --user --appstream \
-        "$FLATHUB_CN_REMOTE" >/dev/null 2>&1 || true
-    timeout --foreground 180 flatpak update --user --appstream \
-        "$FLATHUB_CN_FALLBACK_REMOTE" >/dev/null 2>&1 || true
-
-    echo "[3/3] 验证 Discover 软件索引..."
-    verify_domestic_flatpak_remote "$FLATHUB_CN_REMOTE" \
-        "上海交大 Flathub 缓存" || return 1
-    verify_domestic_flatpak_remote "$FLATHUB_CN_FALLBACK_REMOTE" \
-        "中科大 Flathub 缓存" || return 1
-
-    echo "国内下载源配置完成：${FLATHUB_CN_REMOTE}、${FLATHUB_CN_FALLBACK_REMOTE}（Discover 应用索引已验证）"
+    echo "国内下载源配置完成：${FLATHUB_CN_REMOTE}、${FLATHUB_CN_FALLBACK_REMOTE}。"
 }
 
 prepare_system_packages() {
@@ -64,7 +33,7 @@ prepare_system_packages() {
         require_command "$command_name" || return 1
     done
 
-    echo "[1/3] 初始化 pacman 密钥环并更新系统软件组件..."
+    echo "[1/2] 初始化 pacman 密钥环并更新系统软件组件..."
     toolbox_sudo steamos-readonly disable || return 1
     readonly_disabled=1
 
@@ -92,18 +61,17 @@ initialize_software_sources() {
     echo "================================================"
     echo " 初始化软件源"
     echo "================================================"
-    echo "将自动准备系统包管理、Flatpak 国内缓存和 Discover 应用索引。"
+    echo "将自动准备系统包管理、更新系统软件组件并配置 Flatpak 国内缓存。"
     echo "管理员权限会读取桌面管理员密码.txt，不会重复询问密码。"
 
     prepare_system_packages || return 1
     configure_domestic_flatpak || return 1
 
     echo ""
-    echo "初始化软件源完成。现在可以正常使用工具箱安装软件，"
-    echo "也可以打开 Discover 软件商店搜索和安装 Flatpak 应用。"
+    echo "初始化软件源完成。现在可以正常使用工具箱安装软件。"
     echo "上海交大：$FLATHUB_CN_URL"
     echo "中科大：$FLATHUB_CN_FALLBACK_URL"
-    log "软件源初始化完成：pacman、Flatpak国内双缓存和Discover索引可用"
+    log "软件源初始化完成：pacman系统组件和Flatpak国内双缓存已配置"
 }
 
 show_software_source_status() {
