@@ -45,6 +45,10 @@ main_disclaimer="$(sed -n '/^show_disclaimer()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 if printf '%s\n' "$main_disclaimer" | grep -Fq 'ui_disclaimer_line 14'; then
     fail "免责声明正文仍紧贴首个按钮"
 fi
+printf '%s\n' "$main_disclaimer" | grep -Fq 'launch.sh" --open-main' || fail "欢迎页确认后没有进入常规工具箱主题"
+grep -Fq 'ZHOUKEER_SKIP_DISCLAIMER' "$PROJECT_ROOT/main.sh" || fail "常规工具箱没有跳过重复免责声明"
+grep -Fq 'WELCOME_BACKGROUND_PATH' "$PROJECT_ROOT/install.sh" || fail "安装程序没有配置欢迎页背景"
+grep -Fq 'ZhoukeerToolboxSplash' "$PROJECT_ROOT/install.sh" || fail "安装程序没有生成欢迎页主题"
 
 password_gate="$(sed -n '/^ensure_password_ready()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$password_gate" | grep -Fq 'modules/password.sh" import' || fail "首次启动缺少现有密码录入入口"

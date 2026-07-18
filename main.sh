@@ -124,7 +124,15 @@ show_disclaimer() {
         ui_disclaimer_button 18 '\033[1;38;5;203m' "退出工具箱" "暂不使用"
         choice="$(read_menu_choice any:15-16:agree any:18-19:exit)"
         case "$choice" in
-            agree) return 0 ;;
+            agree)
+                if [ "${ZHOUKEER_STARTUP_SPLASH:-0}" = "1" ]; then
+                    disable_mouse_tracking
+                    exec bash "$PROJECT_ROOT/launch.sh" --open-main
+                    echo "无法切换到工具箱主界面。"
+                    return 1
+                fi
+                return 0
+                ;;
             exit) exit 0 ;;
         esac
     done
@@ -829,7 +837,9 @@ home_menu() {
     apply_navigation "$choice" || true
 }
 
-show_disclaimer
+if [ "${ZHOUKEER_SKIP_DISCLAIMER:-0}" != "1" ]; then
+    show_disclaimer
+fi
 ensure_password_ready
 
 while true; do

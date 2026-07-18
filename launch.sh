@@ -3,7 +3,10 @@
 set -u
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROFILE_FILE="$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
+MAIN_PROFILE_FILE="$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
+SPLASH_PROFILE_FILE="$HOME/.local/share/konsole/ZhoukeerToolboxSplash.profile"
+PROFILE_FILE="$SPLASH_PROFILE_FILE"
+STARTUP_VIEW="splash"
 WINDOW_SIZE="1280x820"
 STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 LAUNCH_LOG="${ZHOUKEER_LAUNCH_LOG:-$STATE_HOME/zhoukeer-toolbox/launcher.log}"
@@ -62,6 +65,7 @@ run_startup_update() {
     local status
 
     [ "${ZHOUKEER_AUTO_UPDATE:-1}" != "0" ] || return 0
+    [ "${ZHOUKEER_SKIP_STARTUP_UPDATE:-0}" != "1" ] || return 0
     [ "$(uname -s 2>/dev/null || echo unknown)" = "Linux" ] || return 0
     [ -r "$PROJECT_ROOT/update.sh" ] || return 0
 
@@ -146,7 +150,17 @@ case "${1:-}" in
         run_main
         exit $?
         ;;
-    "") ;;
+    --open-main)
+        PROFILE_FILE="$MAIN_PROFILE_FILE"
+        STARTUP_VIEW="main"
+        ;;
+    "")
+        # 旧版安装尚未生成欢迎页主题时，继续使用常规主题启动。
+        if [ ! -f "$SPLASH_PROFILE_FILE" ]; then
+            PROFILE_FILE="$MAIN_PROFILE_FILE"
+            STARTUP_VIEW="main-with-disclaimer"
+        fi
+        ;;
     *)
         show_launch_error "周克儿工具箱启动失败" \
             "启动器收到未知参数：$1
@@ -166,7 +180,20 @@ $PROJECT_ROOT/main.sh
     exit 1
 fi
 
-RUN_COMMAND=(bash "$PROJECT_ROOT/launch.sh" --run-main)
+case "$STARTUP_VIEW" in
+    splash)
+        RUN_COMMAND=(env ZHOUKEER_STARTUP_SPLASH=1 \
+            bash "$PROJECT_ROOT/launch.sh" --run-main)
+        ;;
+    main)
+        RUN_COMMAND=(env ZHOUKEER_SKIP_DISCLAIMER=1 ZHOUKEER_SKIP_STARTUP_UPDATE=1 \
+            ZHOUKEER_STARTUP_SPLASH=0 bash "$PROJECT_ROOT/launch.sh" --run-main)
+        ;;
+    *)
+        RUN_COMMAND=(env ZHOUKEER_STARTUP_SPLASH=0 \
+            bash "$PROJECT_ROOT/launch.sh" --run-main)
+        ;;
+esac
 KONSOLE_HELP=""
 
 supports_konsole_option() {

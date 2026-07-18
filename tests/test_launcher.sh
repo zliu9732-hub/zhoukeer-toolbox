@@ -13,6 +13,7 @@ LAUNCH_LOG="$TMP_ROOT/launcher.log"
 DIALOG_LOG="$TMP_ROOT/dialog.log"
 mkdir -p "$BIN_DIR" "$HOME_DIR/.local/share/konsole"
 touch "$HOME_DIR/.local/share/konsole/ZhoukeerToolbox.profile"
+touch "$HOME_DIR/.local/share/konsole/ZhoukeerToolboxSplash.profile"
 
 cat > "$BIN_DIR/konsole" <<'SCRIPT'
 #!/bin/bash
@@ -66,6 +67,8 @@ if grep -Fq -- '--geometry' "$CALL_LOG"; then
 fi
 grep -Fq -- '--profile' "$CALL_LOG"
 grep -Fq -- '--workdir' "$CALL_LOG"
+grep -Fq -- 'ZhoukeerToolboxSplash.profile' "$CALL_LOG"
+grep -Fq -- 'ZHOUKEER_STARTUP_SPLASH=1' "$CALL_LOG"
 
 run_launcher $'--profile\n--workdir\n--geometry'
 grep -Fq -- '--geometry 1280x820' "$CALL_LOG"
@@ -75,6 +78,33 @@ if grep -Fq -- '--fullscreen' "$CALL_LOG"; then
     echo "FAIL: 启动器不应把全屏作为窗口大小后备方案"
     exit 1
 fi
+
+: > "$CALL_LOG"
+HOME="$HOME_DIR" \
+PATH="$BIN_DIR:/usr/bin:/bin" \
+ZHOUKEER_LAUNCH_LOG="$LAUNCH_LOG" \
+FAKE_TERMINAL_CALL_LOG="$CALL_LOG" \
+FAKE_KONSOLE_HELP=$'--profile\n--workdir\n--geometry' \
+    bash "$PROJECT_ROOT/launch.sh" --open-main
+grep -Fq -- 'ZhoukeerToolbox.profile' "$CALL_LOG"
+if grep -Fq -- 'ZhoukeerToolboxSplash.profile' "$CALL_LOG"; then
+    echo "FAIL: 主界面仍使用欢迎页主题"
+    exit 1
+fi
+grep -Fq -- 'ZHOUKEER_SKIP_DISCLAIMER=1' "$CALL_LOG"
+grep -Fq -- 'ZHOUKEER_SKIP_STARTUP_UPDATE=1' "$CALL_LOG"
+
+mv "$HOME_DIR/.local/share/konsole/ZhoukeerToolboxSplash.profile" \
+    "$HOME_DIR/.local/share/konsole/ZhoukeerToolboxSplash.profile.disabled"
+run_launcher $'--profile\n--workdir\n--geometry'
+grep -Fq -- 'ZhoukeerToolbox.profile' "$CALL_LOG"
+if grep -Fq -- 'ZHOUKEER_SKIP_DISCLAIMER=1' "$CALL_LOG"; then
+    echo "FAIL: 旧版安装缺少欢迎页主题时不应跳过免责声明"
+    exit 1
+fi
+grep -Fq -- 'ZHOUKEER_STARTUP_SPLASH=0' "$CALL_LOG"
+mv "$HOME_DIR/.local/share/konsole/ZhoukeerToolboxSplash.profile.disabled" \
+    "$HOME_DIR/.local/share/konsole/ZhoukeerToolboxSplash.profile"
 
 run_launcher $'--profile\n--workdir\n--geometry' profile
 if [ "$(grep -c '^konsole ' "$CALL_LOG")" -ne 2 ]; then
@@ -88,7 +118,7 @@ if sed -n '2p' "$CALL_LOG" | grep -Fq -- '--profile'; then
 fi
 
 run_launcher $'--profile\n--workdir\n--geometry' all
-grep -Fq 'xterm -e bash' "$CALL_LOG"
+grep -Fq 'xterm -e env ZHOUKEER_STARTUP_SPLASH=1 bash' "$CALL_LOG"
 grep -Fq 'Konsole 各级启动均不可用' "$LAUNCH_LOG"
 
 mv "$BIN_DIR/konsole" "$BIN_DIR/konsole.disabled"
