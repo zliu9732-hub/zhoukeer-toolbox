@@ -116,6 +116,12 @@ export function OptiScalerControls({ pathExists, setPathExists, fgmodInfo }: Opt
 
   return (
     <PanelSection>
+      <PanelSectionRow>
+        <Field label="闲鱼双叶汉化" description="FSR4 中文界面">
+          原插件作者：Kurt Himebauch（xXJSONDeruloXx）
+        </Field>
+      </PanelSectionRow>
+
       <InstallationStatus 
         pathExists={pathExists}
         installing={installing}

@@ -28,7 +28,7 @@ LSFG_ZH_INDEX_SHA256="9ea05e9738191cd0e414b4c4a106a836b65170c1f8b32ccdf2ba792514
 FSR4_OFFICIAL_DIRECTORY="Decky-Framegen"
 FSR4_OFFICIAL_VERSION="0.15.6"
 FSR4_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6"
-FSR4_ZH_INDEX_SHA256="384e7ddc6dc1695606e9023bba1c968a001439b151a82e5b5f4d734b2318958e"
+FSR4_ZH_INDEX_SHA256="b7211571981dc6a30f76c3e010b9fc371fefdd06da348b522d4274d0beace8fc"
 
 # 三款功能插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
