@@ -4,7 +4,7 @@ set -u
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROFILE_FILE="$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
-WINDOW_SIZE="1280x860"
+WINDOW_SIZE="1280x820"
 STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 LAUNCH_LOG="${ZHOUKEER_LAUNCH_LOG:-$STATE_HOME/zhoukeer-toolbox/launcher.log}"
 
@@ -101,6 +101,8 @@ run_main() {
     local message
 
     run_startup_update
+    # 自动更新与主界面复用同一个终端；进入触控 UI 前清除更新输出和滚动残影。
+    printf '\033[0m\033[r\033[3J\033[2J\033[H'
     launcher_log "主程序开始：$PROJECT_ROOT/main.sh --touch"
     if [ ! -r "$PROJECT_ROOT/main.sh" ]; then
         message="主程序文件缺失或无法读取：

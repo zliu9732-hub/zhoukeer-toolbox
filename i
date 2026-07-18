@@ -15,18 +15,18 @@ download_bootstrap() {
         --show-error \
         --proto '=https' \
         --proto-redir '=https' \
-        --connect-timeout 10 \
-        --max-time 60 \
-        --retry 2 \
+        --connect-timeout 8 \
+        --max-time 45 \
+        --retry 1 \
         --output "$TMP_FILE" \
         "$1"
 }
 
-if download_bootstrap "$DOMAIN_URL"; then
-    :
-elif download_bootstrap "$GITEE_URL"; then
+if download_bootstrap "$GITEE_URL"; then
     :
 elif download_bootstrap "$GITHUB_URL"; then
+    :
+elif download_bootstrap "$DOMAIN_URL"; then
     :
 else
     echo "工具箱安装入口下载失败，请检查网络。"

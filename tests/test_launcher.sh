@@ -68,7 +68,7 @@ grep -Fq -- '--profile' "$CALL_LOG"
 grep -Fq -- '--workdir' "$CALL_LOG"
 
 run_launcher $'--profile\n--workdir\n--geometry'
-grep -Fq -- '--geometry 1280x860' "$CALL_LOG"
+grep -Fq -- '--geometry 1280x820' "$CALL_LOG"
 
 run_launcher $'--profile\n--workdir\n--fullscreen'
 if grep -Fq -- '--fullscreen' "$CALL_LOG"; then
@@ -81,7 +81,7 @@ if [ "$(grep -c '^konsole ' "$CALL_LOG")" -ne 2 ]; then
     echo "FAIL: 主题启动失败后未进入Konsole兼容模式"
     exit 1
 fi
-sed -n '2p' "$CALL_LOG" | grep -Fq -- '--geometry 1280x860'
+sed -n '2p' "$CALL_LOG" | grep -Fq -- '--geometry 1280x820'
 if sed -n '2p' "$CALL_LOG" | grep -Fq -- '--profile'; then
     echo "FAIL: Konsole兼容模式仍使用主题参数"
     exit 1

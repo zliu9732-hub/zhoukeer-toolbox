@@ -53,15 +53,20 @@ ui_move() {
     printf '\033[%s;%sH' "$1" "$2"
 }
 
+ui_reset_screen() {
+    # 重置滚动区域并清除可视区和历史残影，避免启动更新输出挤乱首屏。
+    printf '\033[0m\033[r\033[3J\033[2J\033[H'
+}
+
 # 将旧页面传入的多种强调色统一成红、白、灰三档，和红黑背景保持一致。
 ui_resolve_text_color() {
     local requested="$1"
 
-    UI_THEME_COLOR='\033[1;38;5;255m'
+    UI_THEME_COLOR='\033[38;5;255m'
     case "$requested" in
-        *'5;220'*|*'5;203'*|*'5;160'*) UI_THEME_COLOR='\033[1;38;5;203m' ;;
-        *'5;114'*) UI_THEME_COLOR='\033[1;38;5;255m' ;;
-        *'5;45'*) UI_THEME_COLOR='\033[1;38;5;250m' ;;
+        *'5;220'*|*'5;203'*|*'5;160'*) UI_THEME_COLOR='\033[38;5;203m' ;;
+        *'5;114'*) UI_THEME_COLOR='\033[38;5;255m' ;;
+        *'5;45'*) UI_THEME_COLOR='\033[38;5;250m' ;;
     esac
 }
 
@@ -84,7 +89,7 @@ ui_sidebar_item() {
     local selected="$4"
     local show_separator="${5:-1}"
     local marker='  '
-    local foreground='\033[1;38;5;252;48;5;234m'
+    local foreground='\033[38;5;252;48;5;234m'
     local separator='\033[38;5;239m'
 
     if [ "$value" = "$selected" ]; then
@@ -107,14 +112,14 @@ ui_touch_button() {
     local color="$2"
     local label="$3"
     local hint="${4:-}"
-    local label_color='\033[1;38;5;255m'
+    local label_color='\033[38;5;255m'
     local rail_color='\033[38;5;203m'
 
     # 右侧按钮保持透明，让黑白背景能够完整显示；颜色仅用于区分文字状态。
     case "$color" in
-        *'48;5;114'*) label_color='\033[1;38;5;255m' ;;
-        *'48;5;160'*) label_color='\033[1;38;5;255m'; rail_color='\033[38;5;203m' ;;
-        *'48;5;238'*) label_color='\033[1;38;5;250m'; rail_color='\033[38;5;245m' ;;
+        *'48;5;114'*) label_color='\033[38;5;255m' ;;
+        *'48;5;160'*) label_color='\033[38;5;255m'; rail_color='\033[38;5;203m' ;;
+        *'48;5;238'*) label_color='\033[38;5;250m'; rail_color='\033[38;5;245m' ;;
     esac
 
     ui_move "$row" "$UI_PANEL_COL"
@@ -130,7 +135,7 @@ draw_category_frame() {
     local row
 
     ui_discard_pending_input
-    printf '\033[0m\033[2J\033[H'
+    ui_reset_screen
 
     ui_move 1 3
     printf '\033[1;38;5;245m功能导航\033[0m'
@@ -161,7 +166,7 @@ draw_category_frame() {
 
 draw_disclaimer_frame() {
     ui_discard_pending_input
-    printf '\033[0m\033[2J\033[H'
+    ui_reset_screen
 
     ui_move 2 6
     printf '\033[1;38;5;203;48;5;234m ◆ 周克儿工具箱  ·  V4 \033[0m'
@@ -198,7 +203,7 @@ ui_disclaimer_button() {
 
 ui_prompt() {
     ui_move "$UI_LAST_ROW" "$UI_PANEL_COL"
-    printf '\033[0m\033[2K\033[1;38;5;255;48;5;234m 触屏或触控板点击功能 \033[0m'
+    printf '\033[0m\033[2K\033[38;5;255;48;5;234m 触屏或触控板点击功能 \033[0m'
 }
 
 enable_mouse_tracking() {

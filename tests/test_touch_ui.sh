@@ -33,7 +33,23 @@ run_choice_test '\033[<0;15;5M' "nav-software" "left:5-6:nav-software"
 run_choice_test '\033[<0;40;22M' "home" "right:22-23:home"
 
 grep -Fq 'UI_LAST_ROW=24' "$PROJECT_ROOT/core/ui.sh" || fail "触控画布行数异常"
-grep -Fq 'Font=Noto Sans Mono CJK SC,17' "$PROJECT_ROOT/install.sh" || fail "中文字体配置缺失"
+grep -Fq 'Font=Noto Sans Mono CJK SC,14' "$PROJECT_ROOT/install.sh" || fail "中文字体大小不是紧凑布局"
+grep -Fq 'TerminalColumns=120' "$PROJECT_ROOT/install.sh" || fail "终端列数不是紧凑布局"
+grep -Fq 'TerminalRows=32' "$PROJECT_ROOT/install.sh" || fail "终端行数不是紧凑布局"
+grep -Fq 'WINDOW_SIZE="1280x820"' "$PROJECT_ROOT/launch.sh" || fail "工具箱窗口尺寸未同步"
+grep -Fq "printf '\\033[0m\\033[r\\033[3J\\033[2J\\033[H'" "$PROJECT_ROOT/launch.sh" || fail "首次进入前未清理更新输出"
+
+disclaimer="$(sed -n '/^draw_disclaimer_frame()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
+printf '%s\n' "$disclaimer" | grep -Fq 'ui_reset_screen' || fail "免责声明首屏未执行完整清屏"
+main_disclaimer="$(sed -n '/^show_disclaimer()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+if printf '%s\n' "$main_disclaimer" | grep -Fq 'ui_disclaimer_line 14'; then
+    fail "免责声明正文仍紧贴首个按钮"
+fi
+
+installer_entry="$(sed -n '/^if download_bootstrap/,/^fi$/p' "$PROJECT_ROOT/i")"
+printf '%s\n' "$installer_entry" | sed -n '1p' | grep -Fq 'GITEE_URL' || fail "短安装入口没有优先使用 Gitee"
+printf '%s\n' "$installer_entry" | grep -Fq 'GITHUB_URL' || fail "短安装入口缺少 GitHub 备用源"
+printf '%s\n' "$installer_entry" | grep -Fq 'DOMAIN_URL' || fail "短安装入口缺少域名备用源"
 
 frame="$(sed -n '/^draw_category_frame()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
 for entry in \
