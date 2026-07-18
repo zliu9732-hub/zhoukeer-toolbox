@@ -141,10 +141,10 @@ game_environment_gui_menu() {
             features "常用插件组合｜安装小黄鸭等三款插件" \
             all "插件环境与精选组合｜安装 Decky 与当前组合" \
             browse "浏览官方插件｜逐个查看插件作用" \
-            localizer "游戏中文辅助｜安装中文显示辅助｜[实验功能]" \
+            localizer "游戏中文辅助｜安装中文显示辅助｜实验功能" \
             ge-proton "GE 游戏运行组件｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
-            decky-install "安装 Decky Loader｜进入高级工具确认｜[高级操作]" \
+            decky-install "安装 Decky Loader｜进入高级工具确认｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -235,12 +235,12 @@ dual_system_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "双系统与互通盘｜磁盘和开机菜单设置｜[磁盘/启动高级操作]" \
-            mount "挂载互通盘｜连接唯一未挂载的共享盘｜[高级操作]" \
-            protect "只读保护互通盘｜防止 SteamOS 误写入｜[高级操作]" \
-            unprotect "恢复互通盘写入｜重新以可写方式挂载｜[高级操作]" \
-            add "显示开机系统菜单｜显示 systemd-boot 5 秒｜[高级操作]" \
-            remove "隐藏开机系统菜单｜将等待时间设为 0 秒｜[高级操作]" \
+        choice="$(gui_dialog --menu "双系统与互通盘｜磁盘和开机菜单设置｜高级操作" \
+            mount "挂载互通盘｜连接唯一未挂载的共享盘｜高级操作" \
+            protect "只读保护互通盘｜防止 SteamOS 误写入｜高级操作" \
+            unprotect "恢复互通盘写入｜重新以可写方式挂载｜高级操作" \
+            add "显示开机系统菜单｜显示 systemd-boot 5 秒｜高级操作" \
+            remove "隐藏开机系统菜单｜将等待时间设为 0 秒｜高级操作" \
             back "返回高级工具" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -284,7 +284,7 @@ network_store_gui_menu() {
         choice="$(gui_dialog --menu "网络与应用商店｜检查网络和软件源状态" \
             network-status "网络状态检查｜检查当前网络是否可用" \
             source-status "软件源状态｜查看当前应用下载来源" \
-            manage-advanced "管理国内源与加速｜进入高级网络设置｜[高级操作]" \
+            manage-advanced "管理国内源与加速｜进入高级网络设置｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -301,7 +301,7 @@ steam_accelerator_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "Steamcommunity 302｜可能修改 DNS、证书、hosts 和后台服务｜[会修改网络设置]" \
+        choice="$(gui_dialog --menu "Steamcommunity 302｜可能修改 DNS、证书、hosts 和后台服务｜高级操作" \
             install "安装或更新" \
             start "一键开启 Steam + GitHub 加速" \
             status "查看运行状态" \
@@ -386,11 +386,11 @@ maintenance_gui_menu() {
         choice="$(gui_dialog --menu "系统维护｜清理缓存和检查系统" \
             health "系统健康检查｜检查空间和常用环境" \
             diagnose "游戏启动检查｜检查游戏无法启动原因" \
-            download-cache "清理下载残留｜删除未完成下载文件｜[会删除缓存]" \
-            shader-cache "清理着色器缓存｜释放空间并自动重建｜[会删除缓存]" \
-            user-cache "清理用户缓存｜清理可重新生成的缓存｜[会删除缓存]" \
+            download-cache "清理下载残留｜删除未完成下载文件｜会删除缓存" \
+            shader-cache "清理着色器缓存｜释放空间并自动重建｜会删除缓存" \
+            user-cache "清理用户缓存｜清理可重新生成的缓存｜会删除缓存" \
             performance "查看性能建议｜查看推荐性能设置" \
-            fix "常见问题处理｜检测网络并清理下载残留｜[会删除缓存]" \
+            fix "常见问题处理｜检测网络并清理下载残留｜会删除缓存" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -426,7 +426,7 @@ help_gui_menu() {
             peripherals "外接设备检查｜检查显示器和蓝牙" \
             records "操作记录｜导出最近工具箱记录" \
             changelog "更新日志｜查看版本改动内容" \
-            update "检查并更新工具箱｜下载并安装最新版本｜[会联网并更新]" \
+            update "检查并更新工具箱｜下载并安装最新版本｜会联网并更新" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -455,7 +455,7 @@ new_machine_gui_menu() {
         choice="$(gui_dialog --menu "新机必备｜第一次使用从这里开始" \
             recommended "推荐软件安装｜选择需要的常用软件" \
             beginner-guide "新手使用指南｜查看首次使用步骤" \
-            advanced-init "高级新机初始化｜前往高级工具查看风险｜[高级操作]" \
+            advanced-init "高级新机初始化｜前往高级工具查看风险｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -486,14 +486,14 @@ advanced_tools_gui_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "高级工具｜以下功能会修改系统、网络、软件源、密码或磁盘设置。请确认了解风险后继续。" \
-            advanced-init "高级新机初始化｜连续安装并配置新机器｜[安装软件/修改软件源]" \
-            domestic-source "国内软件源｜会修改 Flatpak 软件源｜[会修改软件源]" \
-            accelerator "Steamcommunity 302｜可能修改 DNS 和证书｜[会修改网络设置]" \
-            set-password "设置管理员密码｜设置 SteamOS 管理密码｜[会修改系统密码]" \
-            change-password "修改管理员密码｜更换 SteamOS 管理密码｜[会修改系统密码]" \
-            todesk "安装 ToDesk｜安装需要系统权限的远程工具｜[会修改只读系统]" \
-            decky-install "安装 Decky Loader｜安装插件后台服务｜[会使用管理员权限]" \
-            dual "双系统与互通盘｜管理磁盘和开机菜单｜[磁盘/启动高级操作]" \
+            advanced-init "高级新机初始化｜连续安装软件并修改软件源｜高级操作" \
+            domestic-source "国内软件源｜会修改 Flatpak 软件源｜高级操作" \
+            accelerator "Steamcommunity 302｜可能修改 DNS 和证书｜高级操作" \
+            set-password "设置管理员密码｜会修改 SteamOS 管理密码｜高级操作" \
+            change-password "修改管理员密码｜会更换 SteamOS 管理密码｜高级操作" \
+            todesk "安装 ToDesk｜会修改只读系统｜高级操作" \
+            decky-install "安装 Decky Loader｜会使用管理员权限｜高级操作" \
+            dual "双系统与互通盘｜管理磁盘和开机菜单｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -541,7 +541,7 @@ main_gui_menu() {
             nav-network "网络与应用商店｜检查网络和软件源状态" \
             nav-maintenance "系统维护｜清理缓存和检查系统" \
             nav-help "检测与帮助｜查看信息、指南和日志" \
-            nav-advanced "高级工具｜修改系统和网络设置｜[高风险]" \
+            nav-advanced "高级工具｜修改系统和网络设置｜高风险" \
             nav-exit "退出工具箱")" || exit 0
 
         case "$choice" in

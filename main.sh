@@ -225,7 +225,7 @@ todesk_preflight() {
     local choice
 
     while true; do
-        draw_category_frame advanced "安装 ToDesk" "会修改 SteamOS 只读系统  [会修改只读系统]"
+        draw_category_frame advanced "安装 ToDesk" "会修改 SteamOS 只读系统 · 高级操作"
         ui_panel_line 7 '\033[1;38;5;220m' "① 按 Steam 键 → 设置 → 系统"
         ui_panel_line 9 '\033[1;38;5;45m' "② 开启“启用开发者模式”"
         ui_panel_line 11 '\033[1;38;5;45m' "③ 设置侧栏进入“开发者” → 找到“杂项”"
@@ -254,7 +254,7 @@ new_machine_menu() {
         draw_category_frame init "新机必备" "第一次使用从这里开始"
         ui_touch_button 7 '\033[1;97;48;5;24m' "推荐软件安装" "选择需要的常用软件"
         ui_touch_button 11 '\033[1;97;48;5;24m' "新手使用指南" "查看首次使用步骤"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "高级新机初始化" "前往高级工具查看风险  [高级操作]"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "高级新机初始化" "前往高级工具查看风险 · 高级操作"
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:7-8:recommended right:11-12:beginner-guide right:15-16:advanced-init right:20-21:home)"
@@ -272,7 +272,7 @@ advanced_new_machine_preflight() {
     local choice
 
     while true; do
-        draw_category_frame advanced "高级新机初始化" "连续安装并配置新机器  [安装软件/修改软件源]"
+        draw_category_frame advanced "高级新机初始化" "连续安装软件并修改软件源 · 高级操作"
         ui_panel_line 7 '\033[1;38;5;220m' "① Steam 键 → 设置 → 系统 → 启用开发者模式"
         ui_panel_line 9 '\033[1;38;5;45m' "② 设置侧栏 → 开发者 → 杂项"
         ui_panel_line 11 '\033[1;38;5;45m' "③ 开启“使用旧版 X11 桌面模式”"
@@ -349,10 +349,10 @@ game_environment_menu() {
         ui_touch_button 5 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭等三款插件"
         ui_touch_button 7 '\033[1;97;48;5;24m' "插件环境与精选组合" "安装 Decky 与当前组合"
         ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "游戏中文辅助" "安装中文显示辅助  [实验功能]"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "游戏中文辅助" "安装中文显示辅助 · 实验功能"
         ui_touch_button 13 '\033[1;97;48;5;24m' "GE 游戏运行组件" "提高 Windows 游戏兼容性"
         ui_touch_button 15 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
-        ui_touch_button 17 '\033[1;97;48;5;160m' "安装 Decky Loader" "前往高级工具确认  [高级操作]"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "安装 Decky Loader" "前往高级工具确认 · 高级操作"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:5-6:features right:7-8:all right:9-10:browse right:11-12:localizer right:13-14:ge-proton right:15-16:epic right:17-18:decky-install right:22-23:home)"
@@ -471,12 +471,12 @@ dual_system_menu() {
     local choice
 
     while true; do
-        draw_category_frame advanced "双系统与互通盘" "磁盘和开机菜单设置  [磁盘/启动高级操作]"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "挂载互通盘" "连接唯一未挂载的共享盘  [高级操作]"
-        ui_touch_button 9 '\033[1;97;48;5;30m' "只读保护互通盘" "防止 SteamOS 误写入  [高级操作]"
+        draw_category_frame advanced "双系统与互通盘" "磁盘和开机菜单设置 · 高级操作"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "挂载互通盘" "连接唯一未挂载的共享盘 · 高级操作"
+        ui_touch_button 9 '\033[1;97;48;5;30m' "只读保护互通盘" "防止 SteamOS 误写入 · 高级操作"
         ui_touch_button 11 '\033[1;97;48;5;24m' "恢复互通盘写入" "重新以可写模式挂载互通盘"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "显示开机系统菜单" "显示 systemd-boot 5 秒  [高级操作]"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "隐藏开机系统菜单" "将等待时间设置为 0 秒  [高级操作]"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "显示开机系统菜单" "显示 systemd-boot 5 秒 · 高级操作"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "隐藏开机系统菜单" "将等待时间设置为 0 秒 · 高级操作"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回高级工具" "查看其他高级功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -515,13 +515,13 @@ domestic_source_preflight() {
     local choice
 
     while true; do
-        draw_category_frame advanced "国内软件源" "提高国内应用下载速度  [会修改软件源]"
+        draw_category_frame advanced "国内软件源" "提高国内应用下载速度 · 会修改软件源"
         ui_panel_line 7 '\033[1;38;5;220m' "远程：flathub-cn｜https://mirror.sjtu.edu.cn/flathub"
         ui_panel_line 9 '\033[1;38;5;220m' "备用：flathub-ustc｜https://mirrors.ustc.edu.cn/flathub"
         ui_panel_line 11 '\033[1;38;5;203m' "会修改 Flatpak 软件源，并可能调整 GPG 验证"
         ui_panel_line 13 '\033[1;38;5;203m' "还会运行 pacman，并临时关闭 SteamOS 只读保护"
         ui_panel_line 15 '\033[1;38;5;203m' "恢复官方源功能尚未完成，请确认了解后继续"
-        ui_touch_button 17 '\033[1;97;48;5;160m' "确认修改国内软件源" "执行现有初始化动作  [高风险]"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "确认修改国内软件源" "执行现有初始化动作 · 高风险"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回高级工具" "不做任何修改"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -546,16 +546,16 @@ advanced_tools_menu() {
     while true; do
         draw_category_frame advanced "高级工具（第 $page / 2 页）" "以下功能会修改系统、网络、软件源、密码或磁盘设置。请确认了解风险后继续。"
         if [ "$page" -eq 1 ]; then
-            ui_touch_button 7 '\033[1;97;48;5;160m' "高级新机初始化" "连续安装并配置新机器  [安装软件/修改软件源]"
-            ui_touch_button 10 '\033[1;97;48;5;160m' "国内软件源" "会修改 Flatpak 软件源  [会修改软件源]"
-            ui_touch_button 13 '\033[1;97;48;5;160m' "Steamcommunity 302" "可能修改 DNS 和证书  [会修改网络设置]"
-            ui_touch_button 16 '\033[1;97;48;5;160m' "设置管理员密码" "设置 SteamOS 管理密码  [会修改系统密码]"
+            ui_touch_button 7 '\033[1;97;48;5;160m' "高级新机初始化" "连续安装软件并修改软件源 · 高级操作"
+            ui_touch_button 10 '\033[1;97;48;5;160m' "国内软件源" "会修改 Flatpak 软件源 · 高级操作"
+            ui_touch_button 13 '\033[1;97;48;5;160m' "Steamcommunity 302" "可能修改 DNS 和证书 · 高级操作"
+            ui_touch_button 16 '\033[1;97;48;5;160m' "设置管理员密码" "会修改 SteamOS 管理密码 · 高级操作"
             ui_touch_button 19 '\033[1;97;48;5;30m' "下一页" "查看其他高级功能"
         else
-            ui_touch_button 7 '\033[1;97;48;5;160m' "修改管理员密码" "更换 SteamOS 管理密码  [会修改系统密码]"
-            ui_touch_button 10 '\033[1;97;48;5;160m' "安装 ToDesk" "安装需要系统权限的远程工具  [会修改只读系统]"
-            ui_touch_button 13 '\033[1;97;48;5;160m' "安装 Decky Loader" "安装插件后台服务  [会使用管理员权限]"
-            ui_touch_button 16 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单  [磁盘/启动高级操作]"
+            ui_touch_button 7 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
+            ui_touch_button 10 '\033[1;97;48;5;160m' "安装 ToDesk" "会修改只读系统 · 高级操作"
+            ui_touch_button 13 '\033[1;97;48;5;160m' "安装 Decky Loader" "会使用管理员权限 · 高级操作"
+            ui_touch_button 16 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单 · 高级操作"
             ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回软件源和网络设置"
         fi
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -590,7 +590,7 @@ network_store_menu() {
         draw_category_frame network "网络与应用商店" "检查网络和软件源状态"
         ui_touch_button 7 '\033[1;97;48;5;24m' "网络状态检查" "检查当前网络是否可用"
         ui_touch_button 11 '\033[1;97;48;5;24m' "软件源状态" "查看当前应用下载来源"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "管理国内源与加速" "进入高级网络设置  [高级操作]"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "管理国内源与加速" "进入高级网络设置 · 高级操作"
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:7-8:network-status right:11-12:source-status right:15-16:manage-advanced right:20-21:home)"
@@ -610,7 +610,7 @@ steam_accelerator_touch_menu() {
     local choice
 
     while true; do
-        draw_category_frame advanced "Steamcommunity 302" "可能修改 DNS、证书、hosts 和后台服务  [会修改网络设置]"
+        draw_category_frame advanced "Steamcommunity 302" "可能修改 DNS、证书、hosts 和后台服务 · 高级操作"
         ui_touch_button 6 '\033[1;97;48;5;24m' "安装或更新" "下载并校验官方程序与内置规则"
         ui_touch_button 9 '\033[1;97;48;5;30m' "一键开启加速" "自动准备并启动 Steam + GitHub 后台加速"
         ui_touch_button 12 '\033[1;97;48;5;24m' "查看运行状态" "查看版本、内置进程和后台服务状态"
@@ -645,11 +645,11 @@ maintenance_menu() {
         draw_category_frame maintenance "系统维护" "清理缓存和检查系统"
         ui_touch_button 5 '\033[1;97;48;5;24m' "系统健康检查" "检查空间和常用环境"
         ui_touch_button 7 '\033[1;97;48;5;24m' "游戏启动检查" "检查游戏无法启动原因"
-        ui_touch_button 9 '\033[1;97;48;5;160m' "清理下载残留" "删除未完成下载文件  [会删除缓存]"
-        ui_touch_button 11 '\033[1;97;48;5;160m' "清理着色器缓存" "释放空间并自动重建  [会删除缓存]"
-        ui_touch_button 13 '\033[1;97;48;5;160m' "清理用户缓存" "清理可重新生成的缓存  [会删除缓存]"
+        ui_touch_button 9 '\033[1;97;48;5;160m' "清理下载残留" "删除未完成下载文件 · 会删除缓存"
+        ui_touch_button 11 '\033[1;97;48;5;160m' "清理着色器缓存" "释放空间并自动重建 · 会删除缓存"
+        ui_touch_button 13 '\033[1;97;48;5;160m' "清理用户缓存" "清理可重新生成的缓存 · 会删除缓存"
         ui_touch_button 15 '\033[1;97;48;5;24m' "查看性能建议" "查看推荐性能设置"
-        ui_touch_button 17 '\033[1;97;48;5;160m' "常见问题处理" "检测网络并清理下载残留  [会删除缓存]"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "常见问题处理" "检测网络并清理下载残留 · 会删除缓存"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:5-6:health right:7-8:diagnose right:9-10:download-cache right:11-12:shader-cache right:13-14:user-cache right:15-16:performance right:17-18:fix right:22-23:home)"
@@ -686,7 +686,7 @@ help_menu() {
         else
             ui_touch_button 7 '\033[1;97;48;5;24m' "操作记录" "导出最近工具箱记录"
             ui_touch_button 11 '\033[1;97;48;5;24m' "更新日志" "查看版本改动内容"
-            ui_touch_button 15 '\033[1;97;48;5;160m' "检查并更新工具箱" "下载并安装最新版本  [会联网并更新]"
+            ui_touch_button 15 '\033[1;97;48;5;160m' "检查并更新工具箱" "下载并安装最新版本 · 会联网并更新"
             ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回系统信息和指南"
         fi
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -773,7 +773,7 @@ home_menu() {
     ui_panel_line 14 '\033[1;38;5;45m' "网络与应用商店｜检查网络和软件源状态"
     ui_panel_line 16 '\033[1;38;5;114m' "系统维护｜清理缓存和检查系统"
     ui_panel_line 18 '\033[1;38;5;114m' "检测与帮助｜查看信息、指南和日志"
-    ui_panel_line 20 '\033[1;38;5;203m' "高级工具｜修改系统和网络设置  [高风险]"
+    ui_panel_line 20 '\033[1;38;5;203m' "高级工具｜修改系统和网络设置 · 高风险"
     ui_prompt
     choice="$(read_touch_menu)"
     apply_navigation "$choice" || true

@@ -69,8 +69,8 @@ for menu in "$touch_games" "$gui_games"; do
     for item in '常用插件组合' '插件环境与精选组合' '浏览官方插件' '游戏中文辅助' 'GE 游戏运行组件' 'Epic 游戏启动器' '安装 Decky Loader'; do
         assert_contains "$menu" "$item" "游戏环境缺少：$item"
     done
-    assert_contains "$menu" '[实验功能]' "游戏中文辅助缺少实验标签"
-    assert_contains "$menu" '[高级操作]' "Decky Loader 缺少高级标签"
+    assert_contains "$menu" '实验功能' "游戏中文辅助缺少实验说明"
+    assert_contains "$menu" '高级操作' "Decky Loader 缺少高级说明"
     assert_not_contains "$menu" '25 个精选插件' "plugin_store all 仍被错误描述为 25 个精选插件"
     assert_not_contains "$menu" '兼容层管理' "不存在的兼容层管理仍可见"
 done
@@ -93,7 +93,7 @@ for menu in "$touch_maintenance" "$gui_maintenance"; do
     for item in '系统健康检查' '游戏启动检查' '清理下载残留' '清理着色器缓存' '清理用户缓存' '查看性能建议' '常见问题处理'; do
         assert_contains "$menu" "$item" "系统维护缺少：$item"
     done
-    [ "$(printf '%s\n' "$menu" | grep -o '\[会删除缓存\]' | wc -l | tr -d ' ')" -ge 4 ] || fail "缓存删除风险标签不足"
+    [ "$(printf '%s\n' "$menu" | grep -o '会删除缓存' | wc -l | tr -d ' ')" -ge 4 ] || fail "缓存删除风险说明不足"
     assert_not_contains "$menu" '权限修复' "不存在的权限修复仍可见"
     assert_not_contains "$menu" '一键修复模式' "旧的一键修复名称仍可见"
 done
@@ -104,7 +104,7 @@ for menu in "$touch_help" "$gui_help"; do
     for item in '查看系统信息' '导出诊断报告' '新手使用指南' '游戏兼容指南' '掌机常用快捷键' '外接设备检查' '操作记录' '更新日志' '检查并更新工具箱'; do
         assert_contains "$menu" "$item" "检测与帮助缺少：$item"
     done
-    assert_contains "$menu" '[会联网并更新]' "工具箱更新缺少联网更新标签"
+    assert_contains "$menu" '会联网并更新' "工具箱更新缺少联网更新说明"
 done
 
 touch_advanced="$(function_source "$MAIN_FILE" advanced_tools_menu)"
@@ -114,8 +114,8 @@ for menu in "$touch_advanced" "$gui_advanced"; do
     for item in '高级新机初始化' '国内软件源' 'Steamcommunity 302' '设置管理员密码' '修改管理员密码' '安装 ToDesk' '安装 Decky Loader' '双系统与互通盘'; do
         assert_contains "$menu" "$item" "高级工具缺少：$item"
     done
-    for tag in '[安装软件/修改软件源]' '[会修改软件源]' '[会修改网络设置]' '[会修改系统密码]' '[会修改只读系统]' '[会使用管理员权限]' '[磁盘/启动高级操作]'; do
-        assert_contains "$menu" "$tag" "高级工具缺少风险标签：$tag"
+    for risk_text in '修改软件源' '修改 DNS' '管理密码' '修改只读系统' '使用管理员权限' '管理磁盘和开机菜单'; do
+        assert_contains "$menu" "$risk_text" "高级工具缺少风险说明：$risk_text"
     done
 done
 
@@ -139,6 +139,9 @@ for visible in "$MAIN_FILE" "$GUI_FILE"; do
     fi
     if grep -Eq '\[(只读|只读检查|会安装软件|会安装插件|会安装组件|会创建文件|普通|普通检查|引导|只读为主|部分会删除缓存)\]' "$visible"; then
         fail "普通菜单仍包含冗余状态标签：$visible"
+    fi
+    if grep -Eq '\[(会删除缓存|会联网并更新|实验功能|高级操作|高风险|安装软件/修改软件源|会修改软件源|会修改网络设置|会修改系统密码|会修改只读系统|会使用管理员权限|磁盘/启动高级操作)\]' "$visible"; then
+        fail "菜单风险说明仍使用方括号：$visible"
     fi
 done
 
