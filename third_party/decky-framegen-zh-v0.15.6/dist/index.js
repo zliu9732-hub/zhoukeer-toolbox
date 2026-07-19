@@ -633,7 +633,7 @@ function SteamGamePatcher({ dllName, fsr4Variant }) {
         try {
             const result = await listInstalledGames();
             if (result.status !== "success")
-                throw new Error(result.message || "Failed to load games.");
+                throw new Error(result.message || "读取游戏列表失败。");
             const gameList = result.games;
             setGames(gameList);
             if (!gameList.length) {
@@ -648,7 +648,7 @@ function SteamGamePatcher({ dllName, fsr4Variant }) {
             });
         }
         catch (err) {
-            const msg = err instanceof Error ? err.message : "Failed to load games.";
+            const msg = err instanceof Error ? err.message : "读取游戏列表失败。";
             toaster.toast({ title: "Decky Framegen", body: msg });
         }
         finally {
@@ -668,7 +668,7 @@ function SteamGamePatcher({ dllName, fsr4Variant }) {
         catch (err) {
             setGameStatus({
                 status: "error",
-                message: err instanceof Error ? err.message : "Failed to load status.",
+                message: err instanceof Error ? err.message : "读取修补状态失败。",
             });
         }
         finally {
@@ -692,16 +692,16 @@ function SteamGamePatcher({ dllName, fsr4Variant }) {
     const canUnpatch = Boolean(selectedGame && gameStatus?.patched && !busyAction);
     const patchButtonLabel = SP_REACT.useMemo(() => {
         if (busyAction === "patch")
-            return "Patching...";
+            return "正在修补…";
         if (!selectedGame)
-            return "Patch this game";
+            return "修补此游戏";
         if (!gameStatus?.install_found)
-            return "Install not found";
+            return "未找到游戏安装目录";
         if (isPatchedWithDifferentDll)
-            return `Switch to ${dllName}`;
+            return `切换为 ${dllName}`;
         if (gameStatus?.patched)
-            return `Reinstall (${dllName})`;
-        return `Patch with ${dllName}`;
+            return `重新安装（${dllName}）`;
+        return `使用 ${dllName} 修补`;
     }, [busyAction, dllName, gameStatus, isPatchedWithDifferentDll, selectedGame]);
     // ── Actions ────────────────────────────────────────────────────────────────
     const handlePatch = SP_REACT.useCallback(async () => {
@@ -719,16 +719,16 @@ function SteamGamePatcher({ dllName, fsr4Variant }) {
             }
             const result = await patchGame(selectedAppId, dllName, currentLaunchOptions, fsr4Variant);
             if (result.status !== "success")
-                throw new Error(result.message || "Patch failed.");
+                throw new Error(result.message || "修补失败。");
             setAppLaunchOptions(Number(selectedAppId), result.launch_options || "");
-            const msg = result.message || `Patched ${selectedGame.name}.`;
+            const msg = result.message || `已修补 ${selectedGame.name}。`;
             setResultMessage(msg);
             toaster.toast({ title: "Decky Framegen", body: msg });
             await loadStatus(selectedAppId);
         }
         catch (err) {
-            const msg = err instanceof Error ? err.message : "Patch failed.";
-            setResultMessage(`Error: ${msg}`);
+            const msg = err instanceof Error ? err.message : "修补失败。";
+            setResultMessage(`错误：${msg}`);
             toaster.toast({ title: "Decky Framegen", body: msg });
         }
         finally {
@@ -743,16 +743,16 @@ function SteamGamePatcher({ dllName, fsr4Variant }) {
         try {
             const result = await unpatchGame(selectedAppId);
             if (result.status !== "success")
-                throw new Error(result.message || "Unpatch failed.");
+                throw new Error(result.message || "撤销修补失败。");
             setAppLaunchOptions(Number(selectedAppId), result.launch_options || "");
-            const msg = result.message || `Unpatched ${selectedGame.name}.`;
+            const msg = result.message || `已撤销 ${selectedGame.name} 的修补。`;
             setResultMessage(msg);
             toaster.toast({ title: "Decky Framegen", body: msg });
             await loadStatus(selectedAppId);
         }
         catch (err) {
-            const msg = err instanceof Error ? err.message : "Unpatch failed.";
-            setResultMessage(`Error: ${msg}`);
+            const msg = err instanceof Error ? err.message : "撤销修补失败。";
+            setResultMessage(`错误：${msg}`);
             toaster.toast({ title: "Decky Framegen", body: msg });
         }
         finally {
@@ -764,25 +764,25 @@ function SteamGamePatcher({ dllName, fsr4Variant }) {
         if (!selectedGame)
             return { text: "—", color: undefined };
         if (statusLoading)
-            return { text: "Loading...", color: undefined };
+            return { text: "正在读取…", color: undefined };
         if (!gameStatus || gameStatus.status === "error")
             return { text: gameStatus?.message || "—", color: undefined };
         if (!gameStatus.install_found)
-            return { text: "Install not found", color: "#ffd866" };
+            return { text: "未找到游戏安装目录", color: "#ffd866" };
         if (!gameStatus.patched)
-            return { text: "Not patched", color: undefined };
+            return { text: "未修补", color: undefined };
         const dllLabel = gameStatus.dll_name || "unknown";
         if (isPatchedWithDifferentDll)
-            return { text: `Patched (${dllLabel}) — switch available`, color: "#ffd866" };
-        return { text: `Patched (${dllLabel})`, color: "#3fb950" };
+            return { text: `已修补（${dllLabel}）— 可切换`, color: "#ffd866" };
+        return { text: `已修补（${dllLabel}）`, color: "#3fb950" };
     }, [gameStatus, isPatchedWithDifferentDll, selectedGame, statusLoading]);
     const focusableFieldProps = { focusable: true, highlightOnFocus: true };
     // ── Render ─────────────────────────────────────────────────────────────────
     return (window.SP_REACT.createElement(window.SP_REACT.Fragment, null,
         window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-            window.SP_REACT.createElement(DFL.DropdownItem, { layout: "below", label: "Steam game", menuLabel: "Select a Steam game", strDefaultLabel: gamesLoading ? "Loading games..." : "Choose a game", disabled: gamesLoading || games.length === 0, selectedOption: selectedAppId, rgOptions: games.map((g) => ({
+            window.SP_REACT.createElement(DFL.DropdownItem, { layout: "below", label: "Steam \u6E38\u620F", menuLabel: "\u9009\u62E9 Steam \u6E38\u620F", strDefaultLabel: gamesLoading ? "正在读取游戏…" : "选择游戏", disabled: gamesLoading || games.length === 0, selectedOption: selectedAppId, rgOptions: games.map((g) => ({
                     data: g.appid,
-                    label: g.install_found === false ? `${g.name} (not installed)` : g.name,
+                    label: g.install_found === false ? `${g.name}（未安装）` : g.name,
                 })), onChange: (option) => {
                     const next = String(option.data);
                     lastSelectedAppId = next;
@@ -791,21 +791,21 @@ function SteamGamePatcher({ dllName, fsr4Variant }) {
                 } })),
         selectedGame && (window.SP_REACT.createElement(window.SP_REACT.Fragment, null,
             window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-                window.SP_REACT.createElement(DFL.Field, { ...focusableFieldProps, label: "Patch status" }, statusDisplay.color ? (window.SP_REACT.createElement("span", { style: { color: statusDisplay.color, fontWeight: 600 } }, statusDisplay.text)) : (statusDisplay.text))),
+                window.SP_REACT.createElement(DFL.Field, { ...focusableFieldProps, label: "\u4FEE\u8865\u72B6\u6001" }, statusDisplay.color ? (window.SP_REACT.createElement("span", { style: { color: statusDisplay.color, fontWeight: 600 } }, statusDisplay.text)) : (statusDisplay.text))),
             window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-                window.SP_REACT.createElement(DFL.Field, { ...focusableFieldProps, label: "FSR4 runtime" }, gameStatus?.patched
-                    ? (gameStatus?.fsr4_variant_label || "Unknown")
+                window.SP_REACT.createElement(DFL.Field, { ...focusableFieldProps, label: "FSR4 \u8FD0\u884C\u5E93" }, gameStatus?.patched
+                    ? (gameStatus?.fsr4_variant_label || "未知")
                     : (fsr4Variant === "rdna4-native"
-                        ? "Will patch with Native bundle / RDNA4"
-                        : "Will patch with Steam Deck / RDNA2-3 optimized"))),
+                        ? "将使用原生组件 / RDNA4 修补"
+                        : "将使用 Steam Deck / RDNA2-3 优化版修补"))),
             window.SP_REACT.createElement(DFL.PanelSectionRow, null,
                 window.SP_REACT.createElement(DFL.ButtonItem, { layout: "below", disabled: !canPatch, onClick: handlePatch }, patchButtonLabel)),
             canUnpatch && (window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-                window.SP_REACT.createElement(DFL.ButtonItem, { layout: "below", disabled: busyAction !== null, onClick: handleUnpatch }, busyAction === "unpatch" ? "Unpatching..." : "Unpatch this game"))),
+                window.SP_REACT.createElement(DFL.ButtonItem, { layout: "below", disabled: busyAction !== null, onClick: handleUnpatch }, busyAction === "unpatch" ? "正在撤销修补…" : "撤销修补此游戏"))),
             window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-                window.SP_REACT.createElement(DFL.ButtonItem, { layout: "below", disabled: !selectedAppId || busyAction !== null || statusLoading, onClick: () => void loadStatus(selectedAppId) }, statusLoading ? "Refreshing..." : "Refresh status")),
+                window.SP_REACT.createElement(DFL.ButtonItem, { layout: "below", disabled: !selectedAppId || busyAction !== null || statusLoading, onClick: () => void loadStatus(selectedAppId) }, statusLoading ? "正在刷新…" : "刷新状态")),
             resultMessage && (window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-                window.SP_REACT.createElement(DFL.Field, { ...focusableFieldProps, label: "Result" }, resultMessage)))))));
+                window.SP_REACT.createElement(DFL.Field, { ...focusableFieldProps, label: "\u7ED3\u679C" }, resultMessage)))))));
 }
 
 function OptiScalerControls({ pathExists, setPathExists, fgmodInfo }) {
