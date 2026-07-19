@@ -41,6 +41,11 @@ DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/downlo
 DECKY_FSR4_SHA256="236dc5aef5c908d905a848d7e448689634479ab61cd9184154ba8a725b3f2089"
 DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.2.1/CheatDeck.zip"
 DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
+# Gitee 国内镜像仓库的完整汉化插件包（含运行核心），无需叠加覆盖原版。
+DECKY_LSFG_ZH_URL="https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip"
+DECKY_LSFG_ZH_SHA256="d1dbe2cdc83cdf846a12fb2a33e96f8a08e52fd5b05e0305c05c82c288b9c0d4"
+DECKY_FSR4_ZH_URL="https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/Decky-Framegen-FSR4-v0.15.6.zip"
+DECKY_FSR4_ZH_SHA256="09148bd445abb713278151f3a9e142f5bb8227704163b8f272e41c44e0e71d50"
 
 show_plugin_download_speed_tip() {
     echo ""
@@ -1223,6 +1228,36 @@ install_lsfg_chinese() {
     log "小黄鸭 v$LSFG_OFFICIAL_VERSION 安装完成"
 }
 
+# 优先从 Gitee 国内源下载完整汉化包（含运行核心），失败则使用原版叠加流程。
+install_lsfg_zh_from_gitee() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local reload_after="${1:-1}"
+
+    if [ -z "${DECKY_LSFG_ZH_URL:-}" ] || [ -z "${DECKY_LSFG_ZH_SHA256:-}" ]; then
+        echo "Gitee 汉化包下载配置不完整，切换为原版叠加流程。"
+        install_lsfg_bundle "$reload_after" || return 1
+        install_lsfg_chinese "$reload_after" || return 1
+        return 0
+    fi
+
+    echo "正在从 Gitee 国内镜像下载完整汉化小黄鸭..."
+    install_decky_zip 
+        "小黄鸭（LSFG-VK）汉化完整包" 
+        "${DECKY_LSFG_ZH_URL:-}" 
+        "${DECKY_LSFG_ZH_SHA256:-}" 
+        "$LSFG_OFFICIAL_DIRECTORY" || {
+        echo "Gitee 下载失败，切换为原版叠加流程。"
+        install_lsfg_bundle "$reload_after" || return 1
+        install_lsfg_chinese "$reload_after"
+        return $?
+    }
+    remove_legacy_lsfg_directories "$plugin_root"
+    if [ "$reload_after" = "1" ]; then
+        reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可使用。"
+    fi
+    log "小黄鸭 v$LSFG_OFFICIAL_VERSION 汉化完全从 Gitee 安装"
+}
+
 install_fsr4_chinese() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local actual_sha256 bundled_version
@@ -1285,6 +1320,36 @@ install_fsr4_chinese() {
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 FSR4 插帧即可看到中文界面。"
     fi
     log "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面安装完成"
+}
+
+# 优先从 Gitee 国内源下载完整汉化包（含运行核心），失败则使用原版叠加流程。
+install_fsr4_zh_from_gitee() {
+    local reload_after="${1:-1}"
+
+    if [ -z "${DECKY_FSR4_ZH_URL:-}" ] || [ -z "${DECKY_FSR4_ZH_SHA256:-}" ]; then
+        echo "Gitee 汉化包下载配置不完整，切换为原版叠加流程。"
+        install_configured_plugin fsr4 0 0 || return 1
+        install_fsr4_chinese "$reload_after" || return 1
+        return 0
+    fi
+
+    echo "正在从 Gitee 国内镜像下载完整 FSR4 汉化包..."
+    install_decky_zip 
+        "FSR4（Decky Framegen）汉化完整包" 
+        "${DECKY_FSR4_ZH_URL:-}" 
+        "${DECKY_FSR4_ZH_SHA256:-}" 
+        "$FSR4_OFFICIAL_DIRECTORY" || {
+        echo "Gitee 下载失败，切换为原版叠加流程。"
+        install_configured_plugin fsr4 0 0 || return 1
+        install_fsr4_chinese "$reload_after"
+        return $?
+    }
+    echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面已安装（闲鱼双叶汉化）。"
+    echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
+    if [ "$reload_after" = "1" ]; then
+        reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 FSR4 插帧即可看到中文界面。"
+    fi
+    log "FSR4 v$FSR4_OFFICIAL_VERSION 汉化完全从 Gitee 安装"
 }
 
 restore_lsfg_official() {
@@ -1483,7 +1548,7 @@ install_feature_plugins() {
     ensure_plugin_store_ready || return 1
 
     echo "将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。"
-    echo "小黄鸭和 FSR4 完成官方安装后会自动替换为闲鱼双叶汉化；单项失败不会覆盖该插件的旧版本。"
+    echo "小黄鸭和 FSR4 优先从 Gitee 国内镜像下载完整汉化包，失败则回退原版叠加流程；单项失败不会覆盖该插件的旧版本。"
     for plugin in lsfg fsr4 cheatdeck; do
         echo ""
         case "$plugin" in
@@ -1492,7 +1557,7 @@ install_feature_plugins() {
                 if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭" && \
                    [ -s "$DECKY_PLUGIN_DIR/$LSFG_OFFICIAL_DIRECTORY/bin/$LSFG_RUNTIME_ARCHIVE" ]; then
                     echo "[已跳过] 小黄鸭已安装"
-                    if ! install_lsfg_chinese 0; then failed=1; fi
+                    if ! install_lsfg_zh_from_gitee 0; then failed=1; fi
                     continue
                 fi
                 ;;
@@ -1504,7 +1569,7 @@ install_feature_plugins() {
                    [ -s "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/bin/$FSR4_RUNTIME_PATCHER" ] && \
                    [ -f "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/assets/fgmod.sh" ]; then
                     echo "[已跳过] FSR4 已安装"
-                    if ! install_fsr4_chinese 0; then failed=1; fi
+                    if ! install_fsr4_zh_from_gitee 0; then failed=1; fi
                     continue
                 fi
                 ;;
@@ -1516,13 +1581,13 @@ install_feature_plugins() {
                 fi
                 ;;
         esac
-        if ! install_configured_plugin "$plugin" 0 0; then
+        if [ "$plugin" = "lsfg" ]; then
+            install_lsfg_zh_from_gitee 0 || failed=1
+        elif [ "$plugin" = "fsr4" ]; then
+            install_fsr4_zh_from_gitee 0 || failed=1
+        elif ! install_configured_plugin "$plugin" 0 0; then
             failed=1
             echo "该插件未完成，继续尝试其余插件。"
-        elif [ "$plugin" = "lsfg" ]; then
-            install_lsfg_chinese 0 || failed=1
-        elif [ "$plugin" = "fsr4" ]; then
-            install_fsr4_chinese 0 || failed=1
         fi
     done
 
