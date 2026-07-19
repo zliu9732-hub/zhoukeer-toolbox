@@ -1241,11 +1241,11 @@ install_lsfg_zh_from_gitee() {
     fi
 
     echo "正在从 Gitee 国内镜像下载完整汉化小黄鸭..."
-    install_decky_zip 
-        "小黄鸭（LSFG-VK）汉化完整包" 
-        "${DECKY_LSFG_ZH_URL:-}" 
-        "${DECKY_LSFG_ZH_SHA256:-}" 
-        "$LSFG_OFFICIAL_DIRECTORY" || {
+    install_decky_zip \
+                         "小黄鸭（LSFG-VK）汉化完整包" \
+                         "${DECKY_LSFG_ZH_URL:-}" \
+                         "${DECKY_LSFG_ZH_SHA256:-}" \
+                         "$LSFG_OFFICIAL_DIRECTORY" || {
         echo "Gitee 下载失败，切换为原版叠加流程。"
         install_lsfg_bundle "$reload_after" || return 1
         install_lsfg_chinese "$reload_after"
@@ -1334,11 +1334,11 @@ install_fsr4_zh_from_gitee() {
     fi
 
     echo "正在从 Gitee 国内镜像下载完整 FSR4 汉化包..."
-    install_decky_zip 
-        "FSR4（Decky Framegen）汉化完整包" 
-        "${DECKY_FSR4_ZH_URL:-}" 
-        "${DECKY_FSR4_ZH_SHA256:-}" 
-        "$FSR4_OFFICIAL_DIRECTORY" || {
+    install_decky_zip \
+                         "FSR4（Decky Framegen）汉化完整包" \
+                         "${DECKY_FSR4_ZH_URL:-}" \
+                         "${DECKY_FSR4_ZH_SHA256:-}" \
+                         "$FSR4_OFFICIAL_DIRECTORY" || {
         echo "Gitee 下载失败，切换为原版叠加流程。"
         install_configured_plugin fsr4 0 0 || return 1
         install_fsr4_chinese "$reload_after"
