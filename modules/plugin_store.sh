@@ -30,6 +30,9 @@ FSR4_OFFICIAL_DIRECTORY="Decky-Framegen"
 FSR4_OFFICIAL_VERSION="0.15.6"
 FSR4_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6"
 FSR4_ZH_INDEX_SHA256="b7211571981dc6a30f76c3e010b9fc371fefdd06da348b522d4274d0beace8fc"
+FSR4_RUNTIME_ARCHIVE="Optiscaler_0.9.2a-final.20260517._Reup.7z"
+FSR4_RUNTIME_UPSCALER="amd_fidelityfx_upscaler_dx12.dll"
+FSR4_RUNTIME_PATCHER="OptiPatcher_rolling.asi"
 
 # 三款功能插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
@@ -1224,6 +1227,7 @@ install_fsr4_chinese() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local actual_sha256 bundled_version
     local reload_after="${1:-1}"
+    local official_bin_dir work_dir staged_source
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
@@ -1248,11 +1252,28 @@ install_fsr4_chinese() {
         echo "FSR4 中文组件校验失败，已停止覆盖。"
         return 1
     fi
+    official_bin_dir="$plugin_root/$FSR4_OFFICIAL_DIRECTORY/bin"
+    if [ ! -s "$official_bin_dir/$FSR4_RUNTIME_ARCHIVE" ] || \
+       [ ! -s "$official_bin_dir/$FSR4_RUNTIME_UPSCALER" ] || \
+       [ ! -s "$official_bin_dir/$FSR4_RUNTIME_PATCHER" ]; then
+        echo "FSR4 运行核心缺失，请从“常用插件组合”重新安装 FSR4。"
+        return 1
+    fi
     prepare_plugin_root "$plugin_root" || return 1
-    install_tree_atomically "$FSR4_ZH_SOURCE_DIR" "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" || {
+    work_dir="$(mktemp -d)" || return 1
+    staged_source="$work_dir/$FSR4_OFFICIAL_DIRECTORY"
+    if ! cp -a -- "$FSR4_ZH_SOURCE_DIR" "$staged_source" || \
+       ! cp -a -- "$official_bin_dir" "$staged_source/bin"; then
+        rm -rf -- "$work_dir"
+        echo "FSR4 中文组件准备失败，原版未改动。"
+        return 1
+    fi
+    install_tree_atomically "$staged_source" "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" || {
+        rm -rf -- "$work_dir"
         echo "FSR4 中文界面安装失败，已尽量保留原版。"
         return 1
     }
+    rm -rf -- "$work_dir"
     echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面已安装（闲鱼双叶汉化）。"
     echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
     if [ "$reload_after" = "1" ]; then
@@ -1472,7 +1493,10 @@ install_feature_plugins() {
                 ;;
             fsr4)
                 echo "========== FSR4（Decky Framegen） =========="
-                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "Decky-Framegen" "Decky-Framegen" "FSR4"; then
+                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "Decky-Framegen" "Decky-Framegen" "FSR4" && \
+                   [ -s "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/bin/$FSR4_RUNTIME_ARCHIVE" ] && \
+                   [ -s "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/bin/$FSR4_RUNTIME_UPSCALER" ] && \
+                   [ -s "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/bin/$FSR4_RUNTIME_PATCHER" ]; then
                     echo "[已跳过] FSR4 已安装"
                     if ! install_fsr4_chinese 0; then failed=1; fi
                     continue
