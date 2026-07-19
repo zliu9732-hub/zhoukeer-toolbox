@@ -416,8 +416,8 @@ download_verified_package() {
     local actual_sha256
     local curl_status
     local attempt
-    local retry_options=(--retry 5 --retry-delay 2)
-    local speed_options=()
+    local retry_options=(--retry 2 --retry-delay 2)
+    local speed_options=(--speed-limit 65536 --speed-time 60)
 
     if [ -z "$url" ] || [ -z "$expected_sha256" ]; then
         echo "$name 的下载配置不完整，请先更新工具箱。"
@@ -429,13 +429,6 @@ download_verified_package() {
     if curl --help all 2>/dev/null | grep -Fq -- '--retry-all-errors'; then
         retry_options+=(--retry-all-errors)
     fi
-    case "$name" in
-        FSR4*)
-            # FSR4 只作为可选插件；持续低速时尽快让位给后续 CheatDeck。
-            speed_options=(--speed-limit 65536 --speed-time 30)
-            retry_options=(--retry 0)
-            ;;
-    esac
 
     for attempt in 1 2; do
         rm -f -- "$output"
@@ -455,7 +448,7 @@ download_verified_package() {
                 --progress-bar \
                 --proto '=https' \
                 --proto-redir '=https' \
-                --connect-timeout 15 \
+                --connect-timeout 10 \
                 --max-time 1200 \
                 "${retry_options[@]}" \
                 "${speed_options[@]}" \
@@ -467,7 +460,8 @@ download_verified_package() {
                 curl_status=$?
                 if [ "$curl_status" -eq 28 ] && [ "${#speed_options[@]}" -gt 0 ]; then
                     rm -f -- "$output"
-                    echo "$name 下载速度持续过慢，已跳过；继续安装 CheatDeck。"
+                    echo "$name 下载速度持续过慢（低于 64KB/s 超过 60 秒），已跳过。"
+                    print_steam302_download_fallback
                     return 1
                 fi
             fi
