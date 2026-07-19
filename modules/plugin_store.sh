@@ -1227,7 +1227,7 @@ install_fsr4_chinese() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local actual_sha256 bundled_version
     local reload_after="${1:-1}"
-    local official_bin_dir work_dir staged_source
+    local official_bin_dir official_assets_dir work_dir staged_source
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
@@ -1253,9 +1253,13 @@ install_fsr4_chinese() {
         return 1
     fi
     official_bin_dir="$plugin_root/$FSR4_OFFICIAL_DIRECTORY/bin"
+    official_assets_dir="$plugin_root/$FSR4_OFFICIAL_DIRECTORY/assets"
     if [ ! -s "$official_bin_dir/$FSR4_RUNTIME_ARCHIVE" ] || \
        [ ! -s "$official_bin_dir/$FSR4_RUNTIME_UPSCALER" ] || \
-       [ ! -s "$official_bin_dir/$FSR4_RUNTIME_PATCHER" ]; then
+       [ ! -s "$official_bin_dir/$FSR4_RUNTIME_PATCHER" ] || \
+       [ ! -f "$official_assets_dir/fgmod.sh" ] || \
+       [ ! -f "$official_assets_dir/fgmod-uninstaller.sh" ] || \
+       [ ! -f "$official_assets_dir/update-optiscaler-config.py" ]; then
         echo "FSR4 运行核心缺失，请从“常用插件组合”重新安装 FSR4。"
         return 1
     fi
@@ -1263,7 +1267,8 @@ install_fsr4_chinese() {
     work_dir="$(mktemp -d)" || return 1
     staged_source="$work_dir/$FSR4_OFFICIAL_DIRECTORY"
     if ! cp -a -- "$FSR4_ZH_SOURCE_DIR" "$staged_source" || \
-       ! cp -a -- "$official_bin_dir" "$staged_source/bin"; then
+       ! cp -a -- "$official_bin_dir" "$staged_source/bin" || \
+       ! cp -a -- "$official_assets_dir" "$staged_source/assets"; then
         rm -rf -- "$work_dir"
         echo "FSR4 中文组件准备失败，原版未改动。"
         return 1
@@ -1496,7 +1501,8 @@ install_feature_plugins() {
                 if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "Decky-Framegen" "Decky-Framegen" "FSR4" && \
                    [ -s "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/bin/$FSR4_RUNTIME_ARCHIVE" ] && \
                    [ -s "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/bin/$FSR4_RUNTIME_UPSCALER" ] && \
-                   [ -s "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/bin/$FSR4_RUNTIME_PATCHER" ]; then
+                   [ -s "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/bin/$FSR4_RUNTIME_PATCHER" ] && \
+                   [ -f "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/assets/fgmod.sh" ]; then
                     echo "[已跳过] FSR4 已安装"
                     if ! install_fsr4_chinese 0; then failed=1; fi
                     continue
