@@ -168,25 +168,25 @@ const STYLES = {
 };
 // Proxy DLL name options for OptiScaler injection
 const PROXY_DLL_OPTIONS = [
-    { value: "dxgi.dll", label: "dxgi.dll (default)", hint: "Works for most DX12 games. Default." },
-    { value: "winmm.dll", label: "winmm.dll", hint: "Use when dxgi.dll conflicts with an existing game file." },
-    { value: "version.dll", label: "version.dll", hint: "Common fallback; works well with many launchers." },
-    { value: "dbghelp.dll", label: "dbghelp.dll", hint: "Use for debug helper hook paths." },
-    { value: "winhttp.dll", label: "winhttp.dll", hint: "Use when other DLL names conflict." },
-    { value: "wininet.dll", label: "wininet.dll", hint: "Use when other DLL names conflict." },
-    { value: "OptiScaler.asi", label: "OptiScaler.asi", hint: "For ASI loaders. Requires an ASI loader already installed in the game." },
+    { value: "dxgi.dll", label: "dxgi.dll（默认）", hint: "适用于大多数 DX12 游戏。" },
+    { value: "winmm.dll", label: "winmm.dll", hint: "当 dxgi.dll 与游戏已有文件冲突时使用。" },
+    { value: "version.dll", label: "version.dll", hint: "常用备用项，适配许多启动器。" },
+    { value: "dbghelp.dll", label: "dbghelp.dll", hint: "用于调试辅助挂钩路径。" },
+    { value: "winhttp.dll", label: "winhttp.dll", hint: "其他 DLL 名称冲突时使用。" },
+    { value: "wininet.dll", label: "wininet.dll", hint: "其他 DLL 名称冲突时使用。" },
+    { value: "OptiScaler.asi", label: "OptiScaler.asi", hint: "用于 ASI 加载器；游戏需已安装 ASI 加载器。" },
 ];
 const DEFAULT_PROXY_DLL = "dxgi.dll";
 const FSR4_VARIANT_OPTIONS = [
     {
         value: "rdna23-int8",
-        label: "Steam Deck / RDNA2-3 optimized",
-        hint: "Uses the bundled FSR4 INT8 4.0.2c override. Recommended for Steam Deck and other non-RDNA4 systems.",
+        label: "Steam Deck / RDNA2-3 优化版",
+        hint: "使用内置 FSR4 INT8 4.0.2c，推荐 Steam Deck 与其他非 RDNA4 设备。",
     },
     {
         value: "rdna4-native",
-        label: "Native bundle / RDNA4",
-        hint: "Uses the amd_fidelityfx_upscaler_dx12.dll that ships inside the OptiScaler 0.9.2a bundle.",
+        label: "原生组件 / RDNA4",
+        hint: "使用 OptiScaler 0.9.2a 组件内附的 amd_fidelityfx_upscaler_dx12.dll。",
     },
 ];
 const DEFAULT_FSR4_VARIANT = "rdna23-int8";
@@ -205,7 +205,7 @@ const MESSAGES = {
     uninstallButton: "移除 OptiScaler 模组",
     installSuccess: "OptiScaler 模组安装成功！",
     uninstallSuccess: "OptiScaler 模组已移除。",
-    instructionTitle: "How to Use:",
+    instructionTitle: "使用说明：",
     instructionText: "标准方式请使用“复制启动选项”。如需包装器命令，请开启手动模式以显示“复制修补命令”和“复制撤销修补命令”。\n\n游戏内：在图形设置中启用 DLSS，以在 DirectX 12 游戏中使用 FSR 3.1/XeSS 2.0。\n\n如需更多 OptiScaler 选项，可将一个背键映射为键盘 Insert 键。"
 };
 
@@ -246,7 +246,7 @@ function FaBook (props) {
   return GenIcon({"tag":"svg","attr":{"viewBox":"0 0 384 512"},"child":[{"tag":"path","attr":{"d":"M384 112v352c0 26.51-21.49 48-48 48H48c-26.51 0-48-21.49-48-48V112c0-26.51 21.49-48 48-48h80c0-35.29 28.71-64 64-64s64 28.71 64 64h80c26.51 0 48 21.49 48 48zM192 40c-13.255 0-24 10.745-24 24s10.745 24 24 24 24-10.745 24-24-10.745-24-24-24m96 114v-20a6 6 0 0 0-6-6H102a6 6 0 0 0-6 6v20a6 6 0 0 0 6 6h180a6 6 0 0 0 6-6z"},"child":[]}]})(props);
 }
 
-function SmartClipboardButton({ command = "~/fgmod/fgmod %command%", buttonText = "Copy Launch Command" }) {
+function SmartClipboardButton({ command = "~/fgmod/fgmod %command%", buttonText = "复制启动命令" }) {
     const [isLoading, setIsLoading] = SP_REACT.useState(false);
     const [showSuccess, setShowSuccess] = SP_REACT.useState(false);
     // Reset success state after 3 seconds
@@ -264,7 +264,7 @@ function SmartClipboardButton({ command = "~/fgmod/fgmod %command%", buttonText 
             return;
         const isPatchCommand = command.includes("fgmod %command%") && !command.includes("uninstaller");
         if (isPatchCommand) {
-            DFL.showModal(window.SP_REACT.createElement(DFL.ConfirmModal, { strTitle: `Patch Game with OptiScaler?`, strDescription: "WARNING: Decky Framegen does not unpatch games when uninstalled. Be sure to unpatch the game or run the OptiScaler uninstall script inside the game files if you choose to uninstall the plugin or the game has issues.", strOKButtonText: "Copy Patch Command", strCancelButtonText: "Cancel", onOK: async () => {
+            DFL.showModal(window.SP_REACT.createElement(DFL.ConfirmModal, { strTitle: "\u8981\u4F7F\u7528 OptiScaler \u4FEE\u8865\u6E38\u620F\u5417\uFF1F", strDescription: "WARNING: Decky Framegen does not unpatch games when uninstalled. Be sure to unpatch the game or run the OptiScaler uninstall script inside the game files if you choose to uninstall the plugin or the game has issues.", strOKButtonText: "\u590D\u5236\u4FEE\u8865\u547D\u4EE4", strCancelButtonText: "\u53D6\u6D88", onOK: async () => {
                     await performCopy();
                 } }));
             return;
@@ -324,15 +324,15 @@ function SmartClipboardButton({ command = "~/fgmod/fgmod %command%", buttonText 
             }
             else {
                 toaster.toast({
-                    title: "Copy Failed",
-                    body: "Unable to copy to clipboard"
+                    title: "复制失败",
+                    body: "无法复制到剪贴板"
                 });
             }
         }
         catch (error) {
             toaster.toast({
-                title: "Copy Failed",
-                body: `Error: ${String(error)}`
+                title: "复制失败",
+                body: `错误：${String(error)}`
             });
         }
         finally {
@@ -351,7 +351,7 @@ function SmartClipboardButton({ command = "~/fgmod/fgmod %command%", buttonText 
                 window.SP_REACT.createElement("div", { style: {
                         color: showSuccess ? "#4CAF50" : "inherit",
                         fontWeight: showSuccess ? "bold" : "normal"
-                    } }, showSuccess ? "Copied to clipboard" : isLoading ? "Copying..." : buttonText))),
+                    } }, showSuccess ? "已复制到剪贴板" : isLoading ? "正在复制…" : buttonText))),
         window.SP_REACT.createElement("style", null, `
         @keyframes pulse {
           0% { opacity: 0.7; }
@@ -368,10 +368,10 @@ function ClipboardCommands({ pathExists, dllName, manualModeEnabled = false, sho
         ? "SteamDeck=0 %command%"
         : `WINEDLLOVERRIDES=${dllName.replace(".dll", "")}=n,b SteamDeck=0 %command%`;
     return (window.SP_REACT.createElement(window.SP_REACT.Fragment, null,
-        showLaunchOptions ? (window.SP_REACT.createElement(SmartClipboardButton, { command: launchCmd, buttonText: "Copy launch options" })) : null,
+        showLaunchOptions ? (window.SP_REACT.createElement(SmartClipboardButton, { command: launchCmd, buttonText: "\u590D\u5236\u542F\u52A8\u9009\u9879" })) : null,
         manualModeEnabled ? (window.SP_REACT.createElement(window.SP_REACT.Fragment, null,
-            window.SP_REACT.createElement(SmartClipboardButton, { command: "~/fgmod/fgmod %command%", buttonText: "Copy Patch Command" }),
-            window.SP_REACT.createElement(SmartClipboardButton, { command: "~/fgmod/fgmod-uninstaller.sh %command%", buttonText: "Copy Unpatch Command" }))) : null));
+            window.SP_REACT.createElement(SmartClipboardButton, { command: "~/fgmod/fgmod %command%", buttonText: "\u590D\u5236\u4FEE\u8865\u547D\u4EE4" }),
+            window.SP_REACT.createElement(SmartClipboardButton, { command: "~/fgmod/fgmod-uninstaller.sh %command%", buttonText: "\u590D\u5236\u64A4\u9500\u4FEE\u8865\u547D\u4EE4" }))) : null));
 }
 
 function InstructionCard({ pathExists }) {
@@ -393,7 +393,7 @@ function OptiScalerWiki({ pathExists }) {
         window.SP_REACT.createElement(DFL.ButtonItem, { layout: "below", onClick: handleWikiClick },
             window.SP_REACT.createElement("div", { style: { display: "flex", alignItems: "center", gap: "8px" } },
                 window.SP_REACT.createElement(FaBook, null),
-                window.SP_REACT.createElement("div", null, "OptiScaler Wiki")))));
+                window.SP_REACT.createElement("div", null, "\u6253\u5F00 OptiScaler \u4F7F\u7528\u8BF4\u660E")))));
 }
 
 function UninstallButton({ pathExists, uninstalling, onUninstallClick }) {
@@ -485,9 +485,9 @@ const ManualPatchControls = ({ isAvailable, onManualModeChange, dllName, fsr4Var
         if (!operationResult || !lastOperation)
             return null;
         if (operationResult.status === "success") {
-            return lastOperation === "patch" ? "Game patched" : "Game unpatched";
+            return lastOperation === "patch" ? "游戏已修补" : "游戏已撤销修补";
         }
-        return lastOperation === "patch" ? "Patch failed" : "Unpatch failed";
+        return lastOperation === "patch" ? "修补失败" : "撤销修补失败";
     }, [lastOperation, operationResult]);
     const openDirectoryPicker = SP_REACT.useCallback(async () => {
         const candidates = [
@@ -554,20 +554,20 @@ const ManualPatchControls = ({ isAvailable, onManualModeChange, dllName, fsr4Var
     const busy = isPatching || isUnpatching;
     return (window.SP_REACT.createElement(window.SP_REACT.Fragment, null,
         window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-            window.SP_REACT.createElement(DFL.ToggleField, { label: "Advanced Mode", description: isAvailable
-                    ? "Manually apply OptiScaler to a specific game directory."
-                    : "Install OptiScaler first to enable manual patching.", checked: isEnabled && isAvailable, disabled: !isAvailable, onChange: handleToggle })),
+            window.SP_REACT.createElement(DFL.ToggleField, { label: "\u9AD8\u7EA7\u6A21\u5F0F", description: isAvailable
+                    ? "手动将 OptiScaler 应用到指定游戏目录。"
+                    : "请先安装 OptiScaler，才能使用手动修补。", checked: isEnabled && isAvailable, disabled: !isAvailable, onChange: handleToggle })),
         canInteract && (window.SP_REACT.createElement(window.SP_REACT.Fragment, null,
             window.SP_REACT.createElement(SmartClipboardButton, { command: dllName === "OptiScaler.asi"
                     ? "SteamDeck=0 %command%"
-                    : `WINEDLLOVERRIDES="${dllName.replace(".dll", "")}=n,b" SteamDeck=0 %command%`, buttonText: "Manual launch cmd" }),
+                    : `WINEDLLOVERRIDES="${dllName.replace(".dll", "")}=n,b" SteamDeck=0 %command%`, buttonText: "\u590D\u5236\u624B\u52A8\u542F\u52A8\u547D\u4EE4" }),
             window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-                window.SP_REACT.createElement(DFL.ButtonItem, { layout: "below", onClick: openDirectoryPicker, description: "Choose the game's installation directory (where the EXE lives)." }, "Select directory")),
+                window.SP_REACT.createElement(DFL.ButtonItem, { layout: "below", onClick: openDirectoryPicker, description: "\u9009\u62E9\u6E38\u620F\u5B89\u88C5\u76EE\u5F55\uFF08EXE \u6587\u4EF6\u6240\u5728\u4F4D\u7F6E\uFF09\u3002" }, "Select directory")),
             pickerState.lastError && (window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-                window.SP_REACT.createElement(DFL.Field, { label: "Picker error", description: pickerState.lastError }))),
+                window.SP_REACT.createElement(DFL.Field, { label: "\u9009\u62E9\u5668\u9519\u8BEF", description: pickerState.lastError }))),
             selectedPath && (window.SP_REACT.createElement(window.SP_REACT.Fragment, null,
                 window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-                    window.SP_REACT.createElement(DFL.Field, { label: "Target directory", description: "OptiScaler files will be copied here." },
+                    window.SP_REACT.createElement(DFL.Field, { label: "\u76EE\u6807\u76EE\u5F55", description: "OptiScaler \u6587\u4EF6\u5C06\u590D\u5236\u5230\u8FD9\u91CC\u3002" },
                         window.SP_REACT.createElement("div", { style: {
                                 fontFamily: "monospace",
                                 backgroundColor: "rgba(255, 255, 255, 0.05)",
@@ -580,11 +580,11 @@ const ManualPatchControls = ({ isAvailable, onManualModeChange, dllName, fsr4Var
                                 wordBreak: "break-word",
                             } }, selectedPath))),
                 window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-                    window.SP_REACT.createElement(DFL.ButtonItem, { layout: "below", disabled: busy, onClick: () => runOperation("patch") }, isPatching ? "Patching..." : "Patch directory")),
+                    window.SP_REACT.createElement(DFL.ButtonItem, { layout: "below", disabled: busy, onClick: () => runOperation("patch") }, isPatching ? "正在修补…" : "修补目录")),
                 window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-                    window.SP_REACT.createElement(DFL.ButtonItem, { layout: "below", disabled: busy, onClick: () => runOperation("unpatch") }, isUnpatching ? "Reverting..." : "Unpatch directory")))),
+                    window.SP_REACT.createElement(DFL.ButtonItem, { layout: "below", disabled: busy, onClick: () => runOperation("unpatch") }, isUnpatching ? "正在撤销…" : "撤销修补目录")))),
             operationResult && (window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-                window.SP_REACT.createElement(DFL.Field, { label: statusLabel ?? (wasSuccessful ? "Last action succeeded" : "Last action failed") }, !wasSuccessful && statusMessage ? statusMessage : null)))))));
+                window.SP_REACT.createElement(DFL.Field, { label: statusLabel ?? (wasSuccessful ? "上次操作成功" : "上次操作失败") }, !wasSuccessful && statusMessage ? statusMessage : null)))))));
 };
 
 // ─── SteamClient helpers ─────────────────────────────────────────────────────
@@ -899,17 +899,17 @@ function OptiScalerControls({ pathExists, setPathExists, fgmodInfo }) {
         window.SP_REACT.createElement(InstallationStatus, { pathExists: pathExists, installing: installing, onInstallClick: handleInstallClick }),
         window.SP_REACT.createElement(OptiScalerHeader, { pathExists: pathExists }),
         window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-            window.SP_REACT.createElement(DFL.DropdownItem, { layout: "below", label: "\u9ED8\u8BA4 FSR4 \u8FD0\u884C\u5E93", description: FSR4_VARIANT_OPTIONS.find((option) => option.value === fsr4Variant)?.hint, menuLabel: "Default FSR4 runtime", selectedOption: fsr4Variant, rgOptions: FSR4_VARIANT_OPTIONS.map((option) => ({ data: option.value, label: option.label })), disabled: installing || uninstalling || switchingVariant, onChange: (option) => {
+            window.SP_REACT.createElement(DFL.DropdownItem, { layout: "below", label: "\u9ED8\u8BA4 FSR4 \u8FD0\u884C\u5E93", description: FSR4_VARIANT_OPTIONS.find((option) => option.value === fsr4Variant)?.hint, menuLabel: "\u9009\u62E9\u9ED8\u8BA4 FSR4 \u8FD0\u884C\u5E93", selectedOption: fsr4Variant, rgOptions: FSR4_VARIANT_OPTIONS.map((option) => ({ data: option.value, label: option.label })), disabled: installing || uninstalling || switchingVariant, onChange: (option) => {
                     void handleFsr4VariantChange(String(option.data));
                 } })),
         pathExists === true && fgmodInfo?.version && installedVariantLabel && (window.SP_REACT.createElement(DFL.PanelSectionRow, null,
             window.SP_REACT.createElement(DFL.Field, { label: "\u5DF2\u5B89\u88C5\u7EC4\u4EF6", description: `OptiScaler ${fgmodInfo.version}` }, installedVariantLabel))),
         pathExists === true && (window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-            window.SP_REACT.createElement(DFL.DropdownItem, { layout: "below", label: "\u4EE3\u7406 DLL \u540D\u79F0", description: PROXY_DLL_OPTIONS.find((o) => o.value === dllName)?.hint, menuLabel: "Proxy DLL name", selectedOption: dllName, rgOptions: PROXY_DLL_OPTIONS.map((o) => ({ data: o.value, label: o.label })), onChange: (option) => setDllName(String(option.data)) }))),
+            window.SP_REACT.createElement(DFL.DropdownItem, { layout: "below", label: "\u4EE3\u7406 DLL \u540D\u79F0", description: PROXY_DLL_OPTIONS.find((o) => o.value === dllName)?.hint, menuLabel: "\u9009\u62E9\u4EE3\u7406 DLL \u540D\u79F0", selectedOption: dllName, rgOptions: PROXY_DLL_OPTIONS.map((o) => ({ data: o.value, label: o.label })), onChange: (option) => setDllName(String(option.data)) }))),
         pathExists === true && (window.SP_REACT.createElement(SteamGamePatcher, { dllName: dllName, fsr4Variant: fsr4Variant })),
         window.SP_REACT.createElement(ClipboardCommands, { pathExists: pathExists, dllName: dllName }),
         pathExists === true && (window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-            window.SP_REACT.createElement(DFL.ToggleField, { label: "\u624B\u52A8\u6A21\u5F0F", description: "Show wrapper command clipboard buttons for patching and unpatching through ~/fgmod scripts.", checked: manualClipboardModeEnabled, onChange: setManualClipboardModeEnabled }))),
+            window.SP_REACT.createElement(DFL.ToggleField, { label: "\u624B\u52A8\u6A21\u5F0F", description: "\u663E\u793A\u901A\u8FC7 ~/fgmod \u811A\u672C\u4FEE\u8865\u6216\u64A4\u9500\u4FEE\u8865\u7684\u547D\u4EE4\u590D\u5236\u6309\u94AE\u3002", checked: manualClipboardModeEnabled, onChange: setManualClipboardModeEnabled }))),
         pathExists === true && manualClipboardModeEnabled ? (window.SP_REACT.createElement(ClipboardCommands, { pathExists: pathExists, dllName: dllName, manualModeEnabled: true, showLaunchOptions: false })) : null,
         window.SP_REACT.createElement(ManualPatchControls, { isAvailable: pathExists === true, onManualModeChange: setAdvancedModeEnabled, dllName: dllName, fsr4Variant: fsr4Variant }),
         !advancedModeEnabled && (window.SP_REACT.createElement(InstructionCard, { pathExists: pathExists })),

@@ -20,17 +20,17 @@ export const ResultDisplay: FC<ResultDisplayProps> = ({ result }) => {
         {isSuccess ? (
           <>
             {result.output?.includes("uninstall") || result.output?.includes("remov") 
-              ? "OptiScaler mod removed successfully" 
-              : "OptiScaler mod installed successfully"}
+              ? "OptiScaler 模组已成功移除" 
+              : "OptiScaler 模组已成功安装"}
           </>
         ) : (
           <>
-            <strong>Error:</strong> {result.message || "Operation failed"}
+            <strong>错误：</strong> {result.message || "操作失败"}
           </>
         )}
         {result.output && !isSuccess && (
           <details style={{ marginTop: '8px' }}>
-            <summary style={{ cursor: 'pointer', fontSize: '12px' }}>View Details</summary>
+            <summary style={{ cursor: 'pointer', fontSize: '12px' }}>查看详情</summary>
             <pre style={{ ...STYLES.preWrap, fontSize: '11px', marginTop: '4px' }}>
               {result.output}
             </pre>

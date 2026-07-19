@@ -111,9 +111,9 @@ export const ManualPatchControls = ({ isAvailable, onManualModeChange, dllName, 
   const statusLabel = useMemo(() => {
     if (!operationResult || !lastOperation) return null;
     if (operationResult.status === "success") {
-      return lastOperation === "patch" ? "Game patched" : "Game unpatched";
+      return lastOperation === "patch" ? "游戏已修补" : "游戏已撤销修补";
     }
-    return lastOperation === "patch" ? "Patch failed" : "Unpatch failed";
+    return lastOperation === "patch" ? "修补失败" : "撤销修补失败";
   }, [lastOperation, operationResult]);
 
   const openDirectoryPicker = useCallback(async () => {
@@ -203,11 +203,11 @@ export const ManualPatchControls = ({ isAvailable, onManualModeChange, dllName, 
     <>
       <PanelSectionRow>
         <ToggleField
-          label="Advanced Mode"
+          label="高级模式"
           description={
             isAvailable
-              ? "Manually apply OptiScaler to a specific game directory."
-              : "Install OptiScaler first to enable manual patching."
+              ? "手动将 OptiScaler 应用到指定游戏目录。"
+              : "请先安装 OptiScaler，才能使用手动修补。"
           }
           checked={isEnabled && isAvailable}
           disabled={!isAvailable}
@@ -223,13 +223,13 @@ export const ManualPatchControls = ({ isAvailable, onManualModeChange, dllName, 
                 ? "SteamDeck=0 %command%"
                 : `WINEDLLOVERRIDES="${dllName.replace(".dll", "")}=n,b" SteamDeck=0 %command%`
             }
-            buttonText="Manual launch cmd"
+            buttonText="复制手动启动命令"
           />
           <PanelSectionRow>
             <ButtonItem
               layout="below"
               onClick={openDirectoryPicker}
-              description="Choose the game's installation directory (where the EXE lives)."
+              description="选择游戏安装目录（EXE 文件所在位置）。"
             >
               Select directory
             </ButtonItem>
@@ -238,7 +238,7 @@ export const ManualPatchControls = ({ isAvailable, onManualModeChange, dllName, 
           {pickerState.lastError && (
             <PanelSectionRow>
               <Field
-                label="Picker error"
+                label="选择器错误"
                 description={pickerState.lastError}
               />
             </PanelSectionRow>
@@ -248,8 +248,8 @@ export const ManualPatchControls = ({ isAvailable, onManualModeChange, dllName, 
             <>
               <PanelSectionRow>
                 <Field
-                  label="Target directory"
-                  description="OptiScaler files will be copied here."
+                  label="目标目录"
+                  description="OptiScaler 文件将复制到这里。"
                 >
                   <div
                     style={{
@@ -275,7 +275,7 @@ export const ManualPatchControls = ({ isAvailable, onManualModeChange, dllName, 
                   disabled={busy}
                   onClick={() => runOperation("patch")}
                 >
-                  {isPatching ? "Patching..." : "Patch directory"}
+                  {isPatching ? "正在修补…" : "修补目录"}
                 </ButtonItem>
               </PanelSectionRow>
 
@@ -285,7 +285,7 @@ export const ManualPatchControls = ({ isAvailable, onManualModeChange, dllName, 
                   disabled={busy}
                   onClick={() => runOperation("unpatch")}
                 >
-                  {isUnpatching ? "Reverting..." : "Unpatch directory"}
+                  {isUnpatching ? "正在撤销…" : "撤销修补目录"}
                 </ButtonItem>
               </PanelSectionRow>
             </>
@@ -294,7 +294,7 @@ export const ManualPatchControls = ({ isAvailable, onManualModeChange, dllName, 
           {operationResult && (
             <PanelSectionRow>
               <Field
-                label={statusLabel ?? (wasSuccessful ? "Last action succeeded" : "Last action failed")}
+                label={statusLabel ?? (wasSuccessful ? "上次操作成功" : "上次操作失败")}
               >
                 {!wasSuccessful && statusMessage ? statusMessage : null}
               </Field>

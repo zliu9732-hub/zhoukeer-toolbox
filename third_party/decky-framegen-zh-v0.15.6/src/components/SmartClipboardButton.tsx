@@ -10,7 +10,7 @@ interface SmartClipboardButtonProps {
 
 export function SmartClipboardButton({ 
   command = "~/fgmod/fgmod %command%",
-  buttonText = "Copy Launch Command"
+  buttonText = "复制启动命令"
 }: SmartClipboardButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -34,12 +34,12 @@ export function SmartClipboardButton({
     if (isPatchCommand) {
       showModal(
         <ConfirmModal 
-          strTitle={`Patch Game with OptiScaler?`}
+          strTitle="要使用 OptiScaler 修补游戏吗？"
           strDescription={
             "WARNING: Decky Framegen does not unpatch games when uninstalled. Be sure to unpatch the game or run the OptiScaler uninstall script inside the game files if you choose to uninstall the plugin or the game has issues."
           }
-          strOKButtonText="Copy Patch Command"
-          strCancelButtonText="Cancel"
+          strOKButtonText="复制修补命令"
+          strCancelButtonText="取消"
           onOK={async () => {
             await performCopy();
           }}
@@ -105,15 +105,15 @@ export function SmartClipboardButton({
         }
       } else {
         toaster.toast({
-          title: "Copy Failed",
-          body: "Unable to copy to clipboard"
+          title: "复制失败",
+          body: "无法复制到剪贴板"
         });
       }
 
     } catch (error) {
       toaster.toast({
-        title: "Copy Failed",
-        body: `Error: ${String(error)}`
+        title: "复制失败",
+        body: `错误：${String(error)}`
       });
     } finally {
       setIsLoading(false);
@@ -144,7 +144,7 @@ export function SmartClipboardButton({
             color: showSuccess ? "#4CAF50" : "inherit",
             fontWeight: showSuccess ? "bold" : "normal"
           }}>
-            {showSuccess ? "Copied to clipboard" : isLoading ? "Copying..." : buttonText}
+            {showSuccess ? "已复制到剪贴板" : isLoading ? "正在复制…" : buttonText}
           </div>
         </div>
       </ButtonItem>

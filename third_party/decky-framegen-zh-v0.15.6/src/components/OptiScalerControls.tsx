@@ -135,7 +135,7 @@ export function OptiScalerControls({ pathExists, setPathExists, fgmodInfo }: Opt
           layout="below"
           label="默认 FSR4 运行库"
           description={FSR4_VARIANT_OPTIONS.find((option) => option.value === fsr4Variant)?.hint}
-          menuLabel="Default FSR4 runtime"
+          menuLabel="选择默认 FSR4 运行库"
           selectedOption={fsr4Variant}
           rgOptions={FSR4_VARIANT_OPTIONS.map((option) => ({ data: option.value, label: option.label }))}
           disabled={installing || uninstalling || switchingVariant}
@@ -159,7 +159,7 @@ export function OptiScalerControls({ pathExists, setPathExists, fgmodInfo }: Opt
             layout="below"
             label="代理 DLL 名称"
             description={PROXY_DLL_OPTIONS.find((o) => o.value === dllName)?.hint}
-            menuLabel="Proxy DLL name"
+            menuLabel="选择代理 DLL 名称"
             selectedOption={dllName}
             rgOptions={PROXY_DLL_OPTIONS.map((o) => ({ data: o.value, label: o.label }))}
             onChange={(option) => setDllName(String(option.data))}
@@ -177,7 +177,7 @@ export function OptiScalerControls({ pathExists, setPathExists, fgmodInfo }: Opt
         <PanelSectionRow>
           <ToggleField
             label="手动模式"
-            description="Show wrapper command clipboard buttons for patching and unpatching through ~/fgmod scripts."
+            description="显示通过 ~/fgmod 脚本修补或撤销修补的命令复制按钮。"
             checked={manualClipboardModeEnabled}
             onChange={setManualClipboardModeEnabled}
           />

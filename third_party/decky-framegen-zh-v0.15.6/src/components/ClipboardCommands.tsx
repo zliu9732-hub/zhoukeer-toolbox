@@ -25,18 +25,18 @@ export function ClipboardCommands({
       {showLaunchOptions ? (
         <SmartClipboardButton
           command={launchCmd}
-          buttonText="Copy launch options"
+          buttonText="复制启动选项"
         />
       ) : null}
       {manualModeEnabled ? (
         <>
           <SmartClipboardButton
             command="~/fgmod/fgmod %command%"
-            buttonText="Copy Patch Command"
+            buttonText="复制修补命令"
           />
           <SmartClipboardButton
             command="~/fgmod/fgmod-uninstaller.sh %command%"
-            buttonText="Copy Unpatch Command"
+            buttonText="复制撤销修补命令"
           />
         </>
       ) : null}

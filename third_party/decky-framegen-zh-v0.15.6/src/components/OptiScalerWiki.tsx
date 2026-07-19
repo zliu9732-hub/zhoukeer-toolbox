@@ -20,7 +20,7 @@ export function OptiScalerWiki({ pathExists }: OptiScalerWikiProps) {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <FaBook />
-          <div>OptiScaler Wiki</div>
+          <div>打开 OptiScaler 使用说明</div>
         </div>
       </ButtonItem>
     </PanelSectionRow>
