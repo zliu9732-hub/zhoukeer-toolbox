@@ -23,6 +23,7 @@ DECKY_SERVICE_NAME="plugin_loader.service"
 DECKY_TMP_DIR=""
 LSFG_OFFICIAL_DIRECTORY="Decky LSFG-VK"
 LSFG_OFFICIAL_VERSION="0.12.5"
+LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"
 LSFG_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5"
 LSFG_ZH_INDEX_SHA256="9ea05e9738191cd0e414b4c4a106a836b65170c1f8b32ccdf2ba792514f122d2"
 FSR4_OFFICIAL_DIRECTORY="Decky-Framegen"
@@ -1162,6 +1163,9 @@ install_lsfg_chinese() {
     local actual_sha256
     local bundled_version
     local reload_after="${1:-1}"
+    local official_runtime
+    local work_dir
+    local staged_source
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
@@ -1187,11 +1191,27 @@ install_lsfg_chinese() {
         echo "小黄鸭中文组件校验失败，已停止覆盖。"
         return 1
     fi
+    official_runtime="$plugin_root/$LSFG_OFFICIAL_DIRECTORY/bin/$LSFG_RUNTIME_ARCHIVE"
+    if [ ! -f "$official_runtime" ] || [ ! -s "$official_runtime" ]; then
+        echo "小黄鸭运行核心缺失，请从“常用插件组合”重新安装小黄鸭。"
+        return 1
+    fi
     prepare_plugin_root "$plugin_root" || return 1
-    install_tree_atomically "$LSFG_ZH_SOURCE_DIR" "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" || {
+    work_dir="$(mktemp -d)" || return 1
+    staged_source="$work_dir/$LSFG_OFFICIAL_DIRECTORY"
+    if ! cp -a -- "$LSFG_ZH_SOURCE_DIR" "$staged_source" || \
+       ! mkdir -p "$staged_source/bin" || \
+       ! cp -a -- "$official_runtime" "$staged_source/bin/$LSFG_RUNTIME_ARCHIVE"; then
+        rm -rf -- "$work_dir"
+        echo "小黄鸭中文组件准备失败，原版未改动。"
+        return 1
+    fi
+    install_tree_atomically "$staged_source" "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" || {
+        rm -rf -- "$work_dir"
         echo "小黄鸭安装失败，已尽量保留原版。"
         return 1
     }
+    rm -rf -- "$work_dir"
     echo "小黄鸭 v$LSFG_OFFICIAL_VERSION 已安装。"
     echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
     if [ "$reload_after" = "1" ]; then
@@ -1443,7 +1463,8 @@ install_feature_plugins() {
         case "$plugin" in
             lsfg)
                 echo "========== 小黄鸭（LSFG-VK） =========="
-                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK"; then
+                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭" && \
+                   [ -s "$DECKY_PLUGIN_DIR/$LSFG_OFFICIAL_DIRECTORY/bin/$LSFG_RUNTIME_ARCHIVE" ]; then
                     echo "[已跳过] 小黄鸭已安装"
                     if ! install_lsfg_chinese 0; then failed=1; fi
                     continue
