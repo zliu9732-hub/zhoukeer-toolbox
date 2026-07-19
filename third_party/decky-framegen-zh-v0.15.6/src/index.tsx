@@ -53,8 +53,8 @@ function MainContent() {
 }
 
 export default definePlugin(() => ({
-  name: "FSR4",
-  titleView: <div>FSR4</div>,
+  name: "Decky-Framegen(FSR4)",
+  titleView: <div>Decky-Framegen(FSR4)</div>,
   alwaysRender: true,
   content: <MainContent />,
   icon: <MdOutlineAutoAwesomeMotion />,

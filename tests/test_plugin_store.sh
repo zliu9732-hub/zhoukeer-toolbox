@@ -98,7 +98,7 @@ grep -Fq '闲鱼双叶' \
 grep -Fq '闲鱼双叶汉化' \
     "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/src/components/OptiScalerControls.tsx"
 fsr4_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/dist/index.js" | awk '{print $1}')"
-[ "$fsr4_actual_sha256" = "e9359c484f16e5ca3fae9ba376a376eed5b3cccf8f3ff7c889331853d8bfcd97" ] || {
+[ "$fsr4_actual_sha256" = "bab5565a1c49e4229ba5059092aef758a445d896823f77809d2d4b137ce15f90" ] || {
     echo "FAIL: FSR4 中文构建文件校验值不匹配" >&2
     exit 1
 }

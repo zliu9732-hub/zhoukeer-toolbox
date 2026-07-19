@@ -2,7 +2,7 @@
 // @ts-ignore
 
 // Prevents it from being duplicated in output.
-const manifest = {"name":"FSR4","author":"Kurt Himebauch","flags":[],"api_version":1,"publish":{"tags":["DLSS","Framegen","upscaling","FSR"],"description":"汉化：闲鱼双叶。管理 OptiScaler，为 DirectX 12 游戏提供超分辨率与插帧支持。","image":"https://raw.githubusercontent.com/xXJSONDeruloXx/Decky-Framegen/refs/heads/main/assets/optiscaler_final.png"}};
+const manifest = {"name":"Decky-Framegen(FSR4)","author":"Kurt Himebauch","flags":[],"api_version":1,"publish":{"tags":["DLSS","Framegen","upscaling","FSR"],"description":"汉化：闲鱼双叶。管理 OptiScaler，为 DirectX 12 游戏提供超分辨率与插帧支持。","image":"https://raw.githubusercontent.com/xXJSONDeruloXx/Decky-Framegen/refs/heads/main/assets/optiscaler_final.png"}};
 const API_VERSION = 2;
 const internalAPIConnection = window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit;
 // Initialize
@@ -219,7 +219,7 @@ function InstallationStatus({ pathExists, installing, onInstallClick }) {
             window.SP_REACT.createElement(DFL.ButtonItem, { layout: "below", onClick: onInstallClick, disabled: installing }, installing ? MESSAGES.installing : MESSAGES.installButton))));
 }
 
-var optiScalerImage = 'http://127.0.0.1:1337/plugins/FSR4/assets/header-banner-891a8a50.png';
+var optiScalerImage = 'http://127.0.0.1:1337/plugins/Decky-Framegen(FSR4)/assets/header-banner-891a8a50.png';
 
 function OptiScalerHeader({ pathExists }) {
     if (pathExists !== true)
@@ -937,8 +937,8 @@ function MainContent() {
         pathExists === true ? (window.SP_REACT.createElement(window.SP_REACT.Fragment, null)) : null));
 }
 var index = definePlugin(() => ({
-    name: "FSR4",
-    titleView: window.SP_REACT.createElement("div", null, "FSR4"),
+    name: "Decky-Framegen(FSR4)",
+    titleView: window.SP_REACT.createElement("div", null, "Decky-Framegen(FSR4)"),
     alwaysRender: true,
     content: window.SP_REACT.createElement(MainContent, null),
     icon: window.SP_REACT.createElement(MdOutlineAutoAwesomeMotion, null),
