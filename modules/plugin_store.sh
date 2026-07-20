@@ -108,6 +108,10 @@ download_decky_component() {
         return 1
     fi
 
+    local _dk_proxy=()
+    if [ -n "${DECKY_DOWNLOAD_PROXY:-}" ]; then
+        _dk_proxy=(--proxy "$DECKY_DOWNLOAD_PROXY")
+    fi
     if ! curl \
         --fail \
         --location \
@@ -119,6 +123,7 @@ download_decky_component() {
         --retry 3 \
         --retry-delay 2 \
         --retry-all-errors \
+        "${_dk_proxy[@]}" \
         --output "$output" \
         "$url"; then
         rm -f -- "$output"
@@ -418,6 +423,10 @@ download_verified_package() {
     local attempt
     local retry_options=(--retry 2 --retry-delay 2)
     local speed_options=(--speed-limit 65536 --speed-time 60)
+    local proxy_options=()
+    if [ -n "${DECKY_DOWNLOAD_PROXY:-}" ]; then
+        proxy_options=(--proxy "$DECKY_DOWNLOAD_PROXY")
+    fi
 
     if [ -z "$url" ] || [ -z "$expected_sha256" ]; then
         echo "$name 的下载配置不完整，请先更新工具箱。"
@@ -452,6 +461,7 @@ download_verified_package() {
                 --max-time 1200 \
                 "${retry_options[@]}" \
                 "${speed_options[@]}" \
+                "${proxy_options[@]}" \
                 --output "$output" \
                 "$_dl_url"; then
                 _dl_ok=1
