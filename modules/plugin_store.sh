@@ -480,6 +480,7 @@ download_verified_package() {
                 --proto '=https' \
                 --proto-redir '=https' \
                 --connect-timeout 10 \
+                --tls-max 1.2 \
                 --max-time 1200 \
                 "${retry_options[@]}" \
                 "${speed_options[@]}" \
