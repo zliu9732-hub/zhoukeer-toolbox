@@ -404,10 +404,10 @@ game_environment_menu() {
         ui_touch_button 15 '\033[1;97;48;5;24m' "FSR4" "单独安装 FSR4 汉化版"
         ui_touch_button 17 '\033[1;97;48;5;24m' "Freedeck" "下载游戏和模拟器游戏·感谢作者b站一苇Isidf"
         ui_touch_button 19 '\033[1;97;48;5;24m' "Unifideck" "一键管理游戏库布局和分组"
-        ui_touch_button 21 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
+        ui_touch_button 21 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:features right:7-8:all right:9-10:browse right:11-12:simpledeckytdp right:13-14:lsfg right:15-16:fsr4 right:17-18:freedeck right:19-20:unifideck right:21-22:decky-install right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:features right:7-8:all right:9-10:browse right:11-12:simpledeckytdp right:13-14:lsfg right:15-16:fsr4 right:17-18:freedeck right:19-20:unifideck right:21-22:cheatdeck right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -419,6 +419,7 @@ game_environment_menu() {
             fsr4) confirm_and_run "安装 FSR4" "单独安装 FSR4 汉化版，无需装其他插件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             freedeck) confirm_and_run "安装 Freedeck" "下载游戏和模拟器游戏；感谢作者b站一苇Isidf" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck ;;
             unifideck) confirm_and_run "安装 Unifideck" "一键管理游戏库布局和分组；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
+            cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             decky-install) NEXT_CATEGORY="advanced"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
