@@ -49,7 +49,7 @@ DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "性能与功耗控制" "清理游戏缓存" "自动更新应用" "管理蓝牙设备" "显示兼容性评分"
     "更多 Deck 设置" "显示通关时长" "记录游玩次数" "整理游戏库标签"
     "管理 Wine 与 Proton" "后台自动暂停游戏" "手柄辅助工具" "分应用调节音量" "查看电池状态"
-    "安装学习版和模拟器游戏"
+    "下载游戏和模拟器游戏"
     "记录游戏时长" "下载功能扩展" "USB 文件传输" "优化 Steam 界面"
 )
 DECKY_TOUCH_PAGE_SIZE=5
@@ -400,11 +400,13 @@ game_environment_menu() {
         ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件加27款精选插件" "优先安装三件套，已装则跳过；再补精选"
         ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
         ui_touch_button 11 '\033[1;97;48;5;24m' "GE 游戏运行组件" "提高 Windows 游戏兼容性"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "小黄鸭" "单独安装小黄鸭汉化版"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "FSR4" "单独安装 FSR4 汉化版"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "Freedeck" "下载游戏和模拟器游戏·感谢作者b站一苇Isidf"
+        ui_touch_button 19 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:features right:7-8:all right:9-10:browse right:11-12:ge-proton right:13-14:epic right:15-16:decky-install right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:features right:7-8:all right:9-10:browse right:11-12:ge-proton right:13-14:lsfg right:15-16:fsr4 right:17-18:freedeck right:19-20:decky-install right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -412,7 +414,9 @@ game_environment_menu() {
             all) confirm_and_run "安装常用插件加27款精选插件" "三件套已装则跳过，未装则安装；再补27款精选；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
             browse) plugin_official_touch_pages ;;
             ge-proton) confirm_and_run "安装 GE 游戏运行组件" "将安装第三方 GE-Proton 游戏兼容组件" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
-            baidunetdisk) confirm_and_run "安装百度网盘" "Flathub 安装百度网盘 Linux 版，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" baidunetdisk ;;
+            lsfg) confirm_and_run "安装小黄鸭" "单独安装小黄鸭汉化版，无需装其他插件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
+            fsr4) confirm_and_run "安装 FSR4" "单独安装 FSR4 汉化版，无需装其他插件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
+            freedeck) confirm_and_run "安装 Freedeck" "下载游戏和模拟器游戏；感谢作者b站一苇Isidf" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck ;;
             decky-install) NEXT_CATEGORY="advanced"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -596,7 +600,6 @@ advanced_tools_menu() {
         ui_touch_button 9 '\033[1;97;48;5;160m' "Steamcommunity 302" "可能修改 DNS 和证书 · 高级操作"
         ui_touch_button 11 '\033[1;97;48;5;160m' "设置管理员密码" "会修改 SteamOS 管理密码 · 高级操作"
         ui_touch_button 13 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "安装插件商城" "会使用管理员权限 · 高级操作"
         ui_touch_button 17 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单 · 高级操作"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt

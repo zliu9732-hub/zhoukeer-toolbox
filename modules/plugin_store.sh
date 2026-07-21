@@ -1473,7 +1473,7 @@ install_configured_plugin() {
             ;;
         freedeck)
             install_decky_zip \
-                "Freedeck（学习版和模拟器）感谢作者b站一苇Isidf" \
+                "Freedeck（下载游戏和模拟器游戏）感谢作者b站一苇Isidf" \
                 "${DECKY_FREEDECK_URL:-}" \
                 "${DECKY_FREEDECK_SHA256:-}" \
                 "Freedeck-0.6"
