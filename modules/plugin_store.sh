@@ -1478,6 +1478,20 @@ install_configured_plugin() {
                 "${DECKY_FREEDECK_SHA256:-}" \
                 "Freedeck-0.6"
             ;;
+        simpledeckytdp)
+            install_decky_zip \
+                "SimpleDeckyTDP" \
+                "${DECKY_SIMPLE_TDP_URL:-}" \
+                "${DECKY_SIMPLE_TDP_SHA256:-}" \
+                "SimpleDeckyTDP"
+            ;;
+        unifideck)
+            install_decky_zip \
+                "Unifideck" \
+                "${DECKY_UNIFIDECK_URL:-}" \
+                "${DECKY_UNIFIDECK_SHA256:-}" \
+                "unifideck"
+            ;;
         *) return 1 ;;
     esac || return 1
 
@@ -1688,6 +1702,8 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         fsr4) show_plugin_download_speed_tip; install_configured_plugin fsr4 ;;
         cheatdeck) show_plugin_download_speed_tip; install_configured_plugin cheatdeck ;;
         freedeck) show_plugin_download_speed_tip; install_configured_plugin freedeck ;;
+        simpledeckytdp) show_plugin_download_speed_tip; install_configured_plugin simpledeckytdp ;;
+        unifideck) show_plugin_download_speed_tip; install_configured_plugin unifideck ;;
         localizer)
             echo "旧版通用扫描式汉化已停用，请使用“常用插件组合”。"
             exit 1
