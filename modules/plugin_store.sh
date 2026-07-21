@@ -1551,48 +1551,50 @@ install_feature_plugins() {
 
     ensure_plugin_store_ready || return 1
 
+    # 先检测三件套是否都已安装，是则跳过
+    local _all_installed=1
+    if ! feature_plugin_is_present "$DECKY_PLUGIN_DIR" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭"; then _all_installed=0; fi
+    if ! feature_plugin_is_present "$DECKY_PLUGIN_DIR" "Decky-Framegen" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then _all_installed=0; fi
+    if ! feature_plugin_is_present "$DECKY_PLUGIN_DIR" "CheatDeck" "CheatDeck"; then _all_installed=0; fi
+    if [ "$_all_installed" = "1" ]; then
+        echo "三款常用功能插件已全部安装，无需重复安装。"
+        print_feature_plugin_status
+        return 0
+    fi
+
     echo "将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。"
-    echo "小黄鸭和 FSR4 优先从 Gitee 国内镜像下载完整汉化包，失败则回退原版叠加流程；单项失败不会覆盖该插件的旧版本。"
+    echo "小黄鸭和 FSR4 优先从 Gitee 国内镜像下载完整汉化包，失败则回退原版叠加流程。"
     for plugin in lsfg fsr4 cheatdeck; do
         echo ""
         case "$plugin" in
             lsfg)
                 echo "========== 小黄鸭（LSFG-VK） =========="
-                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭" && \
-                   [ -s "$DECKY_PLUGIN_DIR/$LSFG_OFFICIAL_DIRECTORY/bin/$LSFG_RUNTIME_ARCHIVE" ]; then
-                    echo "[已跳过] 小黄鸭已安装"
-                    if ! install_lsfg_zh_from_gitee 0; then failed=1; fi
+                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭"; then
+                    echo "[已安装] 小黄鸭已安装，跳过。"
                     continue
                 fi
+                install_lsfg_zh_from_gitee 0 || failed=1
                 ;;
             fsr4)
                 echo "========== FSR4（Decky Framegen） =========="
-                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "Decky-Framegen" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)" && \
-                   [ -s "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/bin/$FSR4_RUNTIME_ARCHIVE" ] && \
-                   [ -s "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/bin/$FSR4_RUNTIME_UPSCALER" ] && \
-                   [ -s "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/bin/$FSR4_RUNTIME_PATCHER" ] && \
-                   [ -f "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/assets/fgmod.sh" ]; then
-                    echo "[已跳过] FSR4 已安装"
-                    if ! install_fsr4_zh_from_gitee 0; then failed=1; fi
+                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "Decky-Framegen" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then
+                    echo "[已安装] FSR4 已安装，跳过。"
                     continue
                 fi
+                install_fsr4_zh_from_gitee 0 || failed=1
                 ;;
             cheatdeck)
                 echo "========== CheatDeck =========="
                 if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "CheatDeck" "CheatDeck"; then
-                    echo "[已跳过] CheatDeck 已安装"
+                    echo "[已安装] CheatDeck 已安装，跳过。"
                     continue
                 fi
+                install_configured_plugin cheatdeck 0 0 || {
+                    failed=1
+                    echo "该插件未完成，继续尝试其余插件。"
+                }
                 ;;
         esac
-        if [ "$plugin" = "lsfg" ]; then
-            install_lsfg_zh_from_gitee 0 || failed=1
-        elif [ "$plugin" = "fsr4" ]; then
-            install_fsr4_zh_from_gitee 0 || failed=1
-        elif ! install_configured_plugin "$plugin" 0 0; then
-            failed=1
-            echo "该插件未完成，继续尝试其余插件。"
-        fi
     done
 
     if ! print_feature_plugin_status; then
@@ -1600,12 +1602,10 @@ install_feature_plugins() {
         echo "至少有一项插件文件未写入完成，请单独重试对应项目。"
     fi
 
-    reload_decky_plugins \
-        "Decky 已重新加载；返回游戏模式后，三款插件会出现在插头菜单中。"
+    reload_decky_plugins         "Decky 已重新加载；返回游戏模式后，三款插件会出现在插头菜单中。"
 
     # 整组安装全部处理完后再打开正版页面，避免 Steam 窗口打断后两项插件。
-    if feature_plugin_is_present \
-        "$DECKY_PLUGIN_DIR" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭"; then
+    if feature_plugin_is_present         "$DECKY_PLUGIN_DIR" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭"; then
         check_lossless_scaling_installation
     fi
 
@@ -1620,7 +1620,7 @@ install_feature_plugins() {
 }
 
 install_all_plugin_packages() {
-    echo "将依次处理 3款独立功能插件和25款精选插件，其中包括SimpleDeckyTDP与Unifideck。"
+    echo "将依次处理 3款独立功能插件和26款精选插件，其中包括SimpleDeckyTDP与Unifideck。"
     echo "官方推荐插件仍由 Decky 内置安装器在 Steam 界面中确认。"
 
     install_feature_plugins || return 1
@@ -1640,15 +1640,15 @@ install_25_plugins() {
         echo "精选插件安装仅支持真实 SteamOS 环境。"
         return 1
     fi
-    echo "将从 Decky 官方商店批量安装 25 款精选插件，其中包括 SimpleDeckyTDP 与 Unifideck。"
+    echo "将从 Decky 官方商店批量安装 26 款精选插件，其中包括 SimpleDeckyTDP 与 Unifideck。"
     echo "不会安装小黄鸭、FSR4 和 CheatDeck（请在常用功能插件中单独安装）。"
     echo "官方推荐插件仍由 Decky 内置安装器在 Steam 界面中确认。"
     if ! bash "$PROJECT_ROOT/modules/decky_bundle.sh" install; then
         echo "精选插件安装未完成提交。"
         return 1
     fi
-    echo "25 款精选插件的安装流程已完成。"
-    log "25款精选插件安装完成"
+    echo "26 款精选插件的安装流程已完成。"
+    log "26款精选插件安装完成"
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
