@@ -399,21 +399,22 @@ game_environment_menu() {
 
     while true; do
         draw_category_frame games "游戏与插件｜插件安装" "浏览插件商城、运行组件和启动器" 0
-        ui_touch_button 5 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭等三款插件"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件加27款精选插件" "优先安装三件套，已装则跳过；再补精选"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "SimpleDeckyTDP" "TDP/功耗性能控制"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "小黄鸭" "单独安装小黄鸭汉化版·汉化作者：闲鱼双叶"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "FSR4" "单独安装 FSR4 汉化版·汉化作者：闲鱼双叶"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "Freedeck" "下载游戏和模拟器游戏·感谢作者b站一苇Isidf"
-        ui_touch_button 19 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
-        ui_touch_button 21 '\033[1;97;48;5;238m' "下一页…" "继续查看安装插件商城"
+        ui_touch_button 5 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭等三款插件"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "常用插件加27款精选插件" "优先安装三件套，已装则跳过；再补精选"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "SimpleDeckyTDP" "TDP/功耗性能控制"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "小黄鸭" "单独安装小黄鸭汉化版·汉化作者：闲鱼双叶"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "FSR4" "单独安装 FSR4 汉化版·汉化作者：闲鱼双叶"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "Freedeck" "下载游戏和模拟器游戏·感谢作者b站一苇Isidf"
+        ui_touch_button 21 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:features right:7-8:all right:9-10:browse right:11-12:simpledeckytdp right:13-14:lsfg right:15-16:fsr4 right:17-18:freedeck right:19-20:cheatdeck right:21-22:next right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:decky-install right:7-8:features right:9-10:all right:11-12:browse right:13-14:simpledeckytdp right:15-16:lsfg right:17-18:fsr4 right:19-20:freedeck right:21-22:cheatdeck right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
+            decky-install) NEXT_CATEGORY="advanced"; return 0 ;;
             features) confirm_and_run "安装常用插件组合" "未安装插件商城时会先安装插件商城，再继续安装三款插件；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
             all) confirm_and_run "安装常用插件加27款精选插件" "三件套已装则跳过，未装则安装；再补27款精选；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
             browse) plugin_official_touch_pages ;;
@@ -428,21 +429,20 @@ game_environment_menu() {
         [ "$NEXT_CATEGORY" = "game_environment" ] || return 0
     done
 }
+
 plugin_page_2_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "插件安装｜下一页" "安装插件商城与剩余插件" 0
-        ui_touch_button 5 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "Unifideck" "入库第三方平台游戏"
-        ui_touch_button 9 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
+        draw_category_frame games "插件安装｜更多" "更多独立插件" 0
+        ui_touch_button 5 '\033[1;97;48;5;24m' "Unifideck" "入库第三方平台游戏"
+        ui_touch_button 7 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:decky-install right:7-8:unifideck right:9-10:previous right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:unifideck right:7-8:previous right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            decky-install) NEXT_CATEGORY="advanced"; return 0 ;;
             unifideck) confirm_and_run "安装 Unifideck" "入库第三方平台游戏；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
             previous) NEXT_CATEGORY="games"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
