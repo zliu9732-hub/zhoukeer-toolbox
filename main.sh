@@ -222,10 +222,10 @@ common_software_menu() {
         ui_touch_button 14 '\033[1;97;48;5;24m' "ToDesk 远程协助" "安装前需完成系统设置"
         ui_touch_button 16 '\033[1;97;48;5;24m' "Windows 软件工具" "安装 Bottles 运行工具"
         ui_touch_button 18 '\033[1;97;48;5;24m' "游戏兼容设置" "安装 Protontricks"
-        ui_touch_button 20 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
+        ui_touch_button 20 '\033[1;97;48;5;24m' "百度网盘" "Flathub 安装百度网盘 Linux 版"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:2-3:wechat right:4-5:qq right:6-7:browser right:8-9:chrome right:10-11:edge right:12-13:rustdesk right:14-15:todesk right:16-17:bottles right:18-19:protontricks right:20-21:epic right:22-23:baidunetdisk right:24-25:home)"
+        choice="$(read_touch_menu right:2-3:wechat right:4-5:qq right:6-7:browser right:8-9:chrome right:10-11:edge right:12-13:rustdesk right:14-15:todesk right:16-17:bottles right:18-19:protontricks right:20-21:baidunetdisk right:22-23:home)"
         case "$choice" in
             nav-*) apply_navigation "$choice"; return 0 ;;
         esac
@@ -240,7 +240,7 @@ common_software_menu() {
             todesk) todesk_preflight software ;;
             protontricks) confirm_and_run "安装 Protontricks" "修复与配置 Steam 游戏 Proton 环境" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
             bottles) confirm_and_run "安装 Bottles" "独立运行第三方 Windows 应用与游戏" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
-            epic) run_action "安装 Epic 游戏启动器并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
+            baidunetdisk) confirm_and_run "安装百度网盘" "Flathub 安装百度网盘 Linux 版，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" baidunetdisk ;;
 
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -412,7 +412,7 @@ game_environment_menu() {
             all) confirm_and_run "安装常用插件加27款精选插件" "三件套已装则跳过，未装则安装；再补27款精选；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
             browse) plugin_official_touch_pages ;;
             ge-proton) confirm_and_run "安装 GE 游戏运行组件" "将安装第三方 GE-Proton 游戏兼容组件" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
-            epic) run_action "安装 Epic 游戏启动器并自动入库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
+            baidunetdisk) confirm_and_run "安装百度网盘" "Flathub 安装百度网盘 Linux 版，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" baidunetdisk ;;
             decky-install) NEXT_CATEGORY="advanced"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
