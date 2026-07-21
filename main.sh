@@ -223,7 +223,6 @@ common_software_menu() {
         ui_touch_button 16 '\033[1;97;48;5;24m' "Windows 软件工具" "安装 Bottles 运行工具"
         ui_touch_button 18 '\033[1;97;48;5;24m' "游戏兼容设置" "安装 Protontricks"
         ui_touch_button 20 '\033[1;97;48;5;24m' "百度网盘" "Flathub 安装百度网盘 Linux 版"
-        ui_touch_button 23 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
         ui_touch_button 25 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:2-3:wechat right:4-5:qq right:6-7:browser right:8-9:chrome right:10-11:edge right:12-13:rustdesk right:14-15:todesk right:16-17:bottles right:18-19:protontricks right:20-21:baidunetdisk right:22-23:home)"
@@ -286,7 +285,6 @@ todesk_preflight() {
         ui_panel_line 15 '\033[1;38;5;220m' "⑤ 重新进入桌面模式，再安装并启动 ToDesk"
         ui_touch_button 16 '\033[1;30;48;5;114m' "以上设置已完成，继续安装" "点击即确认两项开关均已开启"
         ui_touch_button 18 '\033[1;97;48;5;238m' "$return_label" "暂不安装"
-        ui_touch_button 23 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
         ui_touch_button 25 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         choice="$(read_touch_menu right:16-17:continue right:18-19:back right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
@@ -332,7 +330,6 @@ new_machine_preflight() {
         ui_panel_line 14 '\033[1;38;5;45m' "继续后将安装国内源、常用软件、Decky 和 ToDesk"
         ui_touch_button 16 '\033[1;30;48;5;114m' "设置已完成，开始新机初始化" "点击即确认已开启开发者模式和旧版 X11"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回新机必备" "暂不初始化"
-        ui_touch_button 23 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
         ui_touch_button 25 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         choice="$(read_touch_menu right:16-17:start right:18-19:init right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
@@ -414,7 +411,7 @@ game_environment_menu() {
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            decky-install) NEXT_CATEGORY="advanced"; return 0 ;;
+            decky-install) confirm_and_run "安装插件商城" "通过国内 CDN 安装插件商城，失败自动切换备用源" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store ;;
             features) confirm_and_run "安装常用插件组合" "未安装插件商城时会先安装插件商城，再继续安装三款插件；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
             all) confirm_and_run "安装常用插件加27款精选插件" "三件套已装则跳过，未装则安装；再补27款精选；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
             browse) plugin_official_touch_pages ;;
@@ -537,7 +534,6 @@ dual_system_menu() {
         ui_touch_button 13 '\033[1;97;48;5;24m' "显示开机系统菜单" "显示 systemd-boot 5 秒 · 高级操作"
         ui_touch_button 15 '\033[1;97;48;5;160m' "隐藏开机系统菜单" "将等待时间设置为 0 秒 · 高级操作"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统与密码" "查看其他系统功能"
-        ui_touch_button 23 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
         ui_touch_button 25 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:7-8:mount right:9-10:protect right:11-12:unprotect right:13-14:add right:15-16:remove right:18-19:advanced right:22-23:home)"
@@ -583,7 +579,6 @@ domestic_source_preflight() {
         ui_panel_line 15 '\033[1;38;5;203m' "恢复官方源功能尚未完成，请确认了解后继续"
         ui_touch_button 17 '\033[1;97;48;5;160m' "确认修改国内软件源" "执行现有初始化动作 · 高风险"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回系统与密码" "不做任何修改"
-        ui_touch_button 23 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
         ui_touch_button 25 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:17-18:confirm-source right:19-20:advanced right:22-23:home)"
@@ -610,17 +605,15 @@ advanced_tools_menu() {
         ui_touch_button 11 '\033[1;97;48;5;160m' "设置管理员密码" "会修改 SteamOS 管理密码 · 高级操作"
         ui_touch_button 13 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
         ui_touch_button 17 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单 · 高级操作"
-        ui_touch_button 23 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
         ui_touch_button 25 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:set-password right:13-14:change-password right:15-16:decky-install right:17-18:dual right:22-23:home)"
+        choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:set-password right:13-14:change-password right:17-18:dual right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             domestic-source) domestic_source_preflight ;;
             accelerator) steam_accelerator_touch_menu ;;
             set-password) confirm_and_run "设置管理员密码" "新密码会明文保存到桌面管理员密码.txt；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" set ;;
             change-password) confirm_and_run "修改管理员密码" "将读取旧记录并明文保存新密码；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;
-            decky-install) confirm_and_run "安装插件商城" "请先在游戏模式开启开发者模式和 CEF 远程调试。安装会使用管理员权限并启动后台服务" bash "$PROJECT_ROOT/modules/plugin_store.sh" store ;;
             dual) dual_system_menu ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -661,7 +654,6 @@ steam_accelerator_touch_menu() {
         ui_touch_button 12 '\033[1;97;48;5;24m' "查看运行状态" "检查加速是否开启"
         ui_touch_button 15 '\033[1;97;48;5;160m' "安全卸载" "先停止工具箱进程，再删除程序文件"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统与密码" "查看其他系统功能"
-        ui_touch_button 23 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
         ui_touch_button 25 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:6-7:install right:9-10:start right:12-13:status right:15-16:uninstall right:18-19:advanced right:22-23:home)"
@@ -715,7 +707,6 @@ maintenance_menu() {
         ui_touch_button 13 '\033[1;97;48;5;160m' "清理用户缓存" "清理可重新生成的缓存 · 会删除缓存"
         ui_touch_button 15 '\033[1;97;48;5;24m' "查看性能建议" "查看推荐性能设置"
         ui_touch_button 17 '\033[1;97;48;5;160m' "常见问题处理" "检测网络并清理下载残留 · 会删除缓存"
-        ui_touch_button 23 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
         ui_touch_button 25 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:5-6:health right:7-8:diagnose right:9-10:download-cache right:11-12:shader-cache right:13-14:user-cache right:15-16:performance right:17-18:fix right:22-23:home)"
@@ -755,7 +746,6 @@ help_menu() {
             ui_touch_button 15 '\033[1;97;48;5;160m' "检查并更新工具箱" "下载并安装最新版本 · 会联网并更新"
             ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回系统信息和指南"
         fi
-        ui_touch_button 23 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
         ui_touch_button 25 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         if [ "$page" -eq 1 ]; then
