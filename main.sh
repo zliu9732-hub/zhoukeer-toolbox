@@ -403,7 +403,7 @@ game_environment_menu() {
         ui_touch_button 13 '\033[1;97;48;5;24m' "小黄鸭" "单独安装小黄鸭汉化版"
         ui_touch_button 15 '\033[1;97;48;5;24m' "FSR4" "单独安装 FSR4 汉化版"
         ui_touch_button 17 '\033[1;97;48;5;24m' "Freedeck" "下载游戏和模拟器游戏·感谢作者b站一苇Isidf"
-        ui_touch_button 19 '\033[1;97;48;5;24m' "Unifideck" "一键管理游戏库布局和分组"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "Unifideck" "入库第三方平台游戏"
         ui_touch_button 21 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -418,7 +418,7 @@ game_environment_menu() {
             lsfg) confirm_and_run "安装小黄鸭" "单独安装小黄鸭汉化版，无需装其他插件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
             fsr4) confirm_and_run "安装 FSR4" "单独安装 FSR4 汉化版，无需装其他插件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             freedeck) confirm_and_run "安装 Freedeck" "下载游戏和模拟器游戏；感谢作者b站一苇Isidf" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck ;;
-            unifideck) confirm_and_run "安装 Unifideck" "一键管理游戏库布局和分组；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
+            unifideck) confirm_and_run "安装 Unifideck" "入库第三方平台游戏；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
             cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             decky-install) NEXT_CATEGORY="advanced"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
