@@ -121,7 +121,8 @@ download_decky_component() {
         --proto-redir '=https' \
         --connect-timeout 15 \
         --max-time 1200 \
-        --retry 3 \
+        --retry 5 \
+        --retry-connrefused \
         --retry-delay 2 \
         --retry-all-errors \
         "${_dk_proxy[@]}" \
@@ -440,7 +441,7 @@ download_verified_package() {
     local actual_sha256
     local curl_status
     local attempt
-    local retry_options=(--retry 2 --retry-delay 2)
+    local retry_options=(--retry 5 --retry-delay 2 --retry-connrefused)
     local speed_options=(--speed-limit 65536 --speed-time 60)
     local proxy_options=()
     if [ -n "${DECKY_DOWNLOAD_PROXY:-}" ]; then
