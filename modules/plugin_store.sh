@@ -1519,7 +1519,7 @@ print_feature_plugin_status() {
         echo "✗ 小黄鸭（LSFG-VK）：未找到完整插件文件"
         missing=1
     fi
-    if feature_plugin_is_present "$plugin_root" "Decky-Framegen" "Decky-Framegen" "FSR4"; then
+    if feature_plugin_is_present "$plugin_root" "Decky-Framegen" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then
         echo "✓ FSR4（Decky-Framegen）：已写入 Decky"
     else
         echo "✗ FSR4（Decky-Framegen）：未找到完整插件文件"
@@ -1533,7 +1533,7 @@ print_feature_plugin_status() {
     fi
 
     echo ""
-    echo "说明：插件侧栏中的 Decky-Framegen 就是 FSR4；“系统主题”属于 CSS Loader，不是本次三件套。"
+    echo "说明：插件侧栏中的 Decky-Framegen 就是 FSR4。"
     echo "CheatDeck 安装完成后可在 Decky 右侧栏显示。"
     echo "若刚安装完仍未生效，请完全退出游戏模式后重新进入一次，让 Decky 重新加载插件。"
     return "$missing"
@@ -1567,7 +1567,7 @@ install_feature_plugins() {
                 ;;
             fsr4)
                 echo "========== FSR4（Decky Framegen） =========="
-                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "Decky-Framegen" "Decky-Framegen" "FSR4" && \
+                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "Decky-Framegen" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)" && \
                    [ -s "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/bin/$FSR4_RUNTIME_ARCHIVE" ] && \
                    [ -s "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/bin/$FSR4_RUNTIME_UPSCALER" ] && \
                    [ -s "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/bin/$FSR4_RUNTIME_PATCHER" ] && \
