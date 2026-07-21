@@ -72,6 +72,12 @@ software_details() {
             SOFTWARE_INSTALL_MODE="rustdesk_appimage"
             SOFTWARE_CATEGORIES="Network;RemoteAccess;"
             ;;
+        baidunetdisk)
+            SOFTWARE_NAME="百度网盘"
+            SOFTWARE_DESKTOP_NAME="百度网盘"
+            SOFTWARE_APP_ID="com.baidu.NetDisk"
+            SOFTWARE_CATEGORIES="Network;FileTransfer;"
+            ;;
         *)
             echo "未知软件: $1"
             return 1
@@ -101,6 +107,12 @@ confirm_software_install() {
             echo "将从 RustDesk 作者 GitHub Release 下载 x86_64 AppImage。"
             echo "安装位置：$RUSTDESK_APPIMAGE_PATH"
             echo "下载最长等待 $RUSTDESK_DOWNLOAD_TIMEOUT 秒，失败后会保留旧版本。"
+            ;;
+        baidunetdisk)
+            SOFTWARE_NAME="百度网盘"
+            SOFTWARE_DESKTOP_NAME="百度网盘"
+            SOFTWARE_APP_ID="com.baidu.NetDisk"
+            SOFTWARE_CATEGORIES="Network;FileTransfer;"
             ;;
         *)
             echo "将通过Flatpak以当前用户身份安装：$SOFTWARE_NAME"
@@ -382,6 +394,12 @@ install_official_qq_appimage() (
     architecture="$(uname -m)"
     case "$architecture" in
         x86_64|amd64) ;;
+        baidunetdisk)
+            SOFTWARE_NAME="百度网盘"
+            SOFTWARE_DESKTOP_NAME="百度网盘"
+            SOFTWARE_APP_ID="com.baidu.NetDisk"
+            SOFTWARE_CATEGORIES="Network;FileTransfer;"
+            ;;
         *)
             echo "腾讯官网当前未提供适用于 $architecture 的QQ AppImage安装入口。"
             return 1
@@ -456,6 +474,12 @@ install_official_wechat_appimage() (
     architecture="$(uname -m)"
     case "$architecture" in
         x86_64|amd64) ;;
+        baidunetdisk)
+            SOFTWARE_NAME="百度网盘"
+            SOFTWARE_DESKTOP_NAME="百度网盘"
+            SOFTWARE_APP_ID="com.baidu.NetDisk"
+            SOFTWARE_CATEGORIES="Network;FileTransfer;"
+            ;;
         *)
             echo "当前微信官方AppImage不适用于 $architecture 架构。"
             return 1
@@ -523,6 +547,12 @@ install_rustdesk_appimage() (
     architecture="$(uname -m)"
     case "$architecture" in
         x86_64|amd64) ;;
+        baidunetdisk)
+            SOFTWARE_NAME="百度网盘"
+            SOFTWARE_DESKTOP_NAME="百度网盘"
+            SOFTWARE_APP_ID="com.baidu.NetDisk"
+            SOFTWARE_CATEGORIES="Network;FileTransfer;"
+            ;;
         *)
             echo "当前RustDesk安装包不适用于 $architecture 架构。"
             return 1
@@ -615,6 +645,12 @@ install_firefox_archive() (
     architecture="$(uname -m)"
     case "$architecture" in
         x86_64|amd64) ;;
+        baidunetdisk)
+            SOFTWARE_NAME="百度网盘"
+            SOFTWARE_DESKTOP_NAME="百度网盘"
+            SOFTWARE_APP_ID="com.baidu.NetDisk"
+            SOFTWARE_CATEGORIES="Network;FileTransfer;"
+            ;;
         *)
             echo "当前Firefox完整包不适用于 $architecture 架构。"
             return 1
@@ -707,6 +743,12 @@ software_is_installed() {
         appimage) qq_appimage_is_valid "$QQ_APPIMAGE_PATH" ;;
         wechat_appimage) wechat_appimage_is_valid "$WECHAT_APPIMAGE_PATH" ;;
         rustdesk_appimage) rustdesk_appimage_is_valid "$RUSTDESK_APPIMAGE_PATH" ;;
+        baidunetdisk)
+            SOFTWARE_NAME="百度网盘"
+            SOFTWARE_DESKTOP_NAME="百度网盘"
+            SOFTWARE_APP_ID="com.baidu.NetDisk"
+            SOFTWARE_CATEGORIES="Network;FileTransfer;"
+            ;;
         *)
             command -v flatpak >/dev/null 2>&1 && \
                 flatpak info "$SOFTWARE_APP_ID" >/dev/null 2>&1
@@ -733,6 +775,12 @@ create_software_shortcut() {
         rustdesk_appimage)
             exec_line="\"$RUSTDESK_APPIMAGE_PATH\""
             icon_name="rustdesk"
+            ;;
+        baidunetdisk)
+            SOFTWARE_NAME="百度网盘"
+            SOFTWARE_DESKTOP_NAME="百度网盘"
+            SOFTWARE_APP_ID="com.baidu.NetDisk"
+            SOFTWARE_CATEGORIES="Network;FileTransfer;"
             ;;
         *)
             exec_line="flatpak run $SOFTWARE_APP_ID"
@@ -1063,6 +1111,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         edge) install_flatpak_app "com.microsoft.Edge" "Microsoft Edge" ;;
         protontricks) install_flatpak_app "com.github.Matoking.protontricks" "Protontricks" ;;
         bottles) install_flatpak_app "com.usebottles.bottles" "Bottles" ;;
+        baidunetdisk) software_details baidunetdisk && install_flatpak_app "com.baidu.NetDisk" "百度网盘 Linux 版" ;;
         status) require_command od && show_software_status ;;
         repair-shortcuts) require_command od && repair_software_shortcuts ;;
         *) echo "用法: $0 {wechat|qq|browser|rustdesk|chrome|edge|protontricks|bottles|status|repair-shortcuts}"; exit 1 ;;

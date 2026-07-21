@@ -225,7 +225,7 @@ common_software_menu() {
         ui_touch_button 20 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:2-3:wechat right:4-5:qq right:6-7:browser right:8-9:chrome right:10-11:edge right:12-13:rustdesk right:14-15:todesk right:16-17:bottles right:18-19:protontricks right:20-21:epic right:22-23:home)"
+        choice="$(read_touch_menu right:2-3:wechat right:4-5:qq right:6-7:browser right:8-9:chrome right:10-11:edge right:12-13:rustdesk right:14-15:todesk right:16-17:bottles right:18-19:protontricks right:20-21:epic right:22-23:baidunetdisk right:24-25:home)"
         case "$choice" in
             nav-*) apply_navigation "$choice"; return 0 ;;
         esac

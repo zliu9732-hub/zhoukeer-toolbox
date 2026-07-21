@@ -80,6 +80,7 @@ software_menu() {
             rustdesk "RustDesk 远程协助｜安装开源远程工具" \
             todesk "ToDesk 远程协助｜安装前需完成系统设置" \
             bottles "Windows 软件工具｜安装 Bottles 运行工具" \
+            baidunetdisk "百度网盘｜Flathub 安装百度网盘 Linux 版" \
             protontricks "游戏兼容设置｜安装 Protontricks" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
             home "返回首页" \
@@ -112,6 +113,7 @@ software_menu() {
                     run_gui_action "安装 ToDesk" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/todesk.sh" --install
                 ;;
+            baidunetdisk) gui_confirm "将通过 Flatpak 安装百度网盘。是否继续？" && run_gui_action "安装百度网盘" bash "$PROJECT_ROOT/modules/software.sh" baidunetdisk ;;
             protontricks) gui_confirm "将通过 Flatpak 安装 Protontricks。是否继续？" && run_gui_action "安装 Protontricks" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
             bottles) gui_confirm "将通过 Flatpak 安装 Bottles。是否继续？" && run_gui_action "安装 Bottles" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
             epic)
