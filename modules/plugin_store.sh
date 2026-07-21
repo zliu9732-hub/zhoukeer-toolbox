@@ -1165,7 +1165,7 @@ install_lsfg_bundle() {
         "$LSFG_OFFICIAL_DIRECTORY" || return 1
     remove_legacy_lsfg_directories "$plugin_root"
 
-    echo "汉化作者：周克儿工具箱，感谢支持！"
+    echo "汉化作者：闲鱼双叶，感谢支持！"
     if [ "$open_store_after" = "1" ]; then
         check_lossless_scaling_installation
     fi
@@ -1226,9 +1226,9 @@ install_lsfg_chinese() {
     }
     rm -rf -- "$work_dir"
     echo "小黄鸭 v$LSFG_OFFICIAL_VERSION 已安装。"
-    echo "汉化作者：周克儿工具箱，感谢支持！"
+    echo "汉化作者：闲鱼双叶，感谢支持！"
     echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
-    echo "汉化作者：周克儿工具箱，感谢支持！"
+    echo "汉化作者：闲鱼双叶，感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可使用。"
     fi
@@ -1259,7 +1259,7 @@ install_lsfg_zh_from_gitee() {
         return $?
     }
     remove_legacy_lsfg_directories "$plugin_root"
-    echo "汉化作者：周克儿工具箱，感谢支持！"
+    echo "汉化作者：闲鱼双叶，感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可使用。"
     fi
@@ -1323,9 +1323,9 @@ install_fsr4_chinese() {
     }
     rm -rf -- "$work_dir"
     echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面已安装（闲鱼双叶汉化）。"
-    echo "汉化作者：周克儿工具箱，感谢支持！"
+    echo "汉化作者：闲鱼双叶，感谢支持！"
     echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
-    echo "汉化作者：周克儿工具箱，感谢支持！"
+    echo "汉化作者：闲鱼双叶，感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 FSR4 插帧即可看到中文界面。"
     fi
@@ -1355,9 +1355,9 @@ install_fsr4_zh_from_gitee() {
         return $?
     }
     echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面已安装（闲鱼双叶汉化）。"
-    echo "汉化作者：周克儿工具箱，感谢支持！"
+    echo "汉化作者：闲鱼双叶，感谢支持！"
     echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
-    echo "汉化作者：周克儿工具箱，感谢支持！"
+    echo "汉化作者：闲鱼双叶，感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 FSR4 插帧即可看到中文界面。"
     fi
