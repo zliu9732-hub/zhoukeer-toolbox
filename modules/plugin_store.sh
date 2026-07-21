@@ -1624,6 +1624,16 @@ install_all_plugin_packages() {
     echo "官方推荐插件仍由 Decky 内置安装器在 Steam 界面中确认。"
 
     install_feature_plugins || return 1
+
+    # 等待 Decky Loader 就绪（安装三件套可能重启了服务）
+    local _dw_i
+    for _dw_i in 1 2 3 4 5; do
+        if curl -s --connect-timeout 2 --max-time 4             "$DECKY_API_BASE/auth/token" >/dev/null 2>&1; then
+            break
+        fi
+        sleep 3
+    done
+
     if ! bash "$PROJECT_ROOT/modules/decky_bundle.sh" install; then
         echo "官方推荐插件清单未完成提交；小黄鸭、FSR4 和 CheatDeck 的结果请查看上方提示。"
         return 1
