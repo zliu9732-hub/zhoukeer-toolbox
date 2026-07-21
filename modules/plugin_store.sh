@@ -1553,9 +1553,9 @@ install_feature_plugins() {
 
     # 先检测三件套是否都已安装，是则跳过
     local _all_installed=1
-    if ! feature_plugin_is_present "$DECKY_PLUGIN_DIR" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭"; then _all_installed=0; fi
-    if ! feature_plugin_is_present "$DECKY_PLUGIN_DIR" "Decky-Framegen" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then _all_installed=0; fi
-    if ! feature_plugin_is_present "$DECKY_PLUGIN_DIR" "CheatDeck" "CheatDeck"; then _all_installed=0; fi
+    if ! feature_plugin_is_present "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭"; then _all_installed=0; fi
+    if ! feature_plugin_is_present "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "Decky-Framegen" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then _all_installed=0; fi
+    if ! feature_plugin_is_present "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "CheatDeck" "CheatDeck"; then _all_installed=0; fi
     if [ "$_all_installed" = "1" ]; then
         echo "三款常用功能插件已全部安装，无需重复安装。"
         print_feature_plugin_status
@@ -1569,7 +1569,7 @@ install_feature_plugins() {
         case "$plugin" in
             lsfg)
                 echo "========== 小黄鸭（LSFG-VK） =========="
-                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭"; then
+                if feature_plugin_is_present "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭"; then
                     echo "[已安装] 小黄鸭已安装，跳过。"
                     continue
                 fi
@@ -1577,7 +1577,7 @@ install_feature_plugins() {
                 ;;
             fsr4)
                 echo "========== FSR4（Decky Framegen） =========="
-                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "Decky-Framegen" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then
+                if feature_plugin_is_present "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "Decky-Framegen" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then
                     echo "[已安装] FSR4 已安装，跳过。"
                     continue
                 fi
@@ -1585,7 +1585,7 @@ install_feature_plugins() {
                 ;;
             cheatdeck)
                 echo "========== CheatDeck =========="
-                if feature_plugin_is_present "$DECKY_PLUGIN_DIR" "CheatDeck" "CheatDeck"; then
+                if feature_plugin_is_present "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "CheatDeck" "CheatDeck"; then
                     echo "[已安装] CheatDeck 已安装，跳过。"
                     continue
                 fi
@@ -1605,7 +1605,7 @@ install_feature_plugins() {
     reload_decky_plugins         "Decky 已重新加载；返回游戏模式后，三款插件会出现在插头菜单中。"
 
     # 整组安装全部处理完后再打开正版页面，避免 Steam 窗口打断后两项插件。
-    if feature_plugin_is_present         "$DECKY_PLUGIN_DIR" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭"; then
+    if feature_plugin_is_present         "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭"; then
         check_lossless_scaling_installation
     fi
 
