@@ -1717,7 +1717,9 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         store) show_plugin_download_speed_tip; install_plugin_store ;;
         lsfg) show_plugin_download_speed_tip; install_configured_plugin lsfg ;;
         lsfg-zh) install_lsfg_chinese ;;
+        lsfg-zh-gitee) install_lsfg_zh_from_gitee ;;
         fsr4-zh) install_fsr4_chinese ;;
+        fsr4-zh-gitee) install_fsr4_zh_from_gitee ;;
         lsfg-restore) show_plugin_download_speed_tip; restore_lsfg_official ;;
         lsfg-store) open_lossless_store ;;
         lsfg-import-select) select_and_import_lossless_backup ;;
