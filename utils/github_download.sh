@@ -212,7 +212,6 @@ download_github_file() {
     printf '%b' "$_sources_fallback"
     echo "可能的原因：网络连接不稳定，或 GitHub 暂时不可用。"
     echo "请检查网络连接，稍后重试。"
-    echo "如持续下载缓慢或失败，请在工具箱【系统设置 · 密码 → 安装 Steam302】中开启 GitHub 加速。"
     echo "日志位置：$LOG_DIR/toolbox.log"
     echo "======================================"
     

@@ -404,10 +404,10 @@ game_environment_menu() {
         ui_touch_button 15 '\033[1;97;48;5;24m' "小黄鸭" "单独安装小黄鸭汉化版·汉化作者：闲鱼双叶"
         ui_touch_button 17 '\033[1;97;48;5;24m' "FSR4" "单独安装 FSR4 汉化版·汉化作者：闲鱼双叶"
         ui_touch_button 19 '\033[1;97;48;5;24m' "Freedeck" "下载游戏和模拟器游戏·感谢作者b站一苇Isidf"
-        ui_touch_button 21 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
+        ui_touch_button 21 '\033[1;97;48;5;238m' "下一页…" "查看剩余插件"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:decky-install right:7-8:features right:9-10:all right:11-12:browse right:13-14:simpledeckytdp right:15-16:lsfg right:17-18:fsr4 right:19-20:freedeck right:21-22:cheatdeck right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:decky-install right:7-8:features right:9-10:all right:11-12:browse right:13-14:simpledeckytdp right:15-16:lsfg right:17-18:fsr4 right:19-20:freedeck right:21-22:next right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -419,7 +419,7 @@ game_environment_menu() {
             lsfg) confirm_and_run "安装小黄鸭" "单独安装小黄鸭汉化版，无需装其他插件；汉化作者：闲鱼双叶" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
             fsr4) confirm_and_run "安装 FSR4" "单独安装 FSR4 汉化版，无需装其他插件；汉化作者：闲鱼双叶" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             freedeck) confirm_and_run "安装 Freedeck" "下载游戏和模拟器游戏；感谢作者b站一苇Isidf" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck ;;
-            cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
+            next) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
             next) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -431,16 +431,20 @@ plugin_page_2_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "插件安装｜更多" "更多独立插件" 0
-        ui_touch_button 5 '\033[1;97;48;5;24m' "Unifideck" "入库第三方平台游戏"
-        ui_touch_button 7 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
+        draw_category_frame games "插件安装｜更多" "更多独立插件和启动器" 0
+        ui_touch_button 5 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "Unifideck" "入库第三方平台游戏"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
+        ui_touch_button 11 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:unifideck right:7-8:previous right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:cheatdeck right:7-8:unifideck right:9-10:epic right:11-12:previous right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
+            cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             unifideck) confirm_and_run "安装 Unifideck" "入库第三方平台游戏；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
+            epic) confirm_and_run "安装 Epic 游戏启动器" "安装并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
             previous) NEXT_CATEGORY="games"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac

@@ -57,6 +57,7 @@ show_plugin_download_speed_tip() {
         echo "1. 打开桌面 Steamcommunity 302"
         echo "2. 勾选 Steam 和 GitHub"
         echo "3. 点击启动服务，再返回工具箱重试"
+        echo "4. 或在工具箱【系统设置 · 密码 → 安装 Steam302】中一键安装开启加速"
     fi
     echo "===================================="
     echo ""
@@ -493,7 +494,6 @@ download_verified_package() {
                     rm -f -- "$output"
                     echo "$name 下载速度持续过慢（低于 64KB/s 超过 60 秒），已跳过。"
                     print_steam302_download_fallback
-    echo "如持续下载缓慢或失败，请在工具箱【系统设置 · 密码 → 安装 Steam302】中开启 GitHub 加速。"
                     return 1
                 fi
             fi
@@ -519,7 +519,6 @@ download_verified_package() {
 
     echo "$name 下载失败，两轮均未成功，未改动现有文件。"
     print_steam302_download_fallback
-    echo "如持续下载缓慢或失败，请在工具箱【系统设置 · 密码 → 安装 Steam302】中开启 GitHub 加速。"
     return 1
 }
 
