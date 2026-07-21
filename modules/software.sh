@@ -1058,6 +1058,7 @@ install_flatpak_app() {
     local app_name="$2"
     local _fp_src _fp_desk
 
+    echo "提示：如遇下载缓慢，请在工具箱【系统设置 → 国内源】中初始化国内 Flathub 源。"
     echo "正在安装 $app_name..."
     for _fp_src in Sjtu Ustc flathub; do
         if flatpak remote-list --user 2>/dev/null | grep -q "$_fp_src"; then
