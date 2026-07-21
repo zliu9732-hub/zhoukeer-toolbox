@@ -25,6 +25,9 @@ DECKY_SIMPLE_TDP_SHA256="${ZHOUKEER_DECKY_SIMPLE_TDP_SHA256:-ebf1c68147b6300ee17
 DECKY_UNIFIDECK_URL="${ZHOUKEER_DECKY_UNIFIDECK_URL:-https://github.com/mubaraknumann/unifideck/releases/download/Release-0.7/unifideck.prod.v0.7.0.zip}"
 DECKY_UNIFIDECK_VERSION="${ZHOUKEER_DECKY_UNIFIDECK_VERSION:-0.7.0}"
 DECKY_UNIFIDECK_SHA256="${ZHOUKEER_DECKY_UNIFIDECK_SHA256:-4715b74d0033b8c1587040e90c1d19b925c7110c7723926605aa62128c4c03e0}"
+DECKY_FREEDECK_URL="${ZHOUKEER_DECKY_FREEDECK_URL:-https://github.com/panyiwei-home/Freedeck/archive/refs/tags/0.6.zip}"
+DECKY_FREEDECK_SHA256="${ZHOUKEER_DECKY_FREEDECK_SHA256:-1b42bc7ab15f5a0fee69f2c261340247359e55d83c48ee45f95851704217a7b6}"
+DECKY_FREEDECK_VERSION="${ZHOUKEER_DECKY_FREEDECK_VERSION:-0.6}"
 
 # Names must exactly match the official Decky store database.
 DECKY_OFFICIAL_PLUGIN_NAMES='["CSS Loader","vibrantDeck","Animation Changer","Audio Loader","SteamGridDB","PowerTools","Storage Cleaner","AutoFlatpaks","Bluetooth","ProtonDB Badges","Deck Settings","HLTB for Deck","PlayCount","TabMaster","Wine Cellar","Pause Games","Controller Tools","Volume Mixer","Battery Tracker","PlayTime","Free Loader","DeckMTP","MangoPeel"]'

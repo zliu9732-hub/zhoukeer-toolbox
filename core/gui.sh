@@ -22,12 +22,14 @@ DECKY_OFFICIAL_PLUGIN_NAMES=(
     "Deck Settings" "HLTB for Deck" "PlayCount" "TabMaster"
     "Wine Cellar" "Pause Games" "Controller Tools" "Volume Mixer" "Battery Tracker"
     "PlayTime" "Free Loader" "DeckMTP" "MangoPeel"
+    "Freedeck"
 )
 DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "自定义界面样式" "调整界面配色" "更换开机动画" "更换系统音效" "自动补游戏封面"
     "性能与功耗控制" "清理游戏缓存" "自动更新应用" "管理蓝牙设备" "显示兼容性评分"
     "更多 Deck 设置" "显示通关时长" "记录游玩次数" "整理游戏库标签"
     "管理 Wine 与 Proton" "后台自动暂停游戏" "手柄辅助工具" "分应用调节音量" "查看电池状态"
+    "安装学习版和模拟器游戏"
     "记录游戏时长" "下载功能扩展" "USB 文件传输" "优化 Steam 界面"
 )
 
@@ -153,7 +155,7 @@ game_environment_gui_menu() {
     while true; do
         choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
             features "常用插件组合｜安装小黄鸭等三款插件" \
-            all "常用插件加26款精选插件｜优先安装三件套，已装则跳过；再补26款精选" \
+            all "常用插件加27款精选插件｜优先安装三件套，已装则跳过；再补27款精选" \
             browse "浏览官方插件｜逐个查看插件作用" \
             ge-proton "GE 游戏运行组件｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
@@ -168,7 +170,7 @@ game_environment_gui_menu() {
                 ;;
             all)
                 gui_confirm "未安装插件商城时会先安装插件商城，再继续安装常用与精选插件；会使用管理员权限。是否继续？" && \
-                    run_gui_action "安装常用插件加26款精选插件" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    run_gui_action "安装常用插件加27款精选插件" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" all
                 ;;
             browse)

@@ -1165,6 +1165,7 @@ install_lsfg_bundle() {
         "$LSFG_OFFICIAL_DIRECTORY" || return 1
     remove_legacy_lsfg_directories "$plugin_root"
 
+    echo "汉化作者：周克儿工具箱，感谢支持！"
     if [ "$open_store_after" = "1" ]; then
         check_lossless_scaling_installation
     fi
@@ -1225,7 +1226,9 @@ install_lsfg_chinese() {
     }
     rm -rf -- "$work_dir"
     echo "小黄鸭 v$LSFG_OFFICIAL_VERSION 已安装。"
+    echo "汉化作者：周克儿工具箱，感谢支持！"
     echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
+    echo "汉化作者：周克儿工具箱，感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可使用。"
     fi
@@ -1256,6 +1259,7 @@ install_lsfg_zh_from_gitee() {
         return $?
     }
     remove_legacy_lsfg_directories "$plugin_root"
+    echo "汉化作者：周克儿工具箱，感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可使用。"
     fi
@@ -1319,7 +1323,9 @@ install_fsr4_chinese() {
     }
     rm -rf -- "$work_dir"
     echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面已安装（闲鱼双叶汉化）。"
+    echo "汉化作者：周克儿工具箱，感谢支持！"
     echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
+    echo "汉化作者：周克儿工具箱，感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 FSR4 插帧即可看到中文界面。"
     fi
@@ -1349,7 +1355,9 @@ install_fsr4_zh_from_gitee() {
         return $?
     }
     echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面已安装（闲鱼双叶汉化）。"
+    echo "汉化作者：周克儿工具箱，感谢支持！"
     echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
+    echo "汉化作者：周克儿工具箱，感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 FSR4 插帧即可看到中文界面。"
     fi
@@ -1462,6 +1470,13 @@ install_configured_plugin() {
                 "${DECKY_CHEATDECK_URL:-}" \
                 "${DECKY_CHEATDECK_SHA256:-}" \
                 "CheatDeck"
+            ;;
+        freedeck)
+            install_decky_zip \
+                "Freedeck（学习版和模拟器）感谢作者b站一苇Isidf" \
+                "${DECKY_FREEDECK_URL:-}" \
+                "${DECKY_FREEDECK_SHA256:-}" \
+                "Freedeck-0.6"
             ;;
         *) return 1 ;;
     esac || return 1
@@ -1620,7 +1635,7 @@ install_feature_plugins() {
 }
 
 install_all_plugin_packages() {
-    echo "将依次处理 3款独立功能插件和26款精选插件，其中包括SimpleDeckyTDP与Unifideck。"
+    echo "将依次处理 3款独立功能插件和27款精选插件，其中包括SimpleDeckyTDP与Unifideck。"
     echo "官方推荐插件仍由 Decky 内置安装器在 Steam 界面中确认。"
 
     install_feature_plugins || return 1
@@ -1672,6 +1687,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         lsfg-import-select) select_and_import_lossless_backup ;;
         fsr4) show_plugin_download_speed_tip; install_configured_plugin fsr4 ;;
         cheatdeck) show_plugin_download_speed_tip; install_configured_plugin cheatdeck ;;
+        freedeck) show_plugin_download_speed_tip; install_configured_plugin freedeck ;;
         localizer)
             echo "旧版通用扫描式汉化已停用，请使用“常用插件组合”。"
             exit 1
