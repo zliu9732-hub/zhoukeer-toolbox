@@ -413,6 +413,24 @@ ensure_plugin_store_ready() {
     echo "插件商城已安装完成，继续安装插件。"
 }
 
+# 测速所有 GitHub 镜像并按响应时间排序（最快在前），仅内部使用。
+_GITHUB_MIRRORS_RANKED=""
+_rank_github_mirrors() {
+    local test_url="${1:-https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/VERSION}"
+    [ -n "$_GITHUB_MIRRORS_RANKED" ] && { printf '%s' "$_GITHUB_MIRRORS_RANKED"; return 0; }
+    local tmpfile _mirror speed entry
+    tmpfile="$(mktemp 2>/dev/null)" || return 1
+    for _mirror in $GITHUB_MIRRORS; do
+        speed=$(curl -o /dev/null -s -w '%{time_total}'             --connect-timeout 3 --max-time 5             "${_mirror}${test_url}" 2>/dev/null || echo "999")
+        printf '%s|%s
+' "$speed" "$_mirror" >> "$tmpfile"
+    done
+    _GITHUB_MIRRORS_RANKED="$(sort -t'|' -k1 -n "$tmpfile" | cut -d'|' -f2 | tr '
+' ' ')"
+    rm -f "$tmpfile"
+    printf '%s' "$_GITHUB_MIRRORS_RANKED"
+}
+
 download_verified_package() {
     local name="$1"
     local url="$2"
@@ -439,10 +457,13 @@ download_verified_package() {
         retry_options+=(--retry-all-errors)
     fi
 
+    _rank_github_mirrors >/dev/null 2>&1 || true
+    local _use_mirrors="${_GITHUB_MIRRORS_RANKED:-$GITHUB_MIRRORS}"
+
     for attempt in 1 2; do
         rm -f -- "$output"
         local _dl_ok=0 _dl_url _mirror
-        for _mirror in $GITHUB_MIRRORS ""; do
+        for _mirror in $_use_mirrors ""; do
             if [ -n "$_mirror" ]; then
                 _dl_url="${_mirror}${url}"
             else
