@@ -244,12 +244,12 @@ dual_system_menu() {
     while true; do
         choice="$(gui_dialog --menu "双系统与互通盘｜磁盘和开机菜单设置｜高级操作" \
             health "双系统健康检查｜识别 Clover、rEFInd、GRUB、OpenCore 等｜只读" \
-            mount "B1 挂载双系统互通盘｜连接唯一未挂载的共享盘｜高级操作" \
-            tf-format "B2 初始化并挂载 TF 卡｜清空并格式化为 exFAT｜高风险" \
-            repair-drive "B3 修复磁盘写入错误｜NTFS/exFAT 基础修复｜高级操作" \
-            clover-install "B4 安装或修复 Clover｜SteamOS / Windows｜写入 EFI｜高级操作" \
-            protect "B5 双系统互通盘保护｜防止 SteamOS 误写入｜高级操作" \
-            windows-shortcut "B6 一键切换 Windows｜创建桌面图标｜仅下一次启动" \
+            mount "挂载双系统互通盘｜自动排除 Windows 系统分区｜高级操作" \
+            tf-format "初始化并挂载 TF 卡｜清空并格式化为 exFAT｜高风险" \
+            repair-drive "修复磁盘写入错误｜NTFS/exFAT 基础修复｜高级操作" \
+            clover-install "安装或修复 Clover｜SteamOS / Windows｜写入 EFI｜高级操作" \
+            protect "双系统互通盘保护｜防止 SteamOS 误写入｜高级操作" \
+            windows-shortcut "一键切换 Windows｜创建桌面图标｜仅下一次启动" \
             unprotect "恢复互通盘写入｜重新以可写方式挂载｜高级操作" \
             clover-status "查看 Clover 状态｜检查主题、启动文件和 NVRAM" \
             clover-delete "删除 Clover 双系统引导｜恢复 BootOrder 和原 Clover｜高级操作" \
@@ -261,7 +261,7 @@ dual_system_menu() {
         case "$choice" in
             health) run_gui_action "双系统健康检查" bash "$PROJECT_ROOT/modules/dual_system_tools.sh" health ;;
             mount)
-                gui_confirm "将自动挂载唯一的未挂载 NTFS/exFAT 分区，并创建互通盘快捷入口。是否继续？" && \
+                gui_confirm "将自动排除 Windows 系统分区，挂载唯一安全的 NTFS/exFAT 互通盘，并创建快捷入口。是否继续？" && \
                     run_gui_action "挂载互通盘" \
                     bash "$PROJECT_ROOT/modules/dual_system.sh" mount
                 ;;

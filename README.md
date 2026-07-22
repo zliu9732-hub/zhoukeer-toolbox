@@ -2,7 +2,7 @@
 
 周克儿工具箱是面向 Steam Deck 及其他 SteamOS 掌机的 Bash 工具箱，提供一键新机初始化、常用软件、远程协助、插件商城、系统维护和安全更新入口。界面会按终端宽度收紧导航栏；体检、诊断、攻略和启动器功能尽量适配 SteamOS 掌机，涉及引导、只读分区等系统功能仍会先检查环境。
 
-- 双系统设置：提供互通盘挂载与只读保护、TF 卡 exFAT 初始化、NTFS/exFAT 基础修复、Clover 5173 安装修复、Windows 一次性切换桌面图标和只读健康检查。健康检查可识别 Clover、rEFInd、systemd-boot、GRUB、OpenCore、Windows 与 SteamOS；工具箱 Clover 可完整删除并恢复原 BootOrder，其他第三方引导只允许删除明确选择的 NVRAM 项且保留 EFI 文件。Clover 使用自定义怪盗与 Steam Deck 主题，不覆盖 BOOTX64.EFI 或 Windows bootmgfw.efi。
+- 双系统设置：提供互通盘挂载与只读保护、TF 卡 exFAT 初始化、NTFS/exFAT 基础修复、Clover 5173 安装修复、Windows 一次性切换桌面图标和只读健康检查。互通盘识别会只读检查 NTFS 并排除 Windows 系统分区，手动指定设备也不能绕过；健康检查可识别 Clover、rEFInd、systemd-boot、GRUB、OpenCore、Windows 与 SteamOS。工具箱 Clover 可完整删除并恢复原 BootOrder，其他第三方引导只允许删除明确选择的 NVRAM 项且保留 EFI 文件。Clover 使用自定义怪盗与 Steam Deck 主题，不覆盖 BOOTX64.EFI 或 Windows bootmgfw.efi。
 
 远程协助中提供 RustDesk 和 ToDesk。RustDesk 使用作者 GitHub Release 安装独立 AppImage 并自动创建桌面图标，不会修改 SteamOS 只读系统分区，也不会被工具箱自动写入任何服务器配置。
 

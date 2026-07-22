@@ -68,6 +68,7 @@ ZHOUKEER_SHARED_DRIVE_DEVICE="/dev/test-share"
 lsblk() {
     case " $* " in
         *' FSTYPE /dev/test-share '*) printf '%s\n' 'ntfs' ;;
+        *' FSTYPE /dev/windows '*) printf '%s\n' 'ntfs' ;;
         *) printf '%s\n' '/dev/test-share part ntfs' ;;
     esac
 }
@@ -108,4 +109,14 @@ if [ "$(tail -n 1 "$OPTIONS_FILE")" != 'mount --block-device /dev/test-share' ];
     fail "恢复互通盘写入仍带有只读挂载参数"
 fi
 
-echo "PASS: 双系统菜单、互通盘挂载和只读保护测试通过"
+WINDOWS_MOUNT="$TMP_ROOT/windows-system"
+mkdir -p "$WINDOWS_MOUNT/Windows/System32"
+MOUNT_PATH="$WINDOWS_MOUNT"
+ZHOUKEER_SHARED_DRIVE_DEVICE="/dev/windows"
+rm -f -- "$MOUNTED_STATE"
+if find_shared_drive_device 1 >/dev/null 2>&1; then
+    fail "Windows 系统分区仍可被识别为互通盘"
+fi
+[ ! -f "$MOUNTED_STATE" ] || fail "Windows 分区只读检查完成后没有自动卸载"
+
+echo "PASS: 双系统菜单、互通盘挂载、Windows 分区排除和只读保护测试通过"

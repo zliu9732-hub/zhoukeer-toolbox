@@ -533,13 +533,13 @@ dual_system_menu() {
 
     while true; do
         if [ "$page" -eq 0 ]; then
-            draw_category_frame advanced "双系统工具 B1-B6" "磁盘、Clover 与 Windows 切换 · 第 1/2 页"
-            ui_touch_button 5 '\033[1;97;48;5;24m' "B1 挂载双系统互通盘" "识别唯一 NTFS/exFAT 分区"
-            ui_touch_button 7 '\033[1;97;48;5;160m' "B2 初始化并挂载 TF 卡" "会清空目标卡并格式化为 exFAT"
-            ui_touch_button 9 '\033[1;97;48;5;160m' "B3 修复磁盘写入错误" "NTFS/exFAT 基础修复 · 会卸载磁盘"
-            ui_touch_button 11 '\033[1;97;48;5;160m' "B4 安装或修复 Clover" "恢复 SteamOS / Windows 开机菜单"
-            ui_touch_button 13 '\033[1;97;48;5;30m' "B5 双系统互通盘保护" "重新挂载为只读，防止升级后掉盘"
-            ui_touch_button 15 '\033[1;97;48;5;24m' "B6 一键切换 Windows" "创建仅下一次启动 Windows 的桌面图标"
+            draw_category_frame advanced "双系统常用工具" "磁盘、Clover 与 Windows 切换 · 第 1/2 页"
+            ui_touch_button 5 '\033[1;97;48;5;24m' "挂载双系统互通盘" "自动排除 Windows 系统分区"
+            ui_touch_button 7 '\033[1;97;48;5;160m' "初始化并挂载 TF 卡" "会清空目标卡并格式化为 exFAT"
+            ui_touch_button 9 '\033[1;97;48;5;160m' "修复磁盘写入错误" "NTFS/exFAT 基础修复 · 会卸载磁盘"
+            ui_touch_button 11 '\033[1;97;48;5;160m' "安装或修复 Clover" "恢复 SteamOS / Windows 开机菜单"
+            ui_touch_button 13 '\033[1;97;48;5;30m' "双系统互通盘保护" "重新挂载为只读，防止升级后掉盘"
+            ui_touch_button 15 '\033[1;97;48;5;24m' "一键切换 Windows" "创建仅下一次启动 Windows 的桌面图标"
             ui_touch_button 19 '\033[1;97;48;5;24m' "更多双系统工具" "状态、删除与第三方引导清理"
             ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统与密码" "查看其他系统功能"
             ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -553,7 +553,7 @@ dual_system_menu() {
             ui_touch_button 11 '\033[1;97;48;5;160m' "删除 Clover 双系统引导" "仅删除工具箱 Clover 并恢复 BootOrder"
             ui_touch_button 13 '\033[1;97;48;5;160m' "清理第三方引导项" "仅删选定 NVRAM，保留 EFI 文件"
             ui_touch_button 15 '\033[1;97;48;5;160m' "立即切换到 Windows" "仅下一次启动并立即重启"
-            ui_touch_button 19 '\033[1;97;48;5;24m' "返回 B1-B6" "回到双系统常用功能"
+            ui_touch_button 19 '\033[1;97;48;5;24m' "返回常用工具" "回到双系统常用功能"
             ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统与密码" "查看其他系统功能"
             ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
             ui_prompt

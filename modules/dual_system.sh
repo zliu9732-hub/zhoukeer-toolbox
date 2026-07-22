@@ -33,6 +33,40 @@ canonical_directory() {
     (cd "$1" 2>/dev/null && pwd -P)
 }
 
+shared_partition_is_windows_system() {
+    local device="$1"
+    local filesystem="$2"
+    local mountpoint output mounted_by_toolbox=0 result=1
+
+    case "$filesystem" in
+        ntfs|ntfs3) ;;
+        *) return 1 ;;
+    esac
+    mountpoint="$(findmnt -rn -S "$device" -o TARGET 2>/dev/null | head -n 1)"
+    if [ -z "$mountpoint" ]; then
+        output="$(udisksctl mount --block-device "$device" --options ro 2>&1)" || {
+            echo "无法安全检查 NTFS 分区 ${device}，已从互通盘候选中排除。" >&2
+            return 0
+        }
+        mounted_by_toolbox=1
+        mountpoint="$(findmnt -rn -S "$device" -o TARGET 2>/dev/null | head -n 1)"
+        [ -n "$mountpoint" ] || \
+            mountpoint="$(printf '%s\n' "$output" | extract_udisks_mountpoint)"
+    fi
+    if [ -z "$mountpoint" ] || [ ! -d "$mountpoint" ]; then
+        result=0
+    elif [ -d "$mountpoint/Windows/System32" ] || [ -d "$mountpoint/windows/system32" ]; then
+        result=0
+    fi
+    if [ "$mounted_by_toolbox" -eq 1 ]; then
+        udisksctl unmount --block-device "$device" >/dev/null 2>&1 || {
+            echo "临时检查后的 NTFS 分区无法卸载，已停止识别。" >&2
+            return 0
+        }
+    fi
+    return "$result"
+}
+
 find_shared_drive_device() {
     local include_mounted="${1:-0}"
     local requested="${ZHOUKEER_SHARED_DRIVE_DEVICE:-}"
@@ -63,6 +97,10 @@ find_shared_drive_device() {
             echo "指定设备不是 NTFS 或 exFAT 互通盘：$requested"
             return 1
         fi
+        if shared_partition_is_windows_system "$requested" "$filesystem"; then
+            echo "指定设备包含 Windows 系统目录或无法安全确认，已拒绝作为互通盘：$requested"
+            return 1
+        fi
         printf '%s\n' "$requested"
         return 0
     fi
@@ -73,6 +111,10 @@ find_shared_drive_device() {
             continue
         fi
         is_shared_filesystem "$filesystem" || continue
+        if shared_partition_is_windows_system "$device" "$filesystem"; then
+            echo "已排除 Windows 系统分区或无法确认的 NTFS：${device}" >&2
+            continue
+        fi
         candidate="$device"
         candidates+=("$device")
     done < <(lsblk -rpn -o NAME,TYPE,FSTYPE,MOUNTPOINT 2>/dev/null)
