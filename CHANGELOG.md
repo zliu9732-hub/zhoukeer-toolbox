@@ -1,4 +1,12 @@
 
+## V5.1.0 公开版 — 2026-07-22
+
+- 新增 Ubisoft Connect（Uplay）官方安装入口，自动检测已安装主程序、创建 Proton 启动包装器、桌面入口并写入 Steam 非 Steam 游戏库。
+- 兼容层优先级按启动器区分：仅战网优先 Proton 10.0-4，Epic 与 Ubisoft Connect 优先 Proton Experimental；缺少可用兼容层时仍可通过 Steam 补齐官方 Proton 10。
+- 安装或检测到 CheatDeck、小黄鸭、FSR4 后自动在桌面生成小白教程，整理 CheatDeck 添加风灵月影及录屏中的 LSFG-VK、OptiScaler 开启步骤，并附指定 B 站视频、35 秒起看和作者致谢。
+- 检测到 FSR4 时额外生成独立支持游戏名单，按要求移除《怪物猎人：荒野》；两个教程均明确警告 FSR/FSR4 不适合所有游戏。
+- 教程使用用户桌面目录和原子写入，只更新带工具箱管理标记的普通文件，不覆盖同名用户文件或符号链接。
+
 ## V5.0.9 公开版 — 2026-07-22
 
 - 新增“卸载已安装”三页菜单，可分别卸载常用软件、远程工具、Steam302、当前 GE-Proton、Decky Loader 或全部 Decky 插件；高风险项目继续单独确认。

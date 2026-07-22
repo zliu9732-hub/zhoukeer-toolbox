@@ -13,7 +13,7 @@
 ## 功能
 
 - 一键新机初始化：一次确认后依次检查SteamOS和网络，并自动执行当前清单中的新机常用项目。
-- 插件商城：当前完整清单共28款，包括小黄鸭、FSR4、CheatDeck三款独立功能插件，以及包含SimpleDeckyTDP和Unifideck在内的25款精选插件；支持全部一键安装、商店插件分页浏览、单项安装和三件套文件状态检查。Decky-Framegen 即 FSR4，CheatDeck 安装完成后也可在 Decky 右侧栏显示。另有独立的“周克儿汉化（修复版）”，会持续扫描并替换已知 Decky 可见文案，不修改原插件文件。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
+- 插件商城：当前完整清单共28款，包括小黄鸭、FSR4、CheatDeck三款独立功能插件，以及包含SimpleDeckyTDP和Unifideck在内的25款精选插件；支持全部一键安装、商店插件分页浏览、单项安装和三件套文件状态检查。Decky-Framegen 即 FSR4，CheatDeck 安装完成后也可在 Decky 右侧栏显示。安装或检测到三款功能插件后会在桌面补充风灵月影、小黄鸭和 FSR4 小白教程；检测到 FSR4 时另建支持游戏名单，两个文件均提醒 FSR/FSR4 不适合所有游戏。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
 
 使用小黄鸭前，安装完成后请在 Steam 正版页面打开游戏右侧齿轮，进入“属性 → 测试版”，选择名称以 Linux 开头的可用版本；随后进入游戏模式，按 Steam Deck 机身右下角的“三个点（…）”按钮，在打开的菜单中依次点击插头图标 → 小黄鸭 → 安装 LSFG。
 - 常用软件与远程协助：微信直接从腾讯官网国内 CDN 安装官方 AppImage；QQ 会在上海交大和中科大 Flatpak 缓存间测速、限时切换，避开腾讯 QQ AppImage CDN 的 403 限制；Firefox 使用官方 Flathub 的 `org.mozilla.firefox`，RustDesk 使用作者 GitHub Release 提供的 AppImage。安装成功后会创建桌面快捷方式，不修改SteamOS只读分区。
@@ -28,7 +28,7 @@
 - 一键修复模式：执行网络检测、Steam 下载缓存清理建议和 DNS 处理提示。
 - 一键体检：检查 SteamOS、剩余空间、网络与 Steam 域名解析、Decky、Flatpak 软件源和常用软件状态；不修改系统，并把报告保存到桌面。
 - 游戏启动诊断：检查 Steam 游戏库、可用空间、Steam 运行状态、兼容数据、自定义 Proton / GE 和日志目录；不删除游戏、兼容数据或缓存。
-- 游戏与掌机助手：一键下载 Epic 和战网官方 Windows 安装包并直接写入 Steam 非 Steam 游戏条目。只自动使用 Proton 10.0-4 与 Proton Experimental，优先 10.0-4；缺少时通过 Steam 安装官方 Proton 10。Epic 完成后会显示切换简体中文的操作路径。
+- 游戏与掌机助手：一键下载 Epic、战网和 Ubisoft Connect（Uplay）官方 Windows 安装包并直接写入 Steam 非 Steam 游戏条目。仅战网优先 Proton 10.0-4，Epic 与 Ubisoft Connect 优先 Proton Experimental；缺少时通过 Steam 安装官方 Proton 10。Epic 完成后会显示切换简体中文的操作路径。
 - 实用指南：独立提供启动器、Proton、手柄、反作弊和性能空间的中文兼容攻略；可查看常用快捷键、外接设备状态、高风险操作说明，并将最近 80 条工具箱操作记录导出到桌面。
 - 更新日志：可在工具箱内用触屏查看当前版本的主要改动。
 - 自动更新工具箱：每次启动会快速检测版本，发现新版本后自动下载并校验更新；优先使用Gitee，失败后切换GitHub，断网或更新失败时继续启动现有版本。
@@ -225,7 +225,7 @@ bash bootstrap.sh
 - Decky、微信、QQ和Firefox浏览器在当前SteamOS版本是否能正常安装、创建桌面快捷方式并启动。
 - 用户级Flathub国内缓存是否可用，官方Flathub备用源是否仍然保留。
 - Steamcommunity 302官方Linux AMD64包安装后是否无桌面图标、立即后台生效且重启后自动运行；停止和卸载后 hosts、DNS、证书及本机代理是否正确恢复。
-- Proton 10.0-4 优先、Proton Experimental 回退时，Epic 与战网安装器是否都能完成，并且 Epic 中文切换提示与当前界面一致。
+- 战网使用 Proton 10.0-4 优先、Epic 与 Ubisoft Connect 使用 Proton Experimental 优先时，三个官方安装器是否都能完成并自动加入 Steam；Epic 中文切换提示是否与当前界面一致。
 - 一键虚拟内存优化后，zram、磁盘 swap、优先级和 swappiness 是否在重启前后均符合状态页说明。
 - 设置/修改SteamOS密码后，桌面 `管理员密码.txt` 是否为明文新密码且权限为 `600`；工具箱sudo自动验证失败时是否安全回退到系统原生提示。
 - 更新菜单能否从Gitee下载并验证固定更新包，Gitee失败时能否切换GitHub。

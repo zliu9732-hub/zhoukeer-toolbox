@@ -156,6 +156,7 @@ game_environment_gui_menu() {
             ge-proton "GE 游戏运行组件｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
             battlenet "战网启动器｜安装并添加到 Steam" \
+            ubisoft "Ubisoft Connect（Uplay）｜安装并添加到 Steam" \
             decky-install "安装插件商城｜建议先安装 Steam302 加速｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -188,6 +189,11 @@ game_environment_gui_menu() {
                 run_gui_action "安装战网启动器并自动入库" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
+                ;;
+            ubisoft)
+                run_gui_action "安装 Ubisoft Connect（Uplay）并自动入库" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft
                 ;;
             decky-install)
                 gui_confirm "建议先安装 Steam302 后台加速。继续安装 Decky Loader 插件商城？" && \

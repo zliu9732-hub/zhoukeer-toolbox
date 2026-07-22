@@ -1466,6 +1466,217 @@ print_lossless_linux_branch_tip() {
     echo "在打开的菜单中依次点击：插头图标 → 小黄鸭 → 安装 LSFG。"
 }
 
+feature_guide_desktop_dir() {
+    local desktop_dir="${ZHOUKEER_DESKTOP_DIR:-}"
+
+    if [ -z "$desktop_dir" ] && command -v xdg-user-dir >/dev/null 2>&1; then
+        desktop_dir="$(xdg-user-dir DESKTOP 2>/dev/null || true)"
+    fi
+    [ -n "$desktop_dir" ] || desktop_dir="$HOME/Desktop"
+    case "$desktop_dir/" in
+        "$HOME/"*) ;;
+        *) echo "桌面目录不在当前用户主目录内，未创建教程：$desktop_dir" >&2; return 1 ;;
+    esac
+    if [ -L "$desktop_dir" ]; then
+        echo "桌面目录是符号链接，未自动写入教程：$desktop_dir" >&2
+        return 1
+    fi
+    mkdir -p -- "$desktop_dir" || return 1
+    printf '%s\n' "$desktop_dir"
+}
+
+prepare_managed_guide_target() {
+    local target="$1"
+
+    if [ -L "$target" ] || { [ -e "$target" ] && [ ! -f "$target" ]; }; then
+        echo "教程目标不是普通文件，未覆盖：$target" >&2
+        return 1
+    fi
+    if [ -f "$target" ] && ! grep -Fq '由周克儿工具箱管理' "$target"; then
+        echo "发现同名的用户文件，未覆盖：$target" >&2
+        return 1
+    fi
+}
+
+create_feature_usage_guide() {
+    local desktop_dir target temporary
+
+    desktop_dir="$(feature_guide_desktop_dir)" || return 1
+    target="$desktop_dir/风灵月影，小黄鸭，FSR4使用教程.txt"
+    prepare_managed_guide_target "$target" || return 1
+    temporary="$(mktemp "$desktop_dir/.zhoukeer-feature-guide.XXXXXX")" || return 1
+    if ! cat > "$temporary" <<'EOF'
+由周克儿工具箱管理
+风灵月影、小黄鸭、FSR4 使用教程
+
+【先看这句】FSR/FSR4 不适合所有游戏。只在明确支持的游戏中尝试；出现黑屏、闪退、花屏、画面变差或帧数下降时，立即关闭并恢复原设置。联网和竞技游戏还可能有反作弊风险，不要使用修改器或第三方注入功能。
+
+一、用 CheatDeck 添加风灵月影修改器
+1. 从可信来源下载与游戏版本完全对应的修改器 EXE，只建议在单机、离线游戏中使用。
+2. 把修改器放进名称简单、不会移动的文件夹，文件夹和文件名不要包含引号、斜杠等特殊字符。
+3. 回到 Steam 游戏模式，在目标游戏页面点击齿轮，选择 CheatDeck。
+4. 在“常规”页打开“启用修改器”，点击“选择修改器”，找到修改器 EXE。
+5. 点击“保存”，再启动游戏。修改器窗口没有出现时，按 Steam 键查看并切换到另一个窗口。
+6. 仍打不开时，确认 Steam 已开启开发者模式、游戏使用 Windows/Proton 版本；可尝试窗口化。缺少 .NET 或 VC++ 的修改器可能还需要 Protontricks 补运行库。
+
+视频参考：
+《SteamDeck用最简单的方法开启风灵月影修改器》
+https://www.bilibili.com/video/BV1ew411J7ab?vd_source=f3a5ba0de4c855bec0e80711bad63217
+请从 35 秒开始看。感谢作者“败家君的游戏屋”的演示与分享。
+
+二、按录屏给当前游戏添加小黄鸭（LSFG-VK）
+1. 先确认 Steam 正版 Lossless Scaling 已安装，并在“属性 → 测试版”中选择名称以 Linux 开头的版本。
+2. 先进入游戏模式右侧的 Decky 插头菜单，打开“小黄鸭”，完成 LSFG 安装。
+3. 回到目标游戏页面，点击齿轮 → CheatDeck → “高级”。
+4. 找到“LSFG-VK”开关并打开，其他看不懂的高级选项保持原样。
+5. 点击页面底部“保存”，再启动游戏测试。异常时关闭 LSFG-VK 并恢复原设置。
+
+三、按录屏给当前游戏添加 FSR4（OptiScaler）
+1. 先安装 FSR4/Decky-Framegen，并确认目标游戏位于桌面的《FSR4支持游戏名单》中。
+2. 在目标游戏页面点击齿轮 → CheatDeck → “高级”。
+3. 找到“OptiScaler”开关并打开，这就是录屏中添加 FSR4 的位置。
+4. 点击页面底部“保存”，再启动游戏测试；一次只改一个功能，方便出现问题时恢复。
+5. 不要因为列表里有开关就默认游戏一定适用。FSR/FSR4 不适合所有游戏，名单也可能随插件和游戏更新发生变化。
+EOF
+    then
+        rm -f -- "$temporary"
+        return 1
+    fi
+    chmod 600 "$temporary" || { rm -f -- "$temporary"; return 1; }
+    mv -f -- "$temporary" "$target" || { rm -f -- "$temporary"; return 1; }
+    echo "已在桌面更新《风灵月影，小黄鸭，FSR4使用教程.txt》。"
+}
+
+create_fsr4_supported_games_guide() {
+    local desktop_dir target temporary
+
+    desktop_dir="$(feature_guide_desktop_dir)" || return 1
+    target="$desktop_dir/FSR4支持游戏名单.txt"
+    prepare_managed_guide_target "$target" || return 1
+    temporary="$(mktemp "$desktop_dir/.zhoukeer-fsr4-guide.XXXXXX")" || return 1
+    if ! cat > "$temporary" <<'EOF'
+由周克儿工具箱管理
+FSR4 支持游戏名单（依据用户提供截图整理）
+
+【重要】FSR/FSR4 不适合所有游戏。本名单只用于判断是否值得尝试，不代表每台设备、每个游戏版本都能正常工作。出现黑屏、闪退、花屏、画面变差或帧数下降时，立即关闭并恢复原设置。名单已按要求排除指定游戏。
+
+寂静之地：前方之路
+暗区突围：无限
+方舟：生存升级
+刺客信条：影
+颂钟长鸣
+烈焰之刃
+使命召唤：黑色行动 6
+使命召唤：战争地带
+生灵之境：亚娃
+时间旅者：重生曙光
+赛博朋克 2077
+Deadzone: Rogue
+龙裔：被放逐者
+真·三国无双：起源
+艾诺提亚：失落之歌
+EVERSPACE 2
+F1 25
+堕落之主
+文明 7
+Fort Solis
+蜘蛛侠：迈尔斯·莫拉莱斯
+星球大战：亡命之徒
+权力的游戏：王者之路
+对马岛之魂：导演剪辑版
+战神：诸神黄昏
+侠盗猎车手 5 增强版
+灰区战争
+地狱即我们
+霍格沃兹之遗
+地平线西之绝境完整版
+地平线零之曙光重制版
+猎杀：对决 1896
+红河行动
+Influx 重制版
+inZOI
+天国：拯救 2
+Kristala
+遗产：钢铁与巫术
+匹诺曹的谎言
+如龙 8：Pirate Yakuza in Hawaii
+Ships At Sea
+最终幻想 16
+漫威蜘蛛侠重制版
+双影奇境
+Funko Fusion
+机甲战士 5：氏族
+真人快打 1
+永劫无间
+夜莺传说
+忍者龙剑传 2 黑之章
+地狱已满 2
+恐慌核心
+Planetaries
+铁血战士：狩猎场
+QANGA
+瑞奇与叮当：时空跳转
+Rem Survival
+遗迹 2
+RoadCraft
+符文世界：龙之荒野
+潜行者 2：切尔诺贝利之心
+Satisfactory
+FBC: Firebreak
+漫威争锋
+SMITE 2
+冰汽时代 2
+解限机
+剑星
+多重人生
+无形轴心
+上古卷轴 4：湮灭重制版
+最终决战
+第一狂战士：卡赞
+第一后裔
+最后生还者第一部
+最后生还者 2 重制版
+泰坦之旅 2
+直到黎明
+Virtua Fighter 5 R.E.V.O.
+战锤 40K：暗潮
+战锤 40K：星际战士 2
+兽猎突袭
+撞车嘉年华 2
+明末：渊虚之羽
+模拟农场 25
+四海兄弟：故乡
+寂静岭 2
+界外狂潮
+漫威蜘蛛侠 2
+
+添加方法：目标游戏页面 → 齿轮 → CheatDeck → 高级 → 打开 OptiScaler → 保存。
+再次提醒：FSR/FSR4 不适合所有游戏，使用前先看桌面的总教程。
+EOF
+    then
+        rm -f -- "$temporary"
+        return 1
+    fi
+    chmod 600 "$temporary" || { rm -f -- "$temporary"; return 1; }
+    mv -f -- "$temporary" "$target" || { rm -f -- "$temporary"; return 1; }
+    echo "已在桌面更新《FSR4支持游戏名单.txt》。"
+}
+
+refresh_feature_usage_guides() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local any_installed=0
+    local fsr4_installed=0
+
+    feature_plugin_is_present "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭" && any_installed=1
+    if feature_plugin_is_present "$plugin_root" "Decky-Framegen" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then
+        any_installed=1
+        fsr4_installed=1
+    fi
+    feature_plugin_is_present "$plugin_root" "CheatDeck" "CheatDeck" && any_installed=1
+    [ "$any_installed" -eq 0 ] || create_feature_usage_guide
+    [ "$fsr4_installed" -eq 0 ] || create_fsr4_supported_games_guide
+}
+
 install_configured_plugin() {
     local action="$1"
     local reload_after_install="${2:-1}"
@@ -1516,6 +1727,10 @@ install_configured_plugin() {
             ;;
         *) return 1 ;;
     esac || return 1
+
+    case "$action" in
+        lsfg|fsr4|cheatdeck) refresh_feature_usage_guides || true ;;
+    esac
 
     if [ "$reload_after_install" = "1" ] && [ "$PLUGIN_INSTALL_CHANGED" -eq 1 ]; then
         reload_decky_plugins "Decky 已重新加载，返回游戏模式后可在插头菜单看到新插件。"
@@ -1609,6 +1824,7 @@ install_feature_plugins() {
     if ! feature_plugin_is_present "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "CheatDeck" "CheatDeck"; then _all_installed=0; fi
     if [ "$_all_installed" = "1" ]; then
         echo "三款常用功能插件已全部安装，无需重复安装。"
+        refresh_feature_usage_guides || true
         print_feature_plugin_status
         return 0
     fi
@@ -1648,6 +1864,7 @@ install_feature_plugins() {
         esac
     done
 
+    refresh_feature_usage_guides || true
     if ! print_feature_plugin_status; then
         failed=1
         echo "至少有一项插件文件未写入完成，请单独重试对应项目。"
@@ -1717,10 +1934,10 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         store) show_plugin_download_speed_tip; install_plugin_store ;;
         store-uninstall) uninstall_plugin_store ;;
         lsfg) show_plugin_download_speed_tip; install_configured_plugin lsfg ;;
-        lsfg-zh) install_lsfg_chinese ;;
-        lsfg-zh-gitee) install_lsfg_zh_from_gitee ;;
-        fsr4-zh) install_fsr4_chinese ;;
-        fsr4-zh-gitee) install_fsr4_zh_from_gitee ;;
+        lsfg-zh) install_lsfg_chinese && refresh_feature_usage_guides ;;
+        lsfg-zh-gitee) install_lsfg_zh_from_gitee && refresh_feature_usage_guides ;;
+        fsr4-zh) install_fsr4_chinese && refresh_feature_usage_guides ;;
+        fsr4-zh-gitee) install_fsr4_zh_from_gitee && refresh_feature_usage_guides ;;
         lsfg-restore) show_plugin_download_speed_tip; restore_lsfg_official ;;
         lsfg-store) open_lossless_store ;;
         lsfg-import-select) select_and_import_lossless_backup ;;

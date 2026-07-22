@@ -22,14 +22,14 @@ assert_contains() {
     local text="$1"
     local expected="$2"
     local label="$3"
-    printf '%s\n' "$text" | grep -Fq -- "$expected" || fail "$label"
+    grep -Fq -- "$expected" <<< "$text" || fail "$label"
 }
 
 assert_not_contains() {
     local text="$1"
     local unexpected="$2"
     local label="$3"
-    if printf '%s\n' "$text" | grep -Fq -- "$unexpected"; then
+    if grep -Fq -- "$unexpected" <<< "$text"; then
         fail "$label"
     fi
 }
@@ -150,6 +150,7 @@ touch_games_page_1="$(function_source "$MAIN_FILE" game_environment_menu)"
 touch_games_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
 assert_contains "$touch_games_page_1" 'right:13-14:cheatdeck' "CheatDeck 未移动到插件第一页原 TDP 位置"
 assert_contains "$touch_games_page_2" 'right:5-6:simpledeckytdp' "SimpleDeckyTDP 未移动到插件第二页原 CheatDeck 位置"
+assert_contains "$touch_games_page_2" 'right:15-16:ubisoft' "Ubisoft Connect 未加入插件第二页"
 
 touch_dual="$(function_source "$MAIN_FILE" dual_system_menu)"
 gui_dual="$(function_source "$GUI_FILE" dual_system_menu)"

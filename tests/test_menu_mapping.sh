@@ -22,14 +22,14 @@ assert_contains() {
     local text="$1"
     local expected="$2"
     local label="$3"
-    printf '%s\n' "$text" | grep -Fq -- "$expected" || fail "$label"
+    grep -Fq -- "$expected" <<< "$text" || fail "$label"
 }
 
 assert_not_contains() {
     local text="$1"
     local unexpected="$2"
     local label="$3"
-    if printf '%s\n' "$text" | grep -Fq -- "$unexpected"; then
+    if grep -Fq -- "$unexpected" <<< "$text"; then
         fail "$label"
     fi
 }
@@ -95,6 +95,7 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_contains "$source_text" 'core/detect.sh" --health' "系统健康检查动作错误：$file"
     assert_contains "$source_text" 'modules/ge_proton.sh" install' "GE 游戏运行组件动作错误：$file"
     assert_contains "$source_text" 'modules/game_launchers.sh" epic' "Epic 动作错误：$file"
+    assert_contains "$source_text" 'modules/game_launchers.sh" ubisoft' "Ubisoft Connect 动作错误：$file"
     assert_contains "$source_text" 'modules/steam_accelerator.sh" enable' "Steamcommunity 302 开启动作错误：$file"
     assert_contains "$source_text" 'modules/clover_boot.sh" install' "Clover 安装动作错误：$file"
     assert_contains "$source_text" 'modules/clover_boot.sh" delete' "Clover 删除动作错误：$file"

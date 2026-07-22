@@ -438,10 +438,11 @@ plugin_page_2_menu() {
         ui_touch_button 9 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
         ui_touch_button 11 '\033[1;97;48;5;24m' "GE 游戏运行组件" "提高 Windows 游戏兼容性"
         ui_touch_button 13 '\033[1;97;48;5;24m' "战网启动器" "安装并添加到 Steam"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "Ubisoft Connect（Uplay）" "安装并添加到 Steam"
         ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:simpledeckytdp right:7-8:unifideck right:9-10:epic right:11-12:ge-proton right:13-14:battlenet right:19-20:previous right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:simpledeckytdp right:7-8:unifideck right:9-10:epic right:11-12:ge-proton right:13-14:battlenet right:15-16:ubisoft right:19-20:previous right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -449,6 +450,7 @@ plugin_page_2_menu() {
             unifideck) confirm_and_run "安装 Unifideck" "入库第三方平台游戏；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
             epic) confirm_and_run "安装 Epic 游戏启动器" "安装并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
             battlenet) confirm_and_run "安装战网启动器" "安装并添加到 Steam；没有兼容层时自动准备 Proton 10" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
+            ubisoft) confirm_and_run "安装 Ubisoft Connect（Uplay）" "使用官方安装器安装并添加到 Steam；没有兼容层时自动准备 Proton 10" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft ;;
             ge-proton) confirm_and_run "安装 GE 游戏运行组件" "安装第三方 GE-Proton 游戏兼容组件" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
             previous) NEXT_CATEGORY="games"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;

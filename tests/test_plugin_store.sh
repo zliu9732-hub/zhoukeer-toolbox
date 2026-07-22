@@ -62,6 +62,12 @@ grep -Fq 'check_lossless_scaling_installation' "$PROJECT_ROOT/modules/plugin_sto
 grep -Fq '未检测到 Steam 库中的 Lossless Scaling' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '选择名称以 Linux 开头的可用版本' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Steam Deck 机身右下角“三个点（…）”按钮' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '风灵月影，小黄鸭，FSR4使用教程.txt' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'FSR4支持游戏名单.txt' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'BV1ew411J7ab' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '败家君的游戏屋' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '找到“LSFG-VK”开关并打开' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '找到“OptiScaler”开关并打开' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_feature_plugins()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'print_feature_plugin_status()' "$PROJECT_ROOT/modules/plugin_store.sh"
 feature_install_function="$(sed -n '/^install_feature_plugins()/,/^}/p' \

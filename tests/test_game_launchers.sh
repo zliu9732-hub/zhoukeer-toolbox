@@ -17,6 +17,9 @@ INSTALLER="$TMP_ROOT/EpicGamesLauncherInstaller.msi"
 EPIC_EXE="$TMP_ROOT/compatdata/123/pfx/drive_c/Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe"
 DIRECT_PREFIX="$TMP_ROOT/direct-prefix"
 DIRECT_EXE="$DIRECT_PREFIX/pfx/drive_c/Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe"
+UBISOFT_PREFIX="$TMP_ROOT/ubisoft-prefix"
+UBISOFT_EXE="$UBISOFT_PREFIX/pfx/drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe"
+UBISOFT_PROTON="$TMP_ROOT/ubisoft-proton/proton"
 FAKE_PROTON="$TMP_ROOT/GE-Proton-test/proton"
 PROTON_LOG="$TMP_ROOT/proton.log"
 STEAM_INSTALL_LOG="$TMP_ROOT/steam-install.log"
@@ -103,6 +106,34 @@ grep -Fq "run msiexec /i $INSTALLER" "$PROTON_LOG" || {
     exit 1
 }
 
+mkdir -p "$(dirname "$UBISOFT_PROTON")"
+cat > "$UBISOFT_PROTON" <<'SCRIPT'
+#!/bin/bash
+printf '%s\n' "$*" > "${PROTON_LOG:?}"
+target="$STEAM_COMPAT_DATA_PATH/pfx/drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe"
+mkdir -p "$(dirname "$target")"
+: > "$target"
+SCRIPT
+chmod +x "$UBISOFT_PROTON"
+ubisoft_result="$(
+    MODULE="$MODULE" PROTON_LOG="$PROTON_LOG" UBISOFT_PREFIX="$UBISOFT_PREFIX" \
+        UBISOFT_PROTON="$UBISOFT_PROTON" TMP_ROOT="$TMP_ROOT" \
+        bash -c '
+            source "$MODULE"
+            POST_INSTALL_TIMEOUT=0
+            run_launcher_installer ubisoft "$TMP_ROOT/steam" "$TMP_ROOT/UbisoftConnectInstaller.exe" \
+                "$UBISOFT_PREFIX" "$UBISOFT_PROTON"
+        '
+)"
+[ "$ubisoft_result" = "$UBISOFT_EXE" ] || {
+    echo "FAIL: Ubisoft Connect 安装后没有定位主程序" >&2
+    exit 1
+}
+grep -Fq 'run '"$TMP_ROOT/UbisoftConnectInstaller.exe" "$PROTON_LOG" || {
+    echo "FAIL: Ubisoft Connect EXE 没有通过 Proton 直接运行" >&2
+    exit 1
+}
+
 generated_wrapper="$(
     MODULE="$MODULE" DIRECT_PREFIX="$DIRECT_PREFIX" FAKE_PROTON="$FAKE_PROTON" \
         DIRECT_EXE="$DIRECT_EXE" TMP_ROOT="$TMP_ROOT" \
@@ -172,6 +203,22 @@ preferred_runner="$(MODULE="$MODULE" STEAM_ROOT="$TMP_ROOT/steam" bash -c '
     echo "FAIL: Proton 10.0-4 没有优先于 PE" >&2
     exit 1
 }
+epic_runner="$(MODULE="$MODULE" STEAM_ROOT="$TMP_ROOT/steam" bash -c '
+    source "$MODULE"
+    ensure_launcher_proton_runner epic "$STEAM_ROOT"
+')"
+[ "$epic_runner" = "$PE_RUNNER" ] || {
+    echo "FAIL: Epic 没有优先使用 Proton Experimental" >&2
+    exit 1
+}
+ubisoft_runner="$(MODULE="$MODULE" STEAM_ROOT="$TMP_ROOT/steam" bash -c '
+    source "$MODULE"
+    ensure_launcher_proton_runner ubisoft "$STEAM_ROOT"
+')"
+[ "$ubisoft_runner" = "$PE_RUNNER" ] || {
+    echo "FAIL: Ubisoft Connect 没有优先使用 Proton Experimental" >&2
+    exit 1
+}
 GENERIC_P10_DIR="$TMP_ROOT/generic-steam/steamapps/common/Proton 10.0"
 mkdir -p "$GENERIC_P10_DIR"
 printf '#!/bin/bash\nexit 0\n' > "$GENERIC_P10_DIR/proton"
@@ -239,7 +286,7 @@ existing_output="$(
         ZHOUKEER_PROTON_RUNNER="$FAKE_PROTON" \
     ZHOUKEER_APP_DIR="$EXISTING_APP_DIR" \
         HOME="$FAKE_HOME" ZHOUKEER_SKIP_STEAM_RESTART=1 PROTON_LOG="$PROTON_LOG" \
-        bash -c 'source "$MODULE"; install_launcher battlenet'
+        bash -c 'source "$MODULE"; detect_platform() { IS_STEAMOS=1; }; install_launcher battlenet'
 )"
 printf '%s\n' "$existing_output" | grep -Fq '跳过安装包下载' || {
     echo "FAIL: 已安装战网没有跳过安装包" >&2
@@ -270,6 +317,9 @@ grep -Fq 'steamapps/compatdata' "$MODULE"
 grep -Fq 'EpicGamesLauncher.exe' "$MODULE"
 grep -Fq 'Battle.net Launcher.exe' "$MODULE"
 grep -Fq 'Battle.net.exe' "$MODULE"
+grep -Fq 'UbisoftConnectInstaller.exe' "$MODULE"
+grep -Fq 'UbisoftConnect.exe' "$MODULE"
+grep -Fq 'https://static3.cdn.ubi.com/orbit/launcher_installer/UbisoftConnectInstaller.exe' "$MODULE"
 grep -Fq 'run_launcher_installer' "$MODULE"
 grep -Fq 'create_launcher_wrapper' "$MODULE"
 grep -Fq '无需再选择兼容层' "$MODULE"
@@ -280,6 +330,8 @@ grep -Fq 'create_launcher_desktop_shortcut' "$MODULE"
 grep -Fq 'download_launcher_installer' "$MODULE"
 grep -Fq '点击 Install（安装）' "$MODULE"
 grep -Fq '点击 Continue（继续）' "$MODULE"
+grep -Fq '选择中文并依次点击接受、安装、完成' "$MODULE"
+grep -Fq 'ensure_launcher_proton_runner' "$MODULE"
 grep -Fq '从 Proton 10.0-4 切换到 Proton Experimental' "$MODULE"
 grep -Fq 'Epic 改中文：右上角头像' "$MODULE"
 grep -Fq '不带 System Default 的中文（简体）' "$MODULE"

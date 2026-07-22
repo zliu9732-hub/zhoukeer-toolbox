@@ -36,6 +36,14 @@ launcher_details() {
             LAUNCHER_MAGIC="4d5a"
             LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Battle.net/Battle.net Launcher.exe\nProgram Files (x86)/Battle.net/Battle.net.exe'
             ;;
+        ubisoft|uplay)
+            LAUNCHER_NAME="Ubisoft Connect（Uplay）"
+            LAUNCHER_FILE_NAME="UbisoftConnectInstaller.exe"
+            LAUNCHER_URL="https://static3.cdn.ubi.com/orbit/launcher_installer/UbisoftConnectInstaller.exe"
+            LAUNCHER_MIN_BYTES=10485760
+            LAUNCHER_MAGIC="4d5a"
+            LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe\nProgram Files (x86)/Ubisoft/Ubisoft Game Launcher/upc.exe'
+            ;;
         *)
             echo "未知启动器: $1"
             return 1
@@ -215,6 +223,7 @@ run_launcher_installer() {
     case "$target" in
         epic) echo "弹出 Epic 安装窗口后，点击 Install（安装）；完成后点击 Finish（完成）。" >&2 ;;
         battlenet) echo "弹出战网安装窗口后，点击 Continue（继续），按中文界面完成安装。" >&2 ;;
+        ubisoft|uplay) echo "弹出 Ubisoft Connect 安装窗口后，选择中文并依次点击接受、安装、完成。" >&2 ;;
     esac
     echo "无需进入 Steam 手动选择兼容层。" >&2
 
@@ -222,7 +231,7 @@ run_launcher_installer() {
         epic)
             STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root"             STEAM_COMPAT_DATA_PATH="$prefix_dir"             STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0                 "$proton_runner" run msiexec /i "$installer_file" || status=$?
             ;;
-        battlenet)
+        battlenet|ubisoft|uplay)
             STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
                 STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
                 "$proton_runner" run "$installer_file" || status=$?
@@ -342,6 +351,24 @@ ensure_proton_runner() {
     install_official_proton_10 "$steam_root"
 }
 
+ensure_launcher_proton_runner() {
+    local target="$1"
+    local steam_root="$2"
+    local runner
+
+    if [ "$target" = "battlenet" ]; then
+        ensure_proton_runner "$steam_root"
+        return
+    fi
+    runner="$(find_proton_experimental_runner "$steam_root" || true)"
+    [ -n "$runner" ] || runner="$(find_proton_10_runner "$steam_root" || true)"
+    if [ -n "$runner" ]; then
+        printf '%s\n' "$runner"
+        return 0
+    fi
+    install_official_proton_10 "$steam_root"
+}
+
 find_battlenet_alternate_runner() {
     local steam_root="$1" current_runner="$2" candidate
     for candidate in "$(find_proton_10_runner "$steam_root" || true)" "$(find_proton_experimental_runner "$steam_root" || true)"; do
@@ -376,6 +403,7 @@ create_launcher_desktop_shortcut() {
     case "$target" in
         epic) name="Epic Games 启动器" ;;
         battlenet) name="战网启动器" ;;
+        ubisoft|uplay) name="Ubisoft Connect（Uplay）" ;;
         *) return 1 ;;
     esac
     mkdir -p "$HOME/Desktop" || return 1
@@ -407,10 +435,15 @@ run_battlenet_installer_with_fallback() {
 
 install_launcher() {
     local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file launcher_result
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "游戏启动器安装仅支持真实 SteamOS 环境。"
+        return 1
+    fi
     launcher_details "$target" || return 1
     steam_root="$(find_steam_root)" || return 1
     launcher_exe="$(find_installed_launcher "$steam_root" || true)"
-    runner="$(ensure_proton_runner "$steam_root")" || return 1
+    runner="$(ensure_launcher_proton_runner "$target" "$steam_root")" || return 1
     app_dir="$APP_DIR/game-launchers/$target"
     mkdir -p "$app_dir" || return 1
 
@@ -445,7 +478,7 @@ install_launcher() {
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
-        epic|battlenet) install_launcher "$1" ;;
-        *) echo "用法: $0 {epic|battlenet}"; exit 1 ;;
+        epic|battlenet|ubisoft|uplay) install_launcher "$1" ;;
+        *) echo "用法: $0 {epic|battlenet|ubisoft}"; exit 1 ;;
     esac
 fi
