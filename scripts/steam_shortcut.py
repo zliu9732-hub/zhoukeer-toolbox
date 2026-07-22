@@ -149,14 +149,16 @@ def next_index(entries: list[list[object]]) -> int:
     return max(indexes, default=-1) + 1
 
 
-def make_shortcut(index: int, name: str, exe: str, start_dir: str) -> list[object]:
+def make_shortcut(
+    index: int, name: str, exe: str, start_dir: str, launch_options: str = ""
+) -> list[object]:
     fields: list[list[object]] = [
         field_string("appname", name),
         field_string("exe", quote_path(exe)),
         field_string("StartDir", quote_path(start_dir)),
         field_string("icon", ""),
         field_string("ShortcutPath", ""),
-        field_string("LaunchOptions", ""),
+        field_string("LaunchOptions", launch_options),
         field_int("IsHidden", 0),
         field_int("AllowDesktopConfig", 1),
         field_int("AllowOverlay", 1),
@@ -196,6 +198,16 @@ def add_shortcut(args: argparse.Namespace) -> None:
             if entry_value(entry, b"appname") != args.name:
                 set_string(entry, "appname", args.name)
                 set_string(entry, "StartDir", quote_path(args.start_dir))
+                set_string(entry, "LaunchOptions", args.launch_options)
+                save_shortcuts(args.shortcut_file, entries)
+                print("updated")
+                return
+            if (
+                entry_value(entry, b"StartDir") != quote_path(args.start_dir)
+                or entry_value(entry, b"LaunchOptions") != args.launch_options
+            ):
+                set_string(entry, "StartDir", quote_path(args.start_dir))
+                set_string(entry, "LaunchOptions", args.launch_options)
                 save_shortcuts(args.shortcut_file, entries)
                 print("updated")
                 return
@@ -206,10 +218,15 @@ def add_shortcut(args: argparse.Namespace) -> None:
             continue
         set_string(entry, "exe", quoted_exe)
         set_string(entry, "StartDir", quote_path(args.start_dir))
+        set_string(entry, "LaunchOptions", args.launch_options)
         save_shortcuts(args.shortcut_file, entries)
         print("updated")
         return
-    entries.append(make_shortcut(next_index(entries), args.name, args.exe, args.start_dir))
+    entries.append(
+        make_shortcut(
+            next_index(entries), args.name, args.exe, args.start_dir, args.launch_options
+        )
+    )
     save_shortcuts(args.shortcut_file, entries)
     print("added")
 
@@ -239,6 +256,11 @@ def verify_shortcut(args: argparse.Namespace) -> None:
         ):
             if args.icon and entry_value(entry, b"icon") != args.icon:
                 raise VdfError("the shortcut icon was not written")
+            if (
+                args.launch_options is not None
+                and entry_value(entry, b"LaunchOptions") != args.launch_options
+            ):
+                raise VdfError("the shortcut launch options were not written")
             print("verified")
             return
     raise VdfError("the expected shortcut was not written")
@@ -265,6 +287,10 @@ def shortcut_app_id(name: str, exe: str) -> int:
     return checksum | 0x80000000
 
 
+def shortcut_game_id(name: str, exe: str) -> int:
+    return (shortcut_app_id(name, exe) << 32) | 0x02000000
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--shortcut-file", type=Path, required=True)
@@ -274,6 +300,7 @@ def main() -> None:
     add.add_argument("--name", required=True)
     add.add_argument("--exe", required=True)
     add.add_argument("--start-dir", required=True)
+    add.add_argument("--launch-options", default="")
 
     update = subparsers.add_parser("update")
     update.add_argument("--old-exe", required=True)
@@ -283,6 +310,7 @@ def main() -> None:
     verify.add_argument("--name", required=True)
     verify.add_argument("--exe", required=True)
     verify.add_argument("--icon")
+    verify.add_argument("--launch-options")
 
     set_icon = subparsers.add_parser("set-icon")
     set_icon.add_argument("--name", required=True)
@@ -292,6 +320,10 @@ def main() -> None:
     appid = subparsers.add_parser("appid")
     appid.add_argument("--name", required=True)
     appid.add_argument("--exe", required=True)
+
+    gameid = subparsers.add_parser("gameid")
+    gameid.add_argument("--name", required=True)
+    gameid.add_argument("--exe", required=True)
 
     args = parser.parse_args()
     if not os.path.isabs(args.shortcut_file):
@@ -316,10 +348,14 @@ def main() -> None:
         if not os.path.isfile(args.icon):
             parser.error("shortcut icon must be an existing file")
         set_shortcut_icon(args)
-    else:
+    elif args.command == "appid":
         if not os.path.isabs(args.exe):
             parser.error("shortcut paths must be absolute")
         print(shortcut_app_id(args.name, args.exe))
+    else:
+        if not os.path.isabs(args.exe):
+            parser.error("shortcut paths must be absolute")
+        print(shortcut_game_id(args.name, args.exe))
 
 
 if __name__ == "__main__":

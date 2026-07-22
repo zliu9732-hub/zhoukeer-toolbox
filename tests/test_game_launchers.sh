@@ -4,6 +4,7 @@ set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 HELPER="$PROJECT_ROOT/scripts/steam_shortcut.py"
+COMPAT_HELPER="$PROJECT_ROOT/scripts/steam_compat.py"
 MODULE="$PROJECT_ROOT/modules/game_launchers.sh"
 grep -Fq 'source "$PROJECT_ROOT/core/platform.sh"' "$MODULE" || {
     echo "FAIL: 启动器模块未加载 require_command 定义" >&2
@@ -32,6 +33,7 @@ AUTO_STEAM_ROOT="$TMP_ROOT/auto-steam"
 FAKE_STEAM="$TMP_ROOT/fake-steam"
 
 python3 "$HELPER" --help >/dev/null
+python3 "$COMPAT_HELPER" --help >/dev/null
 
 python3 "$HELPER" --shortcut-file "$SHORTCUTS" add \
     --name "Epic Games 启动器" --exe "$INSTALLER" --start-dir "$TMP_ROOT"
@@ -45,6 +47,8 @@ python3 "$HELPER" --shortcut-file "$SHORTCUTS" verify \
     --icon "$PROJECT_ROOT/assets/game-launchers/epic.png" | grep -Fxq verified
 app_id="$(python3 "$HELPER" --shortcut-file "$SHORTCUTS" appid \
     --name "Epic Games 启动器" --exe "$INSTALLER")"
+game_id="$(python3 "$HELPER" --shortcut-file "$SHORTCUTS" gameid \
+    --name "Epic Games 启动器" --exe "$INSTALLER")"
 expected_app_id="$(python3 - "$INSTALLER" <<'PY'
 import sys
 import zlib
@@ -53,6 +57,15 @@ PY
 )"
 [ "$app_id" = "$expected_app_id" ] || {
     echo "FAIL: Steam 非 Steam 游戏 AppID 计算错误" >&2
+    exit 1
+}
+expected_game_id="$(python3 - "$app_id" <<'PY'
+import sys
+print((int(sys.argv[1]) << 32) | 0x02000000)
+PY
+)"
+[ "$game_id" = "$expected_game_id" ] || {
+    echo "FAIL: Steam 非 Steam 游戏 GameID 计算错误" >&2
     exit 1
 }
 python3 "$HELPER" --shortcut-file "$SHORTCUTS" add \
@@ -87,7 +100,11 @@ PY
 WRAPPER="$TMP_ROOT/launch-epic.sh"
 : > "$WRAPPER"
 python3 "$HELPER" --shortcut-file "$SHORTCUTS" add \
-    --name "Epic Games 启动器" --exe "$WRAPPER" --start-dir "$TMP_ROOT" | grep -Fxq updated
+    --name "Epic Games 启动器" --exe "$WRAPPER" --start-dir "$TMP_ROOT" \
+    --launch-options 'TEST_PREFIX="/tmp/example" %command%' | grep -Fxq updated
+python3 "$HELPER" --shortcut-file "$SHORTCUTS" verify \
+    --name "Epic Games 启动器" --exe "$WRAPPER" \
+    --launch-options 'TEST_PREFIX="/tmp/example" %command%' | grep -Fxq verified
 python3 - "$SHORTCUTS" "$WRAPPER" "$EPIC_EXE" <<'PY'
 from pathlib import Path
 import sys
@@ -97,6 +114,98 @@ assert data.count("Epic Games 启动器".encode()) == 1
 assert sys.argv[2].encode() in data
 assert sys.argv[3].encode() not in data
 PY
+
+# Steam 的文本 config.vdf 只修改指定兼容层映射，并能幂等覆盖旧值。
+COMPAT_CONFIG="$TMP_ROOT/config.vdf"
+printf '%s\n' '"InstallConfigStore"' '{' '    "Software"' '    {' \
+    '        "Valve"' '        {' '            "Steam"' '            {' \
+    '                "Language"        "schinese"' \
+    '                "CompatToolMapping"' '                {' \
+    '                    "2147483999"' '                    {' \
+    '                        "name"        "proton_10"' \
+    '                        "config"      ""' \
+    '                        "priority"    "250"' \
+    '                    }' '                }' '            }' '        }' '    }' '}' \
+    > "$COMPAT_CONFIG"
+python3 "$COMPAT_HELPER" --config-file "$COMPAT_CONFIG" \
+    --app-id 2147483999 --tool proton_experimental | grep -Fxq updated
+python3 "$COMPAT_HELPER" --config-file "$COMPAT_CONFIG" \
+    --app-id 2147483999 --tool proton_experimental | grep -Fxq updated
+[ "$(grep -c '"2147483999"' "$COMPAT_CONFIG")" -eq 1 ] || {
+    echo "FAIL: 重复写入了战网兼容层映射" >&2
+    exit 1
+}
+grep -Fq '"proton_experimental"' "$COMPAT_CONFIG" || {
+    echo "FAIL: 战网没有写入 Proton Experimental 映射" >&2
+    exit 1
+}
+grep -Fq '"Language"        "schinese"' "$COMPAT_CONFIG" || {
+    echo "FAIL: 写入兼容层时破坏了 Steam 原配置" >&2
+    exit 1
+}
+
+# 战网安装器必须由 Steam 原生条目启动，并在安装后切换成复用同一前缀的正式条目。
+NATIVE_STEAM="$TMP_ROOT/native-steam"
+NATIVE_SHORTCUTS="$NATIVE_STEAM/userdata/123/config/shortcuts.vdf"
+NATIVE_INSTALLER="$TMP_ROOT/native-app/Battle.net-Setup.exe"
+mkdir -p "$(dirname "$NATIVE_SHORTCUTS")" "$(dirname "$NATIVE_INSTALLER")" \
+    "$NATIVE_STEAM/config" "$NATIVE_STEAM/steamapps/compatdata"
+: > "$NATIVE_INSTALLER"
+printf '%s\n' '"InstallConfigStore"' '{' '    "Software"' '    {' \
+    '        "Valve"' '        {' '            "Steam"' '            {' \
+    '            }' '        }' '    }' '}' > "$NATIVE_STEAM/config/config.vdf"
+native_installer_app_id="$(python3 "$HELPER" --shortcut-file "$NATIVE_SHORTCUTS" appid \
+    --name "战网启动器" --exe "$NATIVE_INSTALLER")"
+NATIVE_PREFIX="$NATIVE_STEAM/steamapps/compatdata/$native_installer_app_id"
+NATIVE_EXE="$NATIVE_PREFIX/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe"
+native_result="$(
+    MODULE="$MODULE" NATIVE_EXE="$NATIVE_EXE" NATIVE_STEAM="$NATIVE_STEAM" \
+        NATIVE_INSTALLER="$NATIVE_INSTALLER" NATIVE_SHORTCUTS="$NATIVE_SHORTCUTS" \
+        HOME="$FAKE_HOME" bash -c '
+            source "$MODULE"
+            launcher_details battlenet
+            stop_steam_for_vdf() { :; }
+            start_steam() { :; }
+            launch_steam_shortcut() {
+                mkdir -p "$(dirname "$NATIVE_EXE")"
+                : > "$NATIVE_EXE"
+            }
+            BATTLE_NET_INSTALL_TIMEOUT=0
+            POST_INSTALL_INTERVAL=1
+            install_battlenet_via_steam "$NATIVE_STEAM" "$NATIVE_INSTALLER" "$NATIVE_SHORTCUTS"
+        '
+)"
+[ "$native_result" = "$NATIVE_EXE|$NATIVE_PREFIX" ] || {
+    echo "FAIL: Steam 原生战网安装没有返回主程序和兼容前缀" >&2
+    exit 1
+}
+MODULE="$MODULE" NATIVE_EXE="$NATIVE_EXE" NATIVE_PREFIX="$NATIVE_PREFIX" \
+    NATIVE_STEAM="$NATIVE_STEAM" NATIVE_SHORTCUTS="$NATIVE_SHORTCUTS" \
+    HOME="$FAKE_HOME" bash -c '
+        source "$MODULE"
+        launcher_details battlenet
+        stop_steam_for_vdf() { :; }
+        start_steam() { :; }
+        finish_battlenet_steam_entry "$NATIVE_STEAM" "$NATIVE_SHORTCUTS" \
+            "$NATIVE_EXE" "$NATIVE_PREFIX"
+    ' >/dev/null
+python3 - "$NATIVE_SHORTCUTS" "$NATIVE_EXE" "$NATIVE_PREFIX" <<'PY'
+from pathlib import Path
+import sys
+
+data = Path(sys.argv[1]).read_bytes()
+assert sys.argv[2].encode() in data
+assert b"Battle.net-Setup.exe" not in data
+assert f'STEAM_COMPAT_DATA_PATH="{sys.argv[3]}" %command%'.encode() in data
+PY
+grep -Fq 'Exec=steam steam://rungameid/' "$FAKE_HOME/Desktop/战网启动器.desktop" || {
+    echo "FAIL: Steam 原生战网流程没有创建桌面启动入口" >&2
+    exit 1
+}
+[ "$(grep -c '"proton_experimental"' "$NATIVE_STEAM/config/config.vdf")" -eq 2 ] || {
+    echo "FAIL: 战网安装条目和正式条目没有分别绑定 Proton Experimental" >&2
+    exit 1
+}
 
 # 同一路径的旧“育碧服务”条目应原地改名为“育碧”，不能重复入库。
 UBISOFT_SHORTCUTS="$TMP_ROOT/ubisoft-shortcuts.vdf"
@@ -274,27 +383,31 @@ grep -Fxq 'steam://install/3658110' "$STEAM_INSTALL_LOG" || {
     exit 1
 }
 
-# 启动器只使用 Proton 10.0-4 和 PE，并且 10.0-4 优先。
+# 战网只使用 Proton Experimental；Epic 和育碧仍优先 Proton Experimental。
 PE_RUNNER="$TMP_ROOT/steam/steamapps/common/Proton - Experimental/proton"
 P10_RUNNER="$TMP_ROOT/steam/steamapps/common/Proton 10.0-4/proton"
 mkdir -p "$(dirname "$PE_RUNNER")" "$(dirname "$P10_RUNNER")"
 cat > "$PE_RUNNER" <<'SCRIPT'
 #!/bin/bash
-exit 1
-SCRIPT
-cat > "$P10_RUNNER" <<'SCRIPT'
-#!/bin/bash
+if [ ! -e "${BATTLE_ATTEMPT_FILE:?}" ]; then
+    : > "$BATTLE_ATTEMPT_FILE"
+    exit 1
+fi
 target="$STEAM_COMPAT_DATA_PATH/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe"
 mkdir -p "$(dirname "$target")"
 : > "$target"
 SCRIPT
+cat > "$P10_RUNNER" <<'SCRIPT'
+#!/bin/bash
+exit 1
+SCRIPT
 chmod +x "$PE_RUNNER" "$P10_RUNNER"
 preferred_runner="$(MODULE="$MODULE" STEAM_ROOT="$TMP_ROOT/steam" bash -c '
     source "$MODULE"
-    find_proton_runner "$STEAM_ROOT"
+    ensure_launcher_proton_runner battlenet "$STEAM_ROOT"
 ')"
-[ "$preferred_runner" = "$P10_RUNNER" ] || {
-    echo "FAIL: Proton 10.0-4 没有优先于 PE" >&2
+[ "$preferred_runner" = "$PE_RUNNER" ] || {
+    echo "FAIL: 战网没有使用 Proton Experimental" >&2
     exit 1
 }
 epic_runner="$(MODULE="$MODULE" STEAM_ROOT="$TMP_ROOT/steam" bash -c '
@@ -334,26 +447,7 @@ generic_runner="$(MODULE="$MODULE" GENERIC_STEAM="$TMP_ROOT/generic-steam" bash 
     echo "FAIL: Steam 官方 Proton 10.0 目录中的 10.0-4 未被识别" >&2
     exit 1
 }
-alternate_runner="$(MODULE="$MODULE" STEAM_ROOT="$TMP_ROOT/steam" CURRENT_RUNNER="$PE_RUNNER" \
-    bash -c '
-        source "$MODULE"
-        find_battlenet_alternate_runner "$STEAM_ROOT" "$CURRENT_RUNNER"
-    ')"
-[ "$alternate_runner" = "$P10_RUNNER" ] || {
-    echo "FAIL: 战网没有从 PE 自动切换到 Proton 10.0-4" >&2
-    exit 1
-}
-alternate_runner="$(MODULE="$MODULE" STEAM_ROOT="$TMP_ROOT/steam" CURRENT_RUNNER="$P10_RUNNER" \
-    bash -c '
-        source "$MODULE"
-        find_battlenet_alternate_runner "$STEAM_ROOT" "$CURRENT_RUNNER"
-    ')"
-[ "$alternate_runner" = "$PE_RUNNER" ] || {
-    echo "FAIL: 战网没有从 Proton 10.0-4 自动切换到 PE" >&2
-    exit 1
-}
-
-# 备用 PE 缺失时必须通过 Steam 官方入口补齐，而不是直接终止战网安装。
+# 战网的 Proton Experimental 缺失时必须通过 Steam 官方入口补齐。
 AUTO_EXP_ROOT="$TMP_ROOT/auto-experimental-steam"
 AUTO_EXP_STEAM="$TMP_ROOT/fake-steam-experimental"
 AUTO_EXP_LOG="$TMP_ROOT/steam-experimental-install.log"
@@ -369,60 +463,37 @@ SCRIPT
 chmod +x "$AUTO_EXP_STEAM"
 auto_experimental_runner="$(
     MODULE="$MODULE" AUTO_EXP_ROOT="$AUTO_EXP_ROOT" AUTO_EXP_STEAM="$AUTO_EXP_STEAM" \
-        AUTO_EXP_LOG="$AUTO_EXP_LOG" P10_RUNNER="$P10_RUNNER" bash -c '
+        AUTO_EXP_LOG="$AUTO_EXP_LOG" bash -c '
             source "$MODULE"
             steam_command() { printf "%s\n" "$AUTO_EXP_STEAM"; }
             PROTON_INSTALL_TIMEOUT=3
             PROTON_INSTALL_INTERVAL=1
-            ensure_battlenet_alternate_runner "$AUTO_EXP_ROOT" "$P10_RUNNER"
+            ensure_launcher_proton_runner battlenet "$AUTO_EXP_ROOT"
         '
 )"
 [ "$auto_experimental_runner" = "$AUTO_EXP_ROOT/steamapps/common/Proton - Experimental/proton" ] || {
-    echo "FAIL: 战网首选兼容层失败后没有自动补齐 Proton Experimental" >&2
+    echo "FAIL: 战网缺少 Proton Experimental 时没有自动补齐" >&2
     exit 1
 }
 grep -Fxq 'steam://install/1493710' "$AUTO_EXP_LOG" || {
-    echo "FAIL: 未通过 Steam 官方 Proton Experimental 入口补齐战网备用兼容层" >&2
-    exit 1
-}
-
-BATTLE_ERROR_PREFIX="$TMP_ROOT/battlenet-error-prefix"
-mkdir -p "$BATTLE_ERROR_PREFIX/pfx/drive_c/ProgramData/Battle.net/Setup"
-printf 'update service unavailable: BLZBNTBTS00000028\n' \
-    > "$BATTLE_ERROR_PREFIX/pfx/drive_c/ProgramData/Battle.net/Setup/setup.log"
-MODULE="$MODULE" BATTLE_ERROR_PREFIX="$BATTLE_ERROR_PREFIX" bash -c '
-    source "$MODULE"
-    battlenet_prefix_has_setup_error "$BATTLE_ERROR_PREFIX"
-' || {
-    echo "FAIL: 战网已知更新服务错误没有触发兼容层重试" >&2
-    exit 1
-}
-
-BATTLE_NET_INSTALLER="$TMP_ROOT/Battle.net-Setup.exe"
-: > "$BATTLE_NET_INSTALLER"
-battlenet_result="$(MODULE="$MODULE" TMP_ROOT="$TMP_ROOT" PE_RUNNER="$PE_RUNNER" \
-    P10_RUNNER="$P10_RUNNER" BATTLE_NET_INSTALLER="$BATTLE_NET_INSTALLER" \
-    bash -c '
-        source "$MODULE"
-        BATTLE_NET_FIRST_ATTEMPT_TIMEOUT=0
-        POST_INSTALL_TIMEOUT=0
-        POST_INSTALL_INTERVAL=1
-        run_battlenet_installer_with_fallback "$TMP_ROOT/steam" "$BATTLE_NET_INSTALLER" \
-            "$TMP_ROOT/battlenet-prefix" "$PE_RUNNER"
-    ')"
-expected_battlenet="$TMP_ROOT/battlenet-prefix/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe"
-[ "$battlenet_result" = "$expected_battlenet|$P10_RUNNER" ] || {
-    echo "FAIL: 战网重试后没有将 Proton 10.0-4 写入启动包装器" >&2
+    echo "FAIL: 未通过 Steam 官方 Proton Experimental 入口补齐战网安装环境" >&2
     exit 1
 }
 
 # 客户已经安装过战网时，必须直接包装真实EXE，不能再下载或运行安装器。
 mkdir -p "$(dirname "$EXISTING_SHORTCUTS")" "$(dirname "$EXISTING_BATTLENET")"
 : > "$EXISTING_BATTLENET"
+mkdir -p "$EXISTING_STEAM/config"
+printf '%s\n' '"InstallConfigStore"' '{' '    "Software"' '    {' \
+    '        "Valve"' '        {' '            "Steam"' '            {' \
+    '            }' '        }' '    }' '}' > "$EXISTING_STEAM/config/config.vdf"
+EXISTING_PE_RUNNER="$EXISTING_STEAM/steamapps/common/Proton - Experimental/proton"
+mkdir -p "$(dirname "$EXISTING_PE_RUNNER")"
+printf '#!/bin/bash\nexit 0\n' > "$EXISTING_PE_RUNNER"
+chmod +x "$EXISTING_PE_RUNNER"
 existing_output="$(
     MODULE="$MODULE" ZHOUKEER_STEAM_ROOT="$EXISTING_STEAM" \
         ZHOUKEER_SHORTCUT_FILE="$EXISTING_SHORTCUTS" \
-        ZHOUKEER_PROTON_RUNNER="$FAKE_PROTON" \
     ZHOUKEER_APP_DIR="$EXISTING_APP_DIR" \
         HOME="$FAKE_HOME" ZHOUKEER_SKIP_STEAM_RESTART=1 PROTON_LOG="$PROTON_LOG" \
         bash -c 'source "$MODULE"; detect_platform() { IS_STEAMOS=1; }; install_launcher battlenet'
@@ -433,10 +504,6 @@ printf '%s\n' "$existing_output" | grep -Fq '跳过安装包下载' || {
 }
 [ ! -e "$EXISTING_APP_DIR/game-launchers/battlenet/Battle.net-Setup.exe" ] || {
     echo "FAIL: 已安装战网仍生成了安装器" >&2
-    exit 1
-}
-[ -x "$EXISTING_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" ] || {
-    echo "FAIL: 已安装战网没有生成直接启动包装器" >&2
     exit 1
 }
 [ -x "$FAKE_HOME/Desktop/战网启动器.desktop" ] || {
@@ -453,9 +520,18 @@ from pathlib import Path
 import sys
 
 data = Path(sys.argv[1]).read_bytes()
-assert b"launch-battlenet.sh" in data
+assert b"Battle.net Launcher.exe" in data
 assert b"Battle.net-Setup.exe" not in data
+assert b"STEAM_COMPAT_DATA_PATH=" in data
 PY
+grep -Fq 'Exec=steam steam://rungameid/' "$FAKE_HOME/Desktop/战网启动器.desktop" || {
+    echo "FAIL: 战网桌面入口没有通过 Steam 启动" >&2
+    exit 1
+}
+grep -Fq '"proton_experimental"' "$EXISTING_STEAM/config/config.vdf" || {
+    echo "FAIL: 已安装战网入库时没有绑定 Proton Experimental" >&2
+    exit 1
+}
 
 grep -Fq 'steamapps/compatdata' "$MODULE"
 grep -Fq 'EpicGamesLauncher.exe' "$MODULE"
@@ -471,19 +547,20 @@ grep -Fq '桌面入口、封面与工具箱标识均已设置' "$MODULE"
 grep -Fq '跳过安装包下载' "$MODULE"
 grep -Fq 'find_launcher_in_prefix "$prefix" || find_installed_launcher' "$MODULE"
 grep -Fq 'steam_shortcut.py' "$MODULE"
-grep -Fq 'run_battlenet_installer_with_fallback' "$MODULE"
+grep -Fq 'install_battlenet_via_steam' "$MODULE"
+grep -Fq 'finish_battlenet_steam_entry' "$MODULE"
+grep -Fq 'steam://rungameid/$game_id' "$MODULE"
+grep -Fq 'proton_experimental' "$MODULE"
 grep -Fq 'create_launcher_desktop_shortcut' "$MODULE"
 grep -Fq 'install_launcher_steam_artwork' "$MODULE"
 grep -Fq 'set-icon' "$MODULE"
 grep -Fq 'download_launcher_installer' "$MODULE"
 grep -Fq '点击 Install（安装）' "$MODULE"
-grep -Fq '点击 Continue（继续）' "$MODULE"
+grep -Fq '弹出安装窗口后选择中文并点击继续' "$MODULE"
 grep -Fq '选择中文并依次点击接受、安装、完成' "$MODULE"
 grep -Fq 'ensure_launcher_proton_runner' "$MODULE"
-grep -Fq 'ensure_battlenet_alternate_runner' "$MODULE"
+grep -Fq 'install_official_proton_experimental "$steam_root"' "$MODULE"
 grep -Fq 'steam://install/$PROTON_EXPERIMENTAL_APP_ID' "$MODULE"
-grep -Fq '自动修复安装环境并重试' "$MODULE"
-grep -Fq '战网安装器本次运行失败，退出码' "$MODULE"
 grep -Fq 'Epic 改中文：右上角头像' "$MODULE"
 grep -Fq '不带 System Default 的中文（简体）' "$MODULE"
 if grep -Fq 'GE-Proton*/proton' "$MODULE"; then
@@ -495,4 +572,4 @@ if grep -Fq '当前版本仅支持已安装启动器的自动入库' "$MODULE"; 
     exit 1
 fi
 
-echo "PASS: Steam条目写入、Proton直接安装和主EXE包装器测试通过"
+echo "PASS: Steam条目写入、启动器安装和战网原生Steam流程测试通过"
