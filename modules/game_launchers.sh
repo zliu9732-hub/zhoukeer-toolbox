@@ -624,18 +624,21 @@ install_launcher() {
     fi
     launcher_details "$target" || return 1
     steam_root="$(find_steam_root)" || return 1
-    launcher_exe="$(find_installed_launcher "$steam_root" || true)"
-    runner="$(ensure_launcher_proton_runner "$target" "$steam_root")" || return 1
     app_dir="$APP_DIR/game-launchers/$target"
     mkdir -p "$app_dir" || return 1
+    prefix="$app_dir/compatdata"
+    launcher_exe="$(find_launcher_in_prefix "$prefix" || find_installed_launcher "$steam_root" || true)"
+    runner="$(ensure_launcher_proton_runner "$target" "$steam_root")" || return 1
 
     if [ -n "$launcher_exe" ]; then
         echo "检测到已安装的 ${LAUNCHER_NAME}，跳过安装包下载。"
-        prefix="${launcher_exe%/pfx/drive_c/*}"
+        case "$launcher_exe" in
+            "$prefix"/pfx/drive_c/*) ;;
+            *) prefix="${launcher_exe%/pfx/drive_c/*}" ;;
+        esac
     else
         installer_file="$app_dir/$LAUNCHER_FILE_NAME"
         download_launcher_installer "$installer_file" || return 1
-        prefix="$app_dir/compatdata"
         if [ "$target" = "battlenet" ]; then
             launcher_result="$(run_battlenet_installer_with_fallback "$steam_root" "$installer_file" "$prefix" "$runner")" || return 1
             launcher_exe="${launcher_result%%|*}"
