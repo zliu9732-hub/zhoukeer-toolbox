@@ -37,6 +37,12 @@ python3 "$HELPER" --shortcut-file "$SHORTCUTS" add \
     --name "Epic Games 启动器" --exe "$INSTALLER" --start-dir "$TMP_ROOT"
 python3 "$HELPER" --shortcut-file "$SHORTCUTS" verify \
     --name "Epic Games 启动器" --exe "$INSTALLER" | grep -Fxq verified
+python3 "$HELPER" --shortcut-file "$SHORTCUTS" set-icon \
+    --name "Epic Games 启动器" --exe "$INSTALLER" \
+    --icon "$PROJECT_ROOT/assets/game-launchers/epic.png" | grep -Fxq updated
+python3 "$HELPER" --shortcut-file "$SHORTCUTS" verify \
+    --name "Epic Games 启动器" --exe "$INSTALLER" \
+    --icon "$PROJECT_ROOT/assets/game-launchers/epic.png" | grep -Fxq verified
 app_id="$(python3 "$HELPER" --shortcut-file "$SHORTCUTS" appid \
     --name "Epic Games 启动器" --exe "$INSTALLER")"
 expected_app_id="$(python3 - "$INSTALLER" <<'PY'
@@ -90,6 +96,23 @@ data = Path(sys.argv[1]).read_bytes()
 assert data.count("Epic Games 启动器".encode()) == 1
 assert sys.argv[2].encode() in data
 assert sys.argv[3].encode() not in data
+PY
+
+# 同一路径的旧“育碧服务”条目应原地改名为“育碧”，不能重复入库。
+UBISOFT_SHORTCUTS="$TMP_ROOT/ubisoft-shortcuts.vdf"
+UBISOFT_WRAPPER="$TMP_ROOT/launch-ubisoft.sh"
+: > "$UBISOFT_WRAPPER"
+python3 "$HELPER" --shortcut-file "$UBISOFT_SHORTCUTS" add \
+    --name "育碧服务" --exe "$UBISOFT_WRAPPER" --start-dir "$TMP_ROOT" >/dev/null
+python3 "$HELPER" --shortcut-file "$UBISOFT_SHORTCUTS" add \
+    --name "育碧" --exe "$UBISOFT_WRAPPER" --start-dir "$TMP_ROOT" | grep -Fxq updated
+python3 - "$UBISOFT_SHORTCUTS" <<'PY'
+from pathlib import Path
+import sys
+
+data = Path(sys.argv[1]).read_bytes()
+assert data.count("育碧".encode()) == 1
+assert "育碧服务".encode() not in data
 PY
 
 mkdir -p "$(dirname "$FAKE_PROTON")"
@@ -330,6 +353,51 @@ alternate_runner="$(MODULE="$MODULE" STEAM_ROOT="$TMP_ROOT/steam" CURRENT_RUNNER
     exit 1
 }
 
+# 备用 PE 缺失时必须通过 Steam 官方入口补齐，而不是直接终止战网安装。
+AUTO_EXP_ROOT="$TMP_ROOT/auto-experimental-steam"
+AUTO_EXP_STEAM="$TMP_ROOT/fake-steam-experimental"
+AUTO_EXP_LOG="$TMP_ROOT/steam-experimental-install.log"
+mkdir -p "$AUTO_EXP_ROOT/steamapps/common"
+cat > "$AUTO_EXP_STEAM" <<'SCRIPT'
+#!/bin/bash
+printf '%s\n' "$*" > "${AUTO_EXP_LOG:?}"
+runner="${AUTO_EXP_ROOT:?}/steamapps/common/Proton - Experimental/proton"
+mkdir -p "$(dirname "$runner")"
+printf '#!/bin/bash\nexit 0\n' > "$runner"
+chmod +x "$runner"
+SCRIPT
+chmod +x "$AUTO_EXP_STEAM"
+auto_experimental_runner="$(
+    MODULE="$MODULE" AUTO_EXP_ROOT="$AUTO_EXP_ROOT" AUTO_EXP_STEAM="$AUTO_EXP_STEAM" \
+        AUTO_EXP_LOG="$AUTO_EXP_LOG" P10_RUNNER="$P10_RUNNER" bash -c '
+            source "$MODULE"
+            steam_command() { printf "%s\n" "$AUTO_EXP_STEAM"; }
+            PROTON_INSTALL_TIMEOUT=3
+            PROTON_INSTALL_INTERVAL=1
+            ensure_battlenet_alternate_runner "$AUTO_EXP_ROOT" "$P10_RUNNER"
+        '
+)"
+[ "$auto_experimental_runner" = "$AUTO_EXP_ROOT/steamapps/common/Proton - Experimental/proton" ] || {
+    echo "FAIL: 战网首选兼容层失败后没有自动补齐 Proton Experimental" >&2
+    exit 1
+}
+grep -Fxq 'steam://install/1493710' "$AUTO_EXP_LOG" || {
+    echo "FAIL: 未通过 Steam 官方 Proton Experimental 入口补齐战网备用兼容层" >&2
+    exit 1
+}
+
+BATTLE_ERROR_PREFIX="$TMP_ROOT/battlenet-error-prefix"
+mkdir -p "$BATTLE_ERROR_PREFIX/pfx/drive_c/ProgramData/Battle.net/Setup"
+printf 'update service unavailable: BLZBNTBTS00000028\n' \
+    > "$BATTLE_ERROR_PREFIX/pfx/drive_c/ProgramData/Battle.net/Setup/setup.log"
+MODULE="$MODULE" BATTLE_ERROR_PREFIX="$BATTLE_ERROR_PREFIX" bash -c '
+    source "$MODULE"
+    battlenet_prefix_has_setup_error "$BATTLE_ERROR_PREFIX"
+' || {
+    echo "FAIL: 战网已知更新服务错误没有触发兼容层重试" >&2
+    exit 1
+}
+
 BATTLE_NET_INSTALLER="$TMP_ROOT/Battle.net-Setup.exe"
 : > "$BATTLE_NET_INSTALLER"
 battlenet_result="$(MODULE="$MODULE" TMP_ROOT="$TMP_ROOT" PE_RUNNER="$PE_RUNNER" \
@@ -399,18 +467,22 @@ grep -Fq 'https://static3.cdn.ubi.com/orbit/launcher_installer/UbisoftConnectIns
 grep -Fq 'https://downloader.battle.net/download/getInstallerForGame?os=win&installer=Battle.net-Setup.exe' "$MODULE"
 grep -Fq 'run_launcher_installer' "$MODULE"
 grep -Fq 'create_launcher_wrapper' "$MODULE"
-grep -Fq '无需再选择兼容层' "$MODULE"
+grep -Fq '桌面入口、封面与工具箱标识均已设置' "$MODULE"
 grep -Fq '跳过安装包下载' "$MODULE"
 grep -Fq 'steam_shortcut.py' "$MODULE"
 grep -Fq 'run_battlenet_installer_with_fallback' "$MODULE"
 grep -Fq 'create_launcher_desktop_shortcut' "$MODULE"
 grep -Fq 'install_launcher_steam_artwork' "$MODULE"
+grep -Fq 'set-icon' "$MODULE"
 grep -Fq 'download_launcher_installer' "$MODULE"
 grep -Fq '点击 Install（安装）' "$MODULE"
 grep -Fq '点击 Continue（继续）' "$MODULE"
 grep -Fq '选择中文并依次点击接受、安装、完成' "$MODULE"
 grep -Fq 'ensure_launcher_proton_runner' "$MODULE"
-grep -Fq '从 Proton 10.0-4 切换到 Proton Experimental' "$MODULE"
+grep -Fq 'ensure_battlenet_alternate_runner' "$MODULE"
+grep -Fq 'steam://install/$PROTON_EXPERIMENTAL_APP_ID' "$MODULE"
+grep -Fq '自动修复安装环境并重试' "$MODULE"
+grep -Fq '战网安装器本次运行失败，退出码' "$MODULE"
 grep -Fq 'Epic 改中文：右上角头像' "$MODULE"
 grep -Fq '不带 System Default 的中文（简体）' "$MODULE"
 if grep -Fq 'GE-Proton*/proton' "$MODULE"; then

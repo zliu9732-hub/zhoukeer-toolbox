@@ -83,6 +83,7 @@ for menu in "$touch_games" "$gui_games"; do
     for item in '常用插件组合' '常用插件加27款精选插件' '浏览官方插件' 'Epic 游戏启动器' '安装插件商城'; do
         assert_contains "$menu" "$item" "游戏环境缺少：$item"
     done
+    assert_contains "$menu" 'Gitee' "小黄鸭/FSR4 缺少 Gitee 国内源入口说明"
     assert_contains "$menu" '高级操作' "Decky Loader 缺少高级说明"
     assert_not_contains "$menu" '25 个精选插件' "plugin_store all 仍被错误描述为 25 个精选插件"
     assert_not_contains "$menu" '兼容层管理' "不存在的兼容层管理仍可见"
@@ -151,6 +152,7 @@ touch_games_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
 assert_contains "$touch_games_page_1" 'right:13-14:cheatdeck' "CheatDeck 未移动到插件第一页原 TDP 位置"
 assert_contains "$touch_games_page_2" 'right:5-6:simpledeckytdp' "SimpleDeckyTDP 未移动到插件第二页原 CheatDeck 位置"
 assert_contains "$touch_games_page_2" 'right:15-16:ubisoft' "Ubisoft Connect 未加入插件第二页"
+assert_contains "$touch_games_page_2" '"育碧"' "育碧菜单仍显示旧名称"
 
 touch_dual="$(function_source "$MAIN_FILE" dual_system_menu)"
 gui_dual="$(function_source "$GUI_FILE" dual_system_menu)"

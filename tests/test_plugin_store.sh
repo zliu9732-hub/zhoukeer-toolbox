@@ -35,6 +35,10 @@ grep -Fq 'Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip' "$PROJECT
 grep -Fq 'CheatDeck/releases/download/v1.2.1/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_github_file "$url" "$output" "$expected_sha256" "$name"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/repository/archive/v5.1.1.zip' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'install_decky_zip_from_gitee_archive' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'GitHub 加速下载失败，切换 Gitee 国内源。' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_tree_atomically' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Lossless Scaling 的 Steam 正版页面' "$PROJECT_ROOT/modules/plugin_store.sh"

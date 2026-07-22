@@ -4,6 +4,10 @@ set -u
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# 工具箱会原子更新自身目录；主菜单始终停在稳定目录，避免旧目录被替换后
+# 子命令持续输出 shell-init/getcwd 错误。
+cd "$HOME" 2>/dev/null || cd / || exit 1
+
 # 直接在 Konsole 中运行 main.sh 时，自动转入专用主题窗口。
 # launch.sh 会设置标记，避免新窗口再次重启形成循环。
 if [ "${ZHOUKEER_LAUNCHED:-0}" != "1" ] && \
@@ -75,10 +79,7 @@ run_action() {
     "$@"
     status=$?
 
-    # 自更新会原子替换整个安装目录；父菜单必须主动进入新目录。
-    if ! cd "$PROJECT_ROOT" 2>/dev/null; then
-        cd "$HOME" 2>/dev/null || true
-    fi
+    cd "$HOME" 2>/dev/null || cd / || true
 
     if [ "$status" -eq 0 ]; then
         echo ""
@@ -124,14 +125,17 @@ show_disclaimer() {
         ui_disclaimer_line 13 '\033[1;38;5;114m' "欢迎支持作者；若有侵权请及时联系删除"
         ui_disclaimer_button 15 '\033[1;38;5;114m' "知悉并开始使用" "点击即表示已阅读上述说明"
         ui_disclaimer_button 18 '\033[1;38;5;203m' "退出工具箱" "暂不使用"
-        choice="$(read_menu_choice any:15-16:agree any:18-19:exit)"
+        # 触屏落点在文字边缘时可能偏移一行，扩大热区但不让两个按钮重叠。
+        choice="$(read_menu_choice any:14-17:agree any:18-21:exit)"
         case "$choice" in
             agree)
                 if [ "${ZHOUKEER_STARTUP_SPLASH:-0}" = "1" ]; then
-                    disable_mouse_tracking
-                    exec bash "$PROJECT_ROOT/launch.sh" --open-main
-                    echo "无法切换到工具箱主界面。"
-                    return 1
+                    # 保留当前终端进程，避免关闭欢迎页再开新 Konsole 时偶发丢失窗口。
+                    # konsoleprofile 不可用时只保留欢迎页背景，主菜单仍能正常进入。
+                    if command -v konsoleprofile >/dev/null 2>&1; then
+                        konsoleprofile "ColorScheme=ZhoukeerToolbox" >/dev/null 2>&1 || true
+                    fi
+                    ZHOUKEER_STARTUP_SPLASH=0
                 fi
                 return 0
                 ;;
@@ -403,8 +407,8 @@ game_environment_menu() {
         ui_touch_button 9 '\033[1;97;48;5;24m' "常用插件加27款精选插件" "优先安装三件套，已装则跳过；再补精选"
         ui_touch_button 11 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
         ui_touch_button 13 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "小黄鸭" "单独安装小黄鸭汉化版·汉化作者：闲鱼双叶"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "FSR4" "单独安装 FSR4 汉化版·汉化作者：闲鱼双叶"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "小黄鸭｜GitHub+Gitee" "双源安装汉化版·汉化作者：闲鱼双叶"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "FSR4｜GitHub+Gitee" "双源安装汉化版·汉化作者：闲鱼双叶"
         ui_touch_button 19 '\033[1;97;48;5;24m' "Freedeck" "下载游戏和模拟器游戏·感谢作者b站一苇Isidf"
         ui_touch_button 21 '\033[1;97;48;5;238m' "下一页…" "查看剩余插件"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -418,8 +422,8 @@ game_environment_menu() {
             all) confirm_and_run "安装常用插件加27款精选插件" "三件套已装则跳过，未装则安装；再补27款精选；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
             browse) plugin_official_touch_pages ;;
             cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
-            lsfg) confirm_and_run "安装小黄鸭" "单独安装小黄鸭汉化版，无需装其他插件；汉化作者：闲鱼双叶" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
-            fsr4) confirm_and_run "安装 FSR4" "单独安装 FSR4 汉化版，无需装其他插件；汉化作者：闲鱼双叶" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
+            lsfg) confirm_and_run "安装小黄鸭" "GitHub 加速失败自动改用 Gitee 国内源；汉化作者：闲鱼双叶" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
+            fsr4) confirm_and_run "安装 FSR4" "GitHub 加速失败自动改用 Gitee 国内源；汉化作者：闲鱼双叶" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             freedeck) confirm_and_run "安装 Freedeck" "下载游戏和模拟器游戏；感谢作者b站一苇Isidf" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck ;;
             next) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
@@ -438,7 +442,7 @@ plugin_page_2_menu() {
         ui_touch_button 9 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
         ui_touch_button 11 '\033[1;97;48;5;24m' "GE 游戏运行组件" "提高 Windows 游戏兼容性"
         ui_touch_button 13 '\033[1;97;48;5;24m' "战网启动器" "安装并添加到 Steam"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "育碧服务" "安装育碧游戏平台并添加到 Steam"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "育碧" "安装育碧游戏平台并添加到 Steam"
         ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -449,8 +453,8 @@ plugin_page_2_menu() {
             simpledeckytdp) confirm_and_run "安装 SimpleDeckyTDP" "TDP/功耗性能控制插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp ;;
             unifideck) confirm_and_run "安装 Unifideck" "入库第三方平台游戏；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
             epic) confirm_and_run "安装 Epic 游戏启动器" "安装并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
-            battlenet) confirm_and_run "安装战网启动器" "安装并添加到 Steam；没有兼容层时自动准备 Proton 10" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
-            ubisoft) confirm_and_run "安装育碧服务" "自动安装育碧游戏平台、创建桌面入口并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft ;;
+            battlenet) confirm_and_run "安装战网启动器" "自动安装、创建桌面入口并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
+            ubisoft) confirm_and_run "安装育碧" "自动安装育碧游戏平台、创建桌面入口并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft ;;
             ge-proton) confirm_and_run "安装 GE 游戏运行组件" "安装第三方 GE-Proton 游戏兼容组件" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
             previous) NEXT_CATEGORY="games"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;

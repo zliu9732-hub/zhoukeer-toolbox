@@ -15,6 +15,7 @@ POST_INSTALL_INTERVAL="${ZHOUKEER_LAUNCHER_POST_INSTALL_INTERVAL:-5}"
 BATTLE_NET_FIRST_ATTEMPT_TIMEOUT="${ZHOUKEER_BATTLENET_FIRST_ATTEMPT_TIMEOUT:-75}"
 STEAM_SHORTCUT_HELPER="$PROJECT_ROOT/scripts/steam_shortcut.py"
 PROTON_10_APP_ID="3658110"
+PROTON_EXPERIMENTAL_APP_ID="1493710"
 PROTON_INSTALL_TIMEOUT="${ZHOUKEER_PROTON_INSTALL_TIMEOUT:-900}"
 PROTON_INSTALL_INTERVAL="${ZHOUKEER_PROTON_INSTALL_INTERVAL:-5}"
 
@@ -37,7 +38,7 @@ launcher_details() {
             LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Battle.net/Battle.net Launcher.exe\nProgram Files (x86)/Battle.net/Battle.net.exe'
             ;;
         ubisoft|uplay)
-            LAUNCHER_NAME="育碧服务"
+            LAUNCHER_NAME="育碧"
             LAUNCHER_FILE_NAME="UbisoftConnectInstaller.exe"
             LAUNCHER_URL="https://static3.cdn.ubi.com/orbit/launcher_installer/UbisoftConnectInstaller.exe"
             LAUNCHER_MIN_BYTES=10485760
@@ -263,19 +264,18 @@ run_launcher_installer() {
     launcher_details "$target" || return 1
     mkdir -p "$prefix_dir" || return 1
     if [ "$install_mode" = "silent" ]; then
-        echo "正在使用 $(basename "$(dirname "$proton_runner")") 静默安装 $LAUNCHER_NAME..." >&2
+        echo "正在静默安装 $LAUNCHER_NAME..." >&2
     else
-        echo "正在使用 $(basename "$(dirname "$proton_runner")") 直接打开 $LAUNCHER_NAME 官方安装器..." >&2
+        echo "正在打开 $LAUNCHER_NAME 官方安装器..." >&2
     fi
     case "$target:$install_mode" in
         epic:interactive) echo "弹出 Epic 安装窗口后，点击 Install（安装）；完成后点击 Finish（完成）。" >&2 ;;
         battlenet:*)
             echo "弹出战网安装窗口后，点击 Continue（继续），按中文界面完成安装。" >&2
-            echo "若出现 BLZBNTBTS00000028，请关闭错误窗口并等待，工具箱会自动切换兼容层重试。" >&2
+            echo "若出现 BLZBNTBTS00000028，请关闭错误窗口并等待，工具箱会自动修复安装环境并重试。" >&2
             ;;
-        ubisoft:interactive|uplay:interactive) echo "弹出育碧服务安装窗口后，选择中文并依次点击接受、安装、完成。" >&2 ;;
+        ubisoft:interactive|uplay:interactive) echo "弹出育碧安装窗口后，选择中文并依次点击接受、安装、完成。" >&2 ;;
     esac
-    echo "无需进入 Steam 手动选择兼容层。" >&2
 
     case "$target" in
         epic)
@@ -306,6 +306,11 @@ run_launcher_installer() {
                 "$proton_runner" run "$installer_file" || status=$?
             ;;
     esac
+    printf '%s\n' "$status" > "$prefix_dir/.zhoukeer-installer-status" 2>/dev/null || true
+    if [ "$target" = "battlenet" ] && [ "$status" -ne 0 ]; then
+        echo "战网安装器本次运行失败，退出码：$status" >&2
+        return 1
+    fi
 
     while [ "$elapsed" -le "$timeout" ]; do
         installed_file="$(find_launcher_in_prefix "$prefix_dir" || true)"
@@ -386,25 +391,25 @@ install_official_proton_10() {
     local steam_bin runner elapsed=0
 
     case "$PROTON_INSTALL_TIMEOUT:$PROTON_INSTALL_INTERVAL" in
-        *[!0-9:]*|:*|*:0) echo "Proton 10 等待参数无效。" >&2; return 1 ;;
+        *[!0-9:]*|:*|*:0) echo "安装环境等待参数无效。" >&2; return 1 ;;
     esac
     steam_bin="$(steam_command)" || {
-        echo "找不到 Steam 客户端，无法自动安装官方 Proton 10。" >&2
+        echo "找不到 Steam 客户端，无法自动准备安装环境。" >&2
         return 1
     }
-    echo "未检测到可用 Proton，正在通过 Steam 安装官方 Proton 10..." >&2
+    echo "正在通过 Steam 自动准备安装环境..." >&2
     "$steam_bin" "steam://install/$PROTON_10_APP_ID" >/dev/null 2>&1 &
     while [ "$elapsed" -le "$PROTON_INSTALL_TIMEOUT" ]; do
         runner="$(find_proton_10_runner "$steam_root" || true)"
         if [ -n "$runner" ]; then
-            echo "官方 Proton 10 已准备完成。" >&2
+            echo "安装环境已准备完成。" >&2
             printf '%s\n' "$runner"
             return 0
         fi
         sleep "$PROTON_INSTALL_INTERVAL"
         elapsed=$((elapsed + PROTON_INSTALL_INTERVAL))
     done
-    echo "等待 Proton 10 安装超时。请确认 Steam 在线且已登录后重试。" >&2
+    echo "等待安装环境准备超时。请确认 Steam 在线且已登录后重试。" >&2
     return 1
 }
 
@@ -449,6 +454,68 @@ find_battlenet_alternate_runner() {
     return 1
 }
 
+install_official_proton_experimental() {
+    local steam_root="$1"
+    local steam_bin runner elapsed=0
+
+    case "$PROTON_INSTALL_TIMEOUT:$PROTON_INSTALL_INTERVAL" in
+        *[!0-9:]*|:*|*:) echo "安装环境等待参数无效。" >&2; return 1 ;;
+    esac
+    [ "$PROTON_INSTALL_INTERVAL" -gt 0 ] || {
+        echo "安装环境检查间隔必须大于 0。" >&2
+        return 1
+    }
+    steam_bin="$(steam_command)" || {
+        echo "找不到 Steam 客户端，无法自动准备备用安装环境。" >&2
+        return 1
+    }
+    echo "正在通过 Steam 自动准备战网备用安装环境..." >&2
+    "$steam_bin" "steam://install/$PROTON_EXPERIMENTAL_APP_ID" >/dev/null 2>&1 &
+    while [ "$elapsed" -le "$PROTON_INSTALL_TIMEOUT" ]; do
+        runner="$(find_proton_experimental_runner "$steam_root" || true)"
+        if [ -n "$runner" ]; then
+            echo "战网备用安装环境已准备完成，将自动重试。" >&2
+            printf '%s\n' "$runner"
+            return 0
+        fi
+        sleep "$PROTON_INSTALL_INTERVAL"
+        elapsed=$((elapsed + PROTON_INSTALL_INTERVAL))
+    done
+    echo "等待备用安装环境准备超时，战网暂时无法自动重试。" >&2
+    return 1
+}
+
+ensure_battlenet_alternate_runner() {
+    local steam_root="$1" current_runner="$2" alternate
+
+    alternate="$(find_battlenet_alternate_runner "$steam_root" "$current_runner" || true)"
+    if [ -n "$alternate" ]; then
+        printf '%s\n' "$alternate"
+        return 0
+    fi
+    case "$current_runner" in
+        *"Proton - Experimental"*/proton)
+            install_official_proton_10 "$steam_root"
+            ;;
+        *)
+            install_official_proton_experimental "$steam_root"
+            ;;
+    esac
+}
+
+battlenet_prefix_has_setup_error() {
+    local prefix_dir="$1" log_file
+    [ -d "$prefix_dir/pfx/drive_c" ] || return 1
+    while IFS= read -r -d '' log_file; do
+        if grep -Eiq 'BLZBNTBTS[0-9]+|Failed to (connect|download|update)|update service.*(failed|unavailable)' \
+            "$log_file" 2>/dev/null; then
+            return 0
+        fi
+    done < <(find "$prefix_dir/pfx/drive_c" -type f \
+        \( -iname '*.log' -o -iname '*.txt' \) -size -2M -print0 2>/dev/null)
+    return 1
+}
+
 create_launcher_wrapper() {
     local target="$1" steam_root="$2" prefix_dir="$3" proton_runner="$4" launcher_exe="$5" destination_dir="$6"
     local wrapper="$destination_dir/launch-$target.sh"
@@ -472,15 +539,20 @@ create_launcher_desktop_shortcut() {
     case "$target" in
         epic) name="Epic Games 启动器"; icon="$PROJECT_ROOT/assets/game-launchers/epic.png" ;;
         battlenet) name="战网启动器"; icon="$PROJECT_ROOT/assets/game-launchers/battlenet.png" ;;
-        ubisoft|uplay) name="育碧服务"; icon="$PROJECT_ROOT/assets/game-launchers/ubisoft.png" ;;
+        ubisoft|uplay) name="育碧"; icon="$PROJECT_ROOT/assets/game-launchers/ubisoft.png" ;;
         *) return 1 ;;
     esac
     mkdir -p "$HOME/Desktop" || return 1
     if [ "$target" = "ubisoft" ] || [ "$target" = "uplay" ]; then
         local old_shortcut="$HOME/Desktop/Ubisoft Connect（Uplay）.desktop"
+        local old_cn_shortcut="$HOME/Desktop/育碧服务.desktop"
         if [ -f "$old_shortcut" ] && [ ! -L "$old_shortcut" ] && \
            grep -Eq '^Exec=.*/game-launchers/(ubisoft|uplay)/launch-(ubisoft|uplay)\.sh$' "$old_shortcut"; then
             rm -f -- "$old_shortcut"
+        fi
+        if [ -f "$old_cn_shortcut" ] && [ ! -L "$old_cn_shortcut" ] && \
+           grep -Eq '^Exec=.*/game-launchers/(ubisoft|uplay)/launch-(ubisoft|uplay)\.sh$' "$old_cn_shortcut"; then
+            rm -f -- "$old_cn_shortcut"
         fi
     fi
     cat > "$HOME/Desktop/$name.desktop" <<EOF
@@ -528,22 +600,23 @@ install_launcher_steam_artwork() {
 }
 
 run_battlenet_installer_with_fallback() {
-    local steam_root="$1" installer_file="$2" prefix_dir="$3" runner="$4" alternate installed
+    local steam_root="$1" installer_file="$2" prefix_dir="$3" runner="$4" alternate installed status
     launcher_details battlenet || return 1
     POST_INSTALL_TIMEOUT="$BATTLE_NET_FIRST_ATTEMPT_TIMEOUT" run_launcher_installer battlenet "$steam_root" "$installer_file" "$prefix_dir" "$runner" || true
     installed="$(find_launcher_in_prefix "$prefix_dir" || true)"
-    if [ -n "$installed" ]; then
+    status="$(cat "$prefix_dir/.zhoukeer-installer-status" 2>/dev/null || printf '1')"
+    if [ -n "$installed" ] && [ "$status" = "0" ] && ! battlenet_prefix_has_setup_error "$prefix_dir"; then
         printf '%s|%s\n' "$installed" "$runner"
         return 0
     fi
-    echo "战网安装器未完成，正在从 Proton 10.0-4 切换到 Proton Experimental 重试..." >&2
-    alternate="$(find_battlenet_alternate_runner "$steam_root" "$runner")" || return 1
+    alternate="$(ensure_battlenet_alternate_runner "$steam_root" "$runner")" || return 1
+    echo "战网安装器未完成，正在自动修复安装环境并重试..." >&2
     installed="$(run_launcher_installer battlenet "$steam_root" "$installer_file" "$prefix_dir" "$alternate")" || return 1
     printf '%s|%s\n' "$installed" "$alternate"
 }
 
 install_launcher() {
-    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file launcher_result app_id
+    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file launcher_result app_id icon_path
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
         echo "游戏启动器安装仅支持真实 SteamOS 环境。"
@@ -588,8 +661,16 @@ install_launcher() {
     stop_steam_for_vdf || return 1
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" add \
         --name "$LAUNCHER_NAME" --exe "$wrapper" --start-dir "$app_dir" >/dev/null || return 1
+    case "$target" in
+        epic) icon_path="$PROJECT_ROOT/assets/game-launchers/epic.png" ;;
+        battlenet) icon_path="$PROJECT_ROOT/assets/game-launchers/battlenet.png" ;;
+        ubisoft|uplay) icon_path="$PROJECT_ROOT/assets/game-launchers/ubisoft.png" ;;
+        *) return 1 ;;
+    esac
+    python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" set-icon \
+        --name "$LAUNCHER_NAME" --exe "$wrapper" --icon "$icon_path" >/dev/null || return 1
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" verify \
-        --name "$LAUNCHER_NAME" --exe "$wrapper" >/dev/null || {
+        --name "$LAUNCHER_NAME" --exe "$wrapper" --icon "$icon_path" >/dev/null || {
         echo "$LAUNCHER_NAME 的 Steam 条目写入后校验失败，桌面图标仍可使用。"
         return 1
     }
@@ -597,7 +678,7 @@ install_launcher() {
         --name "$LAUNCHER_NAME" --exe "$wrapper")" || return 1
     install_launcher_steam_artwork "$target" "$shortcut_file" "$app_id" || return 1
     start_steam
-    echo "$LAUNCHER_NAME 已添加到 Steam 库，封面与工具箱标识也已设置，无需再选择兼容层。"
+    echo "$LAUNCHER_NAME 已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
     if [ "$target" = "epic" ]; then
         echo "Epic 改中文：右上角头像 → Settings → Language → 中文（简体）→ Restart Now。"
         echo "若下载管理器仍显示英文，请选择不带 System Default 的中文（简体）后重启。"

@@ -15,6 +15,9 @@ GUI_TITLE="周克儿工具箱 V4"
 GUI_ICON="$PROJECT_ROOT/assets/icon-round.png"
 GUI_NAV_HOME=0
 
+# GUI 父进程不驻留在会被自更新替换的安装目录中。
+cd "$HOME" 2>/dev/null || cd / || exit 1
+
 # Decky 官方商店插件：保留英文官方名，后面附小白可理解的中文作用。
 DECKY_OFFICIAL_PLUGIN_NAMES=(
     "CSS Loader" "vibrantDeck" "Animation Changer" "Audio Loader" "SteamGridDB"
@@ -59,7 +62,7 @@ run_gui_action() {
     echo ""
     "$@"
     status=$?
-    cd "$PROJECT_ROOT" 2>/dev/null || cd "$HOME" 2>/dev/null || true
+    cd "$HOME" 2>/dev/null || cd / || true
     if [ "$status" -eq 0 ]; then
         gui_notice "$title 已完成。"
     else
@@ -152,11 +155,13 @@ game_environment_gui_menu() {
         choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
             features "常用插件组合｜安装小黄鸭等三款插件" \
             all "常用插件加27款精选插件｜优先安装三件套，已装则跳过；再补27款精选" \
+            lsfg "小黄鸭｜GitHub 失败自动切换 Gitee 国内源" \
+            fsr4 "FSR4｜GitHub 失败自动切换 Gitee 国内源" \
             browse "浏览官方插件｜逐个查看插件作用" \
             ge-proton "GE 游戏运行组件｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
             battlenet "战网启动器｜安装并添加到 Steam" \
-            ubisoft "育碧服务｜安装育碧游戏平台并添加到 Steam" \
+            ubisoft "育碧｜安装育碧游戏平台并添加到 Steam" \
             decky-install "安装插件商城｜建议先安装 Steam302 加速｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -170,6 +175,16 @@ game_environment_gui_menu() {
                 gui_confirm "未安装插件商城时会先安装插件商城，再继续安装常用与精选插件；会使用管理员权限。是否继续？" && \
                     run_gui_action "安装常用插件加27款精选插件" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" all
+                ;;
+            lsfg)
+                run_gui_action "安装小黄鸭（GitHub + Gitee 双源）" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
+                ;;
+            fsr4)
+                run_gui_action "安装 FSR4（GitHub + Gitee 双源）" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee
                 ;;
             browse)
                 plugin_official_gui_pages
@@ -191,7 +206,7 @@ game_environment_gui_menu() {
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
                 ;;
             ubisoft)
-                run_gui_action "安装育碧服务并自动入库" \
+                run_gui_action "安装育碧并自动入库" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft
                 ;;

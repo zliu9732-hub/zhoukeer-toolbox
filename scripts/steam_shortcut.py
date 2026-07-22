@@ -237,9 +237,27 @@ def verify_shortcut(args: argparse.Namespace) -> None:
             and entry_value(entry, b"appname") == args.name
             and entry_value(entry, b"exe") == quoted_exe
         ):
+            if args.icon and entry_value(entry, b"icon") != args.icon:
+                raise VdfError("the shortcut icon was not written")
             print("verified")
             return
     raise VdfError("the expected shortcut was not written")
+
+
+def set_shortcut_icon(args: argparse.Namespace) -> None:
+    entries = load_shortcuts(args.shortcut_file)
+    quoted_exe = quote_path(args.exe)
+    for entry in entries:
+        if (
+            entry[0] == TYPE_OBJECT
+            and entry_value(entry, b"appname") == args.name
+            and entry_value(entry, b"exe") == quoted_exe
+        ):
+            set_string(entry, "icon", args.icon)
+            save_shortcuts(args.shortcut_file, entries)
+            print("updated")
+            return
+    raise VdfError("the shortcut to receive the icon was not found")
 
 
 def shortcut_app_id(name: str, exe: str) -> int:
@@ -264,6 +282,12 @@ def main() -> None:
     verify = subparsers.add_parser("verify")
     verify.add_argument("--name", required=True)
     verify.add_argument("--exe", required=True)
+    verify.add_argument("--icon")
+
+    set_icon = subparsers.add_parser("set-icon")
+    set_icon.add_argument("--name", required=True)
+    set_icon.add_argument("--exe", required=True)
+    set_icon.add_argument("--icon", required=True)
 
     appid = subparsers.add_parser("appid")
     appid.add_argument("--name", required=True)
@@ -283,7 +307,15 @@ def main() -> None:
     elif args.command == "verify":
         if not os.path.isabs(args.exe):
             parser.error("shortcut paths must be absolute")
+        if args.icon and not os.path.isabs(args.icon):
+            parser.error("shortcut icon path must be absolute")
         verify_shortcut(args)
+    elif args.command == "set-icon":
+        if not os.path.isabs(args.exe) or not os.path.isabs(args.icon):
+            parser.error("shortcut and icon paths must be absolute")
+        if not os.path.isfile(args.icon):
+            parser.error("shortcut icon must be an existing file")
+        set_shortcut_icon(args)
     else:
         if not os.path.isabs(args.exe):
             parser.error("shortcut paths must be absolute")

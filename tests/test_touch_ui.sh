@@ -31,6 +31,8 @@ run_choice_test '\033[<0;40;13m\033[<0;40;18M' "cancel" "right:18-19:cancel"
 run_choice_test '\033[<64;40;13M\033[<32;40;13M\033[<0;40;18M' "cancel" "right:18-19:cancel"
 run_choice_test '\033[<0;15;5M' "nav-software" "left:5-6:nav-software"
 run_choice_test '\033[<0;40;22M' "home" "right:22-23:home"
+run_choice_test '\033[<0;8;14M' "agree" "any:14-17:agree"
+run_choice_test '\033[<0;80;17M' "agree" "any:14-17:agree"
 
 grep -Fq 'UI_LAST_ROW=24' "$PROJECT_ROOT/core/ui.sh" || fail "触控画布行数异常"
 grep -Fq 'Font=Noto Sans Mono CJK SC,12' "$PROJECT_ROOT/install.sh" || fail "中文字体大小不是紧凑布局"
@@ -45,7 +47,11 @@ main_disclaimer="$(sed -n '/^show_disclaimer()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 if printf '%s\n' "$main_disclaimer" | grep -Fq 'ui_disclaimer_line 14'; then
     fail "免责声明正文仍紧贴首个按钮"
 fi
-printf '%s\n' "$main_disclaimer" | grep -Fq 'launch.sh" --open-main' || fail "欢迎页确认后没有进入常规工具箱主题"
+printf '%s\n' "$main_disclaimer" | grep -Fq 'konsoleprofile "ColorScheme=ZhoukeerToolbox"' || fail "欢迎页确认后没有原地切换常规主题"
+printf '%s\n' "$main_disclaimer" | grep -Fq 'any:14-17:agree' || fail "欢迎页知悉按钮热区没有扩大"
+if printf '%s\n' "$main_disclaimer" | grep -Fq 'exec bash "$PROJECT_ROOT/launch.sh" --open-main'; then
+    fail "欢迎页仍依赖关闭当前窗口后另开 Konsole"
+fi
 grep -Fq 'ZHOUKEER_SKIP_DISCLAIMER' "$PROJECT_ROOT/main.sh" || fail "常规工具箱没有跳过重复免责声明"
 grep -Fq 'WELCOME_BACKGROUND_PATH' "$PROJECT_ROOT/install.sh" || fail "安装程序没有配置欢迎页背景"
 grep -Fq 'ZhoukeerToolboxSplash' "$PROJECT_ROOT/install.sh" || fail "安装程序没有生成欢迎页主题"

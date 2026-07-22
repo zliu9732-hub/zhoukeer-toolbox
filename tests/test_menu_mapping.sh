@@ -96,6 +96,8 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_contains "$source_text" 'modules/ge_proton.sh" install' "GE 游戏运行组件动作错误：$file"
     assert_contains "$source_text" 'modules/game_launchers.sh" epic' "Epic 动作错误：$file"
     assert_contains "$source_text" 'modules/game_launchers.sh" ubisoft' "Ubisoft Connect 动作错误：$file"
+    assert_contains "$source_text" 'modules/plugin_store.sh" lsfg-zh-gitee' "小黄鸭 Gitee 动作错误：$file"
+    assert_contains "$source_text" 'modules/plugin_store.sh" fsr4-zh-gitee' "FSR4 Gitee 动作错误：$file"
     assert_contains "$source_text" 'modules/steam_accelerator.sh" enable' "Steamcommunity 302 开启动作错误：$file"
     assert_contains "$source_text" 'modules/clover_boot.sh" install' "Clover 安装动作错误：$file"
     assert_contains "$source_text" 'modules/clover_boot.sh" delete' "Clover 删除动作错误：$file"
