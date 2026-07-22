@@ -128,6 +128,15 @@ for menu in "$touch_advanced" "$gui_advanced"; do
     done
 done
 
+touch_dual="$(function_source "$MAIN_FILE" dual_system_menu)"
+gui_dual="$(function_source "$GUI_FILE" dual_system_menu)"
+for menu in "$touch_dual" "$gui_dual"; do
+    for item in '挂载互通盘' '只读保护互通盘' '恢复互通盘写入' '安装 Clover 开机菜单' '查看 Clover 状态' '恢复原开机方式'; do
+        assert_contains "$menu" "$item" "双系统与互通盘缺少：$item"
+    done
+    assert_not_contains "$menu" 'systemd-boot' "双系统菜单仍暴露旧 systemd-boot 开关"
+done
+
 for gui_menu_name in software_menu game_environment_gui_menu plugin_official_gui_pages dual_system_menu network_store_gui_menu steam_accelerator_gui_menu maintenance_gui_menu help_gui_menu new_machine_gui_menu advanced_tools_gui_menu; do
     gui_menu="$(function_source "$GUI_FILE" "$gui_menu_name")"
     assert_contains "$gui_menu" 'home "返回首页"' "GUI 页面缺少返回首页：$gui_menu_name"

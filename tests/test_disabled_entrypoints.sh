@@ -24,12 +24,21 @@ grep -Fq '该功能当前已停用。' "$DUAL_FILE" || fail "rEFInd 停用动作
 touch_dual="$(sed -n '/^dual_system_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 gui_dual="$(sed -n '/^dual_system_menu()/,/^}/p' "$PROJECT_ROOT/core/gui.sh")"
 for menu in "$touch_dual" "$gui_dual"; do
-    for action in mount protect unprotect add remove; do
-        printf '%s\n' "$menu" | grep -Fq "modules/dual_system.sh\" $action" || fail "双系统菜单动作缺失：$action"
+    for action in mount protect unprotect; do
+        printf '%s\n' "$menu" | grep -Fq "modules/dual_system.sh\" $action" || fail "互通盘菜单动作缺失：$action"
+    done
+    for action in install status restore; do
+        printf '%s\n' "$menu" | grep -Fq "modules/clover_boot.sh\" $action" || fail "Clover 菜单动作缺失：$action"
     done
     if printf '%s\n' "$menu" | grep -Eiq 'refind'; then
         fail "双系统菜单仍可到达 rEFInd"
     fi
 done
 
-echo "PASS: rEFInd 在静态菜单和说明中不可达"
+for action in add remove; do
+    if bash "$DUAL_FILE" "$action" >/dev/null 2>&1; then
+        fail "旧 systemd-boot 动作仍可执行：$action"
+    fi
+done
+
+echo "PASS: rEFInd 和旧 systemd-boot 动作不可达，Clover 菜单已接管"

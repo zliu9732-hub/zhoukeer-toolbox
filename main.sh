@@ -536,12 +536,13 @@ dual_system_menu() {
         ui_touch_button 7 '\033[1;97;48;5;24m' "挂载互通盘" "连接唯一未挂载的共享盘 · 高级操作"
         ui_touch_button 9 '\033[1;97;48;5;30m' "只读保护互通盘" "防止 SteamOS 误写入 · 高级操作"
         ui_touch_button 11 '\033[1;97;48;5;24m' "恢复互通盘写入" "重新以可写模式挂载互通盘"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "显示开机系统菜单" "显示 systemd-boot 5 秒 · 高级操作"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "隐藏开机系统菜单" "将等待时间设置为 0 秒 · 高级操作"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统与密码" "查看其他系统功能"
-        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_touch_button 13 '\033[1;97;48;5;160m' "安装 Clover 开机菜单" "显示 SteamOS / Windows · 会写入 EFI"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "查看 Clover 状态" "检查主题、启动文件和 NVRAM 入口"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "恢复原开机方式" "移除工具箱 Clover 并恢复 BootOrder"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回系统与密码" "查看其他系统功能"
+        ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:mount right:9-10:protect right:11-12:unprotect right:13-14:add right:15-16:remove right:18-19:advanced right:22-23:home)"
+        choice="$(read_touch_menu right:7-8:mount right:9-10:protect right:11-12:unprotect right:13-14:clover-install right:15-16:clover-status right:17-18:clover-restore right:19-20:advanced right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -557,13 +558,14 @@ dual_system_menu() {
                 confirm_and_run "恢复互通盘写入" "会重新以可写模式挂载互通盘，恢复 SteamOS 下的正常读写" \
                     bash "$PROJECT_ROOT/modules/dual_system.sh" unprotect
                 ;;
-            add)
-                confirm_and_run "添加 systemd-boot 引导" "只启用已有 systemd-boot 菜单并备份配置；不会安装或重写 EFI 引导程序" \
-                    bash "$PROJECT_ROOT/modules/dual_system.sh" add
+            clover-install)
+                confirm_and_run "安装 Clover 开机菜单" "会备份原 EFI 与 BootOrder，再写入 Clover 5173 和自定义怪盗主题；8 秒默认进入 SteamOS" \
+                    bash "$PROJECT_ROOT/modules/clover_boot.sh" install
                 ;;
-            remove)
-                confirm_and_run "删除 systemd-boot 引导" "仅把引导菜单等待时间设置为 0 秒；不会删除 SteamOS、Windows 或启动项" \
-                    bash "$PROJECT_ROOT/modules/dual_system.sh" remove
+            clover-status) run_action "Clover 状态" bash "$PROJECT_ROOT/modules/clover_boot.sh" status ;;
+            clover-restore)
+                confirm_and_run "恢复原开机方式" "会移除工具箱创建的 Clover 启动项，并恢复安装前的 BootOrder 和原 Clover 目录" \
+                    bash "$PROJECT_ROOT/modules/clover_boot.sh" restore
                 ;;
             advanced) NEXT_CATEGORY="advanced"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;

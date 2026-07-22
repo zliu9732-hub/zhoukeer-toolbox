@@ -246,8 +246,9 @@ dual_system_menu() {
             mount "挂载互通盘｜连接唯一未挂载的共享盘｜高级操作" \
             protect "只读保护互通盘｜防止 SteamOS 误写入｜高级操作" \
             unprotect "恢复互通盘写入｜重新以可写方式挂载｜高级操作" \
-            add "显示开机系统菜单｜显示 systemd-boot 5 秒｜高级操作" \
-            remove "隐藏开机系统菜单｜将等待时间设为 0 秒｜高级操作" \
+            clover-install "安装 Clover 开机菜单｜SteamOS / Windows｜写入 EFI｜高级操作" \
+            clover-status "查看 Clover 状态｜检查主题、启动文件和 NVRAM" \
+            clover-restore "恢复原开机方式｜恢复 BootOrder 和原 Clover｜高级操作" \
             back "返回系统与密码" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -267,15 +268,16 @@ dual_system_menu() {
                     run_gui_action "恢复互通盘写入" \
                     bash "$PROJECT_ROOT/modules/dual_system.sh" unprotect
                 ;;
-            add)
-                gui_confirm "将启用已有的 systemd-boot 菜单并备份配置，不会安装或重写 EFI 引导程序。是否继续？" && \
-                    run_gui_action "显示开机系统菜单" \
-                    bash "$PROJECT_ROOT/modules/dual_system.sh" add
+            clover-install)
+                gui_confirm "将备份已有 EFI/CLOVER 和 BootOrder，再安装官方 Clover 5173 与自定义怪盗掌机主题。不会覆盖 BOOTX64.EFI 或 Windows bootmgfw.efi。确认继续？" && \
+                    run_gui_action "安装 Clover 开机菜单" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/clover_boot.sh" install
                 ;;
-            remove)
-                gui_confirm "将把 systemd-boot 菜单等待时间设为 0 秒；不会删除 SteamOS、Windows 或 EFI 启动项。是否继续？" && \
-                    run_gui_action "隐藏开机系统菜单" \
-                    bash "$PROJECT_ROOT/modules/dual_system.sh" remove
+            clover-status) run_gui_action "Clover 状态" bash "$PROJECT_ROOT/modules/clover_boot.sh" status ;;
+            clover-restore)
+                gui_confirm "将移除工具箱创建的 Clover 启动项，并恢复安装前的 BootOrder 和原 Clover 目录。确认继续？" && \
+                    run_gui_action "恢复原开机方式" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/clover_boot.sh" restore
                 ;;
             back) return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;

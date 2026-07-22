@@ -603,14 +603,16 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         mount) mount_shared_drive ;;
         protect) mount_shared_drive_with_protection ;;
         unprotect) restore_shared_drive_write ;;
-        add) enable_dual_boot_menu ;;
-        remove) hide_dual_boot_menu ;;
+        add|remove)
+            echo "旧 systemd-boot 菜单开关已停用，请使用工具箱中的 Clover 开机菜单。"
+            exit 1
+            ;;
         refind-install|refind-hide|refind-show|refind-remove)
             echo "该功能当前已停用。"
             exit 1
             ;;
         *)
-            echo "用法: $0 {mount|protect|unprotect|add|remove}"
+            echo "用法: $0 {mount|protect|unprotect}"
             exit 1
             ;;
     esac
