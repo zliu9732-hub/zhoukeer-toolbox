@@ -23,32 +23,105 @@ CLOVER_ESP=""
 CLOVER_ESP_SOURCE=""
 CLOVER_DISK=""
 CLOVER_PARTITION=""
+CLOVER_ESP_FOUND=""
+CLOVER_ESP_MOUNTED_BY_TOOLBOX=0
+CLOVER_ESP_MOUNT_DEVICE=""
+
+clover_nvram_partuuid() {
+    local entries needle value
+
+    entries="$(efibootmgr -v 2>/dev/null)" || return 1
+    for needle in 'cloverx64.efi' 'steamcl.efi'; do
+        value="$(printf '%s\n' "$entries" | awk -v needle="$needle" '
+            index(tolower($0), needle) && match($0, /HD\([^,]+,GPT,[^,]+/) {
+                value = substr($0, RSTART, RLENGTH)
+                sub(/^.*GPT,/, "", value)
+                print tolower(value)
+                exit
+            }
+        ')"
+        [ -z "$value" ] || { printf '%s\n' "$value"; return 0; }
+    done
+    return 1
+}
+
+clover_device_from_nvram() {
+    local wanted device partuuid filesystem
+
+    wanted="$(clover_nvram_partuuid)" || return 1
+    while read -r device partuuid filesystem; do
+        [ -n "$device" ] && [ -n "$partuuid" ] || continue
+        if [ "$(printf '%s' "$partuuid" | tr '[:upper:]' '[:lower:]')" = "$wanted" ]; then
+            case "$filesystem" in
+                vfat|fat|fat32|msdos) printf '%s\n' "$device"; return 0 ;;
+            esac
+        fi
+    done < <(lsblk -rpn -o NAME,PARTUUID,FSTYPE 2>/dev/null)
+    return 1
+}
 
 clover_find_esp() {
-    local candidate
-    local detected
+    local candidate detected device mountpoint output
+
+    CLOVER_ESP_FOUND=""
 
     if command -v bootctl >/dev/null 2>&1; then
         for candidate in "$(bootctl --print-esp-path 2>/dev/null || true)" \
             "$(bootctl --print-boot-path 2>/dev/null || true)"; do
             [ -d "$candidate" ] || continue
-            detected="$(find "$candidate/EFI" -maxdepth 3 -type f -iname steamcl.efi -print -quit 2>/dev/null || true)"
+            detected="$(find "$candidate/EFI" -maxdepth 3 -type f \( -iname steamcl.efi -o -iname CLOVERX64.efi \) -print -quit 2>/dev/null || true)"
             [ -n "$detected" ] || continue
-            printf '%s\n' "$candidate"
+            CLOVER_ESP_FOUND="$candidate"
             return 0
         done
     fi
 
     for candidate in /esp /boot/efi /efi /boot; do
         [ -d "$candidate" ] || continue
-        detected="$(find "$candidate/EFI" -maxdepth 3 -type f -iname steamcl.efi -print -quit 2>/dev/null || true)"
+        detected="$(find "$candidate/EFI" -maxdepth 3 -type f \( -iname steamcl.efi -o -iname CLOVERX64.efi \) -print -quit 2>/dev/null || true)"
         [ -n "$detected" ] || continue
-        printf '%s\n' "$candidate"
+        CLOVER_ESP_FOUND="$candidate"
         return 0
     done
 
-    echo "未找到包含 SteamOS 启动文件的 EFI 系统分区。" >&2
+    device="$(clover_device_from_nvram || true)"
+    if [ -n "$device" ]; then
+        mountpoint="$(findmnt -rn -S "$device" -o TARGET 2>/dev/null | head -n 1)"
+        if [ -z "$mountpoint" ]; then
+            command -v udisksctl >/dev/null 2>&1 || {
+                echo "已从启动项定位到 EFI 分区 ${device}，但缺少 udisksctl，无法临时挂载。" >&2
+                return 1
+            }
+            output="$(udisksctl mount --block-device "$device" 2>&1)" || {
+                printf '%s\n' "$output" >&2
+                return 1
+            }
+            mountpoint="$(findmnt -rn -S "$device" -o TARGET 2>/dev/null | head -n 1)"
+            [ -n "$mountpoint" ] || \
+                mountpoint="$(printf '%s\n' "$output" | sed -n 's/^Mounted .* at \(.*\)\.$/\1/p' | tail -n 1)"
+            [ -d "$mountpoint/EFI" ] || {
+                udisksctl unmount --block-device "$device" >/dev/null 2>&1 || true
+                echo "临时挂载的分区不是有效 EFI 系统分区。" >&2
+                return 1
+            }
+            CLOVER_ESP_MOUNTED_BY_TOOLBOX=1
+            CLOVER_ESP_MOUNT_DEVICE="$device"
+        fi
+        [ -d "$mountpoint/EFI" ] || return 1
+        CLOVER_ESP_FOUND="$mountpoint"
+        return 0
+    fi
+
+    echo "未找到 Clover/SteamOS 启动项对应的 EFI 系统分区。" >&2
     return 1
+}
+
+clover_release_esp_mount() {
+    if [ "$CLOVER_ESP_MOUNTED_BY_TOOLBOX" = "1" ] && [ -n "$CLOVER_ESP_MOUNT_DEVICE" ]; then
+        udisksctl unmount --block-device "$CLOVER_ESP_MOUNT_DEVICE" >/dev/null 2>&1 || true
+    fi
+    CLOVER_ESP_MOUNTED_BY_TOOLBOX=0
+    CLOVER_ESP_MOUNT_DEVICE=""
 }
 
 clover_resolve_esp_device() {
@@ -56,7 +129,8 @@ clover_resolve_esp_device() {
     local parent
     local partition
 
-    CLOVER_ESP="$(clover_find_esp)" || return 1
+    clover_find_esp || return 1
+    CLOVER_ESP="$CLOVER_ESP_FOUND"
     CLOVER_ESP_SOURCE="$(findmnt -rn -T "$CLOVER_ESP" -o SOURCE 2>/dev/null | head -n 1)"
     filesystem="$(findmnt -rn -T "$CLOVER_ESP" -o FSTYPE 2>/dev/null | head -n 1)"
     case "$CLOVER_ESP_SOURCE" in
@@ -82,7 +156,10 @@ clover_resolve_esp_device() {
 }
 
 clover_windows_entry_exists() {
-    efibootmgr -v 2>/dev/null | grep -Fqi 'Windows Boot Manager'
+    local entries
+
+    entries="$(efibootmgr -v 2>/dev/null)" || return 1
+    printf '%s\n' "$entries" | grep -Fi 'Windows Boot Manager' >/dev/null
 }
 
 clover_boot_number() {
@@ -172,7 +249,9 @@ clover_archive_is_safe() {
     local archive="$1"
     local entry
     local count=0
+    local listing
 
+    listing="$(unzip -Z1 "$archive")" || return 1
     while IFS= read -r entry; do
         count=$((count + 1))
         case "$entry" in
@@ -181,7 +260,7 @@ clover_archive_is_safe() {
                 return 1
                 ;;
         esac
-    done < <(unzip -Z1 "$archive")
+    done <<< "$listing"
     [ "$count" -gt 0 ] && [ "$count" -le 5000 ] || {
         echo "Clover 压缩包文件数量异常：$count"
         return 1
@@ -190,11 +269,11 @@ clover_archive_is_safe() {
         echo "Clover 压缩包包含符号链接，已拒绝解压。"
         return 1
     fi
-    unzip -Z1 "$archive" | grep -Fxq 'CloverV2/EFI/CLOVER/CLOVERX64.efi' || {
+    grep -Fx 'CloverV2/EFI/CLOVER/CLOVERX64.efi' <<< "$listing" >/dev/null || {
         echo "Clover 压缩包缺少 CLOVERX64.efi。"
         return 1
     }
-    unzip -Z1 "$archive" | grep -Fxq 'CloverV2/themespkg/Glass/theme.plist' || {
+    grep -Fx 'CloverV2/themespkg/Glass/theme.plist' <<< "$listing" >/dev/null || {
         echo "Clover 压缩包缺少基础主题资源。"
         return 1
     }
@@ -254,11 +333,11 @@ clover_show_install_risk() {
     echo "================================================"
     echo " Clover 开机选择菜单"
     echo "================================================"
-    echo "版本：Clover $CLOVER_VERSION（官方 GitHub Release）"
+    echo "版本：Clover ${CLOVER_VERSION}（官方 GitHub Release）"
     echo "主题：自定义怪盗与 Steam Deck，分辨率 1280×800"
     echo "EFI 分区：$CLOVER_ESP ($CLOVER_ESP_SOURCE)"
     echo "目标：$CLOVER_ESP/EFI/CLOVER"
-    echo "NVRAM：新增 $CLOVER_BOOT_LABEL，并放到现有 BootOrder 首位"
+    echo "NVRAM：新增 ${CLOVER_BOOT_LABEL}，并放到现有 BootOrder 首位"
     echo ""
     echo "不会覆盖 EFI/BOOT/BOOTX64.EFI，不会修改 Windows bootmgfw.efi。"
     echo "已有 CLOVER 目录和原 BootOrder 会先备份；恢复入口可撤销本次安装。"
@@ -280,13 +359,21 @@ clover_confirm_install() {
 clover_confirm_restore() {
     local answer
 
-    echo "将移除工具箱创建的 Clover 启动项，并恢复安装前的 BootOrder。"
+    if [ "${ZHOUKEER_CLOVER_DELETE:-0}" = "1" ]; then
+        echo "将删除工具箱创建的 Clover 双系统引导，并恢复安装前的 BootOrder。"
+    else
+        echo "将移除工具箱创建的 Clover 启动项，并恢复安装前的 BootOrder。"
+    fi
     echo "如果安装前已有 CLOVER 目录，也会从备份恢复。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi
     read -r -p "确认恢复原开机方式请输入 RESTORE：" answer
     [ "$answer" = "RESTORE" ]
+}
+
+clover_delete() {
+    ZHOUKEER_CLOVER_DELETE=1 clover_restore
 }
 
 clover_install() {
@@ -543,10 +630,12 @@ clover_status() {
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    trap clover_release_esp_mount EXIT
     case "${1:-status}" in
         install) clover_install ;;
         restore) clover_restore ;;
+        delete) clover_delete ;;
         status) clover_status ;;
-        *) echo "用法: $0 {install|restore|status}"; exit 1 ;;
+        *) echo "用法: $0 {install|restore|delete|status}"; exit 1 ;;
     esac
 fi

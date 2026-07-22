@@ -1,4 +1,14 @@
 
+## V5.0.7 公开版 — 2026-07-22
+
+- 双系统页面扩展为 B1-B6 两页工具：互通盘挂载、TF 卡 exFAT 初始化、磁盘写入错误修复、Clover 安装修复、只读保护和 Windows 一次性切换快捷方式。
+- 新增只读双系统健康检查，可识别 Clover、rEFInd、systemd-boot、GRUB、OpenCore、Windows 与 SteamOS；增加工具箱 Clover 完整删除和第三方 NVRAM 引导清理。
+- Clover 状态可从已有 Clover/SteamOS NVRAM 记录反查 EFI 分区 UUID，自动临时挂载未挂载的 EFI，并在检查结束后释放。
+- 修复互通盘实际挂载成功后因中文变量边界导致界面仍报告失败，并支持已挂载磁盘复用和多个候选人工选择。
+- 修复 Epic/战网启动器模块未加载 `require_command` 定义的问题。
+- Epic/战网安装时若没有可用兼容层，会通过 Steam 官方入口自动安装 Proton 10，等待完成后继续，而不是只提示用户缺少 Proton。
+- 删除已停用的旧 rEFInd EFI 写入实现及固定磁盘路径；仅保留旧命令的明确阻断和健康检查中的只读识别。
+
 ## V5.0.6 公开版 — 2026-07-22
 
 - 双系统页面停用不完整的 systemd-boot 菜单开关，改为官方 Clover 5173 开机选择菜单，显示 SteamOS 与 Windows 并默认 8 秒进入 SteamOS。

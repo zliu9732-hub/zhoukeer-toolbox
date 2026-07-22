@@ -5,6 +5,8 @@ set -u
 # shellcheck disable=SC1091
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../core/env.sh"
 # shellcheck disable=SC1091
+source "$PROJECT_ROOT/core/platform.sh"
+# shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/logger.sh"
 
 DOWNLOAD_TIMEOUT="${ZHOUKEER_LAUNCHER_DOWNLOAD_TIMEOUT:-600}"
@@ -12,6 +14,9 @@ POST_INSTALL_TIMEOUT="${ZHOUKEER_LAUNCHER_POST_INSTALL_TIMEOUT:-300}"
 POST_INSTALL_INTERVAL="${ZHOUKEER_LAUNCHER_POST_INSTALL_INTERVAL:-5}"
 BATTLE_NET_FIRST_ATTEMPT_TIMEOUT="${ZHOUKEER_BATTLENET_FIRST_ATTEMPT_TIMEOUT:-75}"
 STEAM_SHORTCUT_HELPER="$PROJECT_ROOT/scripts/steam_shortcut.py"
+PROTON_10_APP_ID="3658110"
+PROTON_INSTALL_TIMEOUT="${ZHOUKEER_PROTON_INSTALL_TIMEOUT:-900}"
+PROTON_INSTALL_INTERVAL="${ZHOUKEER_PROTON_INSTALL_INTERVAL:-5}"
 
 launcher_details() {
     case "$1" in
@@ -308,6 +313,45 @@ find_proton_10_runner() {
     return 1
 }
 
+install_official_proton_10() {
+    local steam_root="$1"
+    local steam_bin runner elapsed=0
+
+    case "$PROTON_INSTALL_TIMEOUT:$PROTON_INSTALL_INTERVAL" in
+        *[!0-9:]*|:*|*:0) echo "Proton 10 等待参数无效。" >&2; return 1 ;;
+    esac
+    steam_bin="$(steam_command)" || {
+        echo "找不到 Steam 客户端，无法自动安装官方 Proton 10。" >&2
+        return 1
+    }
+    echo "未检测到可用 Proton，正在通过 Steam 安装官方 Proton 10..." >&2
+    "$steam_bin" "steam://install/$PROTON_10_APP_ID" >/dev/null 2>&1 &
+    while [ "$elapsed" -le "$PROTON_INSTALL_TIMEOUT" ]; do
+        runner="$(find_proton_10_runner "$steam_root" || true)"
+        if [ -n "$runner" ]; then
+            echo "官方 Proton 10 已准备完成。" >&2
+            printf '%s\n' "$runner"
+            return 0
+        fi
+        sleep "$PROTON_INSTALL_INTERVAL"
+        elapsed=$((elapsed + PROTON_INSTALL_INTERVAL))
+    done
+    echo "等待 Proton 10 安装超时。请确认 Steam 在线且已登录后重试。" >&2
+    return 1
+}
+
+ensure_proton_runner() {
+    local steam_root="$1"
+    local runner
+
+    runner="$(find_proton_runner "$steam_root" || true)"
+    if [ -n "$runner" ]; then
+        printf '%s\n' "$runner"
+        return 0
+    fi
+    install_official_proton_10 "$steam_root"
+}
+
 find_battlenet_alternate_runner() {
     local steam_root="$1" current_runner="$2" candidate
     for candidate in "$(find_proton_experimental_runner "$steam_root" || true)" "$(find_proton_10_runner "$steam_root" || true)"; do
@@ -375,7 +419,7 @@ install_launcher() {
     launcher_details "$target" || return 1
     steam_root="$(find_steam_root)" || return 1
     launcher_exe="$(find_installed_launcher "$steam_root" || true)"
-    runner="$(find_proton_runner "$steam_root")" || { echo "未找到可用 Proton/GE-Proton。"; return 1; }
+    runner="$(ensure_proton_runner "$steam_root")" || return 1
     app_dir="$APP_DIR/game-launchers/$target"
     mkdir -p "$app_dir" || return 1
 

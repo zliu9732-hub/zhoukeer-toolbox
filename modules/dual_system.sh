@@ -14,16 +14,6 @@ load_config
 DUAL_BOOT_TIMEOUT="${DUAL_BOOT_TIMEOUT:-5}"
 SHARED_DRIVE_LINK="${ZHOUKEER_SHARED_DRIVE_LINK:-$HOME/互通盘}"
 
-# rEFInd 原实现保留仅供审阅；当前不会定义或执行其中的 EFI 写入函数。
-REFIND_FEATURE_DISABLED=1
-# rEFInd 图形引导管理器
-REFIND_VERSION="${ZHOUKEER_REFIND_VERSION:-0.14.7}"
-REFIND_URL="${ZHOUKEER_REFIND_URL:-https://github.com/bobafetthotmail/refind-bin-linux/releases/download/v${REFIND_VERSION}/refind-bin-linux-${REFIND_VERSION}.zip}"
-REFIND_ZIP_SHA256="${ZHOUKEER_REFIND_SHA256:-}"
-REFIND_ESP_DIR="/esp/EFI/refind"
-REFIND_BOOT_NUM=""
-
-
 require_steamos() {
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ] && [ "${ZHOUKEER_ALLOW_NON_STEAMOS:-0}" != "1" ]; then
@@ -50,12 +40,19 @@ find_shared_drive_device() {
     local type
     local filesystem
     local mountpoint
-    local candidate=""
-    local candidate_count=0
+    local candidate="" selection size label
+    local -a candidates=()
 
     if [ -n "$requested" ]; then
         case "$requested" in
-            /dev/*) ;;
+            /dev/*)
+                case "${requested#/dev/}" in
+                    ''|*[!A-Za-z0-9._-]*)
+                        echo "指定的互通盘设备路径不安全：$requested"
+                        return 1
+                        ;;
+                esac
+                ;;
             *)
                 echo "指定的互通盘设备无效：$requested"
                 return 1
@@ -77,19 +74,33 @@ find_shared_drive_device() {
         fi
         is_shared_filesystem "$filesystem" || continue
         candidate="$device"
-        candidate_count=$((candidate_count + 1))
+        candidates+=("$device")
     done < <(lsblk -rpn -o NAME,TYPE,FSTYPE,MOUNTPOINT 2>/dev/null)
 
-    if [ "$candidate_count" -eq 0 ]; then
-        echo "没有发现未挂载的 NTFS 或 exFAT 互通盘。"
+    if [ "${#candidates[@]}" -eq 0 ]; then
+        echo "没有发现符合条件的 NTFS 或 exFAT 互通盘。"
         return 1
     fi
-    if [ "$candidate_count" -gt 1 ]; then
-        echo "发现多个可挂载分区，为避免挂错盘已停止。"
-        echo "请只保留目标互通盘后重试，或设置 ZHOUKEER_SHARED_DRIVE_DEVICE 指定设备。"
+    if [ "${#candidates[@]}" -gt 1 ]; then
+        echo "检测到多个 NTFS/exFAT 分区，请根据容量和卷标选择互通盘：" >&2
+        for candidate in "${candidates[@]}"; do
+            size="$(lsblk -dnro SIZE "$candidate" 2>/dev/null | head -n 1)"
+            label="$(lsblk -dnro LABEL "$candidate" 2>/dev/null | head -n 1)"
+            mountpoint="$(findmnt -rn -S "$candidate" -o TARGET 2>/dev/null | head -n 1)"
+            echo "  ${candidate}｜${size:-未知}｜卷标=${label:-无}｜${mountpoint:-未挂载}" >&2
+        done
+        if [ ! -r /dev/tty ]; then
+            echo "当前界面无法读取选择，请只保留目标盘后重试。" >&2
+            return 1
+        fi
+        read -r -p "请输入目标设备完整名称（例如 /dev/mmcblk0p1）：" selection </dev/tty
+        for candidate in "${candidates[@]}"; do
+            [ "$selection" != "$candidate" ] || { printf '%s\n' "$candidate"; return 0; }
+        done
+        echo "输入的设备不在候选列表中，已停止。" >&2
         return 1
     fi
-    printf '%s\n' "$candidate"
+    printf '%s\n' "${candidates[0]}"
 }
 
 extract_udisks_mountpoint() {
@@ -113,7 +124,9 @@ mount_shared_drive_device() {
             return 1
         }
     fi
-    mountpoint="$(printf '%s\n' "$output" | extract_udisks_mountpoint)"
+    mountpoint="$(shared_drive_mountpoint "$device" || true)"
+    [ -n "$mountpoint" ] || \
+        mountpoint="$(printf '%s\n' "$output" | extract_udisks_mountpoint)"
     if [ -z "$mountpoint" ] || [ ! -d "$mountpoint" ]; then
         printf '%s\n' "$output"
         return 1
@@ -145,11 +158,18 @@ mount_shared_drive() {
     local mountpoint
 
     require_steamos || return 1
-    for command_name in lsblk udisksctl; do
+    for command_name in lsblk udisksctl findmnt; do
         require_command "$command_name" || return 1
     done
 
-    device="$(find_shared_drive_device 0)" || return 1
+    device="$(find_shared_drive_device 1)" || return 1
+    mountpoint="$(shared_drive_mountpoint "$device" || true)"
+    if [ -n "$mountpoint" ]; then
+        create_shared_drive_shortcut "$mountpoint" || return 1
+        echo "互通盘已经挂载：$mountpoint"
+        echo "快捷入口已确认：$SHARED_DRIVE_LINK"
+        return 0
+    fi
     echo "正在挂载互通盘：$device"
     mountpoint="$(mount_shared_drive_device "$device")" || {
         echo "互通盘挂载失败。"
@@ -158,7 +178,7 @@ mount_shared_drive() {
 
     create_shared_drive_shortcut "$mountpoint" || return 1
     echo "互通盘已挂载：$mountpoint"
-    echo "桌面模式可通过“$SHARED_DRIVE_LINK”快速访问。"
+    echo "桌面模式可通过“${SHARED_DRIVE_LINK}”快速访问。"
     log "互通盘已挂载: $device -> $mountpoint"
 }
 
@@ -367,235 +387,6 @@ hide_dual_boot_menu() {
     log "双系统引导菜单已隐藏: timeout=0"
 }
 
-# 以下 rEFInd 实现已整体停用，避免暴露任何 EFI 写入函数。
-if false; then
-refind_esp_is_mounted() {
-    mount | grep -q ' /esp '
-}
-
-refind_mount_esp() {
-    refind_esp_is_mounted && return 0
-    # SteamOS 的 ESP 通常在 /dev/nvme0n1p1
-    local esp_dev
-    esp_dev="$(blkid -L ESP 2>/dev/null || lsblk -nro NAME /dev/nvme0n1p1 2>/dev/null || true)"
-    if [ -n "$esp_dev" ]; then
-        toolbox_sudo mount "/dev/$esp_dev" /esp 2>/dev/null || toolbox_sudo mount /dev/nvme0n1p1 /esp 2>/dev/null || return 1
-    elif [ -b /dev/nvme0n1p1 ]; then
-        toolbox_sudo mount /dev/nvme0n1p1 /esp 2>/dev/null || return 1
-    else
-        return 1
-    fi
-}
-
-
-refind_check_existing_entries() {
-    echo "正在检测当前 EFI 引导项..."
-    if ! command -v efibootmgr >/dev/null 2>&1; then
-        echo "提示：缺少 efibootmgr，跳过引导项检测。"
-        return 0
-    fi
-
-    local boot_entries
-    boot_entries="$(toolbox_sudo efibootmgr 2>/dev/null)" || {
-        echo "无法读取 EFI 引导项，跳过检测。"
-        return 0
-    }
-
-    local known_patterns="SteamOS|Windows Boot Manager|UEFI|EFI|rEFInd|Linux-Firmware|Boot Manager"
-    local custom_entries=""
-    local entry_num entry_name
-
-    while IFS= read -r line; do
-        case "$line" in
-            Boot[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]*)
-                entry_name="${line#Boot[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]* }"
-                entry_name="${entry_name#\* }"
-                entry_num="${line:4:4}"
-                # 跳过已知标准的引导项
-                case "$entry_name" in
-                    *SteamOS*|*Windows*Boot*|*UEFI*|*EFI*|*rEFInd*|*Linux*Firmware*|*Boot*Manager*) ;;
-                    *)
-                        if [ -n "$entry_name" ] && [ "${entry_num:-0000}" != "0000" ]; then
-                            custom_entries="$custom_entries  Boot$entry_num - $entry_name"$'
-'
-                        fi
-                        ;;
-                esac
-                ;;
-        esac
-    done <<< "$boot_entries"
-
-    if [ -n "$custom_entries" ]; then
-        echo ""
-        echo "========================================"
-        echo " 发现以下非标准引导项："
-        echo "----------------------------------------"
-        printf '%s' "$custom_entries"
-        echo "========================================"
-        echo "安装 rEFInd 后这些引导项会显示在开机菜单中。"
-        echo "rEFInd 不会删除或修改它们，但引导顺序可能变化。"
-        echo ""
-        if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
-            local answer
-            read -r -p "确认继续安装请输入 YES：" answer
-            [ "$answer" = "YES" ] || { echo "已取消。"; return 1; }
-        fi
-    else
-        echo "未发现非标准引导项，系统环境正常。"
-    fi
-}
-
-install_refind() {
-    require_steamos || return 1
-    for cmd_refind in curl unzip efibootmgr; do
-        require_command "$cmd_refind" || return 1
-    done
-
-    echo "将安装 rEFInd 图形引导管理器到 EFI 分区。"
-    echo "安装后开机将显示系统图标，可选择 SteamOS 或 Windows 启动。"
-    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
-        local answer
-        read -r -p "确认安装请输入 INSTALL：" answer
-        [ "$answer" = "INSTALL" ] || { echo "已取消。"; return 0; }
-    fi
-
-    toolbox_sudo true || { echo "管理员权限验证失败。"; return 1; }
-    refind_check_existing_entries || return 1
-    mkdir -p /esp 2>/dev/null || toolbox_sudo mkdir -p /esp
-    refind_mount_esp || { echo "无法挂载 EFI 分区，请确认 Steam Deck 已开启开发者模式。"; return 1; }
-
-    local tmp_refind
-    tmp_refind="$(mktemp -d)" || return 1
-    local refind_zip="$tmp_refind/refind.zip"
-    local refind_extract="$tmp_refind/refind"
-
-    echo "正在下载 rEFInd V$REFIND_VERSION..."
-    local _rf_ok=0 _rf_url _rf_mirror
-    for _rf_mirror in $GITHUB_MIRRORS ""; do
-        if [ -n "$_rf_mirror" ]; then
-            _rf_url="${_rf_mirror}${REFIND_URL}"
-        else
-            _rf_url="$REFIND_URL"
-        fi
-        if curl -fL --connect-timeout 15 --max-time 300 --retry 2 \
-            -o "$refind_zip" "$_rf_url" 2>/dev/null; then
-            _rf_ok=1
-            break
-        fi
-        rm -f "$refind_zip"
-    done
-    if [ "$_rf_ok" -ne 1 ]; then
-        rm -rf "$tmp_refind"
-        echo "rEFInd 下载失败。"
-        return 1
-    fi
-
-    mkdir -p "$refind_extract" || { rm -rf "$tmp_refind"; return 1; }
-    unzip -q "$refind_zip" -d "$refind_extract" || { rm -rf "$tmp_refind"; return 1; }
-
-    local refind_dir
-    refind_dir="$(find "$refind_extract" -maxdepth 2 -type d -name refind -print -quit 2>/dev/null)" || true
-    if [ -z "$refind_dir" ] || [ ! -f "$refind_dir/refind_x64.efi" ]; then
-        rm -rf "$tmp_refind"
-        echo "rEFInd 文件不完整。"
-        return 1
-    fi
-
-    echo "正在安装 rEFInd 到 EFI 分区..."
-    toolbox_sudo mkdir -p "$REFIND_ESP_DIR" || { rm -rf "$tmp_refind"; return 1; }
-    toolbox_sudo cp -r "$refind_dir/"* "$REFIND_ESP_DIR/" || { rm -rf "$tmp_refind"; return 1; }
-    toolbox_sudo cp "$refind_dir/refind_x64.efi" "$REFIND_ESP_DIR/bootx64.efi" 2>/dev/null || true
-
-    # 生成 rEFInd 配置
-    local refind_conf="$REFIND_ESP_DIR/refind.conf"
-    local refind_conf_tmp
-    refind_conf_tmp="$(mktemp)" || { rm -rf "$tmp_refind"; return 1; }
-
-    cat > "$refind_conf_tmp" << REFIND_EOF
-# rEFInd 配置 - 由周克儿工具箱生成
-timeout 10
-use_graphics_for osx,linux,windows
-hideui label
-showtools reboot,shutdown,firmware
-
-menuentry "SteamOS" {
-    icon /EFI/refind/icons/os_linux.png
-    volume ESP
-    loader /EFI/steamos/steamcl.efi
-}
-
-menuentry "Windows" {
-    icon /EFI/refind/icons/os_win.png
-    volume ESP
-    loader /EFI/Microsoft/Boot/bootmgfw.efi
-}
-
-menuentry "重启" {
-    icon /EFI/refind/icons/reboot.png
-    reboot
-}
-
-menuentry "关机" {
-    icon /EFI/refind/icons/shutdown.png
-    shutdown
-}
-REFIND_EOF
-
-    toolbox_sudo cp "$refind_conf_tmp" "$refind_conf" || { rm -rf "$tmp_refind"; return 1; }
-    rm -f "$refind_conf_tmp"
-
-    # 注册为默认引导项
-    echo "正在设置 rEFInd 为默认引导管理器..."
-    local refind_efi_path="\EFI\refind\refind_x64.efi"
-    local bootnum
-    bootnum="$(toolbox_sudo efibootmgr --create --disk /dev/nvme0n1 --part 1         --label "rEFInd" --loader "$refind_efi_path" 2>/dev/null |         sed -n 's/^Boot\([0-9]*\).*rEFInd.*/\1/p' || true)"
-    if [ -n "$bootnum" ]; then
-        toolbox_sudo efibootmgr --bootorder "$bootnum,0000" 2>/dev/null || true
-        echo "rEFInd 已设为默认引导项 (Boot$bootnum)。"
-    else
-        echo "警告：无法自动注册 rEFInd，请在 BIOS 设置中手动选择 rEFInd 启动。"
-    fi
-
-    rm -rf "$tmp_refind"
-    echo ""
-    echo "rEFInd V$REFIND_VERSION 安装完成。"
-    echo "下次开机将显示图形引导菜单，可选择 SteamOS 或 Windows。"
-    log "rEFInd 图形引导管理器安装完成"
-}
-
-remove_refind() {
-    require_steamos || return 1
-    require_command efibootmgr || return 1
-
-    echo "将移除 rEFInd 引导管理器。"
-    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
-        local answer
-        read -r -p "确认卸载请输入 REMOVE：" answer
-        [ "$answer" = "REMOVE" ] || { echo "已取消。"; return 0; }
-    fi
-
-    toolbox_sudo true || { echo "管理员权限验证失败。"; return 1; }
-
-    # 删除 rEFInd efi 启动项
-    local boot_entry
-    for boot_entry in $(toolbox_sudo efibootmgr 2>/dev/null | sed -n 's/^Boot\([0-9]*\).*rEFInd.*//p'); do
-        toolbox_sudo efibootmgr --delete-bootnum --bootnum "$boot_entry" 2>/dev/null || true
-        echo "已删除引导项 Boot$boot_entry（rEFInd）。"
-    done
-
-    # 删除 rEFInd 文件
-    if toolbox_sudo test -d "$REFIND_ESP_DIR"; then
-        toolbox_sudo rm -rf "$REFIND_ESP_DIR" || {
-            echo "rEFInd 文件删除失败，请确认 /esp 已挂载。"
-            return 1
-        }
-        echo "已删除 rEFInd 文件。"
-    fi
-
-    echo "rEFInd 已移除。下次开机将使用默认引导管理器。"
-    log "rEFInd 图形引导管理器已移除"
-}
-fi
 
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then

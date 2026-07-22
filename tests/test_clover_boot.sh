@@ -110,7 +110,7 @@ grep -Fq '<string>steamcl.efi</string>' "$ESP/EFI/CLOVER/config.plist" || fail "
 status_output="$(clover_status)" || fail "安装后状态检查失败"
 printf '%s\n' "$status_output" | grep -Fq 'Clover：已由工具箱安装' || fail "状态未报告 Clover 已安装"
 
-clover_restore >/dev/null || fail "模拟恢复原开机方式失败"
+clover_delete >/dev/null || fail "模拟删除工具箱 Clover 双系统引导失败"
 [ -f "$ESP/EFI/CLOVER/original.txt" ] || fail "没有恢复安装前的 CLOVER 目录"
 [ ! -e "$ESP/EFI/CLOVER/.zhoukeer-managed" ] || fail "恢复后仍使用工具箱 Clover"
 [ "$(cat "$STATE/bootorder")" = '0000,0001' ] || fail "没有恢复原 BootOrder"
@@ -143,4 +143,4 @@ if clover_archive_is_safe "$BAD_ZIP" >/dev/null 2>&1; then
     fail "包含符号链接的 Clover 压缩包未被拒绝"
 fi
 
-echo "PASS: Clover 固定校验、自定义主题、EFI 保护、BootOrder 和恢复模拟测试通过"
+echo "PASS: Clover 固定校验、自定义主题、EFI 保护、BootOrder 和删除恢复模拟测试通过"

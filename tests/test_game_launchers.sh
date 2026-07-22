@@ -5,6 +5,10 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 HELPER="$PROJECT_ROOT/scripts/steam_shortcut.py"
 MODULE="$PROJECT_ROOT/modules/game_launchers.sh"
+grep -Fq 'source "$PROJECT_ROOT/core/platform.sh"' "$MODULE" || {
+    echo "FAIL: 启动器模块未加载 require_command 定义" >&2
+    exit 1
+}
 TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf "$TMP_ROOT"' EXIT
 
@@ -15,11 +19,14 @@ DIRECT_PREFIX="$TMP_ROOT/direct-prefix"
 DIRECT_EXE="$DIRECT_PREFIX/pfx/drive_c/Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe"
 FAKE_PROTON="$TMP_ROOT/GE-Proton-test/proton"
 PROTON_LOG="$TMP_ROOT/proton.log"
+STEAM_INSTALL_LOG="$TMP_ROOT/steam-install.log"
 EXISTING_STEAM="$TMP_ROOT/existing-steam"
 EXISTING_SHORTCUTS="$EXISTING_STEAM/userdata/123/config/shortcuts.vdf"
 EXISTING_BATTLENET="$EXISTING_STEAM/steamapps/compatdata/777/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe"
 EXISTING_APP_DIR="$TMP_ROOT/existing-apps"
 FAKE_HOME="$TMP_ROOT/home"
+AUTO_STEAM_ROOT="$TMP_ROOT/auto-steam"
+FAKE_STEAM="$TMP_ROOT/fake-steam"
 
 python3 "$HELPER" --help >/dev/null
 
@@ -111,6 +118,34 @@ generated_wrapper="$(
 }
 grep -Fq 'STEAM_COMPAT_DATA_PATH="$PREFIX_DIR"' "$generated_wrapper" || {
     echo "FAIL: 启动包装器没有复用安装前缀" >&2
+    exit 1
+}
+
+cat > "$FAKE_STEAM" <<'SCRIPT'
+#!/bin/bash
+printf '%s\n' "$*" > "${STEAM_INSTALL_LOG:?}"
+runner="${AUTO_STEAM_ROOT:?}/steamapps/common/Proton 10.0-4/proton"
+mkdir -p "$(dirname "$runner")"
+printf '#!/bin/bash\nexit 0\n' > "$runner"
+chmod +x "$runner"
+SCRIPT
+chmod +x "$FAKE_STEAM"
+auto_runner="$(
+    MODULE="$MODULE" AUTO_STEAM_ROOT="$AUTO_STEAM_ROOT" FAKE_STEAM="$FAKE_STEAM" \
+        STEAM_INSTALL_LOG="$STEAM_INSTALL_LOG" bash -c '
+            source "$MODULE"
+            steam_command() { printf "%s\n" "$FAKE_STEAM"; }
+            PROTON_INSTALL_TIMEOUT=3
+            PROTON_INSTALL_INTERVAL=1
+            ensure_proton_runner "$AUTO_STEAM_ROOT"
+        '
+)"
+[ "$auto_runner" = "$AUTO_STEAM_ROOT/steamapps/common/Proton 10.0-4/proton" ] || {
+    echo "FAIL: 缺少 Proton 时没有等待 Steam 自动安装 Proton 10" >&2
+    exit 1
+}
+grep -Fxq 'steam://install/3658110' "$STEAM_INSTALL_LOG" || {
+    echo "FAIL: 未通过 Steam 官方 Proton 10 安装入口补齐兼容层" >&2
     exit 1
 }
 

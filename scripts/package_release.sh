@@ -10,7 +10,7 @@ PACKAGE_PATH="$DIST_DIR/$PACKAGE_NAME"
 VERSIONED_PACKAGE_NAME="zhoukeer-toolbox-$VERSION.tar.gz"
 VERSIONED_PACKAGE_PATH="$DIST_DIR/$VERSIONED_PACKAGE_NAME"
 SHA256SUMS_PATH="$DIST_DIR/SHA256SUMS"
-VERIFY_FILES="VERSION main.sh install.sh update.sh bootstrap.sh modules/software.sh modules/domestic_source.sh modules/steam_accelerator.sh modules/steam302_root_start.sh modules/plugin_store.sh modules/game_launchers.sh modules/clover_boot.sh scripts/steam_shortcut.py scripts/install-decky-plugin.sh core/gui.sh core/platform.sh assets/icon.png assets/icon-round.png assets/clover/config.plist assets/clover/zhoukeer-phantom/theme.plist assets/clover/zhoukeer-phantom/background.png third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js third_party/decky-framegen-zh-v0.15.6/dist/index.js utils/github_download.sh"
+VERIFY_FILES="VERSION main.sh install.sh update.sh bootstrap.sh modules/software.sh modules/domestic_source.sh modules/steam_accelerator.sh modules/steam302_root_start.sh modules/plugin_store.sh modules/game_launchers.sh modules/clover_boot.sh modules/dual_system_tools.sh scripts/steam_shortcut.py scripts/install-decky-plugin.sh core/gui.sh core/platform.sh assets/icon.png assets/icon-round.png assets/clover/config.plist assets/clover/zhoukeer-phantom/theme.plist assets/clover/zhoukeer-phantom/background.png third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js third_party/decky-framegen-zh-v0.15.6/dist/index.js utils/github_download.sh"
 PACKAGE_SOURCES=()
 
 mkdir -p "$DIST_DIR"

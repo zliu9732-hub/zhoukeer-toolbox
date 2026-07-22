@@ -243,20 +243,37 @@ dual_system_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "双系统与互通盘｜磁盘和开机菜单设置｜高级操作" \
-            mount "挂载互通盘｜连接唯一未挂载的共享盘｜高级操作" \
-            protect "只读保护互通盘｜防止 SteamOS 误写入｜高级操作" \
+            health "双系统健康检查｜识别 Clover、rEFInd、GRUB、OpenCore 等｜只读" \
+            mount "B1 挂载双系统互通盘｜连接唯一未挂载的共享盘｜高级操作" \
+            tf-format "B2 初始化并挂载 TF 卡｜清空并格式化为 exFAT｜高风险" \
+            repair-drive "B3 修复磁盘写入错误｜NTFS/exFAT 基础修复｜高级操作" \
+            clover-install "B4 安装或修复 Clover｜SteamOS / Windows｜写入 EFI｜高级操作" \
+            protect "B5 双系统互通盘保护｜防止 SteamOS 误写入｜高级操作" \
+            windows-shortcut "B6 一键切换 Windows｜创建桌面图标｜仅下一次启动" \
             unprotect "恢复互通盘写入｜重新以可写方式挂载｜高级操作" \
-            clover-install "安装 Clover 开机菜单｜SteamOS / Windows｜写入 EFI｜高级操作" \
             clover-status "查看 Clover 状态｜检查主题、启动文件和 NVRAM" \
-            clover-restore "恢复原开机方式｜恢复 BootOrder 和原 Clover｜高级操作" \
+            clover-delete "删除 Clover 双系统引导｜恢复 BootOrder 和原 Clover｜高级操作" \
+            cleanup-boot "清理第三方引导项｜保护 SteamOS / Windows｜保留 EFI 文件" \
+            windows-next "立即切换 Windows｜设置 BootNext 并重启｜高级操作" \
             back "返回系统与密码" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
+            health) run_gui_action "双系统健康检查" bash "$PROJECT_ROOT/modules/dual_system_tools.sh" health ;;
             mount)
                 gui_confirm "将自动挂载唯一的未挂载 NTFS/exFAT 分区，并创建互通盘快捷入口。是否继续？" && \
                     run_gui_action "挂载互通盘" \
                     bash "$PROJECT_ROOT/modules/dual_system.sh" mount
+                ;;
+            tf-format)
+                gui_confirm "将永久清空自动识别出的唯一 TF 卡并格式化为 exFAT；随后仍需输入完整设备名确认。是否继续？" && \
+                    run_gui_action "初始化并挂载 TF 卡" \
+                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" tf-format-mount
+                ;;
+            repair-drive)
+                gui_confirm "将卸载唯一互通盘并运行 NTFS/exFAT 基础修复；严重 NTFS 错误仍需 Windows chkdsk。是否继续？" && \
+                    run_gui_action "修复磁盘写入错误" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" repair-drive
                 ;;
             protect)
                 gui_confirm "将重新以只读模式挂载互通盘，SteamOS 下无法写入或删除该盘文件。是否继续？" && \
@@ -273,11 +290,24 @@ dual_system_menu() {
                     run_gui_action "安装 Clover 开机菜单" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/clover_boot.sh" install
                 ;;
+            windows-shortcut)
+                gui_confirm "将创建一键切换 Windows 桌面图标；使用时仍需确认，且只改变下一次启动目标。是否继续？" && \
+                    run_gui_action "创建一键切换 Windows" \
+                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-shortcut
+                ;;
             clover-status) run_gui_action "Clover 状态" bash "$PROJECT_ROOT/modules/clover_boot.sh" status ;;
-            clover-restore)
-                gui_confirm "将移除工具箱创建的 Clover 启动项，并恢复安装前的 BootOrder 和原 Clover 目录。确认继续？" && \
-                    run_gui_action "恢复原开机方式" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/clover_boot.sh" restore
+            clover-delete)
+                gui_confirm "仅删除工具箱创建的 Clover 启动项，并恢复安装前的 BootOrder 和原 Clover 目录。确认继续？" && \
+                    run_gui_action "删除 Clover 双系统引导" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/clover_boot.sh" delete
+                ;;
+            cleanup-boot)
+                gui_confirm "SteamOS、Windows 和 systemd-boot 受保护；其他第三方项仍需输入 Boot 编号和完整删除口令。是否继续？" && \
+                    run_gui_action "清理第三方引导项" \
+                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" cleanup-boot
+                ;;
+            windows-next)
+                run_gui_action "切换到 Windows" bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-next
                 ;;
             back) return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;

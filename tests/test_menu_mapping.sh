@@ -88,7 +88,9 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_contains "$source_text" 'modules/game_launchers.sh" epic' "Epic 动作错误：$file"
     assert_contains "$source_text" 'modules/steam_accelerator.sh" enable' "Steamcommunity 302 开启动作错误：$file"
     assert_contains "$source_text" 'modules/clover_boot.sh" install' "Clover 安装动作错误：$file"
-    assert_contains "$source_text" 'modules/clover_boot.sh" restore' "Clover 恢复动作错误：$file"
+    assert_contains "$source_text" 'modules/clover_boot.sh" delete' "Clover 删除动作错误：$file"
+    assert_contains "$source_text" 'modules/dual_system_tools.sh" health' "双系统健康检查动作错误：$file"
+    assert_contains "$source_text" 'modules/dual_system_tools.sh" windows-shortcut' "Windows 一键切换动作错误：$file"
 done
 
 echo "PASS: 六分类导航、关键动作和返回坐标映射一致"

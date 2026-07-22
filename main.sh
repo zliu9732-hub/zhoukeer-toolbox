@@ -529,26 +529,50 @@ plugin_official_touch_pages() {
 }
 
 dual_system_menu() {
-    local choice
+    local choice page=0
 
     while true; do
-        draw_category_frame advanced "双系统与互通盘" "磁盘和开机菜单设置 · 高级操作"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "挂载互通盘" "连接唯一未挂载的共享盘 · 高级操作"
-        ui_touch_button 9 '\033[1;97;48;5;30m' "只读保护互通盘" "防止 SteamOS 误写入 · 高级操作"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "恢复互通盘写入" "重新以可写模式挂载互通盘"
-        ui_touch_button 13 '\033[1;97;48;5;160m' "安装 Clover 开机菜单" "显示 SteamOS / Windows · 会写入 EFI"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "查看 Clover 状态" "检查主题、启动文件和 NVRAM 入口"
-        ui_touch_button 17 '\033[1;97;48;5;160m' "恢复原开机方式" "移除工具箱 Clover 并恢复 BootOrder"
-        ui_touch_button 19 '\033[1;97;48;5;238m' "返回系统与密码" "查看其他系统功能"
-        ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
-        ui_prompt
-        choice="$(read_touch_menu right:7-8:mount right:9-10:protect right:11-12:unprotect right:13-14:clover-install right:15-16:clover-status right:17-18:clover-restore right:19-20:advanced right:23-24:home)"
+        if [ "$page" -eq 0 ]; then
+            draw_category_frame advanced "双系统工具 B1-B6" "磁盘、Clover 与 Windows 切换 · 第 1/2 页"
+            ui_touch_button 5 '\033[1;97;48;5;24m' "B1 挂载双系统互通盘" "识别唯一 NTFS/exFAT 分区"
+            ui_touch_button 7 '\033[1;97;48;5;160m' "B2 初始化并挂载 TF 卡" "会清空目标卡并格式化为 exFAT"
+            ui_touch_button 9 '\033[1;97;48;5;160m' "B3 修复磁盘写入错误" "NTFS/exFAT 基础修复 · 会卸载磁盘"
+            ui_touch_button 11 '\033[1;97;48;5;160m' "B4 安装或修复 Clover" "恢复 SteamOS / Windows 开机菜单"
+            ui_touch_button 13 '\033[1;97;48;5;30m' "B5 双系统互通盘保护" "重新挂载为只读，防止升级后掉盘"
+            ui_touch_button 15 '\033[1;97;48;5;24m' "B6 一键切换 Windows" "创建仅下一次启动 Windows 的桌面图标"
+            ui_touch_button 19 '\033[1;97;48;5;24m' "更多双系统工具" "状态、删除与第三方引导清理"
+            ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统与密码" "查看其他系统功能"
+            ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+            ui_prompt
+            choice="$(read_touch_menu right:5-6:mount right:7-8:tf-format right:9-10:repair-drive right:11-12:clover-install right:13-14:protect right:15-16:windows-shortcut right:19-20:next right:21-22:advanced right:23-24:home)"
+        else
+            draw_category_frame advanced "更多双系统工具" "只读检查、恢复与引导清理 · 第 2/2 页"
+            ui_touch_button 5 '\033[1;97;48;5;24m' "双系统健康检查" "识别 Clover、rEFInd、GRUB、OpenCore 等"
+            ui_touch_button 7 '\033[1;97;48;5;24m' "恢复互通盘写入" "退出只读保护并重新挂载"
+            ui_touch_button 9 '\033[1;97;48;5;24m' "查看 Clover 状态" "检查主题、启动文件和 NVRAM"
+            ui_touch_button 11 '\033[1;97;48;5;160m' "删除 Clover 双系统引导" "仅删除工具箱 Clover 并恢复 BootOrder"
+            ui_touch_button 13 '\033[1;97;48;5;160m' "清理第三方引导项" "仅删选定 NVRAM，保留 EFI 文件"
+            ui_touch_button 15 '\033[1;97;48;5;160m' "立即切换到 Windows" "仅下一次启动并立即重启"
+            ui_touch_button 19 '\033[1;97;48;5;24m' "返回 B1-B6" "回到双系统常用功能"
+            ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统与密码" "查看其他系统功能"
+            ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+            ui_prompt
+            choice="$(read_touch_menu right:5-6:health right:7-8:unprotect right:9-10:clover-status right:11-12:clover-delete right:13-14:cleanup-boot right:15-16:windows-next right:19-20:previous right:21-22:advanced right:23-24:home)"
+        fi
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
             mount)
                 confirm_and_run "挂载互通盘" "将自动识别唯一的未挂载 NTFS/exFAT 分区并创建快捷入口" \
                     bash "$PROJECT_ROOT/modules/dual_system.sh" mount
+                ;;
+            tf-format)
+                confirm_and_run "初始化并挂载 TF 卡" "会永久清空自动识别出的唯一 TF 卡，并格式化为 exFAT；随后仍需输入完整设备名确认" \
+                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" tf-format-mount
+                ;;
+            repair-drive)
+                confirm_and_run "修复磁盘写入错误" "会卸载唯一互通盘并运行 NTFS/exFAT 基础修复；严重 NTFS 错误仍需 Windows chkdsk" \
+                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" repair-drive
                 ;;
             protect)
                 confirm_and_run "保护双系统互通盘" "会重新以只读模式挂载互通盘；SteamOS 下将无法写入或删除该盘文件" \
@@ -559,14 +583,28 @@ dual_system_menu() {
                     bash "$PROJECT_ROOT/modules/dual_system.sh" unprotect
                 ;;
             clover-install)
-                confirm_and_run "安装 Clover 开机菜单" "会备份原 EFI 与 BootOrder，再写入 Clover 5173 和自定义怪盗主题；8 秒默认进入 SteamOS" \
+                confirm_and_run "安装或修复 Clover" "会备份原 EFI 与 BootOrder，再安装 Clover 5173 和自定义怪盗主题；8 秒默认进入 SteamOS" \
                     bash "$PROJECT_ROOT/modules/clover_boot.sh" install
                 ;;
-            clover-status) run_action "Clover 状态" bash "$PROJECT_ROOT/modules/clover_boot.sh" status ;;
-            clover-restore)
-                confirm_and_run "恢复原开机方式" "会移除工具箱创建的 Clover 启动项，并恢复安装前的 BootOrder 和原 Clover 目录" \
-                    bash "$PROJECT_ROOT/modules/clover_boot.sh" restore
+            windows-shortcut)
+                confirm_and_run "创建一键切换 Windows" "只创建桌面图标；使用时仍需确认，仅改变下一次启动目标" \
+                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-shortcut
                 ;;
+            health) run_action "双系统健康检查" bash "$PROJECT_ROOT/modules/dual_system_tools.sh" health ;;
+            clover-status) run_action "Clover 状态" bash "$PROJECT_ROOT/modules/clover_boot.sh" status ;;
+            clover-delete)
+                confirm_and_run "删除 Clover 双系统引导" "仅删除工具箱管理的 Clover 启动项，并恢复安装前的 BootOrder 和原 Clover 目录" \
+                    bash "$PROJECT_ROOT/modules/clover_boot.sh" delete
+                ;;
+            cleanup-boot)
+                confirm_and_run "清理第三方引导项" "SteamOS、Windows 和 systemd-boot 受保护；其他项还需输入 Boot 编号和完整删除口令" \
+                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" cleanup-boot
+                ;;
+            windows-next)
+                run_action "切换到 Windows" bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-next
+                ;;
+            next) page=1; continue ;;
+            previous) page=0; continue ;;
             advanced) NEXT_CATEGORY="advanced"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac

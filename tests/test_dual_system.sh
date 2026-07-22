@@ -52,11 +52,14 @@ find "$BOOT_PATH/loader" -name 'loader.conf.zhoukeer-backup.*' -type f | grep -q
 output="$(hide_dual_boot_menu)"
 assert_contains "$output" "等待时间已设为 0 秒" "隐藏双系统菜单未报告 timeout 0"
 grep -Fxq 'timeout 0' "$BOOT_PATH/loader/loader.conf" || fail "隐藏双系统菜单未写入 timeout 0"
-grep -Fq 'if false; then' "$MODULE" || fail "rEFInd 原实现未被停用包装"
+if grep -Eq '^(install_refind|remove_refind|refind_mount_esp)\(\)' "$MODULE"; then
+    fail "已停用的 rEFInd EFI 写入函数仍留在运行模块中"
+fi
 
 MOUNT_PATH="$TMP_ROOT/mount"
 SHORTCUT_PATH="$TMP_ROOT/互通盘"
 OPTIONS_FILE="$TMP_ROOT/udisks-options"
+MOUNTED_STATE="$TMP_ROOT/mounted-state"
 mkdir -p "$MOUNT_PATH"
 ZHOUKEER_SHARED_DRIVE_LINK="$SHORTCUT_PATH"
 SHARED_DRIVE_LINK="$SHORTCUT_PATH"
@@ -70,6 +73,10 @@ lsblk() {
 }
 
 findmnt() {
+    if [ -f "$MOUNTED_STATE" ]; then
+        printf '%s\n' "$MOUNT_PATH"
+        return 0
+    fi
     return 1
 }
 
@@ -77,12 +84,20 @@ udisksctl() {
     case "${1:-}" in
         mount)
             printf '%s\n' "$*" >> "$OPTIONS_FILE"
+            : > "$MOUNTED_STATE"
             printf 'Mounted /dev/test-share at %s.\n' "$MOUNT_PATH"
             ;;
-        unmount) return 0 ;;
+        unmount) rm -f -- "$MOUNTED_STATE"; return 0 ;;
         *) return 1 ;;
     esac
 }
+
+mount_shared_drive
+[ -L "$SHORTCUT_PATH" ] || fail "互通盘挂载未创建快捷入口"
+mount_calls_before="$(grep -c '^mount ' "$OPTIONS_FILE")"
+mount_shared_drive
+mount_calls_after="$(grep -c '^mount ' "$OPTIONS_FILE")"
+[ "$mount_calls_before" = "$mount_calls_after" ] || fail "已挂载互通盘被重复挂载"
 
 mount_shared_drive_with_protection
 [ -L "$SHORTCUT_PATH" ] || fail "互通盘保护未创建快捷入口"
