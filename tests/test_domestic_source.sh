@@ -5,6 +5,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP_ROOT="$(mktemp -d)"
 BIN_DIR="$TMP_ROOT/bin"
+STEAMOS_BIN_DIR="$TMP_ROOT/steamos-bin"
 HOME_DIR="$TMP_ROOT/home"
 STATE_DIR="$TMP_ROOT/state"
 
@@ -18,11 +19,16 @@ fail() {
     exit 1
 }
 
-mkdir -p "$BIN_DIR" "$HOME_DIR" "$STATE_DIR"
+mkdir -p "$BIN_DIR" "$STEAMOS_BIN_DIR" "$HOME_DIR" "$STATE_DIR"
 
 cat > "$BIN_DIR/uname" <<'EOF'
 #!/bin/sh
 printf 'Linux\n'
+EOF
+
+cat > "$STEAMOS_BIN_DIR/steamos-readonly" <<'EOF'
+#!/bin/sh
+exit 99
 EOF
 
 cat > "$BIN_DIR/curl" <<'EOF'
@@ -87,6 +93,13 @@ case "$command" in
     remote-modify)
         printf 'remote-modify %s\n' "$*" >> "$state/commands"
         ;;
+    remote-delete)
+        remote=""
+        for arg in "$@"; do remote="$arg"; done
+        printf 'remote-delete %s\n' "$*" >> "$state/commands"
+        awk -v remove="$remote" '$0 != remove' "$state/remotes" > "$state/remotes.new"
+        mv "$state/remotes.new" "$state/remotes"
+        ;;
     remote-ls)
         printf 'remote-ls %s\n' "$*" >> "$state/commands"
         printf 'org.mozilla.firefox\n'
@@ -119,18 +132,37 @@ done
 exit 0
 EOF
 
-chmod +x "$BIN_DIR"/*
+chmod +x "$BIN_DIR"/* "$STEAMOS_BIN_DIR"/*
 : > "$STATE_DIR/remotes"
 : > "$STATE_DIR/commands"
 
 run_enable() {
-    PATH="$BIN_DIR:$PATH" \
+    PATH="$STEAMOS_BIN_DIR:$BIN_DIR:$PATH" \
         HOME="$HOME_DIR" \
         DOMESTIC_SOURCE_TEST_STATE="$STATE_DIR" \
+        ZHOUKEER_AUTO_CONFIRM=1 \
         ZHOUKEER_FLATHUB_CN_URL="https://mirror.test.invalid/flathub" \
         ZHOUKEER_FLATHUB_CN_FALLBACK_URL="https://fallback.test.invalid/flathub" \
         bash "$PROJECT_ROOT/modules/domestic_source.sh" enable
 }
+
+run_restore() {
+    PATH="$STEAMOS_BIN_DIR:$BIN_DIR:$PATH" \
+        HOME="$HOME_DIR" \
+        DOMESTIC_SOURCE_TEST_STATE="$STATE_DIR" \
+        ZHOUKEER_AUTO_CONFIRM=1 \
+        bash "$PROJECT_ROOT/modules/domestic_source.sh" restore
+}
+
+if PATH="$BIN_DIR:$PATH" HOME="$HOME_DIR" DOMESTIC_SOURCE_TEST_STATE="$STATE_DIR" \
+    bash "$PROJECT_ROOT/modules/domestic_source.sh" enable </dev/null >/dev/null 2>&1; then
+    fail "非 SteamOS Linux 不应允许配置国内源"
+fi
+if PATH="$STEAMOS_BIN_DIR:$BIN_DIR:$PATH" HOME="$HOME_DIR" DOMESTIC_SOURCE_TEST_STATE="$STATE_DIR" \
+    bash "$PROJECT_ROOT/modules/domestic_source.sh" enable </dev/null >/dev/null 2>&1; then
+    fail "直接调用国内源且未明确确认时不应继续"
+fi
+[ ! -s "$STATE_DIR/commands" ] || fail "平台或确认检查失败后仍修改了 Flatpak 源"
 
 output="$(run_enable)"
 printf '%s\n' "$output" | grep -Fq '国内下载源配置完成：flathub-cn、flathub-ustc' || \
@@ -172,4 +204,16 @@ status_output="$(
 printf '%s\n' "$status_output" | grep -Fq 'flathub-cn' || fail "状态输出缺少国内源"
 printf '%s\n' "$status_output" | grep -Fq 'flathub-ustc' || fail "状态输出缺少国内备用源"
 
-echo "PASS: 国内双缓存源启用、跳过Discover索引、幂等性、状态和无sudo测试通过"
+restore_output="$(run_restore)"
+printf '%s\n' "$restore_output" | grep -Fq '已恢复 Flathub 官方源并启用 GPG 验证' || \
+    fail "恢复官方源缺少成功提示"
+grep -Fxq 'flathub' "$STATE_DIR/remotes" || fail "恢复时未添加官方 Flathub"
+if grep -Eq '^flathub-(cn|ustc)$' "$STATE_DIR/remotes"; then
+    fail "恢复后仍保留国内缓存源"
+fi
+grep -Fq 'remote-modify --user --gpg-verify --url=https://dl.flathub.org/repo/ flathub' \
+    "$STATE_DIR/commands" || fail "恢复官方源时没有重新启用 GPG 验证"
+grep -Fxq 'https://dl.flathub.org/repo/flathub.flatpakrepo' \
+    "$STATE_DIR/curl-urls" || fail "恢复官方源时未获取官方签名配置"
+
+echo "PASS: 国内双缓存源确认、启用、恢复官方源、幂等性、状态和无sudo测试通过"

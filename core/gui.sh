@@ -82,7 +82,6 @@ software_menu() {
             bottles "Windows 软件工具｜安装 Bottles 运行工具" \
             baidunetdisk "百度网盘｜Flathub 安装百度网盘 Linux 版" \
             protontricks "游戏兼容设置｜安装 Protontricks" \
-            epic "Epic 游戏启动器｜安装并添加到 Steam" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -116,11 +115,6 @@ software_menu() {
             baidunetdisk) gui_confirm "将通过 Flatpak 安装百度网盘。是否继续？" && run_gui_action "安装百度网盘" bash "$PROJECT_ROOT/modules/software.sh" baidunetdisk ;;
             protontricks) gui_confirm "将通过 Flatpak 安装 Protontricks。是否继续？" && run_gui_action "安装 Protontricks" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
             bottles) gui_confirm "将通过 Flatpak 安装 Bottles。是否继续？" && run_gui_action "安装 Bottles" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
-            epic)
-                run_gui_action "安装 Epic 游戏启动器并自动入库" \
-                    env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
-                ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
         esac
@@ -502,7 +496,15 @@ support_gui_menu() {
 }
 
 domestic_source_gui_preflight() {
-    gui_confirm "国内软件源会修改 Flatpak 软件源，并可能调整 GPG 验证、运行 pacman、临时关闭 SteamOS 只读保护。
+    local choice
+
+    choice="$(gui_dialog --menu "国内软件源｜国内缓存会关闭 GPG 验证；可恢复官方源" \
+        configure "配置国内缓存｜运行 pacman 并临时关闭只读保护｜高风险" \
+        restore "恢复官方 Flathub｜重新启用 GPG 验证并移除国内缓存" \
+        back "返回系统与密码")" || return 0
+    case "$choice" in
+        configure)
+            gui_confirm "国内软件源会修改 Flatpak 软件源、关闭 GPG 验证、运行 pacman，并临时关闭 SteamOS 只读保护。
 
 远程名称：flathub-cn
 地址：https://mirror.sjtu.edu.cn/flathub
@@ -510,8 +512,16 @@ domestic_source_gui_preflight() {
 备用名称：flathub-ustc
 地址：https://mirrors.ustc.edu.cn/flathub
 
-恢复官方源功能尚未完成。确认了解风险并继续？" && \
-        run_gui_action "国内软件源" bash "$PROJECT_ROOT/modules/domestic_source.sh" init
+确认信任以上镜像并继续？" && \
+                run_gui_action "国内软件源" env ZHOUKEER_AUTO_CONFIRM=1 \
+                bash "$PROJECT_ROOT/modules/domestic_source.sh" init
+            ;;
+        restore)
+            gui_confirm "将恢复 https://dl.flathub.org/repo/，重新启用 GPG 验证，并移除两个国内缓存源。确认继续？" && \
+                run_gui_action "恢复 Flathub 官方源" env ZHOUKEER_AUTO_CONFIRM=1 \
+                bash "$PROJECT_ROOT/modules/domestic_source.sh" restore
+            ;;
+    esac
 }
 
 advanced_tools_gui_menu() {

@@ -36,6 +36,14 @@ is_macos() {
     [ "$(uname -s 2>/dev/null)" = "Darwin" ]
 }
 
+require_steamos() {
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "此功能仅支持 SteamOS，已停止执行。"
+        return 1
+    fi
+}
+
 require_command() {
     local name="$1"
     if ! command -v "$name" >/dev/null 2>&1; then

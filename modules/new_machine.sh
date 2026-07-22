@@ -112,9 +112,14 @@ run_new_machine_initialization() {
         return 0
     fi
 
-    run_step "Steam Deck基础检查" basic_steamdeck_check
+    if ! basic_steamdeck_check; then
+        echo "新机初始化已停止：未通过 SteamOS 平台检查。"
+        return 1
+    fi
+    PASS_COUNT=$((PASS_COUNT + 1))
     run_step "网络检测" check_network
-    run_step "初始化软件源" bash "$PROJECT_ROOT/modules/domestic_source.sh" init
+    run_step "初始化软件源" env ZHOUKEER_AUTO_CONFIRM=1 \
+        bash "$PROJECT_ROOT/modules/domestic_source.sh" init
     run_step "插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh"
     run_step "微信" env ZHOUKEER_AUTO_CONFIRM=1 \

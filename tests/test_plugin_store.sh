@@ -93,7 +93,7 @@ grep -Fq '中文汉化：闲鱼双叶' \
     "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/src/components/Content.tsx"
 grep -Fq '"name": "小黄鸭"' \
     "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/plugin.json"
-grep -Fq '"name": "FSR4"' \
+grep -Fq '"name": "Decky-Framegen(FSR4)"' \
     "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/plugin.json"
 grep -Fq '闲鱼双叶' \
     "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/plugin.json"
@@ -125,7 +125,8 @@ grep -Fq '不会删除 Decky Loader 本体' "$PROJECT_ROOT/modules/plugin_store.
 grep -Fq 'all) show_plugin_download_speed_tip; install_all_plugin_packages' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '3. 点击启动服务，再返回工具箱重试' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'GitHub 加速源下载完整汉化包' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '继续安装 CheatDeck' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Fq 'Lossless Scaling.rar' "$PROJECT_ROOT/modules/plugin_store.sh" || \
     grep -Eq 'https?://[^[:space:]]*Lossless' "$PROJECT_ROOT/modules/plugin_store.sh"; then
     echo "FAIL: 付费软件本体不应配置为客户下载源"

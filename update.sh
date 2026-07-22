@@ -176,6 +176,51 @@ verify_package() {
     echo "SHA256校验通过"
 }
 
+validate_tar_archive() {
+    local archive="$1"
+    local listing="$2"
+    local verbose_listing="$3"
+    local entry
+    local entry_count=0
+
+    tar -tzf "$archive" > "$listing" || {
+        echo "更新包不是有效的 tar.gz 文件。"
+        return 1
+    }
+    while IFS= read -r entry; do
+        entry_count=$((entry_count + 1))
+        case "$entry" in
+            /*|../*|*/../*|*/..)
+                echo "更新包包含不安全路径：$entry"
+                return 1
+                ;;
+        esac
+    done < "$listing"
+    if [ "$entry_count" -eq 0 ] || [ "$entry_count" -gt 5000 ]; then
+        echo "更新包文件数量异常：$entry_count"
+        return 1
+    fi
+
+    tar -tvzf "$archive" > "$verbose_listing" || return 1
+    if ! awk '
+        function unsafe(target, parts, count, i) {
+            if (target ~ /^\//) return 1
+            count = split(target, parts, "/")
+            for (i = 1; i <= count; i++) if (parts[i] == "..") return 1
+            return 0
+        }
+        /^[lh]/ {
+            target = ""
+            if (index($0, " -> ")) target = substr($0, index($0, " -> ") + 4)
+            else if (index($0, " link to ")) target = substr($0, index($0, " link to ") + 9)
+            if (target == "" || unsafe(target)) exit 1
+        }
+    ' "$verbose_listing"; then
+        echo "更新包包含不安全的链接。"
+        return 1
+    fi
+}
+
 download_verified_package_from() {
     local label="$1"
     local package_url="$2"
@@ -207,13 +252,14 @@ download_verified_package() {
             return 0
         fi
 
-        echo "GitHub包或校验文件不可用，切换Gitee备用源。"
-    if download_verified_package_from \
-        "域名" "$DOMAIN_PACKAGE_URL" "$DOMAIN_CHECKSUM_URL" \
-        "$package_file" "$checksum_file"; then
-        DOWNLOAD_SOURCE="域名"
-        return 0
-    fi
+        echo "GitHub包或校验文件不可用，切换域名源。"
+        if download_verified_package_from \
+            "域名" "$DOMAIN_PACKAGE_URL" "$DOMAIN_CHECKSUM_URL" \
+            "$package_file" "$checksum_file"; then
+            DOWNLOAD_SOURCE="域名"
+            return 0
+        fi
+        echo "域名源不可用，切换Gitee备用源。"
         if download_verified_package_from \
             "Gitee" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
             "$package_file" "$checksum_file"; then
@@ -221,7 +267,7 @@ download_verified_package() {
             return 0
         fi
 
-        echo "更新包验证失败：GitHub和Gitee均不可用。旧版本不会被覆盖。"
+        echo "更新包验证失败：GitHub、域名源和Gitee均不可用。旧版本不会被覆盖。"
         return 1
     fi
 
@@ -387,7 +433,8 @@ echo "下载源: $DOWNLOAD_SOURCE"
 
 echo "[3/4] 解压更新包..."
 mkdir -p "$EXTRACT_DIR"
-tar --no-xattrs -xzf "$PACKAGE_FILE" -C "$EXTRACT_DIR"
+validate_tar_archive "$PACKAGE_FILE" "$TMP_DIR/archive.list" "$TMP_DIR/archive.verbose" || exit 1
+tar --no-xattrs --no-same-owner --no-same-permissions -xzf "$PACKAGE_FILE" -C "$EXTRACT_DIR" || exit 1
 INSTALLER_PATH="$(find "$EXTRACT_DIR" -mindepth 1 -maxdepth 2 -type f -name install.sh -print | head -n 1)"
 
 if [ -z "$INSTALLER_PATH" ] || [ ! -f "$INSTALLER_PATH" ]; then

@@ -164,16 +164,60 @@ download_flathub_repo_file() {
     return 1
 }
 
+download_official_flathub_repo_file() {
+    local destination="$1"
+
+    echo "正在获取 Flathub 官方签名配置..."
+    if curl \
+        --fail \
+        --location \
+        --silent \
+        --show-error \
+        --proto '=https' \
+        --proto-redir '=https' \
+        --connect-timeout 10 \
+        --max-time 30 \
+        --retry 2 \
+        --output "$destination" \
+        "$FLATHUB_OFFICIAL_REPO_FILE" && \
+        grep -q '^\[Flatpak Repo\]$' "$destination" && \
+        grep -q '^GPGKey=' "$destination"; then
+        return 0
+    fi
+    rm -f -- "$destination"
+    echo "无法获取 Flathub 官方签名配置。"
+    return 1
+}
+
 flatpak_remote_exists() {
     flatpak remotes --user --columns=name 2>/dev/null | grep -Fxq "$1"
 }
 
 confirm_domestic_flatpak_risk() {
+    local answer
+
     echo "警告：以下国内 Flatpak 远程源将关闭软件包签名验证："
     echo "- $FLATHUB_CN_REMOTE: $FLATHUB_CN_URL"
     echo "- $FLATHUB_CN_FALLBACK_REMOTE: $FLATHUB_CN_FALLBACK_URL"
-    echo "已通过工具箱确认，正在继续配置。"
-    return 0
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        echo "已通过工具箱界面确认，正在继续配置。"
+        return 0
+    fi
+    read -r -p "确认信任以上镜像并关闭签名验证，请输入 DOMESTIC：" answer
+    [ "$answer" = "DOMESTIC" ]
+}
+
+confirm_official_flatpak_restore() {
+    local answer
+
+    echo "将恢复官方 Flathub：https://dl.flathub.org/repo/"
+    echo "将重新启用 GPG 验证，并移除 $FLATHUB_CN_REMOTE 和 $FLATHUB_CN_FALLBACK_REMOTE。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        echo "已通过工具箱界面确认，正在恢复官方源。"
+        return 0
+    fi
+    read -r -p "确认恢复官方源请输入 RESTORE：" answer
+    [ "$answer" = "RESTORE" ]
 }
 
 ensure_flatpak_remotes() {
@@ -209,7 +253,11 @@ ensure_flatpak_remotes() {
         return 1
     fi
     # 国内镜像关闭 GPG 校验
-    timeout --foreground 30 flatpak remote-modify --no-gpg-verify --user "$FLATHUB_CN_REMOTE" 2>/dev/null || true
+    if ! timeout --foreground 30 flatpak remote-modify --no-gpg-verify --user "$FLATHUB_CN_REMOTE"; then
+        echo "无法关闭上海交大缓存源的 GPG 验证，已停止配置。"
+        rm -f -- "$repo_file"
+        return 1
+    fi
 
     if ! flatpak_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE"; then
         echo "正在添加中科大Flathub缓存源..."
@@ -225,7 +273,11 @@ ensure_flatpak_remotes() {
         rm -f -- "$repo_file"
         return 1
     fi
-    timeout --foreground 30 flatpak remote-modify --no-gpg-verify --user "$FLATHUB_CN_FALLBACK_REMOTE" 2>/dev/null || true
+    if ! timeout --foreground 30 flatpak remote-modify --no-gpg-verify --user "$FLATHUB_CN_FALLBACK_REMOTE"; then
+        echo "无法关闭中科大缓存源的 GPG 验证，已停止配置。"
+        rm -f -- "$repo_file"
+        return 1
+    fi
 
     rm -f -- "$repo_file"
 }

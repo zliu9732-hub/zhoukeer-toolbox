@@ -19,6 +19,7 @@ STEAM302_RULES_FILE="$STEAM302_INSTALL_DIR/S302_rules.ini"
 STEAM302_CONFIG_FILE="$STEAM302_INSTALL_DIR/S302.ini"
 STEAM302_PID_FILE="$STEAM302_INSTALL_DIR/.zhoukeer-cli.pid"
 STEAM302_LOG_FILE="$APP_DIR/steamcommunity302.log"
+STEAM302_ROOT_STARTER="$PROJECT_ROOT/modules/steam302_root_start.sh"
 STEAM302_ENABLED_RULES="Steam_store,Steam_store_unlock,Steam_community,Steam_API,Steam_API_unlock,Steam_community_unlock,steamchat,steamchat_unlock,Steam_cloud_google,steam_update,Steam_broadcast_redir,Steam_broadcast_redir_unlock,imgfix,imgfix_fastly,github"
 STEAM302_CONNECT_TIMEOUT=15
 STEAM302_MAX_TIME=1200
@@ -265,7 +266,6 @@ start_steam302_service() {
     local display_value="${DISPLAY:-:0}"
     local xauthority_value="${XAUTHORITY:-$HOME/.Xauthority}"
     local lang_value="${LANG:-C.UTF-8}"
-    local root_start_script
     local pid
 
     steam302_is_installed || {
@@ -289,8 +289,11 @@ start_steam302_service() {
         return 0
     }
 
+    [ -x "$STEAM302_ROOT_STARTER" ] || {
+        echo "内置加速启动器不存在或不可执行。"
+        return 1
+    }
     rm -f "$STEAM302_INSTALL_DIR/S302.exit" "$STEAM302_PID_FILE"
-    root_start_script="cd $(printf '%q' "$STEAM302_INSTALL_DIR") && rm -f $(printf '%q' "$STEAM302_INSTALL_DIR/S302.exit") && (nohup ./steamcommunity_302.cli >>$(printf '%q' "$STEAM302_LOG_FILE") 2>&1 </dev/null & printf '%s\\n' \$! >$(printf '%q' "$STEAM302_PID_FILE"))"
     if ! toolbox_sudo /usr/bin/env -i \
         PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
         HOME="/root" \
@@ -299,7 +302,8 @@ start_steam302_service() {
         LANG="$lang_value" \
         DISPLAY="$display_value" \
         XAUTHORITY="$xauthority_value" \
-        bash -c "$root_start_script"; then
+        "$STEAM302_ROOT_STARTER" \
+        "$STEAM302_INSTALL_DIR" "$STEAM302_LOG_FILE" "$STEAM302_PID_FILE"; then
         echo "内置加速启动失败：管理员权限未通过或官方 CLI 无法启动。"
         return 1
     fi

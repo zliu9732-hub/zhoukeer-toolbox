@@ -116,6 +116,24 @@ if [ "$(tr -d '\r\n' < "$INSTALL_DIR/VERSION")" != '4.1.0' ]; then
 fi
 printf '%s\n' '4.1.0' > "$REMOTE_DIR/VERSION"
 
+# 校验和正确也不能解压包含路径逃逸链接的更新包。
+printf '%s\n' '4.2.0' > "$RELEASE_DIR/VERSION"
+ln -s ../../outside "$RELEASE_DIR/unsafe-link"
+tar -czf "$REMOTE_DIR/dist/zhoukeer-toolbox.tar.gz" -C "$RELEASE_DIR" .
+PACKAGE_SHA="$(shasum -a 256 "$REMOTE_DIR/dist/zhoukeer-toolbox.tar.gz" | awk '{print $1}')"
+printf '%s  %s\n' "$PACKAGE_SHA" 'zhoukeer-toolbox.tar.gz' > "$REMOTE_DIR/dist/SHA256SUMS"
+printf '%s\n' '4.2.0' > "$REMOTE_DIR/VERSION"
+if run_update > "$STATE_DIR/unsafe-archive.output" 2>&1; then
+    echo "FAIL: 包含路径逃逸链接的更新包仍被执行"
+    exit 1
+fi
+grep -Fq '更新包包含不安全的链接' "$STATE_DIR/unsafe-archive.output"
+if [ "$(tr -d '\r\n' < "$INSTALL_DIR/VERSION")" != '4.1.0' ]; then
+    echo "FAIL: 危险更新包破坏了现有版本"
+    exit 1
+fi
+rm -f -- "$RELEASE_DIR/unsafe-link"
+
 FAKE_APP="$TMP_ROOT/fake-app"
 mkdir -p "$FAKE_APP"
 cp "$PROJECT_ROOT/launch.sh" "$FAKE_APP/launch.sh"

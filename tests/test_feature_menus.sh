@@ -54,7 +54,7 @@ done
 touch_software="$(function_source "$MAIN_FILE" common_software_menu)"
 gui_software="$(function_source "$GUI_FILE" software_menu)"
 for menu in "$touch_software" "$gui_software"; do
-    for item in '微信' 'QQ' 'Firefox 浏览器' 'Chrome 浏览器' 'Edge 浏览器' 'RustDesk 远程协助' 'ToDesk 远程协助' 'Windows 软件工具' '游戏兼容设置' 'Epic 游戏启动器'; do
+    for item in '微信' 'QQ' 'Firefox 浏览器' 'Chrome 浏览器' 'Edge 浏览器' 'RustDesk 远程协助' 'ToDesk 远程协助' 'Windows 软件工具' '游戏兼容设置'; do
         assert_contains "$menu" "$item" "常用软件缺少：$item"
     done
     for hidden in '网易云音乐' '战网'; do
@@ -69,12 +69,13 @@ for obsolete_hint in '安装适合 SteamOS 的微信' '安装适合 SteamOS 的 
     assert_not_contains "$gui_software_entries" "$obsolete_hint" "GUI 常用软件仍显示多余说明：$obsolete_hint"
 done
 
-touch_games="$(function_source "$MAIN_FILE" game_environment_menu)"
+touch_games="$(function_source "$MAIN_FILE" game_environment_menu)
+$(function_source "$MAIN_FILE" plugin_page_2_menu)"
 gui_games="$(function_source "$GUI_FILE" game_environment_gui_menu)"
 for menu in "$touch_games" "$gui_games"; do
     assert_contains "$menu" '游戏与插件｜插件商城' "插件商城页面标题不统一"
     assert_not_contains "$menu" '游戏与插件｜Decky 插件商城' "插件商城页面仍显示英文标题"
-    for item in '常用插件组合' '插件环境与精选组合' '浏览官方插件' 'GE 游戏运行组件' 'Epic 游戏启动器' '安装插件商城'; do
+    for item in '常用插件组合' '常用插件加27款精选插件' '浏览官方插件' 'Epic 游戏启动器' '安装插件商城'; do
         assert_contains "$menu" "$item" "游戏环境缺少：$item"
     done
     assert_contains "$menu" '高级操作' "Decky Loader 缺少高级说明"
@@ -136,7 +137,7 @@ done
 touch_source="$(function_source "$MAIN_FILE" domestic_source_preflight)"
 gui_source="$(function_source "$GUI_FILE" domestic_source_gui_preflight)"
 for menu in "$touch_source" "$gui_source"; do
-    for detail in 'flathub-cn' 'https://mirror.sjtu.edu.cn/flathub' 'flathub-ustc' 'https://mirrors.ustc.edu.cn/flathub' 'GPG' 'pacman' '只读' '恢复官方源功能尚未完成'; do
+    for detail in 'flathub-cn' 'https://mirror.sjtu.edu.cn/flathub' 'flathub-ustc' 'https://mirrors.ustc.edu.cn/flathub' 'GPG' 'pacman' '只读' '恢复'; do
         assert_contains "$menu" "$detail" "国内源风险页缺少：$detail"
     done
 done

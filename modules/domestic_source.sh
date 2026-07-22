@@ -13,6 +13,7 @@ source "$PROJECT_ROOT/core/auth.sh"
 source "$PROJECT_ROOT/modules/software.sh"
 
 configure_domestic_flatpak() {
+    require_steamos || return 1
     require_command flatpak || return 1
     require_command timeout || return 1
     require_command curl || return 1
@@ -24,6 +25,55 @@ configure_domestic_flatpak() {
     fi
 
     echo "国内下载源配置完成：${FLATHUB_CN_REMOTE}、${FLATHUB_CN_FALLBACK_REMOTE}。"
+}
+
+restore_official_flatpak() {
+    local repo_file
+
+    require_steamos || return 1
+    require_command flatpak || return 1
+    require_command timeout || return 1
+    require_command curl || return 1
+    confirm_official_flatpak_restore || {
+        echo "已取消恢复官方 Flatpak 源，未修改任何远程源。"
+        return 1
+    }
+
+    repo_file="$(mktemp)" || return 1
+    if ! download_official_flathub_repo_file "$repo_file"; then
+        rm -f -- "$repo_file"
+        return 1
+    fi
+
+    if ! flatpak_remote_exists flathub; then
+        timeout --foreground 30 flatpak remote-add --user --if-not-exists --from \
+            flathub "$repo_file" || {
+            rm -f -- "$repo_file"
+            return 1
+        }
+    fi
+    rm -f -- "$repo_file"
+
+    if ! timeout --foreground 30 flatpak remote-modify --user --gpg-verify \
+        --url=https://dl.flathub.org/repo/ flathub; then
+        echo "恢复 Flathub 官方地址和 GPG 验证失败。"
+        return 1
+    fi
+    if flatpak_remote_exists "$FLATHUB_CN_REMOTE" && \
+        ! timeout --foreground 30 flatpak remote-delete --user --force \
+            "$FLATHUB_CN_REMOTE"; then
+        echo "官方源已恢复，但移除 $FLATHUB_CN_REMOTE 失败。"
+        return 1
+    fi
+    if flatpak_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE" && \
+        ! timeout --foreground 30 flatpak remote-delete --user --force \
+            "$FLATHUB_CN_FALLBACK_REMOTE"; then
+        echo "官方源已恢复，但移除 $FLATHUB_CN_FALLBACK_REMOTE 失败。"
+        return 1
+    fi
+
+    echo "已恢复 Flathub 官方源并启用 GPG 验证。"
+    log "已恢复Flathub官方源并移除国内缓存源"
 }
 
 prepare_system_packages() {
@@ -53,10 +103,7 @@ prepare_system_packages() {
 }
 
 initialize_software_sources() {
-    is_linux || {
-        echo "初始化软件源仅支持 Linux/SteamOS。"
-        return 1
-    }
+    require_steamos || return 1
 
     echo "================================================"
     echo " 初始化软件源"
@@ -85,7 +132,8 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-init}" in
         init|init-domestic) initialize_software_sources ;;
         enable) configure_domestic_flatpak ;;
+        restore) restore_official_flatpak ;;
         status) show_software_source_status ;;
-        *) echo "用法: $0 {init|enable|status}"; exit 1 ;;
+        *) echo "用法: $0 {init|enable|restore|status}"; exit 1 ;;
     esac
 fi
