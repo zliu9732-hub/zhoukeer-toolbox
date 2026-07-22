@@ -191,33 +191,8 @@ install_ge_proton() {
     extract_dir="$GE_PROTON_TMP_DIR/extracted"
     mkdir -p "$extract_dir" || return 1
 
-    echo "正在下载 $GE_PROTON_VERSION..."
-    local _dl_ok=0 _dl_url _mirror
-    for _mirror in $GITHUB_MIRRORS ""; do
-        if [ -n "$_mirror" ]; then
-            _dl_url="${_mirror}${GE_PROTON_URL}"
-        else
-            _dl_url="$GE_PROTON_URL"
-        fi
-        if curl \
-            --fail \
-            --location \
-            --show-error \
-            --proto '=https' \
-            --proto-redir '=https' \
-            --connect-timeout 15 \
-            --max-time 1800 \
-            --retry 3 \
-            --retry-delay 2 \
-            --retry-all-errors \
-            --output "$archive" \
-            "$_dl_url"; then
-            _dl_ok=1
-            break
-        fi
-        rm -f "$archive"
-    done
-    if [ "$_dl_ok" -ne 1 ]; then
+    if ! GITHUB_MAX_TIME=1800 GITHUB_RETRIES=3 download_github_file \
+        "$GE_PROTON_URL" "$archive" "$GE_PROTON_SHA256" "$GE_PROTON_VERSION"; then
         echo "GE-Proton下载失败。"
         return 1
     fi

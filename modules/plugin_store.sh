@@ -41,11 +41,11 @@ DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/downlo
 DECKY_FSR4_SHA256="236dc5aef5c908d905a848d7e448689634479ab61cd9184154ba8a725b3f2089"
 DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.2.1/CheatDeck.zip"
 DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
-# Gitee 国内镜像仓库的完整汉化插件包（含运行核心），无需叠加覆盖原版。
-DECKY_LSFG_ZH_URL="https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip"
-DECKY_LSFG_ZH_SHA256="d1dbe2cdc83cdf846a12fb2a33e96f8a08e52fd5b05e0305c05c82c288b9c0d4"
-DECKY_FSR4_ZH_URL="https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/Decky-Framegen-FSR4-v0.15.6.zip"
-DECKY_FSR4_ZH_SHA256="09148bd445abb713278151f3a9e142f5bb8227704163b8f272e41c44e0e71d50"
+# GitHub 完整汉化插件包（含运行核心），通过统一下载器自动选择加速源。
+: "${DECKY_LSFG_ZH_URL:=https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip}"
+: "${DECKY_LSFG_ZH_SHA256:=d1dbe2cdc83cdf846a12fb2a33e96f8a08e52fd5b05e0305c05c82c288b9c0d4}"
+: "${DECKY_FSR4_ZH_URL:=https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/Decky-Framegen-FSR4-v0.15.6.zip}"
+: "${DECKY_FSR4_ZH_SHA256:=09148bd445abb713278151f3a9e142f5bb8227704163b8f272e41c44e0e71d50}"
 
 show_plugin_download_speed_tip() {
     echo ""
@@ -415,113 +415,20 @@ ensure_plugin_store_ready() {
     echo "插件商城已安装完成，继续安装插件。"
 }
 
-# 测速所有 GitHub 镜像并按响应时间排序（最快在前），仅内部使用。
-_GITHUB_MIRRORS_RANKED=""
-_rank_github_mirrors() {
-    local test_url="${1:-https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/VERSION}"
-    [ -n "$_GITHUB_MIRRORS_RANKED" ] && { printf '%s' "$_GITHUB_MIRRORS_RANKED"; return 0; }
-    local tmpfile _mirror speed entry
-    tmpfile="$(mktemp 2>/dev/null)" || return 1
-    for _mirror in $GITHUB_MIRRORS; do
-        speed=$(curl -o /dev/null -s -w '%{time_total}'             --connect-timeout 3 --max-time 5             "${_mirror}${test_url}" 2>/dev/null || echo "999")
-        printf '%s|%s
-' "$speed" "$_mirror" >> "$tmpfile"
-    done
-    _GITHUB_MIRRORS_RANKED="$(sort -t'|' -k1 -n "$tmpfile" | cut -d'|' -f2 | tr '
-' ' ')"
-    rm -f "$tmpfile"
-    printf '%s' "$_GITHUB_MIRRORS_RANKED"
-}
-
 download_verified_package() {
     local name="$1"
     local url="$2"
     local expected_sha256="$3"
     local output="$4"
-    local actual_sha256
-    local curl_status
-    local attempt
-    local retry_options=(--retry 5 --retry-delay 2 --retry-connrefused)
-    local speed_options=(--speed-limit 65536 --speed-time 60)
-    local proxy_options=()
-    if [ -n "${DECKY_DOWNLOAD_PROXY:-}" ]; then
-        proxy_options=(--proxy "$DECKY_DOWNLOAD_PROXY")
-    fi
 
     if [ -z "$url" ] || [ -z "$expected_sha256" ]; then
         echo "$name 的下载配置不完整，请先更新工具箱。"
         return 1
     fi
-
-    # SteamOS 自带 curl 支持 retry-all-errors；老版本则保持普通重试，
-    # 不因一个未知参数而让整项安装直接失败。
-    if curl --help all 2>/dev/null | grep -Fq -- '--retry-all-errors'; then
-        retry_options+=(--retry-all-errors)
-    fi
-
-    _rank_github_mirrors >/dev/null 2>&1 || true
-    local _use_mirrors="${_GITHUB_MIRRORS_RANKED:-$GITHUB_MIRRORS}"
-
-    for attempt in 1 2; do
-        rm -f -- "$output"
-        local _dl_ok=0 _dl_url _mirror
-        for _mirror in $_use_mirrors ""; do
-            if [ -n "$_mirror" ]; then
-                _dl_url="${_mirror}${url}"
-            else
-                _dl_url="$url"
-            fi
-            echo "正在下载 $name（第 $attempt/2 轮）..."
-            curl_status=0
-            if curl \
-                --fail \
-                --location \
-                --show-error \
-                --progress-bar \
-                --proto '=https' \
-                --proto-redir '=https' \
-                --connect-timeout 10 \
-                --tls-max 1.2 \
-                --max-time 1200 \
-                "${retry_options[@]}" \
-                "${speed_options[@]}" \
-                "${proxy_options[@]}" \
-                --output "$output" \
-                "$_dl_url"; then
-                _dl_ok=1
-                break
-            else
-                curl_status=$?
-                if [ "$curl_status" -eq 28 ] && [ "${#speed_options[@]}" -gt 0 ]; then
-                    rm -f -- "$output"
-                    echo "$name 下载速度持续过慢（低于 64KB/s 超过 60 秒），已跳过。"
-                    print_steam302_download_fallback
-                    return 1
-                fi
-            fi
-            rm -f -- "$output"
-        done
-        if [ "$_dl_ok" -eq 1 ]; then
-            actual_sha256="$(calculate_decky_sha256 "$output")" || {
-                rm -f -- "$output"
-                echo "无法校验 $name，已停止安装。"
-                return 1
-            }
-            if [ "$actual_sha256" = "$expected_sha256" ]; then
-                echo "$name 下载完成并通过完整性校验。"
-                return 0
-            fi
-            echo "$name 第 $attempt/2 轮下载不完整，校验失败，正在重新获取。"
-        else
-            echo "$name 第 $attempt/2 轮下载失败（curl 退出码：$curl_status）。"
-        fi
-        rm -f -- "$output"
-        [ "$attempt" -eq 2 ] || sleep 3
-    done
-
-    echo "$name 下载失败，两轮均未成功，未改动现有文件。"
-    print_steam302_download_fallback
-    return 1
+    download_github_file "$url" "$output" "$expected_sha256" "$name" || {
+        print_steam302_download_fallback
+        return 1
+    }
 }
 
 archive_paths_are_safe() {
@@ -1259,25 +1166,25 @@ install_lsfg_chinese() {
     log "小黄鸭 v$LSFG_OFFICIAL_VERSION 安装完成"
 }
 
-# 优先从 Gitee 国内源下载完整汉化包（含运行核心），失败则使用原版叠加流程。
+# 优先从 GitHub 加速源下载完整汉化包，失败则使用原版叠加流程。
 install_lsfg_zh_from_gitee() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local reload_after="${1:-1}"
 
     if [ -z "${DECKY_LSFG_ZH_URL:-}" ] || [ -z "${DECKY_LSFG_ZH_SHA256:-}" ]; then
-        echo "Gitee 汉化包下载配置不完整，切换为原版叠加流程。"
+        echo "汉化包下载配置不完整，切换为原版叠加流程。"
         install_lsfg_bundle "$reload_after" || return 1
         install_lsfg_chinese "$reload_after" || return 1
         return 0
     fi
 
-    echo "正在从 Gitee 国内镜像下载完整汉化小黄鸭..."
+    echo "正在通过 GitHub 加速源下载完整汉化小黄鸭..."
     install_decky_zip \
                          "小黄鸭（LSFG-VK）汉化完整包" \
                          "${DECKY_LSFG_ZH_URL:-}" \
                          "${DECKY_LSFG_ZH_SHA256:-}" \
                          "$LSFG_OFFICIAL_DIRECTORY" || {
-        echo "Gitee 下载失败，切换为原版叠加流程。"
+        echo "GitHub 加速下载失败，切换为原版叠加流程。"
         install_lsfg_bundle "$reload_after" || return 1
         install_lsfg_chinese "$reload_after"
         return $?
@@ -1287,7 +1194,7 @@ install_lsfg_zh_from_gitee() {
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可使用。"
     fi
-    log "小黄鸭 v$LSFG_OFFICIAL_VERSION 汉化完全从 Gitee 安装"
+    log "小黄鸭 v$LSFG_OFFICIAL_VERSION 汉化从 GitHub 完整包安装"
 }
 
 install_fsr4_chinese() {
@@ -1356,24 +1263,24 @@ install_fsr4_chinese() {
     log "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面安装完成"
 }
 
-# 优先从 Gitee 国内源下载完整汉化包（含运行核心），失败则使用原版叠加流程。
+# 优先从 GitHub 加速源下载完整汉化包，失败则使用原版叠加流程。
 install_fsr4_zh_from_gitee() {
     local reload_after="${1:-1}"
 
     if [ -z "${DECKY_FSR4_ZH_URL:-}" ] || [ -z "${DECKY_FSR4_ZH_SHA256:-}" ]; then
-        echo "Gitee 汉化包下载配置不完整，切换为原版叠加流程。"
+        echo "汉化包下载配置不完整，切换为原版叠加流程。"
         install_configured_plugin fsr4 0 0 || return 1
         install_fsr4_chinese "$reload_after" || return 1
         return 0
     fi
 
-    echo "正在从 Gitee 国内镜像下载完整 FSR4 汉化包..."
+    echo "正在通过 GitHub 加速源下载完整 FSR4 汉化包..."
     install_decky_zip \
                          "FSR4（Decky Framegen）汉化完整包" \
                          "${DECKY_FSR4_ZH_URL:-}" \
                          "${DECKY_FSR4_ZH_SHA256:-}" \
                          "$FSR4_OFFICIAL_DIRECTORY" || {
-        echo "Gitee 下载失败，切换为原版叠加流程。"
+        echo "GitHub 加速下载失败，切换为原版叠加流程。"
         install_configured_plugin fsr4 0 0 || return 1
         install_fsr4_chinese "$reload_after"
         return $?
@@ -1385,7 +1292,7 @@ install_fsr4_zh_from_gitee() {
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 FSR4 插帧即可看到中文界面。"
     fi
-    log "FSR4 v$FSR4_OFFICIAL_VERSION 汉化完全从 Gitee 安装"
+    log "FSR4 v$FSR4_OFFICIAL_VERSION 汉化从 GitHub 完整包安装"
 }
 
 restore_lsfg_official() {
@@ -1616,7 +1523,7 @@ install_feature_plugins() {
     fi
 
     echo "将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。"
-    echo "小黄鸭和 FSR4 优先从 Gitee 国内镜像下载完整汉化包，失败则回退原版叠加流程。"
+    echo "小黄鸭和 FSR4 优先通过 GitHub 加速源下载完整汉化包，失败则回退原版叠加流程。"
     for plugin in lsfg fsr4 cheatdeck; do
         echo ""
         case "$plugin" in

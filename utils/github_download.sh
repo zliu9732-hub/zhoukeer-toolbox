@@ -1,253 +1,234 @@
 #!/bin/bash
 
-# =========================================================
-# GitHub 统一下载模块
-# 提供统一的 GitHub 文件下载，自动检测最快镜像源并回退。
-# =========================================================
+# GitHub 统一下载模块：并行探测可配置镜像，逐源下载并在校验后原子替换。
 
-# 仅在首次加载时初始化
 if [ -n "${GITHUB_DOWNLOAD_LOADED:-}" ]; then
     return 0
 fi
 GITHUB_DOWNLOAD_LOADED=1
 
-# 加载镜像源配置
-_load_github_mirror_config() {
-    local conf_file="$PROJECT_ROOT/config/github_mirror.conf"
-    if [ -f "$conf_file" ]; then
-        # shellcheck disable=SC1090
-        source "$conf_file"
+_GITHUB_SOURCES_RANKED=""
+_GITHUB_RANKED_FOR_URL=""
+
+_github_positive_integer() {
+    case "$1" in
+        ''|*[!0-9]*|0) return 1 ;;
+        *) return 0 ;;
+    esac
+}
+
+_github_setting() {
+    local value="$1"
+    local fallback="$2"
+    if _github_positive_integer "$value"; then
+        printf '%s' "$value"
+    else
+        printf '%s' "$fallback"
     fi
-    : "${github_enable:=true}"
-    : "${mirror_1:=https://github.com}"
-    : "${mirror_2:=https://gitclone.com/github.com/}"
-    : "${mirror_3:=https://ghproxy.vip/https://github.com/}"
-    : "${mirror_4:=https://ghp.ci/https://github.com/}"
 }
 
-# 收集所有启用镜像到 _GITHUB_SOURCES 数组
-_GITHUB_SOURCES=()
-_github_mirrors_loaded=0
-_load_github_sources() {
-    [ "$_github_mirrors_loaded" -eq 1 ] && return 0
-    _load_github_mirror_config
-    _GITHUB_SOURCES=()
-    [ "$github_enable" != "true" ] && return 0
-    for _i in 1 2 3 4 5 6 7 8 9; do
-        eval "_val=\"\$mirror_${_i}\""
-        [ -n "$_val" ] && _GITHUB_SOURCES+=("$_val")
+_github_mirror_list() {
+    local configured="${GITHUB_MIRRORS:-}"
+    local source
+
+    for source in $configured; do
+        case "$source" in
+            https://*) printf '%s\n' "$source" ;;
+            *) printf '忽略非 HTTPS GitHub 下载源：%s\n' "$source" >&2 ;;
+        esac
     done
-    _github_mirrors_loaded=1
+    printf '%s\n' "https://github.com"
 }
 
-# 解析 GitHub URL 到镜像地址
-# 参数：原始 URL、镜像前缀
-# 输出：解析后的完整 URL
+# 下载源可以是完整 URL 前缀，也可以用 {url} 表示原始 GitHub URL。
 _resolve_github_url() {
     local url="$1"
-    local mirror="$2"
-    
-    # 官方源直接返回原始 URL
-    case "$mirror" in
-        https://github.com|https://github.com/|http://github.com|http://github.com/)
+    local source="$2"
+
+    case "$source" in
+        https://github.com|https://github.com/)
             printf '%s' "$url"
-            return 0
+            ;;
+        *'{url}'*)
+            printf '%s' "${source//\{url\}/$url}"
+            ;;
+        */)
+            printf '%s%s' "$source" "$url"
+            ;;
+        *)
+            printf '%s/%s' "$source" "$url"
             ;;
     esac
-    
-    # 镜像：替换 github.com 域名为镜像地址
-    # 处理 https://github.com/... 格式
-    case "$url" in
-        https://github.com/*)
-            printf '%s%s' "$mirror" "${url#https://github.com/}"
-            return 0
-            ;;
-        https://raw.githubusercontent.com/*)
-            # raw 地址转换为 github.com 格式再拼接
-            local _gh_path="${url#https://raw.githubusercontent.com/}"
-            printf '%s%s' "$mirror" "$_gh_path"
-            return 0
-            ;;
-        http://github.com/*)
-            printf '%s%s' "$mirror" "${url#http://github.com/}"
-            return 0
-            ;;
-        http://raw.githubusercontent.com/*)
-            local _gh_path="${url#http://raw.githubusercontent.com/}"
-            printf '%s%s' "$mirror" "$_gh_path"
-            return 0
-            ;;
-    esac
-    
-    # 非 GitHub URL 原样返回
-    printf '%s' "$url"
 }
 
-# 测速单个源
-# 参数：镜像地址
-# 输出：响应时间（秒），失败输出 999
 _github_source_speed() {
-    local mirror="$1"
-    local test_url
-    local speed
-    
-    case "$mirror" in
-        */) test_url="${mirror}zliu9732-hub/zhoukeer-toolbox/raw/main/VERSION" ;;
-        *) test_url="${mirror}/zliu9732-hub/zhoukeer-toolbox/raw/main/VERSION" ;;
-    esac
-    
-    speed=$(curl -o /dev/null -s -w '%{time_total}' \
-        --connect-timeout 3 --max-time 5 \
-        "$test_url" 2>/dev/null || echo "999")
-    printf '%s' "$speed"
+    local source="$1"
+    local url="$2"
+    local probe_connect_timeout probe_max_time resolved_url
+
+    probe_connect_timeout="$(_github_setting "${GITHUB_PROBE_CONNECT_TIMEOUT:-}" 2)"
+    probe_max_time="$(_github_setting "${GITHUB_PROBE_MAX_TIME:-}" 4)"
+    resolved_url="$(_resolve_github_url "$url" "$source")"
+    curl --fail --location --silent --output /dev/null --write-out '%{time_total}' \
+        --proto '=https' --proto-redir '=https' \
+        --connect-timeout "$probe_connect_timeout" --max-time "$probe_max_time" \
+        "$resolved_url" 2>/dev/null
 }
 
-# 获取按响应时间排序的镜像列表
-# 输出：最快的镜像地址在前，空格分隔
-# 缓存结果，避免重复测速
-_GITHUB_SOURCES_RANKED=""
-_github_sources_ranked_loaded=0
 get_ranked_github_sources() {
-    [ "$_github_sources_ranked_loaded" -eq 1 ] && { printf '%s' "$_GITHUB_SOURCES_RANKED"; return 0; }
-    
-    _load_github_sources
-    [ ${#_GITHUB_SOURCES[@]} -eq 0 ] && return 0
-    
-    local tmpfile
-    tmpfile="$(mktemp 2>/dev/null)" || return 1
-    local _mirror speed
-    
-    for _mirror in "${_GITHUB_SOURCES[@]}"; do
-        speed="$(_github_source_speed "$_mirror")"
-        printf '%s|%s\n' "$speed" "$_mirror" >> "$tmpfile"
-    done
-    
-    _GITHUB_SOURCES_RANKED="$(sort -t'|' -k1 -n "$tmpfile" | cut -d'|' -f2 | tr '\n' ' ')"
-    rm -f "$tmpfile"
-    _github_sources_ranked_loaded=1
-    
+    local url="${1:-https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/VERSION}"
+    local probe_url="https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/VERSION"
+    local work_dir source index=0 result_file
+
+    if [ "$url" = "$_GITHUB_RANKED_FOR_URL" ] && [ -n "$_GITHUB_SOURCES_RANKED" ]; then
+        printf '%s' "$_GITHUB_SOURCES_RANKED"
+        return 0
+    fi
+
+    work_dir="$(mktemp -d 2>/dev/null)" || return 1
+    while IFS= read -r source; do
+        [ -n "$source" ] || continue
+        index=$((index + 1))
+        result_file="$work_dir/$index"
+        (
+            speed="$(_github_source_speed "$source" "$probe_url")" || exit 0
+            case "$speed" in
+                ''|*[!0-9.]*) exit 0 ;;
+            esac
+            printf '%s|%s|%s\n' "$speed" "$index" "$source" > "$result_file"
+        ) &
+    done < <(_github_mirror_list)
+    wait
+
+    _GITHUB_SOURCES_RANKED="$(cat "$work_dir"/* 2>/dev/null | \
+        sort -t'|' -k1,1n -k2,2n | cut -d'|' -f3- | awk '!seen[$0]++')"
+    rm -rf -- "$work_dir"
+    if ! printf '%s\n' "$_GITHUB_SOURCES_RANKED" | grep -Fxq 'https://github.com'; then
+        if [ -n "$_GITHUB_SOURCES_RANKED" ]; then
+            _GITHUB_SOURCES_RANKED="$_GITHUB_SOURCES_RANKED
+https://github.com"
+        else
+            _GITHUB_SOURCES_RANKED="https://github.com"
+        fi
+    fi
+    _GITHUB_RANKED_FOR_URL="$url"
     printf '%s' "$_GITHUB_SOURCES_RANKED"
 }
 
-# 通用的 GitHub 文件下载函数
-# 参数：
-#   $1 - GitHub URL（支持 github.com 和 raw.githubusercontent.com）
-#   $2 - 本地输出路径
-#   $3 - 期望 SHA256（可选，留空不校验）
-#   $4 - 显示名称（可选）
-# 返回值：
-#   0 - 下载成功
-#   1 - 所有源均失败
+_github_sha256() {
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum -- "$1" | awk '{print $1}'
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 -- "$1" | awk '{print $1}'
+    else
+        return 1
+    fi
+}
+
+_github_download_is_plausible() {
+    local file="$1"
+    [ -s "$file" ] || return 1
+    if LC_ALL=C head -c 512 "$file" 2>/dev/null | grep -Eiq '<(!doctype[[:space:]]+html|html[[:space:]>])'; then
+        return 1
+    fi
+}
+
 download_github_file() {
     local url="$1"
     local output="$2"
     local expected_sha256="${3:-}"
     local name="${4:-GitHub文件}"
-    local resolved_url source_index=0
-    
-    # 检查 URL 是否为 GitHub 地址
+    local connect_timeout max_time retries min_speed min_speed_time
+    local proxy="${GITHUB_DOWNLOAD_PROXY:-${DECKY_DOWNLOAD_PROXY:-}}"
+    local ranked_sources source resolved_url temp_file actual_sha256
+    local curl_options=()
+
+    connect_timeout="$(_github_setting "${GITHUB_CONNECT_TIMEOUT:-}" 10)"
+    max_time="$(_github_setting "${GITHUB_MAX_TIME:-}" 1200)"
+    retries="$(_github_setting "${GITHUB_RETRIES:-}" 2)"
+    min_speed="$(_github_setting "${GITHUB_MIN_SPEED_BYTES:-}" 65536)"
+    min_speed_time="$(_github_setting "${GITHUB_MIN_SPEED_TIME:-}" 60)"
+
     case "$url" in
-        *github.com/*|*raw.githubusercontent.com/*) ;;
+        https://github.com/*|https://raw.githubusercontent.com/*)
+            ranked_sources="$(get_ranked_github_sources "$url")" || ranked_sources=""
+            ;;
+        https://*) ranked_sources="DIRECT" ;;
         *)
-            # 非 GitHub 地址，直接下载
-            if curl -fL --connect-timeout 15 --max-time 600 -o "$output" "$url" 2>/dev/null; then
-                return 0
-            fi
+            echo "$name 下载地址不是 HTTPS，已拒绝下载。"
             return 1
             ;;
     esac
-    
-    echo "正在从 GitHub 下载 $name..."
-    
-    local ranked_sources
-    ranked_sources="$(get_ranked_github_sources)" || true
-    
-    # 按优先级尝试所有源
-    local _source _sources_fallback=""
-    for _source in $ranked_sources "https://github.com"; do
-        source_index=$((source_index + 1))
-        
-        resolved_url="$(_resolve_github_url "$url" "$_source")"
-        [ -z "$resolved_url" ] && continue
-        
-        echo "  尝试第 ${source_index} 个源..."
-        if curl -fL --connect-timeout 15 --max-time 600 \
-            --show-error --progress-bar \
-            -o "$output" "$resolved_url" 2>/dev/null; then
-            
-            # SHA256 校验
-            if [ -n "$expected_sha256" ]; then
-                local actual_sha256
-                if command -v sha256sum >/dev/null 2>&1; then
-                    actual_sha256="$(sha256sum "$output" | awk '{print $1}')"
-                elif command -v shasum >/dev/null 2>&1; then
-                    actual_sha256="$(shasum -a 256 "$output" | awk '{print $1}')"
-                else
-                    echo "$name 下载校验不可用。"
-                    return 0
-                fi
-                if [ "$actual_sha256" != "$expected_sha256" ]; then
-                    rm -f -- "$output"
-                    echo "$name SHA256 校验失败，尝试下一源。"
-                    continue
-                fi
-                echo "$name 下载完成并通过校验。"
-            else
-                echo "$name 下载完成。"
+
+    temp_file="$(mktemp "${output}.part.XXXXXX" 2>/dev/null)" || {
+        echo "$name 无法创建临时下载文件。"
+        return 1
+    }
+    curl_options=(
+        --fail --location --show-error --progress-bar
+        --proto '=https' --proto-redir '=https'
+        --connect-timeout "$connect_timeout" --max-time "$max_time"
+        --retry "$retries" --retry-delay 1 --retry-connrefused
+        --speed-limit "$min_speed" --speed-time "$min_speed_time"
+    )
+    [ -z "$proxy" ] || curl_options+=(--proxy "$proxy")
+
+    echo "正在下载 $name..."
+    while IFS= read -r source; do
+        [ -n "$source" ] || continue
+        if [ "$source" = "DIRECT" ]; then
+            resolved_url="$url"
+        else
+            resolved_url="$(_resolve_github_url "$url" "$source")"
+        fi
+
+        rm -f -- "$temp_file"
+        temp_file="$(mktemp "${output}.part.XXXXXX" 2>/dev/null)" || return 1
+        if ! curl "${curl_options[@]}" --output "$temp_file" "$resolved_url"; then
+            continue
+        fi
+        if ! _github_download_is_plausible "$temp_file"; then
+            echo "$name 下载内容为空或疑似网页，正在尝试下一源。"
+            continue
+        fi
+        if [ -n "$expected_sha256" ]; then
+            actual_sha256="$(_github_sha256 "$temp_file")" || {
+                rm -f -- "$temp_file"
+                echo "$name 缺少 SHA256 校验工具，已停止下载。"
+                return 1
+            }
+            if [ "$actual_sha256" != "$expected_sha256" ]; then
+                echo "$name SHA256校验失败，正在尝试下一源。"
+                continue
             fi
-            
-            # 记录日志
-            log "GitHub 下载成功: $name"
+        fi
+        if mv -f -- "$temp_file" "$output"; then
+            [ -z "$expected_sha256" ] || echo "$name 下载完成并通过完整性校验。"
+            [ -n "$expected_sha256" ] || echo "$name 下载完成。"
+            declare -F log >/dev/null 2>&1 && log "GitHub 下载成功: $name"
             return 0
         fi
-        
-        _sources_fallback="${_sources_fallback}  - $_source\n"
-    done
-    
-    # 所有源均失败
-    echo ""
-    echo "========== GitHub 下载失败 =========="
-    echo "资源：$name"
-    echo "尝试过的下载源："
-    printf '%b' "$_sources_fallback"
-    echo "可能的原因：网络连接不稳定，或 GitHub 暂时不可用。"
-    echo "请检查网络连接，稍后重试。"
-    echo "日志位置：$LOG_DIR/toolbox.log"
-    echo "======================================"
-    
-    log "GitHub 下载失败: $name - 所有源均不可用"
+        break
+    done <<EOF
+$ranked_sources
+EOF
+
+    rm -f -- "$temp_file"
+    echo "$name 下载失败，所有可用源均未成功；现有文件未改动。"
+    declare -F log >/dev/null 2>&1 && log "GitHub 下载失败: $name"
     return 1
 }
 
-# 下载 GitHub Release 资源
-# 参数：仓库、标签、资源名、输出路径
 download_github_release() {
-    local repo="$1"
-    local tag="$2"
-    local asset="$3"
-    local output="$4"
-    local expected_sha256="${5:-}"
-    local name="${6:-${asset}}"
-    
-    download_github_file \
-        "https://github.com/${repo}/releases/download/${tag}/${asset}" \
-        "$output" \
-        "$expected_sha256" \
-        "Release $name"
+    local repo="$1" tag="$2" asset="$3" output="$4"
+    local expected_sha256="${5:-}" name="${6:-$asset}"
+    download_github_file "https://github.com/$repo/releases/download/$tag/$asset" \
+        "$output" "$expected_sha256" "Release $name"
 }
 
-# 下载 GitHub Raw 文件
-# 参数：仓库、分支、路径、输出路径
 download_github_raw() {
-    local repo="$1"
-    local branch="$2"
-    local path="$3"
-    local output="$4"
+    local repo="$1" branch="$2" path="$3" output="$4"
     local name="${5:-${path##*/}}"
-    
-    download_github_file \
-        "https://raw.githubusercontent.com/${repo}/${branch}/${path}" \
-        "$output" \
-        "" \
-        "Raw $name"
+    download_github_file "https://raw.githubusercontent.com/$repo/$branch/$path" \
+        "$output" "" "Raw $name"
 }

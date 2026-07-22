@@ -33,9 +33,8 @@ grep -Fq 'DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b097
 grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CheatDeck/releases/download/v1.2.1/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq -- '--retry-all-errors' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '第 $attempt/2 轮下载失败' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '两轮均未成功' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'download_github_file "$url" "$output" "$expected_sha256" "$name"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_tree_atomically' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Lossless Scaling 的 Steam 正版页面' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -44,10 +43,15 @@ grep -Fq 'import_lossless_backup' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'steam://install/993090' "$PROJECT_ROOT/modules/plugin_store.sh"
 
 feature_install="$(sed -n '/^install_feature_plugins()/,/^}/p' "$PROJECT_ROOT/modules/plugin_store.sh")"
-printf '%s\n' "$feature_install" | grep -Fq 'install_configured_plugin "$plugin" 0 0' || {
-    echo "FAIL: 三件套安装没有延后小黄鸭商店跳转" >&2
-    exit 1
-}
+for install_call in \
+    'install_lsfg_zh_from_gitee 0' \
+    'install_fsr4_zh_from_gitee 0' \
+    'install_configured_plugin cheatdeck 0 0'; do
+    printf '%s\n' "$feature_install" | grep -Fq "$install_call" || {
+        echo "FAIL: 三件套缺少下载调用：$install_call" >&2
+        exit 1
+    }
+done
 store_line="$(printf '%s\n' "$feature_install" | grep -n 'check_lossless_scaling_installation' | tail -n 1 | cut -d: -f1)"
 loop_line="$(printf '%s\n' "$feature_install" | grep -n 'done' | head -n 1 | cut -d: -f1)"
 [ -n "$store_line" ] && [ -n "$loop_line" ] && [ "$store_line" -gt "$loop_line" ] || {
@@ -82,8 +86,6 @@ grep -Fq 'cp -a -- "$official_assets_dir" "$staged_source/assets"' "$PROJECT_ROO
 grep -Fq '小黄鸭运行核心缺失' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'cp -a -- "$official_runtime" "$staged_source/bin/$LSFG_RUNTIME_ARCHIVE"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_fsr4_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'install_lsfg_chinese 0' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'install_fsr4_chinese 0' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'restore_lsfg_official()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'LSFG_ZH_INDEX_SHA256="9ea05e9738191cd0e414b4c4a106a836b65170c1f8b32ccdf2ba792514f122d2"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -122,7 +124,7 @@ grep -Fq 'uninstall) uninstall_all_decky_plugins' "$PROJECT_ROOT/modules/plugin_
 grep -Fq '不会删除 Decky Loader 本体' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'all) show_plugin_download_speed_tip; install_all_plugin_packages' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '3. 点击启动服务，再返回工具箱重试' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'speed_options=(--speed-limit 65536 --speed-time 30)' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'GitHub 加速源下载完整汉化包' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '继续安装 CheatDeck' "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Fq 'Lossless Scaling.rar' "$PROJECT_ROOT/modules/plugin_store.sh" || \
     grep -Eq 'https?://[^[:space:]]*Lossless' "$PROJECT_ROOT/modules/plugin_store.sh"; then
