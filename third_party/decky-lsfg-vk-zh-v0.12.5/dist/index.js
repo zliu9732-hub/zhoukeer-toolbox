@@ -1839,6 +1839,8 @@ function Content() {
     return (window.SP_REACT.createElement(DFL.PanelSection, null,
         window.SP_REACT.createElement(DFL.PanelSectionRow, null,
             window.SP_REACT.createElement("div", { style: { fontSize: "12px", opacity: 0.7, lineHeight: "1.45" } }, "\u4E2D\u6587\u6C49\u5316\uFF1A\u95F2\u9C7C\u53CC\u53F6 \u00B7 \u539F\u63D2\u4EF6\u4F5C\u8005\uFF1AKurt Himebauch\uFF08xXJSONDeruloXx\uFF09")),
+        window.SP_REACT.createElement(DFL.PanelSectionRow, null,
+            window.SP_REACT.createElement("div", { style: { width: "100%", textAlign: "center", fontSize: "14px", fontWeight: 700, color: "#ffcc66", padding: "4px 0 8px" } }, "\u95F2\u9C7C\u53CC\u53F6\u6C49\u5316")),
         !isInstalled && (window.SP_REACT.createElement(window.SP_REACT.Fragment, null,
             window.SP_REACT.createElement(InstallationButton, { isInstalled: isInstalled, isInstalling: isInstalling, isUninstalling: isUninstalling, onInstall: onInstall, onUninstall: onUninstall }),
             window.SP_REACT.createElement(StatusDisplay, { dllDetected: dllDetected, dllDetectionStatus: dllDetectionStatus, isInstalled: isInstalled, installationStatus: installationStatus }))),

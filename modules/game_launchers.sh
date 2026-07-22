@@ -31,13 +31,13 @@ launcher_details() {
         battlenet)
             LAUNCHER_NAME="战网启动器"
             LAUNCHER_FILE_NAME="Battle.net-Setup.exe"
-            LAUNCHER_URL="https://www.battle.net/download/getInstallerForGame?os=win&installer=Battle.net-Setup.exe"
+            LAUNCHER_URL="https://downloader.battle.net/download/getInstallerForGame?os=win&installer=Battle.net-Setup.exe"
             LAUNCHER_MIN_BYTES=1048576
             LAUNCHER_MAGIC="4d5a"
             LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Battle.net/Battle.net Launcher.exe\nProgram Files (x86)/Battle.net/Battle.net.exe'
             ;;
         ubisoft|uplay)
-            LAUNCHER_NAME="Ubisoft Connect（Uplay）"
+            LAUNCHER_NAME="育碧服务"
             LAUNCHER_FILE_NAME="UbisoftConnectInstaller.exe"
             LAUNCHER_URL="https://static3.cdn.ubi.com/orbit/launcher_installer/UbisoftConnectInstaller.exe"
             LAUNCHER_MIN_BYTES=10485760
@@ -74,7 +74,7 @@ download_launcher_installer() {
     require_command curl || return 1
     rm -f -- "$temporary"
     echo "正在下载 $LAUNCHER_NAME 官方安装器…"
-    if ! curl --fail --location --show-error --proto '=https' --proto-redir '=https' \
+    if ! curl --fail --location --silent --show-error --proto '=https' --proto-redir '=https' \
         --connect-timeout 15 --max-time "$DOWNLOAD_TIMEOUT" --retry 2 --retry-delay 2 \
         --output "$temporary" "$LAUNCHER_URL"; then
         rm -f -- "$temporary"
@@ -107,6 +107,7 @@ find_steam_root() {
 
 find_shortcut_file() {
     local steam_root="$1"
+    local loginusers_file steam_id account_id
     local candidate
     local newest=""
     local newest_time=0
@@ -116,6 +117,47 @@ find_shortcut_file() {
         printf '%s\n' "$ZHOUKEER_SHORTCUT_FILE"
         return 0
     fi
+
+    loginusers_file="$steam_root/config/loginusers.vdf"
+    if [ -f "$loginusers_file" ] && [ ! -L "$loginusers_file" ]; then
+        steam_id="$(awk '
+            /^[[:space:]]*"[0-9]+"[[:space:]]*$/ {
+                value=$0
+                gsub(/[[:space:]\"]/, "", value)
+                current=value
+            }
+            /^[[:space:]]*"MostRecent"[[:space:]]*"1"[[:space:]]*$/ && current != "" {
+                print current
+                exit
+            }
+        ' "$loginusers_file")"
+        case "$steam_id" in
+            ''|*[!0-9]*) ;;
+            *)
+                account_id=$((steam_id - 76561197960265728))
+                if [ "$account_id" -gt 0 ] && [ -d "$steam_root/userdata/$account_id/config" ]; then
+                    printf '%s/userdata/%s/config/shortcuts.vdf\n' "$steam_root" "$account_id"
+                    return 0
+                fi
+                ;;
+        esac
+    fi
+
+    # loginusers.vdf 不可用时，优先复用已有快捷方式文件，避免写进旧账号。
+    while IFS= read -r -d '' candidate; do
+        modified="$(stat -c '%Y' "$candidate" 2>/dev/null || printf '0')"
+        if [ "$modified" -ge "$newest_time" ]; then
+            newest="$candidate"
+            newest_time="$modified"
+        fi
+    done < <(find "$steam_root/userdata" -mindepth 3 -maxdepth 3 -type f -name shortcuts.vdf -print0 2>/dev/null)
+    if [ -n "$newest" ]; then
+        printf '%s\n' "$newest"
+        return 0
+    fi
+
+    newest=""
+    newest_time=0
     while IFS= read -r -d '' candidate; do
         modified="$(stat -c '%Y' "$candidate" 2>/dev/null || printf '0')"
         if [ "$modified" -ge "$newest_time" ]; then
@@ -216,22 +258,49 @@ run_launcher_installer() {
     local elapsed=0
     local installed_file
     local timeout="${6:-$POST_INSTALL_TIMEOUT}"
+    local install_mode="${7:-interactive}"
 
     launcher_details "$target" || return 1
     mkdir -p "$prefix_dir" || return 1
-    echo "正在使用 $(basename "$(dirname "$proton_runner")") 直接打开 $LAUNCHER_NAME 官方安装器..." >&2
-    case "$target" in
-        epic) echo "弹出 Epic 安装窗口后，点击 Install（安装）；完成后点击 Finish（完成）。" >&2 ;;
-        battlenet) echo "弹出战网安装窗口后，点击 Continue（继续），按中文界面完成安装。" >&2 ;;
-        ubisoft|uplay) echo "弹出 Ubisoft Connect 安装窗口后，选择中文并依次点击接受、安装、完成。" >&2 ;;
+    if [ "$install_mode" = "silent" ]; then
+        echo "正在使用 $(basename "$(dirname "$proton_runner")") 静默安装 $LAUNCHER_NAME..." >&2
+    else
+        echo "正在使用 $(basename "$(dirname "$proton_runner")") 直接打开 $LAUNCHER_NAME 官方安装器..." >&2
+    fi
+    case "$target:$install_mode" in
+        epic:interactive) echo "弹出 Epic 安装窗口后，点击 Install（安装）；完成后点击 Finish（完成）。" >&2 ;;
+        battlenet:*)
+            echo "弹出战网安装窗口后，点击 Continue（继续），按中文界面完成安装。" >&2
+            echo "若出现 BLZBNTBTS00000028，请关闭错误窗口并等待，工具箱会自动切换兼容层重试。" >&2
+            ;;
+        ubisoft:interactive|uplay:interactive) echo "弹出育碧服务安装窗口后，选择中文并依次点击接受、安装、完成。" >&2 ;;
     esac
     echo "无需进入 Steam 手动选择兼容层。" >&2
 
     case "$target" in
         epic)
-            STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root"             STEAM_COMPAT_DATA_PATH="$prefix_dir"             STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0                 "$proton_runner" run msiexec /i "$installer_file" || status=$?
+            if [ "$install_mode" = "silent" ]; then
+                STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
+                    STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
+                    "$proton_runner" run msiexec /i "$installer_file" /qn /norestart || status=$?
+            else
+                STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
+                    STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
+                    "$proton_runner" run msiexec /i "$installer_file" || status=$?
+            fi
             ;;
-        battlenet|ubisoft|uplay)
+        ubisoft|uplay)
+            if [ "$install_mode" = "silent" ]; then
+                STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
+                    STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
+                    "$proton_runner" run "$installer_file" /S || status=$?
+            else
+                STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
+                    STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
+                    "$proton_runner" run "$installer_file" || status=$?
+            fi
+            ;;
+        battlenet)
             STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
                 STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
                 "$proton_runner" run "$installer_file" || status=$?
@@ -399,23 +468,63 @@ EOF
 }
 
 create_launcher_desktop_shortcut() {
-    local target="$1" wrapper="$2" name
+    local target="$1" wrapper="$2" name icon
     case "$target" in
-        epic) name="Epic Games 启动器" ;;
-        battlenet) name="战网启动器" ;;
-        ubisoft|uplay) name="Ubisoft Connect（Uplay）" ;;
+        epic) name="Epic Games 启动器"; icon="$PROJECT_ROOT/assets/game-launchers/epic.png" ;;
+        battlenet) name="战网启动器"; icon="$PROJECT_ROOT/assets/game-launchers/battlenet.png" ;;
+        ubisoft|uplay) name="育碧服务"; icon="$PROJECT_ROOT/assets/game-launchers/ubisoft.png" ;;
         *) return 1 ;;
     esac
     mkdir -p "$HOME/Desktop" || return 1
+    if [ "$target" = "ubisoft" ] || [ "$target" = "uplay" ]; then
+        local old_shortcut="$HOME/Desktop/Ubisoft Connect（Uplay）.desktop"
+        if [ -f "$old_shortcut" ] && [ ! -L "$old_shortcut" ] && \
+           grep -Eq '^Exec=.*/game-launchers/(ubisoft|uplay)/launch-(ubisoft|uplay)\.sh$' "$old_shortcut"; then
+            rm -f -- "$old_shortcut"
+        fi
+    fi
     cat > "$HOME/Desktop/$name.desktop" <<EOF
 [Desktop Entry]
 Type=Application
 Name=$name
 Exec=$wrapper
 Terminal=false
+Icon=$icon
 Categories=Game;
+X-Zhoukeer-Managed=true
 EOF
     chmod +x "$HOME/Desktop/$name.desktop"
+}
+
+install_launcher_steam_artwork() {
+    local target="$1" shortcut_file="$2" app_id="$3"
+    local asset_name grid_dir
+
+    case "$target" in
+        epic) asset_name="epic" ;;
+        battlenet) asset_name="battlenet" ;;
+        ubisoft|uplay) asset_name="ubisoft" ;;
+        *) return 1 ;;
+    esac
+    case "$app_id" in
+        ''|*[!0-9]*) echo "Steam 非 Steam 游戏编号无效，未写入库封面。"; return 1 ;;
+    esac
+    grid_dir="$(dirname "$shortcut_file")/grid"
+    if [ -L "$grid_dir" ]; then
+        echo "Steam 封面目录是符号链接，已停止写入：$grid_dir"
+        return 1
+    fi
+    install -d -m 0755 -- "$grid_dir" || return 1
+    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name.png" \
+        "$grid_dir/${app_id}_icon.png" || return 1
+    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-grid.jpg" \
+        "$grid_dir/${app_id}.jpg" || return 1
+    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-portrait.jpg" \
+        "$grid_dir/${app_id}p.jpg" || return 1
+    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-hero.jpg" \
+        "$grid_dir/${app_id}_hero.jpg" || return 1
+    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name.png" \
+        "$grid_dir/${app_id}_logo.png" || return 1
 }
 
 run_battlenet_installer_with_fallback() {
@@ -434,7 +543,7 @@ run_battlenet_installer_with_fallback() {
 }
 
 install_launcher() {
-    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file launcher_result
+    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file launcher_result app_id
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
         echo "游戏启动器安装仅支持真实 SteamOS 环境。"
@@ -459,7 +568,18 @@ install_launcher() {
             launcher_exe="${launcher_result%%|*}"
             runner="${launcher_result#*|}"
         else
-            launcher_exe="$(run_launcher_installer "$target" "$steam_root" "$installer_file" "$prefix" "$runner")" || return 1
+            case "$target" in
+                epic|ubisoft|uplay)
+                    launcher_exe="$(run_launcher_installer "$target" "$steam_root" "$installer_file" "$prefix" "$runner" 20 silent || true)"
+                    if [ -z "$launcher_exe" ]; then
+                        echo "$LAUNCHER_NAME 静默安装未完成，正在回退到官方可见安装窗口。"
+                        launcher_exe="$(run_launcher_installer "$target" "$steam_root" "$installer_file" "$prefix" "$runner")" || return 1
+                    fi
+                    ;;
+                *)
+                    launcher_exe="$(run_launcher_installer "$target" "$steam_root" "$installer_file" "$prefix" "$runner")" || return 1
+                    ;;
+            esac
         fi
     fi
     wrapper="$(create_launcher_wrapper "$target" "$steam_root" "$prefix" "$runner" "$launcher_exe" "$app_dir")" || return 1
@@ -468,8 +588,16 @@ install_launcher() {
     stop_steam_for_vdf || return 1
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" add \
         --name "$LAUNCHER_NAME" --exe "$wrapper" --start-dir "$app_dir" >/dev/null || return 1
+    python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" verify \
+        --name "$LAUNCHER_NAME" --exe "$wrapper" >/dev/null || {
+        echo "$LAUNCHER_NAME 的 Steam 条目写入后校验失败，桌面图标仍可使用。"
+        return 1
+    }
+    app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid \
+        --name "$LAUNCHER_NAME" --exe "$wrapper")" || return 1
+    install_launcher_steam_artwork "$target" "$shortcut_file" "$app_id" || return 1
     start_steam
-    echo "$LAUNCHER_NAME 已添加到 Steam 库，无需再选择兼容层。"
+    echo "$LAUNCHER_NAME 已添加到 Steam 库，封面与工具箱标识也已设置，无需再选择兼容层。"
     if [ "$target" = "epic" ]; then
         echo "Epic 改中文：右上角头像 → Settings → Language → 中文（简体）→ Restart Now。"
         echo "若下载管理器仍显示英文，请选择不带 System Default 的中文（简体）后重启。"

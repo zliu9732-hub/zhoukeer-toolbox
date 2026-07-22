@@ -93,10 +93,14 @@ grep -Fq '小黄鸭运行核心缺失' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'cp -a -- "$official_runtime" "$staged_source/bin/$LSFG_RUNTIME_ARCHIVE"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_fsr4_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'restore_lsfg_official()' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'LSFG_ZH_INDEX_SHA256="9ea05e9738191cd0e414b4c4a106a836b65170c1f8b32ccdf2ba792514f122d2"' \
+grep -Fq 'LSFG_ZH_INDEX_SHA256="40844ce4e016e411fb45f951c4a6993fb8ac95ac03e8d2f7f12b67082f3067ef"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '中文汉化：闲鱼双叶' \
     "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/src/components/Content.tsx"
+[ "$(grep -Fc '闲鱼双叶汉化' "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/src/components/Content.tsx")" -ge 1 ] || {
+    echo "FAIL: 小黄鸭插件打开后缺少可见汉化署名" >&2
+    exit 1
+}
 grep -Fq '"name": "小黄鸭"' \
     "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/plugin.json"
 grep -Fq '"name": "Decky-Framegen(FSR4)"' \
@@ -105,15 +109,19 @@ grep -Fq '闲鱼双叶' \
     "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/plugin.json"
 grep -Fq '闲鱼双叶汉化' \
     "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/src/components/OptiScalerControls.tsx"
+[ "$(grep -Fc '闲鱼双叶汉化' "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/src/components/OptiScalerControls.tsx")" -ge 2 ] || {
+    echo "FAIL: FSR4 插件打开后缺少单独可见的汉化署名" >&2
+    exit 1
+}
 fsr4_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/dist/index.js" | awk '{print $1}')"
-[ "$fsr4_actual_sha256" = "67022aebf727bc9929258940ea485dc5b6c697cd76a0f59790477ac390ca35f5" ] || {
+[ "$fsr4_actual_sha256" = "58fb35721a3321afa787a0888f9053c9550ea55c85b102696831b30b27e3da2d" ] || {
     echo "FAIL: FSR4 中文构建文件校验值不匹配" >&2
     exit 1
 }
 grep -Fq '"version": "0.12.5"' \
     "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/package.json"
 zh_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js" | awk '{print $1}')"
-[ "$zh_actual_sha256" = "9ea05e9738191cd0e414b4c4a106a836b65170c1f8b32ccdf2ba792514f122d2" ] || {
+[ "$zh_actual_sha256" = "40844ce4e016e411fb45f951c4a6993fb8ac95ac03e8d2f7f12b67082f3067ef" ] || {
     echo "FAIL: 小黄鸭中文构建文件校验值不匹配" >&2
     exit 1
 }

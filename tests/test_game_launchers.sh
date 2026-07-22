@@ -35,6 +35,20 @@ python3 "$HELPER" --help >/dev/null
 
 python3 "$HELPER" --shortcut-file "$SHORTCUTS" add \
     --name "Epic Games 启动器" --exe "$INSTALLER" --start-dir "$TMP_ROOT"
+python3 "$HELPER" --shortcut-file "$SHORTCUTS" verify \
+    --name "Epic Games 启动器" --exe "$INSTALLER" | grep -Fxq verified
+app_id="$(python3 "$HELPER" --shortcut-file "$SHORTCUTS" appid \
+    --name "Epic Games 启动器" --exe "$INSTALLER")"
+expected_app_id="$(python3 - "$INSTALLER" <<'PY'
+import sys
+import zlib
+print(zlib.crc32((f'"{sys.argv[1]}"' + 'Epic Games 启动器').encode()) | 0x80000000)
+PY
+)"
+[ "$app_id" = "$expected_app_id" ] || {
+    echo "FAIL: Steam 非 Steam 游戏 AppID 计算错误" >&2
+    exit 1
+}
 python3 "$HELPER" --shortcut-file "$SHORTCUTS" add \
     --name "Epic Games 启动器" --exe "$INSTALLER" --start-dir "$TMP_ROOT" | grep -Fxq existing
 # Steam 自己写出的 shortcuts.vdf 在根对象后可能保留额外结束标记。
@@ -106,6 +120,24 @@ grep -Fq "run msiexec /i $INSTALLER" "$PROTON_LOG" || {
     exit 1
 }
 
+silent_result="$(
+    MODULE="$MODULE" PROTON_LOG="$PROTON_LOG" DIRECT_PREFIX="$DIRECT_PREFIX" \
+        FAKE_PROTON="$FAKE_PROTON" INSTALLER="$INSTALLER" TMP_ROOT="$TMP_ROOT" \
+        bash -c '
+            source "$MODULE"
+            POST_INSTALL_TIMEOUT=0
+            run_launcher_installer epic "$TMP_ROOT/steam" "$INSTALLER" "$DIRECT_PREFIX" "$FAKE_PROTON" 0 silent
+        '
+)"
+[ "$silent_result" = "$DIRECT_EXE" ] || {
+    echo "FAIL: Epic 静默安装没有返回主程序" >&2
+    exit 1
+}
+grep -Fq '/qn /norestart' "$PROTON_LOG" || {
+    echo "FAIL: Epic 静默安装参数缺失" >&2
+    exit 1
+}
+
 mkdir -p "$(dirname "$UBISOFT_PROTON")"
 cat > "$UBISOFT_PROTON" <<'SCRIPT'
 #!/bin/bash
@@ -131,6 +163,45 @@ ubisoft_result="$(
 }
 grep -Fq 'run '"$TMP_ROOT/UbisoftConnectInstaller.exe" "$PROTON_LOG" || {
     echo "FAIL: Ubisoft Connect EXE 没有通过 Proton 直接运行" >&2
+    exit 1
+}
+
+art_shortcuts="$TMP_ROOT/art-account/config/shortcuts.vdf"
+mkdir -p "$(dirname "$art_shortcuts")"
+MODULE="$MODULE" ART_SHORTCUTS="$art_shortcuts" APP_ID="$app_id" bash -c '
+    source "$MODULE"
+    install_launcher_steam_artwork epic "$ART_SHORTCUTS" "$APP_ID"
+'
+for artwork in "$app_id.jpg" "${app_id}p.jpg" "${app_id}_hero.jpg" \
+    "${app_id}_logo.png" "${app_id}_icon.png"; do
+    [ -s "$(dirname "$art_shortcuts")/grid/$artwork" ] || {
+        echo "FAIL: Steam 库美化文件缺失：$artwork" >&2
+        exit 1
+    }
+done
+
+LOGIN_ROOT="$TMP_ROOT/login-steam"
+mkdir -p "$LOGIN_ROOT/steamapps" "$LOGIN_ROOT/userdata/123/config" \
+    "$LOGIN_ROOT/userdata/456/config" "$LOGIN_ROOT/config"
+cat > "$LOGIN_ROOT/config/loginusers.vdf" <<'VDF'
+"users"
+{
+    "76561197960265851"
+    {
+        "MostRecent" "1"
+    }
+    "76561197960266184"
+    {
+        "MostRecent" "0"
+    }
+}
+VDF
+selected_shortcuts="$(MODULE="$MODULE" LOGIN_ROOT="$LOGIN_ROOT" bash -c '
+    source "$MODULE"
+    find_shortcut_file "$LOGIN_ROOT"
+')"
+[ "$selected_shortcuts" = "$LOGIN_ROOT/userdata/123/config/shortcuts.vdf" ] || {
+    echo "FAIL: 未选择 Steam 最近登录账号，可能导致 Epic 不入库" >&2
     exit 1
 }
 
@@ -304,6 +375,11 @@ printf '%s\n' "$existing_output" | grep -Fq '跳过安装包下载' || {
     echo "FAIL: 已安装战网没有创建持久桌面启动图标" >&2
     exit 1
 }
+grep -Fq "Icon=$PROJECT_ROOT/assets/game-launchers/battlenet.png" \
+    "$FAKE_HOME/Desktop/战网启动器.desktop" || {
+    echo "FAIL: 战网桌面入口没有使用带工具箱标识的图标" >&2
+    exit 1
+}
 python3 - "$EXISTING_SHORTCUTS" <<'PY'
 from pathlib import Path
 import sys
@@ -320,6 +396,7 @@ grep -Fq 'Battle.net.exe' "$MODULE"
 grep -Fq 'UbisoftConnectInstaller.exe' "$MODULE"
 grep -Fq 'UbisoftConnect.exe' "$MODULE"
 grep -Fq 'https://static3.cdn.ubi.com/orbit/launcher_installer/UbisoftConnectInstaller.exe' "$MODULE"
+grep -Fq 'https://downloader.battle.net/download/getInstallerForGame?os=win&installer=Battle.net-Setup.exe' "$MODULE"
 grep -Fq 'run_launcher_installer' "$MODULE"
 grep -Fq 'create_launcher_wrapper' "$MODULE"
 grep -Fq '无需再选择兼容层' "$MODULE"
@@ -327,6 +404,7 @@ grep -Fq '跳过安装包下载' "$MODULE"
 grep -Fq 'steam_shortcut.py' "$MODULE"
 grep -Fq 'run_battlenet_installer_with_fallback' "$MODULE"
 grep -Fq 'create_launcher_desktop_shortcut' "$MODULE"
+grep -Fq 'install_launcher_steam_artwork' "$MODULE"
 grep -Fq 'download_launcher_installer' "$MODULE"
 grep -Fq '点击 Install（安装）' "$MODULE"
 grep -Fq '点击 Continue（继续）' "$MODULE"

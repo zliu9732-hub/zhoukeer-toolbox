@@ -7,6 +7,7 @@ import argparse
 import os
 import stat
 import tempfile
+import zlib
 from pathlib import Path
 
 
@@ -192,6 +193,12 @@ def add_shortcut(args: argparse.Namespace) -> None:
     quoted_exe = quote_path(args.exe)
     for entry in entries:
         if entry[0] == TYPE_OBJECT and entry_value(entry, b"exe") == quoted_exe:
+            if entry_value(entry, b"appname") != args.name:
+                set_string(entry, "appname", args.name)
+                set_string(entry, "StartDir", quote_path(args.start_dir))
+                save_shortcuts(args.shortcut_file, entries)
+                print("updated")
+                return
             print("existing")
             return
     for entry in entries:
@@ -221,6 +228,25 @@ def update_shortcut(args: argparse.Namespace) -> None:
     raise VdfError("the installer shortcut was not found")
 
 
+def verify_shortcut(args: argparse.Namespace) -> None:
+    entries = load_shortcuts(args.shortcut_file)
+    quoted_exe = quote_path(args.exe)
+    for entry in entries:
+        if (
+            entry[0] == TYPE_OBJECT
+            and entry_value(entry, b"appname") == args.name
+            and entry_value(entry, b"exe") == quoted_exe
+        ):
+            print("verified")
+            return
+    raise VdfError("the expected shortcut was not written")
+
+
+def shortcut_app_id(name: str, exe: str) -> int:
+    checksum = zlib.crc32((quote_path(exe) + name).encode("utf-8"))
+    return checksum | 0x80000000
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--shortcut-file", type=Path, required=True)
@@ -235,6 +261,14 @@ def main() -> None:
     update.add_argument("--old-exe", required=True)
     update.add_argument("--new-exe", required=True)
 
+    verify = subparsers.add_parser("verify")
+    verify.add_argument("--name", required=True)
+    verify.add_argument("--exe", required=True)
+
+    appid = subparsers.add_parser("appid")
+    appid.add_argument("--name", required=True)
+    appid.add_argument("--exe", required=True)
+
     args = parser.parse_args()
     if not os.path.isabs(args.shortcut_file):
         parser.error("--shortcut-file must be absolute")
@@ -242,10 +276,18 @@ def main() -> None:
         if not os.path.isabs(args.exe) or not os.path.isabs(args.start_dir):
             parser.error("shortcut paths must be absolute")
         add_shortcut(args)
-    else:
+    elif args.command == "update":
         if not os.path.isabs(args.old_exe) or not os.path.isabs(args.new_exe):
             parser.error("shortcut paths must be absolute")
         update_shortcut(args)
+    elif args.command == "verify":
+        if not os.path.isabs(args.exe):
+            parser.error("shortcut paths must be absolute")
+        verify_shortcut(args)
+    else:
+        if not os.path.isabs(args.exe):
+            parser.error("shortcut paths must be absolute")
+        print(shortcut_app_id(args.name, args.exe))
 
 
 if __name__ == "__main__":

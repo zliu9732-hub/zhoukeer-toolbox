@@ -121,6 +121,11 @@ export function OptiScalerControls({ pathExists, setPathExists, fgmodInfo }: Opt
           原插件作者：Kurt Himebauch（xXJSONDeruloXx）
         </Field>
       </PanelSectionRow>
+      <PanelSectionRow>
+        <div style={{ width: "100%", textAlign: "center", fontSize: "14px", fontWeight: 700, color: "#ffcc66", padding: "4px 0 8px" }}>
+          闲鱼双叶汉化
+        </div>
+      </PanelSectionRow>
 
       <InstallationStatus 
         pathExists={pathExists}

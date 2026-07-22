@@ -67,4 +67,31 @@ grep -Fq 'Priority=10' "$ZHOUKEER_SYSTEMD_DIR/test-swap.swap" || fail "磁盘 sw
 grep -Fq 'enable test-swap.swap' "$SYSTEMCTL_LOG" || fail "磁盘 swap 未设置开机启用"
 grep -Fq '最佳组合已设置' "$TMP_ROOT/output" || fail "优化完成提示缺失"
 
+# SteamOS 的旧 swap 可能带 immutable 属性；替换前应临时解除并能在回滚时恢复。
+FAKE_BIN="$TMP_ROOT/bin"
+ATTR_LOG="$TMP_ROOT/attr.log"
+mkdir -p "$FAKE_BIN"
+cat > "$FAKE_BIN/lsattr" <<'SCRIPT'
+#!/bin/bash
+printf '%s %s\n' '----i--------' "${@: -1}"
+SCRIPT
+cat > "$FAKE_BIN/chattr" <<'SCRIPT'
+#!/bin/bash
+printf '%s\n' "$*" >> "${ATTR_LOG:?}"
+SCRIPT
+chmod +x "$FAKE_BIN/lsattr" "$FAKE_BIN/chattr"
+export ATTR_LOG
+PATH="$FAKE_BIN:$PATH"
+memory_clear_immutable_attribute "$ZHOUKEER_SWAPFILE_PATH" || fail "未解除旧 swap 的不可变属性"
+[ "$MEMORY_SWAPFILE_WAS_IMMUTABLE" -eq 1 ] || fail "未记录旧 swap 的不可变状态"
+toolbox_sudo() {
+    case "${1:-}" in
+        test) return 0 ;;
+        *) "$@" ;;
+    esac
+}
+memory_restore_immutable_attribute "$ZHOUKEER_SWAPFILE_PATH" || fail "未恢复旧 swap 的不可变属性"
+grep -Fq -- '-i --' "$ATTR_LOG" || fail "没有执行 chattr -i"
+grep -Fq -- '+i --' "$ATTR_LOG" || fail "没有执行 chattr +i"
+
 echo "PASS: zram 与磁盘 swap 一键推荐值、配置和后台启用模拟通过"

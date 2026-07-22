@@ -14,6 +14,7 @@ MEMORY_ZRAM_CONFIG="${ZHOUKEER_ZRAM_CONFIG:-/etc/systemd/zram-generator.conf.d/9
 MEMORY_SYSCTL_CONFIG="${ZHOUKEER_MEMORY_SYSCTL_CONFIG:-/etc/sysctl.d/90-zhoukeer-memory.conf}"
 MEMORY_SYSTEMD_DIR="${ZHOUKEER_SYSTEMD_DIR:-/etc/systemd/system}"
 MEMORY_MIN_FREE_GIB="${ZHOUKEER_MEMORY_MIN_FREE_GIB:-4}"
+MEMORY_SWAPFILE_WAS_IMMUTABLE=0
 
 memory_value_is_positive_integer() {
     case "$1" in
@@ -46,7 +47,47 @@ memory_file_size_bytes() {
 }
 
 memory_swap_is_active() {
-    swapon --noheadings --raw --output NAME 2>/dev/null | grep -Fxq -- "$1"
+    local requested="$1"
+    local requested_real candidate candidate_real
+
+    requested_real="$(readlink -f -- "$requested" 2>/dev/null || printf '%s' "$requested")"
+    while IFS= read -r candidate; do
+        [ -n "$candidate" ] || continue
+        candidate_real="$(readlink -f -- "$candidate" 2>/dev/null || printf '%s' "$candidate")"
+        [ "$candidate" = "$requested" ] || [ "$candidate_real" = "$requested_real" ] || continue
+        return 0
+    done < <(swapon --noheadings --raw --output NAME 2>/dev/null)
+    return 1
+}
+
+memory_clear_immutable_attribute() {
+    local path="$1"
+    local attributes
+
+    MEMORY_SWAPFILE_WAS_IMMUTABLE=0
+    command -v lsattr >/dev/null 2>&1 && command -v chattr >/dev/null 2>&1 || return 0
+    attributes="$(toolbox_sudo lsattr -d -- "$path" 2>/dev/null | awk 'NR == 1 { print $1 }')"
+    case "$attributes" in
+        *i*)
+            toolbox_sudo chattr -i -- "$path" || {
+                echo "现有 swap 带不可变保护且无法临时解除，未做替换。"
+                return 1
+            }
+            MEMORY_SWAPFILE_WAS_IMMUTABLE=1
+            echo "已临时解除现有 swap 的不可变保护。"
+            ;;
+    esac
+}
+
+memory_restore_immutable_attribute() {
+    local path="$1"
+
+    [ "$MEMORY_SWAPFILE_WAS_IMMUTABLE" -eq 1 ] || return 0
+    toolbox_sudo test -e "$path" || return 0
+    toolbox_sudo chattr +i -- "$path" || {
+        echo "警告：原 swap 已恢复，但不可变属性未能恢复：$path"
+        return 1
+    }
 }
 
 memory_swapfile_is_complete() {
@@ -182,17 +223,30 @@ memory_create_swapfile() {
             echo "现有 swap 正在使用且无法安全停用，未做替换。"
             return 1
         }
+        if memory_swap_is_active "$MEMORY_SWAPFILE_PATH"; then
+            toolbox_sudo rm -f -- "$new_file"
+            echo "现有 swap 停用后被系统立即重新启用，未做替换。请重启后再试。"
+            return 1
+        fi
     fi
     if toolbox_sudo test -e "$MEMORY_SWAPFILE_PATH"; then
-        toolbox_sudo mv -- "$MEMORY_SWAPFILE_PATH" "$backup_file" || {
+        memory_clear_immutable_attribute "$MEMORY_SWAPFILE_PATH" || {
             toolbox_sudo rm -f -- "$new_file"
             [ "$was_active" -eq 0 ] || toolbox_sudo swapon "$MEMORY_SWAPFILE_PATH" || true
+            return 1
+        }
+        toolbox_sudo mv -- "$MEMORY_SWAPFILE_PATH" "$backup_file" || {
+            memory_restore_immutable_attribute "$MEMORY_SWAPFILE_PATH" || true
+            toolbox_sudo rm -f -- "$new_file"
+            [ "$was_active" -eq 0 ] || toolbox_sudo swapon "$MEMORY_SWAPFILE_PATH" || true
+            echo "现有 swap 无法安全移动，已保留原文件。"
             return 1
         }
     fi
     if ! toolbox_sudo mv -- "$new_file" "$MEMORY_SWAPFILE_PATH"; then
         toolbox_sudo test ! -e "$backup_file" || \
             toolbox_sudo mv -- "$backup_file" "$MEMORY_SWAPFILE_PATH" || true
+        memory_restore_immutable_attribute "$MEMORY_SWAPFILE_PATH" || true
         [ "$was_active" -eq 0 ] || toolbox_sudo swapon "$MEMORY_SWAPFILE_PATH" || true
         return 1
     fi
@@ -200,6 +254,7 @@ memory_create_swapfile() {
         toolbox_sudo rm -f -- "$MEMORY_SWAPFILE_PATH"
         if toolbox_sudo test -e "$backup_file"; then
             toolbox_sudo mv -- "$backup_file" "$MEMORY_SWAPFILE_PATH" || true
+            memory_restore_immutable_attribute "$MEMORY_SWAPFILE_PATH" || true
             [ "$was_active" -eq 0 ] || toolbox_sudo swapon "$MEMORY_SWAPFILE_PATH" || true
         fi
         echo "新 swap 无法启用，已恢复原文件。"
@@ -222,7 +277,7 @@ memory_optimize() {
         return 1
     }
     memory_validate_paths || return 1
-    for command_name in awk blkid df fallocate grep install mkswap stat swapon swapoff \
+    for command_name in awk blkid df fallocate grep install mkswap readlink stat swapon swapoff \
         systemctl systemd-escape sysctl; do
         require_command "$command_name" || return 1
     done

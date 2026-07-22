@@ -28,7 +28,7 @@
 - 一键修复模式：执行网络检测、Steam 下载缓存清理建议和 DNS 处理提示。
 - 一键体检：检查 SteamOS、剩余空间、网络与 Steam 域名解析、Decky、Flatpak 软件源和常用软件状态；不修改系统，并把报告保存到桌面。
 - 游戏启动诊断：检查 Steam 游戏库、可用空间、Steam 运行状态、兼容数据、自定义 Proton / GE 和日志目录；不删除游戏、兼容数据或缓存。
-- 游戏与掌机助手：一键下载 Epic、战网和 Ubisoft Connect（Uplay）官方 Windows 安装包并直接写入 Steam 非 Steam 游戏条目。仅战网优先 Proton 10.0-4，Epic 与 Ubisoft Connect 优先 Proton Experimental；缺少时通过 Steam 安装官方 Proton 10。Epic 完成后会显示切换简体中文的操作路径。
+- 游戏与掌机助手：一键下载 Epic、战网和育碧服务官方 Windows 安装包，自动创建带工具箱标识的桌面入口，并写入当前 Steam 账号的非 Steam 游戏库及完整封面。仅战网优先 Proton 10.0-4，Epic 与育碧服务优先 Proton Experimental；缺少时通过 Steam 安装官方 Proton 10。Epic 完成后会显示切换简体中文的操作路径。
 - 实用指南：独立提供启动器、Proton、手柄、反作弊和性能空间的中文兼容攻略；可查看常用快捷键、外接设备状态、高风险操作说明，并将最近 80 条工具箱操作记录导出到桌面。
 - 更新日志：可在工具箱内用触屏查看当前版本的主要改动。
 - 自动更新工具箱：每次启动会快速检测版本，发现新版本后自动下载并校验更新；优先使用Gitee，失败后切换GitHub，断网或更新失败时继续启动现有版本。
@@ -225,7 +225,7 @@ bash bootstrap.sh
 - Decky、微信、QQ和Firefox浏览器在当前SteamOS版本是否能正常安装、创建桌面快捷方式并启动。
 - 用户级Flathub国内缓存是否可用，官方Flathub备用源是否仍然保留。
 - Steamcommunity 302官方Linux AMD64包安装后是否无桌面图标、立即后台生效且重启后自动运行；停止和卸载后 hosts、DNS、证书及本机代理是否正确恢复。
-- 战网使用 Proton 10.0-4 优先、Epic 与 Ubisoft Connect 使用 Proton Experimental 优先时，三个官方安装器是否都能完成并自动加入 Steam；Epic 中文切换提示是否与当前界面一致。
+- 战网使用 Proton 10.0-4 优先、Epic 与育碧服务使用 Proton Experimental 优先时，三个官方安装器是否都能完成并自动加入 Steam；桌面图标及库中横图、竖图、英雄图、图标、徽标是否显示工具箱标识；Epic 中文切换提示是否与当前界面一致。
 - 一键虚拟内存优化后，zram、磁盘 swap、优先级和 swappiness 是否在重启前后均符合状态页说明。
 - 设置/修改SteamOS密码后，桌面 `管理员密码.txt` 是否为明文新密码且权限为 `600`；工具箱sudo自动验证失败时是否安全回退到系统原生提示。
 - 更新菜单能否从Gitee下载并验证固定更新包，Gitee失败时能否切换GitHub。

@@ -80,6 +80,11 @@ export function Content() {
           中文汉化：闲鱼双叶 · 原插件作者：Kurt Himebauch（xXJSONDeruloXx）
         </div>
       </PanelSectionRow>
+      <PanelSectionRow>
+        <div style={{ width: "100%", textAlign: "center", fontSize: "14px", fontWeight: 700, color: "#ffcc66", padding: "4px 0 8px" }}>
+          闲鱼双叶汉化
+        </div>
+      </PanelSectionRow>
       {!isInstalled && (
         <>
           <InstallationButton

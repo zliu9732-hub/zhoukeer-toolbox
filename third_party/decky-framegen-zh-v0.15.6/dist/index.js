@@ -896,6 +896,8 @@ function OptiScalerControls({ pathExists, setPathExists, fgmodInfo }) {
     return (window.SP_REACT.createElement(DFL.PanelSection, null,
         window.SP_REACT.createElement(DFL.PanelSectionRow, null,
             window.SP_REACT.createElement(DFL.Field, { label: "\u95F2\u9C7C\u53CC\u53F6\u6C49\u5316", description: "FSR4 \u4E2D\u6587\u754C\u9762" }, "\u539F\u63D2\u4EF6\u4F5C\u8005\uFF1AKurt Himebauch\uFF08xXJSONDeruloXx\uFF09")),
+        window.SP_REACT.createElement(DFL.PanelSectionRow, null,
+            window.SP_REACT.createElement("div", { style: { width: "100%", textAlign: "center", fontSize: "14px", fontWeight: 700, color: "#ffcc66", padding: "4px 0 8px" } }, "\u95F2\u9C7C\u53CC\u53F6\u6C49\u5316")),
         window.SP_REACT.createElement(InstallationStatus, { pathExists: pathExists, installing: installing, onInstallClick: handleInstallClick }),
         window.SP_REACT.createElement(OptiScalerHeader, { pathExists: pathExists }),
         window.SP_REACT.createElement(DFL.PanelSectionRow, null,
