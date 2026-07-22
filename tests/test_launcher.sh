@@ -21,6 +21,10 @@ if [ "${1:-}" = "--help" ]; then
     printf '%s\n' "${FAKE_KONSOLE_HELP:-}"
     exit 0
 fi
+if [ "${FAKE_KONSOLE_WARNINGS:-0}" = "1" ]; then
+    echo 'QLayout: Cannot add a null widget to QHBoxLayout/' >&2
+    echo 'real terminal error' >&2
+fi
 printf 'konsole %s\n' "$*" >> "$FAKE_TERMINAL_CALL_LOG"
 case "${FAKE_KONSOLE_FAILURE:-none}" in
     profile)
@@ -72,6 +76,23 @@ grep -Fq -- 'ZHOUKEER_STARTUP_SPLASH=1' "$CALL_LOG"
 
 run_launcher $'--profile\n--workdir\n--geometry'
 grep -Fq -- '--geometry 1280x820' "$CALL_LOG"
+
+warning_output="$(
+    HOME="$HOME_DIR" \
+    PATH="$BIN_DIR:/usr/bin:/bin" \
+    ZHOUKEER_LAUNCH_LOG="$LAUNCH_LOG" \
+    FAKE_TERMINAL_CALL_LOG="$CALL_LOG" \
+    FAKE_DIALOG_LOG="$DIALOG_LOG" \
+    FAKE_KONSOLE_HELP=$'--profile\n--workdir\n--geometry' \
+    FAKE_KONSOLE_WARNINGS=1 \
+        bash "$PROJECT_ROOT/launch.sh" 2>&1
+)"
+if printf '%s\n' "$warning_output" | grep -Fq 'QLayout: Cannot add a null widget'; then
+    echo "FAIL: Konsole 无害布局警告仍显示在窗口中"
+    exit 1
+fi
+printf '%s\n' "$warning_output" | grep -Fq 'real terminal error'
+grep -Fq '已隐藏 Konsole 无害布局警告' "$LAUNCH_LOG"
 
 run_launcher $'--profile\n--workdir\n--fullscreen'
 if grep -Fq -- '--fullscreen' "$CALL_LOG"; then

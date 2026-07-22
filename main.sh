@@ -183,8 +183,9 @@ read_touch_menu() {
         left:8-9:nav-games \
         left:11-12:nav-network \
         left:14-15:nav-help \
-        left:18-19:nav-advanced \
-        left:22-23:nav-exit \
+        left:17-18:nav-advanced \
+        left:20-21:nav-uninstall \
+        left:23-24:nav-exit \
         "$@"
 }
 
@@ -196,6 +197,7 @@ apply_navigation() {
         nav-network) NEXT_CATEGORY="network" ;;
         nav-maintenance|nav-help) NEXT_CATEGORY="support" ;;
         nav-advanced) NEXT_CATEGORY="advanced" ;;
+        nav-uninstall) NEXT_CATEGORY="uninstall" ;;
         # 旧导航 ID 仅保留兼容，不再显示在首页。
         nav-remote) NEXT_CATEGORY="software" ;;
         nav-plugins) NEXT_CATEGORY="games" ;;
@@ -396,18 +398,18 @@ game_environment_menu() {
 
     while true; do
         draw_category_frame games "游戏与插件｜插件商城" "浏览插件商城、运行组件和启动器" 0
-        ui_touch_button 5 '\033[1;97;48;5;160m' "安装插件商城" "前往系统与密码确认 · 高级操作"
+        ui_touch_button 5 '\033[1;97;48;5;160m' "安装插件商城" "建议先安装 Steam302 加速 · 高级操作"
         ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭等三款插件"
         ui_touch_button 9 '\033[1;97;48;5;24m' "常用插件加27款精选插件" "优先安装三件套，已装则跳过；再补精选"
         ui_touch_button 11 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "SimpleDeckyTDP" "TDP/功耗性能控制"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
         ui_touch_button 15 '\033[1;97;48;5;24m' "小黄鸭" "单独安装小黄鸭汉化版·汉化作者：闲鱼双叶"
         ui_touch_button 17 '\033[1;97;48;5;24m' "FSR4" "单独安装 FSR4 汉化版·汉化作者：闲鱼双叶"
         ui_touch_button 19 '\033[1;97;48;5;24m' "Freedeck" "下载游戏和模拟器游戏·感谢作者b站一苇Isidf"
         ui_touch_button 21 '\033[1;97;48;5;238m' "下一页…" "查看剩余插件"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:decky-install right:7-8:features right:9-10:all right:11-12:browse right:13-14:simpledeckytdp right:15-16:lsfg right:17-18:fsr4 right:19-20:freedeck right:21-22:next right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:decky-install right:7-8:features right:9-10:all right:11-12:browse right:13-14:cheatdeck right:15-16:lsfg right:17-18:fsr4 right:19-20:freedeck right:21-22:next right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -415,7 +417,7 @@ game_environment_menu() {
             features) confirm_and_run "安装常用插件组合" "未安装插件商城时会先安装插件商城，再继续安装三款插件；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
             all) confirm_and_run "安装常用插件加27款精选插件" "三件套已装则跳过，未装则安装；再补27款精选；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
             browse) plugin_official_touch_pages ;;
-            simpledeckytdp) confirm_and_run "安装 SimpleDeckyTDP" "TDP/功耗性能控制插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp ;;
+            cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             lsfg) confirm_and_run "安装小黄鸭" "单独安装小黄鸭汉化版，无需装其他插件；汉化作者：闲鱼双叶" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
             fsr4) confirm_and_run "安装 FSR4" "单独安装 FSR4 汉化版，无需装其他插件；汉化作者：闲鱼双叶" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             freedeck) confirm_and_run "安装 Freedeck" "下载游戏和模拟器游戏；感谢作者b站一苇Isidf" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck ;;
@@ -431,20 +433,22 @@ plugin_page_2_menu() {
 
     while true; do
         draw_category_frame games "插件安装｜更多" "更多独立插件和启动器" 0
-        ui_touch_button 5 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "SimpleDeckyTDP" "TDP/功耗性能控制"
         ui_touch_button 7 '\033[1;97;48;5;24m' "Unifideck" "入库第三方平台游戏"
         ui_touch_button 9 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
         ui_touch_button 11 '\033[1;97;48;5;24m' "GE 游戏运行组件" "提高 Windows 游戏兼容性"
-        ui_touch_button 13 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "战网启动器" "安装并添加到 Steam"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:cheatdeck right:7-8:unifideck right:9-10:epic right:11-12:ge-proton right:13-14:previous right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:simpledeckytdp right:7-8:unifideck right:9-10:epic right:11-12:ge-proton right:13-14:battlenet right:19-20:previous right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
+            simpledeckytdp) confirm_and_run "安装 SimpleDeckyTDP" "TDP/功耗性能控制插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp ;;
             unifideck) confirm_and_run "安装 Unifideck" "入库第三方平台游戏；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
             epic) confirm_and_run "安装 Epic 游戏启动器" "安装并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
+            battlenet) confirm_and_run "安装战网启动器" "安装并添加到 Steam；没有兼容层时自动准备 Proton 10" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
             ge-proton) confirm_and_run "安装 GE 游戏运行组件" "安装第三方 GE-Proton 游戏兼容组件" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
             previous) NEXT_CATEGORY="games"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
@@ -541,7 +545,7 @@ dual_system_menu() {
             ui_touch_button 13 '\033[1;97;48;5;30m' "双系统互通盘保护" "重新挂载为只读，防止升级后掉盘"
             ui_touch_button 15 '\033[1;97;48;5;24m' "一键切换 Windows" "创建仅下一次启动 Windows 的桌面图标"
             ui_touch_button 19 '\033[1;97;48;5;24m' "更多双系统工具" "状态、删除与第三方引导清理"
-            ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统与密码" "查看其他系统功能"
+            ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
             ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
             ui_prompt
             choice="$(read_touch_menu right:5-6:mount right:7-8:tf-format right:9-10:repair-drive right:11-12:clover-install right:13-14:protect right:15-16:windows-shortcut right:19-20:next right:21-22:advanced right:23-24:home)"
@@ -554,7 +558,7 @@ dual_system_menu() {
             ui_touch_button 13 '\033[1;97;48;5;160m' "清理第三方引导项" "仅删选定 NVRAM，保留 EFI 文件"
             ui_touch_button 15 '\033[1;97;48;5;160m' "立即切换到 Windows" "仅下一次启动并立即重启"
             ui_touch_button 19 '\033[1;97;48;5;24m' "返回常用工具" "回到双系统常用功能"
-            ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统与密码" "查看其他系统功能"
+            ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
             ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
             ui_prompt
             choice="$(read_touch_menu right:5-6:health right:7-8:unprotect right:9-10:clover-status right:11-12:clover-delete right:13-14:cleanup-boot right:15-16:windows-next right:19-20:previous right:21-22:advanced right:23-24:home)"
@@ -624,7 +628,7 @@ domestic_source_preflight() {
         ui_panel_line 15 '\033[1;38;5;203m' "可随时恢复官方 Flathub 并重新启用 GPG 验证"
         ui_touch_button 17 '\033[1;97;48;5;160m' "确认修改国内软件源" "执行现有初始化动作 · 高风险"
         ui_touch_button 19 '\033[1;97;48;5;30m' "恢复 Flathub 官方源" "启用 GPG 验证并移除国内缓存"
-        ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统与密码" "不做任何修改"
+        ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "不做任何修改"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:17-18:confirm-source right:19-20:restore-source right:21-22:advanced right:23-24:home)"
@@ -652,27 +656,100 @@ advanced_tools_menu() {
     local choice
 
     while true; do
-        draw_category_frame advanced "系统与密码" "以下功能会修改系统、网络、软件源、密码或磁盘设置。请确认了解风险后继续。"
+        draw_category_frame advanced "系统设置与双系统" "软件源、网络加速、虚拟内存、密码与双系统"
         ui_touch_button 7 '\033[1;97;48;5;160m' "国内软件源" "会修改 Flatpak 软件源 · 高级操作"
         ui_touch_button 9 '\033[1;97;48;5;160m' "Steamcommunity 302" "可能修改 DNS 和证书 · 高级操作"
-        ui_touch_button 11 '\033[1;97;48;5;160m' "设置管理员密码" "会修改 SteamOS 管理密码 · 高级操作"
+        ui_touch_button 11 '\033[1;97;48;5;160m' "一键优化虚拟内存" "同时设置 zram 与磁盘 swap · 高级操作"
         ui_touch_button 13 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "安装插件商城" "会使用管理员权限 · 高级操作"
-        ui_touch_button 17 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单 · 高级操作"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单 · 高级操作"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:set-password right:13-14:change-password right:15-16:decky-install right:17-18:dual right:22-23:home)"
+        choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:memory-optimize right:13-14:change-password right:15-16:dual right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             domestic-source) domestic_source_preflight ;;
             accelerator) steam_accelerator_touch_menu ;;
-            set-password) confirm_and_run "设置管理员密码" "新密码会明文保存到桌面管理员密码.txt；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" set ;;
+            memory-optimize) confirm_and_run "一键优化虚拟内存" "会同时配置 zram 和磁盘 swap，按设备内存自动选择 8-16GB；需重启完全生效" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/memory_tuning.sh" optimize ;;
             change-password) confirm_and_run "修改管理员密码" "将读取旧记录并明文保存新密码；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;
-            decky-install) confirm_and_run "安装插件商城" "请先开启开发者模式和 CEF 远程调试；安装会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store ;;
             dual) dual_system_menu ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "advanced" ] || return 0
+    done
+}
+
+uninstall_software_menu() {
+    local choice page=0
+
+    while true; do
+        case "$page" in
+            0)
+                draw_category_frame uninstall "卸载已安装" "常用应用 · 第 1/3 页"
+                ui_touch_button 5 '\033[1;97;48;5;160m' "卸载微信" "只删除微信 AppImage 和快捷方式"
+                ui_touch_button 7 '\033[1;97;48;5;160m' "卸载 QQ" "卸载 QQ Flatpak"
+                ui_touch_button 9 '\033[1;97;48;5;160m' "卸载 Firefox" "卸载 Firefox Flatpak"
+                ui_touch_button 11 '\033[1;97;48;5;160m' "卸载 Chrome" "卸载 Google Chrome Flatpak"
+                ui_touch_button 13 '\033[1;97;48;5;160m' "卸载 Edge" "卸载 Microsoft Edge Flatpak"
+                ui_touch_button 19 '\033[1;97;48;5;24m' "下一页" "远程工具与辅助软件"
+                ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
+                ui_prompt
+                choice="$(read_touch_menu right:5-6:wechat right:7-8:qq right:9-10:browser right:11-12:chrome right:13-14:edge right:19-20:next right:23-24:home)"
+                ;;
+            1)
+                draw_category_frame uninstall "卸载已安装" "远程与工具 · 第 2/3 页"
+                ui_touch_button 5 '\033[1;97;48;5;160m' "卸载 RustDesk" "保留用户自行配置的数据"
+                ui_touch_button 7 '\033[1;97;48;5;160m' "卸载 ToDesk" "停止服务并卸载系统软件包"
+                ui_touch_button 9 '\033[1;97;48;5;160m' "卸载百度网盘" "卸载百度网盘 Flatpak"
+                ui_touch_button 11 '\033[1;97;48;5;160m' "卸载 Protontricks" "卸载 Protontricks Flatpak"
+                ui_touch_button 13 '\033[1;97;48;5;160m' "卸载 Bottles" "卸载 Bottles Flatpak"
+                ui_touch_button 19 '\033[1;97;48;5;24m' "上一页" "返回常用应用"
+                ui_touch_button 21 '\033[1;97;48;5;24m' "下一页" "系统组件与插件"
+                ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
+                ui_prompt
+                choice="$(read_touch_menu right:5-6:rustdesk right:7-8:todesk right:9-10:baidunetdisk right:11-12:protontricks right:13-14:bottles right:19-20:previous right:21-22:next right:23-24:home)"
+                ;;
+            *)
+                draw_category_frame uninstall "卸载已安装" "系统组件与插件 · 第 3/3 页"
+                ui_touch_button 5 '\033[1;97;48;5;160m' "卸载 Steam302" "停止后台加速并移除开机自启"
+                ui_touch_button 8 '\033[1;97;48;5;160m' "卸载 GE-Proton" "只删除工具箱当前版本"
+                ui_touch_button 11 '\033[1;97;48;5;160m' "卸载 Decky Loader" "保留全部插件文件与设置"
+                ui_touch_button 14 '\033[1;97;48;5;160m' "清空全部 Decky 插件" "删除插件与插件设置 · 高风险"
+                ui_touch_button 20 '\033[1;97;48;5;24m' "上一页" "返回远程与工具"
+                ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
+                ui_prompt
+                choice="$(read_touch_menu right:5-6:steam302 right:8-9:ge-proton right:11-12:decky-loader right:14-15:decky-plugins right:20-21:previous right:23-24:home)"
+                ;;
+        esac
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            wechat|qq|browser|chrome|edge|rustdesk|baidunetdisk|protontricks|bottles)
+                confirm_and_run "卸载软件" "只卸载所选软件及工具箱创建的快捷方式" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/software.sh" uninstall "$choice"
+                ;;
+            todesk)
+                confirm_and_run "卸载 ToDesk" "会停止服务并临时关闭 SteamOS 只读保护，完成后自动恢复" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/todesk.sh" --uninstall
+                ;;
+            steam302)
+                confirm_and_run "卸载 Steam302" "会停止后台加速并移除开机自启" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
+                ;;
+            ge-proton)
+                confirm_and_run "卸载 GE-Proton" "只删除工具箱当前 GE-Proton 版本" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/ge_proton.sh" uninstall
+                ;;
+            decky-loader)
+                confirm_and_run "卸载 Decky Loader" "会停止加载器并保留全部插件目录" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" store-uninstall
+                ;;
+            decky-plugins)
+                confirm_and_run "清空全部 Decky 插件" "会删除全部插件文件和插件设置，但保留 Decky Loader" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" uninstall
+                ;;
+            next) page=$((page + 1)); [ "$page" -le 2 ] || page=2 ;;
+            previous) page=$((page - 1)); [ "$page" -ge 0 ] || page=0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
     done
 }
 
@@ -708,7 +785,7 @@ steam_accelerator_touch_menu() {
         ui_touch_button 9 '\033[1;97;48;5;30m' "一键开启加速" "自动准备并启动 Steam + GitHub 后台加速"
         ui_touch_button 12 '\033[1;97;48;5;24m' "查看运行状态" "检查加速是否开启"
         ui_touch_button 15 '\033[1;97;48;5;160m' "安全卸载" "先停止工具箱进程，再删除程序文件"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统与密码" "查看其他系统功能"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:6-7:install right:9-10:start right:12-13:status right:15-16:uninstall right:18-19:advanced right:22-23:home)"
@@ -884,7 +961,8 @@ home_menu() {
     ui_panel_line 8 '\033[1;38;5;45m' "游戏与插件｜浏览插件商城和游戏组件"
     ui_panel_line 11 '\033[1;38;5;45m' "网络与应用商店｜检查网络和软件源状态"
     ui_panel_line 14 '\033[1;38;5;114m' "维护与帮助｜系统检查、清理、指南和日志"
-    ui_panel_line 18 '\033[1;38;5;203m' "系统与密码｜设置密码和管理系统功能"
+    ui_panel_line 17 '\033[1;38;5;203m' "系统设置与双系统｜网络、内存、密码和启动设置"
+    ui_panel_line 20 '\033[1;38;5;203m' "卸载已安装｜逐项安全移除软件和系统组件"
     ui_prompt
     choice="$(read_touch_menu)"
     apply_navigation "$choice" || true
@@ -905,6 +983,7 @@ while true; do
         network) network_store_menu ;;
         support) support_menu ;;
         advanced) advanced_tools_menu ;;
+        uninstall) uninstall_software_menu ;;
         # 旧分类仅保留内部兼容，不再显示在首页。
         remote) NEXT_CATEGORY="software" ;;
         plugins|plugins-menu) NEXT_CATEGORY="games" ;;

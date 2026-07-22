@@ -44,12 +44,12 @@ for item in \
     '游戏与插件｜浏览插件商城和游戏组件' \
     '网络与应用商店｜检查网络和软件源状态' \
     '维护与帮助｜系统检查、清理、指南和日志' \
-    '系统与密码｜设置密码和管理系统功能'; do
+    '系统设置与双系统｜网络、内存、密码和启动设置'; do
     assert_contains "$touch_home" "$item" "触控首页缺少：$item"
     assert_contains "$gui_home" "$item" "GUI 首页缺少：$item"
 done
 
-[ "$(printf '%s\n' "$sidebar" | grep -c 'ui_sidebar_item')" -eq 7 ] || fail "触控侧栏不是六分类加退出"
+[ "$(printf '%s\n' "$sidebar" | grep -c 'ui_sidebar_item')" -eq 8 ] || fail "触控侧栏不是七分类加退出"
 
 touch_software="$(function_source "$MAIN_FILE" common_software_menu)"
 gui_software="$(function_source "$GUI_FILE" software_menu)"
@@ -61,6 +61,11 @@ for menu in "$touch_software" "$gui_software"; do
         assert_not_contains "$menu" "$hidden" "常用软件不应显示：$hidden"
     done
 done
+
+touch_plugin_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
+gui_games="$(function_source "$GUI_FILE" game_environment_gui_menu)"
+assert_contains "$touch_plugin_page_2" '战网启动器' "插件第二页缺少战网启动器"
+assert_contains "$gui_games" '战网启动器' "GUI 游戏与插件缺少战网启动器"
 touch_software_buttons="$(printf '%s\n' "$touch_software" | grep 'ui_touch_button')"
 gui_software_entries="$(printf '%s\n' "$gui_software" | sed -n '/choice="$(gui_dialog --menu/,/)" || return 0/p')"
 for obsolete_hint in '安装适合 SteamOS 的微信' '安装适合 SteamOS 的 QQ' \
@@ -118,15 +123,33 @@ done
 touch_advanced="$(function_source "$MAIN_FILE" advanced_tools_menu)"
 gui_advanced="$(function_source "$GUI_FILE" advanced_tools_gui_menu)"
 for menu in "$touch_advanced" "$gui_advanced"; do
-    assert_contains "$menu" '以下功能会修改系统、网络、软件源、密码或磁盘设置' "系统与密码缺少固定警告"
-    for item in '国内软件源' 'Steamcommunity 302' '设置管理员密码' '修改管理员密码' '安装插件商城' '双系统与互通盘'; do
-        assert_contains "$menu" "$item" "系统与密码缺少：$item"
+    assert_contains "$menu" '软件源、网络加速、虚拟内存、密码与双系统' "系统设置缺少功能概览"
+    for item in '国内软件源' 'Steamcommunity 302' '一键优化虚拟内存' '修改管理员密码' '双系统与互通盘'; do
+        assert_contains "$menu" "$item" "系统设置缺少：$item"
     done
-    assert_not_contains "$menu" '安装 ToDesk' "系统与密码不应重复显示 ToDesk"
-    for risk_text in 'Flatpak 软件源' '修改 DNS' '管理密码' '使用管理员权限' '管理磁盘和开机菜单'; do
-        assert_contains "$menu" "$risk_text" "系统与密码缺少风险说明：$risk_text"
+    for removed in '设置管理员密码' '安装插件商城' '安装 ToDesk'; do
+        assert_not_contains "$menu" "$removed" "系统设置仍显示重复入口：$removed"
+    done
+    for risk_text in 'Flatpak 软件源' '修改 DNS' 'zram' '管理密码' '管理磁盘和开机菜单'; do
+        assert_contains "$menu" "$risk_text" "系统设置缺少风险说明：$risk_text"
     done
 done
+
+touch_uninstall="$(function_source "$MAIN_FILE" uninstall_software_menu)"
+gui_uninstall="$(function_source "$GUI_FILE" uninstall_software_gui_menu)"
+for menu in "$touch_uninstall" "$gui_uninstall"; do
+    for item in '卸载微信' '卸载 QQ' '卸载 Firefox' '卸载 Chrome' '卸载 Edge' '卸载 RustDesk' '卸载 ToDesk' '卸载百度网盘' '卸载 Protontricks' '卸载 Bottles' '卸载 Steam302' '卸载 GE-Proton' '卸载 Decky Loader' '清空全部 Decky 插件'; do
+        assert_contains "$menu" "$item" "卸载已安装缺少：$item"
+    done
+    assert_contains "$menu" '第 1/3 页' "卸载菜单缺少第一页"
+    assert_contains "$menu" '第 2/3 页' "卸载菜单缺少第二页"
+    assert_contains "$menu" '第 3/3 页' "卸载菜单缺少第三页"
+done
+
+touch_games_page_1="$(function_source "$MAIN_FILE" game_environment_menu)"
+touch_games_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
+assert_contains "$touch_games_page_1" 'right:13-14:cheatdeck' "CheatDeck 未移动到插件第一页原 TDP 位置"
+assert_contains "$touch_games_page_2" 'right:5-6:simpledeckytdp' "SimpleDeckyTDP 未移动到插件第二页原 CheatDeck 位置"
 
 touch_dual="$(function_source "$MAIN_FILE" dual_system_menu)"
 gui_dual="$(function_source "$GUI_FILE" dual_system_menu)"

@@ -17,17 +17,18 @@
 
 使用小黄鸭前，安装完成后请在 Steam 正版页面打开游戏右侧齿轮，进入“属性 → 测试版”，选择名称以 Linux 开头的可用版本；随后进入游戏模式，按 Steam Deck 机身右下角的“三个点（…）”按钮，在打开的菜单中依次点击插头图标 → 小黄鸭 → 安装 LSFG。
 - 常用软件与远程协助：微信直接从腾讯官网国内 CDN 安装官方 AppImage；QQ 会在上海交大和中科大 Flatpak 缓存间测速、限时切换，避开腾讯 QQ AppImage CDN 的 403 限制；Firefox 使用官方 Flathub 的 `org.mozilla.firefox`，RustDesk 使用作者 GitHub Release 提供的 AppImage。安装成功后会创建桌面快捷方式，不修改SteamOS只读分区。
+- 安装与卸载：软件、兼容层和插件会先检测现有完整安装，已安装时不重复下载；独立的三页卸载菜单可逐项移除，系统组件和全部插件仍需风险确认。
 - GE-Proton兼容层：从作者 GitHub Release 下载并校验SHA256，安装到Steam用户的 `compatibilitytools.d` 目录，不需要管理员权限。
 - ToDesk：使用固定的第三方SteamOS适配包并校验SHA256，安装完成后恢复只读保护。
 - Steam Deck 优化：清理 Steam 下载缓存、着色器缓存，并提供性能模式提示。
 - 国内下载源：添加用户级Flathub国内缓存，同时保留官方Flathub作为备用；应用下载时会测速并自动排序，不修改SteamOS只读系统分区。
-- Steam加速器：使用Steamcommunity 302官方Linux AMD64固定安装包；首次在官方界面完成设置后，工具箱可一键启动其已有后台服务，不会改写其代理、hosts/DNS 或证书规则。
-- 系统密码：支持设置或修改当前SteamOS用户密码，并可启用用户明确选择的明文密码便利模式。
+- Steam加速器：使用Steamcommunity 302官方Linux AMD64固定安装包；安装后不创建桌面图标，自动启用 Steam 与 GitHub 规则、立即后台运行并设置开机自启。
+- 系统设置与双系统：集中提供国内源、Steam302、zram 与磁盘 swap 一键优化、修改管理员密码和双系统工具。
 - 安全清理：清理前必须确认，避免误删。
 - 一键修复模式：执行网络检测、Steam 下载缓存清理建议和 DNS 处理提示。
 - 一键体检：检查 SteamOS、剩余空间、网络与 Steam 域名解析、Decky、Flatpak 软件源和常用软件状态；不修改系统，并把报告保存到桌面。
 - 游戏启动诊断：检查 Steam 游戏库、可用空间、Steam 运行状态、兼容数据、自定义 Proton / GE 和日志目录；不删除游戏、兼容数据或缓存。
-- 游戏与掌机助手：一键下载 Epic 和战网官方 Windows 安装包，并安全写入 Steam 非 Steam 游戏条目。首次从 Steam 运行安装器时选择 PE 或 GE-Proton 10.0-4 并完成官方安装；工具箱会持续检测同一 `compatdata/pfx/drive_c` 中的主 EXE，自动把原条目切换到启动器本体，保留原有兼容环境和登录数据。
+- 游戏与掌机助手：一键下载 Epic 和战网官方 Windows 安装包并直接写入 Steam 非 Steam 游戏条目。只自动使用 Proton 10.0-4 与 Proton Experimental，优先 10.0-4；缺少时通过 Steam 安装官方 Proton 10。Epic 完成后会显示切换简体中文的操作路径。
 - 实用指南：独立提供启动器、Proton、手柄、反作弊和性能空间的中文兼容攻略；可查看常用快捷键、外接设备状态、高风险操作说明，并将最近 80 条工具箱操作记录导出到桌面。
 - 更新日志：可在工具箱内用触屏查看当前版本的主要改动。
 - 自动更新工具箱：每次启动会快速检测版本，发现新版本后自动下载并校验更新；优先使用Gitee，失败后切换GitHub，断网或更新失败时继续启动现有版本。
@@ -145,7 +146,7 @@ ToDesk并非SteamOS原生软件，SteamOS系统更新可能移除通过pacman安
 
 工具箱安装的是Steamcommunity 302官方提供的Linux AMD64固定安装包，不使用来源不明的二次打包。安装过程可能需要root权限；实际启用加速时，Steamcommunity 302可能修改本机hosts或DNS、安装自签根证书，并通过本机HTTPS代理处理请求。使用前请阅读官方界面中的说明，退出或卸载前也应按官方方式恢复相关设置。
 
-工具箱本身只完成安装，不会自动开启加速服务，也不会替用户确认上述系统改动。需要自动运行时，请在Steamcommunity 302官方GUI中自行选择“开机运行—后台服务(无界面)”。
+工具箱会生成只启用 Steam 与 GitHub 的配置，并创建带管理标记的 systemd 服务，安装完成后立即启动并设置开机自启。桌面不会出现 Steamcommunity 302 图标；停止或卸载时只处理工具箱生成的同名服务，不覆盖或删除其他程序创建的服务。官方 CLI 仍可能按自身实现修改 hosts、DNS、证书或本机代理，使用前请阅读风险说明。
 
 ## SteamOS密码便利模式
 
@@ -223,7 +224,9 @@ bash bootstrap.sh
 - ToDesk安装后是否恢复SteamOS只读保护、服务是否启动、桌面入口是否存在。
 - Decky、微信、QQ和Firefox浏览器在当前SteamOS版本是否能正常安装、创建桌面快捷方式并启动。
 - 用户级Flathub国内缓存是否可用，官方Flathub备用源是否仍然保留。
-- Steamcommunity 302官方Linux AMD64包是否能正常安装；用户在官方GUI启用“开机运行—后台服务(无界面)”后是否按预期启动，以及退出/卸载后hosts、DNS、证书和本机代理是否正确恢复。
+- Steamcommunity 302官方Linux AMD64包安装后是否无桌面图标、立即后台生效且重启后自动运行；停止和卸载后 hosts、DNS、证书及本机代理是否正确恢复。
+- Proton 10.0-4 优先、Proton Experimental 回退时，Epic 与战网安装器是否都能完成，并且 Epic 中文切换提示与当前界面一致。
+- 一键虚拟内存优化后，zram、磁盘 swap、优先级和 swappiness 是否在重启前后均符合状态页说明。
 - 设置/修改SteamOS密码后，桌面 `管理员密码.txt` 是否为明文新密码且权限为 `600`；工具箱sudo自动验证失败时是否安全回退到系统原生提示。
 - 更新菜单能否从Gitee下载并验证固定更新包，Gitee失败时能否切换GitHub。
 - 游戏模式/桌面模式之间的菜单显示和中文字体是否正常。

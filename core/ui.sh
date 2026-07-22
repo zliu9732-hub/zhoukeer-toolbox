@@ -154,8 +154,9 @@ draw_category_frame() {
     ui_sidebar_item 8 games "✦ 游戏与插件" "$selected"
     ui_sidebar_item 11 network "⌁ 网络与应用商店" "$selected"
     ui_sidebar_item 14 support "▤ 维护与帮助" "$selected"
-    ui_sidebar_item 18 advanced "! 系统与密码" "$selected" 0
-    ui_sidebar_item 22 exit "× 退出工具箱" "$selected" 0
+    ui_sidebar_item 17 advanced "! 系统设置与双系统" "$selected" 0
+    ui_sidebar_item 20 uninstall "- 卸载已安装" "$selected" 0
+    ui_sidebar_item 23 exit "× 退出工具箱" "$selected" 0
 
     row=2
     while [ "$row" -le "$UI_LAST_ROW" ]; do

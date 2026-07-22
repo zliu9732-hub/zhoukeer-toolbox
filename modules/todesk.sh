@@ -133,6 +133,11 @@ confirm_todesk_install() {
     [ "$answer" = "INSTALL" ]
 }
 
+todesk_is_installed() {
+    command -v pacman >/dev/null 2>&1 && \
+        pacman -Q todesk-bin >/dev/null 2>&1
+}
+
 download_todesk_package() {
     local repository_dir
     local package_tmp
@@ -199,6 +204,11 @@ install_todesk() {
         return 1
     fi
 
+    if todesk_is_installed; then
+        echo "[已安装] 已检测到 ToDesk，无需重复下载或安装。"
+        return 0
+    fi
+
     for command_name in git timeout sudo pacman pacman-key systemctl steamos-readonly; do
         require_command "$command_name" || return 1
     done
@@ -262,6 +272,46 @@ install_todesk() {
     log "ToDesk安装完成"
 }
 
+uninstall_todesk() {
+    local readonly_status
+    local answer
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "ToDesk卸载仅支持真实SteamOS环境。"
+        return 1
+    fi
+    if ! todesk_is_installed; then
+        echo "ToDesk 未安装。"
+        return 0
+    fi
+    echo "将卸载 ToDesk 软件包并停止 todeskd 服务；个人配置不会主动删除。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
+        read -r -p "确认卸载请输入 UNINSTALL：" answer
+        [ "$answer" = "UNINSTALL" ] || { echo "已取消卸载。"; return 0; }
+    fi
+    for command_name in sudo pacman systemctl steamos-readonly; do
+        require_command "$command_name" || return 1
+    done
+    toolbox_sudo true || return 1
+    readonly_status="$(steamos-readonly status 2>/dev/null || true)"
+    if printf '%s' "$readonly_status" | grep -qi 'enabled'; then
+        TODESK_READONLY_CHANGED=1
+        trap cleanup_todesk EXIT INT TERM
+        toolbox_sudo steamos-readonly disable || return 1
+    else
+        trap cleanup_todesk EXIT INT TERM
+    fi
+    toolbox_sudo systemctl disable --now todeskd.service >/dev/null 2>&1 || true
+    toolbox_sudo pacman -Rns --noconfirm todesk-bin || return 1
+    rm -f -- "$HOME/Desktop/ToDesk.desktop" || return 1
+    cleanup_todesk
+    TODESK_READONLY_CHANGED=0
+    trap - EXIT INT TERM
+    echo "ToDesk 已卸载。"
+    log "ToDesk 已卸载"
+}
+
 todesk_menu() {
     local choice
 
@@ -281,6 +331,7 @@ todesk_menu() {
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         --install) install_todesk ;;
+        --uninstall) uninstall_todesk ;;
         "") todesk_menu ;;
         *) echo "未知参数: $1"; exit 1 ;;
     esac

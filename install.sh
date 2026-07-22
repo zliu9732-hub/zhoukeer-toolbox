@@ -473,7 +473,9 @@ fi
 if ! grep -Fq 'STEAM302_LAYOUT_VALIDATION_REVISION="ascii-files-v2"' \
     "$STAGING_DIR/modules/steam_accelerator.sh" || \
     ! grep -Fq 'run_launcher_installer()' \
-    "$STAGING_DIR/modules/game_launchers.sh"; then
+    "$STAGING_DIR/modules/game_launchers.sh" || \
+    ! grep -Fq 'memory_optimize()' \
+    "$STAGING_DIR/modules/memory_tuning.sh"; then
     echo "新版本关键模块不完整，旧版本保持不变。"
     exit 1
 fi

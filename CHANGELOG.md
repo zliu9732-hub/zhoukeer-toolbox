@@ -1,4 +1,14 @@
 
+## V5.0.9 公开版 — 2026-07-22
+
+- 新增“卸载已安装”三页菜单，可分别卸载常用软件、远程工具、Steam302、当前 GE-Proton、Decky Loader 或全部 Decky 插件；高风险项目继续单独确认。
+- 所有现有软件、Decky Loader、独立插件、ToDesk、GE-Proton 和 Steam302 安装入口先检查完整安装状态，已安装时跳过下载与重复安装。
+- “系统与密码”更名为“系统设置与双系统”，移除重复的设置密码和插件商城入口，新增一键配置 zram、8-16GB 磁盘 swap 与 swappiness 的虚拟内存组合。
+- Steam302 安装后不创建桌面图标，自动启用 Steam 与 GitHub 规则、立即启动工具箱托管的后台服务并设置开机自启；卸载只删除带工具箱管理标记的服务。
+- 游戏与插件页交换 SimpleDeckyTDP 与 CheatDeck 位置，新增战网安装入口；Epic 安装后显示官方中文切换步骤。
+- Epic 和战网只自动使用 Proton 10.0-4 与 Proton Experimental，优先 10.0-4；缺少时通过 Steam 官方入口安装 Proton 10。
+- 隐藏 Konsole 偶发的 `QLayout: Cannot add a null widget to QHBoxLayout` 无害警告，其他终端错误仍显示并写入启动日志。
+
 ## V5.0.8 公开版 — 2026-07-22
 
 - 双系统页面扩展为两页常用工具：互通盘挂载、TF 卡 exFAT 初始化、磁盘写入错误修复、Clover 安装修复、只读保护和 Windows 一次性切换快捷方式；菜单不显示参考序号。

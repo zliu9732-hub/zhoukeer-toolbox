@@ -89,12 +89,13 @@ for entry in \
     'ui_sidebar_item 8 games "✦ 游戏与插件"' \
     'ui_sidebar_item 11 network "⌁ 网络与应用商店"' \
     'ui_sidebar_item 14 support "▤ 维护与帮助"' \
-    'ui_sidebar_item 18 advanced "! 系统与密码"' \
-    'ui_sidebar_item 22 exit "× 退出工具箱"'; do
+    'ui_sidebar_item 17 advanced "! 系统设置与双系统"' \
+    'ui_sidebar_item 20 uninstall "- 卸载已安装"' \
+    'ui_sidebar_item 23 exit "× 退出工具箱"'; do
     printf '%s\n' "$frame" | grep -Fq -- "$entry" || fail "侧栏缺少：$entry"
 done
 
-[ "$(printf '%s\n' "$frame" | grep -c 'ui_sidebar_item')" -eq 7 ] || fail "侧栏入口数量错误"
+[ "$(printf '%s\n' "$frame" | grep -c 'ui_sidebar_item')" -eq 8 ] || fail "侧栏入口数量错误"
 
 touch_nav="$(sed -n '/^read_touch_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 for mapping in \
@@ -103,8 +104,9 @@ for mapping in \
     'left:8-9:nav-games' \
     'left:11-12:nav-network' \
     'left:14-15:nav-help' \
-    'left:18-19:nav-advanced' \
-    'left:22-23:nav-exit'; do
+    'left:17-18:nav-advanced' \
+    'left:20-21:nav-uninstall' \
+    'left:23-24:nav-exit'; do
     printf '%s\n' "$touch_nav" | grep -Fq -- "$mapping" || fail "导航坐标缺失：$mapping"
 done
 
@@ -127,7 +129,8 @@ for aligned_line in \
     'ui_panel_line 8' \
     'ui_panel_line 11' \
     'ui_panel_line 14' \
-    'ui_panel_line 18'; do
+    'ui_panel_line 17' \
+    'ui_panel_line 20'; do
     printf '%s\n' "$home" | grep -Fq "$aligned_line" || fail "首页说明没有与左侧分类对齐：$aligned_line"
 done
 
@@ -135,4 +138,4 @@ changelog="$(sed -n '/^changelog_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$changelog" | grep -Fq 'CHANGELOG.md' || fail "更新日志文件映射缺失"
 printf '%s\n' "$changelog" | grep -Fq 'VERSION' || fail "更新日志版本映射缺失"
 
-echo "PASS: 六分类触控坐标、返回首页和基础界面配置正确"
+echo "PASS: 八分类触控坐标、返回首页和基础界面配置正确"

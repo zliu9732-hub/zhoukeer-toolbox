@@ -212,7 +212,11 @@ run_launcher_installer() {
     launcher_details "$target" || return 1
     mkdir -p "$prefix_dir" || return 1
     echo "正在使用 $(basename "$(dirname "$proton_runner")") 直接打开 $LAUNCHER_NAME 官方安装器..." >&2
-    echo "请在弹出的官方窗口中按提示完成安装；无需进入 Steam 选择兼容层。" >&2
+    case "$target" in
+        epic) echo "弹出 Epic 安装窗口后，点击 Install（安装）；完成后点击 Finish（完成）。" >&2 ;;
+        battlenet) echo "弹出战网安装窗口后，点击 Continue（继续），按中文界面完成安装。" >&2 ;;
+    esac
+    echo "无需进入 Steam 手动选择兼容层。" >&2
 
     case "$target" in
         epic)
@@ -246,7 +250,6 @@ run_launcher_installer() {
 
 find_proton_runner() {
     local steam_root="$1"
-    local compatibility_root
     local candidate
 
     if [ -n "${ZHOUKEER_PROTON_RUNNER:-}" ] && [ -x "$ZHOUKEER_PROTON_RUNNER" ]; then
@@ -255,31 +258,13 @@ find_proton_runner() {
         return 0
     fi
 
-    # Proton Experimental 优先
-    for candidate in \
-        "$steam_root/steamapps/common/Proton - Experimental/proton" \
-        "$steam_root/steamapps/common/Proton 10.0/proton"; do
-        if [ -x "$candidate" ]; then
-            printf '%s\n' "$candidate"
-            return 0
-        fi
-    done
-
-    # 其次 GE-Proton
-    for compatibility_root in \
-        "$HOME/.steam/root/compatibilitytools.d" \
-        "$HOME/.steam/steam/compatibilitytools.d" \
-        "$HOME/.local/share/Steam/compatibilitytools.d" \
-        "$steam_root/compatibilitytools.d"; do
-        [ -d "$compatibility_root" ] || continue
-        candidate="$(find "$compatibility_root" -mindepth 2 -maxdepth 2 \
-            -type f -path '*/GE-Proton*/proton' -perm -u+x -print 2>/dev/null | \
-            sort -V | tail -n 1)"
-        if [ -n "$candidate" ]; then
-            printf '%s\n' "$candidate"
-            return 0
-        fi
-    done
+    # 长期装机验证：优先 Proton 10.0-4，失败时仅回退到 Proton Experimental。
+    candidate="$(find_proton_10_runner "$steam_root" || true)"
+    if [ -n "$candidate" ]; then
+        printf '%s\n' "$candidate"
+        return 0
+    fi
+    find_proton_experimental_runner "$steam_root"
 
     return 1
 }
@@ -301,12 +286,17 @@ find_proton_experimental_runner() {
 
 find_proton_10_runner() {
     local steam_root="$1"
-    local candidate
+    local candidate version_file
 
-    candidate="$(find "$steam_root/steamapps/common" -mindepth 2 -maxdepth 2 \
-        -type f -path '*/Proton 10.0*/proton' -perm -u+x -print 2>/dev/null | \
-        LC_ALL=C sort | tail -n 1)"
-    if [ -n "$candidate" ]; then
+    candidate="$steam_root/steamapps/common/Proton 10.0-4/proton"
+    if [ -x "$candidate" ]; then
+        printf '%s\n' "$candidate"
+        return 0
+    fi
+    candidate="$steam_root/steamapps/common/Proton 10.0/proton"
+    version_file="$(dirname "$candidate")/version"
+    if [ -x "$candidate" ] && [ -f "$version_file" ] && [ ! -L "$version_file" ] && \
+       grep -Eqi '(^|[^0-9])10\.0-4([^0-9]|$)' "$version_file"; then
         printf '%s\n' "$candidate"
         return 0
     fi
@@ -354,7 +344,7 @@ ensure_proton_runner() {
 
 find_battlenet_alternate_runner() {
     local steam_root="$1" current_runner="$2" candidate
-    for candidate in "$(find_proton_experimental_runner "$steam_root" || true)" "$(find_proton_10_runner "$steam_root" || true)"; do
+    for candidate in "$(find_proton_10_runner "$steam_root" || true)" "$(find_proton_experimental_runner "$steam_root" || true)"; do
         [ -n "$candidate" ] && [ "$candidate" != "$current_runner" ] && {
             printf '%s\n' "$candidate"
             return 0
@@ -409,6 +399,7 @@ run_battlenet_installer_with_fallback() {
         printf '%s|%s\n' "$installed" "$runner"
         return 0
     fi
+    echo "战网安装器未完成，正在从 Proton 10.0-4 切换到 Proton Experimental 重试..." >&2
     alternate="$(find_battlenet_alternate_runner "$steam_root" "$runner")" || return 1
     installed="$(run_launcher_installer battlenet "$steam_root" "$installer_file" "$prefix_dir" "$alternate")" || return 1
     printf '%s|%s\n' "$installed" "$alternate"
@@ -446,6 +437,10 @@ install_launcher() {
         --name "$LAUNCHER_NAME" --exe "$wrapper" --start-dir "$app_dir" >/dev/null || return 1
     start_steam
     echo "$LAUNCHER_NAME 已添加到 Steam 库，无需再选择兼容层。"
+    if [ "$target" = "epic" ]; then
+        echo "Epic 改中文：右上角头像 → Settings → Language → 中文（简体）→ Restart Now。"
+        echo "若下载管理器仍显示英文，请选择不带 System Default 的中文（简体）后重启。"
+    fi
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then

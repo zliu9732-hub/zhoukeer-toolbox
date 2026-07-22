@@ -771,10 +771,8 @@ software_is_installed() {
         wechat_appimage) wechat_appimage_is_valid "$WECHAT_APPIMAGE_PATH" ;;
         rustdesk_appimage) rustdesk_appimage_is_valid "$RUSTDESK_APPIMAGE_PATH" ;;
         baidunetdisk)
-            SOFTWARE_NAME="百度网盘"
-            SOFTWARE_DESKTOP_NAME="百度网盘"
-            SOFTWARE_APP_ID="com.baidu.NetDisk"
-            SOFTWARE_CATEGORIES="Network;FileTransfer;"
+            command -v flatpak >/dev/null 2>&1 && \
+                flatpak info "$SOFTWARE_APP_ID" >/dev/null 2>&1
             ;;
         *)
             command -v flatpak >/dev/null 2>&1 && \
@@ -840,14 +838,15 @@ install_software() {
         echo "$SOFTWARE_NAME 安装仅支持Linux/SteamOS。"
         return 1
     }
-    require_command curl || return 1
-    require_command od || return 1
 
     if software_is_installed; then
-        echo "$SOFTWARE_NAME 已安装，正在检查桌面快捷方式。"
+        echo "[已安装] $SOFTWARE_NAME 已存在，无需重复安装；正在检查桌面快捷方式。"
         create_software_shortcut
         return $?
     fi
+
+    require_command curl || return 1
+    require_command od || return 1
 
     confirm_software_install || {
         echo "已取消安装 $SOFTWARE_NAME。"
@@ -1085,6 +1084,19 @@ install_flatpak_app() {
     local app_name="$2"
     local _fp_src _fp_desk
 
+    if command -v flatpak >/dev/null 2>&1 && \
+       flatpak info "$app_id" >/dev/null 2>&1; then
+        echo "[已安装] $app_name 已存在，无需重复安装。"
+        _fp_desk="$(find "$HOME/.local/share/flatpak/exports/share/applications" /var/lib/flatpak/exports/share/applications -name "${app_id}.desktop" 2>/dev/null | head -1)"
+        if [ -n "$_fp_desk" ]; then
+            mkdir -p "$HOME/Desktop" || return 1
+            cp "$_fp_desk" "$HOME/Desktop/" 2>/dev/null || return 1
+            chmod +x "$HOME/Desktop/${app_id}.desktop" 2>/dev/null || return 1
+            echo "桌面快捷方式已确认。"
+        fi
+        return 0
+    fi
+
     echo "提示：如遇下载缓慢，请在工具箱【系统设置 → 国内源】中初始化国内 Flathub 源。"
     echo "正在安装 $app_name..."
     for _fp_src in Sjtu Ustc flathub; do
@@ -1128,6 +1140,91 @@ install_flatpak_app() {
     return 1
 }
 
+confirm_software_uninstall() {
+    local name="$1"
+    local answer
+
+    echo "将卸载：$name"
+    echo "只删除该软件和工具箱创建的桌面快捷方式，不删除其他应用。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        return 0
+    fi
+    read -r -p "确认卸载请输入 UNINSTALL：" answer
+    [ "$answer" = "UNINSTALL" ]
+}
+
+remove_software_shortcuts() {
+    local shortcut
+
+    for shortcut in "$@"; do
+        [ -n "$shortcut" ] || continue
+        rm -f -- "$HOME/Desktop/$shortcut" || return 1
+    done
+}
+
+uninstall_flatpak_software() {
+    local app_id="$1"
+    local app_name="$2"
+    shift 2
+
+    command -v flatpak >/dev/null 2>&1 || {
+        echo "$app_name 未安装。"
+        return 0
+    }
+    if flatpak info --user "$app_id" >/dev/null 2>&1; then
+        confirm_software_uninstall "$app_name" || { echo "已取消卸载。"; return 0; }
+        flatpak uninstall --user --noninteractive -y "$app_id" || return 1
+    elif flatpak info --system "$app_id" >/dev/null 2>&1; then
+        confirm_software_uninstall "$app_name" || { echo "已取消卸载。"; return 0; }
+        toolbox_sudo flatpak uninstall --system --noninteractive -y "$app_id" || return 1
+    else
+        echo "$app_name 未安装。"
+        return 0
+    fi
+    remove_software_shortcuts "$@" || return 1
+    echo "$app_name 已卸载。"
+    log "$app_name 已卸载"
+}
+
+uninstall_appimage_software() {
+    local path="$1"
+    local app_name="$2"
+    shift 2
+
+    if [ ! -e "$path" ] && [ ! -L "$path" ]; then
+        echo "$app_name 未安装。"
+        return 0
+    fi
+    [ -f "$path" ] && [ ! -L "$path" ] || {
+        echo "$app_name 安装路径异常，拒绝自动删除：$path"
+        return 1
+    }
+    confirm_software_uninstall "$app_name" || { echo "已取消卸载。"; return 0; }
+    rm -f -- "$path" || return 1
+    remove_software_shortcuts "$@" || return 1
+    echo "$app_name 已卸载。"
+    log "$app_name 已卸载"
+}
+
+uninstall_software() {
+    is_linux || {
+        echo "软件卸载仅支持 Linux / SteamOS。"
+        return 1
+    }
+    case "$1" in
+        wechat) uninstall_appimage_software "$WECHAT_APPIMAGE_PATH" "微信" "微信.desktop" ;;
+        qq) uninstall_flatpak_software "com.qq.QQ" "QQ" "QQ.desktop" "com.qq.QQ.desktop" ;;
+        browser) uninstall_flatpak_software "org.mozilla.firefox" "Firefox 浏览器" "Firefox浏览器.desktop" "org.mozilla.firefox.desktop" ;;
+        chrome) uninstall_flatpak_software "com.google.Chrome" "Google Chrome" "com.google.Chrome.desktop" ;;
+        edge) uninstall_flatpak_software "com.microsoft.Edge" "Microsoft Edge" "com.microsoft.Edge.desktop" ;;
+        rustdesk) uninstall_appimage_software "$RUSTDESK_APPIMAGE_PATH" "RustDesk" "RustDesk.desktop" ;;
+        protontricks) uninstall_flatpak_software "com.github.Matoking.protontricks" "Protontricks" "com.github.Matoking.protontricks.desktop" ;;
+        bottles) uninstall_flatpak_software "com.usebottles.bottles" "Bottles" "com.usebottles.bottles.desktop" ;;
+        baidunetdisk) uninstall_flatpak_software "com.baidu.NetDisk" "百度网盘" "com.baidu.NetDisk.desktop" ;;
+        *) echo "未知卸载目标：$1"; return 1 ;;
+    esac
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         wechat|qq|browser|rustdesk) install_software "$1" ;;
@@ -1140,6 +1237,10 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         protontricks) install_flatpak_app "com.github.Matoking.protontricks" "Protontricks" ;;
         bottles) install_flatpak_app "com.usebottles.bottles" "Bottles" ;;
         baidunetdisk) software_details baidunetdisk && install_flatpak_app "com.baidu.NetDisk" "百度网盘 Linux 版" ;;
+        uninstall)
+            [ -n "${2:-}" ] || { echo "用法: $0 uninstall 软件名"; exit 1; }
+            uninstall_software "$2"
+            ;;
         status) require_command od && show_software_status ;;
         repair-shortcuts) require_command od && repair_software_shortcuts ;;
         *) echo "用法: $0 {wechat|qq|browser|rustdesk|chrome|edge|protontricks|bottles|status|repair-shortcuts}"; exit 1 ;;

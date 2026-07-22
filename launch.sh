@@ -200,12 +200,28 @@ supports_konsole_option() {
     printf '%s\n' "$KONSOLE_HELP" | grep -q -- "$1"
 }
 
+filter_terminal_stderr() {
+    local line
+
+    while IFS= read -r line; do
+        case "$line" in
+            *"QLayout: Cannot add a null widget to QHBoxLayout"*)
+                launcher_log "已隐藏 Konsole 无害布局警告：$line"
+                ;;
+            *)
+                printf '%s\n' "$line" >&2
+                launcher_log "终端启动输出：$line"
+                ;;
+        esac
+    done
+}
+
 try_terminal() {
     local label="$1"
     shift
 
     launcher_log "尝试启动：${label}；命令=$1"
-    "$@"
+    "$@" 2> >(filter_terminal_stderr)
     local status=$?
     if [ "$status" -eq 0 ]; then
         launcher_log "启动命令已接受：$label"

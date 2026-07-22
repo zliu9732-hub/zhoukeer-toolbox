@@ -146,6 +146,14 @@ validate_extracted_tool() {
     done < <(find "$source_dir" -type l -print)
 }
 
+ge_proton_is_installed() {
+    local compatibility_dir="$1"
+    local target_dir="$compatibility_dir/$GE_PROTON_VERSION"
+
+    [ -d "$target_dir" ] && \
+        validate_extracted_tool "$target_dir" >/dev/null 2>&1
+}
+
 cleanup_ge_proton() {
     if [ "$GE_PROTON_SWAP_STARTED" -eq 1 ] && \
         [ "$GE_PROTON_SWAP_FINISHED" -eq 0 ] && \
@@ -168,6 +176,11 @@ install_ge_proton() {
     local command_name
 
     validate_ge_proton_config || return 1
+    compatibility_dir="$(resolve_compatibilitytools_dir)" || return 1
+    if ge_proton_is_installed "$compatibility_dir"; then
+        echo "[已安装] $GE_PROTON_VERSION 已存在且文件完整，无需重复安装。"
+        return 0
+    fi
     for command_name in curl tar find; do
         command -v "$command_name" >/dev/null 2>&1 || {
             echo "缺少安装GE-Proton所需命令：$command_name"
@@ -180,7 +193,6 @@ install_ge_proton() {
             return 1
         }
 
-    compatibility_dir="$(resolve_compatibilitytools_dir)" || return 1
     mkdir -p "$compatibility_dir" || {
         echo "无法创建Steam兼容层目录：$compatibility_dir"
         return 1
@@ -239,10 +251,36 @@ install_ge_proton() {
     echo "请完全退出并重新启动Steam，然后在游戏属性的兼容性页面选择该版本。"
 }
 
+uninstall_ge_proton() {
+    local compatibility_dir target_dir answer
+
+    validate_ge_proton_config || return 1
+    compatibility_dir="$(resolve_compatibilitytools_dir)" || return 1
+    target_dir="$compatibility_dir/$GE_PROTON_VERSION"
+    if [ ! -e "$target_dir" ] && [ ! -L "$target_dir" ]; then
+        echo "$GE_PROTON_VERSION 未安装。"
+        return 0
+    fi
+    [ -d "$target_dir" ] && [ ! -L "$target_dir" ] && \
+        validate_extracted_tool "$target_dir" >/dev/null 2>&1 || {
+        echo "GE-Proton 目录不完整或类型异常，拒绝自动删除：$target_dir"
+        return 1
+    }
+    echo "只会删除当前工具箱版本：$target_dir"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
+        read -r -p "确认卸载请输入 UNINSTALL：" answer
+        [ "$answer" = "UNINSTALL" ] || { echo "已取消卸载。"; return 0; }
+    fi
+    rm -rf -- "$target_dir" || return 1
+    echo "$GE_PROTON_VERSION 已卸载，其他 Proton 版本未改动。"
+    log "$GE_PROTON_VERSION 已卸载"
+}
+
 trap cleanup_ge_proton EXIT
 trap 'exit 130' INT TERM
 
 case "${1:-}" in
-    install) install_ge_proton ;;
+        install) install_ge_proton ;;
+        uninstall) uninstall_ge_proton ;;
     *) echo "用法：bash ge_proton.sh install"; exit 1 ;;
 esac

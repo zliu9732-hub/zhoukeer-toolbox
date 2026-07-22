@@ -131,6 +131,7 @@ case "$command" in
         printf 'modify %s\n' "$*" >> "$state/commands"
         ;;
     info)
+        case "${1:-}" in --user|--system) shift ;; esac
         [ -f "$state/installed.$1" ]
         ;;
     install)
@@ -141,6 +142,15 @@ case "$command" in
             app_id="$arg"
         done
         touch "$state/installed.$app_id"
+        ;;
+    uninstall)
+        printf 'uninstall %s\n' "$*" >> "$state/commands"
+        app_id=""
+        for arg in "$@"; do
+            case "$arg" in --*) ;; *) app_id="$arg" ;; esac
+        done
+        [ -n "$app_id" ] || exit 1
+        rm -f "$state/installed.$app_id"
         ;;
     *)
         echo "unexpected flatpak command: $command" >&2
@@ -237,6 +247,46 @@ bash "$PROJECT_ROOT/modules/software.sh" browser >/dev/null
 
 [ -x "$FIREFOX_SHORTCUT" ]
 [ "$(grep -c 'org.mozilla.firefox' "$STATE_DIR/commands")" -eq 1 ]
+
+# 其余 Flatpak 菜单入口也必须先查询安装状态，已安装时不得再次调用 install。
+for app_id in \
+    com.google.Chrome \
+    com.microsoft.Edge \
+    com.github.Matoking.protontricks \
+    com.usebottles.bottles \
+    com.baidu.NetDisk; do
+    touch "$STATE_DIR/installed.$app_id"
+done
+flatpak_calls_before="$(grep -c '^install ' "$STATE_DIR/commands")"
+for target in chrome edge protontricks bottles baidunetdisk; do
+    output="$(PATH="$BIN_DIR:$PATH" \
+        HOME="$HOME_DIR" \
+        FLATPAK_TEST_STATE="$STATE_DIR" \
+        ZHOUKEER_AUTO_CONFIRM=1 \
+        bash "$PROJECT_ROOT/modules/software.sh" "$target")"
+    printf '%s\n' "$output" | grep -Fq '[已安装]' || {
+        echo "FAIL: $target 未报告已安装" >&2
+        exit 1
+    }
+done
+flatpak_calls_after="$(grep -c '^install ' "$STATE_DIR/commands")"
+[ "$flatpak_calls_before" = "$flatpak_calls_after" ] || {
+    echo "FAIL: 已安装 Flatpak 软件仍被重复安装" >&2
+    exit 1
+}
+
+# 卸载页必须只移除选中的应用和快捷方式，不影响其他已安装软件。
+mkdir -p "$HOME_DIR/Desktop"
+: > "$HOME_DIR/Desktop/com.google.Chrome.desktop"
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" uninstall chrome >/dev/null
+[ ! -e "$STATE_DIR/installed.com.google.Chrome" ]
+[ ! -e "$HOME_DIR/Desktop/com.google.Chrome.desktop" ]
+[ -e "$STATE_DIR/installed.com.microsoft.Edge" ]
+grep -Fq 'uninstall --user --noninteractive -y com.google.Chrome' "$STATE_DIR/commands"
 
 # RustDesk 使用作者 GitHub Release 的 AppImage，不依赖 Flatpak，并创建可点击的桌面图标。
 if command -v sha256sum >/dev/null 2>&1; then

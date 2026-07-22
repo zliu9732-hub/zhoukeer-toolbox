@@ -29,6 +29,7 @@ assert_no_staging_leftovers() {
 }
 
 mkdir -p "$BIN_DIR" "$HOME_DIR" "$APP_ROOT" "$STATE_DIR"
+mkdir -p "$STATE_DIR/systemd"
 printf 'offline steamcommunity302 archive fixture\n' > "$FIXTURE"
 
 cat > "$BIN_DIR/uname" <<'EOF'
@@ -161,10 +162,20 @@ printf '%s\n' "$*" >> "${STEAM302_TEST_STATE:?}/systemctl.calls"
 case "${1:-}" in
     is-active) [ -f "$STEAM302_TEST_STATE/service-active" ] ;;
     is-enabled) [ -f "$STEAM302_TEST_STATE/service-enabled" ] ;;
-    cat) [ -f "$STEAM302_TEST_STATE/service-unit" ] ;;
+    cat) [ -f "$STEAM302_TEST_SYSTEMD_DIR/steamcommunity302.service" ] ;;
+    daemon-reload) exit 0 ;;
+    enable)
+        touch "$STEAM302_TEST_STATE/service-enabled"
+        ;;
+    disable)
+        rm -f "$STEAM302_TEST_STATE/service-enabled" "$STEAM302_TEST_STATE/service-active"
+        ;;
     start)
-        [ -f "$STEAM302_TEST_STATE/service-unit" ] || exit 96
+        [ -f "$STEAM302_TEST_SYSTEMD_DIR/steamcommunity302.service" ] || exit 96
         touch "$STEAM302_TEST_STATE/service-active"
+        ;;
+    stop)
+        rm -f "$STEAM302_TEST_STATE/service-active"
         ;;
     *) exit 96 ;;
 esac
@@ -187,11 +198,26 @@ run_module() {
         ZHOUKEER_APP_DIR="$APP_ROOT" \
         ZHOUKEER_AUTO_CONFIRM=1 \
         STEAM302_TEST_STATE="$STATE_DIR" \
+        STEAM302_TEST_SYSTEMD_DIR="$STATE_DIR/systemd" \
+        ZHOUKEER_SYSTEMD_DIR="$STATE_DIR/systemd" \
         STEAM302_TEST_ARCHIVE_SOURCE="$FIXTURE" \
         HASH_MODE="${HASH_MODE:-ok}" \
         TAR_MODE="${TAR_MODE:-ok}" \
         FAKE_PACKAGE_CONTENT="${FAKE_PACKAGE_CONTENT:-fresh}" \
-        bash "$MODULE" "$@"
+        MODULE="$MODULE" bash -c '
+            source "$MODULE"
+            toolbox_sudo() { "$@"; }
+            case "$1" in
+                install) install_steam302 ;;
+                launch) launch_steam302 ;;
+                start|enable) enable_steam302 ;;
+                stop) stop_steam302_service ;;
+                status) show_steam302_status ;;
+                ensure) ensure_steam302_for_download ;;
+                uninstall) uninstall_steam302 ;;
+                *) exit 1 ;;
+            esac
+        ' -- "$@"
 }
 
 run_start_service() {
@@ -224,8 +250,8 @@ fallback_output="$(MODULE="$MODULE" bash -c '
 ' 2>&1)" || fail "自动加速失败后不应阻断插件安装"
 printf '%s\n' "$fallback_output" | grep -Fq '未检测到 Steam + GitHub 加速' || \
     fail "未加速时没有醒目提示"
-printf '%s\n' "$fallback_output" | grep -Fq '勾选 Steam 和 GitHub' || \
-    fail "未加速时没有说明 Steam302 配置方法"
+printf '%s\n' "$fallback_output" | grep -Fq '工具箱中安装或开启' || \
+    fail "未加速时没有说明 Steam302 后台配置方法"
 
 ready_output="$(MODULE="$MODULE" bash -c '
     source "$MODULE"
@@ -279,15 +305,18 @@ SHORTCUT="$HOME_DIR/Desktop/Steamcommunity 302.desktop"
 [ -x "$TARGET/Steamcommunity_302" ] || fail "主程序未安装或不可执行"
 [ "$(sed -n '1p' "$TARGET/.zhoukeer-version")" = "14.0.02" ] || \
     fail "版本标记错误"
-[ -x "$SHORTCUT" ] || fail "桌面快捷方式未创建"
-grep -Fq "Exec=/usr/bin/env bash \"$PROJECT_ROOT/modules/steam_accelerator.sh\" launch" \
-    "$SHORTCUT" || fail "桌面快捷方式没有通过工具箱自动密码入口启动"
+[ ! -e "$SHORTCUT" ] || fail "后台加速模式不应创建桌面快捷方式"
 printf '%s\n' "$install_output" | grep -Fq 'Steam + GitHub 内置加速规则' || \
     fail "安装完成后缺少内置规则提示"
 [ -f "$TARGET/S302.ini" ] || fail "没有生成内置配置"
 grep -Fq 'enabled = Steam_store,Steam_store_unlock' "$TARGET/S302.ini" || \
     fail "内置配置没有启用 Steam 规则"
 grep -Fq ',github' "$TARGET/S302.ini" || fail "内置配置没有启用 GitHub 规则"
+[ -f "$STATE_DIR/systemd/steamcommunity302.service" ] || fail "没有创建后台自启服务"
+grep -Fqx '# Managed by Zhoukeer Toolbox' "$STATE_DIR/systemd/steamcommunity302.service" || \
+    fail "后台服务缺少工具箱管理标记"
+[ -f "$STATE_DIR/service-enabled" ] || fail "后台服务没有设置开机自启"
+[ -f "$STATE_DIR/service-active" ] || fail "安装后后台服务没有立即启动"
 
 # 官方 CLI 以 root 身份运行，普通用户不能依赖 kill -0 判断它是否存活。
 # 模拟 /proc 中存在 root 进程，并确保陈旧 PID 不会匹配到其他程序。
@@ -317,7 +346,10 @@ grep -Fq 'https://www.dogfight360.com/blog/wp-content/uploads/2026/02/steamcommu
     "$STATE_DIR/curl.calls" || fail "未使用固定官方 URL"
 [ "$(grep -c '^md5$' "$STATE_DIR/hash.calls")" -eq 1 ] || fail "没有执行 MD5 校验"
 [ "$(grep -c '^sha256$' "$STATE_DIR/hash.calls")" -eq 1 ] || fail "没有执行 SHA256 校验"
-[ ! -e "$STATE_DIR/systemctl.calls" ] || fail "安装过程自行调用了 systemctl"
+grep -Fq 'enable steamcommunity302.service' "$STATE_DIR/systemctl.calls" || \
+    fail "安装过程没有启用后台服务"
+grep -Fq 'start steamcommunity302.service' "$STATE_DIR/systemctl.calls" || \
+    fail "安装过程没有立即启动后台服务"
 [ ! -e "$STATE_DIR/forbidden.calls" ] || fail "安装过程调用了禁止的系统命令"
 assert_no_staging_leftovers
 
@@ -327,21 +359,21 @@ printf '%s\n' "$status_output" | grep -Fq 'Steamcommunity 302：已安装' || \
 printf '%s\n' "$status_output" | grep -Fq '版本：14.0.02' || \
     fail "状态未报告版本"
 
-# 一键启动直接拉起官方 CLI，不要求客户先打开 GUI 或创建 systemd 服务。
+# 后台服务已经运行时，一键启动必须保持幂等，不能重复拉起第二个 CLI。
 start_output="$(run_start_service)" || fail "一键启动内置加速失败"
 printf '%s\n' "$start_output" | grep -Fq 'GitHub + Steam 加速已开启' || \
     fail "一键启动没有报告内置加速成功"
-[ -f "$TARGET/.zhoukeer-cli.pid" ] || fail "一键启动没有写入 CLI PID"
+[ ! -f "$TARGET/.zhoukeer-cli.pid" ] || fail "已有后台服务时又重复拉起了 CLI"
 stop_output="$(
     env PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" HOME="$HOME_DIR" \
         ZHOUKEER_APP_DIR="$APP_ROOT" STEAM302_TEST_STATE="$STATE_DIR" \
+        STEAM302_TEST_SYSTEMD_DIR="$STATE_DIR/systemd" \
+        ZHOUKEER_SYSTEMD_DIR="$STATE_DIR/systemd" \
         MODULE="$MODULE" bash -c 'source "$MODULE"; toolbox_sudo() { "$@"; }; stop_steam302_service'
 )" || fail "一键停止内置加速失败"
-printf '%s\n' "$stop_output" | grep -Fq '内置加速已停止' || fail "停止内置加速没有报告成功"
+printf '%s\n' "$stop_output" | grep -Fq '后台服务已停止' || fail "停止后台服务没有报告成功"
+[ ! -f "$STATE_DIR/service-active" ] || fail "停止后后台服务仍在运行"
 [ ! -f "$TARGET/.zhoukeer-cli.pid" ] || fail "停止后仍残留 CLI PID"
-if [ -e "$STATE_DIR/systemctl.calls" ] && grep -Fq 'start steamcommunity302.service' "$STATE_DIR/systemctl.calls"; then
-    fail "内置加速不应调用 systemctl start"
-fi
 
 # SHA256 失败时，下载和 staging 都不能破坏已有版本。
 printf '13.0.00\n' > "$TARGET/.zhoukeer-version"
@@ -395,31 +427,12 @@ fi
 [ -d "$TARGET" ] || fail "未确认卸载时删除了程序"
 grep -Fq '已取消' "$STATE_DIR/cancel-uninstall.output" || fail "取消卸载提示缺失"
 
-# 运行中的系统服务必须阻止卸载。
+# 卸载会停止并移除工具箱托管的运行中系统服务。
 touch "$STATE_DIR/service-active"
-if run_module uninstall > "$STATE_DIR/active-uninstall.output" 2>&1; then
-    fail "后台服务运行时仍允许卸载"
-fi
-[ -d "$TARGET" ] || fail "后台服务运行时删除了程序"
-grep -Fq '正在运行' "$STATE_DIR/active-uninstall.output" || \
-    fail "运行中拒绝卸载的提示不明确"
-grep -Fq '官方程序' "$STATE_DIR/active-uninstall.output" || \
-    fail "拒绝卸载时没有引导用户停止官方服务"
-
-# 即使当前没运行，只要仍启用开机启动也不能留下损坏的 systemd unit。
-rm -f "$STATE_DIR/service-active"
-touch "$STATE_DIR/service-enabled"
-if run_module uninstall > "$STATE_DIR/enabled-uninstall.output" 2>&1; then
-    fail "服务仍设为开机启动时允许卸载"
-fi
-[ -d "$TARGET" ] || fail "服务仍启用时删除了程序"
-grep -Fq '仍设为开机启动' "$STATE_DIR/enabled-uninstall.output" || \
-    fail "开机启用状态的拒绝提示不明确"
-
-rm -f "$STATE_DIR/service-enabled"
 run_module uninstall > "$STATE_DIR/uninstall.output" || fail "安全卸载失败"
 [ ! -e "$TARGET" ] || fail "卸载后程序目录仍存在"
 [ ! -e "$SHORTCUT" ] || fail "卸载后桌面快捷方式仍存在"
+[ ! -e "$STATE_DIR/systemd/steamcommunity302.service" ] || fail "卸载后仍残留工具箱后台服务"
 [ ! -e "$STATE_DIR/forbidden.calls" ] || fail "卸载过程调用了禁止的系统命令"
 
 if run_module status > "$STATE_DIR/not-installed.output" 2>&1; then

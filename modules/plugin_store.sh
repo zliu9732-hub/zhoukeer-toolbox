@@ -21,6 +21,7 @@ DECKY_HOMEBREW_DIR="${ZHOUKEER_DECKY_HOMEBREW_DIR:-$HOME/homebrew}"
 DECKY_UNIT_PATH="${ZHOUKEER_DECKY_UNIT_PATH:-/etc/systemd/system/plugin_loader.service}"
 DECKY_SERVICE_NAME="plugin_loader.service"
 DECKY_TMP_DIR=""
+PLUGIN_INSTALL_CHANGED=0
 LSFG_OFFICIAL_DIRECTORY="Decky LSFG-VK"
 LSFG_OFFICIAL_VERSION="0.12.5"
 LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"
@@ -53,11 +54,9 @@ show_plugin_download_speed_tip() {
     if steam302_download_acceleration_is_ready; then
         echo "Steam302 的 Steam + GitHub 加速已开启。"
     else
-        echo "如果下载慢或失败："
-        echo "1. 打开桌面 Steamcommunity 302"
-        echo "2. 勾选 Steam 和 GitHub"
-        echo "3. 点击启动服务，再返回工具箱重试"
-        echo "4. 或在工具箱【系统设置 · 密码 → 安装 Steam302】中一键安装开启加速"
+        echo "建议先到【系统设置与双系统 → Steamcommunity 302】完成安装。"
+        echo "安装后会自动在后台加速 Steam 与 GitHub，并设置开机自启。"
+        echo "如果下载仍慢，请在该菜单查看运行状态或重新开启后台加速后重试。"
     fi
     echo "===================================="
     echo ""
@@ -295,6 +294,10 @@ install_plugin_store() (
         echo "请使用Steam Deck桌面用户运行工具箱，不要直接以root运行。"
         return 1
     fi
+    if decky_plugin_store_is_installed; then
+        echo "[已安装] 已检测到 Decky Loader 插件商城，无需重复安装。"
+        return 0
+    fi
     for command_name in curl sudo install systemctl; do
         require_command "$command_name" || return 1
     done
@@ -415,6 +418,42 @@ ensure_plugin_store_ready() {
     echo "插件商城已安装完成，继续安装插件。"
 }
 
+uninstall_plugin_store() {
+    local loader_path="$DECKY_HOMEBREW_DIR/services/PluginLoader"
+    local answer
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "插件商城卸载仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    if ! decky_plugin_store_is_installed && \
+       [ ! -e "$loader_path" ] && [ ! -L "$loader_path" ] && \
+       [ ! -e "$DECKY_UNIT_PATH" ] && [ ! -L "$DECKY_UNIT_PATH" ]; then
+        echo "Decky Loader 插件商城未安装。"
+        return 0
+    fi
+    if [ -L "$loader_path" ] || \
+       { [ -e "$loader_path" ] && [ ! -f "$loader_path" ]; } || \
+       [ -L "$DECKY_UNIT_PATH" ] || \
+       { [ -e "$DECKY_UNIT_PATH" ] && [ ! -f "$DECKY_UNIT_PATH" ]; }; then
+        echo "Decky Loader 路径类型异常，拒绝自动删除。"
+        return 1
+    fi
+    echo "将卸载 Decky Loader 插件商城，但保留全部插件目录和插件设置。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
+        read -r -p "确认卸载请输入 UNINSTALL：" answer
+        [ "$answer" = "UNINSTALL" ] || { echo "已取消卸载。"; return 0; }
+    fi
+    require_command sudo || return 1
+    require_command systemctl || return 1
+    toolbox_sudo systemctl disable --now "$DECKY_SERVICE_NAME" >/dev/null 2>&1 || true
+    toolbox_sudo rm -f -- "$loader_path" "$DECKY_UNIT_PATH" || return 1
+    toolbox_sudo systemctl daemon-reload >/dev/null 2>&1 || return 1
+    echo "Decky Loader 已卸载；$DECKY_HOMEBREW_DIR/plugins 中的插件文件已保留。"
+    log "Decky Loader 已卸载并保留插件目录"
+}
+
 download_verified_package() {
     local name="$1"
     local url="$2"
@@ -507,17 +546,41 @@ find_plugin_source() {
     dirname "$plugin_json"
 }
 
+decky_plugin_directory_is_complete() {
+    local plugin_root="$1"
+    local directory_name="$2"
+    local plugin_dir="$plugin_root/$directory_name"
+    local manifest_name
+
+    [ -d "$plugin_dir" ] && \
+        [ ! -L "$plugin_dir" ] && \
+        [ -f "$plugin_dir/plugin.json" ] && \
+        [ ! -L "$plugin_dir/plugin.json" ] && \
+        [ -s "$plugin_dir/dist/index.js" ] && \
+        [ ! -L "$plugin_dir/dist/index.js" ] || return 1
+    manifest_name="$(sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+        "$plugin_dir/plugin.json" | head -n 1)"
+    [ -n "$manifest_name" ]
+}
+
 install_decky_zip() {
     local display_name="$1"
     local url="$2"
     local sha256="$3"
     local expected_dir="$4"
+    local skip_existing="${5:-1}"
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local tmp_dir
     local archive
     local extract_dir
     local plugin_source
 
+    PLUGIN_INSTALL_CHANGED=0
+    if [ "$skip_existing" = "1" ] && \
+       decky_plugin_directory_is_complete "$plugin_root" "$expected_dir"; then
+        echo "[已安装] $display_name 已存在且文件完整，无需重复安装。"
+        return 0
+    fi
     for command_name in curl unzip; do
         require_command "$command_name" || return 1
     done
@@ -551,6 +614,7 @@ install_decky_zip() {
     }
     echo "$display_name 已安装到：$plugin_root/$expected_dir"
     log "$display_name 安装完成"
+    PLUGIN_INSTALL_CHANGED=1
     cleanup_decky_tmp
     trap - EXIT INT TERM
 }
@@ -582,6 +646,10 @@ install_zhoukeer_localizer() {
     if [ -L "$source_dir" ] || [ ! -f "$source_dir/plugin.json" ] || [ ! -s "$source_dir/dist/index.js" ]; then
         echo "周克儿汉化组件不完整，请更新工具箱后再试。"
         return 1
+    fi
+    if decky_plugin_directory_is_complete "$plugin_root" "zhoukeer-localizer"; then
+        echo "[已安装] 周克儿汉化已存在且文件完整，无需重复安装。"
+        return 0
     fi
     prepare_plugin_root "$plugin_root" || return 1
 
@@ -1088,12 +1156,14 @@ select_and_import_lossless_backup() {
 install_lsfg_bundle() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local open_store_after="${1:-1}"
+    local skip_existing="${2:-1}"
 
     install_decky_zip \
         "小黄鸭（LSFG-VK）" \
         "${DECKY_LSFG_URL:-}" \
         "${DECKY_LSFG_SHA256:-}" \
-        "$LSFG_OFFICIAL_DIRECTORY" || return 1
+        "$LSFG_OFFICIAL_DIRECTORY" \
+        "$skip_existing" || return 1
     remove_legacy_lsfg_directories "$plugin_root"
 
     echo "汉化作者：闲鱼双叶，感谢支持！"
@@ -1115,6 +1185,10 @@ install_lsfg_chinese() {
     if [ "$IS_STEAMOS" -ne 1 ]; then
         echo "小黄鸭仅支持真实 SteamOS 环境。"
         return 1
+    fi
+    if feature_plugin_is_present "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" "小黄鸭"; then
+        echo "[已安装] 小黄鸭中文插件已存在且文件完整，无需重复安装。"
+        return 0
     fi
     if [ -L "$LSFG_ZH_SOURCE_DIR" ] || \
        [ ! -f "$LSFG_ZH_SOURCE_DIR/plugin.json" ] || \
@@ -1171,6 +1245,11 @@ install_lsfg_zh_from_gitee() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local reload_after="${1:-1}"
 
+    if feature_plugin_is_present "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" "小黄鸭"; then
+        echo "[已安装] 小黄鸭中文插件已存在且文件完整，无需重复安装。"
+        return 0
+    fi
+
     if [ -z "${DECKY_LSFG_ZH_URL:-}" ] || [ -z "${DECKY_LSFG_ZH_SHA256:-}" ]; then
         echo "汉化包下载配置不完整，切换为原版叠加流程。"
         install_lsfg_bundle "$reload_after" || return 1
@@ -1183,7 +1262,8 @@ install_lsfg_zh_from_gitee() {
                          "小黄鸭（LSFG-VK）汉化完整包" \
                          "${DECKY_LSFG_ZH_URL:-}" \
                          "${DECKY_LSFG_ZH_SHA256:-}" \
-                         "$LSFG_OFFICIAL_DIRECTORY" || {
+                         "$LSFG_OFFICIAL_DIRECTORY" \
+                         0 || {
         echo "GitHub 加速下载失败，切换为原版叠加流程。"
         install_lsfg_bundle "$reload_after" || return 1
         install_lsfg_chinese "$reload_after"
@@ -1207,6 +1287,10 @@ install_fsr4_chinese() {
     if [ "$IS_STEAMOS" -ne 1 ]; then
         echo "FSR4 中文界面仅支持真实 SteamOS 环境。"
         return 1
+    fi
+    if feature_plugin_is_present "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" "Decky-Framegen(FSR4)"; then
+        echo "[已安装] FSR4 中文插件已存在且文件完整，无需重复安装。"
+        return 0
     fi
     if [ -L "$FSR4_ZH_SOURCE_DIR" ] || \
        [ ! -f "$FSR4_ZH_SOURCE_DIR/plugin.json" ] || \
@@ -1265,7 +1349,13 @@ install_fsr4_chinese() {
 
 # 优先从 GitHub 加速源下载完整汉化包，失败则使用原版叠加流程。
 install_fsr4_zh_from_gitee() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local reload_after="${1:-1}"
+
+    if feature_plugin_is_present "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" "Decky-Framegen(FSR4)"; then
+        echo "[已安装] FSR4 中文插件已存在且文件完整，无需重复安装。"
+        return 0
+    fi
 
     if [ -z "${DECKY_FSR4_ZH_URL:-}" ] || [ -z "${DECKY_FSR4_ZH_SHA256:-}" ]; then
         echo "汉化包下载配置不完整，切换为原版叠加流程。"
@@ -1279,7 +1369,8 @@ install_fsr4_zh_from_gitee() {
                          "FSR4（Decky Framegen）汉化完整包" \
                          "${DECKY_FSR4_ZH_URL:-}" \
                          "${DECKY_FSR4_ZH_SHA256:-}" \
-                         "$FSR4_OFFICIAL_DIRECTORY" || {
+                         "$FSR4_OFFICIAL_DIRECTORY" \
+                         0 || {
         echo "GitHub 加速下载失败，切换为原版叠加流程。"
         install_configured_plugin fsr4 0 0 || return 1
         install_fsr4_chinese "$reload_after"
@@ -1301,7 +1392,7 @@ restore_lsfg_official() {
         echo "恢复小黄鸭原版仅支持真实 SteamOS 环境。"
         return 1
     fi
-    install_lsfg_bundle 0 || return 1
+    install_lsfg_bundle 0 0 || return 1
     reload_decky_plugins "小黄鸭官方 v$LSFG_OFFICIAL_VERSION 已恢复。"
     log "小黄鸭官方 v$LSFG_OFFICIAL_VERSION 已恢复"
 }
@@ -1426,7 +1517,7 @@ install_configured_plugin() {
         *) return 1 ;;
     esac || return 1
 
-    if [ "$reload_after_install" = "1" ]; then
+    if [ "$reload_after_install" = "1" ] && [ "$PLUGIN_INSTALL_CHANGED" -eq 1 ]; then
         reload_decky_plugins "Decky 已重新加载，返回游戏模式后可在插头菜单看到新插件。"
     fi
 }
@@ -1624,6 +1715,7 @@ install_25_plugins() {
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-store}" in
         store) show_plugin_download_speed_tip; install_plugin_store ;;
+        store-uninstall) uninstall_plugin_store ;;
         lsfg) show_plugin_download_speed_tip; install_configured_plugin lsfg ;;
         lsfg-zh) install_lsfg_chinese ;;
         lsfg-zh-gitee) install_lsfg_zh_from_gitee ;;

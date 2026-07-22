@@ -155,7 +155,8 @@ game_environment_gui_menu() {
             browse "浏览官方插件｜逐个查看插件作用" \
             ge-proton "GE 游戏运行组件｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
-            decky-install "安装插件商城｜进入系统与密码确认｜高级操作" \
+            battlenet "战网启动器｜安装并添加到 Steam" \
+            decky-install "安装插件商城｜建议先安装 Steam302 加速｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -183,7 +184,16 @@ game_environment_gui_menu() {
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
                 ;;
-            decky-install) advanced_tools_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
+            battlenet)
+                run_gui_action "安装战网启动器并自动入库" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
+                ;;
+            decky-install)
+                gui_confirm "建议先安装 Steam302 后台加速。继续安装 Decky Loader 插件商城？" && \
+                    run_gui_action "安装插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" store
+                ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
         esac
@@ -255,7 +265,7 @@ dual_system_menu() {
             clover-delete "删除 Clover 双系统引导｜恢复 BootOrder 和原 Clover｜高级操作" \
             cleanup-boot "清理第三方引导项｜保护 SteamOS / Windows｜保留 EFI 文件" \
             windows-next "立即切换 Windows｜设置 BootNext 并重启｜高级操作" \
-            back "返回系统与密码" \
+            back "返回系统设置" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -345,7 +355,7 @@ steam_accelerator_gui_menu() {
             start "一键开启 Steam + GitHub 加速" \
             status "查看运行状态" \
             uninstall "安全卸载" \
-            back "返回系统与密码" \
+            back "返回系统设置" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -533,7 +543,7 @@ domestic_source_gui_preflight() {
     choice="$(gui_dialog --menu "国内软件源｜国内缓存会关闭 GPG 验证；可恢复官方源" \
         configure "配置国内缓存｜运行 pacman 并临时关闭只读保护｜高风险" \
         restore "恢复官方 Flathub｜重新启用 GPG 验证并移除国内缓存" \
-        back "返回系统与密码")" || return 0
+        back "返回系统设置")" || return 0
     case "$choice" in
         configure)
             gui_confirm "国内软件源会修改 Flatpak 软件源、关闭 GPG 验证、运行 pacman，并临时关闭 SteamOS 只读保护。
@@ -560,32 +570,99 @@ advanced_tools_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "系统与密码｜以下功能会修改系统、网络、软件源、密码或磁盘设置。请确认了解风险后继续。" \
+        choice="$(gui_dialog --menu "系统设置与双系统｜软件源、网络加速、虚拟内存、密码与双系统" \
             domestic-source "国内软件源｜会修改 Flatpak 软件源｜高级操作" \
             accelerator "Steamcommunity 302｜可能修改 DNS 和证书｜高级操作" \
-            set-password "设置管理员密码｜会修改 SteamOS 管理密码｜高级操作" \
+            memory-optimize "一键优化虚拟内存｜同时设置 zram 与磁盘 swap｜高级操作" \
             change-password "修改管理员密码｜会更换 SteamOS 管理密码｜高级操作" \
-            decky-install "安装插件商城｜会使用管理员权限｜高级操作" \
             dual "双系统与互通盘｜管理磁盘和开机菜单｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
             domestic-source) domestic_source_gui_preflight ;;
             accelerator) steam_accelerator_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
-            set-password)
-                gui_confirm "新密码会明文保存到桌面管理员密码.txt；当前用户运行的软件都可能读取。确认继续？" && \
-                    run_gui_action "设置管理员密码" bash "$PROJECT_ROOT/modules/password.sh" set
+            memory-optimize)
+                gui_confirm "将同时配置 zram 与磁盘 swap，按设备内存自动选择 8-16GB，并需要重启后完全生效。确认继续？" && \
+                    run_gui_action "一键优化虚拟内存" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/memory_tuning.sh" optimize
                 ;;
             change-password)
                 gui_confirm "将读取旧记录并明文保存新密码；当前用户运行的软件都可能读取。确认继续？" && \
                     run_gui_action "修改管理员密码" bash "$PROJECT_ROOT/modules/password.sh" change
                 ;;
-            decky-install)
-                gui_confirm "请先在游戏模式开启开发者模式和 CEF 远程调试。安装会使用管理员权限并启动后台服务，是否继续？" && \
-                    run_gui_action "安装插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/plugin_store.sh" store
-                ;;
             dual) dual_system_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
+        esac
+    done
+}
+
+uninstall_software_gui_menu() {
+    local choice page=0 target
+
+    while true; do
+        case "$page" in
+            0)
+                choice="$(gui_dialog --menu "卸载已安装｜常用应用｜第 1/3 页" \
+                    wechat "卸载微信｜AppImage 和快捷方式" \
+                    qq "卸载 QQ｜Flatpak" \
+                    browser "卸载 Firefox｜Flatpak" \
+                    chrome "卸载 Chrome｜Google Chrome Flatpak" \
+                    edge "卸载 Edge｜Microsoft Edge Flatpak" \
+                    next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
+                ;;
+            1)
+                choice="$(gui_dialog --menu "卸载已安装｜远程与工具｜第 2/3 页" \
+                    rustdesk "卸载 RustDesk｜保留用户配置" \
+                    todesk "卸载 ToDesk｜停止服务并卸载软件包｜高级操作" \
+                    baidunetdisk "卸载百度网盘｜Flatpak" \
+                    protontricks "卸载 Protontricks｜Flatpak" \
+                    bottles "卸载 Bottles｜Flatpak" \
+                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
+                ;;
+            *)
+                choice="$(gui_dialog --menu "卸载已安装｜系统组件与插件｜第 3/3 页" \
+                    steam302 "卸载 Steam302｜停止后台加速和自启｜高级操作" \
+                    ge-proton "卸载 GE-Proton｜只删工具箱当前版本" \
+                    decky-loader "卸载 Decky Loader｜保留插件文件" \
+                    decky-plugins "清空全部 Decky 插件｜删除插件与设置｜高风险" \
+                    previous "上一页" home "返回首页" nav-exit "退出工具箱")" || return 0
+                ;;
+        esac
+        case "$choice" in
+            wechat|qq|browser|chrome|edge|rustdesk|baidunetdisk|protontricks|bottles)
+                target="$choice"
+                gui_confirm "只卸载所选软件及工具箱创建的快捷方式，确认继续？" && \
+                    run_gui_action "卸载软件" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/software.sh" uninstall "$target"
+                ;;
+            todesk)
+                gui_confirm "会停止 ToDesk 服务并临时关闭 SteamOS 只读保护，完成后自动恢复。确认继续？" && \
+                    run_gui_action "卸载 ToDesk" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/todesk.sh" --uninstall
+                ;;
+            steam302)
+                gui_confirm "会停止后台加速并移除开机自启，确认继续？" && \
+                    run_gui_action "卸载 Steam302" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
+                ;;
+            ge-proton)
+                gui_confirm "只删除工具箱当前 GE-Proton 版本，确认继续？" && \
+                    run_gui_action "卸载 GE-Proton" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/ge_proton.sh" uninstall
+                ;;
+            decky-loader)
+                gui_confirm "会停止 Decky Loader，但保留全部插件文件与设置。确认继续？" && \
+                    run_gui_action "卸载 Decky Loader" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" store-uninstall
+                ;;
+            decky-plugins)
+                gui_confirm "会删除全部 Decky 插件和插件设置，但保留加载器。确认继续？" && \
+                    run_gui_action "清空全部 Decky 插件" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" uninstall
+                ;;
+            next) page=$((page + 1)); [ "$page" -le 2 ] || page=2 ;;
+            previous) page=$((page - 1)); [ "$page" -ge 0 ] || page=0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
         esac
@@ -603,7 +680,8 @@ main_gui_menu() {
             nav-games "游戏与插件｜浏览插件商城和游戏组件" \
             nav-network "网络与应用商店｜检查网络和软件源状态" \
             nav-help "维护与帮助｜系统检查、清理、指南和日志" \
-            nav-advanced "系统与密码｜设置密码和管理系统功能" \
+            nav-advanced "系统设置与双系统｜网络、内存、密码和启动设置" \
+            nav-uninstall "卸载已安装｜逐项安全移除软件和系统组件" \
             nav-exit "退出工具箱")" || exit 0
 
         case "$choice" in
@@ -613,6 +691,7 @@ main_gui_menu() {
             nav-network) network_store_gui_menu ;;
             nav-help) support_gui_menu ;;
             nav-advanced) advanced_tools_gui_menu ;;
+            nav-uninstall) uninstall_software_gui_menu ;;
             nav-exit) exit 0 ;;
         esac
     done

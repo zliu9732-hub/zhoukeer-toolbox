@@ -65,13 +65,24 @@ test -f "$TARGET_ROOT/GE-Proton8-1/marker.txt" || {
 }
 
 printf '%s\n' 'old-install' > "$TARGET_ROOT/GE-Proton9-99/old-version.txt"
-run_install "$ARCHIVE_SHA" >/dev/null
-test ! -e "$TARGET_ROOT/GE-Proton9-99/old-version.txt" || {
-    echo "FAIL: 同版本重装混入了旧文件"
+curl_calls_before="$(wc -l < "$CURL_LOG" | tr -d '[:space:]')"
+second_output="$(run_install "$ARCHIVE_SHA")"
+curl_calls_after="$(wc -l < "$CURL_LOG" | tr -d '[:space:]')"
+printf '%s\n' "$second_output" | grep -Fq '[已安装]' || {
+    echo "FAIL: 同版本 GE-Proton 未报告已安装"
+    exit 1
+}
+test -e "$TARGET_ROOT/GE-Proton9-99/old-version.txt" || {
+    echo "FAIL: 已安装 GE-Proton 被重复覆盖"
+    exit 1
+}
+[ "$curl_calls_before" = "$curl_calls_after" ] || {
+    echo "FAIL: 已安装 GE-Proton 仍被重复下载"
     exit 1
 }
 
 printf '%s\n' 'keep-me' > "$TARGET_ROOT/GE-Proton9-99/existing.txt"
+rm -f "$TARGET_ROOT/GE-Proton9-99/toolmanifest.vdf"
 if run_install '0000000000000000000000000000000000000000000000000000000000000000' \
     > "$TMP_ROOT/bad-sha.output" 2>&1; then
     echo "FAIL: SHA256错误时仍安装成功"

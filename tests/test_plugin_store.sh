@@ -14,7 +14,7 @@ grep -Fq 'https://www.mhhf.com/Deck/decky/plugin_loader-release.service' \
 grep -Fq '64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_decky_component' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '勾选 Steam 和 GitHub' "$PROJECT_ROOT/modules/steam_accelerator.sh"
+grep -Fq '工具箱中安装或开启 Steam302 后台加速' "$PROJECT_ROOT/modules/steam_accelerator.sh"
 grep -Fq 'render_decky_service' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'rollback_decky_install' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'toolbox_sudo systemctl restart "$DECKY_SERVICE_NAME"' \
@@ -123,7 +123,7 @@ grep -Fq 'feature-status) print_feature_plugin_status' "$PROJECT_ROOT/modules/pl
 grep -Fq 'uninstall) uninstall_all_decky_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '不会删除 Decky Loader 本体' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'all) show_plugin_download_speed_tip; install_all_plugin_packages' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '3. 点击启动服务，再返回工具箱重试' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '查看运行状态或重新开启后台加速后重试' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'GitHub 加速源下载完整汉化包' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。' \
     "$PROJECT_ROOT/modules/plugin_store.sh"

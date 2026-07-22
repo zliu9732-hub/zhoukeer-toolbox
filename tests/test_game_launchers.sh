@@ -149,7 +149,7 @@ grep -Fxq 'steam://install/3658110' "$STEAM_INSTALL_LOG" || {
     exit 1
 }
 
-# 战网第一次不能用当前兼容层时，必须在 PE 与 Proton 10.0-4 间自动切换。
+# 启动器只使用 Proton 10.0-4 和 PE，并且 10.0-4 优先。
 PE_RUNNER="$TMP_ROOT/steam/steamapps/common/Proton - Experimental/proton"
 P10_RUNNER="$TMP_ROOT/steam/steamapps/common/Proton 10.0-4/proton"
 mkdir -p "$(dirname "$PE_RUNNER")" "$(dirname "$P10_RUNNER")"
@@ -164,6 +164,35 @@ mkdir -p "$(dirname "$target")"
 : > "$target"
 SCRIPT
 chmod +x "$PE_RUNNER" "$P10_RUNNER"
+preferred_runner="$(MODULE="$MODULE" STEAM_ROOT="$TMP_ROOT/steam" bash -c '
+    source "$MODULE"
+    find_proton_runner "$STEAM_ROOT"
+')"
+[ "$preferred_runner" = "$P10_RUNNER" ] || {
+    echo "FAIL: Proton 10.0-4 没有优先于 PE" >&2
+    exit 1
+}
+GENERIC_P10_DIR="$TMP_ROOT/generic-steam/steamapps/common/Proton 10.0"
+mkdir -p "$GENERIC_P10_DIR"
+printf '#!/bin/bash\nexit 0\n' > "$GENERIC_P10_DIR/proton"
+chmod +x "$GENERIC_P10_DIR/proton"
+printf 'proton-10.0-3\n' > "$GENERIC_P10_DIR/version"
+if MODULE="$MODULE" GENERIC_STEAM="$TMP_ROOT/generic-steam" bash -c '
+    source "$MODULE"
+    find_proton_10_runner "$GENERIC_STEAM"
+'; then
+    echo "FAIL: 非 10.0-4 的 Proton 10 被错误选中" >&2
+    exit 1
+fi
+printf 'proton-10.0-4\n' > "$GENERIC_P10_DIR/version"
+generic_runner="$(MODULE="$MODULE" GENERIC_STEAM="$TMP_ROOT/generic-steam" bash -c '
+    source "$MODULE"
+    find_proton_10_runner "$GENERIC_STEAM"
+')"
+[ "$generic_runner" = "$GENERIC_P10_DIR/proton" ] || {
+    echo "FAIL: Steam 官方 Proton 10.0 目录中的 10.0-4 未被识别" >&2
+    exit 1
+}
 alternate_runner="$(MODULE="$MODULE" STEAM_ROOT="$TMP_ROOT/steam" CURRENT_RUNNER="$PE_RUNNER" \
     bash -c '
         source "$MODULE"
@@ -249,6 +278,15 @@ grep -Fq 'steam_shortcut.py' "$MODULE"
 grep -Fq 'run_battlenet_installer_with_fallback' "$MODULE"
 grep -Fq 'create_launcher_desktop_shortcut' "$MODULE"
 grep -Fq 'download_launcher_installer' "$MODULE"
+grep -Fq '点击 Install（安装）' "$MODULE"
+grep -Fq '点击 Continue（继续）' "$MODULE"
+grep -Fq '从 Proton 10.0-4 切换到 Proton Experimental' "$MODULE"
+grep -Fq 'Epic 改中文：右上角头像' "$MODULE"
+grep -Fq '不带 System Default 的中文（简体）' "$MODULE"
+if grep -Fq 'GE-Proton*/proton' "$MODULE"; then
+    echo "FAIL: Epic/战网安装流程仍会选用 GE-Proton" >&2
+    exit 1
+fi
 if grep -Fq '当前版本仅支持已安装启动器的自动入库' "$MODULE"; then
     echo "FAIL: Epic 不应限制为仅已安装启动器" >&2
     exit 1
