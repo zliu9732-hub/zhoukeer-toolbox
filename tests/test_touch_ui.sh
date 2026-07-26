@@ -125,12 +125,16 @@ done
 
 software="$(sed -n '/^common_software_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$software" | grep -Fq 'draw_category_frame software "" "" 0' || fail "常用软件没有释放右侧标题空间"
-printf '%s\n' "$software" | grep -Fq 'ui_touch_button 22' || fail "常用软件返回首页文字行错误"
-printf '%s\n' "$software" | grep -Fq 'right:22-23:home' || fail "常用软件返回首页坐标错误"
+printf '%s\n' "$software" | grep -Fq 'ui_touch_button 20' || fail "常用软件 AnyDesk 文字行错误"
+printf '%s\n' "$software" | grep -Fq 'right:20-21:anydesk' || fail "常用软件 AnyDesk 触控坐标错误"
+printf '%s\n' "$software" | grep -Fq 'right:22-23:more' || fail "常用软件更多页坐标错误"
 printf '%s\n' "$software" | grep -Fq 'ui_touch_button 6' || fail "Firefox按钮行错误"
 printf '%s\n' "$software" | grep -Fq 'right:6-7:browser' || fail "Firefox触控坐标错误"
 printf '%s\n' "$software" | grep -Fq 'right:14-15:todesk' || fail "ToDesk触控坐标错误"
 printf '%s\n' "$software" | grep -Fq 'modules/software.sh" browser' || fail "Firefox安装动作缺失"
+more_software="$(sed -n '/^common_software_more_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+printf '%s\n' "$more_software" | grep -Fq '百度网盘' || fail "更多常用软件缺少百度网盘"
+printf '%s\n' "$more_software" | grep -Fq 'right:22-23:home' || fail "更多常用软件返回首页坐标错误"
 
 games="$(sed -n '/^game_environment_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$games" | grep -Fq 'draw_category_frame games "游戏与插件｜插件商城" "浏览插件商城、运行组件和启动器" 0' || fail "游戏与插件仍显示与首个按钮重叠的分类文字"
