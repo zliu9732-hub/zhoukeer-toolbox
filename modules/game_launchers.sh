@@ -418,12 +418,12 @@ ensure_launcher_proton_runner() {
     local runner
 
     if [ "$target" = "battlenet" ]; then
-        runner="$(find_proton_experimental_runner "$steam_root" || true)"
+        runner="$(find_proton_10_runner "$steam_root" || true)"
         if [ -n "$runner" ]; then
             printf '%s\n' "$runner"
             return 0
         fi
-        install_official_proton_experimental "$steam_root"
+        install_official_proton_10 "$steam_root"
         return
     fi
     runner="$(find_proton_experimental_runner "$steam_root" || true)"
@@ -468,7 +468,15 @@ install_official_proton_experimental() {
 
 create_launcher_wrapper() {
     local target="$1" steam_root="$2" prefix_dir="$3" proton_runner="$4" launcher_exe="$5" destination_dir="$6"
+    local steam_app_id="${7:-0}" steam_game_id="${8:-0}"
     local wrapper="$destination_dir/launch-$target.sh"
+
+    case "$steam_app_id:$steam_game_id" in
+        *[!0-9:]*|:*)
+            echo "Steam 游戏身份参数无效，未创建启动包装器。" >&2
+            return 1
+            ;;
+    esac
     mkdir -p "$destination_dir" || return 1
     cat > "$wrapper" <<EOF
 #!/bin/bash
@@ -478,6 +486,9 @@ LAUNCHER_EXE=$(printf '%q' "$launcher_exe")
 STEAM_ROOT=$(printf '%q' "$steam_root")
 export STEAM_COMPAT_DATA_PATH="\$PREFIX_DIR"
 export STEAM_COMPAT_CLIENT_INSTALL_PATH="\$STEAM_ROOT"
+export STEAM_COMPAT_APP_ID=$(printf '%q' "$steam_app_id")
+export SteamAppId=$(printf '%q' "$steam_app_id")
+export SteamGameId=$(printf '%q' "$steam_game_id")
 exec "\$PROTON_RUNNER" run "\$LAUNCHER_EXE"
 EOF
     chmod +x "$wrapper" || return 1
@@ -593,12 +604,12 @@ install_launcher_steam_artwork() {
     done
 }
 
-set_steam_proton_experimental() {
+set_steam_proton_10() {
     local steam_root="$1" app_id="$2"
     local config_file="$steam_root/config/config.vdf"
 
     python3 "$STEAM_COMPAT_HELPER" --config-file "$config_file" \
-        --app-id "$app_id" --tool proton_experimental >/dev/null
+        --app-id "$app_id" --tool proton_10 >/dev/null
 }
 
 prepare_battlenet_steam_installer() {
@@ -617,7 +628,7 @@ prepare_battlenet_steam_installer() {
         --name "$LAUNCHER_NAME" --exe "$installer_file")" || return 1
     artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
         --name "$LAUNCHER_NAME" --exe "$installer_file")" || return 1
-    set_steam_proton_experimental "$steam_root" "$app_id" || return 1
+    set_steam_proton_10 "$steam_root" "$app_id" || return 1
     install_launcher_steam_artwork battlenet "$shortcut_file" "$app_id" "$artwork_alt_app_id" || return 1
     start_steam
     echo "Steam 正在重新读取战网安装条目，请稍候。"
@@ -629,7 +640,7 @@ prepare_battlenet_steam_installer() {
 
 finish_battlenet_steam_entry() {
     local steam_root="$1" shortcut_file="$2" launcher_exe="$3" prefix_dir="$4" proton_runner="$5"
-    local launch_options app_id artwork_alt_app_id icon_path wrapper
+    local launch_options app_id artwork_alt_app_id game_id icon_path wrapper
 
     icon_path="$PROJECT_ROOT/assets/game-launchers/battlenet.png"
     launch_options="STEAM_COMPAT_DATA_PATH=\"$prefix_dir\" %command%"
@@ -646,12 +657,14 @@ finish_battlenet_steam_entry() {
         --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
     artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
-    set_steam_proton_experimental "$steam_root" "$app_id" || return 1
+    game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
+        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
+    set_steam_proton_10 "$steam_root" "$app_id" || return 1
     install_launcher_steam_artwork battlenet "$shortcut_file" "$app_id" "$artwork_alt_app_id" || return 1
     # 部分 Steam 客户端会在桌面 steam://rungameid 链接启动时丢失非 Steam
     # 游戏配置，改用与 Steam 条目同一前缀的包装器，避免“游戏配置文件不可用”。
     wrapper="$(create_launcher_wrapper battlenet "$steam_root" "$prefix_dir" "$proton_runner" \
-        "$launcher_exe" "$APP_DIR/game-launchers/battlenet")" || return 1
+        "$launcher_exe" "$APP_DIR/game-launchers/battlenet" "$app_id" "$game_id")" || return 1
     create_launcher_desktop_shortcut battlenet "$wrapper" || return 1
     start_steam
     echo "战网启动器已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"

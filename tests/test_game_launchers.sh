@@ -221,8 +221,8 @@ grep -Fq "Exec=$NATIVE_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" \
     echo "FAIL: Steam 原生战网流程没有创建独立桌面启动入口" >&2
     exit 1
 }
-[ "$(grep -c '"proton_experimental"' "$NATIVE_STEAM/config/config.vdf")" -eq 2 ] || {
-    echo "FAIL: 战网安装条目和正式条目没有分别绑定 Proton Experimental" >&2
+[ "$(grep -c '"proton_10"' "$NATIVE_STEAM/config/config.vdf")" -eq 2 ] || {
+    echo "FAIL: 战网安装条目和正式条目没有分别绑定 Proton 10" >&2
     exit 1
 }
 
@@ -412,7 +412,7 @@ grep -Fxq 'steam://install/3658110' "$STEAM_INSTALL_LOG" || {
     exit 1
 }
 
-# 战网只使用 Proton Experimental；Epic 和育碧仍优先 Proton Experimental。
+# 战网优先 Proton 10.0-4；Epic 和育碧仍优先 Proton Experimental。
 PE_RUNNER="$TMP_ROOT/steam/steamapps/common/Proton - Experimental/proton"
 P10_RUNNER="$TMP_ROOT/steam/steamapps/common/Proton 10.0-4/proton"
 mkdir -p "$(dirname "$PE_RUNNER")" "$(dirname "$P10_RUNNER")"
@@ -435,8 +435,8 @@ preferred_runner="$(MODULE="$MODULE" STEAM_ROOT="$TMP_ROOT/steam" bash -c '
     source "$MODULE"
     ensure_launcher_proton_runner battlenet "$STEAM_ROOT"
 ')"
-[ "$preferred_runner" = "$PE_RUNNER" ] || {
-    echo "FAIL: 战网没有使用 Proton Experimental" >&2
+[ "$preferred_runner" = "$P10_RUNNER" ] || {
+    echo "FAIL: 战网没有使用 Proton 10.0-4" >&2
     exit 1
 }
 epic_runner="$(MODULE="$MODULE" STEAM_ROOT="$TMP_ROOT/steam" bash -c '
@@ -476,36 +476,36 @@ generic_runner="$(MODULE="$MODULE" GENERIC_STEAM="$TMP_ROOT/generic-steam" bash 
     echo "FAIL: Steam 官方 Proton 10.0 目录中的 10.0-4 未被识别" >&2
     exit 1
 }
-# 战网的 Proton Experimental 缺失时必须通过 Steam 官方入口补齐。
-AUTO_EXP_ROOT="$TMP_ROOT/auto-experimental-steam"
-AUTO_EXP_STEAM="$TMP_ROOT/fake-steam-experimental"
-AUTO_EXP_LOG="$TMP_ROOT/steam-experimental-install.log"
-mkdir -p "$AUTO_EXP_ROOT/steamapps/common"
-cat > "$AUTO_EXP_STEAM" <<'SCRIPT'
+# 战网的 Proton 10.0-4 缺失时必须通过 Steam 官方入口补齐。
+AUTO_P10_ROOT="$TMP_ROOT/auto-proton10-steam"
+AUTO_P10_STEAM="$TMP_ROOT/fake-steam-proton10"
+AUTO_P10_LOG="$TMP_ROOT/steam-proton10-install.log"
+mkdir -p "$AUTO_P10_ROOT/steamapps/common"
+cat > "$AUTO_P10_STEAM" <<'SCRIPT'
 #!/bin/bash
-printf '%s\n' "$*" > "${AUTO_EXP_LOG:?}"
-runner="${AUTO_EXP_ROOT:?}/steamapps/common/Proton - Experimental/proton"
+printf '%s\n' "$*" > "${AUTO_P10_LOG:?}"
+runner="${AUTO_P10_ROOT:?}/steamapps/common/Proton 10.0-4/proton"
 mkdir -p "$(dirname "$runner")"
 printf '#!/bin/bash\nexit 0\n' > "$runner"
 chmod +x "$runner"
 SCRIPT
-chmod +x "$AUTO_EXP_STEAM"
-auto_experimental_runner="$(
-    MODULE="$MODULE" AUTO_EXP_ROOT="$AUTO_EXP_ROOT" AUTO_EXP_STEAM="$AUTO_EXP_STEAM" \
-        AUTO_EXP_LOG="$AUTO_EXP_LOG" bash -c '
+chmod +x "$AUTO_P10_STEAM"
+auto_proton10_runner="$(
+    MODULE="$MODULE" AUTO_P10_ROOT="$AUTO_P10_ROOT" AUTO_P10_STEAM="$AUTO_P10_STEAM" \
+        AUTO_P10_LOG="$AUTO_P10_LOG" bash -c '
             source "$MODULE"
-            steam_command() { printf "%s\n" "$AUTO_EXP_STEAM"; }
+            steam_command() { printf "%s\n" "$AUTO_P10_STEAM"; }
             PROTON_INSTALL_TIMEOUT=3
             PROTON_INSTALL_INTERVAL=1
-            ensure_launcher_proton_runner battlenet "$AUTO_EXP_ROOT"
+            ensure_launcher_proton_runner battlenet "$AUTO_P10_ROOT"
         '
 )"
-[ "$auto_experimental_runner" = "$AUTO_EXP_ROOT/steamapps/common/Proton - Experimental/proton" ] || {
-    echo "FAIL: 战网缺少 Proton Experimental 时没有自动补齐" >&2
+[ "$auto_proton10_runner" = "$AUTO_P10_ROOT/steamapps/common/Proton 10.0-4/proton" ] || {
+    echo "FAIL: 战网缺少 Proton 10.0-4 时没有自动补齐" >&2
     exit 1
 }
-grep -Fxq 'steam://install/1493710' "$AUTO_EXP_LOG" || {
-    echo "FAIL: 未通过 Steam 官方 Proton Experimental 入口补齐战网安装环境" >&2
+grep -Fxq 'steam://install/3658110' "$AUTO_P10_LOG" || {
+    echo "FAIL: 未通过 Steam 官方 Proton 10 入口补齐战网安装环境" >&2
     exit 1
 }
 
@@ -516,10 +516,10 @@ mkdir -p "$EXISTING_STEAM/config"
 printf '%s\n' '"InstallConfigStore"' '{' '    "Software"' '    {' \
     '        "Valve"' '        {' '            "Steam"' '            {' \
     '            }' '        }' '    }' '}' > "$EXISTING_STEAM/config/config.vdf"
-EXISTING_PE_RUNNER="$EXISTING_STEAM/steamapps/common/Proton - Experimental/proton"
-mkdir -p "$(dirname "$EXISTING_PE_RUNNER")"
-printf '#!/bin/bash\nexit 0\n' > "$EXISTING_PE_RUNNER"
-chmod +x "$EXISTING_PE_RUNNER"
+EXISTING_P10_RUNNER="$EXISTING_STEAM/steamapps/common/Proton 10.0-4/proton"
+mkdir -p "$(dirname "$EXISTING_P10_RUNNER")"
+printf '#!/bin/bash\nexit 0\n' > "$EXISTING_P10_RUNNER"
+chmod +x "$EXISTING_P10_RUNNER"
 existing_output="$(
     MODULE="$MODULE" ZHOUKEER_STEAM_ROOT="$EXISTING_STEAM" \
         ZHOUKEER_SHORTCUT_FILE="$EXISTING_SHORTCUTS" \
@@ -566,8 +566,22 @@ grep -Fq 'PROTON_RUNNER=' "$EXISTING_APP_DIR/game-launchers/battlenet/launch-bat
     echo "FAIL: 战网桌面启动包装器没有固定兼容层" >&2
     exit 1
 }
-grep -Fq '"proton_experimental"' "$EXISTING_STEAM/config/config.vdf" || {
-    echo "FAIL: 已安装战网入库时没有绑定 Proton Experimental" >&2
+existing_app_id="$(python3 "$HELPER" --shortcut-file "$EXISTING_SHORTCUTS" appid \
+    --name "战网启动器" --exe "$EXISTING_BATTLENET")"
+existing_game_id="$(python3 "$HELPER" --shortcut-file "$EXISTING_SHORTCUTS" gameid \
+    --name "战网启动器" --exe "$EXISTING_BATTLENET")"
+grep -Fxq "export STEAM_COMPAT_APP_ID=$existing_app_id" \
+    "$EXISTING_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" || {
+    echo "FAIL: 战网桌面启动包装器没有写入 Steam AppID" >&2
+    exit 1
+}
+grep -Fxq "export SteamGameId=$existing_game_id" \
+    "$EXISTING_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" || {
+    echo "FAIL: 战网桌面启动包装器没有写入 Steam GameID" >&2
+    exit 1
+}
+grep -Fq '"proton_10"' "$EXISTING_STEAM/config/config.vdf" || {
+    echo "FAIL: 已安装战网入库时没有绑定 Proton 10" >&2
     exit 1
 }
 
@@ -604,8 +618,8 @@ grep -Fq '强制使用兼容性工具' "$MODULE"
 grep -Fq 'Proton 10.0-4' "$MODULE"
 grep -Fq '选择中文并依次点击接受、安装、完成' "$MODULE"
 grep -Fq 'ensure_launcher_proton_runner' "$MODULE"
-grep -Fq 'install_official_proton_experimental "$steam_root"' "$MODULE"
-grep -Fq 'steam://install/$PROTON_EXPERIMENTAL_APP_ID' "$MODULE"
+grep -Fq 'install_official_proton_10 "$steam_root"' "$MODULE"
+grep -Fq 'steam://install/$PROTON_10_APP_ID' "$MODULE"
 grep -Fq 'Epic 改中文：右上角头像' "$MODULE"
 grep -Fq '不带 System Default 的中文（简体）' "$MODULE"
 if grep -Fq 'GE-Proton*/proton' "$MODULE"; then
