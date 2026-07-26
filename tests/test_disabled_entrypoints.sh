@@ -24,8 +24,13 @@ for menu in "$touch_dual" "$gui_dual"; do
     for action in install status delete; do
         printf '%s\n' "$menu" | grep -Fq "modules/clover_boot.sh\" $action" || fail "Clover 菜单动作缺失：$action"
     done
-    for action in tf-format-mount repair-drive windows-shortcut health cleanup-boot; do
+    for action in tf-format-mount repair-drive health cleanup-boot; do
         printf '%s\n' "$menu" | grep -Fq "modules/dual_system_tools.sh\" $action" || fail "双系统扩展动作缺失：$action"
+    done
+    for removed_action in windows-shortcut windows-next; do
+        if printf '%s\n' "$menu" | grep -Fq "modules/dual_system_tools.sh\" $removed_action"; then
+            fail "双系统菜单仍可执行已移除动作：$removed_action"
+        fi
     done
     for legacy_action in refind-install refind-hide refind-show refind-remove; do
         if printf '%s\n' "$menu" | grep -Fq "modules/dual_system.sh\" $legacy_action"; then

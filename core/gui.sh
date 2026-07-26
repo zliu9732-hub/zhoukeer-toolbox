@@ -301,12 +301,10 @@ dual_system_menu() {
             repair-drive "修复磁盘写入错误｜NTFS/exFAT 基础修复｜高级操作" \
             clover-install "安装或修复 Clover｜SteamOS / Windows｜写入 EFI｜高级操作" \
             protect "双系统互通盘保护｜防止 SteamOS 误写入｜高级操作" \
-            windows-shortcut "一键切换 Windows｜创建桌面图标｜仅下一次启动" \
             unprotect "恢复互通盘写入｜重新以可写方式挂载｜高级操作" \
             clover-status "查看 Clover 状态｜检查主题、启动文件和 NVRAM" \
             clover-delete "删除 Clover 双系统引导｜恢复 BootOrder 和原 Clover｜高级操作" \
             cleanup-boot "清理第三方引导项｜保护 SteamOS / Windows｜保留 EFI 文件" \
-            windows-next "立即切换 Windows｜设置 BootNext 并重启｜高级操作" \
             back "返回系统设置" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -342,11 +340,6 @@ dual_system_menu() {
                     run_gui_action "安装 Clover 开机菜单" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/clover_boot.sh" install
                 ;;
-            windows-shortcut)
-                gui_confirm "将创建一键切换 Windows 桌面图标；点击图标会立即切换下一次启动目标，且不永久修改默认启动顺序。是否继续？" && \
-                    run_gui_action "创建一键切换 Windows" \
-                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-shortcut
-                ;;
             clover-status) run_gui_action "Clover 状态" bash "$PROJECT_ROOT/modules/clover_boot.sh" status ;;
             clover-delete)
                 gui_confirm "仅删除工具箱创建的 Clover 启动项，并恢复安装前的 BootOrder 和原 Clover 目录。确认继续？" && \
@@ -357,9 +350,6 @@ dual_system_menu() {
                 gui_confirm "SteamOS、Windows 和 systemd-boot 受保护；其他第三方项仍需输入 Boot 编号和完整删除口令。是否继续？" && \
                     run_gui_action "清理第三方引导项" \
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" cleanup-boot
-                ;;
-            windows-next)
-                run_gui_action "切换到 Windows" bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-next
                 ;;
             back) return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;

@@ -28,7 +28,6 @@ WINDOWS_SWITCH_DIR="$HOME/.local/share/zhoukeer-toolbox"
 WINDOWS_SWITCH_LAUNCHER="$WINDOWS_SWITCH_DIR/windows-next.sh"
 WINDOWS_LEGACY_SWITCH_LAUNCHER="$WINDOWS_SWITCH_DIR/windows/windows-next.sh"
 WINDOWS_SWITCH_DESKTOP="$HOME/Desktop/一键切换Windows.desktop"
-WINDOWS_SWITCH_ICON="$PROJECT_ROOT/assets/windows-switch.png"
 ZHOUKEER_TF_CARD_DEVICE="/dev/testtf"
 
 require_steamos() { return 0; }
@@ -37,7 +36,6 @@ log() { printf '%s\n' "$*" >> "$LOG_FILE"; }
 toolbox_sudo() { "$@"; }
 tf_card_confirm_format() { return 0; }
 repair_drive_confirm() { return 0; }
-confirm_windows_reboot() { return 1; }
 
 lsblk() {
     case " $* " in
@@ -78,11 +76,9 @@ partprobe() { printf 'partprobe %s\n' "$*" >> "$CALLS"; }
 udevadm() { printf 'udevadm %s\n' "$*" >> "$CALLS"; }
 mkfs.exfat() { printf 'mkfs.exfat %s\n' "$*" >> "$CALLS"; }
 ntfsfix() { printf 'ntfsfix %s\n' "$*" >> "$CALLS"; }
-systemctl() { printf 'systemctl %s\n' "$*" >> "$CALLS"; }
 
 efibootmgr() {
     case "${1:-}" in
-        --bootnext) printf 'bootnext %s\n' "$2" >> "$CALLS" ;;
         --delete-bootnum) printf 'delete %s\n' "$3" >> "$CALLS" ;;
         *)
             cat <<'EOF'
@@ -110,20 +106,14 @@ create_shared_drive_shortcut() { return 0; }
 repair_shared_drive >/dev/null || fail "NTFS 写入错误修复模拟失败"
 grep -Fq 'ntfsfix /dev/testshare' "$CALLS" || fail "NTFS 修复未调用 ntfsfix"
 
-create_windows_switch_shortcut >/dev/null || fail "Windows 快捷方式创建失败"
-[ -x "$WINDOWS_SWITCH_LAUNCHER" ] || fail "Windows 切换启动器不可执行"
-[ -x "$WINDOWS_LEGACY_SWITCH_LAUNCHER" ] || fail "旧版 Windows 切换启动器未同步修复"
-[ -x "$WINDOWS_SWITCH_DESKTOP" ] || fail "Windows 桌面图标不可执行"
-grep -Fq 'dual_system_tools.sh' "$WINDOWS_SWITCH_LAUNCHER" || fail "Windows 启动器调用目标错误"
-grep -Fq 'dual_system_tools.sh' "$WINDOWS_LEGACY_SWITCH_LAUNCHER" || fail "旧版 Windows 启动器调用目标错误"
-grep -Fqx "Icon=$WINDOWS_SWITCH_ICON" "$WINDOWS_SWITCH_DESKTOP" || fail "Windows 桌面图标资源错误"
-if grep -Eq 'bash -c|sh -c|eval' "$WINDOWS_SWITCH_LAUNCHER"; then
-    fail "Windows 启动器使用动态命令执行"
-fi
-
-boot_windows_once >/dev/null || fail "Windows BootNext 模拟失败"
-grep -Fq 'bootnext 0001' "$CALLS" || fail "未将 Windows 设为 BootNext"
-grep -Fq 'systemctl reboot' "$CALLS" || fail "设置 BootNext 后未请求重启"
+mkdir -p "$WINDOWS_SWITCH_DIR/windows"
+printf 'legacy\n' > "$WINDOWS_SWITCH_LAUNCHER"
+printf 'legacy\n' > "$WINDOWS_LEGACY_SWITCH_LAUNCHER"
+printf 'legacy\n' > "$WINDOWS_SWITCH_DESKTOP"
+retire_windows_switch_shortcuts >/dev/null || fail "旧 Windows 切换入口清理失败"
+for removed_path in "$WINDOWS_SWITCH_LAUNCHER" "$WINDOWS_LEGACY_SWITCH_LAUNCHER" "$WINDOWS_SWITCH_DESKTOP"; do
+    [ ! -e "$removed_path" ] && [ ! -L "$removed_path" ] || fail "旧 Windows 切换入口未清理：$removed_path"
+done
 
 find_boot_esp_for_health() { printf '%s\n' "$TMP_ROOT/esp"; }
 health_output="$(dual_boot_health_check)" || fail "双系统健康检查失败"
@@ -140,4 +130,4 @@ if cleanup_third_party_boot_entry </dev/null >/dev/null 2>&1; then
     fail "Windows Boot Manager 未受到删除保护"
 fi
 
-echo "PASS: TF 卡、磁盘修复、Windows 切换、健康检查和第三方引导清理模拟通过"
+echo "PASS: TF 卡、磁盘修复、旧 Windows 入口清理、健康检查和第三方引导清理模拟通过"

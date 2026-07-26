@@ -242,101 +242,22 @@ repair_shared_drive() {
     log "双系统互通盘修复完成: $device filesystem=$filesystem"
 }
 
-windows_boot_number() {
-    efibootmgr -v 2>/dev/null | awk '
-        /Windows Boot Manager/ {
-            value = substr($1, 5, 4)
-            gsub(/[^0-9A-Fa-f]/, "", value)
-            if (length(value) == 4) {
-                count++
-                result = toupper(value)
-            }
-        }
-        END { if (count == 1) print result }
-    '
-}
+retire_windows_switch_shortcuts() {
+    local path
 
-boot_windows_once() {
-    local boot_number
-
-    require_steamos || return 1
-    for command_name in efibootmgr systemctl awk; do
-        require_command "$command_name" || return 1
+    for path in "$WINDOWS_SWITCH_LAUNCHER" "$WINDOWS_LEGACY_SWITCH_LAUNCHER" "$WINDOWS_SWITCH_DESKTOP"; do
+        case "$path" in
+            "$HOME"/*) ;;
+            *)
+                echo "旧 Windows 切换入口路径异常，未删除：$path"
+                continue
+                ;;
+        esac
+        [ ! -e "$path" ] && [ ! -L "$path" ] || rm -f -- "$path"
     done
-    boot_number="$(windows_boot_number)"
-    [ -n "$boot_number" ] || {
-        echo "没有找到唯一的 Windows Boot Manager，未设置下次启动。"
-        return 1
-    }
-    echo "将把 Windows Boot Manager 设为仅下一次启动目标，然后立即重启。"
-    echo "之后再次重启仍会回到 Clover/SteamOS 的正常启动顺序。"
-    toolbox_sudo efibootmgr --bootnext "$boot_number" || {
-        echo "设置 Windows 为下一次启动目标失败。"
-        return 1
-    }
-    log "已设置下一次启动Windows: Boot$boot_number"
-    echo "下一次启动目标已设置为 Windows，正在重启。"
-    toolbox_sudo systemctl reboot || {
-        echo "自动重启失败；下次手动重启仍会进入 Windows。"
-        return 1
-    }
-}
-
-desktop_exec_escape() {
-    printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
-}
-
-create_windows_switch_shortcut() {
-    local escaped_launcher quoted_module temp_launcher temp_legacy_launcher temp_desktop
-
-    require_steamos || return 1
-    require_command efibootmgr || return 1
-    [ -n "$(windows_boot_number)" ] || {
-        echo "没有找到唯一的 Windows Boot Manager，未创建快捷方式。"
-        return 1
-    }
-    [ -f "$WINDOWS_SWITCH_ICON" ] && [ ! -L "$WINDOWS_SWITCH_ICON" ] || {
-        echo "Windows 桌面图标资源缺失或不安全，未创建快捷方式。"
-        return 1
-    }
-    mkdir -p "$WINDOWS_SWITCH_DIR" "$(dirname "$WINDOWS_LEGACY_SWITCH_LAUNCHER")" \
-        "$(dirname "$WINDOWS_SWITCH_DESKTOP")" || return 1
-    temp_launcher="$(mktemp "$WINDOWS_SWITCH_DIR/.windows-next.XXXXXX")" || return 1
-    temp_legacy_launcher="$(mktemp "$(dirname "$WINDOWS_LEGACY_SWITCH_LAUNCHER")/.windows-next.XXXXXX")" || {
-        rm -f -- "$temp_launcher"
-        return 1
-    }
-    temp_desktop="$(mktemp "$(dirname "$WINDOWS_SWITCH_DESKTOP")/.windows-next.XXXXXX")" || {
-        rm -f -- "$temp_launcher" "$temp_legacy_launcher"
-        return 1
-    }
-    printf -v quoted_module '%q' "$PROJECT_ROOT/modules/dual_system_tools.sh"
-    cat > "$temp_launcher" <<EOF
-#!/bin/bash
-exec /usr/bin/env bash $quoted_module windows-next
-EOF
-    chmod 0755 "$temp_launcher" || return 1
-    cp -- "$temp_launcher" "$temp_legacy_launcher" || return 1
-    chmod 0755 "$temp_legacy_launcher" || return 1
-    escaped_launcher="$(desktop_exec_escape "$WINDOWS_SWITCH_LAUNCHER")"
-    cat > "$temp_desktop" <<EOF
-[Desktop Entry]
-Type=Application
-Name=一键切换 Windows
-Comment=仅将下一次启动切换到 Windows
-Exec=konsole --hold -e "$escaped_launcher"
-Icon=$WINDOWS_SWITCH_ICON
-Terminal=false
-Categories=System;
-EOF
-    chmod 0755 "$temp_desktop" || return 1
-    mv -- "$temp_launcher" "$WINDOWS_SWITCH_LAUNCHER" || return 1
-    mv -- "$temp_legacy_launcher" "$WINDOWS_LEGACY_SWITCH_LAUNCHER" || return 1
-    mv -- "$temp_desktop" "$WINDOWS_SWITCH_DESKTOP" || return 1
-    echo "已创建桌面快捷方式：$WINDOWS_SWITCH_DESKTOP"
-    echo "旧版 Windows 桌面入口已同步修复。"
-    echo "点击后会直接切换下一次启动到 Windows，不会永久改变默认启动顺序。"
-    log "Windows一次性切换快捷方式已创建: $WINDOWS_SWITCH_DESKTOP"
+    echo "一键切换 Windows 功能已移除；未设置任何 EFI 启动项。"
+    echo "旧的工具箱 Windows 桌面入口已清理。"
+    log "已停用并清理Windows一次性切换入口"
 }
 
 find_boot_esp_for_health() {
@@ -481,12 +402,11 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-health}" in
         tf-format-mount) format_and_mount_tf_card ;;
         repair-drive) repair_shared_drive ;;
-        windows-shortcut) create_windows_switch_shortcut ;;
-        windows-next) boot_windows_once ;;
+        windows-shortcut|windows-next) retire_windows_switch_shortcuts ;;
         health) dual_boot_health_check ;;
         cleanup-boot) cleanup_third_party_boot_entry ;;
         *)
-            echo "用法: $0 {tf-format-mount|repair-drive|windows-shortcut|windows-next|health|cleanup-boot}"
+            echo "用法: $0 {tf-format-mount|repair-drive|health|cleanup-boot}"
             exit 1
             ;;
     esac

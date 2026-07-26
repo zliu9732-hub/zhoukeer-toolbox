@@ -106,7 +106,8 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_contains "$source_text" 'modules/clover_boot.sh" install' "Clover 安装动作错误：$file"
     assert_contains "$source_text" 'modules/clover_boot.sh" delete' "Clover 删除动作错误：$file"
     assert_contains "$source_text" 'modules/dual_system_tools.sh" health' "双系统健康检查动作错误：$file"
-    assert_contains "$source_text" 'modules/dual_system_tools.sh" windows-shortcut' "Windows 一键切换动作错误：$file"
+    assert_not_contains "$source_text" 'modules/dual_system_tools.sh" windows-shortcut' "已移除的 Windows 一键切换仍可从菜单执行：$file"
+    assert_not_contains "$source_text" 'modules/dual_system_tools.sh" windows-next' "已移除的 Windows 立即切换仍可从菜单执行：$file"
 done
 
 echo "PASS: 八分类导航、关键动作和返回坐标映射一致"
