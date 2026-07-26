@@ -292,12 +292,20 @@ common_software_more_menu() {
 
     while true; do
         draw_category_frame software "更多常用软件" "返回后可继续安装聊天、浏览器与远程工具"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "百度网盘" "Flathub 安装百度网盘 Linux 版"
-        ui_touch_button 16 '\033[1;97;48;5;238m' "返回常用软件" "查看常用软件第一页"
+        ui_touch_button 2 '\033[1;97;48;5;24m' "LibreOffice 办公套件" "文档、表格与演示文稿"
+        ui_touch_button 4 '\033[1;97;48;5;24m' "VLC 播放器" "本地视频与音频播放"
+        ui_touch_button 6 '\033[1;97;48;5;24m' "OBS Studio" "录屏、直播与视频采集"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "LocalSend 局域网传文件" "手机与电脑免登录互传"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "百度网盘" "Flathub 安装百度网盘 Linux 版"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回常用软件" "查看常用软件第一页"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:8-9:baidunetdisk right:16-17:back right:22-23:home)"
+        choice="$(read_touch_menu right:2-3:libreoffice right:4-5:vlc right:6-7:obs right:8-9:localsend right:10-11:baidunetdisk right:18-19:back right:22-23:home)"
         case "$choice" in
+            libreoffice) confirm_and_run "安装 LibreOffice 办公套件" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" libreoffice ;;
+            vlc) confirm_and_run "安装 VLC 播放器" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" vlc ;;
+            obs) confirm_and_run "安装 OBS Studio" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" obs ;;
+            localsend) confirm_and_run "安装 LocalSend 局域网传文件" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" localsend ;;
             baidunetdisk) confirm_and_run "安装百度网盘" "Flathub 安装百度网盘 Linux 版，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" baidunetdisk ;;
             back) return 0 ;;
             home) NEXT_CATEGORY="home"; return 1 ;;
@@ -379,13 +387,13 @@ new_machine_preflight() {
     local choice
 
     while true; do
-        draw_category_frame init "新机初始化" "安装常用软件并配置国内软件源"
+        draw_category_frame init "新机初始化" "更新系统组件后安装常用软件并初始化国内源"
         ui_panel_line 7 '\033[1;38;5;220m' "① Steam 键 → 设置 → 启用开发者模式"
         ui_panel_line 9 '\033[1;38;5;45m' "② 设置左侧出现“开发者”后 → 开发者 → 杂项"
         ui_panel_line 11 '\033[1;38;5;45m' "③ 开启“使用旧版 X11 桌面模式”（ToDesk）"
         ui_panel_line 13 '\033[1;38;5;220m' "④ 开启“CEF 远程调试”（Decky 插件商城）"
         ui_panel_line 15 '\033[1;38;5;45m' "⑤ 重新进入桌面模式，再开始初始化"
-        ui_panel_line 16 '\033[1;38;5;45m' "继续后将安装国内源、常用软件、Decky 和 ToDesk"
+        ui_panel_line 16 '\033[1;38;5;45m' "继续后将初始化国内源、更新系统组件，再安装常用软件、Decky 和 ToDesk"
         ui_touch_button 18 '\033[1;30;48;5;114m' "设置已完成，开始新机初始化" "点击即确认已开启开发者模式、X11 和 CEF 远程调试"
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回新机必备" "暂不初始化"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -709,13 +717,13 @@ domestic_source_preflight() {
     local choice
 
     while true; do
-        draw_category_frame advanced "国内软件源" "提高国内应用下载速度 · 会修改软件源"
+        draw_category_frame advanced "初始化国内源并更新系统组件" "提高国内应用下载速度并更新系统组件"
         ui_panel_line 7 '\033[1;38;5;220m' "远程：flathub-cn｜https://mirror.sjtu.edu.cn/flathub"
         ui_panel_line 9 '\033[1;38;5;220m' "备用：flathub-ustc｜https://mirrors.ustc.edu.cn/flathub"
         ui_panel_line 11 '\033[1;38;5;203m' "会修改 Flatpak 软件源，并可能调整 GPG 验证"
-        ui_panel_line 13 '\033[1;38;5;203m' "还会运行 pacman，并临时关闭 SteamOS 只读保护"
+        ui_panel_line 13 '\033[1;38;5;203m' "会重建 pacman 密钥环、完整更新系统，并临时关闭只读保护"
         ui_panel_line 15 '\033[1;38;5;203m' "可随时恢复官方 Flathub 并重新启用 GPG 验证"
-        ui_touch_button 17 '\033[1;97;48;5;160m' "确认修改国内软件源" "执行现有初始化动作 · 高风险"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "初始化国内源并更新系统组件" "执行密钥环、系统更新与国内缓存"
         ui_touch_button 19 '\033[1;97;48;5;30m' "恢复 Flathub 官方源" "启用 GPG 验证并移除国内缓存"
         ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "不做任何修改"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -724,7 +732,7 @@ domestic_source_preflight() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             confirm-source)
-                run_action "国内软件源" env ZHOUKEER_AUTO_CONFIRM=1 \
+                run_action "初始化国内源并更新系统组件" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/domestic_source.sh" init
                 NEXT_CATEGORY="advanced"
                 return 0
@@ -773,7 +781,7 @@ uninstall_software_menu() {
     while true; do
         case "$page" in
             0)
-                draw_category_frame uninstall "卸载已安装" "常用应用 · 第 1/3 页"
+                draw_category_frame uninstall "卸载已安装" "常用应用 · 第 1/4 页"
                 ui_touch_button 5 '\033[1;97;48;5;160m' "卸载微信" "只删除微信 AppImage 和快捷方式"
                 ui_touch_button 7 '\033[1;97;48;5;160m' "卸载 QQ" "卸载 QQ Flatpak"
                 ui_touch_button 9 '\033[1;97;48;5;160m' "卸载 Firefox" "卸载 Firefox Flatpak"
@@ -785,20 +793,32 @@ uninstall_software_menu() {
                 choice="$(read_touch_menu right:5-6:wechat right:7-8:qq right:9-10:browser right:11-12:chrome right:13-14:edge right:19-20:next right:23-24:home)"
                 ;;
             1)
-                draw_category_frame uninstall "卸载已安装" "远程与工具 · 第 2/3 页"
+                draw_category_frame uninstall "卸载已安装" "远程与网盘 · 第 2/4 页"
                 ui_touch_button 5 '\033[1;97;48;5;160m' "卸载 RustDesk" "保留用户自行配置的数据"
                 ui_touch_button 7 '\033[1;97;48;5;160m' "卸载 ToDesk" "停止服务并卸载系统软件包"
                 ui_touch_button 9 '\033[1;97;48;5;160m' "卸载百度网盘" "卸载百度网盘 Flatpak"
-                ui_touch_button 11 '\033[1;97;48;5;160m' "卸载 Protontricks" "卸载 Protontricks Flatpak"
-                ui_touch_button 13 '\033[1;97;48;5;160m' "卸载 Bottles" "卸载 Bottles Flatpak"
                 ui_touch_button 19 '\033[1;97;48;5;24m' "上一页" "返回常用应用"
+                ui_touch_button 21 '\033[1;97;48;5;24m' "下一页" "办公、创作与兼容工具"
+                ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
+                ui_prompt
+                choice="$(read_touch_menu right:5-6:rustdesk right:7-8:todesk right:9-10:baidunetdisk right:19-20:previous right:21-22:next right:23-24:home)"
+                ;;
+            2)
+                draw_category_frame uninstall "卸载已安装" "办公与工具 · 第 3/4 页"
+                ui_touch_button 5 '\033[1;97;48;5;160m' "卸载 LibreOffice" "卸载 LibreOffice Flatpak"
+                ui_touch_button 7 '\033[1;97;48;5;160m' "卸载 VLC" "卸载 VLC Flatpak"
+                ui_touch_button 9 '\033[1;97;48;5;160m' "卸载 OBS Studio" "卸载 OBS Studio Flatpak"
+                ui_touch_button 11 '\033[1;97;48;5;160m' "卸载 LocalSend" "卸载 LocalSend Flatpak"
+                ui_touch_button 13 '\033[1;97;48;5;160m' "卸载 Protontricks" "卸载 Protontricks Flatpak"
+                ui_touch_button 15 '\033[1;97;48;5;160m' "卸载 Bottles" "卸载 Bottles Flatpak"
+                ui_touch_button 19 '\033[1;97;48;5;24m' "上一页" "返回远程与网盘"
                 ui_touch_button 21 '\033[1;97;48;5;24m' "下一页" "系统组件与插件"
                 ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
                 ui_prompt
-                choice="$(read_touch_menu right:5-6:rustdesk right:7-8:todesk right:9-10:baidunetdisk right:11-12:protontricks right:13-14:bottles right:19-20:previous right:21-22:next right:23-24:home)"
+                choice="$(read_touch_menu right:5-6:libreoffice right:7-8:vlc right:9-10:obs right:11-12:localsend right:13-14:protontricks right:15-16:bottles right:19-20:previous right:21-22:next right:23-24:home)"
                 ;;
             *)
-                draw_category_frame uninstall "卸载已安装" "系统组件与插件 · 第 3/3 页"
+                draw_category_frame uninstall "卸载已安装" "系统组件与插件 · 第 4/4 页"
                 ui_touch_button 5 '\033[1;97;48;5;160m' "卸载 Steam302" "停止后台加速并移除开机自启"
                 ui_touch_button 8 '\033[1;97;48;5;160m' "卸载 GE-Proton" "只删除工具箱当前版本"
                 ui_touch_button 11 '\033[1;97;48;5;160m' "卸载 Decky Loader" "保留全部插件文件与设置"
@@ -811,7 +831,7 @@ uninstall_software_menu() {
         esac
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
-            wechat|qq|browser|chrome|edge|rustdesk|baidunetdisk|protontricks|bottles)
+            wechat|qq|browser|chrome|edge|rustdesk|baidunetdisk|libreoffice|vlc|obs|localsend|protontricks|bottles)
                 confirm_and_run "卸载软件" "只卸载所选软件及工具箱创建的快捷方式" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" uninstall "$choice"
                 ;;
@@ -835,7 +855,7 @@ uninstall_software_menu() {
                 confirm_and_run "清空全部 Decky 插件" "会删除全部插件文件和插件设置，但保留 Decky Loader" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" uninstall
                 ;;
-            next) page=$((page + 1)); [ "$page" -le 2 ] || page=2 ;;
+            next) page=$((page + 1)); [ "$page" -le 3 ] || page=3 ;;
             previous) page=$((page - 1)); [ "$page" -ge 0 ] || page=0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac

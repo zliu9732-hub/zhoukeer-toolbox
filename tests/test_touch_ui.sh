@@ -35,7 +35,7 @@ run_choice_test '\033[<0;8;1M' "agree" "any:1-999:agree"
 run_choice_test '\033[<0;80;19M' "agree" "any:1-999:agree"
 
 grep -Fq 'UI_LAST_ROW=24' "$PROJECT_ROOT/core/ui.sh" || fail "触控画布行数异常"
-grep -Fq 'Font=Noto Sans Mono CJK SC,10' "$PROJECT_ROOT/install.sh" || fail "中文字体大小没有恢复到可读尺寸"
+grep -Fq 'Font=Noto Sans Mono CJK SC,12' "$PROJECT_ROOT/install.sh" || fail "中文字体大小没有恢复为默认可读尺寸"
 grep -Fq 'TerminalColumns=120' "$PROJECT_ROOT/install.sh" || fail "终端列数不是紧凑布局"
 grep -Fq 'TerminalRows=32' "$PROJECT_ROOT/install.sh" || fail "终端行数不是紧凑布局"
 grep -Fq 'WINDOW_SIZE="1280x820"' "$PROJECT_ROOT/launch.sh" || fail "工具箱窗口尺寸未同步"
@@ -149,6 +149,9 @@ printf '%s\n' "$software" | grep -Fq 'right:14-15:todesk' || fail "ToDesk触控�
 printf '%s\n' "$software" | grep -Fq 'modules/software.sh" browser' || fail "Firefox安装动作缺失"
 more_software="$(sed -n '/^common_software_more_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$more_software" | grep -Fq '百度网盘' || fail "更多常用软件缺少百度网盘"
+for item in 'LibreOffice 办公套件' 'VLC 播放器' 'OBS Studio' 'LocalSend 局域网传文件' 'right:2-3:libreoffice' 'right:8-9:localsend'; do
+    printf '%s\n' "$more_software" | grep -Fq "$item" || fail "更多常用软件缺少：$item"
+done
 printf '%s\n' "$more_software" | grep -Fq 'right:22-23:home' || fail "更多常用软件返回首页坐标错误"
 
 games="$(sed -n '/^game_environment_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"

@@ -84,6 +84,30 @@ software_details() {
             SOFTWARE_APP_ID="com.baidu.NetDisk"
             SOFTWARE_CATEGORIES="Network;FileTransfer;"
             ;;
+        libreoffice)
+            SOFTWARE_NAME="LibreOffice 办公套件"
+            SOFTWARE_DESKTOP_NAME="LibreOffice"
+            SOFTWARE_APP_ID="org.libreoffice.LibreOffice"
+            SOFTWARE_CATEGORIES="Office;"
+            ;;
+        vlc)
+            SOFTWARE_NAME="VLC 播放器"
+            SOFTWARE_DESKTOP_NAME="VLC"
+            SOFTWARE_APP_ID="org.videolan.VLC"
+            SOFTWARE_CATEGORIES="AudioVideo;Player;"
+            ;;
+        obs)
+            SOFTWARE_NAME="OBS Studio"
+            SOFTWARE_DESKTOP_NAME="OBS Studio"
+            SOFTWARE_APP_ID="com.obsproject.Studio"
+            SOFTWARE_CATEGORIES="AudioVideo;Recorder;"
+            ;;
+        localsend)
+            SOFTWARE_NAME="LocalSend"
+            SOFTWARE_DESKTOP_NAME="LocalSend"
+            SOFTWARE_APP_ID="org.localsend.localsend_app"
+            SOFTWARE_CATEGORIES="Network;FileTransfer;"
+            ;;
         *)
             echo "未知软件: $1"
             return 1
@@ -936,7 +960,7 @@ show_software_status() {
     local installed_count=0
 
     echo "常用软件与远程协助安装状态："
-    for target in wechat qq browser rustdesk anydesk; do
+    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend; do
         software_details "$target" || return 1
         if software_is_installed; then
             echo "✓ $SOFTWARE_NAME：已安装"
@@ -945,14 +969,14 @@ show_software_status() {
             echo "- $SOFTWARE_NAME：未安装"
         fi
     done
-    echo "已安装：$installed_count / 5"
+    echo "已安装：$installed_count / 10"
 }
 
 repair_software_shortcuts() {
     local target
     local repaired=0
 
-    for target in wechat qq browser rustdesk anydesk; do
+    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend; do
         software_details "$target" || return 1
         if software_is_installed; then
             create_software_shortcut || return 1
@@ -1228,13 +1252,17 @@ uninstall_software() {
         protontricks) uninstall_flatpak_software "com.github.Matoking.protontricks" "Protontricks" "com.github.Matoking.protontricks.desktop" ;;
         bottles) uninstall_flatpak_software "com.usebottles.bottles" "Bottles" "com.usebottles.bottles.desktop" ;;
         baidunetdisk) uninstall_flatpak_software "com.baidu.NetDisk" "百度网盘" "com.baidu.NetDisk.desktop" ;;
+        libreoffice) uninstall_flatpak_software "org.libreoffice.LibreOffice" "LibreOffice 办公套件" "org.libreoffice.LibreOffice.desktop" ;;
+        vlc) uninstall_flatpak_software "org.videolan.VLC" "VLC 播放器" "org.videolan.VLC.desktop" ;;
+        obs) uninstall_flatpak_software "com.obsproject.Studio" "OBS Studio" "com.obsproject.Studio.desktop" ;;
+        localsend) uninstall_flatpak_software "org.localsend.localsend_app" "LocalSend" "org.localsend.localsend_app.desktop" ;;
         *) echo "未知卸载目标：$1"; return 1 ;;
     esac
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
-        wechat|qq|browser|rustdesk|anydesk) install_software "$1" ;;
+        wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend) install_software "$1" ;;
         firefox-pacman|firefox-sjtu|system-setup)
             echo "该旧版系统级功能已停用，请使用当前 Flatpak 菜单功能。"
             exit 1
@@ -1243,13 +1271,12 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         edge) install_flatpak_app "com.microsoft.Edge" "Microsoft Edge" ;;
         protontricks) install_flatpak_app "com.github.Matoking.protontricks" "Protontricks" ;;
         bottles) install_flatpak_app "com.usebottles.bottles" "Bottles" ;;
-        baidunetdisk) software_details baidunetdisk && install_flatpak_app "com.baidu.NetDisk" "百度网盘 Linux 版" ;;
         uninstall)
             [ -n "${2:-}" ] || { echo "用法: $0 uninstall 软件名"; exit 1; }
             uninstall_software "$2"
             ;;
         status) require_command od && show_software_status ;;
         repair-shortcuts) require_command od && repair_software_shortcuts ;;
-        *) echo "用法: $0 {wechat|qq|browser|rustdesk|anydesk|chrome|edge|protontricks|bottles|status|repair-shortcuts}"; exit 1 ;;
+        *) echo "用法: $0 {wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|chrome|edge|protontricks|bottles|status|repair-shortcuts}"; exit 1 ;;
     esac
 fi

@@ -187,6 +187,12 @@ grep -Fq -- '--appstream' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应包含 AppStream 强制刷新"
 grep -Fq 'verify_domestic_flatpak_remote' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应保留应用索引验证"
+for command_text in 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman -Syu --needed --noconfirm git flatpak' 'steamos-readonly disable' 'steamos-readonly enable'; do
+    grep -Fq "$command_text" "$PROJECT_ROOT/modules/domestic_source.sh" || \
+        fail "完整国内源初始化缺少：$command_text"
+done
+grep -Fq '初始化国内源并更新系统组件' "$PROJECT_ROOT/modules/new_machine.sh" || \
+    fail "新机初始化没有完整运行国内源与系统组件初始化"
 
 # 重复启用只更新镜像地址，不应重复添加两个远程源。
 run_enable >/dev/null

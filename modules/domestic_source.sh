@@ -83,16 +83,16 @@ prepare_system_packages() {
         require_command "$command_name" || return 1
     done
 
-    echo "[1/2] 初始化 pacman 密钥环并更新系统软件组件..."
+    echo "[1/2] 初始化 pacman 密钥环并完整更新系统组件..."
     toolbox_sudo steamos-readonly disable || return 1
     readonly_disabled=1
 
     if ! toolbox_sudo pacman-key --init || \
-        ! toolbox_sudo pacman-key --populate || \
+        ! toolbox_sudo pacman-key --populate archlinux || \
         ! toolbox_sudo pacman -Syu --needed --noconfirm git flatpak; then
         [ "$readonly_disabled" -eq 0 ] || \
             toolbox_sudo steamos-readonly enable >/dev/null 2>&1 || true
-        echo "系统软件组件初始化失败，已尝试恢复 SteamOS 只读保护。"
+        echo "系统组件初始化或完整升级失败，已尝试恢复 SteamOS 只读保护。"
         return 1
     fi
 
@@ -106,19 +106,19 @@ initialize_software_sources() {
     require_steamos || return 1
 
     echo "================================================"
-    echo " 初始化软件源"
+    echo " 初始化国内源并更新系统组件"
     echo "================================================"
-    echo "将自动准备系统包管理、更新系统软件组件并配置 Flatpak 国内缓存。"
+    echo "将重建 pacman 密钥环、完整更新系统组件并配置 Flatpak 国内缓存。"
     echo "管理员权限会读取桌面管理员密码.txt，不会重复询问密码。"
 
     prepare_system_packages || return 1
     configure_domestic_flatpak || return 1
 
     echo ""
-    echo "初始化软件源完成。现在可以正常使用工具箱安装软件。"
+    echo "国内源与系统组件初始化完成。现在可以正常使用工具箱安装软件。"
     echo "上海交大：$FLATHUB_CN_URL"
     echo "中科大：$FLATHUB_CN_FALLBACK_URL"
-    log "软件源初始化完成：pacman系统组件和Flatpak国内双缓存已配置"
+    log "国内源与系统组件初始化完成：pacman密钥环、完整系统更新和Flatpak国内双缓存已配置"
 }
 
 show_software_source_status() {

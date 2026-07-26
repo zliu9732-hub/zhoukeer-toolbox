@@ -98,6 +98,10 @@ software_menu() {
             todesk "ToDesk 远程协助｜安装前需完成系统设置" \
             bottles "Windows 软件工具｜安装 Bottles 运行工具" \
             baidunetdisk "百度网盘｜Flathub 安装百度网盘 Linux 版" \
+            libreoffice "LibreOffice 办公套件｜文档、表格与演示文稿" \
+            vlc "VLC 播放器｜本地视频与音频播放" \
+            obs "OBS Studio｜录屏、直播与视频采集" \
+            localsend "LocalSend 局域网传文件｜手机与电脑免登录互传" \
             protontricks "游戏兼容设置｜安装 Protontricks" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -131,6 +135,10 @@ software_menu() {
                     bash "$PROJECT_ROOT/modules/todesk.sh" --install
                 ;;
             baidunetdisk) gui_confirm "将通过 Flatpak 安装百度网盘。是否继续？" && run_gui_action "安装百度网盘" bash "$PROJECT_ROOT/modules/software.sh" baidunetdisk ;;
+            libreoffice) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 LibreOffice。是否继续？" && run_gui_action "安装 LibreOffice 办公套件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" libreoffice ;;
+            vlc) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 VLC。是否继续？" && run_gui_action "安装 VLC 播放器" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" vlc ;;
+            obs) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 OBS Studio。是否继续？" && run_gui_action "安装 OBS Studio" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" obs ;;
+            localsend) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 LocalSend。是否继续？" && run_gui_action "安装 LocalSend 局域网传文件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" localsend ;;
             protontricks) gui_confirm "将通过 Flatpak 安装 Protontricks。是否继续？" && run_gui_action "安装 Protontricks" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
             bottles) gui_confirm "将通过 Flatpak 安装 Bottles。是否继续？" && run_gui_action "安装 Bottles" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
             home) GUI_NAV_HOME=1; return 0 ;;
@@ -571,7 +579,7 @@ new_machine_gui_menu() {
         case "$choice" in
             recommended) software_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             advanced-init)
-                gui_confirm "新机初始化会配置国内软件源，并安装多项常用软件、Decky 和 ToDesk。请先在游戏模式开启“启用开发者模式”“使用旧版X11桌面模式”和“CEF远程调试”，再确认继续。" && \
+                gui_confirm "新机初始化会初始化国内源并完整更新系统组件，再安装多项常用软件、Decky 和 ToDesk。请先在游戏模式开启“启用开发者模式”“使用旧版X11桌面模式”和“CEF远程调试”，再确认继续。" && \
                     run_gui_action "新机初始化" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/new_machine.sh"
                 ;;
@@ -602,13 +610,13 @@ support_gui_menu() {
 domestic_source_gui_preflight() {
     local choice
 
-    choice="$(gui_dialog --menu "国内软件源｜国内缓存会关闭 GPG 验证；可恢复官方源" \
-        configure "配置国内缓存｜运行 pacman 并临时关闭只读保护｜高风险" \
+    choice="$(gui_dialog --menu "初始化国内源并更新系统组件｜国内缓存会关闭 GPG 验证；可恢复官方源" \
+        configure "初始化国内源并更新系统组件｜重建密钥环、运行 pacman 与临时关闭只读保护" \
         restore "恢复官方 Flathub｜重新启用 GPG 验证并移除国内缓存" \
         back "返回系统设置")" || return 0
     case "$choice" in
         configure)
-            gui_confirm "国内软件源会修改 Flatpak 软件源、关闭 GPG 验证、运行 pacman，并临时关闭 SteamOS 只读保护。
+            gui_confirm "将初始化国内源并更新系统组件：会修改 Flatpak 软件源、关闭 GPG 验证、重建 pacman 密钥环、运行完整 pacman 更新，并临时关闭 SteamOS 只读保护。
 
 远程名称：flathub-cn
 地址：https://mirror.sjtu.edu.cn/flathub
@@ -617,7 +625,7 @@ domestic_source_gui_preflight() {
 地址：https://mirrors.ustc.edu.cn/flathub
 
 确认信任以上镜像并继续？" && \
-                run_gui_action "国内软件源" env ZHOUKEER_AUTO_CONFIRM=1 \
+                run_gui_action "初始化国内源并更新系统组件" env ZHOUKEER_AUTO_CONFIRM=1 \
                 bash "$PROJECT_ROOT/modules/domestic_source.sh" init
             ;;
         restore)
@@ -665,7 +673,7 @@ uninstall_software_gui_menu() {
     while true; do
         case "$page" in
             0)
-                choice="$(gui_dialog --menu "卸载已安装｜常用应用｜第 1/3 页" \
+                choice="$(gui_dialog --menu "卸载已安装｜常用应用｜第 1/4 页" \
                     wechat "卸载微信｜AppImage 和快捷方式" \
                     qq "卸载 QQ｜Flatpak" \
                     browser "卸载 Firefox｜Flatpak" \
@@ -674,17 +682,25 @@ uninstall_software_gui_menu() {
                     next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
                 ;;
             1)
-                choice="$(gui_dialog --menu "卸载已安装｜远程与工具｜第 2/3 页" \
+                choice="$(gui_dialog --menu "卸载已安装｜远程与网盘｜第 2/4 页" \
                     rustdesk "卸载 RustDesk｜保留用户配置" \
                     anydesk "卸载 AnyDesk｜Flatpak" \
                     todesk "卸载 ToDesk｜停止服务并卸载软件包｜高级操作" \
                     baidunetdisk "卸载百度网盘｜Flatpak" \
+                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
+                ;;
+            2)
+                choice="$(gui_dialog --menu "卸载已安装｜办公与工具｜第 3/4 页" \
+                    libreoffice "卸载 LibreOffice｜Flatpak" \
+                    vlc "卸载 VLC｜Flatpak" \
+                    obs "卸载 OBS Studio｜Flatpak" \
+                    localsend "卸载 LocalSend｜Flatpak" \
                     protontricks "卸载 Protontricks｜Flatpak" \
                     bottles "卸载 Bottles｜Flatpak" \
                     previous "上一页" next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
                 ;;
             *)
-                choice="$(gui_dialog --menu "卸载已安装｜系统组件与插件｜第 3/3 页" \
+                choice="$(gui_dialog --menu "卸载已安装｜系统组件与插件｜第 4/4 页" \
                     steam302 "卸载 Steam302｜停止后台加速和自启｜高级操作" \
                     ge-proton "卸载 GE-Proton｜只删工具箱当前版本" \
                     decky-loader "卸载 Decky Loader｜保留插件文件" \
@@ -693,7 +709,7 @@ uninstall_software_gui_menu() {
                 ;;
         esac
         case "$choice" in
-            wechat|qq|browser|chrome|edge|rustdesk|anydesk|baidunetdisk|protontricks|bottles)
+            wechat|qq|browser|chrome|edge|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|protontricks|bottles)
                 target="$choice"
                 gui_confirm "只卸载所选软件及工具箱创建的快捷方式，确认继续？" && \
                     run_gui_action "卸载软件" env ZHOUKEER_AUTO_CONFIRM=1 \
