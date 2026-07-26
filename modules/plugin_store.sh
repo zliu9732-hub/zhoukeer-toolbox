@@ -86,9 +86,9 @@ calculate_decky_sha256() {
 confirm_decky_install() {
     local answer
 
-    echo "将通过国内镜像安装固定版本的Decky Loader插件商城。"
+    echo "将通过国内镜像更新 Decky Loader 插件商城。"
     echo "工具箱会分别校验程序和服务模板，不会执行下载源提供的外层安装脚本。"
-    echo "启用系统服务时会请求Steam Deck管理员权限，已有插件会完整保留。"
+    echo "会先停止旧 Decky 服务，再原子替换加载器和服务模板；已有插件会完整保留。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi
@@ -268,6 +268,12 @@ rollback_decky_install() {
             toolbox_sudo systemctl disable --now "$DECKY_SERVICE_NAME" >/dev/null 2>&1 || true
         fi
     fi
+
+    if [ "${DECKY_UNIT_SWAP_STARTED:-0}" -eq 0 ] && \
+       [ "${DECKY_SERVICE_STOPPED:-0}" -eq 1 ] && \
+       [ "${DECKY_OLD_ACTIVE:-0}" -eq 1 ]; then
+        toolbox_sudo systemctl start "$DECKY_SERVICE_NAME" >/dev/null 2>&1 || true
+    fi
 }
 
 finish_plugin_store_install() {
@@ -297,15 +303,11 @@ install_plugin_store() (
         echo "请使用Steam Deck桌面用户运行工具箱，不要直接以root运行。"
         return 1
     fi
-    if decky_plugin_store_is_installed; then
-        echo "[已安装] 已检测到 Decky Loader 插件商城，无需重复安装。"
-        return 0
-    fi
     for command_name in curl sudo install systemctl; do
         require_command "$command_name" || return 1
     done
     confirm_decky_install || {
-        echo "已取消插件商城安装。"
+        echo "已取消插件商城更新。"
         return 0
     }
 
@@ -329,6 +331,7 @@ install_plugin_store() (
     DECKY_UNIT_SWAP_STARTED=0
     DECKY_OLD_ENABLED=0
     DECKY_OLD_ACTIVE=0
+    DECKY_SERVICE_STOPPED=0
 
     trap 'exit 130' INT TERM
     trap 'finish_plugin_store_install $?' EXIT
@@ -370,6 +373,20 @@ install_plugin_store() (
             DECKY_OLD_ACTIVE=1
     fi
 
+    if [ "$DECKY_LOADER_HAD_OLD" -eq 1 ] || [ "$DECKY_UNIT_HAD_OLD" -eq 1 ]; then
+        echo "检测到已有 Decky Loader，正在更新并保留全部插件与设置。"
+    else
+        echo "未检测到完整 Decky Loader，正在执行首次安装。"
+    fi
+    if [ "$DECKY_OLD_ACTIVE" -eq 1 ]; then
+        echo "正在停止旧 Decky Loader 服务..."
+        toolbox_sudo systemctl stop "$DECKY_SERVICE_NAME" || {
+            echo "旧 Decky Loader 服务停止失败，未替换现有文件。"
+            return 1
+        }
+        DECKY_SERVICE_STOPPED=1
+    fi
+
     run_decky_homebrew_operation install -m 0755 -- "$loader_download" "$DECKY_LOADER_NEW" || return 1
     toolbox_sudo install -m 0644 -- "$rendered_service" "$DECKY_UNIT_NEW" || return 1
 
@@ -385,7 +402,7 @@ install_plugin_store() (
     fi
     toolbox_sudo mv -- "$DECKY_UNIT_NEW" "$DECKY_UNIT_PATH" || return 1
 
-    echo "正在启用Decky Loader服务..."
+    echo "正在启动更新后的 Decky Loader 服务..."
     toolbox_sudo systemctl daemon-reload || return 1
     toolbox_sudo systemctl restart "$DECKY_SERVICE_NAME" || return 1
     toolbox_sudo systemctl enable "$DECKY_SERVICE_NAME" || return 1
@@ -394,8 +411,8 @@ install_plugin_store() (
     run_decky_homebrew_operation rm -f -- "$DECKY_LOADER_BACKUP" || true
     toolbox_sudo rm -f -- "$DECKY_UNIT_BACKUP" || true
 
-    echo "Decky Loader安装完成，已有插件未被改动。请返回游戏模式检查插件菜单。"
-    log "Decky Loader固定版本安装完成"
+    echo "Decky Loader更新完成，已有插件未被改动。请返回游戏模式检查插件菜单。"
+    log "Decky Loader更新完成"
 )
 
 decky_plugin_store_is_installed() {

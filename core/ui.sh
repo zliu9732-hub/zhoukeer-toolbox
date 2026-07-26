@@ -9,6 +9,10 @@ UI_SIDEBAR_WIDTH=31
 UI_SEPARATOR_COL=34
 UI_PANEL_COL=37
 UI_LAST_ROW=24
+UI_PREFERRED_COLUMNS=120
+UI_PREFERRED_ROWS=32
+UI_LAYOUT_RETRY_COUNT=10
+UI_LAYOUT_RETRY_INTERVAL=0.2
 
 ui_detect_layout() {
     local columns="${COLUMNS:-}"
@@ -26,6 +30,38 @@ ui_detect_layout() {
 }
 
 ui_detect_layout
+
+ui_terminal_rows() {
+    local rows
+
+    rows="$(tput lines 2>/dev/null || true)"
+    if ! [[ "$rows" =~ ^[0-9]+$ ]]; then
+        rows="${LINES:-0}"
+    fi
+    case "$rows" in
+        ''|*[!0-9]*) rows=0 ;;
+    esac
+    printf '%s\n' "$rows"
+}
+
+ui_request_preferred_canvas() {
+    # Konsole 偶尔会先按上次的矮窗口尺寸创建终端；请求标准画布后再绘制，
+    # 否则第 17 行以下的“系统设置与双系统”等入口会被窗口底部裁掉。
+    printf '\033[8;%s;%st' "$UI_PREFERRED_ROWS" "$UI_PREFERRED_COLUMNS"
+}
+
+ui_wait_for_minimum_canvas() {
+    local rows attempt=0
+
+    while [ "$attempt" -lt "$UI_LAYOUT_RETRY_COUNT" ]; do
+        rows="$(ui_terminal_rows)"
+        [ "$rows" -ge "$UI_LAST_ROW" ] 2>/dev/null && return 0
+        ui_request_preferred_canvas
+        [ "$UI_LAYOUT_RETRY_INTERVAL" = "0" ] || sleep "$UI_LAYOUT_RETRY_INTERVAL"
+        attempt=$((attempt + 1))
+    done
+    return 1
+}
 
 logo() {
 echo -e "${BLUE}"
@@ -142,6 +178,7 @@ draw_category_frame() {
     local show_context="${4:-1}"
     local row
 
+    ui_wait_for_minimum_canvas || true
     ui_discard_pending_input
     ui_reset_screen
 
@@ -177,6 +214,7 @@ draw_category_frame() {
 }
 
 draw_disclaimer_frame() {
+    ui_wait_for_minimum_canvas || true
     ui_discard_pending_input
     ui_reset_screen
 

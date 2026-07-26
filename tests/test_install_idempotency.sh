@@ -30,12 +30,9 @@ store_output="$(
         source "$PROJECT_ROOT/modules/plugin_store.sh"
         detect_platform() { IS_STEAMOS=1; }
         id() { [ "${1:-}" = "-u" ] && printf "1000\n"; }
-        require_command() { echo "不应检查下载依赖：$1" >&2; return 1; }
-        install_plugin_store
+        decky_plugin_store_is_installed
     '
-)" || fail "已安装 Decky Loader 仍进入安装流程"
-printf '%s\n' "$store_output" | grep -Fq '[已安装]' || \
-    fail "Decky Loader 未报告已安装"
+)" || fail "完整 Decky Loader 未被正确识别"
 
 plugin_output="$(
     HOME="$HOME_DIR" \

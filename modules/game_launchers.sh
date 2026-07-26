@@ -12,14 +12,12 @@ source "$PROJECT_ROOT/core/logger.sh"
 DOWNLOAD_TIMEOUT="${ZHOUKEER_LAUNCHER_DOWNLOAD_TIMEOUT:-600}"
 POST_INSTALL_TIMEOUT="${ZHOUKEER_LAUNCHER_POST_INSTALL_TIMEOUT:-300}"
 POST_INSTALL_INTERVAL="${ZHOUKEER_LAUNCHER_POST_INSTALL_INTERVAL:-5}"
-BATTLE_NET_INSTALL_TIMEOUT="${ZHOUKEER_BATTLENET_INSTALL_TIMEOUT:-900}"
 STEAM_SHORTCUT_HELPER="$PROJECT_ROOT/scripts/steam_shortcut.py"
 STEAM_COMPAT_HELPER="$PROJECT_ROOT/scripts/steam_compat.py"
 PROTON_10_APP_ID="3658110"
 PROTON_EXPERIMENTAL_APP_ID="1493710"
 PROTON_INSTALL_TIMEOUT="${ZHOUKEER_PROTON_INSTALL_TIMEOUT:-900}"
 PROTON_INSTALL_INTERVAL="${ZHOUKEER_PROTON_INSTALL_INTERVAL:-5}"
-STEAM_SHORTCUT_START_DELAY="${ZHOUKEER_STEAM_SHORTCUT_START_DELAY:-4}"
 
 launcher_details() {
     case "$1" in
@@ -543,8 +541,11 @@ EOF
 }
 
 install_launcher_steam_artwork() {
-    local target="$1" shortcut_file="$2" app_id="$3"
-    local asset_name grid_dir
+    local target="$1" shortcut_file="$2"
+    local asset_name grid_dir app_id
+
+    shift 2
+    [ "$#" -gt 0 ] || return 1
 
     case "$target" in
         epic) asset_name="epic" ;;
@@ -552,25 +553,27 @@ install_launcher_steam_artwork() {
         ubisoft|uplay) asset_name="ubisoft" ;;
         *) return 1 ;;
     esac
-    case "$app_id" in
-        ''|*[!0-9]*) echo "Steam 非 Steam 游戏编号无效，未写入库封面。"; return 1 ;;
-    esac
     grid_dir="$(dirname "$shortcut_file")/grid"
     if [ -L "$grid_dir" ]; then
         echo "Steam 封面目录是符号链接，已停止写入：$grid_dir"
         return 1
     fi
     install -d -m 0755 -- "$grid_dir" || return 1
-    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name.png" \
-        "$grid_dir/${app_id}_icon.png" || return 1
-    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-grid.jpg" \
-        "$grid_dir/${app_id}.jpg" || return 1
-    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-portrait.jpg" \
-        "$grid_dir/${app_id}p.jpg" || return 1
-    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-hero.jpg" \
-        "$grid_dir/${app_id}_hero.jpg" || return 1
-    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name.png" \
-        "$grid_dir/${app_id}_logo.png" || return 1
+    for app_id in "$@"; do
+        case "$app_id" in
+            ''|*[!0-9]*) echo "Steam 非 Steam 游戏编号无效，未写入库封面。"; return 1 ;;
+        esac
+        install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name.png" \
+            "$grid_dir/${app_id}_icon.png" || return 1
+        install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-grid.jpg" \
+            "$grid_dir/${app_id}.jpg" || return 1
+        install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-portrait.jpg" \
+            "$grid_dir/${app_id}p.jpg" || return 1
+        install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-hero.jpg" \
+            "$grid_dir/${app_id}_hero.jpg" || return 1
+        install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name.png" \
+            "$grid_dir/${app_id}_logo.png" || return 1
+    done
 }
 
 set_steam_proton_experimental() {
@@ -581,43 +584,9 @@ set_steam_proton_experimental() {
         --app-id "$app_id" --tool proton_experimental >/dev/null
 }
 
-launch_steam_shortcut() {
-    local game_id="$1" steam_bin
-    case "$STEAM_SHORTCUT_START_DELAY" in
-        ''|*[!0-9]*) echo "Steam 启动等待参数无效。" >&2; return 1 ;;
-    esac
-    steam_bin="$(steam_command)" || {
-        echo "找不到 Steam 客户端，无法打开战网官方安装器。" >&2
-        return 1
-    }
-    start_steam
-    [ "$STEAM_SHORTCUT_START_DELAY" -eq 0 ] || sleep "$STEAM_SHORTCUT_START_DELAY"
-    "$steam_bin" "steam://rungameid/$game_id" >/dev/null 2>&1 &
-}
-
-wait_for_battlenet_install() {
-    local prefix_dir="$1" elapsed=0 installed_file
-    launcher_details battlenet || return 1
-    case "$BATTLE_NET_INSTALL_TIMEOUT:$POST_INSTALL_INTERVAL" in
-        *[!0-9:]*|:*|*:0) echo "战网安装等待参数无效。" >&2; return 1 ;;
-    esac
-    while [ "$elapsed" -le "$BATTLE_NET_INSTALL_TIMEOUT" ]; do
-        installed_file="$(find_launcher_in_prefix "$prefix_dir" || true)"
-        if [ -n "$installed_file" ]; then
-            printf '%s\n' "$installed_file"
-            return 0
-        fi
-        sleep "$POST_INSTALL_INTERVAL"
-        elapsed=$((elapsed + POST_INSTALL_INTERVAL))
-    done
-    echo "没有在 Steam 创建的安装环境中找到战网主程序。" >&2
-    echo "请确认已在战网官方窗口中完成安装，而不是关闭或取消安装。" >&2
-    return 1
-}
-
-install_battlenet_via_steam() {
+prepare_battlenet_steam_installer() {
     local steam_root="$1" installer_file="$2" shortcut_file="$3"
-    local app_id game_id prefix_dir launcher_exe icon_path
+    local app_id artwork_alt_app_id icon_path
 
     icon_path="$PROJECT_ROOT/assets/game-launchers/battlenet.png"
     stop_steam_for_vdf || return 1
@@ -628,21 +597,18 @@ install_battlenet_via_steam() {
         --name "$LAUNCHER_NAME" --exe "$installer_file" --icon "$icon_path" >/dev/null || return 1
     app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid \
         --name "$LAUNCHER_NAME" --exe "$installer_file")" || return 1
-    game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
+    artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
         --name "$LAUNCHER_NAME" --exe "$installer_file")" || return 1
     set_steam_proton_experimental "$steam_root" "$app_id" || return 1
-    prefix_dir="$steam_root/steamapps/compatdata/$app_id"
-
-    echo "正在通过 Steam 打开战网官方安装器..." >&2
-    echo "弹出安装窗口后选择中文并点击继续；其余入库和桌面入口会自动完成。" >&2
-    launch_steam_shortcut "$game_id" || return 1
-    launcher_exe="$(wait_for_battlenet_install "$prefix_dir")" || return 1
-    printf '%s|%s\n' "$launcher_exe" "$prefix_dir"
+    install_launcher_steam_artwork battlenet "$shortcut_file" "$app_id" "$artwork_alt_app_id" || return 1
+    start_steam
+    echo "Steam 正在重新读取战网安装条目，请稍候。"
+    echo "请在 Steam 库点击“战网启动器”完成官方安装；安装完成后，再点击一次工具箱的战网入口即可自动转为正式启动器。"
 }
 
 finish_battlenet_steam_entry() {
     local steam_root="$1" shortcut_file="$2" launcher_exe="$3" prefix_dir="$4"
-    local launch_options app_id game_id icon_path
+    local launch_options app_id artwork_alt_app_id game_id icon_path
 
     icon_path="$PROJECT_ROOT/assets/game-launchers/battlenet.png"
     launch_options="STEAM_COMPAT_DATA_PATH=\"$prefix_dir\" %command%"
@@ -657,17 +623,19 @@ finish_battlenet_steam_entry() {
         --launch-options "$launch_options" >/dev/null || return 1
     app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
+    artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
+        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
     game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
     set_steam_proton_experimental "$steam_root" "$app_id" || return 1
-    install_launcher_steam_artwork battlenet "$shortcut_file" "$app_id" || return 1
+    install_launcher_steam_artwork battlenet "$shortcut_file" "$app_id" "$artwork_alt_app_id" || return 1
     create_steam_desktop_shortcut battlenet "$game_id" || return 1
     start_steam
     echo "战网启动器已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
 }
 
 install_launcher() {
-    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file launcher_result app_id icon_path
+    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file app_id artwork_alt_app_id icon_path
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
         echo "游戏启动器安装仅支持真实 SteamOS 环境。"
@@ -692,9 +660,8 @@ install_launcher() {
         else
             installer_file="$app_dir/$LAUNCHER_FILE_NAME"
             download_launcher_installer "$installer_file" || return 1
-            launcher_result="$(install_battlenet_via_steam "$steam_root" "$installer_file" "$shortcut_file")" || return 1
-            launcher_exe="${launcher_result%%|*}"
-            prefix="${launcher_result#*|}"
+            prepare_battlenet_steam_installer "$steam_root" "$installer_file" "$shortcut_file"
+            return
         fi
         finish_battlenet_steam_entry "$steam_root" "$shortcut_file" "$launcher_exe" "$prefix"
         return
@@ -743,7 +710,9 @@ install_launcher() {
     }
     app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid \
         --name "$LAUNCHER_NAME" --exe "$wrapper")" || return 1
-    install_launcher_steam_artwork "$target" "$shortcut_file" "$app_id" || return 1
+    artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
+        --name "$LAUNCHER_NAME" --exe "$wrapper")" || return 1
+    install_launcher_steam_artwork "$target" "$shortcut_file" "$app_id" "$artwork_alt_app_id" || return 1
     start_steam
     echo "$LAUNCHER_NAME 已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
     if [ "$target" = "epic" ]; then

@@ -287,6 +287,12 @@ def shortcut_app_id(name: str, exe: str) -> int:
     return checksum | 0x80000000
 
 
+def shortcut_app_id_without_exe_quotes(name: str, exe: str) -> int:
+    """Return the legacy shortcut CRC used by some Steam builds for artwork."""
+    checksum = zlib.crc32((exe + name).encode("utf-8"))
+    return checksum | 0x80000000
+
+
 def shortcut_game_id(name: str, exe: str) -> int:
     return (shortcut_app_id(name, exe) << 32) | 0x02000000
 
@@ -321,6 +327,10 @@ def main() -> None:
     appid.add_argument("--name", required=True)
     appid.add_argument("--exe", required=True)
 
+    appid_raw = subparsers.add_parser("appid-raw")
+    appid_raw.add_argument("--name", required=True)
+    appid_raw.add_argument("--exe", required=True)
+
     gameid = subparsers.add_parser("gameid")
     gameid.add_argument("--name", required=True)
     gameid.add_argument("--exe", required=True)
@@ -352,6 +362,10 @@ def main() -> None:
         if not os.path.isabs(args.exe):
             parser.error("shortcut paths must be absolute")
         print(shortcut_app_id(args.name, args.exe))
+    elif args.command == "appid-raw":
+        if not os.path.isabs(args.exe):
+            parser.error("shortcut paths must be absolute")
+        print(shortcut_app_id_without_exe_quotes(args.name, args.exe))
     else:
         if not os.path.isabs(args.exe):
             parser.error("shortcut paths must be absolute")

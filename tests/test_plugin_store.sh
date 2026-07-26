@@ -17,6 +17,7 @@ grep -Fq 'download_decky_component' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '工具箱中安装或开启 Steam302 后台加速' "$PROJECT_ROOT/modules/steam_accelerator.sh"
 grep -Fq 'render_decky_service' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'rollback_decky_install' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'systemctl stop "$DECKY_SERVICE_NAME"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'toolbox_sudo systemctl restart "$DECKY_SERVICE_NAME"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Fq 'https://www.mhhf.com/Deck/install.sh' "$PROJECT_ROOT/modules/plugin_store.sh" || \

@@ -144,7 +144,7 @@ grep -Fq '"Language"        "schinese"' "$COMPAT_CONFIG" || {
     exit 1
 }
 
-# 战网安装器必须由 Steam 原生条目启动，并在安装后切换成复用同一前缀的正式条目。
+# 战网先由 Steam 库中的安装条目启动，安装完成后再次运行工具箱才切换为正式条目。
 NATIVE_STEAM="$TMP_ROOT/native-steam"
 NATIVE_SHORTCUTS="$NATIVE_STEAM/userdata/123/config/shortcuts.vdf"
 NATIVE_INSTALLER="$TMP_ROOT/native-app/Battle.net-Setup.exe"
@@ -158,27 +158,27 @@ native_installer_app_id="$(python3 "$HELPER" --shortcut-file "$NATIVE_SHORTCUTS"
     --name "战网启动器" --exe "$NATIVE_INSTALLER")"
 NATIVE_PREFIX="$NATIVE_STEAM/steamapps/compatdata/$native_installer_app_id"
 NATIVE_EXE="$NATIVE_PREFIX/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe"
-native_result="$(
-    MODULE="$MODULE" NATIVE_EXE="$NATIVE_EXE" NATIVE_STEAM="$NATIVE_STEAM" \
+native_output="$(
+    MODULE="$MODULE" NATIVE_STEAM="$NATIVE_STEAM" \
         NATIVE_INSTALLER="$NATIVE_INSTALLER" NATIVE_SHORTCUTS="$NATIVE_SHORTCUTS" \
         HOME="$FAKE_HOME" bash -c '
             source "$MODULE"
             launcher_details battlenet
             stop_steam_for_vdf() { :; }
             start_steam() { :; }
-            launch_steam_shortcut() {
-                mkdir -p "$(dirname "$NATIVE_EXE")"
-                : > "$NATIVE_EXE"
-            }
-            BATTLE_NET_INSTALL_TIMEOUT=0
-            POST_INSTALL_INTERVAL=1
-            install_battlenet_via_steam "$NATIVE_STEAM" "$NATIVE_INSTALLER" "$NATIVE_SHORTCUTS"
+            prepare_battlenet_steam_installer "$NATIVE_STEAM" "$NATIVE_INSTALLER" "$NATIVE_SHORTCUTS"
         '
 )"
-[ "$native_result" = "$NATIVE_EXE|$NATIVE_PREFIX" ] || {
-    echo "FAIL: Steam 原生战网安装没有返回主程序和兼容前缀" >&2
+[ -f "$NATIVE_SHORTCUTS" ] || {
+    echo "FAIL: Steam 战网安装条目没有写入 shortcuts.vdf" >&2
     exit 1
 }
+printf '%s\n' "$native_output" | grep -Fq '完成官方安装' || {
+    echo "FAIL: 战网安装条目没有提示从 Steam 库完成安装" >&2
+    exit 1
+}
+mkdir -p "$(dirname "$NATIVE_EXE")"
+: > "$NATIVE_EXE"
 MODULE="$MODULE" NATIVE_EXE="$NATIVE_EXE" NATIVE_PREFIX="$NATIVE_PREFIX" \
     NATIVE_STEAM="$NATIVE_STEAM" NATIVE_SHORTCUTS="$NATIVE_SHORTCUTS" \
     HOME="$FAKE_HOME" bash -c '
@@ -299,17 +299,21 @@ grep -Fq 'run '"$TMP_ROOT/UbisoftConnectInstaller.exe" "$PROTON_LOG" || {
 }
 
 art_shortcuts="$TMP_ROOT/art-account/config/shortcuts.vdf"
+artwork_raw_app_id="$(python3 "$HELPER" --shortcut-file "$art_shortcuts" appid-raw \
+    --name "Epic Games 启动器" --exe "$INSTALLER")"
 mkdir -p "$(dirname "$art_shortcuts")"
-MODULE="$MODULE" ART_SHORTCUTS="$art_shortcuts" APP_ID="$app_id" bash -c '
+MODULE="$MODULE" ART_SHORTCUTS="$art_shortcuts" APP_ID="$app_id" RAW_APP_ID="$artwork_raw_app_id" bash -c '
     source "$MODULE"
-    install_launcher_steam_artwork epic "$ART_SHORTCUTS" "$APP_ID"
+    install_launcher_steam_artwork epic "$ART_SHORTCUTS" "$APP_ID" "$RAW_APP_ID"
 '
-for artwork in "$app_id.jpg" "${app_id}p.jpg" "${app_id}_hero.jpg" \
-    "${app_id}_logo.png" "${app_id}_icon.png"; do
-    [ -s "$(dirname "$art_shortcuts")/grid/$artwork" ] || {
-        echo "FAIL: Steam 库美化文件缺失：$artwork" >&2
-        exit 1
-    }
+for current_app_id in "$app_id" "$artwork_raw_app_id"; do
+    for artwork in "$current_app_id.jpg" "${current_app_id}p.jpg" "${current_app_id}_hero.jpg" \
+        "${current_app_id}_logo.png" "${current_app_id}_icon.png"; do
+        [ -s "$(dirname "$art_shortcuts")/grid/$artwork" ] || {
+            echo "FAIL: Steam 库美化文件缺失：$artwork" >&2
+            exit 1
+        }
+    done
 done
 
 LOGIN_ROOT="$TMP_ROOT/login-steam"
@@ -547,7 +551,11 @@ grep -Fq '桌面入口、封面与工具箱标识均已设置' "$MODULE"
 grep -Fq '跳过安装包下载' "$MODULE"
 grep -Fq 'find_launcher_in_prefix "$prefix" || find_installed_launcher' "$MODULE"
 grep -Fq 'steam_shortcut.py' "$MODULE"
-grep -Fq 'install_battlenet_via_steam' "$MODULE"
+grep -Fq 'prepare_battlenet_steam_installer' "$MODULE"
+! grep -Fq 'launch_steam_shortcut' "$MODULE" || {
+    echo "FAIL: 战网仍会在 Steam 重启后立即触发 rungameid" >&2
+    exit 1
+}
 grep -Fq 'finish_battlenet_steam_entry' "$MODULE"
 grep -Fq 'steam://rungameid/$game_id' "$MODULE"
 grep -Fq 'proton_experimental' "$MODULE"
@@ -556,7 +564,7 @@ grep -Fq 'install_launcher_steam_artwork' "$MODULE"
 grep -Fq 'set-icon' "$MODULE"
 grep -Fq 'download_launcher_installer' "$MODULE"
 grep -Fq '点击 Install（安装）' "$MODULE"
-grep -Fq '弹出安装窗口后选择中文并点击继续' "$MODULE"
+grep -Fq '请在 Steam 库点击“战网启动器”完成官方安装' "$MODULE"
 grep -Fq '选择中文并依次点击接受、安装、完成' "$MODULE"
 grep -Fq 'ensure_launcher_proton_runner' "$MODULE"
 grep -Fq 'install_official_proton_experimental "$steam_root"' "$MODULE"
@@ -572,4 +580,4 @@ if grep -Fq '当前版本仅支持已安装启动器的自动入库' "$MODULE"; 
     exit 1
 fi
 
-echo "PASS: Steam条目写入、启动器安装和战网原生Steam流程测试通过"
+echo "PASS: Steam条目写入、启动器安装和战网分步Steam流程测试通过"

@@ -12,9 +12,12 @@ source "$PROJECT_ROOT/core/auth.sh"
 TODESK_CONNECT_TIMEOUT=15
 TODESK_MAX_TIME=1200
 TODESK_RETRIES=3
+TODESK_INSTALL_RETRY_DELAY=3
 TODESK_READONLY_CHANGED=0
 TODESK_TMP_DIR=""
 TODESK_DOWNLOADED_PACKAGE=""
+TODESK_CA_BUNDLE_PATHS="${TODESK_CA_BUNDLE_PATHS:-/etc/ssl/certs/ca-certificates.crt:/etc/ca-certificates/extracted/tls-ca-bundle.pem}"
+TODESK_PACMAN_CACHE_DIR="${TODESK_PACMAN_CACHE_DIR:-/var/cache/pacman/pkg}"
 
 # Gitee 的 repository/archive 接口已返回 400，改为拉取同一固定提交。
 # 仍只安装已校验 SHA256 的包，不执行上游的在线安装脚本。
@@ -113,6 +116,7 @@ show_todesk_warning() {
     echo "- 优先读取桌面管理员密码.txt自动验证，记录不可用时由系统询问"
     echo "- 临时关闭SteamOS只读保护"
     echo "- 使用pacman安装系统软件并启用todeskd服务"
+    echo "- 若系统证书缺失，只会尝试使用本机 pacman 缓存恢复证书；不会关闭 HTTPS 或签名验证"
     echo "- 完成后恢复SteamOS只读保护"
     echo ""
     echo "SteamOS系统更新可能移除通过pacman安装的软件。"
@@ -141,6 +145,7 @@ todesk_is_installed() {
 download_todesk_package() {
     local repository_dir
     local package_tmp
+    local extracted_package
     local actual_sha256
     local expected_sha256
 
@@ -194,6 +199,78 @@ download_todesk_package() {
     TODESK_DOWNLOADED_PACKAGE="$APP_DIR/$TODESK_PACKAGE_NAME"
 }
 
+has_trusted_ca_bundle() {
+    local candidate
+    local IFS=':'
+    local candidates=()
+
+    read -r -a candidates <<< "$TODESK_CA_BUNDLE_PATHS"
+    for candidate in "${candidates[@]}"; do
+        [ -f "$candidate" ] && [ -s "$candidate" ] && return 0
+    done
+    return 1
+}
+
+find_cached_pacman_package() {
+    local package_name="$1"
+
+    [ -d "$TODESK_PACMAN_CACHE_DIR" ] || return 1
+    find "$TODESK_PACMAN_CACHE_DIR" -maxdepth 1 -type f \
+        -name "${package_name}-[0-9]*.pkg.tar.*" -print -quit 2>/dev/null
+}
+
+restore_cached_ca_certificates() {
+    local certificates_package utils_package
+
+    certificates_package="$(find_cached_pacman_package ca-certificates || true)"
+    utils_package="$(find_cached_pacman_package ca-certificates-utils || true)"
+    if [ -z "$certificates_package" ] || [ -z "$utils_package" ]; then
+        echo "系统 HTTPS 证书文件缺失，且未找到可验证的本机证书缓存。"
+        echo "已停止 ToDesk 安装，不会关闭 HTTPS 或签名验证。请先连接稳定网络后执行“初始化软件源”，再重试。"
+        return 1
+    fi
+
+    echo "检测到系统证书缺失，正在仅使用本机缓存恢复证书组件..."
+    if ! toolbox_sudo pacman -U --noconfirm --needed "$certificates_package" "$utils_package"; then
+        echo "本机证书缓存恢复失败，已停止 ToDesk 安装。"
+        return 1
+    fi
+    if ! has_trusted_ca_bundle; then
+        echo "证书组件恢复后仍未找到可用证书文件，已停止 ToDesk 安装。"
+        return 1
+    fi
+    echo "系统 HTTPS 证书已恢复，将继续安装 ToDesk。"
+}
+
+ensure_todesk_ca_certificates() {
+    has_trusted_ca_bundle && return 0
+    restore_cached_ca_certificates
+}
+
+install_verified_todesk_package() {
+    local package_path="$1" attempt=1
+
+    case "$TODESK_RETRIES:$TODESK_INSTALL_RETRY_DELAY" in
+        *[!0-9:]*|:* ) echo "ToDesk 重试参数无效。"; return 1 ;;
+    esac
+    [ "$TODESK_RETRIES" -gt 0 ] || {
+        echo "ToDesk 安装重试次数必须大于 0。"
+        return 1
+    }
+
+    while [ "$attempt" -le "$TODESK_RETRIES" ]; do
+        if toolbox_sudo pacman -U --noconfirm "$package_path"; then
+            return 0
+        fi
+        if [ "$attempt" -lt "$TODESK_RETRIES" ]; then
+            echo "ToDesk 安装遇到网络或软件源错误，${TODESK_INSTALL_RETRY_DELAY} 秒后重试（$((attempt + 1))/$TODESK_RETRIES）..."
+            [ "$TODESK_INSTALL_RETRY_DELAY" -eq 0 ] || sleep "$TODESK_INSTALL_RETRY_DELAY"
+        fi
+        attempt=$((attempt + 1))
+    done
+    return 1
+}
+
 install_todesk() {
     local package_path
     local readonly_status
@@ -244,11 +321,12 @@ install_todesk() {
     fi
 
     echo "正在准备pacman密钥..."
+    ensure_todesk_ca_certificates || return 1
     toolbox_sudo pacman-key --init || return 1
     toolbox_sudo pacman-key --populate || return 1
 
     echo "正在安装ToDesk..."
-    if ! toolbox_sudo pacman -U --noconfirm "$package_path"; then
+    if ! install_verified_todesk_package "$package_path"; then
         echo "ToDesk安装失败；未删除原有配置。"
         log "ToDesk安装失败: pacman返回错误"
         return 1

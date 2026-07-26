@@ -162,7 +162,7 @@ game_environment_gui_menu() {
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
             battlenet "战网启动器｜安装并添加到 Steam" \
             ubisoft "育碧｜安装育碧游戏平台并添加到 Steam" \
-            decky-install "安装插件商城｜建议先安装 Steam302 加速｜高级操作" \
+            decky-install "安装插件商城｜停止旧服务后更新｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -211,7 +211,7 @@ game_environment_gui_menu() {
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft
                 ;;
             decky-install)
-                gui_confirm "建议先安装 Steam302 后台加速。继续安装 Decky Loader 插件商城？" && \
+                gui_confirm "会先停止旧 Decky 服务，再校验并更新插件商城；已有插件和设置会保留。是否继续？" && \
                     run_gui_action "安装插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" store
                 ;;
