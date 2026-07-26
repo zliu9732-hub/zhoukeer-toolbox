@@ -58,6 +58,17 @@ GITHUB_MAX_TIME=5
 GITHUB_RETRIES=1
 GITHUB_MIN_SPEED_BYTES=1
 GITHUB_MIN_SPEED_TIME=1
+
+release_sources="$(_github_mirror_list 'https://github.com/example/project/releases/download/v1.0.0/example.zip')"
+printf '%s\n' "$release_sources" | grep -Fxq 'https://ghfast.top/' || {
+    echo "FAIL: GitHub Release 缺少 ghfast.top 测速候选源" >&2
+    exit 1
+}
+raw_sources="$(_github_mirror_list 'https://raw.githubusercontent.com/example/project/main/archive.zip')"
+if printf '%s\n' "$raw_sources" | grep -Fxq 'https://ghfast.top/'; then
+    echo "FAIL: ghfast.top 不应被用于非 Release 下载" >&2
+    exit 1
+fi
 export PATH="$BIN_DIR:/usr/bin:/bin"
 export GITHUB_TEST_CALLS="$CALLS_FILE"
 export GITHUB_TEST_PAYLOAD="$PAYLOAD"

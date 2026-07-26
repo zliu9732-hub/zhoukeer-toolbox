@@ -28,6 +28,7 @@ _github_setting() {
 }
 
 _github_mirror_list() {
+    local url="$1"
     local configured="${GITHUB_MIRRORS:-}"
     local source
 
@@ -37,6 +38,11 @@ _github_mirror_list() {
             *) printf '忽略非 HTTPS GitHub 下载源：%s\n' "$source" >&2 ;;
         esac
     done
+    # GitHub Release 可使用“代理前缀 + 原始 Release URL”的形式。该源和其他
+    # 镜像一样只参与实际文件测速；完整下载仍必须通过调用方的 SHA256 校验。
+    case "$url" in
+        https://github.com/*/releases/download/*) printf '%s\n' "https://ghfast.top/" ;;
+    esac
     printf '%s\n' "https://github.com"
 }
 
@@ -107,7 +113,7 @@ get_ranked_github_sources() {
             esac
             printf '%s|%s|%s\n' "$speed" "$index" "$source" > "$result_file"
         ) &
-    done < <(_github_mirror_list)
+    done < <(_github_mirror_list "$url")
     wait
 
     _GITHUB_SOURCES_RANKED="$(cat "$work_dir"/* 2>/dev/null | \
