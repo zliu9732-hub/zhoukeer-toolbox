@@ -44,12 +44,13 @@ for item in \
     '游戏与插件｜浏览插件商城和游戏组件' \
     '网络与应用商店｜检查网络和软件源状态' \
     '维护与帮助｜系统检查、清理、指南和日志' \
-    '系统设置与双系统｜网络、内存、密码和启动设置'; do
+    '系统设置与双系统｜网络、内存、密码和启动设置' \
+    '免责声明与使用须知｜查看完整图文说明'; do
     assert_contains "$touch_home" "$item" "触控首页缺少：$item"
     assert_contains "$gui_home" "$item" "GUI 首页缺少：$item"
 done
 
-[ "$(printf '%s\n' "$sidebar" | grep -c 'ui_sidebar_item')" -eq 8 ] || fail "触控侧栏不是七分类加退出"
+[ "$(printf '%s\n' "$sidebar" | grep -c 'ui_sidebar_item')" -eq 9 ] || fail "触控侧栏不是八分类加退出"
 
 touch_software="$(function_source "$MAIN_FILE" common_software_menu)"
 gui_software="$(function_source "$GUI_FILE" software_menu)"

@@ -8,7 +8,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
 UI_SIDEBAR_WIDTH=31
 UI_SEPARATOR_COL=34
 UI_PANEL_COL=37
-UI_LAST_ROW=24
+UI_LAST_ROW=29
 UI_PREFERRED_COLUMNS=120
 UI_PREFERRED_ROWS=32
 UI_LAYOUT_RETRY_COUNT=20
@@ -193,7 +193,8 @@ draw_category_frame() {
     ui_sidebar_item 14 support "▤ 维护与帮助" "$selected"
     ui_sidebar_item 17 advanced "! 系统设置与双系统" "$selected" 0
     ui_sidebar_item 20 uninstall "- 卸载已安装" "$selected" 0
-    ui_sidebar_item 23 exit "× 退出工具箱" "$selected" 0
+    ui_sidebar_item 23 notice "▧ 免责声明与使用须知" "$selected" 0
+    ui_sidebar_item 26 exit "× 退出工具箱" "$selected" 0
 
     row=2
     while [ "$row" -le "$UI_LAST_ROW" ]; do

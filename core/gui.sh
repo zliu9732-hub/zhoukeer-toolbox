@@ -701,6 +701,7 @@ main_gui_menu() {
             nav-help "维护与帮助｜系统检查、清理、指南和日志" \
             nav-advanced "系统设置与双系统｜网络、内存、密码和启动设置" \
             nav-uninstall "卸载已安装｜逐项安全移除软件和系统组件" \
+            nav-notice "免责声明与使用须知｜查看完整图文说明" \
             nav-exit "退出工具箱")" || exit 0
 
         case "$choice" in
@@ -711,6 +712,13 @@ main_gui_menu() {
             nav-help) support_gui_menu ;;
             nav-advanced) advanced_tools_gui_menu ;;
             nav-uninstall) uninstall_software_gui_menu ;;
+            nav-notice)
+                if [ -s "$PROJECT_ROOT/assets/disclaimer-usage.png" ]; then
+                    gui_dialog --imgbox "$PROJECT_ROOT/assets/disclaimer-usage.png"
+                else
+                    gui_notice "免责声明图片缺失，请重新更新工具箱。"
+                fi
+                ;;
             nav-exit) exit 0 ;;
         esac
     done

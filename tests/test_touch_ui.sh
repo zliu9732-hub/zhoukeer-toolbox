@@ -34,7 +34,7 @@ run_choice_test '\033[<0;40;22M' "home" "right:22-23:home"
 run_choice_test '\033[<0;8;1M' "agree" "any:1-999:agree"
 run_choice_test '\033[<0;80;19M' "agree" "any:1-999:agree"
 
-grep -Fq 'UI_LAST_ROW=24' "$PROJECT_ROOT/core/ui.sh" || fail "触控画布行数异常"
+grep -Fq 'UI_LAST_ROW=29' "$PROJECT_ROOT/core/ui.sh" || fail "触控画布行数异常"
 grep -Fq 'Font=Noto Sans Mono CJK SC,12' "$PROJECT_ROOT/install.sh" || fail "中文字体大小不是紧凑布局"
 grep -Fq 'TerminalColumns=120' "$PROJECT_ROOT/install.sh" || fail "终端列数不是紧凑布局"
 grep -Fq 'TerminalRows=32' "$PROJECT_ROOT/install.sh" || fail "终端行数不是紧凑布局"
@@ -111,11 +111,12 @@ for entry in \
     'ui_sidebar_item 14 support "▤ 维护与帮助"' \
     'ui_sidebar_item 17 advanced "! 系统设置与双系统"' \
     'ui_sidebar_item 20 uninstall "- 卸载已安装"' \
-    'ui_sidebar_item 23 exit "× 退出工具箱"'; do
+    'ui_sidebar_item 23 notice "▧ 免责声明与使用须知"' \
+    'ui_sidebar_item 26 exit "× 退出工具箱"'; do
     printf '%s\n' "$frame" | grep -Fq -- "$entry" || fail "侧栏缺少：$entry"
 done
 
-[ "$(printf '%s\n' "$frame" | grep -c 'ui_sidebar_item')" -eq 8 ] || fail "侧栏入口数量错误"
+[ "$(printf '%s\n' "$frame" | grep -c 'ui_sidebar_item')" -eq 9 ] || fail "侧栏入口数量错误"
 
 touch_nav="$(sed -n '/^read_touch_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 for mapping in \
@@ -126,7 +127,8 @@ for mapping in \
     'left:14-15:nav-help' \
     'left:17-18:nav-advanced' \
     'left:20-21:nav-uninstall' \
-    'left:23-24:nav-exit'; do
+    'left:23-24:nav-notice' \
+    'left:26-27:nav-exit'; do
     printf '%s\n' "$touch_nav" | grep -Fq -- "$mapping" || fail "导航坐标缺失：$mapping"
 done
 
@@ -154,7 +156,8 @@ for aligned_line in \
     'ui_panel_line 11' \
     'ui_panel_line 14' \
     'ui_panel_line 17' \
-    'ui_panel_line 20'; do
+    'ui_panel_line 20' \
+    'ui_panel_line 23'; do
     printf '%s\n' "$home" | grep -Fq "$aligned_line" || fail "首页说明没有与左侧分类对齐：$aligned_line"
 done
 
@@ -162,4 +165,4 @@ changelog="$(sed -n '/^changelog_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$changelog" | grep -Fq 'CHANGELOG.md' || fail "更新日志文件映射缺失"
 printf '%s\n' "$changelog" | grep -Fq 'VERSION' || fail "更新日志版本映射缺失"
 
-echo "PASS: 八分类触控坐标、返回首页和基础界面配置正确"
+echo "PASS: 九分类触控坐标、返回首页和基础界面配置正确"

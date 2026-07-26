@@ -126,8 +126,7 @@ show_disclaimer() {
         ui_disclaimer_line 10 '\033[38;5;45m' "支持免费使用；禁止商业、销售、转卖或借此盈利"
         ui_disclaimer_line 11 '\033[38;5;45m' "下载内容均来自官方免费发布或开源项目"
         ui_disclaimer_line 12 '\033[38;5;45m' "不包含付费软件本体、破解或商业授权"
-        ui_disclaimer_line 13 '\033[38;5;220m' "第三方软件与插件均从作者或官方发布页获取"
-        ui_disclaimer_line 14 '\033[1;38;5;114m' "欢迎支持作者；若有侵权请及时联系删除"
+        ui_disclaimer_line 13 '\033[1;38;5;220m' "第三方软件与插件均从作者或官方发布页获取；欢迎支持作者"
         ui_disclaimer_button 16 '\033[1;38;5;114m' "点击窗口任意位置开始使用" "点击即表示已阅读上述说明；关闭窗口即可退出"
         # 非全屏 Konsole 的可见行数和触屏坐标可能在首帧不同步，不能再把进入
         # 工具箱限定在固定的第 12–19 行；欢迎页不执行任何系统操作，因此任意
@@ -194,7 +193,8 @@ read_touch_menu() {
         left:14-15:nav-help \
         left:17-18:nav-advanced \
         left:20-21:nav-uninstall \
-        left:23-24:nav-exit \
+        left:23-24:nav-notice \
+        left:26-27:nav-exit \
         "$@"
 }
 
@@ -207,6 +207,7 @@ apply_navigation() {
         nav-maintenance|nav-help) NEXT_CATEGORY="support" ;;
         nav-advanced) NEXT_CATEGORY="advanced" ;;
         nav-uninstall) NEXT_CATEGORY="uninstall" ;;
+        nav-notice) NEXT_CATEGORY="notice" ;;
         # 旧导航 ID 仅保留兼容，不再显示在首页。
         nav-remote) NEXT_CATEGORY="software" ;;
         nav-plugins) NEXT_CATEGORY="games" ;;
@@ -217,6 +218,39 @@ apply_navigation() {
         *) return 1 ;;
     esac
     return 0
+}
+
+usage_notice_menu() {
+    local image_path="$PROJECT_ROOT/assets/disclaimer-usage.png"
+    local shown=0
+    local choice
+
+    # 该页面只展示随工具箱发布的本地图片，不下载、不执行外部内容。
+    disable_mouse_tracking
+    if [ -s "$image_path" ] && command -v kdialog >/dev/null 2>&1; then
+        kdialog --title "周克儿工具箱｜免责声明及使用须知" --imgbox "$image_path" \
+            >/dev/null 2>&1 && shown=1
+    fi
+    enable_mouse_tracking
+
+    if [ "$shown" -eq 1 ]; then
+        NEXT_CATEGORY="home"
+        return 0
+    fi
+
+    while true; do
+        draw_category_frame notice "免责声明及使用须知" "图片查看器不可用，以下为安全提示"
+        ui_panel_line 8 '\033[1;38;5;203m' "完整免责声明图片当前无法打开"
+        ui_panel_line 10 '\033[38;5;250m' "请确认已阅读首次启动页的使用说明与免责声明"
+        ui_panel_line 12 '\033[38;5;250m' "工具箱不会在此页面执行下载、安装或系统修改"
+        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "继续使用工具箱"
+        ui_prompt
+        choice="$(read_touch_menu right:20-21:home)"
+        case "$choice" in
+            nav-*) apply_navigation "$choice"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+    done
 }
 
 common_software_menu() {
@@ -973,6 +1007,7 @@ home_menu() {
     ui_panel_line 14 '\033[1;38;5;114m' "维护与帮助｜系统检查、清理、指南和日志"
     ui_panel_line 17 '\033[1;38;5;203m' "系统设置与双系统｜网络、内存、密码和启动设置"
     ui_panel_line 20 '\033[1;38;5;203m' "卸载已安装｜逐项安全移除软件和系统组件"
+    ui_panel_line 23 '\033[1;38;5;250m' "免责声明与使用须知｜查看完整图文说明"
     ui_prompt
     choice="$(read_touch_menu)"
     apply_navigation "$choice" || true
@@ -994,6 +1029,7 @@ while true; do
         support) support_menu ;;
         advanced) advanced_tools_menu ;;
         uninstall) uninstall_software_menu ;;
+        notice) usage_notice_menu ;;
         # 旧分类仅保留内部兼容，不再显示在首页。
         remote) NEXT_CATEGORY="software" ;;
         plugins|plugins-menu) NEXT_CATEGORY="games" ;;

@@ -7,6 +7,11 @@ MAIN_FILE="$PROJECT_ROOT/main.sh"
 GUI_FILE="$PROJECT_ROOT/core/gui.sh"
 UI_FILE="$PROJECT_ROOT/core/ui.sh"
 
+[ -s "$PROJECT_ROOT/assets/disclaimer-usage.png" ] || {
+    echo "FAIL: 免责声明图片资源缺失" >&2
+    exit 1
+}
+
 fail() {
     echo "FAIL: $*" >&2
     exit 1
@@ -46,11 +51,12 @@ for mapping in \
     'left:14-15:nav-help' \
     'left:17-18:nav-advanced' \
     'left:20-21:nav-uninstall' \
-    'left:23-24:nav-exit'; do
+    'left:23-24:nav-notice' \
+    'left:26-27:nav-exit'; do
     assert_contains "$touch_nav" "$mapping" "触控首页映射缺失：$mapping"
 done
 
-for action in nav-init nav-software nav-games nav-network nav-help nav-advanced nav-uninstall nav-exit; do
+for action in nav-init nav-software nav-games nav-network nav-help nav-advanced nav-uninstall nav-notice nav-exit; do
     assert_contains "$gui_home" "$action" "GUI 首页映射缺失：$action"
 done
 
@@ -59,7 +65,7 @@ for old_action in nav-remote nav-plugins nav-settings nav-dual nav-optimize nav-
     assert_not_contains "$gui_home" "$old_action" "旧导航仍显示在 GUI 首页：$old_action"
 done
 
-for selected in init software games network support advanced uninstall exit; do
+for selected in init software games network support advanced uninstall notice exit; do
     assert_contains "$sidebar" " $selected \"" "侧栏缺少分类：$selected"
 done
 
@@ -69,6 +75,7 @@ touch_network="$(function_source "$MAIN_FILE" network_store_menu)"
 touch_maintenance="$(function_source "$MAIN_FILE" maintenance_menu)"
 touch_advanced="$(function_source "$MAIN_FILE" advanced_tools_menu)"
 touch_accelerator="$(function_source "$MAIN_FILE" steam_accelerator_touch_menu)"
+touch_notice="$(function_source "$MAIN_FILE" usage_notice_menu)"
 
 assert_contains "$touch_software" 'right:14-15:todesk' "常用软件 ToDesk 坐标错误"
 assert_contains "$touch_software" 'right:20-21:anydesk' "常用软件 AnyDesk 坐标错误"
@@ -87,6 +94,8 @@ assert_contains "$touch_uninstall" 'right:19-20:next' "卸载第一页缺少下�
 assert_contains "$touch_uninstall" 'right:21-22:next' "卸载第二页缺少下一页"
 assert_contains "$touch_uninstall" 'right:20-21:previous' "卸载第三页缺少上一页"
 assert_contains "$touch_accelerator" 'right:22-23:home' "Steamcommunity 302 缺少返回首页"
+assert_contains "$touch_notice" 'disclaimer-usage.png' "免责声明图片入口缺失"
+assert_contains "$touch_notice" 'right:20-21:home' "免责声明图片页缺少返回首页"
 
 for file in "$MAIN_FILE" "$GUI_FILE"; do
     source_text="$(cat "$file")"
@@ -110,4 +119,4 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_not_contains "$source_text" 'modules/dual_system_tools.sh" windows-next' "已移除的 Windows 立即切换仍可从菜单执行：$file"
 done
 
-echo "PASS: 八分类导航、关键动作和返回坐标映射一致"
+echo "PASS: 九分类导航、关键动作和返回坐标映射一致"
