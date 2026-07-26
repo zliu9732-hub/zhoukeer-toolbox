@@ -352,13 +352,14 @@ new_machine_preflight() {
         draw_category_frame init "新机初始化" "安装常用软件并配置国内软件源"
         ui_panel_line 7 '\033[1;38;5;220m' "① Steam 键 → 设置 → 系统 → 启用开发者模式"
         ui_panel_line 9 '\033[1;38;5;45m' "② 设置侧栏 → 开发者 → 杂项"
-        ui_panel_line 11 '\033[1;38;5;45m' "③ 开启“使用旧版 X11 桌面模式”"
-        ui_panel_line 13 '\033[1;38;5;220m' "④ 重新进入桌面模式，再开始初始化"
-        ui_panel_line 14 '\033[1;38;5;45m' "继续后将安装国内源、常用软件、Decky 和 ToDesk"
-        ui_touch_button 16 '\033[1;30;48;5;114m' "设置已完成，开始新机初始化" "点击即确认已开启开发者模式和旧版 X11"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回新机必备" "暂不初始化"
+        ui_panel_line 11 '\033[1;38;5;45m' "③ 开启“使用旧版 X11 桌面模式”（ToDesk）"
+        ui_panel_line 13 '\033[1;38;5;220m' "④ 开启“CEF 远程调试”（Decky 插件商城）"
+        ui_panel_line 15 '\033[1;38;5;45m' "⑤ 重新进入桌面模式，再开始初始化"
+        ui_panel_line 16 '\033[1;38;5;45m' "继续后将安装国内源、常用软件、Decky 和 ToDesk"
+        ui_touch_button 18 '\033[1;30;48;5;114m' "设置已完成，开始新机初始化" "点击即确认已开启开发者模式、X11 和 CEF 远程调试"
+        ui_touch_button 20 '\033[1;97;48;5;238m' "返回新机必备" "暂不初始化"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
-        choice="$(read_touch_menu right:16-17:start right:18-19:init right:22-23:home)"
+        choice="$(read_touch_menu right:18-19:start right:20-21:init right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             start)

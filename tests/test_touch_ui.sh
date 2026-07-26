@@ -88,6 +88,12 @@ printf '%s\n' "$password_gate" | grep -Fq 'right:10-11:import' || fail "现有�
 printf '%s\n' "$password_gate" | grep -Fq 'right:15-16:set' || fail "新密码按钮坐标错误"
 grep -Fq 'ensure_gui_password_ready' "$PROJECT_ROOT/core/gui.sh" || fail "图形入口未强制准备密码记录"
 
+new_machine_preflight="$(sed -n '/^new_machine_preflight()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+printf '%s\n' "$new_machine_preflight" | grep -Fq 'CEF 远程调试' || fail "新机初始化没有提示开启 CEF 远程调试"
+printf '%s\n' "$new_machine_preflight" | grep -Fq 'right:18-19:start' || fail "新机初始化确认按钮坐标错误"
+printf '%s\n' "$new_machine_preflight" | grep -Fq 'right:20-21:init' || fail "新机初始化返回按钮坐标错误"
+grep -Fq 'CEF 远程调试' "$PROJECT_ROOT/modules/new_machine.sh" || fail "新机初始化终端说明没有提示 CEF 远程调试"
+
 touch_button="$(sed -n '/^ui_touch_button()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
 printf '%s\n' "$touch_button" | grep -Fq '· %s' || fail "按钮说明没有放到功能名称后方"
 

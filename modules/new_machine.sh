@@ -28,6 +28,7 @@ show_initialization_plan() {
     echo "初始化时会临时关闭 SteamOS 只读保护，完成后自动恢复。"
     echo "ToDesk和Decky会自动读取桌面管理员密码.txt，不会重复要求输入管理员密码。"
     echo "ToDesk使用前须在游戏模式开启开发者模式及“使用旧版X11桌面模式”。"
+    echo "Decky 插件商城使用前还须在游戏模式开启“CEF 远程调试”。"
 }
 
 confirm_initialization() {

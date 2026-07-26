@@ -541,7 +541,7 @@ new_machine_gui_menu() {
         case "$choice" in
             recommended) software_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             advanced-init)
-                gui_confirm "新机初始化会配置国内软件源，并安装多项常用软件、Decky 和 ToDesk。确认继续？" && \
+                gui_confirm "新机初始化会配置国内软件源，并安装多项常用软件、Decky 和 ToDesk。请先在游戏模式开启“启用开发者模式”“使用旧版X11桌面模式”和“CEF远程调试”，再确认继续。" && \
                     run_gui_action "新机初始化" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/new_machine.sh"
                 ;;
