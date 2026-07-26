@@ -179,6 +179,7 @@ game_environment_gui_menu() {
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
             battlenet "战网启动器｜首次需在 Steam 兼容性选择 Proton 10.0-4" \
             ubisoft "育碧｜安装育碧游戏平台并添加到 Steam" \
+            tomoon "ToMoon｜Decky 官方商店插件" \
             decky-install "安装插件商城｜停止旧服务后更新｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -226,6 +227,11 @@ game_environment_gui_menu() {
                 run_gui_action "安装育碧并自动入库" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft
+                ;;
+            tomoon)
+                gui_confirm "ToMoon 将通过 Decky 官方商店安装。安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。是否继续？" && \
+                    run_gui_action "安装 ToMoon" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/decky_bundle.sh" plugin "ToMoon"
                 ;;
             decky-install)
                 gui_confirm "会先停止旧 Decky 服务，再校验并更新插件商城；已有插件和设置会保留。是否继续？" && \

@@ -72,6 +72,8 @@ touch_plugin_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
 gui_games="$(function_source "$GUI_FILE" game_environment_gui_menu)"
 assert_contains "$touch_plugin_page_2" '战网启动器' "插件第二页缺少战网启动器"
 assert_contains "$gui_games" '战网启动器' "GUI 游戏与插件缺少战网启动器"
+assert_contains "$touch_plugin_page_2" 'ToMoon' "插件第二页缺少 ToMoon"
+assert_contains "$gui_games" 'ToMoon' "GUI 游戏与插件缺少 ToMoon"
 touch_software_buttons="$(printf '%s\n' "$touch_software" | grep 'ui_touch_button')"
 gui_software_entries="$(printf '%s\n' "$gui_software" | sed -n '/choice="$(gui_dialog --menu/,/)" || return 0/p')"
 for obsolete_hint in '安装适合 SteamOS 的微信' '安装适合 SteamOS 的 QQ' \
