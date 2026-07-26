@@ -116,6 +116,18 @@ if printf '%s\n' "$startup_update_source" | grep -Fq 'tee -a "$LAUNCH_LOG"'; the
     echo "FAIL: 启动时自动更新仍会把详细输出回显到终端" >&2
     exit 1
 fi
+run_main_source="$(sed -n '/^run_main()/,/^}/p' "$PROJECT_ROOT/launch.sh")"
+printf '%s\n' "$run_main_source" | grep -Fq '工具箱启动中，请耐心等待' || {
+    echo "FAIL: 启动更新前没有显示工具箱启动提示" >&2
+    exit 1
+}
+startup_prompt_line="$(printf '%s\n' "$run_main_source" | grep -n '工具箱启动中，请耐心等待' | head -n 1 | cut -d: -f1)"
+startup_update_line="$(printf '%s\n' "$run_main_source" | grep -n 'run_startup_update' | head -n 1 | cut -d: -f1)"
+if [ -z "$startup_prompt_line" ] || [ -z "$startup_update_line" ] || \
+    [ "$startup_prompt_line" -ge "$startup_update_line" ]; then
+    echo "FAIL: 工具箱启动提示没有在自动更新前显示" >&2
+    exit 1
+fi
 
 : > "$CURL_LOG"
 run_update > "$STATE_DIR/latest.output"
