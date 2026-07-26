@@ -8,7 +8,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
 UI_SIDEBAR_WIDTH=31
 UI_SEPARATOR_COL=34
 UI_PANEL_COL=37
-UI_LAST_ROW=29
+UI_LAST_ROW=24
 UI_PREFERRED_COLUMNS=120
 UI_PREFERRED_ROWS=32
 UI_LAYOUT_RETRY_COUNT=20
@@ -185,16 +185,17 @@ draw_category_frame() {
     ui_move 1 3
     printf '\033[1;38;5;245m功能导航\033[0m'
 
-    # 两行点击区配合更高窗口，为每一类功能留出清晰的阅读间距。
+    # 侧栏改为连续两行一项：即使 Konsole 未能放大窗口，九个入口也都在
+    # 默认 24 行画布内可见，不能把新入口排到窗口底部之外。
     ui_sidebar_item 2 init "◆ 新机必备" "$selected"
-    ui_sidebar_item 5 software "▣ 常用软件" "$selected"
-    ui_sidebar_item 8 games "✦ 游戏与插件" "$selected"
-    ui_sidebar_item 11 network "⌁ 网络与应用商店" "$selected"
-    ui_sidebar_item 14 support "▤ 维护与帮助" "$selected"
-    ui_sidebar_item 17 advanced "! 系统设置与双系统" "$selected" 0
-    ui_sidebar_item 20 uninstall "- 卸载已安装" "$selected" 0
-    ui_sidebar_item 23 notice "▧ 免责声明与使用须知" "$selected" 0
-    ui_sidebar_item 26 exit "× 退出工具箱" "$selected" 0
+    ui_sidebar_item 4 software "▣ 常用软件" "$selected"
+    ui_sidebar_item 6 games "✦ 游戏与插件" "$selected"
+    ui_sidebar_item 8 network "⌁ 网络与应用商店" "$selected"
+    ui_sidebar_item 10 support "▤ 维护与帮助" "$selected"
+    ui_sidebar_item 12 advanced "! 系统设置与双系统" "$selected" 0
+    ui_sidebar_item 14 uninstall "- 卸载已安装" "$selected" 0
+    ui_sidebar_item 16 notice "▧ 免责声明与须知" "$selected" 0
+    ui_sidebar_item 18 exit "× 退出工具箱" "$selected" 0
 
     row=2
     while [ "$row" -le "$UI_LAST_ROW" ]; do

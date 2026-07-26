@@ -45,14 +45,14 @@ sidebar="$(function_source "$UI_FILE" draw_category_frame)"
 
 for mapping in \
     'left:2-3:nav-init' \
-    'left:5-6:nav-software' \
-    'left:8-9:nav-games' \
-    'left:11-12:nav-network' \
-    'left:14-15:nav-help' \
-    'left:17-18:nav-advanced' \
-    'left:20-21:nav-uninstall' \
-    'left:23-24:nav-notice' \
-    'left:26-27:nav-exit'; do
+    'left:4-5:nav-software' \
+    'left:6-7:nav-games' \
+    'left:8-9:nav-network' \
+    'left:10-11:nav-help' \
+    'left:12-13:nav-advanced' \
+    'left:14-15:nav-uninstall' \
+    'left:16-17:nav-notice' \
+    'left:18-19:nav-exit'; do
     assert_contains "$touch_nav" "$mapping" "触控首页映射缺失：$mapping"
 done
 

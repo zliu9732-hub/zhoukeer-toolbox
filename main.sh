@@ -193,14 +193,14 @@ ensure_password_ready() {
 read_touch_menu() {
     read_menu_choice \
         left:2-3:nav-init \
-        left:5-6:nav-software \
-        left:8-9:nav-games \
-        left:11-12:nav-network \
-        left:14-15:nav-help \
-        left:17-18:nav-advanced \
-        left:20-21:nav-uninstall \
-        left:23-24:nav-notice \
-        left:26-27:nav-exit \
+        left:4-5:nav-software \
+        left:6-7:nav-games \
+        left:8-9:nav-network \
+        left:10-11:nav-help \
+        left:12-13:nav-advanced \
+        left:14-15:nav-uninstall \
+        left:16-17:nav-notice \
+        left:18-19:nav-exit \
         "$@"
 }
 
@@ -1007,13 +1007,13 @@ home_menu() {
 
     draw_category_frame "" "" ""
     ui_panel_line 2 '\033[1;38;5;220m' "新机必备｜第一次使用从这里开始"
-    ui_panel_line 5 '\033[1;38;5;45m' "常用软件｜安装聊天、浏览器和远程工具"
-    ui_panel_line 8 '\033[1;38;5;45m' "游戏与插件｜浏览插件商城和游戏组件"
-    ui_panel_line 11 '\033[1;38;5;45m' "网络与应用商店｜检查网络和软件源状态"
-    ui_panel_line 14 '\033[1;38;5;114m' "维护与帮助｜系统检查、清理、指南和日志"
-    ui_panel_line 17 '\033[1;38;5;203m' "系统设置与双系统｜网络、内存、密码和启动设置"
-    ui_panel_line 20 '\033[1;38;5;203m' "卸载已安装｜逐项安全移除软件和系统组件"
-    ui_panel_line 23 '\033[1;38;5;250m' "免责声明与使用须知｜查看完整图文说明"
+    ui_panel_line 4 '\033[1;38;5;45m' "常用软件｜安装聊天、浏览器和远程工具"
+    ui_panel_line 6 '\033[1;38;5;45m' "游戏与插件｜浏览插件商城和游戏组件"
+    ui_panel_line 8 '\033[1;38;5;45m' "网络与应用商店｜检查网络和软件源状态"
+    ui_panel_line 10 '\033[1;38;5;114m' "维护与帮助｜系统检查、清理、指南和日志"
+    ui_panel_line 12 '\033[1;38;5;203m' "系统设置与双系统｜网络、内存、密码和启动设置"
+    ui_panel_line 14 '\033[1;38;5;203m' "卸载已安装｜逐项安全移除软件和系统组件"
+    ui_panel_line 16 '\033[1;38;5;250m' "免责声明与使用须知｜查看完整图文说明"
     ui_prompt
     choice="$(read_touch_menu)"
     apply_navigation "$choice" || true

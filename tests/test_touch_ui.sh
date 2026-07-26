@@ -34,7 +34,7 @@ run_choice_test '\033[<0;40;22M' "home" "right:22-23:home"
 run_choice_test '\033[<0;8;1M' "agree" "any:1-999:agree"
 run_choice_test '\033[<0;80;19M' "agree" "any:1-999:agree"
 
-grep -Fq 'UI_LAST_ROW=29' "$PROJECT_ROOT/core/ui.sh" || fail "触控画布行数异常"
+grep -Fq 'UI_LAST_ROW=24' "$PROJECT_ROOT/core/ui.sh" || fail "触控画布行数异常"
 grep -Fq 'Font=Noto Sans Mono CJK SC,12' "$PROJECT_ROOT/install.sh" || fail "中文字体大小不是紧凑布局"
 grep -Fq 'TerminalColumns=120' "$PROJECT_ROOT/install.sh" || fail "终端列数不是紧凑布局"
 grep -Fq 'TerminalRows=32' "$PROJECT_ROOT/install.sh" || fail "终端行数不是紧凑布局"
@@ -109,14 +109,14 @@ printf '%s\n' "$installer_entry" | grep -Fq 'DOMAIN_URL' || fail "短安装入�
 frame="$(sed -n '/^draw_category_frame()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
 for entry in \
     'ui_sidebar_item 2 init "◆ 新机必备"' \
-    'ui_sidebar_item 5 software "▣ 常用软件"' \
-    'ui_sidebar_item 8 games "✦ 游戏与插件"' \
-    'ui_sidebar_item 11 network "⌁ 网络与应用商店"' \
-    'ui_sidebar_item 14 support "▤ 维护与帮助"' \
-    'ui_sidebar_item 17 advanced "! 系统设置与双系统"' \
-    'ui_sidebar_item 20 uninstall "- 卸载已安装"' \
-    'ui_sidebar_item 23 notice "▧ 免责声明与使用须知"' \
-    'ui_sidebar_item 26 exit "× 退出工具箱"'; do
+    'ui_sidebar_item 4 software "▣ 常用软件"' \
+    'ui_sidebar_item 6 games "✦ 游戏与插件"' \
+    'ui_sidebar_item 8 network "⌁ 网络与应用商店"' \
+    'ui_sidebar_item 10 support "▤ 维护与帮助"' \
+    'ui_sidebar_item 12 advanced "! 系统设置与双系统"' \
+    'ui_sidebar_item 14 uninstall "- 卸载已安装"' \
+    'ui_sidebar_item 16 notice "▧ 免责声明与须知"' \
+    'ui_sidebar_item 18 exit "× 退出工具箱"'; do
     printf '%s\n' "$frame" | grep -Fq -- "$entry" || fail "侧栏缺少：$entry"
 done
 
@@ -125,14 +125,14 @@ done
 touch_nav="$(sed -n '/^read_touch_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 for mapping in \
     'left:2-3:nav-init' \
-    'left:5-6:nav-software' \
-    'left:8-9:nav-games' \
-    'left:11-12:nav-network' \
-    'left:14-15:nav-help' \
-    'left:17-18:nav-advanced' \
-    'left:20-21:nav-uninstall' \
-    'left:23-24:nav-notice' \
-    'left:26-27:nav-exit'; do
+    'left:4-5:nav-software' \
+    'left:6-7:nav-games' \
+    'left:8-9:nav-network' \
+    'left:10-11:nav-help' \
+    'left:12-13:nav-advanced' \
+    'left:14-15:nav-uninstall' \
+    'left:16-17:nav-notice' \
+    'left:18-19:nav-exit'; do
     printf '%s\n' "$touch_nav" | grep -Fq -- "$mapping" || fail "导航坐标缺失：$mapping"
 done
 
@@ -155,13 +155,13 @@ printf '%s\n' "$games" | grep -Fq 'draw_category_frame games "游戏与插件｜
 home="$(sed -n '/^home_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 for aligned_line in \
     'ui_panel_line 2' \
-    'ui_panel_line 5' \
+    'ui_panel_line 4' \
+    'ui_panel_line 6' \
     'ui_panel_line 8' \
-    'ui_panel_line 11' \
+    'ui_panel_line 10' \
+    'ui_panel_line 12' \
     'ui_panel_line 14' \
-    'ui_panel_line 17' \
-    'ui_panel_line 20' \
-    'ui_panel_line 23'; do
+    'ui_panel_line 16'; do
     printf '%s\n' "$home" | grep -Fq "$aligned_line" || fail "首页说明没有与左侧分类对齐：$aligned_line"
 done
 
