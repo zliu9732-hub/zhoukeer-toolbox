@@ -190,7 +190,11 @@ memory_write_config() {
     local target="$1"
     local source="$2"
 
-    if toolbox_sudo test -e "$target" && \
+    if toolbox_sudo test -e "$target" && ! toolbox_sudo test -f "$target"; then
+        echo "配置路径不是普通文件，未覆盖：$target"
+        return 1
+    fi
+    if toolbox_sudo test -f "$target" && \
        ! toolbox_sudo grep -Fq '# Managed by Zhoukeer Toolbox' "$target"; then
         echo "发现非工具箱管理的配置，未覆盖：$target"
         return 1
@@ -202,7 +206,11 @@ memory_write_config() {
 memory_config_target_is_safe() {
     local target="$1"
 
-    if toolbox_sudo test -e "$target" && \
+    if toolbox_sudo test -e "$target" && ! toolbox_sudo test -f "$target"; then
+        echo "配置路径不是普通文件，未覆盖：$target"
+        return 1
+    fi
+    if toolbox_sudo test -f "$target" && \
        ! toolbox_sudo grep -Fq '# Managed by Zhoukeer Toolbox' "$target"; then
         echo "发现非工具箱管理的配置，未覆盖：$target"
         return 1
@@ -325,9 +333,6 @@ memory_optimize() {
         echo "管理员权限验证失败，未修改虚拟内存。"
         return 1
     }
-    memory_config_target_is_safe "$MEMORY_ZRAM_CONFIG" || return 1
-    memory_config_target_is_safe "$MEMORY_SYSCTL_CONFIG" || return 1
-    memory_config_target_is_safe "$MEMORY_SYSTEMD_DIR/$unit_name" || return 1
 
     if ! memory_swapfile_is_complete "$MEMORY_SWAPFILE_PATH" "$target_gib" && \
        memory_swapfile_is_complete "$MEMORY_FALLBACK_SWAPFILE_PATH" "$target_gib"; then
@@ -335,6 +340,9 @@ memory_optimize() {
         echo "检测到工具箱独立 swap，继续使用：$MEMORY_SWAPFILE_PATH"
     fi
     unit_name="$(memory_swap_unit_name)" || return 1
+    memory_config_target_is_safe "$MEMORY_ZRAM_CONFIG" || return 1
+    memory_config_target_is_safe "$MEMORY_SYSCTL_CONFIG" || return 1
+    memory_config_target_is_safe "$MEMORY_SYSTEMD_DIR/$unit_name" || return 1
     if memory_swapfile_is_complete "$MEMORY_SWAPFILE_PATH" "$target_gib"; then
         echo "[已设置] ${target_gib}GB 磁盘 swap 文件完整，无需重复创建。"
     else

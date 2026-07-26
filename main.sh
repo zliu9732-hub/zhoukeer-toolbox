@@ -129,8 +129,9 @@ show_disclaimer() {
         ui_disclaimer_line 13 '\033[1;38;5;114m' "欢迎支持作者；若有侵权请及时联系删除"
         ui_disclaimer_button 15 '\033[1;38;5;114m' "知悉并开始使用" "点击即表示已阅读上述说明"
         ui_disclaimer_button 18 '\033[1;38;5;203m' "退出工具箱" "暂不使用"
-        # 触屏落点在文字边缘时可能偏移一行，扩大热区但不让两个按钮重叠。
-        choice="$(read_menu_choice any:14-17:agree any:18-21:exit)"
+        # Konsole 刚启动或从非全屏切换时，触屏坐标可能比首帧晚刷新数行；
+        # 把“知悉”扩展至按钮周围完整卡片，退出区仍从下一块区域独立开始。
+        choice="$(read_menu_choice any:12-19:agree any:20-24:exit)"
         case "$choice" in
             agree)
                 if [ "${ZHOUKEER_STARTUP_SPLASH:-0}" = "1" ]; then

@@ -148,6 +148,7 @@ grep -Fq '"Language"        "schinese"' "$COMPAT_CONFIG" || {
 NATIVE_STEAM="$TMP_ROOT/native-steam"
 NATIVE_SHORTCUTS="$NATIVE_STEAM/userdata/123/config/shortcuts.vdf"
 NATIVE_INSTALLER="$TMP_ROOT/native-app/Battle.net-Setup.exe"
+NATIVE_APP_DIR="$TMP_ROOT/native-apps"
 mkdir -p "$(dirname "$NATIVE_SHORTCUTS")" "$(dirname "$NATIVE_INSTALLER")" \
     "$NATIVE_STEAM/config" "$NATIVE_STEAM/steamapps/compatdata"
 : > "$NATIVE_INSTALLER"
@@ -158,6 +159,10 @@ native_installer_app_id="$(python3 "$HELPER" --shortcut-file "$NATIVE_SHORTCUTS"
     --name "战网启动器" --exe "$NATIVE_INSTALLER")"
 NATIVE_PREFIX="$NATIVE_STEAM/steamapps/compatdata/$native_installer_app_id"
 NATIVE_EXE="$NATIVE_PREFIX/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe"
+NATIVE_PROTON="$TMP_ROOT/native-proton/proton"
+mkdir -p "$(dirname "$NATIVE_PROTON")"
+printf '#!/bin/bash\nexit 0\n' > "$NATIVE_PROTON"
+chmod +x "$NATIVE_PROTON"
 mkdir -p "$FAKE_HOME/Desktop"
 cat > "$FAKE_HOME/Desktop/战网启动器.desktop" <<'DESKTOP'
 [Desktop Entry]
@@ -193,13 +198,14 @@ mkdir -p "$(dirname "$NATIVE_EXE")"
 : > "$NATIVE_EXE"
 MODULE="$MODULE" NATIVE_EXE="$NATIVE_EXE" NATIVE_PREFIX="$NATIVE_PREFIX" \
     NATIVE_STEAM="$NATIVE_STEAM" NATIVE_SHORTCUTS="$NATIVE_SHORTCUTS" \
+    NATIVE_PROTON="$NATIVE_PROTON" ZHOUKEER_APP_DIR="$NATIVE_APP_DIR" \
     HOME="$FAKE_HOME" bash -c '
         source "$MODULE"
         launcher_details battlenet
         stop_steam_for_vdf() { :; }
         start_steam() { :; }
         finish_battlenet_steam_entry "$NATIVE_STEAM" "$NATIVE_SHORTCUTS" \
-            "$NATIVE_EXE" "$NATIVE_PREFIX"
+            "$NATIVE_EXE" "$NATIVE_PREFIX" "$NATIVE_PROTON"
     ' >/dev/null
 python3 - "$NATIVE_SHORTCUTS" "$NATIVE_EXE" "$NATIVE_PREFIX" <<'PY'
 from pathlib import Path
@@ -210,8 +216,9 @@ assert sys.argv[2].encode() in data
 assert b"Battle.net-Setup.exe" not in data
 assert f'STEAM_COMPAT_DATA_PATH="{sys.argv[3]}" %command%'.encode() in data
 PY
-grep -Fq 'Exec=steam steam://rungameid/' "$FAKE_HOME/Desktop/战网启动器.desktop" || {
-    echo "FAIL: Steam 原生战网流程没有创建桌面启动入口" >&2
+grep -Fq "Exec=$NATIVE_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" \
+    "$FAKE_HOME/Desktop/战网启动器.desktop" || {
+    echo "FAIL: Steam 原生战网流程没有创建独立桌面启动入口" >&2
     exit 1
 }
 [ "$(grep -c '"proton_experimental"' "$NATIVE_STEAM/config/config.vdf")" -eq 2 ] || {
@@ -546,8 +553,17 @@ assert b"Battle.net Launcher.exe" in data
 assert b"Battle.net-Setup.exe" not in data
 assert b"STEAM_COMPAT_DATA_PATH=" in data
 PY
-grep -Fq 'Exec=steam steam://rungameid/' "$FAKE_HOME/Desktop/战网启动器.desktop" || {
-    echo "FAIL: 战网桌面入口没有通过 Steam 启动" >&2
+grep -Fq "Exec=$EXISTING_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" \
+    "$FAKE_HOME/Desktop/战网启动器.desktop" || {
+    echo "FAIL: 战网桌面入口没有使用独立启动包装器" >&2
+    exit 1
+}
+if grep -Fq 'steam://rungameid/' "$FAKE_HOME/Desktop/战网启动器.desktop"; then
+    echo "FAIL: 战网桌面入口仍依赖 Steam rungameid 链接" >&2
+    exit 1
+fi
+grep -Fq 'PROTON_RUNNER=' "$EXISTING_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" || {
+    echo "FAIL: 战网桌面启动包装器没有固定兼容层" >&2
     exit 1
 }
 grep -Fq '"proton_experimental"' "$EXISTING_STEAM/config/config.vdf" || {

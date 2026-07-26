@@ -31,13 +31,27 @@ printf 'MemTotal:       33554432 kB\n' > "$MEMINFO"
 [ "$(recommended_swap_gib)" = "16" ] || fail "大内存设备未使用 16GB 上限"
 printf 'MemTotal:       16384000 kB\n' > "$MEMINFO"
 
+DIRECTORY_TARGET="$TMP_ROOT/not-a-unit-file"
+mkdir -p "$DIRECTORY_TARGET"
+toolbox_sudo() { "$@"; }
+if memory_config_target_is_safe "$DIRECTORY_TARGET" > "$TMP_ROOT/directory-target-output"; then
+    fail "目录被错误地当成了可写配置文件"
+fi
+grep -Fq '配置路径不是普通文件' "$TMP_ROOT/directory-target-output" || \
+    fail "目录配置的安全错误提示缺失"
+
 CREATED="$TMP_ROOT/created"
 ACTIVE="$TMP_ROOT/active"
 SYSTEMCTL_LOG="$TMP_ROOT/systemctl.log"
 detect_platform() { IS_STEAMOS=1; }
 id() { [ "${1:-}" = "-u" ] && printf '1000\n'; }
 require_command() { return 0; }
-memory_config_target_is_safe() { return 0; }
+SAFE_TARGETS="$TMP_ROOT/safe-targets"
+memory_config_target_is_safe() {
+    printf '%s\n' "$1" >> "$SAFE_TARGETS"
+    [ "$1" != "$ZHOUKEER_SYSTEMD_DIR/" ] || return 1
+    return 0
+}
 memory_swap_unit_name() { printf 'test-swap.swap\n'; }
 memory_swapfile_is_complete() { return 1; }
 memory_create_swapfile() {
@@ -60,6 +74,8 @@ toolbox_sudo() {
 
 memory_optimize > "$TMP_ROOT/output"
 [ "$(cat "$CREATED")" = "16" ] || fail "一键优化未同时创建推荐磁盘 swap"
+grep -Fxq "$ZHOUKEER_SYSTEMD_DIR/test-swap.swap" "$SAFE_TARGETS" || \
+    fail "swap systemd 单元路径未在安全检查前生成"
 grep -Fq 'zram-size = ram / 2' "$ZHOUKEER_ZRAM_CONFIG" || fail "zram 未设置为内存一半"
 grep -Fq 'swap-priority = 100' "$ZHOUKEER_ZRAM_CONFIG" || fail "zram 优先级错误"
 grep -Fq 'vm.swappiness = 1' "$ZHOUKEER_MEMORY_SYSCTL_CONFIG" || fail "swappiness 配置错误"

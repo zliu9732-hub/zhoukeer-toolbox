@@ -628,8 +628,8 @@ prepare_battlenet_steam_installer() {
 }
 
 finish_battlenet_steam_entry() {
-    local steam_root="$1" shortcut_file="$2" launcher_exe="$3" prefix_dir="$4"
-    local launch_options app_id artwork_alt_app_id game_id icon_path
+    local steam_root="$1" shortcut_file="$2" launcher_exe="$3" prefix_dir="$4" proton_runner="$5"
+    local launch_options app_id artwork_alt_app_id icon_path wrapper
 
     icon_path="$PROJECT_ROOT/assets/game-launchers/battlenet.png"
     launch_options="STEAM_COMPAT_DATA_PATH=\"$prefix_dir\" %command%"
@@ -646,11 +646,13 @@ finish_battlenet_steam_entry() {
         --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
     artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
-    game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
-        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
     set_steam_proton_experimental "$steam_root" "$app_id" || return 1
     install_launcher_steam_artwork battlenet "$shortcut_file" "$app_id" "$artwork_alt_app_id" || return 1
-    create_steam_desktop_shortcut battlenet "$game_id" || return 1
+    # 部分 Steam 客户端会在桌面 steam://rungameid 链接启动时丢失非 Steam
+    # 游戏配置，改用与 Steam 条目同一前缀的包装器，避免“游戏配置文件不可用”。
+    wrapper="$(create_launcher_wrapper battlenet "$steam_root" "$prefix_dir" "$proton_runner" \
+        "$launcher_exe" "$APP_DIR/game-launchers/battlenet")" || return 1
+    create_launcher_desktop_shortcut battlenet "$wrapper" || return 1
     start_steam
     echo "战网启动器已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
 }
@@ -684,7 +686,7 @@ install_launcher() {
             prepare_battlenet_steam_installer "$steam_root" "$installer_file" "$shortcut_file"
             return
         fi
-        finish_battlenet_steam_entry "$steam_root" "$shortcut_file" "$launcher_exe" "$prefix"
+        finish_battlenet_steam_entry "$steam_root" "$shortcut_file" "$launcher_exe" "$prefix" "$runner"
         return
     fi
 
