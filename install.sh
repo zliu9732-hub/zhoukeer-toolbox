@@ -540,7 +540,7 @@ fi
 
 DESKTOP_FILE="$HOME/Desktop/周克儿工具箱.desktop"
 APPLICATION_FILE="$HOME/.local/share/applications/zhoukeer-toolbox.desktop"
-ICON_PATH="$INSTALL_DIR/assets/icon-round.png"
+ICON_PATH="$INSTALL_DIR/assets/icon-toolbox-deck.png"
 BACKGROUND_PATH="$INSTALL_DIR/assets/background.jpg"
 WELCOME_BACKGROUND_PATH="$INSTALL_DIR/assets/welcome.jpg"
 KONSOLE_PROFILE="$HOME/.local/share/konsole/ZhoukeerToolbox.profile"

@@ -67,6 +67,7 @@ fi
 grep -Fq 'ZHOUKEER_SKIP_DISCLAIMER' "$PROJECT_ROOT/main.sh" || fail "常规工具箱没有跳过重复免责声明"
 grep -Fq 'WELCOME_BACKGROUND_PATH' "$PROJECT_ROOT/install.sh" || fail "安装程序没有配置欢迎页背景"
 grep -Fq 'assets/welcome.jpg' "$PROJECT_ROOT/install.sh" || fail "安装程序没有使用压缩后的欢迎页背景"
+grep -Fq 'assets/icon-toolbox-deck.png' "$PROJECT_ROOT/install.sh" || fail "安装程序没有使用新的工具箱桌面图标"
 grep -Fq 'ZhoukeerToolboxSplash' "$PROJECT_ROOT/install.sh" || fail "安装程序没有生成欢迎页主题"
 
 touch_button="$(sed -n '/^ui_touch_button()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
