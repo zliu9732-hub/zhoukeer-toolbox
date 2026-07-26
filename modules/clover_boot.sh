@@ -78,6 +78,44 @@ clover_find_mounted_esp() {
     return 1
 }
 
+clover_find_unmounted_esp() {
+    local device
+    local filesystem
+    local mountpoint
+    local output
+
+    # 当 NVRAM 记录指向空 /esp 时，继续检查其余尚未挂载的 FAT 分区。
+    # 只做临时挂载和只读文件存在性确认；不创建目录、不写入 EFI。
+    command -v udisksctl >/dev/null 2>&1 || return 1
+    while read -r device filesystem; do
+        case "$device" in
+            /dev/*) ;;
+            *) continue ;;
+        esac
+        case "$filesystem" in
+            vfat|fat|fat32|msdos) ;;
+            *) continue ;;
+        esac
+        mountpoint="$(findmnt -rn -S "$device" -o TARGET 2>/dev/null | head -n 1)"
+        [ -z "$mountpoint" ] || continue
+
+        output="$(udisksctl mount --block-device "$device" 2>&1)" || continue
+        mountpoint="$(findmnt -rn -S "$device" -o TARGET 2>/dev/null | head -n 1)"
+        [ -n "$mountpoint" ] || \
+            mountpoint="$(printf '%s\n' "$output" | sed -n 's/^Mounted .* at \(.*\)\.$/\1/p' | tail -n 1)"
+        if [ -d "$mountpoint/EFI" ] && \
+            find "$mountpoint/EFI" -maxdepth 3 -type f \
+                \( -iname steamcl.efi -o -iname CLOVERX64.efi \) -print -quit 2>/dev/null | grep -q .; then
+            CLOVER_ESP_FOUND="$mountpoint"
+            CLOVER_ESP_MOUNTED_BY_TOOLBOX=1
+            CLOVER_ESP_MOUNT_DEVICE="$device"
+            return 0
+        fi
+        udisksctl unmount --block-device "$device" >/dev/null 2>&1 || true
+    done < <(lsblk -rpn -o NAME,FSTYPE 2>/dev/null)
+    return 1
+}
+
 clover_find_esp() {
     local candidate detected device mountpoint output
 
@@ -103,6 +141,7 @@ clover_find_esp() {
     done
 
     clover_find_mounted_esp && return 0
+    clover_find_unmounted_esp && return 0
 
     device="$(clover_device_from_nvram || true)"
     if [ -n "$device" ]; then

@@ -91,4 +91,36 @@ CLOVER_ESP_FOUND=""
 clover_find_mounted_esp || fail "没有从已挂载 FAT 分区找到实际 EFI"
 [ "$CLOVER_ESP_FOUND" = "$FALLBACK_ESP" ] || fail "已挂载 EFI 兜底路径选择错误"
 
+UNMOUNTED_ESP="$TMP_ROOT/unmounted-esp"
+mkdir -p "$UNMOUNTED_ESP/EFI/steamos"
+printf 'steam\n' > "$UNMOUNTED_ESP/EFI/steamos/steamcl.efi"
+lsblk() {
+    case " $* " in
+        *' NAME,FSTYPE '*) printf '/dev/unmountedesp vfat\n' ;;
+        *) return 1 ;;
+    esac
+}
+findmnt() {
+    case " $* " in
+        *' -S /dev/unmountedesp '*) return 1 ;;
+        *) return 1 ;;
+    esac
+}
+udisksctl() {
+    printf '%s\n' "$*" >> "$CALLS"
+    case "${1:-}" in
+        mount) printf 'Mounted /dev/unmountedesp at %s.\n' "$UNMOUNTED_ESP" ;;
+        unmount) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+CLOVER_ESP_FOUND=""
+CLOVER_ESP_MOUNTED_BY_TOOLBOX=0
+CLOVER_ESP_MOUNT_DEVICE=""
+clover_find_unmounted_esp || fail "没有从未挂载 FAT 分区找到实际 EFI"
+[ "$CLOVER_ESP_FOUND" = "$UNMOUNTED_ESP" ] || fail "未挂载 EFI 兜底路径选择错误"
+[ "$CLOVER_ESP_MOUNTED_BY_TOOLBOX" = '1' ] || fail "未记录未挂载 EFI 的临时挂载状态"
+clover_release_esp_mount
+grep -Fq 'unmount --block-device /dev/unmountedesp' "$CALLS" || fail "未挂载 EFI 检查后没有释放挂载"
+
 echo "PASS: 可从现有 Clover NVRAM 启动项反查、临时挂载并释放 EFI"
