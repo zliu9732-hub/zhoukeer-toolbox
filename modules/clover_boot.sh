@@ -292,10 +292,22 @@ clover_prepare_staging() {
         'CloverV2/themespkg/Glass/*' \
         -d "$extracted" || return 1
 
-    [ -s "$extracted/CloverV2/EFI/CLOVER/CLOVERX64.efi" ] || return 1
-    [ -f "$CLOVER_CONFIG_SOURCE" ] || return 1
-    [ -f "$CLOVER_THEME_SOURCE/background.png" ] || return 1
-    [ -f "$CLOVER_THEME_SOURCE/theme.plist" ] || return 1
+    [ -s "$extracted/CloverV2/EFI/CLOVER/CLOVERX64.efi" ] || {
+        echo "解压后缺少可用的 CLOVERX64.efi。" >&2
+        return 1
+    }
+    [ -f "$CLOVER_CONFIG_SOURCE" ] || {
+        echo "工具箱缺少 Clover 配置文件：$CLOVER_CONFIG_SOURCE" >&2
+        return 1
+    }
+    [ -f "$CLOVER_THEME_SOURCE/background.png" ] || {
+        echo "工具箱缺少 Clover 主题背景：$CLOVER_THEME_SOURCE/background.png" >&2
+        return 1
+    }
+    [ -f "$CLOVER_THEME_SOURCE/theme.plist" ] || {
+        echo "工具箱缺少 Clover 主题配置：$CLOVER_THEME_SOURCE/theme.plist" >&2
+        return 1
+    }
 
     cp -- "$extracted/CloverV2/EFI/CLOVER/CLOVERX64.efi" "$staged/CLOVERX64.efi" || return 1
     cp -- "$CLOVER_CONFIG_SOURCE" "$staged/config.plist" || return 1
@@ -378,7 +390,7 @@ clover_delete() {
 
 clover_install() {
     local work_dir archive staged target backup_root timestamp
-    local existing_backup original_backup original_order current_order new_order
+    local existing_backup original_backup original_order current_order new_order staging_output
     local temporary_target boot_number new_boot_entry=0 create_output available_kb
 
     require_steamos || return 1
@@ -418,11 +430,13 @@ clover_install() {
         rm -rf -- "$work_dir"
         return 1
     fi
-    staged="$(clover_prepare_staging "$archive" "$work_dir")" || {
+    if ! staging_output="$(clover_prepare_staging "$archive" "$work_dir" 2>&1)"; then
+        printf '%s\n' "$staging_output"
         rm -rf -- "$work_dir"
         echo "Clover 安装文件准备失败，EFI 未修改。"
         return 1
-    }
+    fi
+    staged="$staging_output"
 
     target="$CLOVER_ESP/EFI/CLOVER"
     backup_root="$CLOVER_ESP/EFI/zhoukeer-backups"

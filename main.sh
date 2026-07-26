@@ -621,7 +621,7 @@ dual_system_menu() {
                     bash "$PROJECT_ROOT/modules/clover_boot.sh" install
                 ;;
             windows-shortcut)
-                confirm_and_run "创建一键切换 Windows" "只创建桌面图标；使用时仍需确认，仅改变下一次启动目标" \
+                confirm_and_run "创建一键切换 Windows" "只创建桌面图标；点击图标会立即切换下一次启动目标" \
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-shortcut
                 ;;
             health) run_action "双系统健康检查" bash "$PROJECT_ROOT/modules/dual_system_tools.sh" health ;;

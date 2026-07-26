@@ -37,7 +37,7 @@ log() { printf '%s\n' "$*" >> "$LOG_FILE"; }
 toolbox_sudo() { "$@"; }
 tf_card_confirm_format() { return 0; }
 repair_drive_confirm() { return 0; }
-confirm_windows_reboot() { return 0; }
+confirm_windows_reboot() { return 1; }
 
 lsblk() {
     case " $* " in

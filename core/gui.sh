@@ -343,7 +343,7 @@ dual_system_menu() {
                     bash "$PROJECT_ROOT/modules/clover_boot.sh" install
                 ;;
             windows-shortcut)
-                gui_confirm "将创建一键切换 Windows 桌面图标；使用时仍需确认，且只改变下一次启动目标。是否继续？" && \
+                gui_confirm "将创建一键切换 Windows 桌面图标；点击图标会立即切换下一次启动目标，且不永久修改默认启动顺序。是否继续？" && \
                     run_gui_action "创建一键切换 Windows" \
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-shortcut
                 ;;

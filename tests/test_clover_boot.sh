@@ -142,5 +142,10 @@ ln -s ../../outside "$BAD_ROOT/CloverV2/themespkg/Glass/unsafe-link"
 if clover_archive_is_safe "$BAD_ZIP" >/dev/null 2>&1; then
     fail "包含符号链接的 Clover 压缩包未被拒绝"
 fi
+if clover_prepare_staging "$BAD_ZIP" "$TMP_ROOT/bad-stage" >"$TMP_ROOT/bad-stage-output" 2>&1; then
+    fail "不安全 Clover 压缩包仍可进入准备阶段"
+fi
+grep -Fq '包含符号链接' "$TMP_ROOT/bad-stage-output" || \
+    fail "Clover 安装包准备失败没有输出具体原因"
 
 echo "PASS: Clover 固定校验、自定义主题、EFI 保护、BootOrder 和删除恢复模拟测试通过"

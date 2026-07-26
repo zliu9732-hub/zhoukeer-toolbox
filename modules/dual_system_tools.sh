@@ -256,15 +256,6 @@ windows_boot_number() {
     '
 }
 
-confirm_windows_reboot() {
-    local answer
-
-    echo "将把 Windows Boot Manager 设为仅下一次启动目标，然后立即重启。"
-    echo "之后再次重启仍会回到 Clover/SteamOS 的正常启动顺序。"
-    read -r -p "确认切换请输入 WINDOWS：" answer
-    [ "$answer" = "WINDOWS" ]
-}
-
 boot_windows_once() {
     local boot_number
 
@@ -277,10 +268,8 @@ boot_windows_once() {
         echo "没有找到唯一的 Windows Boot Manager，未设置下次启动。"
         return 1
     }
-    confirm_windows_reboot || {
-        echo "已取消切换 Windows。"
-        return 0
-    }
+    echo "将把 Windows Boot Manager 设为仅下一次启动目标，然后立即重启。"
+    echo "之后再次重启仍会回到 Clover/SteamOS 的正常启动顺序。"
     toolbox_sudo efibootmgr --bootnext "$boot_number" || {
         echo "设置 Windows 为下一次启动目标失败。"
         return 1
@@ -346,7 +335,7 @@ EOF
     mv -- "$temp_desktop" "$WINDOWS_SWITCH_DESKTOP" || return 1
     echo "已创建桌面快捷方式：$WINDOWS_SWITCH_DESKTOP"
     echo "旧版 Windows 桌面入口已同步修复。"
-    echo "点击后仍需输入 WINDOWS 确认，不会永久改变默认启动顺序。"
+    echo "点击后会直接切换下一次启动到 Windows，不会永久改变默认启动顺序。"
     log "Windows一次性切换快捷方式已创建: $WINDOWS_SWITCH_DESKTOP"
 }
 
