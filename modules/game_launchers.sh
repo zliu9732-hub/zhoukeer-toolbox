@@ -622,6 +622,8 @@ prepare_battlenet_steam_installer() {
     start_steam
     echo "Steam 正在重新读取战网安装条目，请稍候。"
     echo "安装阶段不会创建桌面入口，请只在 Steam 库点击“战网启动器”完成官方安装。"
+    echo "Steam 库中请点“战网启动器”右侧齿轮 → 属性 → 兼容性。"
+    echo "勾选“强制使用兼容性工具”，并选择 Proton 10.0-4 后再启动安装器。"
     echo "安装完成后，再点击一次工具箱的战网入口即可自动转为正式启动器并创建可用桌面入口。"
 }
 

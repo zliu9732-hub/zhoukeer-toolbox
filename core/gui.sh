@@ -177,7 +177,7 @@ game_environment_gui_menu() {
             browse "浏览官方插件｜逐个查看插件作用" \
             ge-proton "GE 游戏运行组件｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
-            battlenet "战网启动器｜安装并添加到 Steam" \
+            battlenet "战网启动器｜首次需在 Steam 兼容性选择 Proton 10.0-4" \
             ubisoft "育碧｜安装育碧游戏平台并添加到 Steam" \
             decky-install "安装插件商城｜停止旧服务后更新｜高级操作" \
             home "返回首页" \
