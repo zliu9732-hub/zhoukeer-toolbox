@@ -26,7 +26,9 @@ LOG_FILE="$LOG_DIR/toolbox.log"
 TF_CARD_LINK="$HOME/双系统TF卡"
 WINDOWS_SWITCH_DIR="$HOME/.local/share/zhoukeer-toolbox"
 WINDOWS_SWITCH_LAUNCHER="$WINDOWS_SWITCH_DIR/windows-next.sh"
+WINDOWS_LEGACY_SWITCH_LAUNCHER="$WINDOWS_SWITCH_DIR/windows/windows-next.sh"
 WINDOWS_SWITCH_DESKTOP="$HOME/Desktop/一键切换Windows.desktop"
+WINDOWS_SWITCH_ICON="$PROJECT_ROOT/assets/windows-switch.png"
 ZHOUKEER_TF_CARD_DEVICE="/dev/testtf"
 
 require_steamos() { return 0; }
@@ -110,8 +112,11 @@ grep -Fq 'ntfsfix /dev/testshare' "$CALLS" || fail "NTFS 修复未调用 ntfsfix
 
 create_windows_switch_shortcut >/dev/null || fail "Windows 快捷方式创建失败"
 [ -x "$WINDOWS_SWITCH_LAUNCHER" ] || fail "Windows 切换启动器不可执行"
+[ -x "$WINDOWS_LEGACY_SWITCH_LAUNCHER" ] || fail "旧版 Windows 切换启动器未同步修复"
 [ -x "$WINDOWS_SWITCH_DESKTOP" ] || fail "Windows 桌面图标不可执行"
 grep -Fq 'dual_system_tools.sh' "$WINDOWS_SWITCH_LAUNCHER" || fail "Windows 启动器调用目标错误"
+grep -Fq 'dual_system_tools.sh' "$WINDOWS_LEGACY_SWITCH_LAUNCHER" || fail "旧版 Windows 启动器调用目标错误"
+grep -Fqx "Icon=$WINDOWS_SWITCH_ICON" "$WINDOWS_SWITCH_DESKTOP" || fail "Windows 桌面图标资源错误"
 if grep -Eq 'bash -c|sh -c|eval' "$WINDOWS_SWITCH_LAUNCHER"; then
     fail "Windows 启动器使用动态命令执行"
 fi

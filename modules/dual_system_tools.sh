@@ -6,7 +6,9 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/dual_system.sh"
 TF_CARD_LINK="${ZHOUKEER_TF_CARD_LINK:-$HOME/双系统TF卡}"
 WINDOWS_SWITCH_DIR="${ZHOUKEER_WINDOWS_SWITCH_DIR:-$HOME/.local/share/zhoukeer-toolbox}"
 WINDOWS_SWITCH_LAUNCHER="$WINDOWS_SWITCH_DIR/windows-next.sh"
+WINDOWS_LEGACY_SWITCH_LAUNCHER="$WINDOWS_SWITCH_DIR/windows/windows-next.sh"
 WINDOWS_SWITCH_DESKTOP="${ZHOUKEER_WINDOWS_SWITCH_DESKTOP:-$HOME/Desktop/一键切换Windows.desktop}"
+WINDOWS_SWITCH_ICON="${ZHOUKEER_WINDOWS_SWITCH_ICON:-$PROJECT_ROOT/assets/windows-switch.png}"
 
 simple_device_path_is_safe() {
     local device="$1"
@@ -296,7 +298,7 @@ desktop_exec_escape() {
 }
 
 create_windows_switch_shortcut() {
-    local escaped_launcher quoted_module temp_launcher temp_desktop
+    local escaped_launcher quoted_module temp_launcher temp_legacy_launcher temp_desktop
 
     require_steamos || return 1
     require_command efibootmgr || return 1
@@ -304,10 +306,19 @@ create_windows_switch_shortcut() {
         echo "没有找到唯一的 Windows Boot Manager，未创建快捷方式。"
         return 1
     }
-    mkdir -p "$WINDOWS_SWITCH_DIR" "$(dirname "$WINDOWS_SWITCH_DESKTOP")" || return 1
+    [ -f "$WINDOWS_SWITCH_ICON" ] && [ ! -L "$WINDOWS_SWITCH_ICON" ] || {
+        echo "Windows 桌面图标资源缺失或不安全，未创建快捷方式。"
+        return 1
+    }
+    mkdir -p "$WINDOWS_SWITCH_DIR" "$(dirname "$WINDOWS_LEGACY_SWITCH_LAUNCHER")" \
+        "$(dirname "$WINDOWS_SWITCH_DESKTOP")" || return 1
     temp_launcher="$(mktemp "$WINDOWS_SWITCH_DIR/.windows-next.XXXXXX")" || return 1
-    temp_desktop="$(mktemp "$(dirname "$WINDOWS_SWITCH_DESKTOP")/.windows-next.XXXXXX")" || {
+    temp_legacy_launcher="$(mktemp "$(dirname "$WINDOWS_LEGACY_SWITCH_LAUNCHER")/.windows-next.XXXXXX")" || {
         rm -f -- "$temp_launcher"
+        return 1
+    }
+    temp_desktop="$(mktemp "$(dirname "$WINDOWS_SWITCH_DESKTOP")/.windows-next.XXXXXX")" || {
+        rm -f -- "$temp_launcher" "$temp_legacy_launcher"
         return 1
     }
     printf -v quoted_module '%q' "$PROJECT_ROOT/modules/dual_system_tools.sh"
@@ -316,6 +327,8 @@ create_windows_switch_shortcut() {
 exec /usr/bin/env bash $quoted_module windows-next
 EOF
     chmod 0755 "$temp_launcher" || return 1
+    cp -- "$temp_launcher" "$temp_legacy_launcher" || return 1
+    chmod 0755 "$temp_legacy_launcher" || return 1
     escaped_launcher="$(desktop_exec_escape "$WINDOWS_SWITCH_LAUNCHER")"
     cat > "$temp_desktop" <<EOF
 [Desktop Entry]
@@ -323,14 +336,16 @@ Type=Application
 Name=一键切换 Windows
 Comment=仅将下一次启动切换到 Windows
 Exec=konsole --hold -e "$escaped_launcher"
-Icon=$PROJECT_ROOT/assets/icon.png
+Icon=$WINDOWS_SWITCH_ICON
 Terminal=false
 Categories=System;
 EOF
     chmod 0755 "$temp_desktop" || return 1
     mv -- "$temp_launcher" "$WINDOWS_SWITCH_LAUNCHER" || return 1
+    mv -- "$temp_legacy_launcher" "$WINDOWS_LEGACY_SWITCH_LAUNCHER" || return 1
     mv -- "$temp_desktop" "$WINDOWS_SWITCH_DESKTOP" || return 1
     echo "已创建桌面快捷方式：$WINDOWS_SWITCH_DESKTOP"
+    echo "旧版 Windows 桌面入口已同步修复。"
     echo "点击后仍需输入 WINDOWS 确认，不会永久改变默认启动顺序。"
     log "Windows一次性切换快捷方式已创建: $WINDOWS_SWITCH_DESKTOP"
 }
