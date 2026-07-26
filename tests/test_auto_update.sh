@@ -98,6 +98,15 @@ if grep -Fq '[1/2]' "$PROJECT_ROOT/update.sh" || grep -Fq '[2/2]' "$PROJECT_ROOT
     echo "FAIL: 自动更新脚本仍保留拆分进度提示" >&2
     exit 1
 fi
+if grep -Fq 'SHA256校验通过' "$PROJECT_ROOT/update.sh" || grep -Fq 'SHA256校验通过' "$PROJECT_ROOT/bootstrap.sh"; then
+    echo "FAIL: 工具箱更新或安装仍回显正常校验细节" >&2
+    exit 1
+fi
+startup_update_source="$(sed -n '/^run_startup_update()/,/^}/p' "$PROJECT_ROOT/launch.sh")"
+if printf '%s\n' "$startup_update_source" | grep -Fq 'tee -a "$LAUNCH_LOG"'; then
+    echo "FAIL: 启动时自动更新仍会把详细输出回显到终端" >&2
+    exit 1
+fi
 
 : > "$CURL_LOG"
 run_update > "$STATE_DIR/latest.output"

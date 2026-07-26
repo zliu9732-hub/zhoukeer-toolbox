@@ -78,4 +78,17 @@ fi
 grep -Fq '不含 EFI 目录' "$TMP_ROOT/clover-diagnostic.output" || \
     fail "Clover EFI 定位失败没有输出具体原因"
 
+FALLBACK_ESP="$TMP_ROOT/fallback-esp"
+mkdir -p "$FALLBACK_ESP/EFI/steamos"
+printf 'steam\n' > "$FALLBACK_ESP/EFI/steamos/steamcl.efi"
+findmnt() {
+    case " $* " in
+        *' -t vfat,fat,fat32,msdos -o TARGET '*) printf '%s\n' "$BAD_ESP" "$FALLBACK_ESP" ;;
+        *) return 1 ;;
+    esac
+}
+CLOVER_ESP_FOUND=""
+clover_find_mounted_esp || fail "没有从已挂载 FAT 分区找到实际 EFI"
+[ "$CLOVER_ESP_FOUND" = "$FALLBACK_ESP" ] || fail "已挂载 EFI 兜底路径选择错误"
+
 echo "PASS: 可从现有 Clover NVRAM 启动项反查、临时挂载并释放 EFI"

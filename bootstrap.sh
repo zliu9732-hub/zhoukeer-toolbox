@@ -122,7 +122,6 @@ verify_package() {
         return 1
     fi
 
-    echo "SHA256校验通过"
 }
 
 validate_tar_archive() {

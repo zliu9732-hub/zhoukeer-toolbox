@@ -60,6 +60,24 @@ clover_device_from_nvram() {
     return 1
 }
 
+clover_find_mounted_esp() {
+    local candidate
+    local detected
+
+    # 某些 SteamOS 安装会把同一块 FAT 分区挂载到非标准位置，或保留空的
+    # /esp 挂载点。只检查已经挂载的 FAT 分区，确认其中存在 SteamOS/Clover
+    # 启动文件后才采用，不会挂载、写入或修改任何分区。
+    while IFS= read -r candidate; do
+        [ -d "$candidate/EFI" ] || continue
+        detected="$(find "$candidate/EFI" -maxdepth 3 -type f \
+            \( -iname steamcl.efi -o -iname CLOVERX64.efi \) -print -quit 2>/dev/null || true)"
+        [ -n "$detected" ] || continue
+        CLOVER_ESP_FOUND="$candidate"
+        return 0
+    done < <(findmnt -rn -t vfat,fat,fat32,msdos -o TARGET 2>/dev/null || true)
+    return 1
+}
+
 clover_find_esp() {
     local candidate detected device mountpoint output
 
@@ -83,6 +101,8 @@ clover_find_esp() {
         CLOVER_ESP_FOUND="$candidate"
         return 0
     done
+
+    clover_find_mounted_esp && return 0
 
     device="$(clover_device_from_nvram || true)"
     if [ -n "$device" ]; then
