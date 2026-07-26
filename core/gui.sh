@@ -262,7 +262,19 @@ emulator_gui_menu() {
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
-            yuzu|cemu|duckstation|pcsx2|rpcs3|shadps4)
+            yuzu)
+                choice="$(gui_dialog --menu "Yuzu｜仅导入本人合法备份的密钥" \
+                    install "安装 Yuzu 本体" \
+                    keys "导入本人备份的 prod.keys / title.keys" \
+                    status "查看密钥状态（不显示内容）" \
+                    back "返回模拟器列表")" || continue
+                case "$choice" in
+                    install) gui_confirm "只安装模拟器本体；不包含游戏、BIOS、固件或密钥。是否继续？" && run_gui_action "安装 Yuzu" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/emulators.sh" yuzu ;;
+                    keys) gui_confirm "仅可导入本人合法备份的 prod.keys / title.keys；工具箱不会下载、显示或分享密钥。是否继续？" && run_gui_action "导入 Yuzu 密钥" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/emulators.sh" yuzu-keys ;;
+                    status) run_gui_action "Yuzu 密钥状态" bash "$PROJECT_ROOT/modules/emulators.sh" yuzu-keys-status ;;
+                esac
+                ;;
+            cemu|duckstation|pcsx2|rpcs3|shadps4)
                 gui_confirm "只安装模拟器本体；不包含游戏、BIOS 或固件。完成后会创建桌面图标并添加到 Steam 库；写入 Steam 前会安全退出并重启 Steam。是否继续？" && \
                     run_gui_action "安装模拟器" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/emulators.sh" "$choice"

@@ -536,12 +536,34 @@ emulator_menu() {
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            yuzu|cemu|duckstation|pcsx2|rpcs3|shadps4)
+            yuzu) yuzu_menu ;;
+            cemu|duckstation|pcsx2|rpcs3|shadps4)
                 confirm_and_run "安装模拟器" "只安装模拟器本体；不包含游戏、BIOS 或固件。完成后会创建桌面图标并添加到 Steam 库；写入 Steam 前会安全退出并重启 Steam。" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/emulators.sh" "$choice"
                 ;;
             back) return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "plugin_page_2" ] || return 0
+    done
+}
+
+yuzu_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame games "Yuzu｜Switch 模拟器" "只导入本人合法备份的密钥；不下载或提供密钥" 0
+        ui_touch_button 7 '\033[1;97;48;5;24m' "安装 Yuzu" "仅安装模拟器本体"
+        ui_touch_button 12 '\033[1;97;48;5;24m' "导入本人备份的密钥" "从桌面 Yuzu密钥 文件夹导入 prod.keys"
+        ui_touch_button 17 '\033[1;97;48;5;238m' "查看密钥状态" "只显示是否已就绪，不显示密钥内容"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回模拟器列表" "不做任何修改"
+        ui_prompt
+        choice="$(read_touch_menu right:7-8:install right:12-13:keys right:17-18:status right:22-23:back)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            install) confirm_and_run "安装 Yuzu" "只安装模拟器本体；不包含游戏、BIOS、固件或密钥。" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/emulators.sh" yuzu ;;
+            keys) confirm_and_run "导入 Yuzu 密钥" "仅导入你本人合法备份的 prod.keys / title.keys；不会下载、显示或分享密钥。" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/emulators.sh" yuzu-keys ;;
+            status) run_action "Yuzu 密钥状态" bash "$PROJECT_ROOT/modules/emulators.sh" yuzu-keys-status ;;
+            back) return 0 ;;
+        esac
     done
 }
 

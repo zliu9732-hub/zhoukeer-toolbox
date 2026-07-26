@@ -88,6 +88,10 @@ touch_emulators="$(function_source "$MAIN_FILE" emulator_menu)"
 for mapping in 'right:5-6:yuzu' 'right:8-9:cemu' 'right:11-12:duckstation' 'right:14-15:pcsx2' 'right:17-18:rpcs3' 'right:20-21:shadps4' 'right:23-24:back'; do
     assert_contains "$touch_emulators" "$mapping" "模拟器触控坐标错误：$mapping"
 done
+touch_yuzu="$(function_source "$MAIN_FILE" yuzu_menu)"
+assert_contains "$touch_yuzu" 'right:12-13:keys' "Yuzu 密钥导入坐标错误"
+assert_contains "$touch_yuzu" 'modules/emulators.sh" yuzu-keys' "Yuzu 密钥导入动作缺失"
+assert_contains "$touch_yuzu" '本人合法备份' "Yuzu 密钥入口缺少合法来源说明"
 assert_contains "$touch_network" 'right:20-21:home' "网络与应用商店缺少返回首页"
 assert_contains "$touch_maintenance" 'right:22-23:home' "系统维护缺少返回首页"
 assert_contains "$touch_advanced" 'right:11-12:memory-optimize' "系统设置缺少虚拟内存动作"
