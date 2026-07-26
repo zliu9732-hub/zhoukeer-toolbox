@@ -54,7 +54,7 @@ done
 touch_software="$(function_source "$MAIN_FILE" common_software_menu)"
 gui_software="$(function_source "$GUI_FILE" software_menu)"
 for menu in "$touch_software" "$gui_software"; do
-    for item in '微信' 'QQ' 'Firefox 浏览器' 'Chrome 浏览器' 'Edge 浏览器' 'RustDesk 远程协助' 'ToDesk 远程协助' 'Windows 软件工具' '游戏兼容设置'; do
+    for item in '微信' 'QQ' 'Firefox 浏览器' 'Chrome 浏览器' 'Edge 浏览器' 'RustDesk 远程协助' 'AnyDesk 远程协助' 'ToDesk 远程协助' 'Windows 软件工具' '游戏兼容设置'; do
         assert_contains "$menu" "$item" "常用软件缺少：$item"
     done
     for hidden in '网易云音乐' '战网'; do

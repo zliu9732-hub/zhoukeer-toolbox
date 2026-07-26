@@ -310,7 +310,17 @@ grep -Fq "Exec=\"$STATE_DIR/apps/RustDesk.AppImage\"" "$RUSTDESK_SHORTCUT"
 grep -Fq 'Icon=rustdesk' "$RUSTDESK_SHORTCUT"
 grep -Fq 'https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-x86_64.AppImage' \
     "$STATE_DIR/curl-urls"
-! grep -Fiq 'anydesk' "$PROJECT_ROOT/modules/software.sh"
+# AnyDesk 与其他常用软件一样走用户级 Flatpak、国内缓存、已安装检测和桌面入口。
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" anydesk >/dev/null
+ANYDESK_SHORTCUT="$HOME_DIR/Desktop/AnyDesk.desktop"
+[ -x "$ANYDESK_SHORTCUT" ]
+grep -Fq 'Exec=flatpak run com.anydesk.Anydesk' "$ANYDESK_SHORTCUT"
+grep -Fq 'install --user --noninteractive -y flathub-cn com.anydesk.Anydesk' "$STATE_DIR/commands"
+[ -f "$STATE_DIR/installed.com.anydesk.Anydesk" ]
 
 # 两个国内缓存都失败时必须停止，不能继续寻找官方源。
 rm -f "$STATE_DIR/installed.com.qq.QQ"

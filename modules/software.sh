@@ -72,6 +72,12 @@ software_details() {
             SOFTWARE_INSTALL_MODE="rustdesk_appimage"
             SOFTWARE_CATEGORIES="Network;RemoteAccess;"
             ;;
+        anydesk)
+            SOFTWARE_NAME="AnyDesk"
+            SOFTWARE_DESKTOP_NAME="AnyDesk"
+            SOFTWARE_APP_ID="com.anydesk.Anydesk"
+            SOFTWARE_CATEGORIES="Network;RemoteAccess;"
+            ;;
         baidunetdisk)
             SOFTWARE_NAME="百度网盘"
             SOFTWARE_DESKTOP_NAME="百度网盘"
@@ -930,7 +936,7 @@ show_software_status() {
     local installed_count=0
 
     echo "常用软件与远程协助安装状态："
-    for target in wechat qq browser rustdesk; do
+    for target in wechat qq browser rustdesk anydesk; do
         software_details "$target" || return 1
         if software_is_installed; then
             echo "✓ $SOFTWARE_NAME：已安装"
@@ -939,14 +945,14 @@ show_software_status() {
             echo "- $SOFTWARE_NAME：未安装"
         fi
     done
-    echo "已安装：$installed_count / 4"
+    echo "已安装：$installed_count / 5"
 }
 
 repair_software_shortcuts() {
     local target
     local repaired=0
 
-    for target in wechat qq browser rustdesk; do
+    for target in wechat qq browser rustdesk anydesk; do
         software_details "$target" || return 1
         if software_is_installed; then
             create_software_shortcut || return 1
@@ -1218,6 +1224,7 @@ uninstall_software() {
         chrome) uninstall_flatpak_software "com.google.Chrome" "Google Chrome" "com.google.Chrome.desktop" ;;
         edge) uninstall_flatpak_software "com.microsoft.Edge" "Microsoft Edge" "com.microsoft.Edge.desktop" ;;
         rustdesk) uninstall_appimage_software "$RUSTDESK_APPIMAGE_PATH" "RustDesk" "RustDesk.desktop" ;;
+        anydesk) uninstall_flatpak_software "com.anydesk.Anydesk" "AnyDesk" "AnyDesk.desktop" "com.anydesk.Anydesk.desktop" ;;
         protontricks) uninstall_flatpak_software "com.github.Matoking.protontricks" "Protontricks" "com.github.Matoking.protontricks.desktop" ;;
         bottles) uninstall_flatpak_software "com.usebottles.bottles" "Bottles" "com.usebottles.bottles.desktop" ;;
         baidunetdisk) uninstall_flatpak_software "com.baidu.NetDisk" "百度网盘" "com.baidu.NetDisk.desktop" ;;
@@ -1227,7 +1234,7 @@ uninstall_software() {
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
-        wechat|qq|browser|rustdesk) install_software "$1" ;;
+        wechat|qq|browser|rustdesk|anydesk) install_software "$1" ;;
         firefox-pacman|firefox-sjtu|system-setup)
             echo "该旧版系统级功能已停用，请使用当前 Flatpak 菜单功能。"
             exit 1
@@ -1243,6 +1250,6 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
             ;;
         status) require_command od && show_software_status ;;
         repair-shortcuts) require_command od && repair_software_shortcuts ;;
-        *) echo "用法: $0 {wechat|qq|browser|rustdesk|chrome|edge|protontricks|bottles|status|repair-shortcuts}"; exit 1 ;;
+        *) echo "用法: $0 {wechat|qq|browser|rustdesk|anydesk|chrome|edge|protontricks|bottles|status|repair-shortcuts}"; exit 1 ;;
     esac
 fi

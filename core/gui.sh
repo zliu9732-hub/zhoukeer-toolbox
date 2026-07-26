@@ -94,6 +94,7 @@ software_menu() {
             chrome "Chrome 浏览器" \
             edge "Edge 浏览器" \
             rustdesk "RustDesk 远程协助｜安装开源远程工具" \
+            anydesk "AnyDesk 远程协助｜通过 Flathub 国内镜像安装" \
             todesk "ToDesk 远程协助｜安装前需完成系统设置" \
             bottles "Windows 软件工具｜安装 Bottles 运行工具" \
             baidunetdisk "百度网盘｜Flathub 安装百度网盘 Linux 版" \
@@ -123,6 +124,7 @@ software_menu() {
                     run_gui_action "安装 RustDesk 远程协助" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" rustdesk
                 ;;
+            anydesk) gui_confirm "将通过 Flathub 国内镜像以当前用户身份安装 AnyDesk。是否继续？" && run_gui_action "安装 AnyDesk 远程协助" bash "$PROJECT_ROOT/modules/software.sh" anydesk ;;
             todesk)
                 gui_confirm "ToDesk 会使用管理员权限并临时修改 SteamOS 只读系统。请先在游戏模式开启开发者模式和旧版 X11 桌面模式。确认继续？" && \
                     run_gui_action "安装 ToDesk" env ZHOUKEER_AUTO_CONFIRM=1 \
@@ -648,6 +650,7 @@ uninstall_software_gui_menu() {
             1)
                 choice="$(gui_dialog --menu "卸载已安装｜远程与工具｜第 2/3 页" \
                     rustdesk "卸载 RustDesk｜保留用户配置" \
+                    anydesk "卸载 AnyDesk｜Flatpak" \
                     todesk "卸载 ToDesk｜停止服务并卸载软件包｜高级操作" \
                     baidunetdisk "卸载百度网盘｜Flatpak" \
                     protontricks "卸载 Protontricks｜Flatpak" \
@@ -664,7 +667,7 @@ uninstall_software_gui_menu() {
                 ;;
         esac
         case "$choice" in
-            wechat|qq|browser|chrome|edge|rustdesk|baidunetdisk|protontricks|bottles)
+            wechat|qq|browser|chrome|edge|rustdesk|anydesk|baidunetdisk|protontricks|bottles)
                 target="$choice"
                 gui_confirm "只卸载所选软件及工具箱创建的快捷方式，确认继续？" && \
                     run_gui_action "卸载软件" env ZHOUKEER_AUTO_CONFIRM=1 \
