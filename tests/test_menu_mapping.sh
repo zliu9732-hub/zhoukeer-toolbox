@@ -83,6 +83,11 @@ assert_contains "$touch_software" 'right:22-23:more' "常用软件更多页坐�
 assert_contains "$touch_games" 'right:23-24:home' "游戏环境缺少返回首页"
 touch_plugin_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
 assert_contains "$touch_plugin_page_2" 'right:9-10:tomoon' "插件第二页 ToMoon 坐标错误"
+assert_contains "$touch_plugin_page_2" 'right:21-22:emulators' "插件第二页缺少模拟器入口"
+touch_emulators="$(function_source "$MAIN_FILE" emulator_menu)"
+for mapping in 'right:5-6:yuzu' 'right:8-9:cemu' 'right:11-12:duckstation' 'right:14-15:pcsx2' 'right:17-18:rpcs3' 'right:20-21:shadps4' 'right:23-24:back'; do
+    assert_contains "$touch_emulators" "$mapping" "模拟器触控坐标错误：$mapping"
+done
 assert_contains "$touch_network" 'right:20-21:home' "网络与应用商店缺少返回首页"
 assert_contains "$touch_maintenance" 'right:22-23:home' "系统维护缺少返回首页"
 assert_contains "$touch_advanced" 'right:11-12:memory-optimize' "系统设置缺少虚拟内存动作"
@@ -108,6 +113,7 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_contains "$source_text" 'modules/ge_proton.sh" install' "安装 GE 兼容层动作错误：$file"
     assert_contains "$source_text" 'modules/game_launchers.sh" epic' "Epic 动作错误：$file"
     assert_contains "$source_text" 'modules/game_launchers.sh" ubisoft' "Ubisoft Connect 动作错误：$file"
+    assert_contains "$source_text" 'modules/emulators.sh"' "模拟器动作错误：$file"
     assert_contains "$source_text" 'modules/plugin_store.sh" tomoon' "ToMoon GitHub Release 动作错误：$file"
     assert_contains "$source_text" 'modules/plugin_store.sh" lsfg-zh-gitee' "小黄鸭 Gitee 动作错误：$file"
     assert_contains "$source_text" 'modules/plugin_store.sh" fsr4-zh-gitee' "FSR4 Gitee 动作错误：$file"

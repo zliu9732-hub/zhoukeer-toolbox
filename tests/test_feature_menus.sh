@@ -75,6 +75,8 @@ assert_contains "$touch_plugin_page_2" '战网启动器' "插件第二页缺少�
 assert_contains "$gui_games" '战网启动器' "GUI 游戏与插件缺少战网启动器"
 assert_contains "$touch_plugin_page_2" 'ToMoon' "插件第二页缺少 ToMoon"
 assert_contains "$gui_games" 'ToMoon' "GUI 游戏与插件缺少 ToMoon"
+assert_contains "$touch_plugin_page_2" '安装模拟器' "插件第二页缺少模拟器入口"
+assert_contains "$gui_games" '安装模拟器' "GUI 游戏与插件缺少模拟器入口"
 assert_contains "$touch_plugin_page_2" 'modules/plugin_store.sh" tomoon' "触控 ToMoon 未使用独立安装器"
 assert_contains "$gui_games" 'modules/plugin_store.sh" tomoon' "GUI ToMoon 未使用独立安装器"
 touch_software_buttons="$(printf '%s\n' "$touch_software" | grep 'ui_touch_button')"
@@ -166,11 +168,21 @@ for menu in "$touch_games_page_1" "$gui_games_page_1"; do
     assert_contains "$menu" 'CEF 远程调试' "插件商城或插件组合缺少 CEF 远程调试提示"
 done
 touch_games_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
+touch_emulators="$(function_source "$MAIN_FILE" emulator_menu)"
+gui_emulators="$(function_source "$GUI_FILE" emulator_gui_menu)"
 assert_contains "$touch_games_page_1" 'right:13-14:cheatdeck' "CheatDeck 未移动到插件第一页原 TDP 位置"
 assert_contains "$touch_games_page_2" 'right:5-6:simpledeckytdp' "SimpleDeckyTDP 未移动到插件第二页原 CheatDeck 位置"
 assert_contains "$touch_games_page_2" 'right:9-10:tomoon' "ToMoon 未紧挨 Unifideck 排列"
 assert_contains "$touch_games_page_2" 'right:17-18:ubisoft' "Ubisoft Connect 未加入插件第二页"
 assert_contains "$touch_games_page_2" '"育碧"' "育碧菜单仍显示旧名称"
+for menu in "$touch_emulators" "$gui_emulators"; do
+    for item in 'Yuzu' 'Cemu' 'DuckStation' 'PCSX2' 'RPCS3' 'ShadPS4'; do
+        assert_contains "$menu" "$item" "模拟器菜单缺少：$item"
+    done
+    assert_contains "$menu" '桌面图标' "模拟器菜单未说明桌面入口"
+    assert_contains "$menu" 'Steam 库' "模拟器菜单未说明 Steam 入库"
+    assert_not_contains "$menu" 'EmuDeck' "模拟器菜单不应包含 EmuDeck"
+done
 
 touch_dual="$(function_source "$MAIN_FILE" dual_system_menu)"
 gui_dual="$(function_source "$GUI_FILE" dual_system_menu)"

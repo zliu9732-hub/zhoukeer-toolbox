@@ -178,6 +178,7 @@ game_environment_gui_menu() {
             tomoon "ToMoon｜作者 GitHub Release 网络工具插件" \
             battlenet "战网启动器｜首次需在 Steam 兼容性选择 Proton 10.0-4" \
             ubisoft "育碧｜安装育碧游戏平台并添加到 Steam" \
+            emulators "安装模拟器｜Switch、Wii U、PS1 至 PS4" \
             decky-install "安装插件商城｜停止旧服务后更新｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -231,11 +232,42 @@ game_environment_gui_menu() {
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft
                 ;;
+            emulators)
+                emulator_gui_menu
+                [ "$GUI_NAV_HOME" -eq 0 ] || return 0
+                ;;
             decky-install)
                 gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。随后会停止旧 Decky 服务，再校验并更新插件商城；已有插件和设置会保留。是否继续？" && \
                     run_gui_action "安装插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" store
                 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
+        esac
+    done
+}
+
+emulator_gui_menu() {
+    local choice
+
+    while true; do
+        choice="$(gui_dialog --menu "安装模拟器｜完成后自动创建桌面图标并添加到 Steam 库" \
+            yuzu "Yuzu｜Switch 模拟器" \
+            cemu "Cemu｜Wii U 模拟器" \
+            duckstation "DuckStation｜PS1 模拟器" \
+            pcsx2 "PCSX2｜PS2 模拟器" \
+            rpcs3 "RPCS3｜PS3 模拟器" \
+            shadps4 "ShadPS4｜PS4 模拟器" \
+            back "返回游戏与插件" \
+            home "返回首页" \
+            nav-exit "退出工具箱")" || return 0
+        case "$choice" in
+            yuzu|cemu|duckstation|pcsx2|rpcs3|shadps4)
+                gui_confirm "只安装模拟器本体；不包含游戏、BIOS 或固件。完成后会创建桌面图标并添加到 Steam 库；写入 Steam 前会安全退出并重启 Steam。是否继续？" && \
+                    run_gui_action "安装模拟器" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/emulators.sh" "$choice"
+                ;;
+            back) return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
         esac

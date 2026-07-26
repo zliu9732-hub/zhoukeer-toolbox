@@ -1,3 +1,7 @@
+## V5.4.8 公开版 — 2026-07-26
+
+- “游戏与插件”第二页新增“安装模拟器”子菜单：Yuzu（Switch）、Cemu（Wii U）、DuckStation（PS1）、PCSX2（PS2）、RPCS3（PS3）和 ShadPS4（PS4）。不包含 EmuDeck、游戏前端、游戏、BIOS 或固件。
+- 每个模拟器从工具箱已校验的 Release 文件下载，完成后自动创建桌面图标，并安全写入 Steam 非 Steam 游戏库、设置图标并验证结果；写入期间 Steam 会自动退出并重启。
 
 ## V5.4.7 公开版 — 2026-07-26
 

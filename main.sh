@@ -508,9 +508,10 @@ plugin_page_2_menu() {
         ui_touch_button 15 '\033[1;97;48;5;24m' "战网启动器" "安装并添加到 Steam"
         ui_touch_button 17 '\033[1;97;48;5;24m' "育碧" "安装育碧游戏平台并添加到 Steam"
         ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
+        ui_touch_button 21 '\033[1;97;48;5;24m' "安装模拟器" "Switch、Wii U、PS1 至 PS4 模拟器"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:simpledeckytdp right:7-8:unifideck right:9-10:tomoon right:11-12:epic right:13-14:ge-proton right:15-16:battlenet right:17-18:ubisoft right:19-20:previous right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:simpledeckytdp right:7-8:unifideck right:9-10:tomoon right:11-12:epic right:13-14:ge-proton right:15-16:battlenet right:17-18:ubisoft right:19-20:previous right:21-22:emulators right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -522,7 +523,34 @@ plugin_page_2_menu() {
             ubisoft) confirm_and_run "安装育碧" "自动安装育碧游戏平台、创建桌面入口并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft ;;
             ge-proton) confirm_and_run "安装 GE 兼容层" "安装第三方 GE-Proton 游戏兼容组件" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
             previous) NEXT_CATEGORY="games"; return 0 ;;
+            emulators) emulator_menu ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = "plugin_page_2" ] || return 0
+    done
+}
+
+emulator_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame games "安装模拟器" "安装后自动创建桌面图标，并添加到 Steam 库" 0
+        ui_touch_button 5 '\033[1;97;48;5;24m' "Yuzu" "Switch 模拟器"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "Cemu" "Wii U 模拟器"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "DuckStation" "PS1 模拟器"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "PCSX2" "PS2 模拟器"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "RPCS3" "PS3 模拟器"
+        ui_touch_button 20 '\033[1;97;48;5;24m' "ShadPS4" "PS4 模拟器"
+        ui_touch_button 23 '\033[1;97;48;5;238m' "返回游戏与插件" "查看其他插件和启动器"
+        ui_prompt
+        choice="$(read_touch_menu right:5-6:yuzu right:8-9:cemu right:11-12:duckstation right:14-15:pcsx2 right:17-18:rpcs3 right:20-21:shadps4 right:23-24:back)"
+        if apply_navigation "$choice"; then return 0; fi
+
+        case "$choice" in
+            yuzu|cemu|duckstation|pcsx2|rpcs3|shadps4)
+                confirm_and_run "安装模拟器" "只安装模拟器本体；不包含游戏、BIOS 或固件。完成后会创建桌面图标并添加到 Steam 库；写入 Steam 前会安全退出并重启 Steam。" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/emulators.sh" "$choice"
+                ;;
+            back) return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "plugin_page_2" ] || return 0
     done
