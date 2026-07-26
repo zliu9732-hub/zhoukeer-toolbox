@@ -55,6 +55,10 @@ while [ "$#" -gt 0 ]; do
 done
 printf '%s\n' "$url" >> "$FAKE_CURL_LOG"
 clean_url="${url%%\?*}"
+if [ "${FAKE_GITEE_PACKAGE_FAIL:-0}" = "1" ] && \
+    [ "$clean_url" = "${FAKE_GITEE_RAW_BASE:?}/dist/zhoukeer-toolbox.tar.gz" ]; then
+    exit 22
+fi
 case "$clean_url" in
     */dist/zhoukeer-toolbox.tar.gz) source="$FAKE_REMOTE_DIR/dist/zhoukeer-toolbox.tar.gz" ;;
     */dist/SHA256SUMS) source="$FAKE_REMOTE_DIR/dist/SHA256SUMS" ;;
@@ -72,6 +76,8 @@ run_update() {
     FAKE_REMOTE_DIR="$REMOTE_DIR" \
     FAKE_CURL_LOG="$CURL_LOG" \
     ZHOUKEER_GITEE_RAW_BASE="https://test.invalid/repo" \
+    ZHOUKEER_DOMAIN_RAW_BASE="https://domain.test/repo" \
+    FAKE_GITEE_RAW_BASE="https://test.invalid/repo" \
         bash "$INSTALL_DIR/update.sh" --startup
 }
 
@@ -84,6 +90,20 @@ fi
 grep -Fq '/dist/zhoukeer-toolbox.tar.gz' "$CURL_LOG"
 grep -Fq '/dist/SHA256SUMS' "$CURL_LOG"
 grep -Fq 'zhoukeer_cb=' "$CURL_LOG"
+
+# Gitee 的大文件可能被原始下载接口拒绝。版本检测仍来自 Gitee 时，更新包
+# 必须先回退到域名源，而不是跳过域名源直接请求可能受限的 GitHub Raw。
+printf '%s\n' '4.0.0' > "$INSTALL_DIR/VERSION"
+: > "$CURL_LOG"
+FAKE_GITEE_PACKAGE_FAIL=1 run_update >/dev/null
+if [ "$(tr -d '\r\n' < "$INSTALL_DIR/VERSION")" != '4.1.0' ]; then
+    echo "FAIL: Gitee更新包失败后没有通过域名源完成更新"
+    exit 1
+fi
+grep -Fq 'https://domain.test/repo/dist/zhoukeer-toolbox.tar.gz' "$CURL_LOG" || {
+    echo "FAIL: Gitee更新包失败后没有尝试域名源"
+    exit 1
+}
 
 run_update > "$STATE_DIR/progress.output"
 grep -Fq '工具箱已是最新版本' "$STATE_DIR/progress.output"

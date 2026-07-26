@@ -282,7 +282,15 @@ download_verified_package() {
         return 0
     fi
 
-    echo "Gitee包或校验文件不可用，切换GitHub备用源。"
+    echo "Gitee包或校验文件不可用，切换域名源。"
+    if download_verified_package_from \
+        "域名" "$DOMAIN_PACKAGE_URL" "$DOMAIN_CHECKSUM_URL" \
+        "$package_file" "$checksum_file"; then
+        DOWNLOAD_SOURCE="域名"
+        return 0
+    fi
+
+    echo "域名源不可用，切换GitHub备用源。"
     if download_verified_package_from \
         "GitHub" "$GITHUB_PACKAGE_URL" "$GITHUB_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
@@ -290,7 +298,7 @@ download_verified_package() {
         return 0
     fi
 
-    echo "更新包验证失败：Gitee和GitHub均不可用。旧版本不会被覆盖。"
+    echo "更新包验证失败：Gitee、域名源和GitHub均不可用。旧版本不会被覆盖。"
     return 1
 }
 
