@@ -35,13 +35,15 @@ FSR4_RUNTIME_ARCHIVE="Optiscaler_0.9.2a-final.20260517._Reup.7z"
 FSR4_RUNTIME_UPSCALER="amd_fidelityfx_upscaler_dx12.dll"
 FSR4_RUNTIME_PATCHER="OptiPatcher_rolling.asi"
 
-# 三款功能插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
+# 四款独立插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
 DECKY_LSFG_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
 DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip"
 DECKY_FSR4_SHA256="236dc5aef5c908d905a848d7e448689634479ab61cd9184154ba8a725b3f2089"
 DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.2.1/CheatDeck.zip"
 DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
+DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip"
+DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
 # GitHub 完整汉化插件包（含运行核心），通过统一下载器自动选择加速源。
 : "${DECKY_LSFG_ZH_URL:=https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip}"
 : "${DECKY_LSFG_ZH_SHA256:=9eed12dc0bb0ca1967e57d55c230e6522c9b8c70d1b8337929d5ec0066c2a4cd}"
@@ -1835,6 +1837,13 @@ install_configured_plugin() {
                 "${DECKY_CHEATDECK_SHA256:-}" \
                 "CheatDeck"
             ;;
+        tomoon)
+            install_decky_zip \
+                "ToMoon" \
+                "${DECKY_TOMOON_URL:-}" \
+                "${DECKY_TOMOON_SHA256:-}" \
+                "tomoon"
+            ;;
         freedeck)
             install_decky_zip \
                 "Freedeck（下载游戏和模拟器游戏）感谢作者b站一苇Isidf" \
@@ -2074,6 +2083,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         lsfg-import-select) select_and_import_lossless_backup ;;
         fsr4) show_plugin_download_speed_tip; install_configured_plugin fsr4 ;;
         cheatdeck) show_plugin_download_speed_tip; install_configured_plugin cheatdeck ;;
+        tomoon) show_plugin_download_speed_tip; install_configured_plugin tomoon ;;
         freedeck) show_plugin_download_speed_tip; install_configured_plugin freedeck ;;
         simpledeckytdp) show_plugin_download_speed_tip; install_configured_plugin simpledeckytdp ;;
         unifideck) show_plugin_download_speed_tip; install_configured_plugin unifideck ;;

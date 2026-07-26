@@ -446,22 +446,22 @@ plugin_page_2_menu() {
         ui_touch_button 7 '\033[1;97;48;5;24m' "Unifideck" "入库第三方平台游戏"
         ui_touch_button 9 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
         ui_touch_button 11 '\033[1;97;48;5;24m' "GE 游戏运行组件" "提高 Windows 游戏兼容性"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "战网启动器" "安装并添加到 Steam"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "育碧" "安装育碧游戏平台并添加到 Steam"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "ToMoon" "Decky 官方商店插件"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "ToMoon" "GitHub Release 网络工具插件"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "战网启动器" "安装并添加到 Steam"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "育碧" "安装育碧游戏平台并添加到 Steam"
         ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:simpledeckytdp right:7-8:unifideck right:9-10:epic right:11-12:ge-proton right:13-14:battlenet right:15-16:ubisoft right:17-18:tomoon right:19-20:previous right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:simpledeckytdp right:7-8:unifideck right:9-10:epic right:11-12:ge-proton right:13-14:tomoon right:15-16:battlenet right:17-18:ubisoft right:19-20:previous right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
             simpledeckytdp) confirm_and_run "安装 SimpleDeckyTDP" "TDP/功耗性能控制插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp ;;
             unifideck) confirm_and_run "安装 Unifideck" "入库第三方平台游戏；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
             epic) confirm_and_run "安装 Epic 游戏启动器" "安装并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
+            tomoon) confirm_and_run "安装 ToMoon" "从作者 GitHub Release 下载并校验后安装网络工具插件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon ;;
             battlenet) confirm_and_run "安装战网启动器" "首次请在 Steam 属性→兼容性中强制选择 Proton 10.0-4" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
             ubisoft) confirm_and_run "安装育碧" "自动安装育碧游戏平台、创建桌面入口并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft ;;
-            tomoon) confirm_and_run "安装 ToMoon" "通过 Decky 官方商店安装；请先在游戏模式开启“启用开发者模式”和“CEF远程调试”" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/decky_bundle.sh" plugin "ToMoon" ;;
             ge-proton) confirm_and_run "安装 GE 游戏运行组件" "安装第三方 GE-Proton 游戏兼容组件" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
             previous) NEXT_CATEGORY="games"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;

@@ -31,9 +31,12 @@ grep -Fq 'DECKY_FSR4_SHA256="236dc5aef5c908d905a848d7e448689634479ab61cd9184154b
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"' \
     "$PROJECT_ROOT/config/settings.example.conf"
+grep -Fq 'DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"' \
+    "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CheatDeck/releases/download/v1.2.1/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_github_file "$url" "$output" "$expected_sha256" "$name"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/repository/archive/v5.1.1.zip' \
@@ -138,7 +141,8 @@ grep -Fq 'copy_lsfg_chinese' "$PROJECT_ROOT/install.sh"
 grep -Fq 'toolbox_sudo systemctl restart "$DECKY_SERVICE_NAME"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '旧版通用扫描式汉化已停用' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'features) show_plugin_download_speed_tip; install_feature_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '"ToMoon"' "$PROJECT_ROOT/modules/decky_bundle.sh"
+grep -Fq 'tomoon) show_plugin_download_speed_tip; install_configured_plugin tomoon' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '"tomoon"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'feature-status) print_feature_plugin_status' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'uninstall) uninstall_all_decky_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '不会删除 Decky Loader 本体' "$PROJECT_ROOT/modules/plugin_store.sh"
