@@ -40,6 +40,20 @@ _github_mirror_list() {
     printf '%s\n' "https://github.com"
 }
 
+# Steamcommunity 302 的 GitHub 规则接管官方域名；第三方镜像不在其
+# 接管范围内。已确认 302 运行时，先尝试官方地址，失败再按原镜像顺序回退。
+_github_steam302_is_ready() {
+    declare -F steam302_download_acceleration_is_ready >/dev/null 2>&1 || return 1
+    steam302_download_acceleration_is_ready >/dev/null 2>&1
+}
+
+_github_prioritize_official_source() {
+    local sources="$1"
+
+    printf '%s\n' "https://github.com"
+    printf '%s\n' "$sources" | awk '$0 != "https://github.com" && !seen[$0]++'
+}
+
 # 下载源可以是完整 URL 前缀，也可以用 {url} 表示原始 GitHub URL。
 _resolve_github_url() {
     local url="$1"
@@ -152,6 +166,10 @@ download_github_file() {
     case "$url" in
         https://github.com/*|https://raw.githubusercontent.com/*)
             ranked_sources="$(get_ranked_github_sources "$url")" || ranked_sources=""
+            if _github_steam302_is_ready; then
+                ranked_sources="$(_github_prioritize_official_source "$ranked_sources")"
+                echo "已检测到 Steamcommunity 302 的 GitHub 加速，优先使用 GitHub 官方地址。"
+            fi
             ;;
         https://*) ranked_sources="DIRECT" ;;
         *)

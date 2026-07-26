@@ -73,6 +73,22 @@ case "$first_download" in
     *) echo "FAIL: 未优先使用测速最快的镜像" >&2; exit 1 ;;
 esac
 
+: > "$CALLS_FILE"
+steam302_download_acceleration_is_ready() { return 0; }
+download_github_file "$url" "$OUTPUT" "$expected" "302优先测试"
+downloads="$(grep '^download|' "$CALLS_FILE")"
+first_download="$(printf '%s\n' "$downloads" | head -n 1)"
+second_download="$(printf '%s\n' "$downloads" | sed -n '2p')"
+case "$first_download" in
+    download\|https://raw.githubusercontent.com/*) ;;
+    *) echo "FAIL: 302运行时未优先使用GitHub官方地址" >&2; exit 1 ;;
+esac
+case "$second_download" in
+    download\|https://fast.invalid/*) ;;
+    *) echo "FAIL: 302官方地址失败后未回退镜像" >&2; exit 1 ;;
+esac
+unset -f steam302_download_acceleration_is_ready
+
 printf 'keep existing file\n' > "$OUTPUT"
 export GITHUB_TEST_FAIL_DOWNLOAD=1
 if download_github_file "$url" "$OUTPUT" "$expected" "失败测试包" >/dev/null 2>&1; then
