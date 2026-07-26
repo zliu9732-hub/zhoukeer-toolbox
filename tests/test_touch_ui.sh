@@ -47,6 +47,10 @@ printf '%s\n' "$layout_wait" | grep -Fq 'UI_LAST_ROW' || fail "窗口画布没�
 canvas_request="$(sed -n '/^ui_request_preferred_canvas()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
 printf '%s\n' "$canvas_request" | grep -Fq '\033[8;%s;%st' || fail "没有请求 Konsole 恢复标准行列尺寸"
 grep -Fq 'ui_wait_for_minimum_canvas || true' "$PROJECT_ROOT/main.sh" || fail "主程序首次绘制前没有等待窗口尺寸就绪"
+startup_loading="$(sed -n '/^show_startup_loading()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+printf '%s\n' "$startup_loading" | grep -Fq '工具箱启动中，请耐心等待' || fail "启动等待阶段缺少明确提示"
+main_prefix="$(sed -n '1,/^# V4 默认就是纯触控界面/p' "$PROJECT_ROOT/main.sh")"
+printf '%s\n' "$main_prefix" | grep -Fq 'show_startup_loading' || fail "启动提示没有在触控界面初始化前显示"
 
 disclaimer="$(sed -n '/^draw_disclaimer_frame()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
 printf '%s\n' "$disclaimer" | grep -Fq 'ui_reset_screen' || fail "免责声明首屏未执行完整清屏"
