@@ -127,11 +127,11 @@ show_disclaimer() {
         ui_disclaimer_line 11 '\033[38;5;45m' "不包含付费软件本体、破解或商业授权"
         ui_disclaimer_line 12 '\033[38;5;220m' "第三方软件与插件均从作者或官方发布页获取"
         ui_disclaimer_line 13 '\033[1;38;5;114m' "欢迎支持作者；若有侵权请及时联系删除"
-        ui_disclaimer_button 15 '\033[1;38;5;114m' "知悉并开始使用" "点击即表示已阅读上述说明"
-        ui_disclaimer_button 18 '\033[1;38;5;203m' "退出工具箱" "暂不使用"
-        # Konsole 刚启动或从非全屏切换时，触屏坐标可能比首帧晚刷新数行；
-        # 把“知悉”扩展至按钮周围完整卡片，退出区仍从下一块区域独立开始。
-        choice="$(read_menu_choice any:12-19:agree any:20-24:exit)"
+        ui_disclaimer_button 15 '\033[1;38;5;114m' "点击窗口任意位置开始使用" "点击即表示已阅读上述说明；关闭窗口即可退出"
+        # 非全屏 Konsole 的可见行数和触屏坐标可能在首帧不同步，不能再把进入
+        # 工具箱限定在固定的第 12–19 行；欢迎页不执行任何系统操作，因此任意
+        # 主指针点击均视为确认，关闭窗口仍可直接退出。
+        choice="$(read_menu_choice any:1-999:agree)"
         case "$choice" in
             agree)
                 if [ "${ZHOUKEER_STARTUP_SPLASH:-0}" = "1" ]; then
@@ -144,7 +144,6 @@ show_disclaimer() {
                 fi
                 return 0
                 ;;
-            exit) exit 0 ;;
         esac
     done
 }

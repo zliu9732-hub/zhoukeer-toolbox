@@ -31,8 +31,8 @@ run_choice_test '\033[<0;40;13m\033[<0;40;18M' "cancel" "right:18-19:cancel"
 run_choice_test '\033[<64;40;13M\033[<32;40;13M\033[<0;40;18M' "cancel" "right:18-19:cancel"
 run_choice_test '\033[<0;15;5M' "nav-software" "left:5-6:nav-software"
 run_choice_test '\033[<0;40;22M' "home" "right:22-23:home"
-run_choice_test '\033[<0;8;12M' "agree" "any:12-19:agree"
-run_choice_test '\033[<0;80;19M' "agree" "any:12-19:agree"
+run_choice_test '\033[<0;8;1M' "agree" "any:1-999:agree"
+run_choice_test '\033[<0;80;19M' "agree" "any:1-999:agree"
 
 grep -Fq 'UI_LAST_ROW=24' "$PROJECT_ROOT/core/ui.sh" || fail "触控画布行数异常"
 grep -Fq 'Font=Noto Sans Mono CJK SC,12' "$PROJECT_ROOT/install.sh" || fail "中文字体大小不是紧凑布局"
@@ -55,7 +55,8 @@ if printf '%s\n' "$main_disclaimer" | grep -Fq 'ui_disclaimer_line 14'; then
     fail "免责声明正文仍紧贴首个按钮"
 fi
 printf '%s\n' "$main_disclaimer" | grep -Fq 'konsoleprofile "ColorScheme=ZhoukeerToolbox"' || fail "欢迎页确认后没有原地切换常规主题"
-printf '%s\n' "$main_disclaimer" | grep -Fq 'any:12-19:agree' || fail "欢迎页知悉按钮热区没有扩大"
+printf '%s\n' "$main_disclaimer" | grep -Fq 'any:1-999:agree' || fail "欢迎页没有允许任意位置点击进入"
+printf '%s\n' "$main_disclaimer" | grep -Fq '关闭窗口即可退出' || fail "欢迎页没有说明非全屏时的退出方式"
 if printf '%s\n' "$main_disclaimer" | grep -Fq 'exec bash "$PROJECT_ROOT/launch.sh" --open-main'; then
     fail "欢迎页仍依赖关闭当前窗口后另开 Konsole"
 fi
