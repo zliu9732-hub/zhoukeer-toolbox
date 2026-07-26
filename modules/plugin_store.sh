@@ -1960,7 +1960,7 @@ install_feature_plugins() {
         return 0
     fi
 
-    echo "将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。"
+    echo "将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck、ToMoon。"
     echo "小黄鸭和 FSR4 优先通过 GitHub 加速源下载完整汉化包，失败则回退原版叠加流程。"
     for plugin in lsfg fsr4 cheatdeck; do
         echo ""
@@ -1994,6 +1994,13 @@ install_feature_plugins() {
                 ;;
         esac
     done
+
+    echo "========== ToMoon =========="
+    echo "将通过 Decky 官方商店提交 ToMoon 安装请求。"
+    bash "$PROJECT_ROOT/modules/decky_bundle.sh" plugin "ToMoon" || {
+        failed=1
+        echo "ToMoon 未完成，继续保留其他插件安装结果。"
+    }
 
     refresh_feature_usage_guides || true
     if ! print_feature_plugin_status; then

@@ -30,7 +30,7 @@ DECKY_FREEDECK_SHA256="${ZHOUKEER_DECKY_FREEDECK_SHA256:-1b42bc7ab15f5a0fee69f2c
 DECKY_FREEDECK_VERSION="${ZHOUKEER_DECKY_FREEDECK_VERSION:-0.6}"
 
 # Names must exactly match the official Decky store database.
-DECKY_OFFICIAL_PLUGIN_NAMES='["CSS Loader","vibrantDeck","Animation Changer","Audio Loader","SteamGridDB","PowerTools","Storage Cleaner","AutoFlatpaks","Bluetooth","ProtonDB Badges","Deck Settings","HLTB for Deck","PlayCount","TabMaster","Wine Cellar","Pause Games","Controller Tools","Volume Mixer","Battery Tracker","PlayTime","Free Loader","DeckMTP","MangoPeel"]'
+DECKY_OFFICIAL_PLUGIN_NAMES='["CSS Loader","vibrantDeck","Animation Changer","Audio Loader","SteamGridDB","PowerTools","Storage Cleaner","AutoFlatpaks","Bluetooth","ProtonDB Badges","Deck Settings","HLTB for Deck","PlayCount","TabMaster","Wine Cellar","Pause Games","Controller Tools","Volume Mixer","Battery Tracker","PlayTime","Free Loader","DeckMTP","MangoPeel","ToMoon"]'
 
 json_quote() {
     local value="$1"
