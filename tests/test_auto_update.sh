@@ -30,6 +30,7 @@ cp "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/VERSION" \
 SCRIPT
 chmod +x "$RELEASE_DIR/install.sh"
 printf '%s\n' '4.1.0' > "$RELEASE_DIR/VERSION"
+printf 'AppleDouble metadata\n' > "$RELEASE_DIR/._install.sh"
 tar -czf "$REMOTE_DIR/dist/zhoukeer-toolbox.tar.gz" -C "$RELEASE_DIR" .
 PACKAGE_SHA="$(shasum -a 256 "$REMOTE_DIR/dist/zhoukeer-toolbox.tar.gz" | awk '{print $1}')"
 printf '%s  %s\n' "$PACKAGE_SHA" 'zhoukeer-toolbox.tar.gz' > "$REMOTE_DIR/dist/SHA256SUMS"
@@ -102,6 +103,14 @@ if grep -Fq 'SHA256校验通过' "$PROJECT_ROOT/update.sh" || grep -Fq 'SHA256�
     echo "FAIL: 工具箱更新或安装仍回显正常校验细节" >&2
     exit 1
 fi
+grep -Fq -- "-name '._*' -exec rm -f -- {} +" "$PROJECT_ROOT/update.sh" || {
+    echo "FAIL: 自动更新不会清理 AppleDouble 元数据文件" >&2
+    exit 1
+}
+grep -Fq -- "-name '._*' -exec rm -f -- {} +" "$PROJECT_ROOT/bootstrap.sh" || {
+    echo "FAIL: 首次安装不会清理 AppleDouble 元数据文件" >&2
+    exit 1
+}
 startup_update_source="$(sed -n '/^run_startup_update()/,/^}/p' "$PROJECT_ROOT/launch.sh")"
 if printf '%s\n' "$startup_update_source" | grep -Fq 'tee -a "$LAUNCH_LOG"'; then
     echo "FAIL: 启动时自动更新仍会把详细输出回显到终端" >&2

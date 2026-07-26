@@ -124,6 +124,14 @@ verify_package() {
 
 }
 
+remove_appledouble_files() {
+    local root="$1"
+
+    # macOS 可能生成 ._* AppleDouble 元数据。其文件名会带 .sh 后缀，
+    # 在 SteamOS 上被 bash -n 误当脚本；只清理下载包内的这类元数据文件。
+    find "$root" -type f -name '._*' -exec rm -f -- {} +
+}
+
 validate_tar_archive() {
     local archive="$1"
     local listing="$2"
@@ -290,6 +298,10 @@ download_verified_package "$PACKAGE_FILE" "$CHECKSUM_FILE" || exit 1
 
 validate_tar_archive "$PACKAGE_FILE" "$TMP_DIR/archive.list" "$TMP_DIR/archive.verbose" || exit 1
 tar --no-xattrs --no-same-owner --no-same-permissions -xzf "$PACKAGE_FILE" -C "$TMP_DIR" || exit 1
+remove_appledouble_files "$TMP_DIR" || {
+    echo "无法清理项目包中的 macOS 元数据文件。"
+    exit 1
+}
 INSTALLER_PATH="$(find "$TMP_DIR" -mindepth 1 -maxdepth 2 -type f -name install.sh -print | head -n 1)"
 
 if [ -z "$INSTALLER_PATH" ] || [ ! -f "$INSTALLER_PATH" ]; then
@@ -303,7 +315,7 @@ if [ ! -f "$PACKAGE_DIR/main.sh" ] || [ ! -d "$PACKAGE_DIR/modules" ] || [ ! -d 
     exit 1
 fi
 
-if ! find "$PACKAGE_DIR" -type f -name '*.sh' -exec bash -n {} \;; then
+if ! find "$PACKAGE_DIR" -type f -name '*.sh' ! -name '._*' -exec bash -n {} \;; then
     echo "项目包包含Shell语法错误，已停止安装。"
     exit 1
 fi

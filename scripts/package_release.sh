@@ -46,10 +46,14 @@ if [ "${#PACKAGE_SOURCES[@]}" -eq 0 ]; then
     exit 1
 fi
 
-tar \
+# macOS 的 Finder/归档工具可能附加 AppleDouble（._*）元数据文件。
+# SteamOS 端会将扩展名为 .sh 的这类二进制元数据误当 Bash 脚本，必须从发布包中彻底排除。
+COPYFILE_DISABLE=1 tar \
     --no-xattrs \
     --exclude=".git" \
     --exclude=".DS_Store" \
+    --exclude="._*" \
+    --exclude="*/._*" \
     --exclude="logs" \
     --exclude="apps" \
     --exclude="decky-plugins/*/node_modules" \
@@ -58,6 +62,12 @@ tar \
     --exclude="管理员密码.txt" \
     --exclude="config/settings.conf" \
     -czf "$PACKAGE_PATH" "${PACKAGE_SOURCES[@]}"
+
+if tar -tzf "$PACKAGE_PATH" | grep -Eq '(^|/)\._'; then
+    echo "发布包包含 macOS AppleDouble 元数据文件，已停止发布。"
+    rm -f -- "$PACKAGE_PATH" "$SHA256SUMS_PATH"
+    exit 1
+fi
 
 for packaged_file in $VERIFY_FILES; do
     if ! tar -xOf "$PACKAGE_PATH" "./$packaged_file" | \

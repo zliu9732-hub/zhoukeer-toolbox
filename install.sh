@@ -425,6 +425,13 @@ copy_fsr4_chinese() {
     copy_dir_files third_party/decky-framegen-zh-v0.15.6/defaults
 }
 
+remove_appledouble_files() {
+    local root="$1"
+
+    # 仅清理暂存安装目录中的 macOS AppleDouble 元数据，防止 ._*.sh 被当作脚本。
+    find "$root" -type f -name '._*' -exec rm -f -- {} +
+}
+
 for file in main.sh main_old.sh launch.sh install.sh uninstall.sh update.sh bootstrap.sh i README.md VERSION .gitignore; do
     if [ -f "$SOURCE_ROOT/$file" ]; then
         copy_file "$SOURCE_ROOT/$file" "$STAGING_DIR/$file"
@@ -456,6 +463,10 @@ while IFS= read -r retired_config; do
     }
 done < <(find "$STAGING_DIR/config" -maxdepth 1 -type f -name 'settings.conf*' -print)
 rm -f -- "$STAGING_DIR/apps/rustdesk.AppImage"
+remove_appledouble_files "$STAGING_DIR" || {
+    echo "无法清理安装暂存目录中的 macOS 元数据文件，旧版本保持不变。"
+    exit 1
+}
 
 CONFIG_FILE="$STAGING_DIR/config/settings.conf"
 if [ ! -f "$CONFIG_FILE" ]; then
@@ -468,7 +479,7 @@ else
     migrate_existing_config "$CONFIG_FILE" || exit 1
 fi
 
-if ! find "$STAGING_DIR" -type f -name '*.sh' -exec bash -n {} \;; then
+if ! find "$STAGING_DIR" -type f -name '*.sh' ! -name '._*' -exec bash -n {} \;; then
     echo "新版本包含Shell语法错误，旧版本保持不变。"
     exit 1
 fi
@@ -481,7 +492,7 @@ if ! grep -Fq 'STEAM302_LAYOUT_VALIDATION_REVISION="ascii-files-v2"' \
     echo "新版本关键模块不完整，旧版本保持不变。"
     exit 1
 fi
-find "$STAGING_DIR" -maxdepth 3 -type f -name "*.sh" -exec chmod +x {} +
+find "$STAGING_DIR" -maxdepth 3 -type f -name "*.sh" ! -name '._*' -exec chmod +x {} +
 
 # 安装目录即将被原子替换。先离开它，避免从工具箱内部发起更新时，
 # 当前 Shell 落在已删除目录并持续输出 getcwd/chdir 错误。
