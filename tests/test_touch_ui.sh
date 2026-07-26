@@ -35,7 +35,7 @@ run_choice_test '\033[<0;8;1M' "agree" "any:1-999:agree"
 run_choice_test '\033[<0;80;19M' "agree" "any:1-999:agree"
 
 grep -Fq 'UI_LAST_ROW=24' "$PROJECT_ROOT/core/ui.sh" || fail "触控画布行数异常"
-grep -Fq 'Font=Noto Sans Mono CJK SC,9' "$PROJECT_ROOT/install.sh" || fail "中文字体大小没有为非全屏窗口收紧"
+grep -Fq 'Font=Noto Sans Mono CJK SC,10' "$PROJECT_ROOT/install.sh" || fail "中文字体大小没有恢复到可读尺寸"
 grep -Fq 'TerminalColumns=120' "$PROJECT_ROOT/install.sh" || fail "终端列数不是紧凑布局"
 grep -Fq 'TerminalRows=32' "$PROJECT_ROOT/install.sh" || fail "终端行数不是紧凑布局"
 grep -Fq 'WINDOW_SIZE="1280x820"' "$PROJECT_ROOT/launch.sh" || fail "工具箱窗口尺寸未同步"

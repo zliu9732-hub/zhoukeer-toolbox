@@ -566,7 +566,7 @@ if [ -f "$INSTALL_DIR/assets/Zhoukeer.colorscheme.in" ] && [ -f "$BACKGROUND_PAT
     cat > "$KONSOLE_PROFILE" <<EOF
 [Appearance]
 ColorScheme=ZhoukeerToolbox
-Font=Noto Sans Mono CJK SC,9,-1,5,50,0,0,0,0,0
+Font=Noto Sans Mono CJK SC,10,-1,5,50,0,0,0,0,0
 LineSpacing=0
 
 [General]
@@ -587,7 +587,7 @@ if [ -f "$INSTALL_DIR/assets/Zhoukeer.colorscheme.in" ] && [ -f "$WELCOME_BACKGR
     cat > "$KONSOLE_SPLASH_PROFILE" <<EOF
 [Appearance]
 ColorScheme=ZhoukeerToolboxSplash
-Font=Noto Sans Mono CJK SC,9,-1,5,50,0,0,0,0,0
+Font=Noto Sans Mono CJK SC,10,-1,5,50,0,0,0,0,0
 LineSpacing=0
 
 [General]
