@@ -106,6 +106,14 @@ create_shared_drive_shortcut() { return 0; }
 repair_shared_drive >/dev/null || fail "NTFS 写入错误修复模拟失败"
 grep -Fq 'ntfsfix /dev/testshare' "$CALLS" || fail "NTFS 修复未调用 ntfsfix"
 
+ZHOUKEER_TF_CARD_DEVICE="/not-a-device"
+if find_tf_card_device >"$TMP_ROOT/tf-diagnostic.output" 2>&1; then
+    fail "不安全的 TF 卡设备路径未被拒绝"
+fi
+grep -Fq '指定的 TF 卡设备路径不安全' "$TMP_ROOT/tf-diagnostic.output" || \
+    fail "TF 卡设备识别失败没有输出具体原因"
+unset ZHOUKEER_TF_CARD_DEVICE
+
 mkdir -p "$WINDOWS_SWITCH_DIR/windows"
 printf 'legacy\n' > "$WINDOWS_SWITCH_LAUNCHER"
 printf 'legacy\n' > "$WINDOWS_LEGACY_SWITCH_LAUNCHER"

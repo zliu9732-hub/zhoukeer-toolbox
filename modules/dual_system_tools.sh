@@ -43,16 +43,16 @@ find_tf_card_device() {
 
     if [ -n "$requested" ]; then
         simple_device_path_is_safe "$requested" || {
-            echo "指定的 TF 卡设备路径不安全：$requested"
+            echo "指定的 TF 卡设备路径不安全：$requested" >&2
             return 1
         }
         type="$(lsblk -dnro TYPE "$requested" 2>/dev/null | head -n 1)"
         [ "$type" = "disk" ] || {
-            echo "指定目标不是整张磁盘：$requested"
+            echo "指定目标不是整张磁盘：$requested" >&2
             return 1
         }
         if device_is_system_disk "$requested"; then
-            echo "指定目标属于当前系统盘，已拒绝操作：$requested"
+            echo "指定目标属于当前系统盘，已拒绝操作：$requested" >&2
             return 1
         fi
         printf '%s\n' "$requested"
@@ -71,12 +71,12 @@ find_tf_card_device() {
     done < <(lsblk -dnrpo NAME,TYPE,RM,TRAN 2>/dev/null)
 
     if [ "$count" -eq 0 ]; then
-        echo "没有检测到可安全识别的 TF 卡或可移动磁盘。"
+        echo "没有检测到可安全识别的 TF 卡或可移动磁盘。" >&2
         return 1
     fi
     if [ "$count" -gt 1 ]; then
-        echo "检测到多个可移动磁盘，为避免格式化错误设备已停止。"
-        echo "请只保留目标 TF 卡后重试。"
+        echo "检测到多个可移动磁盘，为避免格式化错误设备已停止。" >&2
+        echo "请只保留目标 TF 卡后重试。" >&2
         return 1
     fi
     printf '%s\n' "$candidate"
@@ -131,6 +131,7 @@ create_tf_card_shortcut() {
 format_and_mount_tf_card() {
     local device partition output mountpoint
 
+    echo "正在检查 TF 卡和管理员权限…"
     require_steamos || return 1
     for command_name in lsblk findmnt udisksctl wipefs parted partprobe udevadm mkfs.exfat; do
         require_command "$command_name" || return 1
@@ -140,7 +141,10 @@ format_and_mount_tf_card() {
         echo "已取消 TF 卡初始化，磁盘未修改。"
         return 0
     }
-    toolbox_sudo true || return 1
+    toolbox_sudo true || {
+        echo "管理员权限验证失败，TF 卡未修改。"
+        return 1
+    }
     unmount_device_partitions "$device" || return 1
 
     toolbox_sudo wipefs --all --force "$device" || {
@@ -151,8 +155,14 @@ format_and_mount_tf_card() {
         echo "创建 TF 卡分区失败。"
         return 1
     }
-    toolbox_sudo partprobe "$device" || return 1
-    toolbox_sudo udevadm settle || return 1
+    toolbox_sudo partprobe "$device" || {
+        echo "系统未能刷新 TF 卡分区表。"
+        return 1
+    }
+    toolbox_sudo udevadm settle || {
+        echo "等待 TF 卡新分区识别超时。"
+        return 1
+    }
     partition="$(lsblk -lnrpo NAME,TYPE "$device" 2>/dev/null | awk '$2 == "part" { print $1 }' | head -n 1)"
     simple_device_path_is_safe "$partition" || {
         echo "无法安全确认新建的 TF 卡分区。"
@@ -171,7 +181,10 @@ format_and_mount_tf_card() {
         echo "TF 卡已格式化，但没有确认挂载位置。"
         return 1
     }
-    create_tf_card_shortcut "$mountpoint" || return 1
+    create_tf_card_shortcut "$mountpoint" || {
+        echo "TF 卡已挂载，但创建桌面快捷入口失败。"
+        return 1
+    }
     echo "TF 卡已格式化为 exFAT 并挂载：$mountpoint"
     echo "SteamOS 与 Windows 均可读写；快捷入口：$TF_CARD_LINK"
     log "双系统TF卡已初始化: $device -> $partition -> $mountpoint"

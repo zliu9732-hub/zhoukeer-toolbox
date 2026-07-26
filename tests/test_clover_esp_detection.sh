@@ -62,4 +62,20 @@ clover_resolve_esp_device || fail "未能从已有 Clover NVRAM 启动项定位 
 clover_release_esp_mount
 grep -Fq 'unmount --block-device /dev/fakeesp' "$CALLS" || fail "状态检查后没有卸载临时 EFI"
 
+BAD_ESP="$TMP_ROOT/not-an-esp"
+mkdir -p "$BAD_ESP"
+bootctl() { return 1; }
+clover_device_from_nvram() { printf '%s\n' '/dev/badesp'; }
+findmnt() {
+    case " $* " in
+        *' -S /dev/badesp '*) printf '%s\n' "$BAD_ESP" ;;
+        *) return 1 ;;
+    esac
+}
+if clover_find_esp >"$TMP_ROOT/clover-diagnostic.output" 2>&1; then
+    fail "不含 EFI 目录的挂载点仍被识别为 EFI 分区"
+fi
+grep -Fq '不含 EFI 目录' "$TMP_ROOT/clover-diagnostic.output" || \
+    fail "Clover EFI 定位失败没有输出具体原因"
+
 echo "PASS: 可从现有 Clover NVRAM 启动项反查、临时挂载并释放 EFI"

@@ -107,7 +107,10 @@ clover_find_esp() {
             CLOVER_ESP_MOUNTED_BY_TOOLBOX=1
             CLOVER_ESP_MOUNT_DEVICE="$device"
         fi
-        [ -d "$mountpoint/EFI" ] || return 1
+        [ -d "$mountpoint/EFI" ] || {
+            echo "定位到 EFI 分区 ${device}，但其挂载位置不含 EFI 目录：${mountpoint:-未知}。" >&2
+            return 1
+        }
         CLOVER_ESP_FOUND="$mountpoint"
         return 0
     fi
@@ -393,6 +396,7 @@ clover_install() {
     local existing_backup original_backup original_order current_order new_order staging_output
     local temporary_target boot_number new_boot_entry=0 create_output available_kb
 
+    echo "正在检查 Clover 安装环境…"
     require_steamos || return 1
     for command_name in curl unzip zipinfo findmnt lsblk efibootmgr awk sed df; do
         require_command "$command_name" || return 1
@@ -401,7 +405,10 @@ clover_install() {
         echo "Clover 怪盗主题资源缺失，请更新工具箱后重试。"
         return 1
     }
-    clover_resolve_esp_device || return 1
+    clover_resolve_esp_device || {
+        echo "无法定位可用 EFI 系统分区，EFI 和开机顺序均未修改。"
+        return 1
+    }
     clover_windows_entry_exists || {
         echo "未检测到 Windows Boot Manager，已停止安装 Clover。"
         return 1
@@ -423,7 +430,10 @@ clover_install() {
         return 1
     }
 
-    work_dir="$(mktemp -d)" || return 1
+    work_dir="$(mktemp -d)" || {
+        echo "无法创建 Clover 临时工作目录，EFI 未修改。"
+        return 1
+    }
     archive="$work_dir/$CLOVER_ARCHIVE"
     if ! download_github_release "$CLOVER_REPOSITORY" "$CLOVER_VERSION" \
         "$CLOVER_ARCHIVE" "$archive" "$CLOVER_ARCHIVE_SHA256" "Clover $CLOVER_VERSION"; then
