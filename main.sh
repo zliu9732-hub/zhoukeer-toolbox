@@ -567,29 +567,26 @@ dual_system_menu() {
 
     while true; do
         if [ "$page" -eq 0 ]; then
-            draw_category_frame advanced "双系统常用工具" "磁盘、Clover 与互通盘 · 第 1/2 页"
+            draw_category_frame advanced "双系统常用工具" "磁盘与互通盘 · 第 1/2 页"
             ui_touch_button 5 '\033[1;97;48;5;24m' "挂载双系统互通盘" "自动排除 Windows 系统分区"
             ui_touch_button 7 '\033[1;97;48;5;160m' "初始化并挂载 TF 卡" "会清空目标卡并格式化为 exFAT"
             ui_touch_button 9 '\033[1;97;48;5;160m' "修复磁盘写入错误" "NTFS/exFAT 基础修复 · 会卸载磁盘"
-            ui_touch_button 11 '\033[1;97;48;5;160m' "安装或修复 Clover" "恢复 SteamOS / Windows 开机菜单"
-            ui_touch_button 13 '\033[1;97;48;5;30m' "双系统互通盘保护" "重新挂载为只读，防止升级后掉盘"
+            ui_touch_button 11 '\033[1;97;48;5;30m' "双系统互通盘保护" "重新挂载为只读，防止升级后掉盘"
             ui_touch_button 19 '\033[1;97;48;5;24m' "更多双系统工具" "状态、删除与第三方引导清理"
             ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
             ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
             ui_prompt
-            choice="$(read_touch_menu right:5-6:mount right:7-8:tf-format right:9-10:repair-drive right:11-12:clover-install right:13-14:protect right:19-20:next right:21-22:advanced right:23-24:home)"
+            choice="$(read_touch_menu right:5-6:mount right:7-8:tf-format right:9-10:repair-drive right:11-12:protect right:19-20:next right:21-22:advanced right:23-24:home)"
         else
             draw_category_frame advanced "更多双系统工具" "只读检查、恢复与引导清理 · 第 2/2 页"
             ui_touch_button 5 '\033[1;97;48;5;24m' "双系统健康检查" "识别 Clover、rEFInd、GRUB、OpenCore 等"
             ui_touch_button 7 '\033[1;97;48;5;24m' "恢复互通盘写入" "退出只读保护并重新挂载"
-            ui_touch_button 9 '\033[1;97;48;5;24m' "查看 Clover 状态" "检查主题、启动文件和 NVRAM"
-            ui_touch_button 11 '\033[1;97;48;5;160m' "删除 Clover 双系统引导" "仅删除工具箱 Clover 并恢复 BootOrder"
-            ui_touch_button 13 '\033[1;97;48;5;160m' "清理第三方引导项" "仅删选定 NVRAM，保留 EFI 文件"
+            ui_touch_button 9 '\033[1;97;48;5;160m' "清理第三方引导项" "仅删选定 NVRAM，保留 EFI 文件"
             ui_touch_button 19 '\033[1;97;48;5;24m' "返回常用工具" "回到双系统常用功能"
             ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
             ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
             ui_prompt
-            choice="$(read_touch_menu right:5-6:health right:7-8:unprotect right:9-10:clover-status right:11-12:clover-delete right:13-14:cleanup-boot right:19-20:previous right:21-22:advanced right:23-24:home)"
+            choice="$(read_touch_menu right:5-6:health right:7-8:unprotect right:9-10:cleanup-boot right:19-20:previous right:21-22:advanced right:23-24:home)"
         fi
         if apply_navigation "$choice"; then return 0; fi
 
@@ -614,16 +611,7 @@ dual_system_menu() {
                 confirm_and_run "恢复互通盘写入" "会重新以可写模式挂载互通盘，恢复 SteamOS 下的正常读写" \
                     bash "$PROJECT_ROOT/modules/dual_system.sh" unprotect
                 ;;
-            clover-install)
-                confirm_and_run "安装或修复 Clover" "会备份原 EFI 与 BootOrder，再安装 Clover 5173 和自定义怪盗主题；8 秒默认进入 SteamOS" \
-                    bash "$PROJECT_ROOT/modules/clover_boot.sh" install
-                ;;
             health) run_action "双系统健康检查" bash "$PROJECT_ROOT/modules/dual_system_tools.sh" health ;;
-            clover-status) run_action "Clover 状态" bash "$PROJECT_ROOT/modules/clover_boot.sh" status ;;
-            clover-delete)
-                confirm_and_run "删除 Clover 双系统引导" "仅删除工具箱管理的 Clover 启动项，并恢复安装前的 BootOrder 和原 Clover 目录" \
-                    bash "$PROJECT_ROOT/modules/clover_boot.sh" delete
-                ;;
             cleanup-boot)
                 confirm_and_run "清理第三方引导项" "SteamOS、Windows 和 systemd-boot 受保护；其他项还需输入 Boot 编号和完整删除口令" \
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" cleanup-boot

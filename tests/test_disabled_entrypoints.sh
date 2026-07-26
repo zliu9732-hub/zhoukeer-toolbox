@@ -22,7 +22,9 @@ for menu in "$touch_dual" "$gui_dual"; do
         printf '%s\n' "$menu" | grep -Fq "modules/dual_system.sh\" $action" || fail "互通盘菜单动作缺失：$action"
     done
     for action in install status delete; do
-        printf '%s\n' "$menu" | grep -Fq "modules/clover_boot.sh\" $action" || fail "Clover 菜单动作缺失：$action"
+        if printf '%s\n' "$menu" | grep -Fq "modules/clover_boot.sh\" $action"; then
+            fail "已移除的 Clover 菜单动作仍可执行：$action"
+        fi
     done
     for action in tf-format-mount repair-drive health cleanup-boot; do
         printf '%s\n' "$menu" | grep -Fq "modules/dual_system_tools.sh\" $action" || fail "双系统扩展动作缺失：$action"
@@ -45,4 +47,4 @@ for action in add remove; do
     fi
 done
 
-echo "PASS: rEFInd 和旧 systemd-boot 动作不可达，Clover 与双系统扩展菜单已接管"
+echo "PASS: rEFInd、旧 systemd-boot 和 Clover 动作不可达，双系统扩展菜单已接管"

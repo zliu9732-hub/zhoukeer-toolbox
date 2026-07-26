@@ -174,8 +174,11 @@ assert_contains "$touch_games_page_2" '"育碧"' "育碧菜单仍显示旧名称
 touch_dual="$(function_source "$MAIN_FILE" dual_system_menu)"
 gui_dual="$(function_source "$GUI_FILE" dual_system_menu)"
 for menu in "$touch_dual" "$gui_dual"; do
-    for item in '挂载双系统互通盘' '初始化并挂载 TF 卡' '修复磁盘写入错误' '安装或修复 Clover' '双系统互通盘保护' '双系统健康检查' '恢复互通盘写入' '查看 Clover 状态' '删除 Clover 双系统引导' '清理第三方引导项'; do
+    for item in '挂载双系统互通盘' '初始化并挂载 TF 卡' '修复磁盘写入错误' '双系统互通盘保护' '双系统健康检查' '恢复互通盘写入' '清理第三方引导项'; do
         assert_contains "$menu" "$item" "双系统与互通盘缺少：$item"
+    done
+    for removed_item in '安装或修复 Clover' '查看 Clover 状态' '删除 Clover 双系统引导'; do
+        assert_not_contains "$menu" "$removed_item" "已移除的 Clover 功能仍显示：$removed_item"
     done
     assert_not_contains "$menu" '一键切换 Windows' "双系统菜单仍显示已移除的 Windows 一键切换"
     assert_not_contains "$menu" '立即切换 Windows' "双系统菜单仍显示已移除的 Windows 立即切换"
