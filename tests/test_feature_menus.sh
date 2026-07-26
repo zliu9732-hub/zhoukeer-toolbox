@@ -158,6 +158,12 @@ for menu in "$touch_uninstall" "$gui_uninstall"; do
 done
 
 touch_games_page_1="$(function_source "$MAIN_FILE" game_environment_menu)"
+gui_games_page_1="$(function_source "$GUI_FILE" game_environment_gui_menu)"
+for menu in "$touch_games_page_1" "$gui_games_page_1"; do
+    assert_contains "$menu" 'Steam 键 → 设置 → 启用开发者模式' "插件商城或插件组合缺少开发者模式开启路径"
+    assert_contains "$menu" '设置左侧出现“开发者”后 → 开发者 → 杂项' "插件商城或插件组合缺少 CEF 菜单路径"
+    assert_contains "$menu" 'CEF 远程调试' "插件商城或插件组合缺少 CEF 远程调试提示"
+done
 touch_games_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
 assert_contains "$touch_games_page_1" 'right:13-14:cheatdeck' "CheatDeck 未移动到插件第一页原 TDP 位置"
 assert_contains "$touch_games_page_2" 'right:5-6:simpledeckytdp' "SimpleDeckyTDP 未移动到插件第二页原 CheatDeck 位置"

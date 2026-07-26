@@ -89,6 +89,7 @@ confirm_decky_install() {
     local answer
 
     echo "将通过国内镜像更新 Decky Loader 插件商城。"
+    echo "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，并重新进入桌面模式。"
     echo "工具箱会分别校验程序和服务模板，不会执行下载源提供的外层安装脚本。"
     echo "会先停止旧 Decky 服务，再原子替换加载器和服务模板；已有插件会完整保留。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
@@ -99,6 +100,35 @@ confirm_decky_install() {
         y|Y|yes|YES) return 0 ;;
         *) return 1 ;;
     esac
+}
+
+write_flingtrainer_desktop_note() {
+    local desktop_dir="${ZHOUKEER_DESKTOP_DIR:-$HOME/Desktop}"
+    local note_file="$desktop_dir/风灵月影网址.txt"
+    local temporary_file
+
+    mkdir -p -- "$desktop_dir" || return 1
+    temporary_file="$(mktemp "$desktop_dir/.flingtrainer-note.XXXXXX")" || return 1
+    printf '%s\n' \
+        'flingtrainer.com' \
+        '' \
+        '请将上方网址粘贴到浏览器，用英文搜索并下载对应游戏的最新修改器。' > "$temporary_file" || {
+        rm -f -- "$temporary_file"
+        return 1
+    }
+    chmod 0644 "$temporary_file" || {
+        rm -f -- "$temporary_file"
+        return 1
+    }
+    mv -f -- "$temporary_file" "$note_file" || {
+        rm -f -- "$temporary_file"
+        return 1
+    }
+    echo "已在桌面生成：风灵月影网址.txt"
+}
+
+print_cef_remote_debugging_tip() {
+    echo "若返回游戏模式后没有看到 Decky 的插头图标：请按 Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，然后重新进入游戏模式。"
 }
 
 download_decky_component() {
@@ -1871,6 +1901,11 @@ install_configured_plugin() {
     case "$action" in
         lsfg|fsr4|cheatdeck) refresh_feature_usage_guides || true ;;
     esac
+    if [ "$action" = "cheatdeck" ]; then
+        write_flingtrainer_desktop_note || \
+            echo "CheatDeck 已处理，但未能在桌面生成风灵月影网址.txt。"
+        print_cef_remote_debugging_tip
+    fi
 
     if [ "$reload_after_install" = "1" ] && [ "$PLUGIN_INSTALL_CHANGED" -eq 1 ]; then
         reload_decky_plugins "Decky 已重新加载，返回游戏模式后可在插头菜单看到新插件。"
@@ -1964,7 +1999,10 @@ install_feature_plugins() {
     if ! feature_plugin_is_present "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "CheatDeck" "CheatDeck"; then _all_installed=0; fi
     if [ "$_all_installed" = "1" ]; then
         echo "三款常用功能插件已全部安装，无需重复安装。"
+        write_flingtrainer_desktop_note || \
+            echo "三件套已存在，但未能在桌面生成风灵月影网址.txt。"
         refresh_feature_usage_guides || true
+        print_cef_remote_debugging_tip
         print_feature_plugin_status
         return 0
     fi
@@ -2019,6 +2057,7 @@ install_feature_plugins() {
 
     if [ "$failed" -eq 0 ]; then
         echo "三款常用功能插件已全部安装完成，文件已确认并已通知 Decky 重新扫描。"
+        print_cef_remote_debugging_tip
         log "常用功能插件整组安装完成"
         return 0
     fi

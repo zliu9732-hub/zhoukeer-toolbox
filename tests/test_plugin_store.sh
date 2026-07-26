@@ -88,6 +88,26 @@ printf '%s\n' "$feature_install_function" | grep -Fq '小黄鸭（LSFG-VK）'
 printf '%s\n' "$feature_install_function" | grep -Fq 'reload_decky_plugins'
 printf '%s\n' "$feature_install_function" | grep -Fq '三款插件会出现在插头菜单中'
 grep -Fq 'CheatDeck 安装完成后可在 Decky 右侧栏显示' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '风灵月影网址.txt' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '若返回游戏模式后没有看到 Decky 的插头图标' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'Steam 键 → 设置 → 启用开发者模式' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '设置左侧出现“开发者”后 → 开发者 → 杂项' "$PROJECT_ROOT/modules/plugin_store.sh"
+NOTE_DESKTOP="$TMP_ROOT/note-desktop"
+PROJECT_ROOT="$PROJECT_ROOT" ZHOUKEER_DESKTOP_DIR="$NOTE_DESKTOP" bash -c '
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    write_flingtrainer_desktop_note
+' || {
+    echo "FAIL: 无法生成风灵月影网址桌面文件" >&2
+    exit 1
+}
+grep -Fxq 'flingtrainer.com' "$NOTE_DESKTOP/风灵月影网址.txt" || {
+    echo "FAIL: 风灵月影网址桌面文件内容错误" >&2
+    exit 1
+}
+grep -Fq '英文搜索并下载对应游戏的最新修改器' "$NOTE_DESKTOP/风灵月影网址.txt" || {
+    echo "FAIL: 风灵月影网址桌面文件缺少使用说明" >&2
+    exit 1
+}
 grep -Fq 'install_all_plugin_packages()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'decky_plugin_store_is_installed()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '未检测到插件商城，先安装插件商城。' "$PROJECT_ROOT/modules/plugin_store.sh"
