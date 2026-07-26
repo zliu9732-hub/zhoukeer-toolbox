@@ -94,7 +94,6 @@ software_menu() {
             chrome "Chrome 浏览器" \
             edge "Edge 浏览器" \
             rustdesk "RustDesk 远程协助｜安装开源远程工具" \
-            anydesk "AnyDesk 远程协助｜通过 Flathub 国内镜像安装" \
             todesk "ToDesk 远程协助｜安装前需完成系统设置" \
             bottles "Windows 软件工具｜安装 Bottles 运行工具" \
             baidunetdisk "百度网盘｜Flathub 安装百度网盘 Linux 版" \
@@ -124,7 +123,6 @@ software_menu() {
                     run_gui_action "安装 RustDesk 远程协助" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" rustdesk
                 ;;
-            anydesk) gui_confirm "将通过 Flathub 国内镜像以当前用户身份安装 AnyDesk。是否继续？" && run_gui_action "安装 AnyDesk 远程协助" bash "$PROJECT_ROOT/modules/software.sh" anydesk ;;
             todesk)
                 gui_confirm "ToDesk 会使用管理员权限并临时修改 SteamOS 只读系统。请先在游戏模式开启开发者模式和旧版 X11 桌面模式。确认继续？" && \
                     run_gui_action "安装 ToDesk" env ZHOUKEER_AUTO_CONFIRM=1 \
@@ -145,6 +143,7 @@ remote_menu() {
     while true; do
         choice="$(gui_dialog --menu "选择远程协助工具" \
             rustdesk "下载 RustDesk（作者 GitHub Release）" \
+            anydesk "安装 AnyDesk（Flathub 国内镜像）" \
             todesk "ToDesk" \
             back "返回主菜单")" || return 0
         case "$choice" in
@@ -153,6 +152,7 @@ remote_menu() {
                     run_gui_action "下载 RustDesk" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" rustdesk
                 ;;
+            anydesk) gui_confirm "将通过 Flathub 国内镜像以当前用户身份安装 AnyDesk。是否继续？" && run_gui_action "安装 AnyDesk" bash "$PROJECT_ROOT/modules/software.sh" anydesk ;;
             todesk)
                 gui_confirm "ToDesk 使用前必须先在游戏模式完成：① Steam键→设置→系统，开启“启用开发者模式”；② 设置侧栏→开发者→杂项，开启“使用旧版X11桌面模式”；③ 重新进入桌面模式。ToDesk安装会临时关闭只读保护并在完成后恢复。是否已完成全部设置并继续？" && \
                     run_gui_action "安装ToDesk" env ZHOUKEER_AUTO_CONFIRM=1 \

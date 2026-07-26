@@ -219,31 +219,23 @@ apply_navigation() {
 }
 
 common_software_menu() {
-    local choice page=0
+    local choice
 
     while true; do
         draw_category_frame software "" "" 0
-        if [ "$page" -eq 0 ]; then
-            ui_touch_button 2 '\033[1;97;48;5;24m' "微信"
-            ui_touch_button 4 '\033[1;97;48;5;24m' "QQ"
-            ui_touch_button 6 '\033[1;97;48;5;24m' "Firefox 浏览器"
-            ui_touch_button 8 '\033[1;97;48;5;24m' "Chrome 浏览器"
-            ui_touch_button 10 '\033[1;97;48;5;24m' "Edge 浏览器"
-            ui_touch_button 12 '\033[1;97;48;5;24m' "RustDesk 远程协助" "安装开源远程工具"
-            ui_touch_button 14 '\033[1;97;48;5;24m' "ToDesk 远程协助" "安装前需完成系统设置"
-            ui_touch_button 16 '\033[1;97;48;5;24m' "Windows 软件工具" "安装 Bottles 运行工具"
-            ui_touch_button 18 '\033[1;97;48;5;24m' "游戏兼容设置" "安装 Protontricks"
-            ui_touch_button 20 '\033[1;97;48;5;24m' "百度网盘" "Flathub 安装百度网盘 Linux 版"
-            ui_touch_button 22 '\033[1;97;48;5;24m' "更多常用软件" "查看 AnyDesk"
-            ui_prompt
-            choice="$(read_touch_menu right:2-3:wechat right:4-5:qq right:6-7:browser right:8-9:chrome right:10-11:edge right:12-13:rustdesk right:14-15:todesk right:16-17:bottles right:18-19:protontricks right:20-21:baidunetdisk right:22-23:next)"
-        else
-            ui_touch_button 4 '\033[1;97;48;5;24m' "AnyDesk 远程协助" "Flathub 安装 AnyDesk"
-            ui_touch_button 20 '\033[1;97;48;5;238m' "上一页" "返回常用软件"
-            ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
-            ui_prompt
-            choice="$(read_touch_menu right:4-5:anydesk right:20-21:previous right:22-23:home)"
-        fi
+        ui_touch_button 2 '\033[1;97;48;5;24m' "微信"
+        ui_touch_button 4 '\033[1;97;48;5;24m' "QQ"
+        ui_touch_button 6 '\033[1;97;48;5;24m' "Firefox 浏览器"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "Chrome 浏览器"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "Edge 浏览器"
+        ui_touch_button 12 '\033[1;97;48;5;24m' "RustDesk 远程协助" "安装开源远程工具"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "ToDesk 远程协助" "安装前需完成系统设置"
+        ui_touch_button 16 '\033[1;97;48;5;24m' "Windows 软件工具" "安装 Bottles 运行工具"
+        ui_touch_button 18 '\033[1;97;48;5;24m' "游戏兼容设置" "安装 Protontricks"
+        ui_touch_button 20 '\033[1;97;48;5;24m' "百度网盘" "Flathub 安装百度网盘 Linux 版"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:2-3:wechat right:4-5:qq right:6-7:browser right:8-9:chrome right:10-11:edge right:12-13:rustdesk right:14-15:todesk right:16-17:bottles right:18-19:protontricks right:20-21:baidunetdisk right:22-23:home)"
         case "$choice" in
             nav-*) apply_navigation "$choice"; return 0 ;;
         esac
@@ -259,10 +251,6 @@ common_software_menu() {
             protontricks) confirm_and_run "安装 Protontricks" "修复与配置 Steam 游戏 Proton 环境" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
             bottles) confirm_and_run "安装 Bottles" "独立运行第三方 Windows 应用与游戏" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
             baidunetdisk) confirm_and_run "安装百度网盘" "Flathub 安装百度网盘 Linux 版，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" baidunetdisk ;;
-            anydesk) confirm_and_run "安装 AnyDesk 远程协助" "通过 Flathub 国内镜像以当前用户身份安装" bash "$PROJECT_ROOT/modules/software.sh" anydesk ;;
-            next) page=1; continue ;;
-            previous) page=0; continue ;;
-
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "software" ] || return 0
@@ -275,14 +263,16 @@ remote_assistance_menu() {
     while true; do
         draw_category_frame remote "远程协助" "安装完成后会自动在桌面创建启动图标"
         ui_touch_button 7 '\033[1;97;48;5;24m' "下载 RustDesk" "作者 GitHub Release；无需系统权限"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "查看设置步骤并安装 ToDesk" "需先开启开发者模式和旧版 X11 桌面模式"
-        ui_touch_button 17 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "安装 AnyDesk" "Flathub 国内镜像；无需系统权限"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "查看设置步骤并安装 ToDesk" "需先开启开发者模式和旧版 X11 桌面模式"
+        ui_touch_button 21 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:rustdesk right:11-12:todesk right:17-18:home)"
+        choice="$(read_touch_menu right:7-8:rustdesk right:11-12:anydesk right:15-16:todesk right:21-22:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
             rustdesk) confirm_and_run "下载 RustDesk" "从作者 GitHub Release 安装，不会写入或修改你的 RustDesk 服务器配置" bash "$PROJECT_ROOT/modules/software.sh" rustdesk ;;
+            anydesk) confirm_and_run "安装 AnyDesk" "通过 Flathub 国内镜像以当前用户身份安装" bash "$PROJECT_ROOT/modules/software.sh" anydesk ;;
             todesk) todesk_preflight remote ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
