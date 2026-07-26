@@ -745,11 +745,8 @@ main_gui_menu() {
             nav-advanced) advanced_tools_gui_menu ;;
             nav-uninstall) uninstall_software_gui_menu ;;
             nav-notice)
-                if [ -s "$PROJECT_ROOT/assets/disclaimer-usage.jpg" ]; then
-                    gui_dialog --imgbox "$PROJECT_ROOT/assets/disclaimer-usage.jpg"
-                else
-                    gui_notice "免责声明图片缺失，请重新更新工具箱。"
-                fi
+                gui_dialog --yesno "请确认已阅读首次启动页的免责声明。\n\n工具箱不包含付费软件、破解、ROM、BIOS 或密钥；涉及下载、安装、权限或磁盘的操作都会另行提示并确认。\n\n点击“我已阅读并知悉”会关闭本页并返回首页。" \
+                    --yes-label "我已阅读并知悉" --no-label "返回首页"
                 ;;
             nav-exit) exit 0 ;;
         esac

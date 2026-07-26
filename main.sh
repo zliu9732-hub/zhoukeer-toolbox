@@ -227,34 +227,23 @@ apply_navigation() {
 }
 
 usage_notice_menu() {
-    local image_path="$PROJECT_ROOT/assets/disclaimer-usage.jpg"
-    local shown=0
     local choice
 
-    # 该页面只展示随工具箱发布的本地图片，不下载、不执行外部内容。
-    disable_mouse_tracking
-    if [ -s "$image_path" ] && command -v kdialog >/dev/null 2>&1; then
-        kdialog --title "周克儿工具箱｜免责声明及使用须知" --imgbox "$image_path" \
-            >/dev/null 2>&1 && shown=1
-    fi
-    enable_mouse_tracking
-
-    if [ "$shown" -eq 1 ]; then
-        NEXT_CATEGORY="home"
-        return 0
-    fi
-
     while true; do
-        draw_category_frame notice "免责声明及使用须知" "图片查看器不可用，以下为安全提示"
-        ui_panel_line 8 '\033[1;38;5;203m' "完整免责声明图片当前无法打开"
-        ui_panel_line 10 '\033[38;5;250m' "请确认已阅读首次启动页的使用说明与免责声明"
-        ui_panel_line 12 '\033[38;5;250m' "工具箱不会在此页面执行下载、安装或系统修改"
-        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "继续使用工具箱"
+        # 图片中的“我已阅读并知悉”只是静态内容，不能接收触控事件。这里使用
+        # 真实的终端按钮，点击后立即返回首页，避免用户被图片查看器困住。
+        draw_category_frame notice "免责声明及使用须知" "请阅读并用下方真实按钮确认"
+        ui_panel_line 8 '\033[1;38;5;203m' "工具箱不包含付费软件、破解、ROM、BIOS 或密钥"
+        ui_panel_line 10 '\033[38;5;250m' "第三方软件由其作者或官方渠道提供；请自行确认授权"
+        ui_panel_line 12 '\033[38;5;250m' "涉及下载、安装、权限与磁盘的操作都会另行说明并确认"
+        ui_panel_line 14 '\033[38;5;250m' "完整说明已在首次启动页展示；本页不执行任何系统操作"
+        ui_touch_button 18 '\033[1;97;48;5;24m' "我已阅读并知悉" "关闭免责声明并返回首页"
+        ui_touch_button 21 '\033[1;97;48;5;238m' "返回首页" "暂不确认，继续使用工具箱"
         ui_prompt
-        choice="$(read_touch_menu right:20-21:home)"
+        choice="$(read_touch_menu right:18-19:acknowledge right:21-22:home)"
         case "$choice" in
             nav-*) apply_navigation "$choice"; return 0 ;;
-            home) NEXT_CATEGORY="home"; return 0 ;;
+            acknowledge|home) NEXT_CATEGORY="home"; return 0 ;;
         esac
     done
 }

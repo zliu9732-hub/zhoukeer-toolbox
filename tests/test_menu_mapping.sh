@@ -99,8 +99,11 @@ assert_contains "$touch_uninstall" 'right:19-20:next' "卸载第一页缺少下�
 assert_contains "$touch_uninstall" 'right:21-22:next' "卸载第二页缺少下一页"
 assert_contains "$touch_uninstall" 'right:20-21:previous' "卸载第三页缺少上一页"
 assert_contains "$touch_accelerator" 'right:22-23:home' "Steamcommunity 302 缺少返回首页"
-assert_contains "$touch_notice" 'disclaimer-usage.jpg' "免责声明图片入口缺失"
-assert_contains "$touch_notice" 'right:20-21:home' "免责声明图片页缺少返回首页"
+assert_contains "$touch_notice" '我已阅读并知悉' "免责声明页面缺少真实确认按钮"
+assert_contains "$touch_notice" 'right:18-19:acknowledge' "免责声明确认按钮坐标错误"
+assert_contains "$touch_notice" 'right:21-22:home' "免责声明页面缺少返回首页"
+assert_not_contains "$touch_notice" '--imgbox' "免责声明仍使用无法点击的静态图片窗口"
+assert_contains "$gui_home" '--yes-label "我已阅读并知悉"' "GUI免责声明缺少真实确认按钮"
 
 for file in "$MAIN_FILE" "$GUI_FILE"; do
     source_text="$(cat "$file")"
