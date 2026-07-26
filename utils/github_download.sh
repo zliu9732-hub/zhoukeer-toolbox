@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# GitHub 统一下载模块：并行探测可配置镜像，逐源下载并在校验后原子替换。
+# GitHub 统一下载模块：并行测量实际文件吞吐，逐源下载并在校验后原子替换。
 
 if [ -n "${GITHUB_DOWNLOAD_LOADED:-}" ]; then
     return 0
@@ -40,18 +40,11 @@ _github_mirror_list() {
     printf '%s\n' "https://github.com"
 }
 
-# Steamcommunity 302 的 GitHub 规则接管官方域名；第三方镜像不在其
-# 接管范围内。已确认 302 运行时，先尝试官方地址，失败再按原镜像顺序回退。
+# Steamcommunity 302 的 GitHub 规则接管官方域名；测速时仍让官方源与
+# 第三方镜像公平比较，避免仅凭规则开启状态选到吞吐较慢的节点。
 _github_steam302_is_ready() {
     declare -F steam302_download_acceleration_is_ready >/dev/null 2>&1 || return 1
     steam302_download_acceleration_is_ready >/dev/null 2>&1
-}
-
-_github_prioritize_official_source() {
-    local sources="$1"
-
-    printf '%s\n' "https://github.com"
-    printf '%s\n' "$sources" | awk '$0 != "https://github.com" && !seen[$0]++'
 }
 
 # 下载源可以是完整 URL 前缀，也可以用 {url} 表示原始 GitHub URL。
@@ -79,19 +72,22 @@ _github_source_speed() {
     local source="$1"
     local url="$2"
     local probe_connect_timeout probe_max_time resolved_url
+    local probe_bytes=524288
 
     probe_connect_timeout="$(_github_setting "${GITHUB_PROBE_CONNECT_TIMEOUT:-}" 2)"
     probe_max_time="$(_github_setting "${GITHUB_PROBE_MAX_TIME:-}" 4)"
     resolved_url="$(_resolve_github_url "$url" "$source")"
-    curl --fail --location --silent --output /dev/null --write-out '%{time_total}' \
+    # 仅取实际目标文件的前 512KiB，反映大包 CDN 吞吐；最大响应限制会拒绝
+    # 忽略 Range 的镜像，避免测速时意外下载完整发布包。
+    curl --fail --location --silent --output /dev/null --write-out '%{speed_download}' \
         --proto '=https' --proto-redir '=https' \
         --connect-timeout "$probe_connect_timeout" --max-time "$probe_max_time" \
+        --range "0-$((probe_bytes - 1))" --max-filesize "$probe_bytes" \
         "$resolved_url" 2>/dev/null
 }
 
 get_ranked_github_sources() {
     local url="${1:-https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/VERSION}"
-    local probe_url="https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/VERSION"
     local work_dir source index=0 result_file
 
     if [ "$url" = "$_GITHUB_RANKED_FOR_URL" ] && [ -n "$_GITHUB_SOURCES_RANKED" ]; then
@@ -105,7 +101,7 @@ get_ranked_github_sources() {
         index=$((index + 1))
         result_file="$work_dir/$index"
         (
-            speed="$(_github_source_speed "$source" "$probe_url")" || exit 0
+            speed="$(_github_source_speed "$source" "$url")" || exit 0
             case "$speed" in
                 ''|*[!0-9.]*) exit 0 ;;
             esac
@@ -115,7 +111,7 @@ get_ranked_github_sources() {
     wait
 
     _GITHUB_SOURCES_RANKED="$(cat "$work_dir"/* 2>/dev/null | \
-        sort -t'|' -k1,1n -k2,2n | cut -d'|' -f3- | awk '!seen[$0]++')"
+        sort -t'|' -k1,1nr -k2,2n | cut -d'|' -f3- | awk '!seen[$0]++')"
     rm -rf -- "$work_dir"
     if ! printf '%s\n' "$_GITHUB_SOURCES_RANKED" | grep -Fxq 'https://github.com'; then
         if [ -n "$_GITHUB_SOURCES_RANKED" ]; then
@@ -167,8 +163,7 @@ download_github_file() {
         https://github.com/*|https://raw.githubusercontent.com/*)
             ranked_sources="$(get_ranked_github_sources "$url")" || ranked_sources=""
             if _github_steam302_is_ready; then
-                ranked_sources="$(_github_prioritize_official_source "$ranked_sources")"
-                echo "已检测到 Steamcommunity 302 的 GitHub 加速，优先使用 GitHub 官方地址。"
+                echo "已检测到 Steamcommunity 302；将按实际文件测速选择吞吐最快的下载源。"
             fi
             ;;
         https://*) ranked_sources="DIRECT" ;;

@@ -62,7 +62,6 @@ download_one() {
     local output="$2"
     local label="$3"
 
-    echo "尝试下载($label): $url"
     rm -f -- "$output"
     curl \
         --fail \
@@ -179,7 +178,6 @@ download_verified_package_from() {
     local checksum_file="$5"
     local expected="${ZHOUKEER_SHA256:-}"
 
-    echo "尝试获取并校验($label)"
     download_one "$package_url" "$package_file" "${label}更新包" || return 1
 
     if [ -z "$expected" ]; then
@@ -251,13 +249,7 @@ download_with_fallback() {
 
 SYSTEM="$(uname -s 2>/dev/null || echo unknown)"
 
-echo "================================"
-echo " 周克儿工具箱 Bootstrap"
-echo "================================"
-echo "分支: $BRANCH"
-echo "安装目录: $INSTALL_DIR"
-echo "模式: $([ "$DRY_RUN" -eq 1 ] && echo dry-run || echo install)"
-echo ""
+echo "正在准备安装工具箱..."
 
 if [ "$SYSTEM" = "Darwin" ]; then
     echo "检测到 macOS。仅允许语法测试，不执行 SteamOS 安装。"
@@ -291,19 +283,15 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "[1/4] 获取版本信息..."
 if download_with_fallback "$VERSION_FILE" "版本信息" "$DOMAIN_VERSION_URL" "$GITEE_VERSION_URL" "$GITHUB_VERSION_URL"; then
     VERSION="$(tr -d '\r\n' < "$VERSION_FILE")"
 else
     VERSION="unknown"
 fi
-echo "版本: $VERSION"
-
-echo "[2/4] 下载并校验项目包..."
+echo "[1/2] 正在下载工具箱..."
 download_verified_package "$PACKAGE_FILE" "$CHECKSUM_FILE" || exit 1
-echo "下载源: $DOWNLOAD_SOURCE"
 
-echo "[3/4] 解压并检查安装器..."
+echo "[2/2] 正在安装工具箱..."
 validate_tar_archive "$PACKAGE_FILE" "$TMP_DIR/archive.list" "$TMP_DIR/archive.verbose" || exit 1
 tar --no-xattrs --no-same-owner --no-same-permissions -xzf "$PACKAGE_FILE" -C "$TMP_DIR" || exit 1
 INSTALLER_PATH="$(find "$TMP_DIR" -mindepth 1 -maxdepth 2 -type f -name install.sh -print | head -n 1)"
@@ -324,5 +312,9 @@ if ! find "$PACKAGE_DIR" -type f -name '*.sh' -exec bash -n {} \;; then
     exit 1
 fi
 
-echo "[4/4] 调用安装器..."
-ZHOUKEER_INSTALL_DIR="$INSTALL_DIR" bash "$INSTALLER_PATH"
+if ! ZHOUKEER_INSTALL_DIR="$INSTALL_DIR" bash "$INSTALLER_PATH" >"$TMP_DIR/install.log" 2>&1; then
+    echo "工具箱安装未完成，以下是最后的错误提示："
+    tail -n 20 "$TMP_DIR/install.log"
+    exit 1
+fi
+echo "✓ 工具箱安装完成"

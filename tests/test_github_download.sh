@@ -21,7 +21,7 @@ while [ "$#" -gt 0 ]; do
     case "$1" in
         --output|-o) output="$2"; shift 2 ;;
         --write-out|-w) write_out="$2"; shift 2 ;;
-        --connect-timeout|--max-time|--proto|--proto-redir|--retry|--retry-delay|--speed-limit|--speed-time|--proxy)
+        --connect-timeout|--max-time|--proto|--proto-redir|--retry|--retry-delay|--speed-limit|--speed-time|--proxy|--range|--max-filesize)
             shift 2
             ;;
         --*) shift ;;
@@ -31,9 +31,9 @@ done
 if [ -n "$write_out" ]; then
     printf 'probe|%s\n' "$url" >> "${GITHUB_TEST_CALLS:?}"
     case "$url" in
-        *fast.invalid*) printf '0.10' ;;
-        *slow.invalid*) printf '0.80' ;;
-        *) printf '0.50' ;;
+        *fast.invalid*) printf '2097152' ;;
+        *slow.invalid*) printf '262144' ;;
+        *) printf '1048576' ;;
     esac
     exit 0
 fi
@@ -72,6 +72,10 @@ case "$first_download" in
     download\|https://fast.invalid/*) ;;
     *) echo "FAIL: 未优先使用测速最快的镜像" >&2; exit 1 ;;
 esac
+grep -Fq "probe|https://fast.invalid/$url" "$CALLS_FILE" || {
+    echo "FAIL: 镜像测速没有使用实际下载文件" >&2
+    exit 1
+}
 
 : > "$CALLS_FILE"
 steam302_download_acceleration_is_ready() { return 0; }
@@ -80,12 +84,8 @@ downloads="$(grep '^download|' "$CALLS_FILE")"
 first_download="$(printf '%s\n' "$downloads" | head -n 1)"
 second_download="$(printf '%s\n' "$downloads" | sed -n '2p')"
 case "$first_download" in
-    download\|https://raw.githubusercontent.com/*) ;;
-    *) echo "FAIL: 302运行时未优先使用GitHub官方地址" >&2; exit 1 ;;
-esac
-case "$second_download" in
     download\|https://fast.invalid/*) ;;
-    *) echo "FAIL: 302官方地址失败后未回退镜像" >&2; exit 1 ;;
+    *) echo "FAIL: 302运行时没有按实际吞吐选择最快镜像" >&2; exit 1 ;;
 esac
 unset -f steam302_download_acceleration_is_ready
 

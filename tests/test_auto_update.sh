@@ -86,7 +86,7 @@ grep -Fq 'zhoukeer_cb=' "$CURL_LOG"
 
 : > "$CURL_LOG"
 run_update > "$STATE_DIR/latest.output"
-grep -Fq '当前已是最新版本' "$STATE_DIR/latest.output"
+grep -Fq '工具箱已是最新版本' "$STATE_DIR/latest.output"
 if grep -Fq '/dist/zhoukeer-toolbox.tar.gz' "$CURL_LOG"; then
     echo "FAIL: 版本相同时仍下载了更新包"
     exit 1

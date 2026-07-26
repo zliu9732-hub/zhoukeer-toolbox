@@ -77,7 +77,6 @@ download_one() {
     local label="$3"
     local request_url
 
-    echo "尝试下载($label): $url"
     rm -f -- "$output"
     request_url="$(cache_busted_url "$url")"
     curl \
@@ -101,7 +100,6 @@ download_version_one() {
     local label="$3"
     local request_url
 
-    echo "检查版本($label)..."
     rm -f -- "$output"
     request_url="$(cache_busted_url "$url")"
     curl \
@@ -229,7 +227,6 @@ download_verified_package_from() {
     local checksum_file="$5"
     local expected="${ZHOUKEER_SHA256:-}"
 
-    echo "尝试获取并校验($label)"
     download_one "$package_url" "$package_file" "${label}更新包" || return 1
 
     if [ -z "$expected" ]; then
@@ -316,19 +313,7 @@ download_version_with_fallback() {
 
 SYSTEM="$(uname -s 2>/dev/null || echo unknown)"
 
-echo "================================"
-echo " 周克儿工具箱 V4 自更新"
-echo "================================"
-echo "当前目录: $PROJECT_ROOT"
-echo "分支: $BRANCH"
-if [ "$DRY_RUN" -eq 1 ]; then
-    echo "模式: dry-run"
-elif [ "$STARTUP_MODE" -eq 1 ]; then
-    echo "模式: startup-auto-update"
-else
-    echo "模式: update"
-fi
-echo ""
+echo "正在检查工具箱更新..."
 
 if [ "$SYSTEM" = "Darwin" ]; then
     echo "检测到 macOS。仅允许语法测试，不执行 SteamOS 自更新。"
@@ -401,7 +386,6 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "[1/4] 获取版本信息..."
 if download_version_with_fallback "$VERSION_FILE"; then
     REMOTE_VERSION="$(tr -d '\r\n' < "$VERSION_FILE")"
     if ! valid_release_version "$REMOTE_VERSION"; then
@@ -419,19 +403,15 @@ LOCAL_VERSION="unknown"
 if [ -r "$PROJECT_ROOT/VERSION" ]; then
     LOCAL_VERSION="$(tr -d '\r\n' < "$PROJECT_ROOT/VERSION")"
 fi
-echo "本地版本: $LOCAL_VERSION"
-echo "远程版本: $REMOTE_VERSION"
-
 if [ "$REMOTE_VERSION" != "unknown" ] && [ "$LOCAL_VERSION" = "$REMOTE_VERSION" ]; then
-    echo "当前已是最新版本，无需更新。"
+    echo "✓ 工具箱已是最新版本"
     exit 0
 fi
 
-echo "[2/4] 下载并校验更新包..."
+echo "[1/2] 正在下载更新..."
 download_verified_package "$PACKAGE_FILE" "$CHECKSUM_FILE" || exit 1
-echo "下载源: $DOWNLOAD_SOURCE"
 
-echo "[3/4] 解压更新包..."
+echo "[2/2] 正在安装更新..."
 mkdir -p "$EXTRACT_DIR"
 validate_tar_archive "$PACKAGE_FILE" "$TMP_DIR/archive.list" "$TMP_DIR/archive.verbose" || exit 1
 tar --no-xattrs --no-same-owner --no-same-permissions -xzf "$PACKAGE_FILE" -C "$EXTRACT_DIR" || exit 1
@@ -462,12 +442,15 @@ if ! find "$PACKAGE_DIR" -type f -name '*.sh' -exec bash -n {} \;; then
     exit 1
 fi
 
-echo "[4/4] 调用安装器..."
 # 安装器会原子替换 PROJECT_ROOT；从安装目录内启动更新时必须先离开旧目录。
 cd "$HOME" 2>/dev/null || cd "$(dirname "$PROJECT_ROOT")" 2>/dev/null || cd / || exit 1
-ZHOUKEER_INSTALL_DIR="$PROJECT_ROOT" bash "$INSTALLER_PATH"
+if ! ZHOUKEER_INSTALL_DIR="$PROJECT_ROOT" bash "$INSTALLER_PATH" >"$TMP_DIR/install.log" 2>&1; then
+    echo "更新安装未完成，以下是最后的错误提示："
+    tail -n 20 "$TMP_DIR/install.log"
+    exit 1
+fi
 
 # 安装目录采用原子替换；恢复当前工作目录，避免调用方继续引用已删除的旧目录。
 cd "$PROJECT_ROOT" 2>/dev/null || cd "$HOME" || exit 1
 
-echo "自更新完成"
+echo "✓ 工具箱更新完成"
