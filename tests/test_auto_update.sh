@@ -84,6 +84,21 @@ grep -Fq '/dist/zhoukeer-toolbox.tar.gz' "$CURL_LOG"
 grep -Fq '/dist/SHA256SUMS' "$CURL_LOG"
 grep -Fq 'zhoukeer_cb=' "$CURL_LOG"
 
+run_update > "$STATE_DIR/progress.output"
+grep -Fq '工具箱已是最新版本' "$STATE_DIR/progress.output"
+if grep -Eq '\[[0-9]+/[0-9]+\]' "$STATE_DIR/progress.output"; then
+    echo "FAIL: 自动更新仍显示拆分的下载和安装步骤" >&2
+    exit 1
+fi
+grep -Fq '正在更新工具箱...' "$PROJECT_ROOT/update.sh" || {
+    echo "FAIL: 自动更新没有使用合并进度提示" >&2
+    exit 1
+}
+if grep -Fq '[1/2]' "$PROJECT_ROOT/update.sh" || grep -Fq '[2/2]' "$PROJECT_ROOT/update.sh"; then
+    echo "FAIL: 自动更新脚本仍保留拆分进度提示" >&2
+    exit 1
+fi
+
 : > "$CURL_LOG"
 run_update > "$STATE_DIR/latest.output"
 grep -Fq '工具箱已是最新版本' "$STATE_DIR/latest.output"

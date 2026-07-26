@@ -408,10 +408,9 @@ if [ "$REMOTE_VERSION" != "unknown" ] && [ "$LOCAL_VERSION" = "$REMOTE_VERSION" 
     exit 0
 fi
 
-echo "[1/2] 正在下载更新..."
+echo "正在更新工具箱..."
 download_verified_package "$PACKAGE_FILE" "$CHECKSUM_FILE" || exit 1
 
-echo "[2/2] 正在安装更新..."
 mkdir -p "$EXTRACT_DIR"
 validate_tar_archive "$PACKAGE_FILE" "$TMP_DIR/archive.list" "$TMP_DIR/archive.verbose" || exit 1
 tar --no-xattrs --no-same-owner --no-same-permissions -xzf "$PACKAGE_FILE" -C "$EXTRACT_DIR" || exit 1

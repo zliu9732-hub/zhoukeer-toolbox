@@ -249,8 +249,6 @@ download_with_fallback() {
 
 SYSTEM="$(uname -s 2>/dev/null || echo unknown)"
 
-echo "正在准备安装工具箱..."
-
 if [ "$SYSTEM" = "Darwin" ]; then
     echo "检测到 macOS。仅允许语法测试，不执行 SteamOS 安装。"
     exit 0
@@ -288,10 +286,9 @@ if download_with_fallback "$VERSION_FILE" "版本信息" "$DOMAIN_VERSION_URL" "
 else
     VERSION="unknown"
 fi
-echo "[1/2] 正在下载工具箱..."
+echo "正在安装工具箱..."
 download_verified_package "$PACKAGE_FILE" "$CHECKSUM_FILE" || exit 1
 
-echo "[2/2] 正在安装工具箱..."
 validate_tar_archive "$PACKAGE_FILE" "$TMP_DIR/archive.list" "$TMP_DIR/archive.verbose" || exit 1
 tar --no-xattrs --no-same-owner --no-same-permissions -xzf "$PACKAGE_FILE" -C "$TMP_DIR" || exit 1
 INSTALLER_PATH="$(find "$TMP_DIR" -mindepth 1 -maxdepth 2 -type f -name install.sh -print | head -n 1)"
