@@ -10,7 +10,8 @@ PACKAGE_PATH="$DIST_DIR/$PACKAGE_NAME"
 VERSIONED_PACKAGE_NAME="zhoukeer-toolbox-$VERSION.tar.gz"
 VERSIONED_PACKAGE_PATH="$DIST_DIR/$VERSIONED_PACKAGE_NAME"
 SHA256SUMS_PATH="$DIST_DIR/SHA256SUMS"
-VERIFY_FILES="VERSION main.sh launch.sh install.sh update.sh bootstrap.sh modules/software.sh modules/domestic_source.sh modules/steam_accelerator.sh modules/steam302_root_start.sh modules/plugin_store.sh modules/game_launchers.sh modules/emulators.sh modules/ge_proton.sh modules/todesk.sh modules/memory_tuning.sh modules/clover_boot.sh modules/dual_system.sh modules/dual_system_tools.sh scripts/steam_shortcut.py scripts/steam_compat.py scripts/install-decky-plugin.sh core/gui.sh core/platform.sh assets/icon.png assets/icon-round.png assets/windows-switch.png assets/disclaimer-usage.png assets/game-launchers/epic.png assets/game-launchers/epic-grid.jpg assets/game-launchers/epic-portrait.jpg assets/game-launchers/epic-hero.jpg assets/game-launchers/battlenet.png assets/game-launchers/battlenet-grid.jpg assets/game-launchers/battlenet-portrait.jpg assets/game-launchers/battlenet-hero.jpg assets/game-launchers/ubisoft.png assets/game-launchers/ubisoft-grid.jpg assets/game-launchers/ubisoft-portrait.jpg assets/game-launchers/ubisoft-hero.jpg assets/clover/config.plist assets/clover/zhoukeer-phantom/theme.plist assets/clover/zhoukeer-phantom/background.png third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js third_party/decky-framegen-zh-v0.15.6/dist/index.js utils/github_download.sh"
+MAX_GITEE_RAW_PACKAGE_BYTES=9437184
+VERIFY_FILES="VERSION main.sh launch.sh install.sh update.sh bootstrap.sh modules/software.sh modules/domestic_source.sh modules/steam_accelerator.sh modules/steam302_root_start.sh modules/plugin_store.sh modules/game_launchers.sh modules/emulators.sh modules/ge_proton.sh modules/todesk.sh modules/memory_tuning.sh modules/dual_system.sh modules/dual_system_tools.sh scripts/steam_shortcut.py scripts/steam_compat.py scripts/install-decky-plugin.sh core/gui.sh core/platform.sh assets/icon.png assets/icon-round.png assets/background.jpg assets/welcome.jpg assets/disclaimer-usage.jpg assets/game-launchers/epic.png assets/game-launchers/epic-grid.jpg assets/game-launchers/epic-portrait.jpg assets/game-launchers/epic-hero.jpg assets/game-launchers/battlenet.png assets/game-launchers/battlenet-grid.jpg assets/game-launchers/battlenet-portrait.jpg assets/game-launchers/battlenet-hero.jpg assets/game-launchers/ubisoft.png assets/game-launchers/ubisoft-grid.jpg assets/game-launchers/ubisoft-portrait.jpg assets/game-launchers/ubisoft-hero.jpg third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js third_party/decky-framegen-zh-v0.15.6/dist/index.js utils/github_download.sh"
 PACKAGE_SOURCES=()
 
 mkdir -p "$DIST_DIR"
@@ -21,7 +22,7 @@ cd "$PROJECT_ROOT" || exit 1
 # 只打包 Git 已跟踪文件，避免把本机临时文件或未提交资料带入公开包。
 while IFS= read -r -d '' source_path; do
     case "$source_path" in
-        dist/*|decky-plugins/zhoukeer-localizer/*) continue ;;
+        dist/*|decky-plugins/zhoukeer-localizer/*|modules/clover_boot.sh|assets/background.png|assets/welcome.png|assets/disclaimer-usage.png|assets/windows-switch.png|assets/clover/*) continue ;;
         third_party/decky-lsfg-vk-zh-v0.12.5/dist/*.map) continue ;;
         # FSR4 的 TypeScript 源码仅用于开发；安装器只会使用下列运行文件。
         # 不把整套源码塞进自更新包，避免 Gitee 对大文件原始下载返回 403。
@@ -62,6 +63,15 @@ COPYFILE_DISABLE=1 tar \
     --exclude="管理员密码.txt" \
     --exclude="config/settings.conf" \
     -czf "$PACKAGE_PATH" "${PACKAGE_SOURCES[@]}"
+
+if PACKAGE_BYTES="$(stat -f '%z' "$PACKAGE_PATH" 2>/dev/null || stat -c '%s' "$PACKAGE_PATH" 2>/dev/null)" && \
+    [ "$PACKAGE_BYTES" -le "$MAX_GITEE_RAW_PACKAGE_BYTES" ]; then
+    :
+else
+    echo "发布包超过 Gitee Raw 下载安全上限（9 MiB），已停止发布。"
+    rm -f -- "$PACKAGE_PATH" "$SHA256SUMS_PATH"
+    exit 1
+fi
 
 if tar -tzf "$PACKAGE_PATH" | grep -Eq '(^|/)\._'; then
     echo "发布包包含 macOS AppleDouble 元数据文件，已停止发布。"

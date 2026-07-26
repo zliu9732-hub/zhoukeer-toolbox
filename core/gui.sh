@@ -745,8 +745,8 @@ main_gui_menu() {
             nav-advanced) advanced_tools_gui_menu ;;
             nav-uninstall) uninstall_software_gui_menu ;;
             nav-notice)
-                if [ -s "$PROJECT_ROOT/assets/disclaimer-usage.png" ]; then
-                    gui_dialog --imgbox "$PROJECT_ROOT/assets/disclaimer-usage.png"
+                if [ -s "$PROJECT_ROOT/assets/disclaimer-usage.jpg" ]; then
+                    gui_dialog --imgbox "$PROJECT_ROOT/assets/disclaimer-usage.jpg"
                 else
                     gui_notice "免责声明图片缺失，请重新更新工具箱。"
                 fi

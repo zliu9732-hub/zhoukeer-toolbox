@@ -7,7 +7,7 @@ MAIN_FILE="$PROJECT_ROOT/main.sh"
 GUI_FILE="$PROJECT_ROOT/core/gui.sh"
 UI_FILE="$PROJECT_ROOT/core/ui.sh"
 
-[ -s "$PROJECT_ROOT/assets/disclaimer-usage.png" ] || {
+[ -s "$PROJECT_ROOT/assets/disclaimer-usage.jpg" ] || {
     echo "FAIL: 免责声明图片资源缺失" >&2
     exit 1
 }
@@ -99,7 +99,7 @@ assert_contains "$touch_uninstall" 'right:19-20:next' "卸载第一页缺少下�
 assert_contains "$touch_uninstall" 'right:21-22:next' "卸载第二页缺少下一页"
 assert_contains "$touch_uninstall" 'right:20-21:previous' "卸载第三页缺少上一页"
 assert_contains "$touch_accelerator" 'right:22-23:home' "Steamcommunity 302 缺少返回首页"
-assert_contains "$touch_notice" 'disclaimer-usage.png' "免责声明图片入口缺失"
+assert_contains "$touch_notice" 'disclaimer-usage.jpg' "免责声明图片入口缺失"
 assert_contains "$touch_notice" 'right:20-21:home' "免责声明图片页缺少返回首页"
 
 for file in "$MAIN_FILE" "$GUI_FILE"; do

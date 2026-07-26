@@ -131,6 +131,14 @@ grep -Fq -- "-name '._*' -exec rm -f -- {} +" "$PROJECT_ROOT/bootstrap.sh" || {
     echo "FAIL: 首次安装不会清理 AppleDouble 元数据文件" >&2
     exit 1
 }
+grep -Fq 'MAX_GITEE_RAW_PACKAGE_BYTES=9437184' "$PROJECT_ROOT/scripts/package_release.sh" || {
+    echo "FAIL: 发布包没有限制在 Gitee Raw 安全体积内" >&2
+    exit 1
+}
+grep -Fq 'assets/background.png' "$PROJECT_ROOT/scripts/package_release.sh" || {
+    echo "FAIL: 发布包仍可能包含未压缩背景图" >&2
+    exit 1
+}
 startup_update_source="$(sed -n '/^run_startup_update()/,/^}/p' "$PROJECT_ROOT/launch.sh")"
 if printf '%s\n' "$startup_update_source" | grep -Fq 'tee -a "$LAUNCH_LOG"'; then
     echo "FAIL: 启动时自动更新仍会把详细输出回显到终端" >&2

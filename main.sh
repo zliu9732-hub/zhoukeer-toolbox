@@ -227,7 +227,7 @@ apply_navigation() {
 }
 
 usage_notice_menu() {
-    local image_path="$PROJECT_ROOT/assets/disclaimer-usage.png"
+    local image_path="$PROJECT_ROOT/assets/disclaimer-usage.jpg"
     local shown=0
     local choice
 
