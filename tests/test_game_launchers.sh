@@ -158,6 +158,14 @@ native_installer_app_id="$(python3 "$HELPER" --shortcut-file "$NATIVE_SHORTCUTS"
     --name "战网启动器" --exe "$NATIVE_INSTALLER")"
 NATIVE_PREFIX="$NATIVE_STEAM/steamapps/compatdata/$native_installer_app_id"
 NATIVE_EXE="$NATIVE_PREFIX/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe"
+mkdir -p "$FAKE_HOME/Desktop"
+cat > "$FAKE_HOME/Desktop/战网启动器.desktop" <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=战网启动器
+Exec=steam steam://rungameid/123456
+X-Zhoukeer-Managed=true
+DESKTOP
 native_output="$(
     MODULE="$MODULE" NATIVE_STEAM="$NATIVE_STEAM" \
         NATIVE_INSTALLER="$NATIVE_INSTALLER" NATIVE_SHORTCUTS="$NATIVE_SHORTCUTS" \
@@ -175,6 +183,10 @@ native_output="$(
 }
 printf '%s\n' "$native_output" | grep -Fq '完成官方安装' || {
     echo "FAIL: 战网安装条目没有提示从 Steam 库完成安装" >&2
+    exit 1
+}
+[ ! -e "$FAKE_HOME/Desktop/战网启动器.desktop" ] || {
+    echo "FAIL: 未完成安装阶段仍保留了可能配置不可用的战网桌面入口" >&2
     exit 1
 }
 mkdir -p "$(dirname "$NATIVE_EXE")"
@@ -307,12 +319,18 @@ MODULE="$MODULE" ART_SHORTCUTS="$art_shortcuts" APP_ID="$app_id" RAW_APP_ID="$ar
     install_launcher_steam_artwork epic "$ART_SHORTCUTS" "$APP_ID" "$RAW_APP_ID"
 '
 for current_app_id in "$app_id" "$artwork_raw_app_id"; do
+    signed_app_id="$current_app_id"
+    if [ "$current_app_id" -gt 2147483647 ]; then
+        signed_app_id=$((current_app_id - 4294967296))
+    fi
+    for current_app_id in "$current_app_id" "$signed_app_id"; do
     for artwork in "$current_app_id.jpg" "${current_app_id}p.jpg" "${current_app_id}_hero.jpg" \
         "${current_app_id}_logo.png" "${current_app_id}_icon.png"; do
         [ -s "$(dirname "$art_shortcuts")/grid/$artwork" ] || {
             echo "FAIL: Steam 库美化文件缺失：$artwork" >&2
             exit 1
         }
+    done
     done
 done
 
@@ -564,7 +582,7 @@ grep -Fq 'install_launcher_steam_artwork' "$MODULE"
 grep -Fq 'set-icon' "$MODULE"
 grep -Fq 'download_launcher_installer' "$MODULE"
 grep -Fq '点击 Install（安装）' "$MODULE"
-grep -Fq '请在 Steam 库点击“战网启动器”完成官方安装' "$MODULE"
+grep -Fq '请只在 Steam 库点击“战网启动器”完成官方安装' "$MODULE"
 grep -Fq '选择中文并依次点击接受、安装、完成' "$MODULE"
 grep -Fq 'ensure_launcher_proton_runner' "$MODULE"
 grep -Fq 'install_official_proton_experimental "$steam_root"' "$MODULE"

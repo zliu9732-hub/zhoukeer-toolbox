@@ -90,6 +90,21 @@ memory_restore_immutable_attribute() {
     }
 }
 
+memory_move_swapfile_after_forced_immutable_clear() {
+    local source_path="$1"
+    local backup_path="$2"
+
+    command -v chattr >/dev/null 2>&1 || return 1
+    echo "现有 swap 首次移动失败，正在再次解除不可变保护后重试..."
+    toolbox_sudo chattr -i -- "$source_path" || return 1
+    toolbox_sudo mv -- "$source_path" "$backup_path" || return 1
+
+    # 首次 lsattr 读取可能在部分 SteamOS 文件系统上失败；本次通过
+    # chattr -i 后才能移动，回滚时仍须恢复旧文件的不可变保护。
+    MEMORY_SWAPFILE_WAS_IMMUTABLE=1
+    echo "已解除现有 swap 的不可变保护并完成备份。"
+}
+
 memory_swapfile_is_complete() {
     local path="$1"
     local target_gib="$2"
@@ -235,13 +250,16 @@ memory_create_swapfile() {
             [ "$was_active" -eq 0 ] || toolbox_sudo swapon "$MEMORY_SWAPFILE_PATH" || true
             return 1
         }
-        toolbox_sudo mv -- "$MEMORY_SWAPFILE_PATH" "$backup_file" || {
-            memory_restore_immutable_attribute "$MEMORY_SWAPFILE_PATH" || true
-            toolbox_sudo rm -f -- "$new_file"
-            [ "$was_active" -eq 0 ] || toolbox_sudo swapon "$MEMORY_SWAPFILE_PATH" || true
-            echo "现有 swap 无法安全移动，已保留原文件。"
-            return 1
-        }
+        if ! toolbox_sudo mv -- "$MEMORY_SWAPFILE_PATH" "$backup_file"; then
+            memory_move_swapfile_after_forced_immutable_clear \
+                "$MEMORY_SWAPFILE_PATH" "$backup_file" || {
+                memory_restore_immutable_attribute "$MEMORY_SWAPFILE_PATH" || true
+                toolbox_sudo rm -f -- "$new_file"
+                [ "$was_active" -eq 0 ] || toolbox_sudo swapon "$MEMORY_SWAPFILE_PATH" || true
+                echo "现有 swap 无法安全移动，已保留原文件。"
+                return 1
+            }
+        fi
     fi
     if ! toolbox_sudo mv -- "$new_file" "$MEMORY_SWAPFILE_PATH"; then
         toolbox_sudo test ! -e "$backup_file" || \

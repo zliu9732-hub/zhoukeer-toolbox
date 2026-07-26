@@ -94,4 +94,16 @@ memory_restore_immutable_attribute "$ZHOUKEER_SWAPFILE_PATH" || fail "未恢复�
 grep -Fq -- '-i --' "$ATTR_LOG" || fail "没有执行 chattr -i"
 grep -Fq -- '+i --' "$ATTR_LOG" || fail "没有执行 chattr +i"
 
+# 部分 SteamOS 文件系统上 lsattr 读取可能失效；首次移动失败后应只对旧
+# swap 再尝试 chattr -i，并在成功备份时记录需要在回滚时恢复保护。
+RETRY_SOURCE="$TMP_ROOT/retry-swapfile"
+RETRY_BACKUP="$TMP_ROOT/retry-swapfile.backup"
+printf 'old swap\n' > "$RETRY_SOURCE"
+MEMORY_SWAPFILE_WAS_IMMUTABLE=0
+memory_move_swapfile_after_forced_immutable_clear "$RETRY_SOURCE" "$RETRY_BACKUP" || \
+    fail "不可变保护回退移动失败"
+[ ! -e "$RETRY_SOURCE" ] || fail "旧 swap 未移动到备份位置"
+[ -f "$RETRY_BACKUP" ] || fail "旧 swap 备份缺失"
+[ "$MEMORY_SWAPFILE_WAS_IMMUTABLE" -eq 1 ] || fail "回退移动未记录不可变保护"
+
 echo "PASS: zram 与磁盘 swap 一键推荐值、配置和后台启用模拟通过"

@@ -122,14 +122,15 @@ find_shortcut_file() {
     loginusers_file="$steam_root/config/loginusers.vdf"
     if [ -f "$loginusers_file" ] && [ ! -L "$loginusers_file" ]; then
         steam_id="$(awk '
-            /^[[:space:]]*"[0-9]+"[[:space:]]*$/ {
+            {
                 value=$0
-                gsub(/[[:space:]\"]/, "", value)
-                current=value
-            }
-            /^[[:space:]]*"MostRecent"[[:space:]]*"1"[[:space:]]*$/ && current != "" {
-                print current
-                exit
+                gsub(/[[:space:]"]/, "", value)
+                if (value ~ /^[0-9]+$/) {
+                    current=value
+                } else if (value == "MostRecent1" && current != "") {
+                    print current
+                    exit
+                }
             }
         ' "$loginusers_file")"
         case "$steam_id" in
@@ -540,9 +541,19 @@ EOF
     chmod +x "$HOME/Desktop/$name.desktop"
 }
 
+remove_pending_battlenet_desktop_shortcut() {
+    local shortcut="$HOME/Desktop/战网启动器.desktop"
+
+    [ -f "$shortcut" ] && [ ! -L "$shortcut" ] || return 0
+    grep -Fqx 'X-Zhoukeer-Managed=true' "$shortcut" && \
+        grep -Eq '^Exec=steam steam://rungameid/[0-9]+$' "$shortcut" || return 0
+    rm -f -- "$shortcut" || return 1
+    echo "已移除未完成安装阶段的旧战网桌面入口。"
+}
+
 install_launcher_steam_artwork() {
     local target="$1" shortcut_file="$2"
-    local asset_name grid_dir app_id
+    local asset_name grid_dir app_id artwork_id signed_app_id
 
     shift 2
     [ "$#" -gt 0 ] || return 1
@@ -563,16 +574,22 @@ install_launcher_steam_artwork() {
         case "$app_id" in
             ''|*[!0-9]*) echo "Steam 非 Steam 游戏编号无效，未写入库封面。"; return 1 ;;
         esac
-        install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name.png" \
-            "$grid_dir/${app_id}_icon.png" || return 1
-        install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-grid.jpg" \
-            "$grid_dir/${app_id}.jpg" || return 1
-        install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-portrait.jpg" \
-            "$grid_dir/${app_id}p.jpg" || return 1
-        install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-hero.jpg" \
-            "$grid_dir/${app_id}_hero.jpg" || return 1
-        install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name.png" \
-            "$grid_dir/${app_id}_logo.png" || return 1
+        signed_app_id="$app_id"
+        if [ "$app_id" -gt 2147483647 ]; then
+            signed_app_id=$((app_id - 4294967296))
+        fi
+        for artwork_id in "$app_id" "$signed_app_id"; do
+            install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name.png" \
+                "$grid_dir/${artwork_id}_icon.png" || return 1
+            install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-grid.jpg" \
+                "$grid_dir/${artwork_id}.jpg" || return 1
+            install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-portrait.jpg" \
+                "$grid_dir/${artwork_id}p.jpg" || return 1
+            install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-hero.jpg" \
+                "$grid_dir/${artwork_id}_hero.jpg" || return 1
+            install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name.png" \
+                "$grid_dir/${artwork_id}_logo.png" || return 1
+        done
     done
 }
 
@@ -590,6 +607,7 @@ prepare_battlenet_steam_installer() {
 
     icon_path="$PROJECT_ROOT/assets/game-launchers/battlenet.png"
     stop_steam_for_vdf || return 1
+    remove_pending_battlenet_desktop_shortcut || return 1
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" add \
         --name "$LAUNCHER_NAME" --exe "$installer_file" --start-dir "$(dirname "$installer_file")" \
         >/dev/null || return 1
@@ -603,7 +621,8 @@ prepare_battlenet_steam_installer() {
     install_launcher_steam_artwork battlenet "$shortcut_file" "$app_id" "$artwork_alt_app_id" || return 1
     start_steam
     echo "Steam 正在重新读取战网安装条目，请稍候。"
-    echo "请在 Steam 库点击“战网启动器”完成官方安装；安装完成后，再点击一次工具箱的战网入口即可自动转为正式启动器。"
+    echo "安装阶段不会创建桌面入口，请只在 Steam 库点击“战网启动器”完成官方安装。"
+    echo "安装完成后，再点击一次工具箱的战网入口即可自动转为正式启动器并创建可用桌面入口。"
 }
 
 finish_battlenet_steam_entry() {

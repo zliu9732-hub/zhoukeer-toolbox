@@ -53,21 +53,34 @@ gui_notice() {
 }
 
 run_gui_action() {
-    local status
+    local status action_log failure_detail
     local title="$1"
     shift
 
     print_header
     print_section_title "$title"
     echo ""
-    "$@"
-    status=$?
+    mkdir -p "$LOG_DIR" 2>/dev/null || true
+    action_log="$(mktemp "$LOG_DIR/gui-action.XXXXXX" 2>/dev/null || true)"
+    if [ -n "$action_log" ]; then
+        "$@" 2>&1 | tee "$action_log"
+        status="${PIPESTATUS[0]}"
+    else
+        "$@"
+        status=$?
+    fi
     cd "$HOME" 2>/dev/null || cd / || true
     if [ "$status" -eq 0 ]; then
         gui_notice "$title 已完成。"
     else
-        gui_dialog --error "$title 未完成，请查看终端中的提示。"
+        failure_detail="$(tail -n 12 "$action_log" 2>/dev/null || true)"
+        if [ -n "$failure_detail" ]; then
+            gui_dialog --error "$title 未完成。\n\n失败详情：\n$failure_detail\n\n完整日志：$action_log"
+        else
+            gui_dialog --error "$title 未完成，请查看终端中的提示。"
+        fi
     fi
+    return "$status"
 }
 
 software_menu() {
@@ -745,10 +758,12 @@ ensure_gui_password_ready() {
     done
 }
 
-if ! command -v kdialog >/dev/null 2>&1; then
-    echo "未找到 kdialog，无法启动图形菜单。"
-    exit 1
-fi
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    if ! command -v kdialog >/dev/null 2>&1; then
+        echo "未找到 kdialog，无法启动图形菜单。"
+        exit 1
+    fi
 
-ensure_gui_password_ready
-main_gui_menu
+    ensure_gui_password_ready
+    main_gui_menu
+fi
