@@ -507,11 +507,11 @@ plugin_page_2_menu() {
         ui_touch_button 13 '\033[1;97;48;5;24m' "安装 GE 兼容层" "提高 Windows 游戏兼容性"
         ui_touch_button 15 '\033[1;97;48;5;24m' "战网启动器" "安装并添加到 Steam"
         ui_touch_button 17 '\033[1;97;48;5;24m' "育碧" "安装育碧游戏平台并添加到 Steam"
-        ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
-        ui_touch_button 21 '\033[1;97;48;5;24m' "安装模拟器" "Switch、Wii U、PS1 至 PS4 模拟器"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "安装模拟器" "Switch、Wii U、PS1 至 PS4 模拟器"
+        ui_touch_button 21 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:simpledeckytdp right:7-8:unifideck right:9-10:tomoon right:11-12:epic right:13-14:ge-proton right:15-16:battlenet right:17-18:ubisoft right:19-20:previous right:21-22:emulators right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:simpledeckytdp right:7-8:unifideck right:9-10:tomoon right:11-12:epic right:13-14:ge-proton right:15-16:battlenet right:17-18:ubisoft right:19-20:emulators right:21-22:previous right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in

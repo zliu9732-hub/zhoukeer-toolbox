@@ -83,7 +83,7 @@ assert_contains "$touch_software" 'right:22-23:more' "常用软件更多页坐�
 assert_contains "$touch_games" 'right:23-24:home' "游戏环境缺少返回首页"
 touch_plugin_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
 assert_contains "$touch_plugin_page_2" 'right:9-10:tomoon' "插件第二页 ToMoon 坐标错误"
-assert_contains "$touch_plugin_page_2" 'right:21-22:emulators' "插件第二页缺少模拟器入口"
+assert_contains "$touch_plugin_page_2" 'right:19-20:emulators' "插件第二页缺少可见区内的模拟器入口"
 touch_emulators="$(function_source "$MAIN_FILE" emulator_menu)"
 for mapping in 'right:5-6:yuzu' 'right:8-9:cemu' 'right:11-12:duckstation' 'right:14-15:pcsx2' 'right:17-18:rpcs3' 'right:20-21:shadps4' 'right:23-24:back'; do
     assert_contains "$touch_emulators" "$mapping" "模拟器触控坐标错误：$mapping"
