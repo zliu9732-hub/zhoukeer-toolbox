@@ -74,7 +74,7 @@ assert_contains "$touch_software" 'right:14-15:todesk' "常用软件 ToDesk 坐�
 assert_contains "$touch_software" 'right:22-23:home' "常用软件返回首页坐标错误"
 assert_contains "$touch_games" 'right:23-24:home' "游戏环境缺少返回首页"
 touch_plugin_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
-assert_contains "$touch_plugin_page_2" 'right:13-14:tomoon' "插件第二页 ToMoon 坐标错误"
+assert_contains "$touch_plugin_page_2" 'right:9-10:tomoon' "插件第二页 ToMoon 坐标错误"
 assert_contains "$touch_network" 'right:20-21:home' "网络与应用商店缺少返回首页"
 assert_contains "$touch_maintenance" 'right:22-23:home' "系统维护缺少返回首页"
 assert_contains "$touch_advanced" 'right:11-12:memory-optimize' "系统设置缺少虚拟内存动作"

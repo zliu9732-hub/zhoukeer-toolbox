@@ -161,6 +161,7 @@ touch_games_page_1="$(function_source "$MAIN_FILE" game_environment_menu)"
 touch_games_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
 assert_contains "$touch_games_page_1" 'right:13-14:cheatdeck' "CheatDeck 未移动到插件第一页原 TDP 位置"
 assert_contains "$touch_games_page_2" 'right:5-6:simpledeckytdp' "SimpleDeckyTDP 未移动到插件第二页原 CheatDeck 位置"
+assert_contains "$touch_games_page_2" 'right:9-10:tomoon' "ToMoon 未紧挨 Unifideck 排列"
 assert_contains "$touch_games_page_2" 'right:17-18:ubisoft' "Ubisoft Connect 未加入插件第二页"
 assert_contains "$touch_games_page_2" '"育碧"' "育碧菜单仍显示旧名称"
 
