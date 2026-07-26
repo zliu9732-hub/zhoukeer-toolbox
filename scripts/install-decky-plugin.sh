@@ -2,6 +2,12 @@
 
 set -eu
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+# shellcheck disable=SC1091
+source "$PROJECT_ROOT/core/env.sh"
+load_config
+
 PLUGIN_ID="${1:-}"
 PLUGIN_ROOT="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
 PASSWORD_RECORD="${ZHOUKEER_PASSWORD_RECORD:-$HOME/Desktop/管理员密码.txt}"
@@ -138,11 +144,10 @@ STAGING_DIR="$PLUGIN_ROOT/.${PLUGIN_DIRECTORY}.new.$$"
 BACKUP_DIR="$PLUGIN_ROOT/.${PLUGIN_DIRECTORY}.backup.$$"
 TARGET_DIR="$PLUGIN_ROOT/$PLUGIN_DIRECTORY"
 
-echo "正在从作者官方 GitHub Release 下载 $PLUGIN_NAME..."
-curl --fail --location --show-error --progress-bar \
-    --proto '=https' --proto-redir '=https' \
-    --connect-timeout 15 --max-time 1200 --retry 3 --retry-delay 2 \
-    --output "$ARCHIVE" "$PLUGIN_URL"
+echo "正在准备下载 $PLUGIN_NAME..."
+# 与工具箱内插件菜单共用 GitHub 下载器：对 Release 文件测速选择 ghfast、
+# 已配置镜像或官方源，逐源回退，并在写入前完成 SHA256 校验。
+download_github_file "$PLUGIN_URL" "$ARCHIVE" "$PLUGIN_SHA256" "$PLUGIN_NAME"
 
 ACTUAL_SHA256="$(sha256sum "$ARCHIVE" | awk '{print tolower($1)}')"
 if [ "$ACTUAL_SHA256" != "$PLUGIN_SHA256" ]; then

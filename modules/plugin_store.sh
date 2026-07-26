@@ -26,11 +26,11 @@ LSFG_OFFICIAL_DIRECTORY="Decky LSFG-VK"
 LSFG_OFFICIAL_VERSION="0.12.5"
 LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"
 LSFG_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5"
-LSFG_ZH_INDEX_SHA256="40844ce4e016e411fb45f951c4a6993fb8ac95ac03e8d2f7f12b67082f3067ef"
+LSFG_ZH_INDEX_SHA256="947c3aa91eec580ad10b69174b87cd4e97ac86e320e40bc8d2e78712b298b220"
 FSR4_OFFICIAL_DIRECTORY="Decky-Framegen"
 FSR4_OFFICIAL_VERSION="0.15.6"
 FSR4_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6"
-FSR4_ZH_INDEX_SHA256="58fb35721a3321afa787a0888f9053c9550ea55c85b102696831b30b27e3da2d"
+FSR4_ZH_INDEX_SHA256="01519badd302e88a1b2f34be750bc371f7e9a76191fd4f69f9eb131761f886db"
 FSR4_RUNTIME_ARCHIVE="Optiscaler_0.9.2a-final.20260517._Reup.7z"
 FSR4_RUNTIME_UPSCALER="amd_fidelityfx_upscaler_dx12.dll"
 FSR4_RUNTIME_PATCHER="OptiPatcher_rolling.asi"
@@ -46,9 +46,9 @@ DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/to
 DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
 # GitHub 完整汉化插件包（含运行核心），通过统一下载器自动选择加速源。
 : "${DECKY_LSFG_ZH_URL:=https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip}"
-: "${DECKY_LSFG_ZH_SHA256:=9eed12dc0bb0ca1967e57d55c230e6522c9b8c70d1b8337929d5ec0066c2a4cd}"
+: "${DECKY_LSFG_ZH_SHA256:=11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277}"
 : "${DECKY_FSR4_ZH_URL:=https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/Decky-Framegen-FSR4-v0.15.6.zip}"
-: "${DECKY_FSR4_ZH_SHA256:=4b9c8939028919e8bcb76c37c75b9dfc2e84d4fd1d2534521606dc70f0789ad0}"
+: "${DECKY_FSR4_ZH_SHA256:=467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e}"
 : "${DECKY_GITEE_ARCHIVE_URL:=https://gitee.com/zliu9732-hub/zhoukeer-toolbox/repository/archive/v5.1.1.zip}"
 : "${DECKY_GITEE_ARCHIVE_SHA256:=378c0eb83f05fc58585723670a62cd42f07e6c49518136cc037dd4059e7ca764}"
 : "${DECKY_GITEE_ARCHIVE_PREFIX:=zhoukeer-toolbox-v5.1.1}"
@@ -1311,7 +1311,7 @@ install_lsfg_bundle() {
         "$skip_existing" || return 1
     remove_legacy_lsfg_directories "$plugin_root"
 
-    echo "汉化作者：闲鱼双叶，感谢支持！"
+    echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     if [ "$open_store_after" = "1" ]; then
         check_lossless_scaling_installation
     fi
@@ -1376,9 +1376,9 @@ install_lsfg_chinese() {
     }
     rm -rf -- "$work_dir"
     echo "小黄鸭 v$LSFG_OFFICIAL_VERSION 已安装。"
-    echo "汉化作者：闲鱼双叶，感谢支持！"
+    echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
-    echo "汉化作者：闲鱼双叶，感谢支持！"
+    echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可使用。"
     fi
@@ -1491,10 +1491,10 @@ install_fsr4_chinese() {
         return 1
     }
     rm -rf -- "$work_dir"
-    echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面已安装（闲鱼双叶汉化）。"
-    echo "汉化作者：闲鱼双叶，感谢支持！"
+    echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面已安装（Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化）。"
+    echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
-    echo "汉化作者：闲鱼双叶，感谢支持！"
+    echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 FSR4 插帧即可看到中文界面。"
     fi
@@ -1539,10 +1539,10 @@ install_fsr4_zh_from_gitee() {
             return $?
         }
     }
-    echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面已安装（闲鱼双叶汉化）。"
-    echo "汉化作者：闲鱼双叶，感谢支持！"
+    echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面已安装（Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化）。"
+    echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
-    echo "汉化作者：闲鱼双叶，感谢支持！"
+    echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 FSR4 插帧即可看到中文界面。"
     fi

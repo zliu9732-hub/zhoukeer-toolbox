@@ -121,11 +121,11 @@ grep -Fq '小黄鸭运行核心缺失' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'cp -a -- "$official_runtime" "$staged_source/bin/$LSFG_RUNTIME_ARCHIVE"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_fsr4_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'restore_lsfg_official()' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'LSFG_ZH_INDEX_SHA256="40844ce4e016e411fb45f951c4a6993fb8ac95ac03e8d2f7f12b67082f3067ef"' \
+grep -Fq 'LSFG_ZH_INDEX_SHA256="947c3aa91eec580ad10b69174b87cd4e97ac86e320e40bc8d2e78712b298b220"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '中文汉化：闲鱼双叶' \
+grep -Fq '中文汉化：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）' \
     "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/src/components/Content.tsx"
-[ "$(grep -Fc '闲鱼双叶汉化' "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/src/components/Content.tsx")" -ge 1 ] || {
+[ "$(grep -Fc 'Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化' "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/src/components/Content.tsx")" -ge 1 ] || {
     echo "FAIL: 小黄鸭插件打开后缺少可见汉化署名" >&2
     exit 1
 }
@@ -133,23 +133,23 @@ grep -Fq '"name": "小黄鸭"' \
     "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/plugin.json"
 grep -Fq '"name": "Decky-Framegen(FSR4)"' \
     "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/plugin.json"
-grep -Fq '闲鱼双叶' \
+grep -Fq 'Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）' \
     "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/plugin.json"
-grep -Fq '闲鱼双叶汉化' \
+grep -Fq 'Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化' \
     "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/src/components/OptiScalerControls.tsx"
-[ "$(grep -Fc '闲鱼双叶汉化' "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/src/components/OptiScalerControls.tsx")" -ge 2 ] || {
+[ "$(grep -Fc 'Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化' "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/src/components/OptiScalerControls.tsx")" -ge 2 ] || {
     echo "FAIL: FSR4 插件打开后缺少单独可见的汉化署名" >&2
     exit 1
 }
 fsr4_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/dist/index.js" | awk '{print $1}')"
-[ "$fsr4_actual_sha256" = "58fb35721a3321afa787a0888f9053c9550ea55c85b102696831b30b27e3da2d" ] || {
+[ "$fsr4_actual_sha256" = "01519badd302e88a1b2f34be750bc371f7e9a76191fd4f69f9eb131761f886db" ] || {
     echo "FAIL: FSR4 中文构建文件校验值不匹配" >&2
     exit 1
 }
 grep -Fq '"version": "0.12.5"' \
     "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/package.json"
 zh_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js" | awk '{print $1}')"
-[ "$zh_actual_sha256" = "40844ce4e016e411fb45f951c4a6993fb8ac95ac03e8d2f7f12b67082f3067ef" ] || {
+[ "$zh_actual_sha256" = "947c3aa91eec580ad10b69174b87cd4e97ac86e320e40bc8d2e78712b298b220" ] || {
     echo "FAIL: 小黄鸭中文构建文件校验值不匹配" >&2
     exit 1
 }

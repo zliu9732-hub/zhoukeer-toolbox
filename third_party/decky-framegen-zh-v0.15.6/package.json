@@ -1,7 +1,7 @@
 {
   "name": "decky-framegen",
   "version": "0.15.6",
-  "description": "汉化：闲鱼双叶。管理 OptiScaler，为 DirectX 12 游戏提供超分辨率与插帧支持。",
+  "description": "汉化：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）。管理 OptiScaler，为 DirectX 12 游戏提供超分辨率与插帧支持。",
   "type": "module",
   "scripts": {
     "build": "rollup -c",

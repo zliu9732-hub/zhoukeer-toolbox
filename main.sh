@@ -121,13 +121,14 @@ show_disclaimer() {
     while true; do
         # 免责声明独占整个窗口，避免侧栏和长句把确认按钮挤出可见区域。
         draw_disclaimer_frame
-        ui_disclaimer_line 8 '\033[1;38;5;220m' "本脚本由 闲鱼：超级妹宝双叶 制作"
-        ui_disclaimer_line 9 '\033[38;5;45m' "支持免费使用；禁止商业、销售、转卖或借此盈利"
-        ui_disclaimer_line 10 '\033[38;5;45m' "下载内容均来自官方免费发布或开源项目"
-        ui_disclaimer_line 11 '\033[38;5;45m' "不包含付费软件本体、破解或商业授权"
-        ui_disclaimer_line 12 '\033[38;5;220m' "第三方软件与插件均从作者或官方发布页获取"
-        ui_disclaimer_line 13 '\033[1;38;5;114m' "欢迎支持作者；若有侵权请及时联系删除"
-        ui_disclaimer_button 15 '\033[1;38;5;114m' "点击窗口任意位置开始使用" "点击即表示已阅读上述说明；关闭窗口即可退出"
+        ui_disclaimer_line 8 '\033[1;38;5;220m' "Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）制作"
+        ui_disclaimer_line 9 '\033[38;5;45m' "GitHub：Ren-Amamiya-pixie / zliu9732-hub"
+        ui_disclaimer_line 10 '\033[38;5;45m' "支持免费使用；禁止商业、销售、转卖或借此盈利"
+        ui_disclaimer_line 11 '\033[38;5;45m' "下载内容均来自官方免费发布或开源项目"
+        ui_disclaimer_line 12 '\033[38;5;45m' "不包含付费软件本体、破解或商业授权"
+        ui_disclaimer_line 13 '\033[38;5;220m' "第三方软件与插件均从作者或官方发布页获取"
+        ui_disclaimer_line 14 '\033[1;38;5;114m' "欢迎支持作者；若有侵权请及时联系删除"
+        ui_disclaimer_button 16 '\033[1;38;5;114m' "点击窗口任意位置开始使用" "点击即表示已阅读上述说明；关闭窗口即可退出"
         # 非全屏 Konsole 的可见行数和触屏坐标可能在首帧不同步，不能再把进入
         # 工具箱限定在固定的第 12–19 行；欢迎页不执行任何系统操作，因此任意
         # 主指针点击均视为确认，关闭窗口仍可直接退出。
@@ -429,8 +430,8 @@ game_environment_menu() {
         ui_touch_button 9 '\033[1;97;48;5;24m' "常用插件加27款精选插件" "优先安装三件套，已装则跳过；再补精选"
         ui_touch_button 11 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
         ui_touch_button 13 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "小黄鸭｜GitHub+Gitee" "双源安装汉化版·汉化作者：闲鱼双叶"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "FSR4｜GitHub+Gitee" "双源安装汉化版·汉化作者：闲鱼双叶"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "小黄鸭｜GitHub+Gitee" "双源安装汉化版·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "FSR4｜GitHub+Gitee" "双源安装汉化版·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
         ui_touch_button 19 '\033[1;97;48;5;24m' "Freedeck" "下载游戏和模拟器游戏·感谢作者b站一苇Isidf"
         ui_touch_button 21 '\033[1;97;48;5;238m' "下一页…" "查看剩余插件"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -444,8 +445,8 @@ game_environment_menu() {
             all) confirm_and_run "安装常用插件加27款精选插件" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；三件套已装则跳过，未装则安装；再补27款精选；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
             browse) plugin_official_touch_pages ;;
             cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
-            lsfg) confirm_and_run "安装小黄鸭" "GitHub 加速失败自动改用 Gitee 国内源；汉化作者：闲鱼双叶" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
-            fsr4) confirm_and_run "安装 FSR4" "GitHub 加速失败自动改用 Gitee 国内源；汉化作者：闲鱼双叶" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
+            lsfg) confirm_and_run "安装小黄鸭" "GitHub 加速失败自动改用 Gitee 国内源；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
+            fsr4) confirm_and_run "安装 FSR4" "GitHub 加速失败自动改用 Gitee 国内源；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             freedeck) confirm_and_run "安装 Freedeck" "下载游戏和模拟器游戏；感谢作者b站一苇Isidf" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck ;;
             next) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;

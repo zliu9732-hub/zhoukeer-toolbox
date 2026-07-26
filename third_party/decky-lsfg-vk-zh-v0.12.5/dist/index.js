@@ -2,7 +2,7 @@
 // @ts-ignore
 
 // Prevents it from being duplicated in output.
-const manifest = {"name":"小黄鸭","author":"Kurt Himebauch (xXJSONDeruloXx)","flags":[],"api_version":1,"publish":{"tags":["installer","vulkan","lsfg","framegen","lossless","scaling"],"description":"在 Steam Deck 上通过 lsfg-vk 兼容层启用无损缩放帧生成。中文汉化：闲鱼双叶。","image":"https://raw.githubusercontent.com/xXJSONDeruloXx/decky-lsfg-vk/refs/heads/main/assets/Decky_LSFG-VK_Master_1.png"}};
+const manifest = {"name":"小黄鸭","author":"Kurt Himebauch (xXJSONDeruloXx)","flags":[],"api_version":1,"publish":{"tags":["installer","vulkan","lsfg","framegen","lossless","scaling"],"description":"在 Steam Deck 上通过 lsfg-vk 兼容层启用无损缩放帧生成。中文汉化：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）。","image":"https://raw.githubusercontent.com/xXJSONDeruloXx/decky-lsfg-vk/refs/heads/main/assets/Decky_LSFG-VK_Master_1.png"}};
 const API_VERSION = 2;
 const internalAPIConnection = window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit;
 // Initialize
@@ -1838,9 +1838,9 @@ function Content() {
     };
     return (window.SP_REACT.createElement(DFL.PanelSection, null,
         window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-            window.SP_REACT.createElement("div", { style: { fontSize: "12px", opacity: 0.7, lineHeight: "1.45" } }, "\u4E2D\u6587\u6C49\u5316\uFF1A\u95F2\u9C7C\u53CC\u53F6 \u00B7 \u539F\u63D2\u4EF6\u4F5C\u8005\uFF1AKurt Himebauch\uFF08xXJSONDeruloXx\uFF09")),
+            window.SP_REACT.createElement("div", { style: { fontSize: "12px", opacity: 0.7, lineHeight: "1.45" } }, "\u4E2D\u6587\u6C49\u5316\uFF1ARen-Amamiya-pixie / zliu9732-hub\uFF08\u95F2\u9C7CRenAmamiya\uFF09 \u00B7 \u539F\u63D2\u4EF6\u4F5C\u8005\uFF1AKurt Himebauch\uFF08xXJSONDeruloXx\uFF09")),
         window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-            window.SP_REACT.createElement("div", { style: { width: "100%", textAlign: "center", fontSize: "14px", fontWeight: 700, color: "#ffcc66", padding: "4px 0 8px" } }, "\u95F2\u9C7C\u53CC\u53F6\u6C49\u5316")),
+            window.SP_REACT.createElement("div", { style: { width: "100%", textAlign: "center", fontSize: "14px", fontWeight: 700, color: "#ffcc66", padding: "4px 0 8px" } }, "Ren-Amamiya-pixie / zliu9732-hub\uFF08\u95F2\u9C7CRenAmamiya\uFF09\u6C49\u5316")),
         !isInstalled && (window.SP_REACT.createElement(window.SP_REACT.Fragment, null,
             window.SP_REACT.createElement(InstallationButton, { isInstalled: isInstalled, isInstalling: isInstalling, isUninstalling: isUninstalling, onInstall: onInstall, onUninstall: onUninstall }),
             window.SP_REACT.createElement(StatusDisplay, { dllDetected: dllDetected, dllDetectionStatus: dllDetectionStatus, isInstalled: isInstalled, installationStatus: installationStatus }))),

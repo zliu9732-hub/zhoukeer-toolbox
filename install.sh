@@ -95,6 +95,20 @@ assignment_is_empty() {
     esac
 }
 
+# 汉化插件 ZIP 随工具箱更新后，其校验值必须与新包同步。旧的工具箱默认值
+# 不再对应当前仓库中的包，保留会使用户更新后始终校验失败；只迁移这两个已知
+# 的历史默认值，不覆盖用户自行设置的其他下载地址或校验值。
+assignment_is_retired_chinese_plugin_hash() {
+    local key="$1"
+    local assignment="$2"
+
+    case "$key:$assignment" in
+        DECKY_LSFG_ZH_SHA256:*9eed12dc0bb0ca1967e57d55c230e6522c9b8c70d1b8337929d5ec0066c2a4cd*) return 0 ;;
+        DECKY_FSR4_ZH_SHA256:*4b9c8939028919e8bcb76c37c75b9dfc2e84d4fd1d2534521606dc70f0789ad0*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 prepare_config_migration() {
     local config_file="$1"
     local example_file="$2"
@@ -130,6 +144,12 @@ prepare_config_migration() {
 
         # 示例默认值同样为空时，现有空赋值已经与默认配置一致，无需反复迁移。
         if assignment_is_empty "$current_assignment" && ! assignment_is_empty "$default_assignment"; then
+            CONFIG_MIGRATION_KEYS+=("$key")
+            CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
+            continue
+        fi
+
+        if assignment_is_retired_chinese_plugin_hash "$key" "$current_assignment"; then
             CONFIG_MIGRATION_KEYS+=("$key")
             CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
         fi

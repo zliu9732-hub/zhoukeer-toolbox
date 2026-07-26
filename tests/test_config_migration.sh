@@ -115,6 +115,26 @@ test_custom_config_preserved() {
         "https://custom.example/todesk.tar.gz"
 }
 
+test_chinese_plugin_hashes_migrated() {
+    local case_root="$TMP_ROOT/chinese-plugin-hashes"
+    local install_dir="$case_root/install"
+    local config_file="$install_dir/config/settings.conf"
+
+    mkdir -p "$(dirname "$config_file")"
+    cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
+    sed -i.bak \
+        -e 's/11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277/9eed12dc0bb0ca1967e57d55c230e6522c9b8c70d1b8337929d5ec0066c2a4cd/' \
+        -e 's/467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e/4b9c8939028919e8bcb76c37c75b9dfc2e84d4fd1d2534521606dc70f0789ad0/' \
+        "$config_file"
+
+    run_installer "$case_root/home" "$install_dir"
+
+    assert_value "$config_file" DECKY_LSFG_ZH_SHA256 \
+        "11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"
+    assert_value "$config_file" DECKY_FSR4_ZH_SHA256 \
+        "467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e"
+}
+
 test_retired_rustdesk_config_removed() {
     local case_root="$TMP_ROOT/retired-rustdesk"
     local install_dir="$case_root/install"
@@ -250,6 +270,7 @@ test_install_from_replaced_workdir() {
 
 test_blank_config_migration
 test_custom_config_preserved
+test_chinese_plugin_hashes_migrated
 test_retired_rustdesk_config_removed
 test_retired_decky_installer_config_removed
 test_missing_config_created

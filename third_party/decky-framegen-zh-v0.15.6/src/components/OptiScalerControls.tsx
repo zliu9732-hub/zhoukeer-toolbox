@@ -117,13 +117,13 @@ export function OptiScalerControls({ pathExists, setPathExists, fgmodInfo }: Opt
   return (
     <PanelSection>
       <PanelSectionRow>
-        <Field label="闲鱼双叶汉化" description="FSR4 中文界面">
+        <Field label="Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化" description="FSR4 中文界面">
           原插件作者：Kurt Himebauch（xXJSONDeruloXx）
         </Field>
       </PanelSectionRow>
       <PanelSectionRow>
         <div style={{ width: "100%", textAlign: "center", fontSize: "14px", fontWeight: 700, color: "#ffcc66", padding: "4px 0 8px" }}>
-          闲鱼双叶汉化
+          Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化
         </div>
       </PanelSectionRow>
 
