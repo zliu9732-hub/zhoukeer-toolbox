@@ -10,6 +10,7 @@ source "$PROJECT_ROOT/core/logger.sh"
 source "$PROJECT_ROOT/core/auth.sh"
 
 MEMORY_SWAPFILE_PATH="${ZHOUKEER_SWAPFILE_PATH:-$(dirname "$HOME")/swapfile}"
+MEMORY_FALLBACK_SWAPFILE_PATH="${ZHOUKEER_MEMORY_FALLBACK_SWAPFILE_PATH:-$(dirname "$MEMORY_SWAPFILE_PATH")/.zhoukeer-swapfile}"
 MEMORY_ZRAM_CONFIG="${ZHOUKEER_ZRAM_CONFIG:-/etc/systemd/zram-generator.conf.d/90-zhoukeer.conf}"
 MEMORY_SYSCTL_CONFIG="${ZHOUKEER_MEMORY_SYSCTL_CONFIG:-/etc/sysctl.d/90-zhoukeer-memory.conf}"
 MEMORY_SYSTEMD_DIR="${ZHOUKEER_SYSTEMD_DIR:-/etc/systemd/system}"
@@ -103,6 +104,16 @@ memory_move_swapfile_after_forced_immutable_clear() {
     # chattr -i 后才能移动，回滚时仍须恢复旧文件的不可变保护。
     MEMORY_SWAPFILE_WAS_IMMUTABLE=1
     echo "已解除现有 swap 的不可变保护并完成备份。"
+}
+
+memory_activate_fallback_swapfile() {
+    local new_file="$1"
+
+    toolbox_sudo test ! -e "$MEMORY_FALLBACK_SWAPFILE_PATH" || return 1
+    toolbox_sudo mv -- "$new_file" "$MEMORY_FALLBACK_SWAPFILE_PATH" || return 1
+    toolbox_sudo swapon --priority 10 "$MEMORY_FALLBACK_SWAPFILE_PATH" || return 1
+    MEMORY_SWAPFILE_PATH="$MEMORY_FALLBACK_SWAPFILE_PATH"
+    echo "旧 swap 受系统保护无法移动，已保留原文件并启用工具箱独立 swap：$MEMORY_SWAPFILE_PATH"
 }
 
 memory_swapfile_is_complete() {
@@ -254,10 +265,13 @@ memory_create_swapfile() {
             memory_move_swapfile_after_forced_immutable_clear \
                 "$MEMORY_SWAPFILE_PATH" "$backup_file" || {
                 memory_restore_immutable_attribute "$MEMORY_SWAPFILE_PATH" || true
-                toolbox_sudo rm -f -- "$new_file"
-                [ "$was_active" -eq 0 ] || toolbox_sudo swapon "$MEMORY_SWAPFILE_PATH" || true
-                echo "现有 swap 无法安全移动，已保留原文件。"
-                return 1
+                memory_activate_fallback_swapfile "$new_file" || {
+                    toolbox_sudo rm -f -- "$new_file"
+                    [ "$was_active" -eq 0 ] || toolbox_sudo swapon "$MEMORY_SWAPFILE_PATH" || true
+                    echo "现有 swap 无法安全移动，已保留原文件。"
+                    return 1
+                }
+                return 0
             }
         fi
     fi
@@ -303,7 +317,6 @@ memory_optimize() {
         echo "无法读取物理内存大小，已停止。"
         return 1
     }
-    unit_name="$(memory_swap_unit_name)" || return 1
     memory_confirm_optimize || {
         echo "已取消虚拟内存优化。"
         return 0
@@ -316,6 +329,12 @@ memory_optimize() {
     memory_config_target_is_safe "$MEMORY_SYSCTL_CONFIG" || return 1
     memory_config_target_is_safe "$MEMORY_SYSTEMD_DIR/$unit_name" || return 1
 
+    if ! memory_swapfile_is_complete "$MEMORY_SWAPFILE_PATH" "$target_gib" && \
+       memory_swapfile_is_complete "$MEMORY_FALLBACK_SWAPFILE_PATH" "$target_gib"; then
+        MEMORY_SWAPFILE_PATH="$MEMORY_FALLBACK_SWAPFILE_PATH"
+        echo "检测到工具箱独立 swap，继续使用：$MEMORY_SWAPFILE_PATH"
+    fi
+    unit_name="$(memory_swap_unit_name)" || return 1
     if memory_swapfile_is_complete "$MEMORY_SWAPFILE_PATH" "$target_gib"; then
         echo "[已设置] ${target_gib}GB 磁盘 swap 文件完整，无需重复创建。"
     else
