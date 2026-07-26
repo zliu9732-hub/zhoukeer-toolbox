@@ -173,7 +173,7 @@ game_environment_gui_menu() {
             lsfg "小黄鸭｜GitHub 失败自动切换 Gitee 国内源" \
             fsr4 "FSR4｜GitHub 失败自动切换 Gitee 国内源" \
             browse "浏览官方插件｜逐个查看插件作用" \
-            ge-proton "GE 游戏运行组件｜提高 Windows 游戏兼容性" \
+            ge-proton "安装 GE 兼容层｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
             tomoon "ToMoon｜作者 GitHub Release 网络工具插件" \
             battlenet "战网启动器｜首次需在 Steam 兼容性选择 Proton 10.0-4" \
@@ -208,7 +208,7 @@ game_environment_gui_menu() {
                 ;;
             ge-proton)
                 gui_confirm "将安装第三方 GE-Proton 游戏兼容组件。是否继续？" && \
-                    run_gui_action "安装 GE 游戏运行组件" \
+                    run_gui_action "安装 GE 兼容层" \
                     bash "$PROJECT_ROOT/modules/ge_proton.sh" install
                 ;;
             epic)

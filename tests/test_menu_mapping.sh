@@ -96,7 +96,7 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_contains "$source_text" 'modules/domestic_source.sh" init' "国内软件源动作错误：$file"
     assert_contains "$source_text" 'modules/domestic_source.sh" restore' "恢复官方源动作错误：$file"
     assert_contains "$source_text" 'core/detect.sh" --health' "系统健康检查动作错误：$file"
-    assert_contains "$source_text" 'modules/ge_proton.sh" install' "GE 游戏运行组件动作错误：$file"
+    assert_contains "$source_text" 'modules/ge_proton.sh" install' "安装 GE 兼容层动作错误：$file"
     assert_contains "$source_text" 'modules/game_launchers.sh" epic' "Epic 动作错误：$file"
     assert_contains "$source_text" 'modules/game_launchers.sh" ubisoft' "Ubisoft Connect 动作错误：$file"
     assert_contains "$source_text" 'modules/plugin_store.sh" tomoon' "ToMoon GitHub Release 动作错误：$file"
