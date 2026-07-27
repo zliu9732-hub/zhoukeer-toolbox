@@ -15,6 +15,7 @@
 html { background: var(--bg); }
 body { margin: 0; background: radial-gradient(circle at 85% 0, #2a1015, transparent 28rem), var(--bg); color: var(--text); line-height: 1.6; }
 a { color: inherit; text-decoration: none; }
+a:focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
 .shell { width: min(100% - 32px, 1040px); margin: auto; }
 .nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 1px solid var(--line); }
 .brand { font-size: 1.05rem; font-weight: 800; letter-spacing: .04em; }
@@ -29,12 +30,27 @@ h1 em { color: var(--red); font-style: normal; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 27px; }
 .button { display: inline-flex; min-height: 48px; padding: 0 19px; align-items: center; justify-content: center; border-radius: 12px; background: var(--red); font-weight: 800; box-shadow: 0 10px 30px rgba(235, 44, 52, .2); }
 .button.ghost { background: transparent; border: 1px solid var(--line); box-shadow: none; }
+.button:hover, .button:focus-visible { filter: brightness(1.08); transform: translateY(-1px); }
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding-bottom: 62px; }
 .card { background: linear-gradient(145deg, rgba(255,255,255,.08), transparent 45%), var(--surface); border: 1px solid var(--line); border-radius: 17px; padding: 22px; min-height: 170px; }
 .card .number { color: var(--red); font-weight: 900; font-size: .9rem; }
 .card h2 { font-size: 1.18rem; margin: 8px 0; }
 .card p { color: var(--muted); font-size: .93rem; margin-bottom: 0; }
+.guide-list { padding: 8px 0 68px; }
+.section-head { max-width: 680px; margin-bottom: 22px; }
+.section-head h2 { font-size: clamp(1.7rem, 5vw, 2.5rem); margin: 8px 0; }
+.section-head p { color: var(--muted); }
+.guide-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.guide-card { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 17px; padding: 24px; transition: transform .18s ease, border-color .18s ease; }
+.guide-card:hover { transform: translateY(-3px); border-color: rgba(235,44,52,.65); }
+.guide-card h3 { font-size: 1.25rem; margin: 12px 0 8px; }
+.guide-card p { color: var(--muted); }
+.guide-card strong { color: var(--yellow); }
+.guide-tag { display: inline-block; color: var(--yellow); font-size: .82rem; font-weight: 800; letter-spacing: .04em; }
 .notice { background: #251e12; border: 1px solid rgba(255,210,74,.45); border-radius: 15px; padding: 18px; color: #f7e8bb; margin: 12px 0 28px; }
+.notice-link { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.notice-link span { color: var(--yellow); font-weight: 800; }
+.danger { background: #2a1114; border: 1px solid rgba(235,44,52,.65); border-radius: 15px; padding: 18px; color: #ffdadd; margin: 12px 0 28px; }
 .tutorial-head { padding: 42px 0 20px; }
 .tutorial-head h1 { font-size: clamp(2rem, 7vw, 3.6rem); }
 .tutorial-head p { color: var(--muted); max-width: 680px; }
@@ -46,6 +62,9 @@ h1 em { color: var(--red); font-style: normal; }
 .step h2 { margin: 0; font-size: clamp(1.25rem, 5vw, 1.75rem); }
 .step p { color: var(--muted); margin: 13px 0; }
 .safe { background: var(--surface-2); border-left: 4px solid var(--red); padding: 17px; border-radius: 0 12px 12px 0; color: var(--muted); }
+.method-two { background: linear-gradient(145deg, rgba(255,255,255,.07), transparent 45%), var(--surface); border: 1px solid var(--line); border-radius: 17px; padding: 24px; margin: 8px 0 46px; }
+.method-two h2 { margin: 8px 0; }
+.method-two p { color: var(--muted); }
 details { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 15px; margin: 28px 0 40px; }
 summary { cursor: pointer; font-weight: 800; }
 details p { color: var(--muted); margin: 13px 0; }
@@ -56,5 +75,8 @@ details .guide-image { margin-top: 15px; opacity: .75; }
   .shell { width: min(100% - 24px, 1040px); }
   .hero { padding-top: 52px; }
   .grid { grid-template-columns: 1fr; }
+  .guide-cards { grid-template-columns: 1fr; }
   .card { min-height: 145px; }
+  .notice-link { align-items: flex-start; flex-direction: column; }
+  .button { width: 100%; }
 }
