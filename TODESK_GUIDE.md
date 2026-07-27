@@ -2,6 +2,8 @@
 
 > 小白按顺序操作即可。开始前请确保 Steam Deck 已连接网络。
 
+> **忘记或不知道管理员密码？** [点击查看 Steam Deck 重置密码教程](https://gitee.com/zliu9732-hub/zhoukeer-toolbox/blob/main/STEAMDECK_PASSWORD_RESET_GUIDE.md)
+
 ![Steam Deck ToDesk 安装教程封面](website/assets/todesk/00-cover.png)
 
 ## 准备：开启旧版 X11 桌面模式
