@@ -40,7 +40,7 @@ h1 em { color: var(--red); font-style: normal; }
 .section-head { max-width: 680px; margin-bottom: 22px; }
 .section-head h2 { font-size: clamp(1.7rem, 5vw, 2.5rem); margin: 8px 0; }
 .section-head p { color: var(--muted); }
-.guide-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.guide-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
 .guide-card { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 17px; padding: 24px; transition: transform .18s ease, border-color .18s ease; }
 .guide-card:hover { transform: translateY(-3px); border-color: rgba(235,44,52,.65); }
 .guide-card h3 { font-size: 1.25rem; margin: 12px 0 8px; }
@@ -70,6 +70,11 @@ h1 em { color: var(--red); font-style: normal; }
 .method-two { background: linear-gradient(145deg, rgba(255,255,255,.07), transparent 45%), var(--surface); border: 1px solid var(--line); border-radius: 17px; padding: 24px; margin: 8px 0 46px; }
 .method-two h2 { margin: 8px 0; }
 .method-two p { color: var(--muted); }
+.video-list { display: grid; gap: 22px; padding-bottom: 64px; }
+.video-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, 360px); gap: 28px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 24px; }
+.video-copy h2 { margin: 8px 0; font-size: clamp(1.35rem, 4vw, 1.85rem); }
+.video-copy p { color: var(--muted); margin-bottom: 0; }
+.video-card video { display: block; width: 100%; max-height: 68vh; aspect-ratio: 9 / 16; object-fit: contain; background: #000; border: 1px solid var(--line); border-radius: 14px; }
 details { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 15px; margin: 28px 0 40px; }
 summary { cursor: pointer; font-weight: 800; }
 details p { color: var(--muted); margin: 13px 0; }
@@ -81,6 +86,8 @@ details .guide-image { margin-top: 15px; opacity: .75; }
   .hero { padding-top: 52px; }
   .grid { grid-template-columns: 1fr; }
   .guide-cards { grid-template-columns: 1fr; }
+  .video-card { grid-template-columns: 1fr; padding: 16px; }
+  .video-card video { max-height: 72vh; margin: auto; }
   .card { min-height: 145px; }
   .notice-link { align-items: flex-start; flex-direction: column; }
   .password-gate { grid-template-columns: 1fr; }
