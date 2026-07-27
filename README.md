@@ -219,18 +219,3 @@ bash bootstrap.sh
 2. GitHub项目内相同固定包：`dist/zhoukeer-toolbox.tar.gz`
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。
-
-## 需要在真实 Steam Deck 上测试
-
-- 桌面快捷方式是否能通过 Konsole 打开工具箱。
-- SteamOS 是否能正确识别。
-- Steam 下载缓存和着色器缓存路径是否符合当前 SteamOS 版本。
-- ToDesk安装后是否恢复SteamOS只读保护、服务是否启动、桌面入口是否存在。
-- Decky、微信、QQ和Firefox浏览器在当前SteamOS版本是否能正常安装、创建桌面快捷方式并启动。
-- 用户级Flathub国内缓存是否可用，官方Flathub备用源是否仍然保留。
-- Steamcommunity 302官方Linux AMD64包安装后是否无桌面图标、立即后台生效且重启后自动运行；停止和卸载后 hosts、DNS、证书及本机代理是否正确恢复。
-- 战网使用 Proton 10.0-4 优先、Epic 与育碧使用 Proton Experimental 优先时，三个官方安装器是否都能完成并自动加入 Steam；桌面图标及库中横图、竖图、英雄图、图标、徽标是否显示工具箱标识；Epic 中文切换提示是否与当前界面一致。
-- 一键虚拟内存优化后，zram、磁盘 swap、优先级和 swappiness 是否在重启前后均符合状态页说明。
-- 设置/修改SteamOS密码后，桌面 `管理员密码.txt` 是否为明文新密码且权限为 `600`；工具箱sudo自动验证失败时是否安全回退到系统原生提示。
-- 更新菜单能否从Gitee下载并验证固定更新包，Gitee失败时能否切换GitHub。
-- 游戏模式/桌面模式之间的菜单显示和中文字体是否正常。
