@@ -51,6 +51,11 @@ h1 em { color: var(--red); font-style: normal; }
 .notice-link { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
 .notice-link span { color: var(--yellow); font-weight: 800; }
 .danger { background: #2a1114; border: 1px solid rgba(235,44,52,.65); border-radius: 15px; padding: 18px; color: #ffdadd; margin: 12px 0 28px; }
+.password-gate { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: start; margin-top: 24px; border-width: 2px; box-shadow: 0 14px 42px rgba(235,44,52,.18); }
+.password-gate h2 { margin: 0 0 6px; font-size: clamp(1.25rem, 4vw, 1.65rem); color: #fff; }
+.password-gate p { margin: 0 0 16px; }
+.password-gate .button { min-height: 44px; font-size: .94rem; }
+.warning-mark { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: var(--red); color: #fff; font-size: 1.7rem; font-weight: 900; }
 .tutorial-head { padding: 42px 0 20px; }
 .tutorial-head h1 { font-size: clamp(2rem, 7vw, 3.6rem); }
 .tutorial-head p { color: var(--muted); max-width: 680px; }
@@ -78,5 +83,6 @@ details .guide-image { margin-top: 15px; opacity: .75; }
   .guide-cards { grid-template-columns: 1fr; }
   .card { min-height: 145px; }
   .notice-link { align-items: flex-start; flex-direction: column; }
+  .password-gate { grid-template-columns: 1fr; }
   .button { width: 100%; }
 }

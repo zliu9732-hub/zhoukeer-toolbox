@@ -1,8 +1,13 @@
 # Steam Deck ToDesk 安装教程
 
-> 小白按顺序操作即可。开始前请确保 Steam Deck 已连接网络。
+## ⚠️ 安装前必须确认：你知道管理员密码吗？
 
-> **忘记或不知道管理员密码？** [点击查看 Steam Deck 重置密码教程](https://gitee.com/zliu9732-hub/zhoukeer-toolbox/blob/main/STEAMDECK_PASSWORD_RESET_GUIDE.md)
+ToDesk 安装过程中必须输入 SteamOS 管理员密码。**请先确认自己知道管理员密码，再继续下面的教程，否则操作到一半将无法完成安装并浪费时间。**
+
+- **知道密码：**继续阅读下面的安装步骤。
+- **忘记、不知道或从未设置过密码：**先停止安装，[点击查看 Steam Deck 重置密码教程](https://gitee.com/zliu9732-hub/zhoukeer-toolbox/blob/main/STEAMDECK_PASSWORD_RESET_GUIDE.md)。
+
+> 小白按顺序操作即可。开始前请确保 Steam Deck 已连接网络。
 
 ![Steam Deck ToDesk 安装教程封面](website/assets/todesk/00-cover.png)
 
