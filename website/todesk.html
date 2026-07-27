@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Steam Deck 安装 ToDesk 的中文图文教程。">
+  <title>Steam Deck ToDesk 安装教程 · 周克儿工具箱</title>
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <main class="shell">
+    <nav class="nav"><a class="brand" href="index.html">周克儿<b>工具箱</b></a><a class="back" href="index.html">← 返回主页</a></nav>
+    <header class="tutorial-head">
+      <div class="eyebrow">STEAM DECK · 图文教程</div>
+      <h1>ToDesk 安装教程</h1>
+      <p>按顺序完成即可。推荐通过“周克儿工具箱 → 常用软件 → 远程协助 → ToDesk”安装：工具会校验固定软件包，安装后尝试恢复 SteamOS 只读保护。</p>
+    </header>
+    <div class="notice"><strong>开始前请注意：</strong>ToDesk 不是 SteamOS 原生软件；SteamOS 大更新后可能需要重新安装。先完成“开发者模式”和“旧版 X11 桌面模式”两项设置。</div>
+    <article class="guide">
+      <img class="guide-image" src="assets/todesk/00-cover.png" alt="Steam Deck ToDesk 安装教程封面">
+      <section class="step">
+        <div class="step-title"><span class="badge">准备</span><h2>开启旧版 X11 桌面模式</h2></div>
+        <img class="guide-image" src="assets/todesk/01-enable-x11.png" alt="开启开发者模式和旧版 X11 桌面模式">
+        <p>在游戏模式依次进入 Steam 键 → 设置 → 系统，开启开发者模式；再进入“开发者”页面，开启“使用旧版 X11 桌面模式”。完成后重新进入桌面模式。</p>
+      </section>
+      <section class="step">
+        <div class="step-title"><span class="badge">01</span><h2>进入桌面模式</h2></div>
+        <img class="guide-image" src="assets/todesk/02-desktop-mode.png" alt="进入 Steam Deck 桌面模式">
+      </section>
+      <section class="step">
+        <div class="step-title"><span class="badge">02</span><h2>设置管理员密码</h2></div>
+        <img class="guide-image" src="assets/todesk/03-admin-password.png" alt="SteamOS 用户设置管理员密码">
+        <p>打开系统设置 → 用户，选择 SteamOS User 后设置密码。若系统弹出验证窗口，说明以前已设置过密码，可直接跳过设置步骤。</p>
+        <img class="guide-image" src="assets/todesk/04-password-prompt.png" alt="已有密码时的系统验证窗口">
+      </section>
+      <section class="step">
+        <div class="step-title"><span class="badge">03</span><h2>打开工具箱并安装 ToDesk</h2></div>
+        <img class="guide-image" src="assets/todesk/05-open-konsole.png" alt="Steam Deck 桌面模式中打开 Konsole">
+        <div class="safe"><strong>当前推荐方式：</strong>启动周克儿工具箱，在“常用软件 → 远程协助”中选择 ToDesk，并按界面提示确认。安装过程需要管理员密码；终端输入密码时不会显示字符，这是正常现象。</div>
+      </section>
+      <section class="step">
+        <div class="step-title"><span class="badge">04</span><h2>等待安装完成</h2></div>
+        <img class="guide-image" src="assets/todesk/07-run-installer.png" alt="ToDesk 安装时输入管理员密码">
+        <p>安装完成后，桌面会出现 ToDesk 图标。若系统更新后图标或程序失效，可再次通过工具箱安装，不会主动删除你的 ToDesk 配置。</p>
+      </section>
+      <section class="step">
+        <div class="step-title"><span class="badge">05</span><h2>登录并开始远程协助</h2></div>
+        <img class="guide-image" src="assets/todesk/08-login.png" alt="登录 ToDesk 并查看设备代码">
+        <p>打开 ToDesk，选择手机验证登录。需要远程协助时，只把设备代码发给你信任的协助人员；不向陌生人提供验证码或账号密码。</p>
+      </section>
+      <details>
+        <summary>旧版教程命令说明（不建议使用）</summary>
+        <p>下图中的第三方命令会下载可变脚本并直接执行，无法保证内容始终不变；当前教程不再将它作为安装入口，请使用上面的工具箱方式。</p>
+        <img class="guide-image" src="assets/todesk/06-legacy-command.png" alt="已停用的旧版 ToDesk 安装命令示意图">
+      </details>
+    </article>
+  </main>
+  <footer class="shell footer">周克儿工具箱 · 教程仅供 Steam Deck / SteamOS 用户参考。ToDesk 为第三方软件，请遵守其服务条款。</footer>
+</body>
+</html>
