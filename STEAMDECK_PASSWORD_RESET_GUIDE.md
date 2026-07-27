@@ -8,6 +8,8 @@
 
 不知道怎样进入游戏模式？如果当前在桌面模式，双击桌面的 `Return to Gaming Mode` 图标即可返回游戏模式。
 
+如果画面看起来像桌面模式，却看不到桌面图标或相关按键，可能只是 Steam 的大屏幕模式。按 `Steam` 键，选择“最小化 Steam”，即可回到真正的桌面，再双击 `Return to Gaming Mode`。
+
 1. 进入 Steam Deck 游戏模式，按机身上的 `Steam` 键。
 2. 点击“设置”。
 
