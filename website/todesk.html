@@ -13,7 +13,7 @@
     <header class="tutorial-head">
       <div class="eyebrow">STEAM DECK · 图文教程</div>
       <h1>ToDesk 安装教程</h1>
-      <p>按顺序完成即可。推荐通过“周克儿工具箱 → 常用软件 → 远程协助 → ToDesk”安装：工具会校验固定软件包，安装后尝试恢复 SteamOS 只读保护。</p>
+      <p>按顺序完成即可：开启旧版 X11、进入桌面、设置管理员密码、粘贴安装命令、运行安装器，最后登录 ToDesk。</p>
     </header>
     <div class="notice"><strong>开始前请注意：</strong>ToDesk 不是 SteamOS 原生软件；SteamOS 大更新后可能需要重新安装。先完成“开发者模式”和“旧版 X11 桌面模式”两项设置。</div>
     <article class="guide">
@@ -34,25 +34,25 @@
         <img class="guide-image" src="assets/todesk/04-password-prompt.png" alt="已有密码时的系统验证窗口">
       </section>
       <section class="step">
-        <div class="step-title"><span class="badge">03</span><h2>打开工具箱并安装 ToDesk</h2></div>
+        <div class="step-title"><span class="badge">03</span><h2>打开 Konsole 终端</h2></div>
         <img class="guide-image" src="assets/todesk/05-open-konsole.png" alt="Steam Deck 桌面模式中打开 Konsole">
-        <div class="safe"><strong>当前推荐方式：</strong>启动周克儿工具箱，在“常用软件 → 远程协助”中选择 ToDesk，并按界面提示确认。安装过程需要管理员密码；终端输入密码时不会显示字符，这是正常现象。</div>
       </section>
       <section class="step">
-        <div class="step-title"><span class="badge">04</span><h2>等待安装完成</h2></div>
+        <div class="step-title"><span class="badge">04</span><h2>粘贴安装命令</h2></div>
+        <img class="guide-image" src="assets/todesk/06-legacy-command.jpg" alt="ToDesk 安装命令示意图">
+        <div class="safe"><strong>输入提示：</strong>按 Steam + X 呼出键盘；命令中的竖线是 <code>|</code>，不是字母 I 或 L，且前后都有空格。该方式会运行第三方在线安装脚本，继续前请确认你理解并信任其来源。</div>
+      </section>
+      <section class="step">
+        <div class="step-title"><span class="badge">05</span><h2>运行 ToDesk 安装器</h2></div>
         <img class="guide-image" src="assets/todesk/07-run-installer.png" alt="ToDesk 安装时输入管理员密码">
-        <p>安装完成后，桌面会出现 ToDesk 图标。若系统更新后图标或程序失效，可再次通过工具箱安装，不会主动删除你的 ToDesk 配置。</p>
+        <p>双击桌面的“ToDesk安装”图标；系统要求管理员密码时，终端不会显示输入的字符，这是正常现象。安装完成后，桌面会出现 ToDesk 图标。</p>
       </section>
       <section class="step">
-        <div class="step-title"><span class="badge">05</span><h2>登录并开始远程协助</h2></div>
+        <div class="step-title"><span class="badge">06</span><h2>登录并开始远程协助</h2></div>
         <img class="guide-image" src="assets/todesk/08-login.png" alt="登录 ToDesk 并查看设备代码">
         <p>打开 ToDesk，选择手机验证登录。需要远程协助时，只把设备代码发给你信任的协助人员；不向陌生人提供验证码或账号密码。</p>
       </section>
-      <details>
-        <summary>旧版教程命令说明（不建议使用）</summary>
-        <p>下图中的第三方命令会下载可变脚本并直接执行，无法保证内容始终不变；当前教程不再将它作为安装入口，请使用上面的工具箱方式。</p>
-        <img class="guide-image" src="assets/todesk/06-legacy-command.jpg" alt="已停用的旧版 ToDesk 安装命令示意图">
-      </details>
+      <div class="safe"><strong>备用方法：</strong>若命令下载失败、安装器无法运行，或 SteamOS 更新后需要重装，可使用周克儿工具箱的“常用软件 → 远程协助 → ToDesk”入口再试一次。</div>
     </article>
   </main>
   <footer class="shell footer">周克儿工具箱 · 教程仅供 Steam Deck / SteamOS 用户参考。ToDesk 为第三方软件，请遵守其服务条款。</footer>
