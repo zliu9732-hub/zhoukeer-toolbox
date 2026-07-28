@@ -219,7 +219,7 @@ done
 touch_source="$(function_source "$MAIN_FILE" domestic_source_preflight)"
 gui_source="$(function_source "$GUI_FILE" domestic_source_gui_preflight)"
 for menu in "$touch_source" "$gui_source"; do
-    for detail in 'flathub-cn' 'https://mirror.sjtu.edu.cn/flathub' 'flathub-ustc' 'https://mirrors.ustc.edu.cn/flathub' 'GPG' 'pacman' '只读' '恢复'; do
+    for detail in 'flathub-cn' 'https://mirror.sjtu.edu.cn/flathub' 'flathub-ustc' 'https://mirrors.ustc.edu.cn/flathub' 'archlinuxcn' 'https://mirrors.ustc.edu.cn/archlinuxcn/' 'GPG' 'pacman' 'locale' '只读' '恢复'; do
         assert_contains "$menu" "$detail" "国内源风险页缺少：$detail"
     done
 done

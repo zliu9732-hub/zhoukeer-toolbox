@@ -718,13 +718,13 @@ domestic_source_preflight() {
 
     while true; do
         draw_category_frame advanced "初始化国内源并更新系统组件" "提高国内应用下载速度并更新系统组件"
-        ui_panel_line 7 '\033[1;38;5;220m' "远程：flathub-cn｜https://mirror.sjtu.edu.cn/flathub"
-        ui_panel_line 9 '\033[1;38;5;220m' "备用：flathub-ustc｜https://mirrors.ustc.edu.cn/flathub"
-        ui_panel_line 11 '\033[1;38;5;203m' "会修改 Flatpak 软件源，并可能调整 GPG 验证"
-        ui_panel_line 13 '\033[1;38;5;203m' "会重建 pacman 密钥环、完整更新系统，并临时关闭只读保护"
-        ui_panel_line 15 '\033[1;38;5;203m' "可随时恢复官方 Flathub 并重新启用 GPG 验证"
+        ui_panel_line 7 '\033[1;38;5;220m' "flathub-cn｜https://mirror.sjtu.edu.cn/flathub"
+        ui_panel_line 9 '\033[1;38;5;220m' "flathub-ustc｜https://mirrors.ustc.edu.cn/flathub"
+        ui_panel_line 11 '\033[1;38;5;220m' "archlinuxcn｜https://mirrors.ustc.edu.cn/archlinuxcn/"
+        ui_panel_line 13 '\033[1;38;5;203m' "Flatpak 国内缓存关闭 GPG；archlinuxcn 保持密钥验证"
+        ui_panel_line 15 '\033[1;38;5;203m' "pacman 完整更新 + locale｜临时关闭只读保护｜可恢复"
         ui_touch_button 17 '\033[1;97;48;5;160m' "初始化国内源并更新系统组件" "执行密钥环、系统更新与国内缓存"
-        ui_touch_button 19 '\033[1;97;48;5;30m' "恢复 Flathub 官方源" "启用 GPG 验证并移除国内缓存"
+        ui_touch_button 19 '\033[1;97;48;5;30m' "恢复官方软件源" "恢复 Flathub 并移除工具箱 archlinuxcn"
         ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "不做任何修改"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -738,7 +738,7 @@ domestic_source_preflight() {
                 return 0
                 ;;
             restore-source)
-                run_action "恢复 Flathub 官方源" env ZHOUKEER_AUTO_CONFIRM=1 \
+                run_action "恢复官方软件源" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/domestic_source.sh" restore
                 NEXT_CATEGORY="advanced"
                 return 0

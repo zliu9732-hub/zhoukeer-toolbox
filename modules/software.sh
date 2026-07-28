@@ -242,6 +242,7 @@ confirm_official_flatpak_restore() {
 
     echo "将恢复官方 Flathub：https://dl.flathub.org/repo/"
     echo "将重新启用 GPG 验证，并移除 $FLATHUB_CN_REMOTE 和 $FLATHUB_CN_FALLBACK_REMOTE。"
+    echo "同时会移除由工具箱写入的 archlinuxcn 配置；用户原有配置不会被删除。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         echo "已通过工具箱界面确认，正在恢复官方源。"
         return 0

@@ -1,3 +1,9 @@
+## V5.5.8 公开版 — 2026-07-28
+
+- “初始化国内源并更新系统组件”补齐 Arch Linux CN 流程：完整更新 SteamOS 系统组件后，添加中科大 `archlinuxcn` 仓库、安装并加载 `archlinuxcn-keyring`，同时确保 `archlinux-keyring` 为最新可用版本。
+- 初始化会幂等启用 `en_US.UTF-8` 与 `zh_CN.UTF-8` locale，并运行 `locale-gen`；配置失败会回滚 pacman/locale 配置并尝试恢复 SteamOS 只读保护。
+- “恢复官方软件源”会恢复 Flathub 官方地址与 GPG 验证、移除两个 Flatpak 国内缓存，并只移除工具箱自己写入的 `archlinuxcn` 配置；用户原有 `archlinuxcn` 配置保持不变。
+
 ## V5.5.7 公开版 — 2026-07-26
 
 - 工具箱常规页与欢迎页恢复最初默认的 12 号字体；窗口尺寸、菜单行数、触控坐标和全部功能保持不变。

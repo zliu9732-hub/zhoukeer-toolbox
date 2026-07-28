@@ -132,6 +132,17 @@ done
 exit 0
 EOF
 
+cat > "$BIN_DIR/install" <<'EOF'
+#!/bin/sh
+while [ "$#" -gt 2 ]; do shift; done
+cp "$1" "$2"
+EOF
+
+cat > "$BIN_DIR/locale-gen" <<'EOF'
+#!/bin/sh
+printf 'locale-gen\n' >> "${DOMESTIC_SOURCE_TEST_STATE:?}/commands"
+EOF
+
 chmod +x "$BIN_DIR"/* "$STEAMOS_BIN_DIR"/*
 : > "$STATE_DIR/remotes"
 : > "$STATE_DIR/commands"
@@ -187,12 +198,53 @@ grep -Fq -- '--appstream' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应包含 AppStream 强制刷新"
 grep -Fq 'verify_domestic_flatpak_remote' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应保留应用索引验证"
-for command_text in 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman -Syu --needed --noconfirm git flatpak' 'steamos-readonly disable' 'steamos-readonly enable'; do
+for command_text in 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman -Syu --needed --noconfirm git flatpak' 'pacman -S --needed --noconfirm archlinux-keyring' 'pacman -Syu --needed --noconfirm archlinuxcn-keyring' 'pacman-key --populate archlinuxcn' 'locale-gen' 'steamos-readonly disable' 'steamos-readonly enable'; do
     grep -Fq "$command_text" "$PROJECT_ROOT/modules/domestic_source.sh" || \
         fail "完整国内源初始化缺少：$command_text"
 done
+grep -Fq 'https://mirrors.ustc.edu.cn/archlinuxcn/\$arch' \
+    "$PROJECT_ROOT/modules/domestic_source.sh" || fail "缺少中科大 archlinuxcn 仓库"
 grep -Fq '初始化国内源并更新系统组件' "$PROJECT_ROOT/modules/new_machine.sh" || \
     fail "新机初始化没有完整运行国内源与系统组件初始化"
+
+# 配置文件测试只操作临时目录，toolbox_sudo 被替换为直接调用假 install/locale-gen。
+SYSTEM_DIR="$TMP_ROOT/system"
+mkdir -p "$SYSTEM_DIR"
+cat > "$SYSTEM_DIR/pacman.conf" <<'EOF'
+[options]
+Architecture = auto
+EOF
+cat > "$SYSTEM_DIR/locale.gen" <<'EOF'
+#en_US.UTF-8 UTF-8
+#zh_CN.UTF-8 UTF-8
+EOF
+(
+    PATH="$STEAMOS_BIN_DIR:$BIN_DIR:$PATH"
+    HOME="$HOME_DIR"
+    DOMESTIC_SOURCE_TEST_STATE="$STATE_DIR"
+    export PATH HOME DOMESTIC_SOURCE_TEST_STATE
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/domestic_source.sh"
+    toolbox_sudo() { "$@"; }
+
+    write_managed_archlinuxcn_repo "$SYSTEM_DIR/pacman.conf"
+    write_managed_archlinuxcn_repo "$SYSTEM_DIR/pacman.conf"
+    [ "$(grep -c '^\[archlinuxcn\]$' "$SYSTEM_DIR/pacman.conf")" -eq 1 ] || \
+        fail "重复执行后 archlinuxcn 仓库不唯一"
+    grep -Fq 'Server = https://mirrors.ustc.edu.cn/archlinuxcn/$arch' \
+        "$SYSTEM_DIR/pacman.conf" || fail "archlinuxcn 仓库地址错误"
+
+    configure_chinese_locales "$SYSTEM_DIR/locale.gen"
+    [ "$(grep -c '^en_US.UTF-8 UTF-8$' "$SYSTEM_DIR/locale.gen")" -eq 1 ] || \
+        fail "英文 locale 未幂等启用"
+    [ "$(grep -c '^zh_CN.UTF-8 UTF-8$' "$SYSTEM_DIR/locale.gen")" -eq 1 ] || \
+        fail "中文 locale 未幂等启用"
+    grep -Fxq 'locale-gen' "$STATE_DIR/commands" || fail "未运行 locale-gen"
+
+    remove_managed_archlinuxcn_repo "$SYSTEM_DIR/pacman.conf"
+    ! grep -Fq '[archlinuxcn]' "$SYSTEM_DIR/pacman.conf" || \
+        fail "恢复后仍保留工具箱管理的 archlinuxcn"
+)
 
 # 重复启用只更新镜像地址，不应重复添加两个远程源。
 run_enable >/dev/null
@@ -211,7 +263,7 @@ printf '%s\n' "$status_output" | grep -Fq 'flathub-cn' || fail "状态输出缺�
 printf '%s\n' "$status_output" | grep -Fq 'flathub-ustc' || fail "状态输出缺少国内备用源"
 
 restore_output="$(run_restore)"
-printf '%s\n' "$restore_output" | grep -Fq '已恢复 Flathub 官方源并启用 GPG 验证' || \
+printf '%s\n' "$restore_output" | grep -Fq '已恢复 Flathub 官方源并启用 GPG 验证，同时移除工具箱管理的 archlinuxcn 配置' || \
     fail "恢复官方源缺少成功提示"
 grep -Fxq 'flathub' "$STATE_DIR/remotes" || fail "恢复时未添加官方 Flathub"
 if grep -Eq '^flathub-(cn|ustc)$' "$STATE_DIR/remotes"; then
@@ -222,4 +274,4 @@ grep -Fq 'remote-modify --user --gpg-verify --url=https://dl.flathub.org/repo/ f
 grep -Fxq 'https://dl.flathub.org/repo/flathub.flatpakrepo' \
     "$STATE_DIR/curl-urls" || fail "恢复官方源时未获取官方签名配置"
 
-echo "PASS: 国内双缓存源确认、启用、恢复官方源、幂等性、状态和无sudo测试通过"
+echo "PASS: archlinuxcn、locale、国内双缓存、恢复官方源、幂等性、状态和无sudo测试通过"

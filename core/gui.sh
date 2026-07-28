@@ -610,13 +610,17 @@ support_gui_menu() {
 domestic_source_gui_preflight() {
     local choice
 
-    choice="$(gui_dialog --menu "初始化国内源并更新系统组件｜国内缓存会关闭 GPG 验证；可恢复官方源" \
-        configure "初始化国内源并更新系统组件｜重建密钥环、运行 pacman 与临时关闭只读保护" \
-        restore "恢复官方 Flathub｜重新启用 GPG 验证并移除国内缓存" \
+    choice="$(gui_dialog --menu "初始化国内源并更新系统组件｜Flatpak 缓存关闭 GPG；archlinuxcn 保持密钥验证" \
+        configure "初始化国内源并更新系统组件｜密钥环、完整更新、中英文 locale 与国内缓存" \
+        restore "恢复官方软件源｜恢复 Flathub 并移除工具箱 archlinuxcn" \
         back "返回系统设置")" || return 0
     case "$choice" in
         configure)
-            gui_confirm "将初始化国内源并更新系统组件：会修改 Flatpak 软件源、关闭 GPG 验证、重建 pacman 密钥环、运行完整 pacman 更新，并临时关闭 SteamOS 只读保护。
+            gui_confirm "将初始化国内源并更新系统组件：会修改 Flatpak 软件源、关闭 Flatpak 国内缓存的 GPG 验证、重建 pacman 与 archlinuxcn 密钥环、运行完整 pacman 更新、生成中英文 locale，并临时关闭 SteamOS 只读保护。
+
+pacman 仓库：archlinuxcn
+地址：https://mirrors.ustc.edu.cn/archlinuxcn/\$arch
+验证：安装 archlinuxcn-keyring，保持软件包 GPG 验证
 
 远程名称：flathub-cn
 地址：https://mirror.sjtu.edu.cn/flathub
@@ -629,8 +633,8 @@ domestic_source_gui_preflight() {
                 bash "$PROJECT_ROOT/modules/domestic_source.sh" init
             ;;
         restore)
-            gui_confirm "将恢复 https://dl.flathub.org/repo/，重新启用 GPG 验证，并移除两个国内缓存源。确认继续？" && \
-                run_gui_action "恢复 Flathub 官方源" env ZHOUKEER_AUTO_CONFIRM=1 \
+            gui_confirm "将恢复 https://dl.flathub.org/repo/，重新启用 GPG 验证，移除两个 Flatpak 国内缓存，并移除工具箱管理的 archlinuxcn 配置。用户原有 archlinuxcn 配置不会删除。确认继续？" && \
+                run_gui_action "恢复官方软件源" env ZHOUKEER_AUTO_CONFIRM=1 \
                 bash "$PROJECT_ROOT/modules/domestic_source.sh" restore
             ;;
     esac
