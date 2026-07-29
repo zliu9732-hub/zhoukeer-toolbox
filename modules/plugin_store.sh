@@ -19,6 +19,9 @@ DECKY_LOADER_URL="${DECKY_LOADER_URL:-https://www.mhhf.com/Deck/decky/v.3.2.6/Pl
 DECKY_LOADER_SHA256="${DECKY_LOADER_SHA256:-30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e}"
 DECKY_SERVICE_URL="${DECKY_SERVICE_URL:-https://www.mhhf.com/Deck/decky/plugin_loader-release.service}"
 DECKY_SERVICE_SHA256="${DECKY_SERVICE_SHA256:-64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1}"
+# 国内镜像不可用时，只回退到 Decky 官方固定版本文件；两条线路共用同一组 SHA256。
+DECKY_LOADER_OFFICIAL_URL="https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.6/PluginLoader"
+DECKY_SERVICE_OFFICIAL_URL="https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service"
 DECKY_HOMEBREW_DIR="${ZHOUKEER_DECKY_HOMEBREW_DIR:-$HOME/homebrew}"
 DECKY_UNIT_PATH="${ZHOUKEER_DECKY_UNIT_PATH:-/etc/systemd/system/plugin_loader.service}"
 DECKY_SERVICE_NAME="plugin_loader.service"
@@ -90,7 +93,7 @@ calculate_decky_sha256() {
 confirm_decky_install() {
     local answer
 
-    echo "将通过国内镜像更新 Decky Loader 插件商城。"
+    echo "将优先通过国内线路更新插件商城；下载失败时自动切换 Decky 官方线路。"
     echo "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，并重新进入桌面模式。"
     echo "工具箱会分别校验程序和服务模板，不会执行下载源提供的外层安装脚本。"
     echo "会先停止旧 Decky 服务，再原子替换加载器和服务模板；已有插件会完整保留。"
@@ -150,24 +153,25 @@ download_decky_component() {
         return 1
     }
 
-    local _dk_proxy=()
+    local _dk_curl_options=(
+        --fail
+        --location
+        --show-error
+        --proto '=https'
+        --proto-redir '=https'
+        --connect-timeout 15
+        --max-time 1200
+        --retry 5
+        --retry-connrefused
+        --retry-delay 2
+        --retry-all-errors
+        --max-filesize "$(download_policy_max_bytes "$url")"
+    )
     if [ -n "${DECKY_DOWNLOAD_PROXY:-}" ]; then
-        _dk_proxy=(--proxy "$DECKY_DOWNLOAD_PROXY")
+        _dk_curl_options+=(--proxy "$DECKY_DOWNLOAD_PROXY")
     fi
     if ! curl \
-        --fail \
-        --location \
-        --show-error \
-        --proto '=https' \
-        --proto-redir '=https' \
-        --connect-timeout 15 \
-        --max-time 1200 \
-        --retry 5 \
-        --retry-connrefused \
-        --retry-delay 2 \
-        --retry-all-errors \
-        --max-filesize "$(download_policy_max_bytes "$url")" \
-        "${_dk_proxy[@]}" \
+        "${_dk_curl_options[@]}" \
         --output "$output" \
         "$url"; then
         rm -f -- "$output"
@@ -187,12 +191,39 @@ download_decky_component() {
     }
     if [ "$actual_sha256" != "$expected_sha256" ]; then
         rm -f -- "$output"
-        echo "$name 已发生变化或下载不完整，为避免安装未经审查的文件，已停止。"
-        echo "请更新周克儿工具箱后再试。"
-        log "Decky安装停止: $name SHA256变化"
+        echo "$name 当前线路的文件已发生变化或下载不完整，已拒绝使用该线路。"
+        log "Decky下载线路拒绝: $name SHA256变化"
         return 1
     fi
     echo "$name 下载完成并通过SHA256校验。"
+}
+
+download_decky_component_with_fallback() {
+    local name="$1"
+    local domestic_url="$2"
+    local official_url="$3"
+    local expected_sha256="$4"
+    local output="$5"
+
+    if download_decky_component "$name" "$domestic_url" "$expected_sha256" "$output"; then
+        echo "$name 已通过国内线路获取。"
+        log "Decky下载成功: $name source=domestic"
+        return 0
+    fi
+    if [ "$domestic_url" = "$official_url" ]; then
+        echo "$name 官方线路不可用，现有安装未改动。"
+        return 1
+    fi
+
+    echo "$name 国内线路不可用，正在自动切换 Decky 官方国外线路..."
+    if download_decky_component "$name" "$official_url" "$expected_sha256" "$output"; then
+        echo "$name 已通过 Decky 官方线路获取。"
+        log "Decky下载成功: $name source=official"
+        return 0
+    fi
+    echo "$name 国内线路和 Decky 官方线路均不可用，现有安装未改动。"
+    log "Decky下载失败: $name domestic+official"
+    return 1
 }
 
 render_decky_service() {
@@ -386,14 +417,16 @@ install_plugin_store() (
     trap 'exit 130' INT TERM
     trap 'finish_plugin_store_install $?' EXIT
 
-    download_decky_component \
+    download_decky_component_with_fallback \
         "Decky PluginLoader" \
         "$DECKY_LOADER_URL" \
+        "$DECKY_LOADER_OFFICIAL_URL" \
         "$DECKY_LOADER_SHA256" \
         "$loader_download" || return 1
-    download_decky_component \
+    download_decky_component_with_fallback \
         "Decky systemd服务模板" \
         "$DECKY_SERVICE_URL" \
+        "$DECKY_SERVICE_OFFICIAL_URL" \
         "$DECKY_SERVICE_SHA256" \
         "$service_template" || return 1
     render_decky_service "$service_template" "$rendered_service" "$DECKY_HOMEBREW_DIR" || return 1

@@ -187,7 +187,7 @@ game_environment_gui_menu() {
             battlenet "战网启动器｜首次需在 Steam 兼容性选择 Proton 10.0-4" \
             ubisoft "育碧｜安装育碧游戏平台并添加到 Steam" \
             emulators "安装模拟器｜Switch、Wii U、PS1 至 PS4" \
-            decky-install "安装插件商城｜停止旧服务后更新｜高级操作" \
+            decky-install "安装插件商城｜国内失败自动切换官方源｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -245,7 +245,7 @@ game_environment_gui_menu() {
                 [ "$GUI_NAV_HOME" -eq 0 ] || return 0
                 ;;
             decky-install)
-                gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。随后会停止旧 Decky 服务，再校验并更新插件商城；已有插件和设置会保留。是否继续？" && \
+                gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。优先使用国内线路，失败自动切换 Decky 官方国外线路；随后会停止旧服务，再校验并更新插件商城，已有插件和设置会保留。是否继续？" && \
                     run_gui_action "安装插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" store
                 ;;

@@ -104,6 +104,7 @@ for menu in "$touch_games" "$gui_games"; do
         assert_contains "$menu" "$item" "游戏环境缺少：$item"
     done
     assert_contains "$menu" 'Gitee' "小黄鸭/FSR4 缺少 Gitee 国内源入口说明"
+    assert_contains "$menu" '国内失败自动切换官方源' "插件商城缺少国内到官方源的自动回退说明"
     assert_contains "$menu" '高级操作' "Decky Loader 缺少高级说明"
     assert_not_contains "$menu" '25 个精选插件' "plugin_store all 仍被错误描述为 25 个精选插件"
     assert_not_contains "$menu" '兼容层管理' "不存在的兼容层管理仍可见"
