@@ -46,6 +46,33 @@ need_command() {
     fi
 }
 
+# bootstrap.sh 必须能在工具箱尚未安装时独立运行，因此这里保留受控清单的
+# 最小自包含副本；安装完成后的全部下载统一使用 core/download_policy.sh。
+bootstrap_url_allowed() {
+    case "$1" in
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/VERSION|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/SHA256SUMS|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/zhoukeer-toolbox.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/VERSION|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/SHA256SUMS|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/zhoukeer-toolbox.tar.gz|https://jktool.icu/VERSION|https://jktool.icu/dist/SHA256SUMS|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) return 0 ;;
+        https://*) [ "${ZHOUKEER_TEST_MODE:-0}" = "1" ] ;;
+        *) return 1 ;;
+    esac
+}
+
+bootstrap_response_safe() {
+    local url="$1" file="$2" size magic
+    [ -f "$file" ] && [ ! -L "$file" ] && [ -s "$file" ] || return 1
+    size="$(wc -c < "$file" | tr -d ' ')"
+    case "$size" in ''|*[!0-9]*) return 1 ;; esac
+    [ "$size" -le 9437184 ] || return 1
+    if LC_ALL=C head -c 512 "$file" | grep -Eiq '<(!doctype[[:space:]]+html|html[[:space:]>])|access[[:space:]]+denied|error[[:space:]]+403'; then
+        return 1
+    fi
+    case "${url%%\?*}" in
+        *.tar.gz)
+            magic="$(LC_ALL=C od -An -tx1 -N2 "$file" 2>/dev/null | tr -d ' \n')"
+            [ "$magic" = "1f8b" ] || return 1
+            ;;
+    esac
+}
+
 sha256_file() {
     if command -v sha256sum >/dev/null 2>&1; then
         sha256sum "$1" | awk '{print $1}'
@@ -63,6 +90,10 @@ download_one() {
     local label="$3"
 
     rm -f -- "$output"
+    bootstrap_url_allowed "$url" || {
+        echo "$label 地址不在受控来源清单中。"
+        return 1
+    }
     curl \
         --fail \
         --location \
@@ -74,8 +105,9 @@ download_one() {
         --retry 3 \
         --retry-delay 2 \
         --retry-all-errors \
+        --max-filesize 9437184 \
         --output "$output" \
-        "$url"
+        "$url" && bootstrap_response_safe "$url" "$output"
 }
 
 valid_sha256() {

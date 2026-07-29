@@ -79,6 +79,7 @@ show_steam302_risk_notice() {
     echo ""
     echo "工具箱不会调用 pacman，不会关闭 SteamOS 只读保护，"
     echo "也不会在桌面创建 Steamcommunity 302 图标。"
+    echo "更新时旧版本会备份在程序目录旁；失败时恢复，安全卸载可移除工具箱文件。"
     echo ""
     echo "重要：官方程序启动加速时会请求管理员权限，并可能安装根证书、"
     echo "修改 hosts 或拦截 DNS。请只开启自己理解并需要的功能。"
@@ -348,6 +349,11 @@ stop_steam302_cli() {
 }
 
 enable_steam302() {
+    if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
+        ! bash "$PROJECT_ROOT/modules/preflight.sh" steam302; then
+        echo "加速未开启：准备检查未通过。"
+        return 1
+    fi
     if ! steam302_is_installed; then
         install_steam302 || return 1
     fi
@@ -479,6 +485,10 @@ stop_steam302_service() {
 download_steam302_archive() {
     local destination="$1"
 
+    download_policy_url_allowed "$STEAM302_ARCHIVE_URL" || {
+        echo "Steamcommunity 302 下载地址不在受控来源清单中。"
+        return 1
+    }
     echo "正在下载 Steamcommunity 302 V$STEAM302_VERSION..."
     curl \
         --fail \
@@ -491,8 +501,15 @@ download_steam302_archive() {
         --retry "$STEAM302_RETRIES" \
         --retry-delay 2 \
         --retry-all-errors \
+        --max-filesize "$(download_policy_max_bytes "$STEAM302_ARCHIVE_URL")" \
         --output "$destination" \
-        "$STEAM302_ARCHIVE_URL"
+        "$STEAM302_ARCHIVE_URL" || return 1
+    if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
+        ! download_policy_response_is_safe "$STEAM302_ARCHIVE_URL" "$destination"; then
+        rm -f -- "$destination"
+        echo "Steamcommunity 302 下载响应格式或大小异常。"
+        return 1
+    fi
 }
 
 verify_steam302_archive() {
@@ -715,6 +732,11 @@ install_steam302() (
         echo "Steamcommunity 302 安装仅支持 Linux / SteamOS。"
         return 1
     }
+    if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
+        ! bash "$PROJECT_ROOT/modules/preflight.sh" steam302; then
+        echo "安装已停止：准备检查未通过。"
+        return 1
+    fi
     architecture="$(uname -m 2>/dev/null || true)"
     case "$architecture" in
         x86_64|amd64) ;;

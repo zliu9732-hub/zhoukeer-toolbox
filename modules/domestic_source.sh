@@ -271,10 +271,17 @@ prepare_system_packages() (
 initialize_software_sources() {
     require_steamos || return 1
 
+    if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
+        ! bash "$PROJECT_ROOT/modules/preflight.sh" system-update; then
+        echo "初始化已停止：准备检查未通过，没有修改系统。"
+        return 1
+    fi
+
     echo "================================================"
     echo " 初始化国内源并更新系统组件"
     echo "================================================"
     echo "将重建 pacman/archlinuxcn 密钥环、完整更新系统组件、生成中英文 locale，并配置 Flatpak 国内缓存。"
+    echo "可恢复：修改前会在本次临时目录备份 pacman 与语言配置；菜单提供“恢复官方软件源”。"
     echo "管理员权限会读取桌面管理员密码.txt，不会重复询问密码。"
 
     prepare_system_packages || return 1

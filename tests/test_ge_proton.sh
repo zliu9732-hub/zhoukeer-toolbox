@@ -49,6 +49,7 @@ run_install() {
     ZHOUKEER_GE_PROTON_URL="https://download.example/GE-Proton9-99.tar.gz" \
     ZHOUKEER_GE_PROTON_VERSION="GE-Proton9-99" \
     ZHOUKEER_GE_PROTON_SHA256="$1" \
+    ZHOUKEER_TEST_MODE=1 \
         bash "$MODULE" install
 }
 

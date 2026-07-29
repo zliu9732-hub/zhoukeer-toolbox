@@ -39,12 +39,12 @@ gui_home="$(function_source "$GUI_FILE" main_gui_menu)"
 sidebar="$(function_source "$UI_FILE" draw_category_frame)"
 
 for item in \
-    '新机必备｜第一次使用从这里开始' \
-    '常用软件｜安装聊天、浏览器和远程工具' \
+    '新机器设置｜第一次使用从这里开始' \
+    '安装常用软件｜聊天、浏览器和远程工具' \
     '游戏与插件｜浏览插件商城和游戏组件' \
-    '网络与应用商店｜检查网络和软件源状态' \
-    '维护与帮助｜系统检查、清理、指南和日志' \
-    '系统设置与双系统｜网络、内存、密码和启动设置' \
+    '检查网络｜自动判断连接并尝试已有线路' \
+    '检查问题｜生成可发给维护人员的安全诊断包' \
+    '更多设置｜国内下载、内存、密码和双系统' \
     '免责声明与使用须知｜查看完整图文说明'; do
     assert_contains "$touch_home" "$item" "触控首页缺少：$item"
     assert_contains "$gui_home" "$item" "GUI 首页缺少：$item"
@@ -112,8 +112,8 @@ done
 touch_network="$(function_source "$MAIN_FILE" network_store_menu)"
 gui_network="$(function_source "$GUI_FILE" network_store_gui_menu)"
 for menu in "$touch_network" "$gui_network"; do
-    for item in '网络状态检查' '软件源状态' '管理国内源与加速'; do
-        assert_contains "$menu" "$item" "网络与应用商店缺少：$item"
+    for item in '一键检查网络' '查看下载状态' '更多设置'; do
+        assert_contains "$menu" "$item" "检查网络缺少：$item"
     done
     for hidden in '网络修复' 'Discover 应用商店修复' '恢复官方源'; do
         assert_not_contains "$menu" "$hidden" "普通网络页不应显示：$hidden"
@@ -135,16 +135,24 @@ done
 touch_help="$(function_source "$MAIN_FILE" help_menu)"
 gui_help="$(function_source "$GUI_FILE" help_gui_menu)"
 for menu in "$touch_help" "$gui_help"; do
-    for item in '查看系统信息' '导出诊断报告' '新手使用指南' '游戏兼容指南' '掌机常用快捷键' '外接设备检查' '操作记录' '更新日志' '检查并更新工具箱'; do
+    for item in '查看系统信息' '生成诊断包' '备份工具箱设置' '恢复工具箱设置' '查看详细网络信息' '导出旧版文字报告' '新手使用指南' '游戏兼容指南' '掌机常用快捷键' '外接设备检查' '操作记录' '更新日志' '检查并更新工具箱'; do
         assert_contains "$menu" "$item" "检测与帮助缺少：$item"
     done
     assert_contains "$menu" '会联网并更新' "工具箱更新缺少联网更新说明"
 done
 
+touch_support="$(function_source "$MAIN_FILE" support_menu)"
+gui_support="$(function_source "$GUI_FILE" support_gui_menu)"
+for menu in "$touch_support" "$gui_support"; do
+    assert_contains "$menu" '发给维护人员' "检查问题页缺少面向新手的诊断包入口"
+    assert_contains "$menu" '不包含密码和隐私信息' "诊断包入口缺少隐私说明"
+    assert_contains "$menu" 'modules/diagnostics.sh" bundle' "诊断包入口映射错误"
+done
+
 touch_advanced="$(function_source "$MAIN_FILE" advanced_tools_menu)"
 gui_advanced="$(function_source "$GUI_FILE" advanced_tools_gui_menu)"
 for menu in "$touch_advanced" "$gui_advanced"; do
-    assert_contains "$menu" '软件源、网络加速、虚拟内存、密码与双系统' "系统设置缺少功能概览"
+    assert_contains "$menu" '国内下载、网络加速、内存、密码与双系统' "更多设置缺少功能概览"
     for item in '国内软件源' 'Steamcommunity 302' '一键优化虚拟内存' '修改管理员密码' '双系统与互通盘'; do
         assert_contains "$menu" "$item" "系统设置缺少：$item"
     done

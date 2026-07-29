@@ -400,15 +400,15 @@ network_store_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "网络与应用商店｜检查网络和软件源状态" \
-            network-status "网络状态检查｜检查当前网络是否可用" \
-            source-status "软件源状态｜查看当前应用下载来源" \
-            manage-advanced "管理国内源与加速｜进入高级网络设置｜高级操作" \
+        choice="$(gui_dialog --menu "检查网络｜自动检查连接并给出下一步建议" \
+            network-status "一键检查网络｜自动检查常用下载连接，不修改设置" \
+            source-status "查看下载状态｜查看最近成功时间和失败原因" \
+            manage-advanced "更多设置｜管理国内下载和加速功能" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
-            network-status) run_gui_action "网络状态检查" bash "$PROJECT_ROOT/modules/network.sh" ;;
-            source-status) run_gui_action "软件源状态" bash "$PROJECT_ROOT/modules/domestic_source.sh" status ;;
+            network-status) run_gui_action "一键检查网络" bash "$PROJECT_ROOT/modules/network.sh" ;;
+            source-status) run_gui_action "查看下载状态" bash "$PROJECT_ROOT/modules/diagnostics.sh" status ;;
             manage-advanced) advanced_tools_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
@@ -536,13 +536,17 @@ help_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "检测与帮助｜查看信息、指南和日志" \
+        choice="$(gui_dialog --menu "使用帮助与设置｜默认显示结果，需要时再看详细信息" \
             system-info "查看系统信息｜查看系统和设备信息" \
-            report "导出诊断报告｜保存检查结果到桌面" \
+            diagnostic-bundle "生成诊断包｜可直接发给维护人员，不包含密码和隐私信息" \
             new-guide "新手使用指南｜查看基础操作说明" \
             game-guide "游戏兼容指南｜查看游戏运行建议" \
             shortcuts "掌机常用快捷键｜查看常用按键方法" \
             peripherals "外接设备检查｜检查显示器和蓝牙" \
+            backup-settings "备份工具箱设置｜只备份工具箱管理的内容" \
+            restore-settings "恢复工具箱设置｜先列出内容并备份当前状态" \
+            network-details "查看详细网络信息｜查看各条连接的技术详情" \
+            report "导出旧版文字报告｜兼容旧排查流程" \
             records "操作记录｜导出最近工具箱记录" \
             changelog "更新日志｜查看版本改动内容" \
             update "检查并更新工具箱｜下载并安装最新版本｜会联网并更新" \
@@ -550,7 +554,11 @@ help_gui_menu() {
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
             system-info) run_gui_action "查看系统信息" bash "$PROJECT_ROOT/core/detect.sh" ;;
+            diagnostic-bundle) run_gui_action "生成诊断包" bash "$PROJECT_ROOT/modules/diagnostics.sh" bundle ;;
             report) run_gui_action "导出诊断报告" bash "$PROJECT_ROOT/core/detect.sh" --report ;;
+            backup-settings) run_gui_action "备份工具箱设置" bash "$PROJECT_ROOT/modules/settings_backup.sh" backup ;;
+            restore-settings) run_gui_action "恢复工具箱设置" bash "$PROJECT_ROOT/modules/settings_backup.sh" restore ;;
+            network-details) run_gui_action "详细网络信息" bash "$PROJECT_ROOT/modules/network.sh" --details ;;
             new-guide) run_gui_action "新手使用指南" bash "$PROJECT_ROOT/modules/safety_center.sh" guide ;;
             game-guide) run_gui_action "游戏兼容指南" bash "$PROJECT_ROOT/modules/game_guides.sh" show ;;
             shortcuts) run_gui_action "掌机常用快捷键" bash "$PROJECT_ROOT/modules/handheld_helper.sh" shortcuts ;;
@@ -593,13 +601,15 @@ support_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "维护与帮助｜系统检查、清理、指南和日志" \
-            maintenance "系统维护｜检查系统、清理缓存和处理常见问题" \
-            help "检测与使用帮助｜查看信息、指南、记录和更新" \
+        choice="$(gui_dialog --menu "检查问题｜先检查，再按结果处理或发给维护人员" \
+            maintenance "检查常见问题｜检查系统、游戏和可安全清理的内容" \
+            diagnostic-bundle "发给维护人员｜生成诊断包，不包含密码和隐私信息" \
+            help "使用帮助与设置｜查看指南、备份设置和工具箱更新" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
             maintenance) maintenance_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
+            diagnostic-bundle) run_gui_action "发给维护人员" bash "$PROJECT_ROOT/modules/diagnostics.sh" bundle ;;
             help) help_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
@@ -644,7 +654,7 @@ advanced_tools_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "系统设置与双系统｜软件源、网络加速、虚拟内存、密码与双系统" \
+        choice="$(gui_dialog --menu "更多设置｜国内下载、网络加速、内存、密码与双系统" \
             domestic-source "国内软件源｜会修改 Flatpak 软件源｜高级操作" \
             accelerator "Steamcommunity 302｜可能修改 DNS 和证书｜高级操作" \
             memory-optimize "一键优化虚拟内存｜同时设置 zram 与磁盘 swap｜高级操作" \
@@ -656,7 +666,7 @@ advanced_tools_gui_menu() {
             domestic-source) domestic_source_gui_preflight ;;
             accelerator) steam_accelerator_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             memory-optimize)
-                gui_confirm "将同时配置 zram 与磁盘 swap，按设备内存自动选择 8-16GB，并需要重启后完全生效。确认继续？" && \
+                gui_confirm "将设置压缩内存和磁盘虚拟内存。原文件会先在同目录临时备份，失败时自动恢复；需要管理员权限并在重启后完全生效。确认继续？" && \
                     run_gui_action "一键优化虚拟内存" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/memory_tuning.sh" optimize
                 ;;
@@ -758,12 +768,12 @@ main_gui_menu() {
     while true; do
         GUI_NAV_HOME=0
         choice="$(gui_dialog --menu "请用触屏或触控板选择功能" \
-            nav-init "新机必备｜第一次使用从这里开始" \
-            nav-software "常用软件｜安装聊天、浏览器和远程工具" \
+            nav-init "新机器设置｜第一次使用从这里开始" \
+            nav-software "安装常用软件｜聊天、浏览器和远程工具" \
             nav-games "游戏与插件｜浏览插件商城和游戏组件" \
-            nav-network "网络与应用商店｜检查网络和软件源状态" \
-            nav-help "维护与帮助｜系统检查、清理、指南和日志" \
-            nav-advanced "系统设置与双系统｜网络、内存、密码和启动设置" \
+            nav-network "检查网络｜自动判断连接并尝试已有线路" \
+            nav-help "检查问题｜生成可发给维护人员的安全诊断包" \
+            nav-advanced "更多设置｜国内下载、内存、密码和双系统" \
             nav-uninstall "卸载已安装｜逐项安全移除软件和系统组件" \
             nav-notice "免责声明与使用须知｜查看完整图文说明" \
             nav-exit "退出工具箱")" || exit 0

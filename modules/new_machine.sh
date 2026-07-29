@@ -26,6 +26,7 @@ show_initialization_plan() {
     echo "  注意：国内 Flatpak 镜像将关闭软件包签名验证，仅在确认信任镜像时继续。"
     echo ""
     echo "初始化时会临时关闭 SteamOS 只读保护，完成后自动恢复。"
+    echo "可恢复：各安装器会先保留旧版本或临时配置备份；备份位于对应设置或程序目录旁。"
     echo "ToDesk和Decky会自动读取桌面管理员密码.txt，不会重复要求输入管理员密码。"
     echo "ToDesk使用前须在游戏模式开启开发者模式及“使用旧版X11桌面模式”。"
     echo "Decky 插件商城使用前还须在游戏模式开启“CEF 远程调试”。"
@@ -88,23 +89,7 @@ check_toolbox_shortcuts() {
 }
 
 check_network() {
-    require_command curl || return 1
-    if curl \
-        --fail \
-        --silent \
-        --show-error \
-        --location \
-        --proto '=https' \
-        --proto-redir '=https' \
-        --connect-timeout 10 \
-        --max-time 20 \
-        --output /dev/null \
-        https://gitee.com; then
-        echo "Gitee网络连接正常。"
-        return 0
-    fi
-    echo "无法连接Gitee，请检查Wi-Fi、DNS或代理设置。"
-    return 1
+    bash "$PROJECT_ROOT/modules/network.sh" --preflight
 }
 
 run_new_machine_initialization() {
@@ -115,6 +100,10 @@ run_new_machine_initialization() {
 
     if ! basic_steamdeck_check; then
         echo "新机初始化已停止：未通过 SteamOS 平台检查。"
+        return 1
+    fi
+    if ! bash "$PROJECT_ROOT/modules/preflight.sh" new-machine; then
+        echo "新机初始化已停止：准备检查未通过。"
         return 1
     fi
     PASS_COUNT=$((PASS_COUNT + 1))

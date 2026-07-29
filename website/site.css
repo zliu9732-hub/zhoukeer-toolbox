@@ -70,6 +70,10 @@ h1 em { color: var(--red); font-style: normal; }
 .method-two { background: linear-gradient(145deg, rgba(255,255,255,.07), transparent 45%), var(--surface); border: 1px solid var(--line); border-radius: 17px; padding: 24px; margin: 8px 0 46px; }
 .method-two h2 { margin: 8px 0; }
 .method-two p { color: var(--muted); }
+.method-two a { color: var(--yellow); }
+.method-two code { color: var(--text); background: rgba(255,255,255,.08); padding: 2px 6px; border-radius: 5px; }
+.help-grid { display: grid; gap: 16px; }
+.help-grid .method-two { margin: 0; }
 .video-list { display: grid; gap: 22px; padding-bottom: 64px; }
 .video-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(250px, 360px); gap: 28px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 24px; }
 .video-copy h2 { margin: 8px 0; font-size: clamp(1.35rem, 4vw, 1.85rem); }

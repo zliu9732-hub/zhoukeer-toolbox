@@ -88,6 +88,10 @@ validate_todesk_settings() {
             return 1
             ;;
     esac
+    download_policy_url_allowed "$TODESK_REPOSITORY_URL" || {
+        echo "ToDesk 仓库不在受控来源清单中。"
+        return 1
+    }
 
     case "$TODESK_REPOSITORY_COMMIT" in
         [0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]* ) ;;

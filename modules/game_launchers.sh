@@ -73,15 +73,25 @@ download_launcher_installer() {
     local temporary="$output.new.$$"
 
     require_command curl || return 1
+    download_policy_url_allowed "$LAUNCHER_URL" || {
+        echo "$LAUNCHER_NAME 下载地址不在受控来源清单中。"
+        return 1
+    }
     rm -f -- "$temporary"
     echo "正在下载 $LAUNCHER_NAME 官方安装器…"
     if ! curl --fail --location --silent --show-error --proto '=https' --proto-redir '=https' \
         --connect-timeout 15 --max-time "$DOWNLOAD_TIMEOUT" --retry 2 --retry-delay 2 \
+        --max-filesize "$(download_policy_max_bytes "$LAUNCHER_URL")" \
         --output "$temporary" "$LAUNCHER_URL"; then
         rm -f -- "$temporary"
         echo "$LAUNCHER_NAME 官方安装器下载失败。"
         return 1
     fi
+    download_policy_response_is_safe "$LAUNCHER_URL" "$temporary" || {
+        rm -f -- "$temporary"
+        echo "$LAUNCHER_NAME 下载响应格式或大小异常。"
+        return 1
+    }
     if ! verify_installer "$temporary"; then
         rm -f -- "$temporary"
         return 1

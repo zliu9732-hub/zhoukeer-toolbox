@@ -197,6 +197,7 @@ run_module() {
         HOME="$HOME_DIR" \
         ZHOUKEER_APP_DIR="$APP_ROOT" \
         ZHOUKEER_AUTO_CONFIRM=1 \
+        ZHOUKEER_TEST_MODE=1 \
         STEAM302_TEST_STATE="$STATE_DIR" \
         STEAM302_TEST_SYSTEMD_DIR="$STATE_DIR/systemd" \
         ZHOUKEER_SYSTEMD_DIR="$STATE_DIR/systemd" \

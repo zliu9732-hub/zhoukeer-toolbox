@@ -67,7 +67,7 @@ logo() {
 echo -e "${BLUE}"
 cat << "EOL"
 ====================================
-   📦 周克儿工具箱 v4
+    📦 周克儿工具箱 v5
    SteamOS Handheld Toolbox
 ====================================
 EOL
@@ -187,12 +187,12 @@ draw_category_frame() {
 
     # 侧栏改为连续两行一项：即使 Konsole 未能放大窗口，九个入口也都在
     # 默认 24 行画布内可见，不能把新入口排到窗口底部之外。
-    ui_sidebar_item 2 init "◆ 新机必备" "$selected"
-    ui_sidebar_item 4 software "▣ 常用软件" "$selected"
+    ui_sidebar_item 2 init "◆ 新机器设置" "$selected"
+    ui_sidebar_item 4 software "▣ 安装常用软件" "$selected"
     ui_sidebar_item 6 games "✦ 游戏与插件" "$selected"
-    ui_sidebar_item 8 network "⌁ 网络与应用商店" "$selected"
-    ui_sidebar_item 10 support "▤ 维护与帮助" "$selected"
-    ui_sidebar_item 12 advanced "! 系统设置与双系统" "$selected" 0
+    ui_sidebar_item 8 network "⌁ 检查网络" "$selected"
+    ui_sidebar_item 10 support "▤ 检查问题" "$selected"
+    ui_sidebar_item 12 advanced "! 更多设置" "$selected" 0
     ui_sidebar_item 14 uninstall "- 卸载已安装" "$selected" 0
     ui_sidebar_item 16 notice "▧ 免责声明与须知" "$selected" 0
     ui_sidebar_item 18 exit "× 退出工具箱" "$selected" 0
@@ -205,7 +205,7 @@ draw_category_frame() {
     done
 
     if [ -n "$title" ]; then
-        ui_panel_line 2 '\033[1;38;5;203m' "◆ 周克儿工具箱  ·  V4"
+        ui_panel_line 2 '\033[1;38;5;203m' "◆ 周克儿工具箱  ·  V5"
         ui_panel_line 3 '\033[1;38;5;45m' "STEAMOS 掌机  /  中文工具"
         ui_panel_line 4 '\033[38;5;203m' "────────────────────────────────────────"
         if [ "$show_context" = "1" ]; then
@@ -221,7 +221,7 @@ draw_disclaimer_frame() {
     ui_reset_screen
 
     ui_move 2 6
-    printf '\033[1;38;5;203m ◆ 周克儿工具箱  ·  V4 \033[0m'
+    printf '\033[1;38;5;203m ◆ 周克儿工具箱  ·  V5 \033[0m'
     ui_move 3 6
     printf '\033[38;5;203m────────────────────────────────────────────────────────────\033[0m'
     ui_move 5 6

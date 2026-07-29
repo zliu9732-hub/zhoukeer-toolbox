@@ -13,6 +13,8 @@ source "$PROJECT_ROOT/modules/steam_accelerator.sh"
 
 load_config
 
+# Decky 的认证接口固定为本机回环地址，不能从配置或环境覆盖。
+DECKY_API_BASE="http://127.0.0.1:1337"
 DECKY_LOADER_URL="${DECKY_LOADER_URL:-https://www.mhhf.com/Deck/decky/v.3.2.6/PluginLoader}"
 DECKY_LOADER_SHA256="${DECKY_LOADER_SHA256:-30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e}"
 DECKY_SERVICE_URL="${DECKY_SERVICE_URL:-https://www.mhhf.com/Deck/decky/plugin_loader-release.service}"
@@ -92,6 +94,7 @@ confirm_decky_install() {
     echo "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，并重新进入桌面模式。"
     echo "工具箱会分别校验程序和服务模板，不会执行下载源提供的外层安装脚本。"
     echo "会先停止旧 Decky 服务，再原子替换加载器和服务模板；已有插件会完整保留。"
+    echo "旧加载器会备份在 Decky 服务目录旁；替换失败时自动恢复。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi
@@ -142,6 +145,10 @@ download_decky_component() {
         echo "$name 的下载配置不完整，请先更新工具箱。"
         return 1
     fi
+    download_policy_url_allowed "$url" || {
+        echo "$name 的下载地址不在受控来源清单中，已停止。"
+        return 1
+    }
 
     local _dk_proxy=()
     if [ -n "${DECKY_DOWNLOAD_PROXY:-}" ]; then
@@ -159,11 +166,17 @@ download_decky_component() {
         --retry-connrefused \
         --retry-delay 2 \
         --retry-all-errors \
+        --max-filesize "$(download_policy_max_bytes "$url")" \
         "${_dk_proxy[@]}" \
         --output "$output" \
         "$url"; then
         rm -f -- "$output"
         echo "$name 下载失败，未改动现有Decky安装。"
+        return 1
+    fi
+    if ! download_policy_response_is_safe "$url" "$output"; then
+        rm -f -- "$output"
+        echo "$name 下载响应格式或大小异常，已停止。"
         return 1
     fi
 
@@ -320,6 +333,11 @@ finish_plugin_store_install() {
 }
 
 install_plugin_store() (
+    if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
+        ! bash "$PROJECT_ROOT/modules/preflight.sh" decky; then
+        echo "插件商城安装已停止：准备检查未通过。"
+        return 1
+    fi
     local tmp_dir
     local loader_download
     local service_template
@@ -632,6 +650,11 @@ install_decky_zip() {
        decky_plugin_directory_is_complete "$plugin_root" "$expected_dir"; then
         echo "[已安装] $display_name 已存在且文件完整，无需重复安装。"
         return 0
+    fi
+    if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
+        ! bash "$PROJECT_ROOT/modules/preflight.sh" decky; then
+        echo "$display_name 安装已停止：准备检查未通过。"
+        return 1
     fi
     for command_name in curl unzip; do
         require_command "$command_name" || return 1

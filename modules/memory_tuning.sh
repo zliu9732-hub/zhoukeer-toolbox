@@ -179,6 +179,7 @@ memory_confirm_optimize() {
     echo "2. 磁盘 swap：按内存自动取 8-16GB，优先级 10"
     echo "3. swappiness：设为 1，减少不必要的磁盘写入"
     echo "会在原 swap 正常停用后原子替换；空间不足或停用失败会停止。"
+    echo "原 swap 会先移到同目录临时备份；失败时尽量恢复，成功后才清理临时备份。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi
@@ -316,6 +317,11 @@ memory_optimize() {
         echo "请使用 Steam Deck 桌面用户运行工具箱，不要直接以 root 运行。"
         return 1
     }
+    if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
+        ! bash "$PROJECT_ROOT/modules/preflight.sh" memory; then
+        echo "虚拟内存优化已停止：准备检查未通过。"
+        return 1
+    fi
     memory_validate_paths || return 1
     for command_name in awk blkid df fallocate grep install mkswap readlink stat swapon swapoff \
         systemctl systemd-escape sysctl; do

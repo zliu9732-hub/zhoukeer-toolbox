@@ -49,7 +49,7 @@ printf '%s\n' "$canvas_request" | grep -Fq '\033[8;%s;%st' || fail "没有请求
 grep -Fq 'ui_wait_for_minimum_canvas || true' "$PROJECT_ROOT/main.sh" || fail "主程序首次绘制前没有等待窗口尺寸就绪"
 startup_loading="$(sed -n '/^show_startup_loading()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$startup_loading" | grep -Fq '工具箱启动中，请耐心等待' || fail "启动等待阶段缺少明确提示"
-main_prefix="$(sed -n '1,/^# V4 默认就是纯触控界面/p' "$PROJECT_ROOT/main.sh")"
+main_prefix="$(sed -n '1,/^# V5 默认就是纯触控界面/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$main_prefix" | grep -Fq 'show_startup_loading' || fail "启动提示没有在触控界面初始化前显示"
 
 disclaimer="$(sed -n '/^draw_disclaimer_frame()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
@@ -110,12 +110,12 @@ printf '%s\n' "$installer_entry" | grep -Fq 'DOMAIN_URL' || fail "短安装入�
 
 frame="$(sed -n '/^draw_category_frame()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
 for entry in \
-    'ui_sidebar_item 2 init "◆ 新机必备"' \
-    'ui_sidebar_item 4 software "▣ 常用软件"' \
+    'ui_sidebar_item 2 init "◆ 新机器设置"' \
+    'ui_sidebar_item 4 software "▣ 安装常用软件"' \
     'ui_sidebar_item 6 games "✦ 游戏与插件"' \
-    'ui_sidebar_item 8 network "⌁ 网络与应用商店"' \
-    'ui_sidebar_item 10 support "▤ 维护与帮助"' \
-    'ui_sidebar_item 12 advanced "! 系统设置与双系统"' \
+    'ui_sidebar_item 8 network "⌁ 检查网络"' \
+    'ui_sidebar_item 10 support "▤ 检查问题"' \
+    'ui_sidebar_item 12 advanced "! 更多设置"' \
     'ui_sidebar_item 14 uninstall "- 卸载已安装"' \
     'ui_sidebar_item 16 notice "▧ 免责声明与须知"' \
     'ui_sidebar_item 18 exit "× 退出工具箱"'; do

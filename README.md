@@ -1,8 +1,8 @@
-# 周克儿工具箱 V4
+# 周克儿工具箱 V5
 
 周克儿工具箱是面向 Steam Deck 及其他 SteamOS 掌机的 Bash 工具箱，提供一键新机初始化、常用软件、远程协助、插件商城、系统维护和安全更新入口。界面会按终端宽度收紧导航栏；体检、诊断、攻略和启动器功能尽量适配 SteamOS 掌机，涉及引导、只读分区等系统功能仍会先检查环境。
 
-- 双系统设置：提供互通盘挂载与只读保护、TF 卡 exFAT 初始化、NTFS/exFAT 基础修复、Clover 5173 安装修复和只读健康检查。互通盘识别会只读检查 NTFS 并排除 Windows 系统分区，手动指定设备也不能绕过；健康检查可识别 Clover、rEFInd、systemd-boot、GRUB、OpenCore、Windows 与 SteamOS。工具箱 Clover 可完整删除并恢复原 BootOrder，其他第三方引导只允许删除明确选择的 NVRAM 项且保留 EFI 文件。Clover 使用自定义怪盗与 Steam Deck 主题，不覆盖 BOOTX64.EFI 或 Windows bootmgfw.efi。
+- 双系统设置：只保留互通盘挂载与只读保护、TF 卡 exFAT 初始化、NTFS/exFAT 基础修复、只读健康检查和受保护的第三方引导项清理。rEFInd、Clover、EFI/BootOrder 修改和“一键切换 Windows”均不提供入口。
 
 远程协助中提供 RustDesk 和 ToDesk。RustDesk 使用作者 GitHub Release 安装独立 AppImage 并自动创建桌面图标，不会修改 SteamOS 只读系统分区，也不会被工具箱自动写入任何服务器配置。
 
@@ -21,13 +21,17 @@
 
 使用小黄鸭前，安装完成后请在 Steam 正版页面打开游戏右侧齿轮，进入“属性 → 测试版”，选择名称以 Linux 开头的可用版本；随后进入游戏模式，按 Steam Deck 机身右下角的“三个点（…）”按钮，在打开的菜单中依次点击插头图标 → 小黄鸭 → 安装 LSFG。
 - 常用软件与远程协助：微信直接从腾讯官网国内 CDN 安装官方 AppImage；QQ 会在上海交大和中科大 Flatpak 缓存间测速、限时切换，避开腾讯 QQ AppImage CDN 的 403 限制；Firefox 使用官方 Flathub 的 `org.mozilla.firefox`，RustDesk 使用作者 GitHub Release 提供的 AppImage。安装成功后会创建桌面快捷方式，不修改SteamOS只读分区。
-- 安装与卸载：软件、兼容层和插件会先检测现有完整安装，已安装时不重复下载；独立的三页卸载菜单可逐项移除，系统组件和全部插件仍需风险确认。
+- 安装与卸载：软件、兼容层和插件会先检测现有完整安装，已安装时不重复下载；独立的四页卸载菜单可逐项移除，系统组件和全部插件仍需风险确认。
 - GE-Proton兼容层：从作者 GitHub Release 下载并校验SHA256，安装到Steam用户的 `compatibilitytools.d` 目录，不需要管理员权限。
 - ToDesk：使用固定的第三方SteamOS适配包并校验SHA256，安装完成后恢复只读保护。
 - Steam Deck 优化：清理 Steam 下载缓存、着色器缓存，并提供性能模式提示。
 - 国内下载源与系统组件：完整更新 SteamOS 系统组件，刷新 pacman/archlinuxcn 密钥环，添加中科大 archlinuxcn 仓库，生成中英文 locale，并配置上海交大与中科大 Flatpak 国内缓存；完成后恢复 SteamOS 只读保护，恢复入口只移除工具箱管理的国内源，不覆盖用户原有配置。
 - Steam加速器：使用Steamcommunity 302官方Linux AMD64固定安装包；安装后不创建桌面图标，自动启用 Steam 与 GitHub 规则、立即后台运行并设置开机自启。
-- 系统设置与双系统：集中提供国内源、Steam302、zram 与磁盘 swap 一键优化、修改管理员密码和双系统工具。
+- 更多设置：集中提供国内源、Steam302、zram 与磁盘 swap 一键优化、修改管理员密码和双系统工具。
+- 安全诊断包：一键在桌面生成可发给维护人员的本地诊断包，自动隐藏用户名、HOME、网络地址、密码、Token、Cookie、代理认证和远程协助凭据；不会读取管理员密码便利模式文件，不上传、不联网发送。
+- 设置备份与恢复：只处理工具箱白名单配置、工具箱管理的国内源状态、Steam302 规则、内存参数和工具箱快捷方式；不处理游戏、存档、Steam 账号数据、整个 HOME 或非工具箱管理的系统配置。
+- 高风险预检：国内源与系统更新、Decky、Steam302、内存优化和新机初始化在执行前统一检查空间、网络、SteamOS、系统保护和电量；不满足条件时不会强行继续。
+- 受控下载：下载域名、用途、文件类型、版本策略、校验方式、大小上限和回退规则由代码白名单集中维护；未知来源、HTML/403、超限或校验失败的内容不会执行。
 - 安全清理：清理前必须确认，避免误删。
 - 一键修复模式：执行网络检测、Steam 下载缓存清理建议和 DNS 处理提示。
 - 一键体检：检查 SteamOS、剩余空间、网络与 Steam 域名解析、Decky、Flatpak 软件源和常用软件状态；不修改系统，并把报告保存到桌面。
@@ -41,7 +45,7 @@
 
 ## 主菜单
 
-Steam Deck桌面快捷方式会通过兼容启动器打开约 `1280×860` 的双栏 Konsole 界面，并使用 17 号字体和最多 24 行的舒展布局。直接运行 `main.sh` 也会自动转入专用主题窗口。启动器会依次尝试完整主题、无主题兼容参数、Konsole最小参数和系统中的其他终端；主程序异常退出或所有终端均不可用时会显示明确提示。独立启动日志保存在 `~/.local/state/zhoukeer-toolbox/launcher.log`，不与业务操作日志混用。免责声明使用独立页面，确认按钮始终保留在可见区域；左侧分类、右侧功能和确认按钮都是两行高的大点击区，只响应触屏或触控板，不显示也不接受数字/字母菜单输入。管理员验证可使用下文说明的密码便利模式；记录缺失、失效或系统拒绝自动验证时，仍会显示SteamOS原生密码提示。
+Steam Deck桌面快捷方式会通过兼容启动器打开约 `1280×820` 的双栏 Konsole 界面，使用 12 号中文字体和固定九分类触控坐标。直接运行 `main.sh` 也会自动转入专用主题窗口。启动器会依次尝试完整主题、无主题兼容参数、Konsole最小参数和系统中的其他终端；主程序异常退出或所有终端均不可用时会显示明确提示。独立启动日志保存在 `~/.local/state/zhoukeer-toolbox/launcher.log`，不与业务操作日志混用。
 
 ## 一行命令安装（推荐）
 
@@ -124,11 +128,13 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/main.sh"
 
 ### 如何查看系统状态与排查问题
 
-工具箱“系统设置 → 查看系统信息”会显示 SteamOS 版本、设备架构、用户目录剩余空间、基础网络状态和常用软件安装状态，同时在桌面生成：
+工具箱首页点击“检查问题 → 发给维护人员”会在桌面生成：
 
 ```text
-周克儿工具箱诊断报告.txt
+周克儿工具箱诊断包-时间戳.tar.gz
 ```
+
+诊断包只包含安全摘要并自动脱敏，不会读取或复制桌面的 `管理员密码.txt`，也不会上传或自动发送。旧版文字报告和工具箱操作记录仍可在“使用帮助与设置”中单独查看。
 
 工具箱操作记录位于：
 
@@ -199,23 +205,18 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 1. 确认 `bash -n` 检查通过。
 2. 确认 `config/settings.conf` 不包含私人配置。
 3. 执行 `bash scripts/package_release.sh` 生成发布包、`.sha256` 和 `SHA256SUMS` 校验文件。
-4. 提交代码并打 tag，例如 `v4.0.0`。
+4. 只显式暂存本次发布文件，提交代码并打 tag，例如 `v5.5.9`；禁止 `git add .`、force push 或改写历史。
 5. 在 GitHub Release 中上传发布包和 `.sha256` 校验文件。
 6. 在 Release 中写明安装、更新、卸载命令。
 7. 不要在 Release 包中包含密码、Token、邮箱或个人路径；桌面的 `管理员密码.txt` 仅在用户设备本地生成。
-
-`bootstrap.sh` 和 `update.sh` 支持通过环境变量指定正式发布包：
-
-```bash
-ZHOUKEER_GITEE_PACKAGE_URL="https://example.com/zhoukeer-toolbox.tar.gz" \
-ZHOUKEER_GITEE_CHECKSUM_URL="https://example.com/SHA256SUMS" \
-ZHOUKEER_SHA256="发布包sha256" \
-bash bootstrap.sh
-```
 
 默认下载顺序：
 
 1. Gitee项目内固定包：`dist/zhoukeer-toolbox.tar.gz`
 2. GitHub项目内相同固定包：`dist/zhoukeer-toolbox.tar.gz`
+
+## V5 最终版维护范围
+
+V5.5.9 完成全部安全诊断、预检、备份恢复、下载可靠性、供应链白名单和菜单易用性工作后，作为周克儿工具箱 V5 最终功能版。此后只接受两类维护：新增插件，以及维护 GitHub 镜像源；不再新增工具箱功能或改版主菜单。
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。

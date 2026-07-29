@@ -20,6 +20,10 @@ for arg in "$@"; do
 done
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$PROJECT_ROOT/core/download_policy.sh"
+# shellcheck disable=SC1091
+source "$PROJECT_ROOT/core/source_status.sh"
 GITEE_OWNER="${ZHOUKEER_GITEE_OWNER:-zliu9732-hub}"
 GITHUB_OWNER="${ZHOUKEER_GITHUB_OWNER:-zliu9732-hub}"
 REPO_NAME="${ZHOUKEER_REPO_NAME:-zhoukeer-toolbox}"
@@ -79,6 +83,12 @@ download_one() {
 
     rm -f -- "$output"
     request_url="$(cache_busted_url "$url")"
+    local max_bytes
+    download_policy_url_allowed "$url" || {
+        echo "$label 下载地址不在受控来源清单中。"
+        return 1
+    }
+    max_bytes="$(download_policy_max_bytes "$url")"
     curl \
         --fail \
         --location \
@@ -90,8 +100,9 @@ download_one() {
         --retry 2 \
         --retry-delay 2 \
         --retry-all-errors \
+        --max-filesize "$max_bytes" \
         --output "$output" \
-        "$request_url"
+        "$request_url" && download_policy_response_is_safe "$url" "$output"
 }
 
 download_version_one() {
@@ -102,6 +113,10 @@ download_version_one() {
 
     rm -f -- "$output"
     request_url="$(cache_busted_url "$url")"
+    download_policy_url_allowed "$url" || {
+        echo "$label 版本地址不在受控来源清单中。"
+        return 1
+    }
     curl \
         --fail \
         --location \
@@ -114,8 +129,9 @@ download_version_one() {
         --retry 3 \
         --retry-delay 2 \
         --retry-all-errors \
+        --max-filesize 2097152 \
         --output "$output" \
-        "$request_url"
+        "$request_url" && download_policy_response_is_safe "$url" "$output"
 }
 
 valid_release_version() {
@@ -253,23 +269,29 @@ download_verified_package() {
             "GitHub" "$GITHUB_PACKAGE_URL" "$GITHUB_CHECKSUM_URL" \
             "$package_file" "$checksum_file"; then
             DOWNLOAD_SOURCE="GitHub"
+            source_status_record update-github ok "更新包与校验文件可用" >/dev/null 2>&1 || true
             return 0
         fi
+        source_status_record update-github fail "更新包或校验文件不可用" >/dev/null 2>&1 || true
 
         echo "GitHub包或校验文件不可用，切换域名源。"
         if download_verified_package_from \
             "域名" "$DOMAIN_PACKAGE_URL" "$DOMAIN_CHECKSUM_URL" \
             "$package_file" "$checksum_file"; then
             DOWNLOAD_SOURCE="域名"
+            source_status_record update-domain ok "更新包与校验文件可用" >/dev/null 2>&1 || true
             return 0
         fi
+        source_status_record update-domain fail "更新包或校验文件不可用" >/dev/null 2>&1 || true
         echo "域名源不可用，切换Gitee备用源。"
         if download_verified_package_from \
             "Gitee" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
             "$package_file" "$checksum_file"; then
             DOWNLOAD_SOURCE="Gitee"
+            source_status_record update-gitee ok "更新包与校验文件可用" >/dev/null 2>&1 || true
             return 0
         fi
+        source_status_record update-gitee fail "更新包或校验文件不可用" >/dev/null 2>&1 || true
 
         echo "更新包验证失败：GitHub、域名源和Gitee均不可用。旧版本不会被覆盖。"
         return 1
@@ -279,24 +301,30 @@ download_verified_package() {
         "Gitee" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
         DOWNLOAD_SOURCE="Gitee"
+        source_status_record update-gitee ok "更新包与校验文件可用" >/dev/null 2>&1 || true
         return 0
     fi
+    source_status_record update-gitee fail "更新包或校验文件不可用" >/dev/null 2>&1 || true
 
     echo "Gitee包或校验文件不可用，切换域名源。"
     if download_verified_package_from \
         "域名" "$DOMAIN_PACKAGE_URL" "$DOMAIN_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
         DOWNLOAD_SOURCE="域名"
+        source_status_record update-domain ok "更新包与校验文件可用" >/dev/null 2>&1 || true
         return 0
     fi
+    source_status_record update-domain fail "更新包或校验文件不可用" >/dev/null 2>&1 || true
 
     echo "域名源不可用，切换GitHub备用源。"
     if download_verified_package_from \
         "GitHub" "$GITHUB_PACKAGE_URL" "$GITHUB_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
         DOWNLOAD_SOURCE="GitHub"
+        source_status_record update-github ok "更新包与校验文件可用" >/dev/null 2>&1 || true
         return 0
     fi
+    source_status_record update-github fail "更新包或校验文件不可用" >/dev/null 2>&1 || true
 
     echo "更新包验证失败：Gitee、域名源和GitHub均不可用。旧版本不会被覆盖。"
     return 1
@@ -307,20 +335,26 @@ download_version_with_fallback() {
 
     if download_version_one "$GITEE_VERSION_URL" "$output" "Gitee"; then
         VERSION_SOURCE="Gitee"
+        source_status_record update-gitee ok "版本检查成功" >/dev/null 2>&1 || true
         return 0
     fi
+    source_status_record update-gitee fail "版本检查失败" >/dev/null 2>&1 || true
 
     echo "Gitee版本检测失败，切换GitHub备用源。"
     if download_version_one "$GITHUB_VERSION_URL" "$output" "GitHub"; then
         VERSION_SOURCE="GitHub"
+        source_status_record update-github ok "版本检查成功" >/dev/null 2>&1 || true
         return 0
     fi
+    source_status_record update-github fail "版本检查失败" >/dev/null 2>&1 || true
 
     echo "GitHub版本检测失败，切换域名源。"
     if download_version_one "$DOMAIN_VERSION_URL" "$output" "域名"; then
         VERSION_SOURCE="域名"
+        source_status_record update-domain ok "版本检查成功" >/dev/null 2>&1 || true
         return 0
     fi
+    source_status_record update-domain fail "版本检查失败" >/dev/null 2>&1 || true
 
     echo "版本检测失败：Gitee和GitHub均不可用。旧版本不会被覆盖。"
     return 1

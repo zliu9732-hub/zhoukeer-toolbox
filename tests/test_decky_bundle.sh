@@ -3,6 +3,7 @@
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export ZHOUKEER_TEST_MODE=1
 MODULE="$PROJECT_ROOT/modules/decky_bundle.sh"
 TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf -- "$TMP_ROOT"' EXIT

@@ -10,7 +10,7 @@ SCRIPT_PATH="${BASH_SOURCE[0]}"
 CORE_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 PROJECT_ROOT="$(cd "$CORE_DIR/.." && pwd)"
 
-TOOLBOX_VERSION="V4"
+TOOLBOX_VERSION="V5"
 TOOLBOX_NAME="周克儿工具箱"
 
 CONFIG_FILE="$PROJECT_ROOT/config/settings.conf"
@@ -78,5 +78,7 @@ load_config() {
     : "${GITHUB_MIRRORS:=https://ghproxy.net/ https://gh.api.99988866.xyz/ https://github.moeyy.xyz/ https://gh.llkk.cc/ https://mirror.ghproxy.com/ https://gh.ddlc.com/ https://gh-proxy.lanqier.me/}"
 }
 
+# shellcheck disable=SC1091
+source "$PROJECT_ROOT/core/download_policy.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/utils/github_download.sh"

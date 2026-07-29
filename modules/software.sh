@@ -170,6 +170,7 @@ download_flathub_repo_file() {
         "$FLATHUB_REPO_FILE_PRIMARY" \
         "$FLATHUB_REPO_FILE_FALLBACK" \
         "$FLATHUB_OFFICIAL_REPO_FILE"; do
+        download_policy_url_allowed "$source" || continue
         echo "正在获取 Flathub 签名配置..."
         if curl \
             --fail \
@@ -181,8 +182,9 @@ download_flathub_repo_file() {
             --connect-timeout 10 \
             --max-time 30 \
             --retry 2 \
+            --max-filesize "$(download_policy_max_bytes "$source")" \
             --output "$destination" \
-            "$source" && \
+            "$source" && download_policy_response_is_safe "$source" "$destination" && \
             grep -q '^\[Flatpak Repo\]$' "$destination" && \
             grep -q '^GPGKey=' "$destination"; then
             return 0
@@ -198,6 +200,7 @@ download_official_flathub_repo_file() {
     local destination="$1"
 
     echo "正在获取 Flathub 官方签名配置..."
+    download_policy_url_allowed "$FLATHUB_OFFICIAL_REPO_FILE" || return 1
     if curl \
         --fail \
         --location \
@@ -208,8 +211,9 @@ download_official_flathub_repo_file() {
         --connect-timeout 10 \
         --max-time 30 \
         --retry 2 \
+        --max-filesize "$(download_policy_max_bytes "$FLATHUB_OFFICIAL_REPO_FILE")" \
         --output "$destination" \
-        "$FLATHUB_OFFICIAL_REPO_FILE" && \
+        "$FLATHUB_OFFICIAL_REPO_FILE" && download_policy_response_is_safe "$FLATHUB_OFFICIAL_REPO_FILE" "$destination" && \
         grep -q '^\[Flatpak Repo\]$' "$destination" && \
         grep -q '^GPGKey=' "$destination"; then
         return 0
@@ -362,6 +366,7 @@ measure_source_seconds() {
     local url="$1"
     local elapsed
 
+    download_policy_url_allowed "$url" || return 1
     elapsed="$(curl --fail --location --silent --output /dev/null \
         --proto '=https' --proto-redir '=https' \
         --connect-timeout "$FLATPAK_SOURCE_PROBE_TIMEOUT" \
@@ -443,6 +448,7 @@ resolve_qq_appimage_url() {
 
     config_file="$(mktemp)" || return 1
     for config_url in "$QQ_CONFIG_PRIMARY" "$QQ_CONFIG_FALLBACK"; do
+        download_policy_url_allowed "$config_url" || continue
         if curl \
             --fail \
             --location \
@@ -453,8 +459,9 @@ resolve_qq_appimage_url() {
             --connect-timeout 10 \
             --max-time 30 \
             --retry 2 \
+            --max-filesize "$(download_policy_max_bytes "$config_url")" \
             --output "$config_file" \
-            "$config_url"; then
+            "$config_url" && download_policy_response_is_safe "$config_url" "$config_file"; then
             appimage_url="$(grep -o '"appimage"[[:space:]]*:[[:space:]]*"[^"]*"' "$config_file" | \
                 head -n 1 | sed 's/^"appimage"[[:space:]]*:[[:space:]]*"//; s/"$//' || true)"
             case "$appimage_url" in
@@ -511,6 +518,7 @@ install_official_qq_appimage() (
     trap cleanup_qq_download EXIT INT TERM
 
     echo "正在从腾讯国内CDN下载QQ，最长等待 $QQ_DOWNLOAD_TIMEOUT 秒..."
+    download_policy_url_allowed "$appimage_url" || { echo "QQ 下载地址不在受控来源清单中。"; return 1; }
     if ! curl \
         --fail \
         --location \
@@ -523,6 +531,7 @@ install_official_qq_appimage() (
         --retry 2 \
         --retry-delay 2 \
         --retry-all-errors \
+        --max-filesize "$(download_policy_max_bytes "$appimage_url")" \
         -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
         --referer "https://im.qq.com/" \
         --output "$temp_file" \
@@ -530,6 +539,10 @@ install_official_qq_appimage() (
         echo "QQ下载失败或超时，已停止；原有版本未受影响。"
         return 1
     fi
+    download_policy_response_is_safe "$appimage_url" "$temp_file" || {
+        echo "QQ 下载响应格式或大小异常，已丢弃。"
+        return 1
+    }
 
     if ! qq_appimage_is_valid "$temp_file"; then
         echo "QQ下载文件不完整或格式不正确，已丢弃；原有版本未受影响。"
@@ -586,6 +599,7 @@ install_official_wechat_appimage() (
     trap 'exit 130' INT TERM
 
     echo "正在从腾讯国内CDN下载微信，最长等待 $WECHAT_DOWNLOAD_TIMEOUT 秒..."
+    download_policy_url_allowed "$WECHAT_APPIMAGE_URL" || { echo "微信下载地址不在受控来源清单中。"; return 1; }
     if ! curl \
         --fail \
         --location \
@@ -598,11 +612,16 @@ install_official_wechat_appimage() (
         --retry 2 \
         --retry-delay 2 \
         --retry-all-errors \
+        --max-filesize "$(download_policy_max_bytes "$WECHAT_APPIMAGE_URL")" \
         --output "$temp_file" \
         "$WECHAT_APPIMAGE_URL"; then
         echo "微信下载失败或超时，已停止；原有版本未受影响。"
         return 1
     fi
+    download_policy_response_is_safe "$WECHAT_APPIMAGE_URL" "$temp_file" || {
+        echo "微信下载响应格式或大小异常，已丢弃。"
+        return 1
+    }
 
     if ! wechat_appimage_is_valid "$temp_file"; then
         echo "微信下载文件不完整或格式不正确，已丢弃；原有版本未受影响。"

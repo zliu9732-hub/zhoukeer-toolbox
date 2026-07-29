@@ -13,10 +13,12 @@ REMOTE_DIR="$TMP_ROOT/remote"
 STATE_DIR="$TMP_ROOT/state"
 CURL_LOG="$STATE_DIR/curl.log"
 mkdir -p \
-    "$BIN_DIR" "$INSTALL_DIR" "$RELEASE_DIR" "$REMOTE_DIR/dist" \
+    "$BIN_DIR" "$INSTALL_DIR/core" "$RELEASE_DIR" "$REMOTE_DIR/dist" \
     "$STATE_DIR" "$TMP_ROOT/home"
 
 cp "$PROJECT_ROOT/update.sh" "$INSTALL_DIR/update.sh"
+cp "$PROJECT_ROOT/core/download_policy.sh" "$INSTALL_DIR/core/download_policy.sh"
+cp "$PROJECT_ROOT/core/source_status.sh" "$INSTALL_DIR/core/source_status.sh"
 grep -Fq 'VERSION_CONNECT_TIMEOUT="${ZHOUKEER_VERSION_CONNECT_TIMEOUT:-8}"' "$INSTALL_DIR/update.sh"
 grep -Fq 'VERSION_MAX_TIME="${ZHOUKEER_VERSION_MAX_TIME:-30}"' "$INSTALL_DIR/update.sh"
 grep -Fq -- '--retry 3' "$INSTALL_DIR/update.sh"
@@ -77,6 +79,7 @@ run_update() {
     FAKE_CURL_LOG="$CURL_LOG" \
     ZHOUKEER_GITEE_RAW_BASE="https://test.invalid/repo" \
     ZHOUKEER_DOMAIN_RAW_BASE="https://domain.test/repo" \
+    ZHOUKEER_TEST_MODE=1 \
     FAKE_GITEE_RAW_BASE="https://test.invalid/repo" \
         bash "$INSTALL_DIR/update.sh" --startup
 }

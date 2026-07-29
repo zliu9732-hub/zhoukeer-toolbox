@@ -33,10 +33,12 @@ _github_mirror_list() {
     local source
 
     for source in $configured; do
-        case "$source" in
-            https://*) printf '%s\n' "$source" ;;
-            *) printf '忽略非 HTTPS GitHub 下载源：%s\n' "$source" >&2 ;;
-        esac
+        if declare -F download_policy_github_mirror_allowed >/dev/null 2>&1 && \
+            ! download_policy_github_mirror_allowed "$source"; then
+            printf '忽略未列入白名单的 GitHub 下载源：%s\n' "$source" >&2
+            continue
+        fi
+        case "$source" in https://*) printf '%s\n' "$source" ;; *) printf '忽略非 HTTPS GitHub 下载源：%s\n' "$source" >&2 ;; esac
     done
     # GitHub Release 可使用“代理前缀 + 原始 Release URL”的形式。该源和其他
     # 镜像一样只参与实际文件测速；完整下载仍必须通过调用方的 SHA256 校验。
@@ -156,7 +158,7 @@ download_github_file() {
     local name="${4:-GitHub文件}"
     local connect_timeout max_time retries min_speed min_speed_time
     local proxy="${GITHUB_DOWNLOAD_PROXY:-${DECKY_DOWNLOAD_PROXY:-}}"
-    local ranked_sources source resolved_url temp_file actual_sha256
+    local ranked_sources source resolved_url temp_file actual_sha256 max_bytes
     local curl_options=()
 
     connect_timeout="$(_github_setting "${GITHUB_CONNECT_TIMEOUT:-}" 10)"
@@ -165,6 +167,19 @@ download_github_file() {
     min_speed="$(_github_setting "${GITHUB_MIN_SPEED_BYTES:-}" 65536)"
     min_speed_time="$(_github_setting "${GITHUB_MIN_SPEED_TIME:-}" 60)"
 
+    if declare -F download_policy_url_allowed >/dev/null 2>&1 && \
+        ! download_policy_url_allowed "$url"; then
+        echo "$name 下载地址不在受控来源清单中，已拒绝下载。"
+        return 1
+    fi
+    case "${url%%\?*}" in
+        *.zip|*.tar.gz|*.AppImage|*.exe|*.msi)
+            if [ -z "$expected_sha256" ]; then
+                echo "$name 缺少固定 SHA256，已拒绝下载。"
+                return 1
+            fi
+            ;;
+    esac
     case "$url" in
         https://github.com/*|https://raw.githubusercontent.com/*)
             ranked_sources="$(get_ranked_github_sources "$url")" || ranked_sources=""
@@ -190,6 +205,10 @@ download_github_file() {
         --retry "$retries" --retry-delay 1 --retry-connrefused
         --speed-limit "$min_speed" --speed-time "$min_speed_time"
     )
+    if declare -F download_policy_max_bytes >/dev/null 2>&1; then
+        max_bytes="$(download_policy_max_bytes "$url")"
+        curl_options+=(--max-filesize "$max_bytes")
+    fi
     [ -z "$proxy" ] || curl_options+=(--proxy "$proxy")
 
     echo "正在下载 $name..."
@@ -206,7 +225,9 @@ download_github_file() {
         if ! curl "${curl_options[@]}" --output "$temp_file" "$resolved_url"; then
             continue
         fi
-        if ! _github_download_is_plausible "$temp_file"; then
+        if ! _github_download_is_plausible "$temp_file" || \
+            { declare -F download_policy_response_is_safe >/dev/null 2>&1 && \
+              ! download_policy_response_is_safe "$url" "$temp_file"; }; then
             echo "$name 下载内容为空或疑似网页，正在尝试下一源。"
             continue
         fi

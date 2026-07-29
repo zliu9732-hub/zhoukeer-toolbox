@@ -152,6 +152,7 @@ run_enable() {
         HOME="$HOME_DIR" \
         DOMESTIC_SOURCE_TEST_STATE="$STATE_DIR" \
         ZHOUKEER_AUTO_CONFIRM=1 \
+        ZHOUKEER_TEST_MODE=1 \
         ZHOUKEER_FLATHUB_CN_URL="https://mirror.test.invalid/flathub" \
         ZHOUKEER_FLATHUB_CN_FALLBACK_URL="https://fallback.test.invalid/flathub" \
         bash "$PROJECT_ROOT/modules/domestic_source.sh" enable

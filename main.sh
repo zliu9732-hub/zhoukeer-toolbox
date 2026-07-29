@@ -37,7 +37,7 @@ show_startup_loading() {
 show_startup_loading
 ui_wait_for_minimum_canvas || true
 
-# V4 默认就是纯触控界面。不再提供数字或字母菜单，避免键盘和触屏事件冲突。
+# V5 默认就是纯触控界面。不再提供数字或字母菜单，避免键盘和触屏事件冲突。
 case "${1:-}" in
     ""|--touch) ;;
     --gui) exec bash "$PROJECT_ROOT/core/gui.sh" ;;
@@ -753,7 +753,7 @@ advanced_tools_menu() {
     local choice
 
     while true; do
-        draw_category_frame advanced "系统设置与双系统" "软件源、网络加速、虚拟内存、密码与双系统"
+        draw_category_frame advanced "更多设置" "国内下载、网络加速、内存、密码与双系统"
         ui_touch_button 7 '\033[1;97;48;5;160m' "国内软件源" "会修改 Flatpak 软件源 · 高级操作"
         ui_touch_button 9 '\033[1;97;48;5;160m' "Steamcommunity 302" "可能修改 DNS 和证书 · 高级操作"
         ui_touch_button 11 '\033[1;97;48;5;160m' "一键优化虚拟内存" "同时设置 zram 与磁盘 swap · 高级操作"
@@ -766,7 +766,7 @@ advanced_tools_menu() {
         case "$choice" in
             domestic-source) domestic_source_preflight ;;
             accelerator) steam_accelerator_touch_menu ;;
-            memory-optimize) confirm_and_run "一键优化虚拟内存" "会同时配置 zram 和磁盘 swap，按设备内存自动选择 8-16GB；需重启完全生效" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/memory_tuning.sh" optimize ;;
+            memory-optimize) confirm_and_run "一键优化虚拟内存" "会设置压缩内存和磁盘虚拟内存；原文件先在同目录临时备份，失败自动恢复；需重启完全生效" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/memory_tuning.sh" optimize ;;
             change-password) confirm_and_run "修改管理员密码" "将读取旧记录并明文保存新密码；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;
             dual) dual_system_menu ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
@@ -866,18 +866,18 @@ network_store_menu() {
     local choice
 
     while true; do
-        draw_category_frame network "网络与应用商店" "检查网络和软件源状态"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "网络状态检查" "检查当前网络是否可用"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "软件源状态" "查看当前应用下载来源"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "管理国内源与加速" "进入高级网络设置 · 高级操作"
+        draw_category_frame network "检查网络" "自动检查连接并给出下一步建议"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "一键检查网络" "自动检查常用下载连接，不修改设置"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "查看下载状态" "查看最近成功时间和失败原因"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "更多设置" "管理国内下载和加速功能"
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:7-8:network-status right:11-12:source-status right:15-16:manage-advanced right:20-21:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            network-status) run_action "网络状态检查" bash "$PROJECT_ROOT/modules/network.sh" ;;
-            source-status) run_action "软件源状态" bash "$PROJECT_ROOT/modules/domestic_source.sh" status ;;
+            network-status) run_action "一键检查网络" bash "$PROJECT_ROOT/modules/network.sh" ;;
+            source-status) run_action "查看下载状态" bash "$PROJECT_ROOT/modules/diagnostics.sh" status ;;
             manage-advanced) NEXT_CATEGORY="advanced"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -921,15 +921,17 @@ support_menu() {
     local choice
 
     while true; do
-        draw_category_frame support "维护与帮助" "系统检查、清理、指南和日志"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "系统维护" "检查系统、清理缓存和处理常见问题"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "检测与使用帮助" "查看信息、指南、记录和更新"
+        draw_category_frame support "检查问题" "先检查，再按结果处理或发给维护人员"
+        ui_touch_button 6 '\033[1;97;48;5;24m' "检查常见问题" "检查系统、游戏和可安全清理的内容"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "发给维护人员" "生成诊断包，不包含密码和隐私信息"
+        ui_touch_button 16 '\033[1;97;48;5;24m' "使用帮助与设置" "查看指南、备份设置和工具箱更新"
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:8-9:maintenance right:13-14:help right:20-21:home)"
+        choice="$(read_touch_menu right:6-7:maintenance right:11-12:diagnostic-bundle right:16-17:help right:20-21:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             maintenance) maintenance_menu; return 0 ;;
+            diagnostic-bundle) run_action "发给维护人员" bash "$PROJECT_ROOT/modules/diagnostics.sh" bundle ;;
             help) help_menu; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -972,33 +974,41 @@ help_menu() {
     local page=1
 
     while true; do
-        draw_category_frame support "检测与帮助（第 $page / 2 页）" "查看信息、指南和日志"
+        draw_category_frame support "使用帮助与设置（第 $page / 2 页）" "默认显示结果，需要时再看详细信息"
         if [ "$page" -eq 1 ]; then
             ui_touch_button 5 '\033[1;97;48;5;24m' "查看系统信息" "查看系统和设备信息"
-            ui_touch_button 7 '\033[1;97;48;5;24m' "导出诊断报告" "保存检查结果到桌面"
+            ui_touch_button 7 '\033[1;97;48;5;24m' "生成诊断包" "可直接发给维护人员，不包含密码和隐私信息"
             ui_touch_button 9 '\033[1;97;48;5;24m' "新手使用指南" "查看基础操作说明"
             ui_touch_button 11 '\033[1;97;48;5;24m' "游戏兼容指南" "查看游戏运行建议"
             ui_touch_button 13 '\033[1;97;48;5;24m' "掌机常用快捷键" "查看常用按键方法"
             ui_touch_button 15 '\033[1;97;48;5;24m' "外接设备检查" "检查显示器和蓝牙"
             ui_touch_button 19 '\033[1;97;48;5;30m' "下一页" "查看记录和工具箱更新"
         else
-            ui_touch_button 7 '\033[1;97;48;5;24m' "操作记录" "导出最近工具箱记录"
-            ui_touch_button 11 '\033[1;97;48;5;24m' "更新日志" "查看版本改动内容"
-            ui_touch_button 15 '\033[1;97;48;5;160m' "检查并更新工具箱" "下载并安装最新版本 · 会联网并更新"
+            ui_touch_button 5 '\033[1;97;48;5;24m' "备份工具箱设置" "只备份工具箱管理的内容"
+            ui_touch_button 7 '\033[1;97;48;5;160m' "恢复工具箱设置" "先列出内容并备份当前状态"
+            ui_touch_button 9 '\033[1;97;48;5;24m' "查看详细网络信息" "查看各条连接的技术详情"
+            ui_touch_button 11 '\033[1;97;48;5;24m' "导出旧版文字报告" "仅用于兼容旧排查流程"
+            ui_touch_button 13 '\033[1;97;48;5;24m' "操作记录" "导出最近工具箱记录"
+            ui_touch_button 15 '\033[1;97;48;5;24m' "更新日志" "查看版本改动内容"
+            ui_touch_button 17 '\033[1;97;48;5;160m' "检查并更新工具箱" "下载并安装最新版本 · 会联网并更新"
             ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回系统信息和指南"
         fi
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         if [ "$page" -eq 1 ]; then
-            choice="$(read_touch_menu right:5-6:system-info right:7-8:report right:9-10:new-guide right:11-12:game-guide right:13-14:shortcuts right:15-16:peripherals right:19-20:next right:22-23:home)"
+            choice="$(read_touch_menu right:5-6:system-info right:7-8:diagnostic-bundle right:9-10:new-guide right:11-12:game-guide right:13-14:shortcuts right:15-16:peripherals right:19-20:next right:22-23:home)"
         else
-            choice="$(read_touch_menu right:7-8:records right:11-12:changelog right:15-16:update right:19-20:previous right:22-23:home)"
+            choice="$(read_touch_menu right:5-6:backup-settings right:7-8:restore-settings right:9-10:network-details right:11-12:report right:13-14:records right:15-16:changelog right:17-18:update right:19-20:previous right:22-23:home)"
         fi
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
             system-info) run_action "查看系统信息" bash "$PROJECT_ROOT/core/detect.sh" ;;
+            diagnostic-bundle) run_action "生成诊断包" bash "$PROJECT_ROOT/modules/diagnostics.sh" bundle ;;
             report) run_action "导出诊断报告" bash "$PROJECT_ROOT/core/detect.sh" --report ;;
+            backup-settings) run_action "备份工具箱设置" bash "$PROJECT_ROOT/modules/settings_backup.sh" backup ;;
+            restore-settings) run_action "恢复工具箱设置" bash "$PROJECT_ROOT/modules/settings_backup.sh" restore ;;
+            network-details) run_action "详细网络信息" bash "$PROJECT_ROOT/modules/network.sh" --details ;;
             new-guide) run_action "新手使用指南" bash "$PROJECT_ROOT/modules/safety_center.sh" guide ;;
             game-guide) run_action "游戏兼容指南" bash "$PROJECT_ROOT/modules/game_guides.sh" show ;;
             shortcuts) run_action "掌机常用快捷键" bash "$PROJECT_ROOT/modules/handheld_helper.sh" shortcuts ;;
@@ -1065,12 +1075,12 @@ home_menu() {
     local choice
 
     draw_category_frame "" "" ""
-    ui_panel_line 2 '\033[1;38;5;220m' "新机必备｜第一次使用从这里开始"
-    ui_panel_line 4 '\033[1;38;5;45m' "常用软件｜安装聊天、浏览器和远程工具"
+    ui_panel_line 2 '\033[1;38;5;220m' "新机器设置｜第一次使用从这里开始"
+    ui_panel_line 4 '\033[1;38;5;45m' "安装常用软件｜聊天、浏览器和远程工具"
     ui_panel_line 6 '\033[1;38;5;45m' "游戏与插件｜浏览插件商城和游戏组件"
-    ui_panel_line 8 '\033[1;38;5;45m' "网络与应用商店｜检查网络和软件源状态"
-    ui_panel_line 10 '\033[1;38;5;114m' "维护与帮助｜系统检查、清理、指南和日志"
-    ui_panel_line 12 '\033[1;38;5;203m' "系统设置与双系统｜网络、内存、密码和启动设置"
+    ui_panel_line 8 '\033[1;38;5;45m' "检查网络｜自动判断连接并尝试已有线路"
+    ui_panel_line 10 '\033[1;38;5;114m' "检查问题｜生成可发给维护人员的安全诊断包"
+    ui_panel_line 12 '\033[1;38;5;203m' "更多设置｜国内下载、内存、密码和双系统"
     ui_panel_line 14 '\033[1;38;5;203m' "卸载已安装｜逐项安全移除软件和系统组件"
     ui_panel_line 16 '\033[1;38;5;250m' "免责声明与使用须知｜查看完整图文说明"
     ui_prompt

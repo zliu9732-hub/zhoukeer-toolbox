@@ -11,7 +11,8 @@ source "$PROJECT_ROOT/modules/steam_accelerator.sh"
 
 load_config
 
-DECKY_API_BASE="${ZHOUKEER_DECKY_API_BASE:-http://127.0.0.1:1337}"
+# Decky 的认证令牌只能发送给本机服务，禁止通过环境变量改写目标地址。
+DECKY_API_BASE="http://127.0.0.1:1337"
 DECKY_STORE_URL="${DECKY_STORE_URL:-https://plugins.deckbrew.xyz/plugins}"
 DECKY_ARTIFACT_BASE="${DECKY_ARTIFACT_BASE:-https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions}"
 DECKY_BUNDLE_MARKER="zhoukeer-decky-bundle-queued"
@@ -44,10 +45,7 @@ json_quote() {
 }
 
 valid_https_url() {
-    case "$1" in
-        https://* ) return 0 ;;
-        * ) return 1 ;;
-    esac
+    download_policy_url_allowed "$1"
 }
 
 valid_sha256() {
@@ -189,6 +187,11 @@ install_recommended_decky_plugins() {
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ] && [ "${ZHOUKEER_ALLOW_NON_STEAMOS:-0}" != "1" ]; then
         echo "推荐插件整组安装仅支持真实SteamOS环境。"
+        return 1
+    fi
+    if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
+        ! bash "$PROJECT_ROOT/modules/preflight.sh" decky; then
+        echo "插件组合安装已停止：准备检查未通过。"
         return 1
     fi
     require_command curl || return 1
