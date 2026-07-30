@@ -70,7 +70,6 @@ for selected in init software games network support advanced uninstall notice ex
 done
 
 touch_software="$(function_source "$MAIN_FILE" common_software_menu)"
-touch_software_more="$(function_source "$MAIN_FILE" common_software_more_menu)"
 touch_games="$(function_source "$MAIN_FILE" game_environment_menu)"
 touch_network="$(function_source "$MAIN_FILE" network_store_menu)"
 touch_maintenance="$(function_source "$MAIN_FILE" maintenance_menu)"
@@ -81,8 +80,6 @@ touch_notice="$(function_source "$MAIN_FILE" usage_notice_menu)"
 assert_contains "$touch_software" 'right:14-15:todesk' "常用软件 ToDesk 坐标错误"
 assert_contains "$touch_software" 'right:20-21:anydesk' "常用软件 AnyDesk 坐标错误"
 assert_contains "$touch_software" 'right:22-23:more' "常用软件更多页坐标错误"
-assert_contains "$touch_software_more" 'if apply_navigation "$choice"; then return 1; fi' "更多常用软件页未传播左侧导航"
-assert_contains "$touch_software_more" 'NAVIGATION_FROM_CONFIRM=0' "更多常用软件确认页未传播嵌套导航"
 assert_contains "$touch_games" 'right:23-24:home' "游戏环境缺少返回首页"
 touch_plugin_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
 assert_contains "$touch_plugin_page_2" 'right:9-10:tomoon' "插件第二页 ToMoon 坐标错误"
@@ -105,28 +102,12 @@ touch_uninstall="$(function_source "$MAIN_FILE" uninstall_software_menu)"
 assert_contains "$touch_uninstall" 'right:19-20:next' "卸载第一页缺少下一页"
 assert_contains "$touch_uninstall" 'right:21-22:next' "卸载第二页缺少下一页"
 assert_contains "$touch_uninstall" 'right:20-21:previous' "卸载第三页缺少上一页"
-assert_contains "$touch_uninstall" 'right:11-12:anydesk' "触控卸载菜单缺少 AnyDesk"
-assert_contains "$touch_uninstall" 'rustdesk|anydesk|baidunetdisk' "AnyDesk 卸载 action 未映射到软件模块"
-assert_contains "$touch_uninstall" 'NAVIGATION_FROM_CONFIRM=0' "卸载确认页未传播嵌套导航"
 assert_contains "$touch_accelerator" 'right:22-23:home' "Steamcommunity 302 缺少返回首页"
 assert_contains "$touch_notice" '我已阅读并知悉' "免责声明页面缺少真实确认按钮"
 assert_contains "$touch_notice" 'right:18-19:acknowledge' "免责声明确认按钮坐标错误"
 assert_contains "$touch_notice" 'right:21-22:home' "免责声明页面缺少返回首页"
 assert_not_contains "$touch_notice" '--imgbox' "免责声明仍使用无法点击的静态图片窗口"
 assert_contains "$gui_home" '--yes-label "我已阅读并知悉"' "GUI免责声明缺少真实确认按钮"
-
-confirm_menu="$(function_source "$MAIN_FILE" confirm_and_run)"
-assert_contains "$confirm_menu" '"取消" "返回当前页面，不做任何更改"' "确认页取消按钮文案与实际返回路径不符"
-assert_contains "$confirm_menu" 'NAVIGATION_FROM_CONFIRM=1' "确认页没有标记左侧导航请求"
-
-touch_yuzu="$(function_source "$MAIN_FILE" yuzu_menu)"
-touch_official_plugins="$(function_source "$MAIN_FILE" plugin_official_touch_pages)"
-for leaf_menu in "$touch_yuzu" "$touch_official_plugins" "$touch_uninstall"; do
-    assert_contains "$leaf_menu" 'NAVIGATION_FROM_CONFIRM=0' "叶子菜单未消费确认页导航请求"
-done
-
-gui_uninstall="$(function_source "$GUI_FILE" uninstall_software_gui_menu)"
-assert_contains "$gui_uninstall" '[ "$page" -le 3 ] || page=3' "GUI 卸载分页无法到达第 4 页"
 
 for file in "$MAIN_FILE" "$GUI_FILE"; do
     source_text="$(cat "$file")"

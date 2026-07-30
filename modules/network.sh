@@ -48,19 +48,10 @@ network_has_default_route() {
 }
 
 network_dns_works() {
-    local timeout_seconds="${ZHOUKEER_NETWORK_DNS_TIMEOUT:-5}"
-
-    case "$timeout_seconds" in
-        ''|*[!0-9]*|0) timeout_seconds=5 ;;
-    esac
-    command -v timeout >/dev/null 2>&1 || return 1
     if command -v getent >/dev/null 2>&1; then
-        timeout --foreground "$timeout_seconds" \
-            getent hosts store.steampowered.com >/dev/null 2>&1
+        getent hosts store.steampowered.com >/dev/null 2>&1
     elif command -v dscacheutil >/dev/null 2>&1; then
-        timeout --foreground "$timeout_seconds" \
-            dscacheutil -q host -a name store.steampowered.com 2>/dev/null | \
-            grep -q 'ip_address:'
+        dscacheutil -q host -a name store.steampowered.com 2>/dev/null | grep -q 'ip_address:'
     else
         return 1
     fi

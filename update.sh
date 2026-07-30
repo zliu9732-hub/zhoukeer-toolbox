@@ -136,18 +136,11 @@ download_version_one() {
 
 valid_release_version() {
     local value="$1"
-    [[ "$value" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
-}
 
-release_version_compare() {
-    local left="$1" right="$2" l1 l2 l3 r1 r2 r3
-    IFS=. read -r l1 l2 l3 <<< "$left"
-    IFS=. read -r r1 r2 r3 <<< "$right"
-    for pair in "$l1:$r1" "$l2:$r2" "$l3:$r3"; do
-        if [ "${pair%%:*}" -gt "${pair#*:}" ]; then printf '1\n'; return; fi
-        if [ "${pair%%:*}" -lt "${pair#*:}" ]; then printf '%s\n' '-1'; return; fi
-    done
-    printf '0\n'
+    [ -n "$value" ] && [ "${#value}" -le 64 ] || return 1
+    case "$value" in
+        *[!A-Za-z0-9._+-]*) return 1 ;;
+    esac
 }
 
 valid_sha256() {
@@ -449,23 +442,19 @@ if download_version_with_fallback "$VERSION_FILE"; then
         exit 1
     fi
 else
-    echo "自动更新检测暂时不可用，已保留当前版本。"
-    exit 1
+    if [ "$STARTUP_MODE" -eq 1 ]; then
+        echo "自动更新检测暂时不可用。"
+        exit 1
+    fi
+    REMOTE_VERSION="unknown"
 fi
 LOCAL_VERSION="unknown"
 if [ -r "$PROJECT_ROOT/VERSION" ]; then
     LOCAL_VERSION="$(tr -d '\r\n' < "$PROJECT_ROOT/VERSION")"
 fi
-if valid_release_version "$LOCAL_VERSION"; then
-    VERSION_ORDER="$(release_version_compare "$REMOTE_VERSION" "$LOCAL_VERSION")"
-    if [ "$VERSION_ORDER" -eq 0 ]; then
-        echo "✓ 工具箱已是最新版本"
-        exit 0
-    fi
-    if [ "$VERSION_ORDER" -lt 0 ]; then
-        echo "远程版本早于当前版本，已保留当前工具箱，不执行降级。"
-        exit 0
-    fi
+if [ "$REMOTE_VERSION" != "unknown" ] && [ "$LOCAL_VERSION" = "$REMOTE_VERSION" ]; then
+    echo "✓ 工具箱已是最新版本"
+    exit 0
 fi
 
 echo "正在更新工具箱..."

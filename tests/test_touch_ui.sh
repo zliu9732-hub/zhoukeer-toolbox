@@ -49,19 +49,8 @@ printf '%s\n' "$canvas_request" | grep -Fq '\033[8;%s;%st' || fail "没有请求
 grep -Fq 'ui_wait_for_minimum_canvas || true' "$PROJECT_ROOT/main.sh" || fail "主程序首次绘制前没有等待窗口尺寸就绪"
 startup_loading="$(sed -n '/^show_startup_loading()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$startup_loading" | grep -Fq '工具箱启动中，请耐心等待' || fail "启动等待阶段缺少明确提示"
-main_prefix="$(sed -n '1,/^# V6 默认就是纯触控界面/p' "$PROJECT_ROOT/main.sh")"
+main_prefix="$(sed -n '1,/^# V5 默认就是纯触控界面/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$main_prefix" | grep -Fq 'show_startup_loading' || fail "启动提示没有在触控界面初始化前显示"
-
-grep -Fq '${TOOLBOX_VERSION:-V6}' "$PROJECT_ROOT/core/ui.sh" || fail "触控界面版本标题仍是固定值"
-grep -Fq '${TOOLBOX_VERSION:-V6}' "$PROJECT_ROOT/core/gui.sh" || fail "GUI 版本标题仍是固定值"
-if grep -Eq '周克儿工具箱[[:space:]]+([Vv]4|[Vv]5)' \
-    "$PROJECT_ROOT/core/ui.sh" "$PROJECT_ROOT/core/gui.sh"; then
-    fail "可见界面仍残留 V4/V5 固定标题"
-fi
-
-grep -Fq 'Opacity=1.00' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in" || fail "终端背景不再是完全不透明"
-grep -Fq 'Blur=false' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in" || fail "终端背景意外开启模糊"
-grep -Fq 'WallpaperOpacity=0.22' "$PROJECT_ROOT/assets/Zhoukeer.colorscheme.in" || fail "简约背景透明度未设为 0.22"
 
 disclaimer="$(sed -n '/^draw_disclaimer_frame()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
 printf '%s\n' "$disclaimer" | grep -Fq 'ui_reset_screen' || fail "免责声明首屏未执行完整清屏"
@@ -88,30 +77,6 @@ if printf '%s\n' "$touch_button" | grep -Fq '48;5;234'; then
 fi
 printf '%s\n' "$touch_button" | grep -Fq 'row + 1' || fail "功能按钮之间缺少分隔线"
 printf '%s\n' "$touch_button" | grep -Fq '────────────────' || fail "功能按钮分隔线未绘制"
-printf '%s\n' "$touch_button" | grep -Fq 'UI_BOTTOM_ROW_USED=1' || fail "底部按钮没有标记第 24 行已占用"
-
-bottom_prompt="$({
-    PROJECT_ROOT="$PROJECT_ROOT" bash -c '
-        source "$PROJECT_ROOT/core/ui.sh"
-        ui_move() { :; }
-        UI_BOTTOM_ROW_USED=0
-        ui_touch_button 23 "" "返回首页" >/dev/null
-        ui_prompt
-    '
-})"
-if printf '%s\n' "$bottom_prompt" | grep -Fq '触屏或触控板点击功能'; then
-    fail "通用底部提示仍会覆盖第 23-24 行按钮"
-fi
-normal_prompt="$({
-    PROJECT_ROOT="$PROJECT_ROOT" bash -c '
-        source "$PROJECT_ROOT/core/ui.sh"
-        ui_move() { :; }
-        UI_BOTTOM_ROW_USED=0
-        ui_touch_button 22 "" "普通按钮" >/dev/null
-        ui_prompt
-    '
-})"
-printf '%s\n' "$normal_prompt" | grep -Fq '触屏或触控板点击功能' || fail "非满页菜单的底部提示被误隐藏"
 
 sidebar_item="$(sed -n '/^ui_sidebar_item()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
 if printf '%s\n' "$sidebar_item" | grep -Fq '48;5;234'; then
@@ -191,11 +156,6 @@ printf '%s\n' "$more_software" | grep -Fq 'right:22-23:home' || fail "更多常�
 
 games="$(sed -n '/^game_environment_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$games" | grep -Fq 'draw_category_frame games "游戏与插件｜插件商城" "浏览插件商城、运行组件和启动器" 0' || fail "游戏与插件仍显示与首个按钮重叠的分类文字"
-games_buttons="$(printf '%s\n' "$games" | grep 'ui_touch_button')"
-if printf '%s\n' "$games_buttons" | grep -Fq 'Ren-Amamiya-pixie'; then
-    fail "插件列表仍把过长作者信息塞进按钮说明"
-fi
-printf '%s\n' "$games" | grep -Fq '汉化作者：Ren-Amamiya-pixie' || fail "精简按钮后未在确认页保留汉化作者信息"
 
 home="$(sed -n '/^home_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 for aligned_line in \

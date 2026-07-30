@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -u
 
 DRY_RUN=0
 for arg in "$@"; do
@@ -328,12 +328,7 @@ if [ "$SYSTEM" != "Linux" ]; then
 fi
 
 echo "================================"
-if [ -r "$SOURCE_ROOT/VERSION" ]; then
-    INSTALLER_VERSION="$(tr -d '\r\n' < "$SOURCE_ROOT/VERSION")"
-else
-    INSTALLER_VERSION="6.0.0"
-fi
-echo " 周克儿工具箱 V${INSTALLER_VERSION} 安装程序"
+echo " 周克儿工具箱 V4 安装程序"
 echo "================================"
 echo "来源目录: $SOURCE_ROOT"
 echo "安装目录: $INSTALL_DIR"

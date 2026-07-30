@@ -19,7 +19,6 @@ log() { return 0; }
 PAYLOAD='decky-official-test-payload'
 CALLS="$TMP_ROOT/calls"
 MOCK_OFFICIAL_FAIL=0
-MOCK_GHFAST_FAIL=0
 DOMESTIC_MODE=fail
 
 curl() {
@@ -40,31 +39,12 @@ curl() {
             fi
             return 22
             ;;
-        https://ghfast.top/https://github.com/SteamDeckHomebrew/*)
-            [ "$MOCK_GHFAST_FAIL" -eq 0 ] || return 28
-            printf '%s' "$PAYLOAD" > "$output"
-            ;;
         https://github.com/SteamDeckHomebrew/*|https://raw.githubusercontent.com/SteamDeckHomebrew/*)
             [ "$MOCK_OFFICIAL_FAIL" -eq 0 ] || return 28
             printf '%s' "$PAYLOAD" > "$output"
             ;;
         *) return 1 ;;
     esac
-}
-
-# 本测试只验证插件商城是否把官方 GitHub 文件交给统一下载器。固定排名
-# 避免 curl 测速细节干扰调用顺序；统一排名本身由 test_github_download 覆盖。
-get_ranked_github_sources() {
-    local url="$1"
-    case "$url" in
-        https://github.com/*/releases/download/*)
-            _GITHUB_SOURCES_RANKED="https://ghfast.top/
-https://github.com"
-            ;;
-        *) _GITHUB_SOURCES_RANKED="https://github.com" ;;
-    esac
-    _GITHUB_RANKED_FOR_URL="$url"
-    printf '%s' "$_GITHUB_SOURCES_RANKED"
 }
 
 printf '%s' "$PAYLOAD" > "$TMP_ROOT/expected"
@@ -81,8 +61,7 @@ printf '%s\n' "$output" | grep -Fq '国内线路不可用，正在自动切换 D
 printf '%s\n' "$output" | grep -Fq '已通过 Decky 官方线路获取' || \
     fail "官方源成功后没有给出明确结果"
 [ "$(sed -n '1p' "$CALLS")" = "$DECKY_LOADER_URL" ] || fail "未优先尝试国内 Loader"
-[ "$(sed -n '2p' "$CALLS")" = "https://ghfast.top/$DECKY_LOADER_OFFICIAL_URL" ] || \
-    fail "Loader 官方回退未先使用 ghfast"
+[ "$(sed -n '2p' "$CALLS")" = "$DECKY_LOADER_OFFICIAL_URL" ] || fail "Loader 未回退 Decky 官方源"
 cmp -s "$TMP_ROOT/expected" "$TMP_ROOT/PluginLoader" || fail "官方 Loader 下载结果不一致"
 
 : > "$CALLS"
@@ -93,8 +72,7 @@ download_decky_component_with_fallback \
     "$DECKY_LOADER_OFFICIAL_URL" \
     "$EXPECTED_SHA256" \
     "$TMP_ROOT/PluginLoader-from-html" >/dev/null
-[ "$(sed -n '2p' "$CALLS")" = "https://ghfast.top/$DECKY_LOADER_OFFICIAL_URL" ] || \
-    fail "国内 HTML 错误页未触发 ghfast 官方回退"
+[ "$(sed -n '2p' "$CALLS")" = "$DECKY_LOADER_OFFICIAL_URL" ] || fail "国内 HTML 错误页未触发官方回退"
 cmp -s "$TMP_ROOT/expected" "$TMP_ROOT/PluginLoader-from-html" || fail "HTML 回退后的官方文件不一致"
 
 : > "$CALLS"
@@ -110,7 +88,6 @@ download_decky_component_with_fallback \
 
 : > "$CALLS"
 MOCK_OFFICIAL_FAIL=1
-MOCK_GHFAST_FAIL=1
 if download_decky_component_with_fallback \
     'Decky PluginLoader' \
     "$DECKY_LOADER_URL" \

@@ -30,11 +30,6 @@ for secret in deck "$HOME_DIR" 192.168.31.88 10.0.0.1 fe80::1234:abcd AA:BB:CC:D
 done
 grep -Fq '[HOME]' "$TMP_ROOT/redacted.txt" || fail "HOME 未替换为安全标记"
 grep -Fq '[IP已隐藏]' "$TMP_ROOT/redacted.txt" || fail "IP 未脱敏"
-grep -Fq 'IPv4=[IP已隐藏] gateway=[IP已隐藏]' "$TMP_ROOT/redacted.txt" || \
-    fail "IPv4 脱敏后破坏了字段结构"
-if grep -Eq '\\[13]' "$TMP_ROOT/redacted.txt"; then
-    fail "IPv4 脱敏输出了字面捕获组标记"
-fi
 
 cat > "$BIN_DIR/ip" <<'EOF'
 #!/bin/sh

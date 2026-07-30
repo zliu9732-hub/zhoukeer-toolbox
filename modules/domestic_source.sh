@@ -23,39 +23,12 @@ pacman_conf_has_archlinuxcn() {
     ' "$1"
 }
 
-managed_archlinuxcn_markers_are_valid() {
-    local pacman_conf="$1"
-
-    LC_ALL=C awk \
-        -v begin="$ARCHLINUXCN_BLOCK_BEGIN" \
-        -v end="$ARCHLINUXCN_BLOCK_END" '
-            $0 == begin {
-                begin_count++
-                if (begin_count > 1 || end_count > 0) invalid=1
-            }
-            $0 == end {
-                end_count++
-                if (begin_count != 1 || end_count > 1) invalid=1
-            }
-            END {
-                if (invalid) exit 1
-                if (begin_count == 0 && end_count == 0) exit 0
-                if (begin_count == 1 && end_count == 1) exit 0
-                exit 1
-            }
-        ' "$pacman_conf"
-}
-
 write_managed_archlinuxcn_repo() {
     local pacman_conf="${1:-/etc/pacman.conf}"
     local tmp_file
 
     if [ ! -f "$pacman_conf" ] || [ -L "$pacman_conf" ]; then
         echo "pacman 配置不是安全的普通文件：$pacman_conf"
-        return 1
-    fi
-    if ! managed_archlinuxcn_markers_are_valid "$pacman_conf"; then
-        echo "工具箱管理的 archlinuxcn 标记缺失、重复或顺序异常，已保留原配置。"
         return 1
     fi
     if ! grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" "$pacman_conf" && \
@@ -93,10 +66,6 @@ remove_managed_archlinuxcn_repo() {
     local tmp_file
 
     [ -f "$pacman_conf" ] && [ ! -L "$pacman_conf" ] || return 1
-    if ! managed_archlinuxcn_markers_are_valid "$pacman_conf"; then
-        echo "工具箱管理的 archlinuxcn 标记缺失、重复或顺序异常，已保留原配置。"
-        return 1
-    fi
     if ! grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" "$pacman_conf"; then
         echo "未发现工具箱管理的 archlinuxcn 配置，无需移除。"
         return 0

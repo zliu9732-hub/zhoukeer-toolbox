@@ -153,15 +153,6 @@ download_decky_component() {
         return 1
     }
 
-    # 国内 Decky 固定源仍按原链路下载；切换到 GitHub 官方文件时复用统一
-    # 下载器，让 Release 自动尝试 ghfast、已审计镜像、Steam302 和官方源。
-    case "$url" in
-        https://github.com/*|https://raw.githubusercontent.com/*)
-            download_github_file "$url" "$output" "$expected_sha256" "$name"
-            return $?
-            ;;
-    esac
-
     local _dk_curl_options=(
         --fail
         --location
@@ -2132,15 +2123,10 @@ install_feature_plugins() {
 }
 
 install_all_plugin_packages() {
-    echo "将依次处理常用功能插件和精选插件。"
+    echo "将依次处理 3款独立功能插件和27款精选插件，其中包括SimpleDeckyTDP与Unifideck。"
     echo "官方推荐插件仍由 Decky 内置安装器在 Steam 界面中确认。"
 
     install_feature_plugins || return 1
-
-    # 两款作者 Release 先由工具箱统一下载器安装，确保使用 ghfast、测速
-    # 回退和固定 SHA256；不再把原始 GitHub URL 直接交给 Decky 下载。
-    install_configured_plugin simpledeckytdp || return 1
-    install_configured_plugin unifideck || return 1
 
     # 等待 Decky Loader 就绪（安装三件套可能重启了服务）
     local _dw_i
@@ -2151,8 +2137,7 @@ install_all_plugin_packages() {
         sleep 3
     done
 
-    if ! DECKY_BUNDLE_INCLUDE_CUSTOM=0 \
-        bash "$PROJECT_ROOT/modules/decky_bundle.sh" install; then
+    if ! bash "$PROJECT_ROOT/modules/decky_bundle.sh" install; then
         echo "官方推荐插件清单未完成提交；小黄鸭、FSR4 和 CheatDeck 的结果请查看上方提示。"
         return 1
     fi
@@ -2168,15 +2153,15 @@ install_25_plugins() {
         echo "精选插件安装仅支持真实 SteamOS 环境。"
         return 1
     fi
-    echo "将从 Decky 官方商店批量安装精选插件。"
+    echo "将从 Decky 官方商店批量安装 26 款精选插件，其中包括 SimpleDeckyTDP 与 Unifideck。"
     echo "不会安装小黄鸭、FSR4 和 CheatDeck（请在常用功能插件中单独安装）。"
     echo "官方推荐插件仍由 Decky 内置安装器在 Steam 界面中确认。"
     if ! bash "$PROJECT_ROOT/modules/decky_bundle.sh" install; then
         echo "精选插件安装未完成提交。"
         return 1
     fi
-    echo "精选插件的安装流程已完成。"
-    log "精选插件安装完成"
+    echo "26 款精选插件的安装流程已完成。"
+    log "26款精选插件安装完成"
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
