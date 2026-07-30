@@ -29,7 +29,9 @@ diagnostic_redact_stream() {
             if (home_re != "") gsub(home_re, "[HOME]", line)
             if (user_re != "") gsub(user_re, "[用户]", line)
             gsub(/([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}/, "[MAC已隐藏]", line)
-            gsub(/(^|[^0-9])([0-9]{1,3}\.){3}[0-9]{1,3}([^0-9]|$)/, "\\1[IP已隐藏]\\3", line)
+            # awk 的 sub/gsub 替换字符串不支持 \1 形式的捕获组回填；
+            # 直接替换地址本身，保留地址前后的原始标点。
+            gsub(/([0-9]{1,3}\.){3}[0-9]{1,3}/, "[IP已隐藏]", line)
             gsub(/[0-9A-Fa-f]{0,4}:[0-9A-Fa-f:]{2,}/, "[IPv6已隐藏]", line)
             low=tolower(line)
             if (low ~ /(password|passwd|密码|token|cookie|authorization|bearer|secret|api[_-]?key|proxy[_-]?(url|auth)|验证码|临时码|远程协助.*(id|码|凭据))/) {

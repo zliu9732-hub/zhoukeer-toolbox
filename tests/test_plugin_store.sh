@@ -109,6 +109,19 @@ grep -Fq '英文搜索并下载对应游戏的最新修改器' "$NOTE_DESKTOP/�
     exit 1
 }
 grep -Fq 'install_all_plugin_packages()' "$PROJECT_ROOT/modules/plugin_store.sh"
+all_install="$(sed -n '/^install_all_plugin_packages()/,/^}/p' "$PROJECT_ROOT/modules/plugin_store.sh")"
+printf '%s\n' "$all_install" | grep -Fq 'install_configured_plugin simpledeckytdp' || {
+    echo "FAIL: 批量安装中的 SimpleDeckyTDP 未走统一下载器" >&2
+    exit 1
+}
+printf '%s\n' "$all_install" | grep -Fq 'install_configured_plugin unifideck' || {
+    echo "FAIL: 批量安装中的 Unifideck 未走统一下载器" >&2
+    exit 1
+}
+printf '%s\n' "$all_install" | grep -Fq 'DECKY_BUNDLE_INCLUDE_CUSTOM=0' || {
+    echo "FAIL: 自定义插件仍被原始 GitHub URL 交给 Decky" >&2
+    exit 1
+}
 grep -Fq 'decky_plugin_store_is_installed()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '未检测到插件商城，先安装插件商城。' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_lsfg_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"

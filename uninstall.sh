@@ -38,7 +38,12 @@ confirm_action() {
 }
 
 echo "================================"
-echo " 周克儿工具箱 V4 卸载程序"
+if [ -r "$PROJECT_ROOT/VERSION" ]; then
+    UNINSTALL_VERSION="$(tr -d '\r\n' < "$PROJECT_ROOT/VERSION")"
+else
+    UNINSTALL_VERSION="6.0.0"
+fi
+echo " 周克儿工具箱 V${UNINSTALL_VERSION} 卸载程序"
 echo "================================"
 echo "当前目录: $PROJECT_ROOT"
 echo "模式: $([ "$DRY_RUN" -eq 1 ] && echo dry-run || echo uninstall)"

@@ -11,7 +11,7 @@ source "$PROJECT_ROOT/core/logger.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/auth.sh"
 
-GUI_TITLE="周克儿工具箱 V4"
+GUI_TITLE="周克儿工具箱 ${TOOLBOX_VERSION:-V6}"
 GUI_ICON="$PROJECT_ROOT/assets/icon-round.png"
 GUI_NAV_HOME=0
 
@@ -25,14 +25,12 @@ DECKY_OFFICIAL_PLUGIN_NAMES=(
     "Deck Settings" "HLTB for Deck" "PlayCount" "TabMaster"
     "Wine Cellar" "Pause Games" "Controller Tools" "Volume Mixer" "Battery Tracker"
     "PlayTime" "Free Loader" "DeckMTP" "MangoPeel"
-    "Freedeck"
 )
 DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "自定义界面样式" "调整界面配色" "更换开机动画" "更换系统音效" "自动补游戏封面"
     "性能与功耗控制" "清理游戏缓存" "自动更新应用" "管理蓝牙设备" "显示兼容性评分"
     "更多 Deck 设置" "显示通关时长" "记录游玩次数" "整理游戏库标签"
     "管理 Wine 与 Proton" "后台自动暂停游戏" "手柄辅助工具" "分应用调节音量" "查看电池状态"
-    "下载游戏和模拟器游戏"
     "记录游戏时长" "下载功能扩展" "USB 文件传输" "优化 Steam 界面"
 )
 
@@ -177,9 +175,13 @@ game_environment_gui_menu() {
     while true; do
         choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
             features "常用插件组合｜安装小黄鸭等三款插件" \
-            all "常用插件加27款精选插件｜优先安装三件套，已装则跳过；再补27款精选" \
+            all "常用插件与精选插件｜优先安装三件套，已装则跳过；再补精选" \
             lsfg "小黄鸭｜GitHub 失败自动切换 Gitee 国内源" \
             fsr4 "FSR4｜GitHub 失败自动切换 Gitee 国内源" \
+            cheatdeck "CheatDeck｜风灵月影修改器和启动项启动插件" \
+            freedeck "Freedeck｜下载游戏和模拟器游戏" \
+            simpledeckytdp "SimpleDeckyTDP｜TDP/功耗性能控制" \
+            unifideck "Unifideck｜入库第三方平台游戏" \
             browse "浏览官方插件｜逐个查看插件作用" \
             ge-proton "安装 GE 兼容层｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
@@ -198,18 +200,40 @@ game_environment_gui_menu() {
                 ;;
             all)
                 gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。未安装插件商城时会先安装插件商城，再继续安装常用与精选插件；会使用管理员权限。是否继续？" && \
-                    run_gui_action "安装常用插件加27款精选插件" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    run_gui_action "安装常用插件与精选插件" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" all
                 ;;
             lsfg)
-                run_gui_action "安装小黄鸭（GitHub + Gitee 双源）" \
-                    env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
+                gui_confirm "将安装小黄鸭汉化版，GitHub 失败时自动切换 Gitee 国内源。汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）。是否继续？" && \
+                    run_gui_action "安装小黄鸭（GitHub + Gitee 双源）" \
+                        env ZHOUKEER_AUTO_CONFIRM=1 \
+                        bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                 ;;
             fsr4)
-                run_gui_action "安装 FSR4（GitHub + Gitee 双源）" \
-                    env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee
+                gui_confirm "将安装 FSR4 汉化版，GitHub 失败时自动切换 Gitee 国内源。汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）。是否继续？" && \
+                    run_gui_action "安装 FSR4（GitHub + Gitee 双源）" \
+                        env ZHOUKEER_AUTO_CONFIRM=1 \
+                        bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee
+                ;;
+            cheatdeck)
+                gui_confirm "将从作者 GitHub Release 安装 CheatDeck，用于风灵月影修改器和启动项启动。是否继续？" && \
+                    run_gui_action "安装 CheatDeck" env ZHOUKEER_AUTO_CONFIRM=1 \
+                        bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck
+                ;;
+            freedeck)
+                gui_confirm "将安装 Freedeck，用于下载游戏和模拟器游戏；感谢作者 B 站“一苇Isidf”。是否继续？" && \
+                    run_gui_action "安装 Freedeck" env ZHOUKEER_AUTO_CONFIRM=1 \
+                        bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck
+                ;;
+            simpledeckytdp)
+                gui_confirm "将从作者 GitHub Release 安装 SimpleDeckyTDP，用于 TDP/功耗性能控制。是否继续？" && \
+                    run_gui_action "安装 SimpleDeckyTDP" env ZHOUKEER_AUTO_CONFIRM=1 \
+                        bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp
+                ;;
+            unifideck)
+                gui_confirm "将从作者 GitHub Release 安装 Unifideck，用于入库第三方平台游戏。是否继续？" && \
+                    run_gui_action "安装 Unifideck" env ZHOUKEER_AUTO_CONFIRM=1 \
+                        bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck
                 ;;
             browse)
                 plugin_official_gui_pages
@@ -221,9 +245,10 @@ game_environment_gui_menu() {
                     bash "$PROJECT_ROOT/modules/ge_proton.sh" install
                 ;;
             epic)
-                run_gui_action "安装 Epic 游戏启动器并自动入库" \
-                    env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
+                gui_confirm "将安装 Epic 游戏启动器，创建桌面入口并添加到 Steam 库。是否继续？" && \
+                    run_gui_action "安装 Epic 游戏启动器并自动入库" \
+                        env ZHOUKEER_AUTO_CONFIRM=1 \
+                        bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
                 ;;
             tomoon)
                 gui_confirm "将从 ToMoon 作者 GitHub Release 下载固定版本并校验 SHA256，随后安装 Decky 网络工具插件。是否继续？" && \
@@ -231,14 +256,16 @@ game_environment_gui_menu() {
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon
                 ;;
             battlenet)
-                run_gui_action "安装战网启动器并自动入库" \
-                    env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
+                gui_confirm "将安装战网启动器并添加到 Steam 库；首次请在 Steam 兼容性中选择 Proton 10.0-4。是否继续？" && \
+                    run_gui_action "安装战网启动器并自动入库" \
+                        env ZHOUKEER_AUTO_CONFIRM=1 \
+                        bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
                 ;;
             ubisoft)
-                run_gui_action "安装育碧并自动入库" \
-                    env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft
+                gui_confirm "将安装育碧游戏平台，创建桌面入口并添加到 Steam 库。是否继续？" && \
+                    run_gui_action "安装育碧并自动入库" \
+                        env ZHOUKEER_AUTO_CONFIRM=1 \
+                        bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft
                 ;;
             emulators)
                 emulator_gui_menu
@@ -754,7 +781,7 @@ uninstall_software_gui_menu() {
                     run_gui_action "清空全部 Decky 插件" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" uninstall
                 ;;
-            next) page=$((page + 1)); [ "$page" -le 2 ] || page=2 ;;
+            next) page=$((page + 1)); [ "$page" -le 3 ] || page=3 ;;
             previous) page=$((page - 1)); [ "$page" -ge 0 ] || page=0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
@@ -774,7 +801,7 @@ main_gui_menu() {
             nav-network "检查网络｜自动判断连接并尝试已有线路" \
             nav-help "检查问题｜生成可发给维护人员的安全诊断包" \
             nav-advanced "更多设置｜国内下载、内存、密码和双系统" \
-            nav-uninstall "卸载已安装｜逐项安全移除软件和系统组件" \
+            nav-uninstall "卸载常用软件｜逐项移除工具箱支持的内容" \
             nav-notice "免责声明与使用须知｜查看完整图文说明" \
             nav-exit "退出工具箱")" || exit 0
 

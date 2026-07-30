@@ -37,7 +37,7 @@ show_startup_loading() {
 show_startup_loading
 ui_wait_for_minimum_canvas || true
 
-# V5 默认就是纯触控界面。不再提供数字或字母菜单，避免键盘和触屏事件冲突。
+# V6 默认就是纯触控界面。不再提供数字或字母菜单，避免键盘和触屏事件冲突。
 case "${1:-}" in
     ""|--touch) ;;
     --gui) exec bash "$PROJECT_ROOT/core/gui.sh" ;;
@@ -48,6 +48,7 @@ enable_mouse_tracking
 trap 'disable_mouse_tracking' EXIT INT TERM
 
 NEXT_CATEGORY="home"
+NAVIGATION_FROM_CONFIRM=0
 
 # Decky 官方插件的中文短说明。触控界面每页仅显示 5 个，避免小屏幕按钮拥挤。
 DECKY_OFFICIAL_PLUGIN_NAMES=(
@@ -56,14 +57,12 @@ DECKY_OFFICIAL_PLUGIN_NAMES=(
     "Deck Settings" "HLTB for Deck" "PlayCount" "TabMaster"
     "Wine Cellar" "Pause Games" "Controller Tools" "Volume Mixer" "Battery Tracker"
     "PlayTime" "Free Loader" "DeckMTP" "MangoPeel"
-    "Freedeck"
 )
 DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "自定义界面样式" "调整界面配色" "更换开机动画" "更换系统音效" "自动补游戏封面"
     "性能与功耗控制" "清理游戏缓存" "自动更新应用" "管理蓝牙设备" "显示兼容性评分"
     "更多 Deck 设置" "显示通关时长" "记录游玩次数" "整理游戏库标签"
     "管理 Wine 与 Proton" "后台自动暂停游戏" "手柄辅助工具" "分应用调节音量" "查看电池状态"
-    "下载游戏和模拟器游戏"
     "记录游戏时长" "下载功能扩展" "USB 文件传输" "优化 Steam 界面"
 )
 DECKY_TOUCH_PAGE_SIZE=5
@@ -107,13 +106,15 @@ confirm_and_run() {
     local choice
     shift 2
 
+    NAVIGATION_FROM_CONFIRM=0
     draw_category_frame "" "$title" "$message"
     ui_panel_line 8 '\033[1;38;5;220m' "请确认是否继续这项操作"
     ui_touch_button 10 '\033[1;30;48;5;114m' "继续执行" "已授权工具箱完成该操作"
-    ui_touch_button 15 '\033[1;97;48;5;160m' "返回主菜单" "不做任何更改"
+    ui_touch_button 15 '\033[1;97;48;5;160m' "取消" "返回当前页面，不做任何更改"
     ui_prompt
     choice="$(read_touch_menu right:10-11:yes right:15-16:no)"
     if apply_navigation "$choice"; then
+        NAVIGATION_FROM_CONFIRM=1
         return 0
     fi
     if [ "$choice" = "yes" ]; then
@@ -301,6 +302,7 @@ common_software_more_menu() {
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:2-3:libreoffice right:4-5:vlc right:6-7:obs right:8-9:localsend right:10-11:baidunetdisk right:18-19:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
             libreoffice) confirm_and_run "安装 LibreOffice 办公套件" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" libreoffice ;;
             vlc) confirm_and_run "安装 VLC 播放器" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" vlc ;;
@@ -310,6 +312,10 @@ common_software_more_menu() {
             back) return 0 ;;
             home) NEXT_CATEGORY="home"; return 1 ;;
         esac
+        if [ "${NAVIGATION_FROM_CONFIRM:-0}" -eq 1 ]; then
+            NAVIGATION_FROM_CONFIRM=0
+            return 1
+        fi
     done
 }
 
@@ -464,11 +470,11 @@ game_environment_menu() {
         draw_category_frame games "游戏与插件｜插件商城" "浏览插件商城、运行组件和启动器" 0
         ui_touch_button 5 '\033[1;97;48;5;160m' "安装插件商城" "国内失败自动切换官方源 · 高级操作"
         ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭等三款插件"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "常用插件加27款精选插件" "优先安装三件套，已装则跳过；再补精选"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "常用插件与精选插件" "优先安装三件套，已装则跳过；再补精选"
         ui_touch_button 11 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
         ui_touch_button 13 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "小黄鸭｜GitHub+Gitee" "双源安装汉化版·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "FSR4｜GitHub+Gitee" "双源安装汉化版·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "小黄鸭｜GitHub+Gitee" "双源安装汉化版"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "FSR4｜GitHub+Gitee" "双源安装汉化版"
         ui_touch_button 19 '\033[1;97;48;5;24m' "Freedeck" "下载游戏和模拟器游戏·感谢作者b站一苇Isidf"
         ui_touch_button 21 '\033[1;97;48;5;238m' "下一页…" "查看剩余插件"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -479,7 +485,7 @@ game_environment_menu() {
         case "$choice" in
             decky-install) confirm_and_run "安装插件商城" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；优先使用国内线路，失败自动切换 Decky 官方国外线路；随后停止旧服务并更新，已有插件保留" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store ;;
             features) confirm_and_run "安装常用插件组合" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；未安装插件商城时会先安装插件商城，再继续安装三款插件；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
-            all) confirm_and_run "安装常用插件加27款精选插件" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；三件套已装则跳过，未装则安装；再补27款精选；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
+            all) confirm_and_run "安装常用插件与精选插件" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；三件套已装则跳过，未装则安装；再补精选插件；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
             browse) plugin_official_touch_pages ;;
             cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             lsfg) confirm_and_run "安装小黄鸭" "GitHub 加速失败自动改用 Gitee 国内源；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
@@ -550,6 +556,10 @@ emulator_menu() {
                 ;;
             back) return 0 ;;
         esac
+        if [ "${NAVIGATION_FROM_CONFIRM:-0}" -eq 1 ]; then
+            NAVIGATION_FROM_CONFIRM=0
+            return 0
+        fi
         [ "$NEXT_CATEGORY" = "plugin_page_2" ] || return 0
     done
 }
@@ -572,6 +582,10 @@ yuzu_menu() {
             status) run_action "Yuzu 密钥状态" bash "$PROJECT_ROOT/modules/emulators.sh" yuzu-keys-status ;;
             back) return 0 ;;
         esac
+        if [ "${NAVIGATION_FROM_CONFIRM:-0}" -eq 1 ]; then
+            NAVIGATION_FROM_CONFIRM=0
+            return 0
+        fi
     done
 }
 
@@ -647,6 +661,10 @@ plugin_official_touch_pages() {
                 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
+        if [ "${NAVIGATION_FROM_CONFIRM:-0}" -eq 1 ]; then
+            NAVIGATION_FROM_CONFIRM=0
+            return 0
+        fi
     done
 }
 
@@ -797,11 +815,12 @@ uninstall_software_menu() {
                 ui_touch_button 5 '\033[1;97;48;5;160m' "卸载 RustDesk" "保留用户自行配置的数据"
                 ui_touch_button 7 '\033[1;97;48;5;160m' "卸载 ToDesk" "停止服务并卸载系统软件包"
                 ui_touch_button 9 '\033[1;97;48;5;160m' "卸载百度网盘" "卸载百度网盘 Flatpak"
+                ui_touch_button 11 '\033[1;97;48;5;160m' "卸载 AnyDesk" "卸载 AnyDesk Flatpak"
                 ui_touch_button 19 '\033[1;97;48;5;24m' "上一页" "返回常用应用"
                 ui_touch_button 21 '\033[1;97;48;5;24m' "下一页" "办公、创作与兼容工具"
                 ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
                 ui_prompt
-                choice="$(read_touch_menu right:5-6:rustdesk right:7-8:todesk right:9-10:baidunetdisk right:19-20:previous right:21-22:next right:23-24:home)"
+                choice="$(read_touch_menu right:5-6:rustdesk right:7-8:todesk right:9-10:baidunetdisk right:11-12:anydesk right:19-20:previous right:21-22:next right:23-24:home)"
                 ;;
             2)
                 draw_category_frame uninstall "卸载已安装" "办公与工具 · 第 3/4 页"
@@ -831,7 +850,7 @@ uninstall_software_menu() {
         esac
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
-            wechat|qq|browser|chrome|edge|rustdesk|baidunetdisk|libreoffice|vlc|obs|localsend|protontricks|bottles)
+            wechat|qq|browser|chrome|edge|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|protontricks|bottles)
                 confirm_and_run "卸载软件" "只卸载所选软件及工具箱创建的快捷方式" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" uninstall "$choice"
                 ;;
@@ -859,6 +878,10 @@ uninstall_software_menu() {
             previous) page=$((page - 1)); [ "$page" -ge 0 ] || page=0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
+        if [ "${NAVIGATION_FROM_CONFIRM:-0}" -eq 1 ]; then
+            NAVIGATION_FROM_CONFIRM=0
+            return 0
+        fi
     done
 }
 
@@ -1081,7 +1104,7 @@ home_menu() {
     ui_panel_line 8 '\033[1;38;5;45m' "检查网络｜自动判断连接并尝试已有线路"
     ui_panel_line 10 '\033[1;38;5;114m' "检查问题｜生成可发给维护人员的安全诊断包"
     ui_panel_line 12 '\033[1;38;5;203m' "更多设置｜国内下载、内存、密码和双系统"
-    ui_panel_line 14 '\033[1;38;5;203m' "卸载已安装｜逐项安全移除软件和系统组件"
+    ui_panel_line 14 '\033[1;38;5;203m' "卸载常用软件｜逐项移除工具箱支持的内容"
     ui_panel_line 16 '\033[1;38;5;250m' "免责声明与使用须知｜查看完整图文说明"
     ui_prompt
     choice="$(read_touch_menu)"
@@ -1094,6 +1117,7 @@ fi
 ensure_password_ready
 
 while true; do
+    NAVIGATION_FROM_CONFIRM=0
     case "$NEXT_CATEGORY" in
         home) home_menu ;;
         init) new_machine_menu ;;

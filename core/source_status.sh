@@ -36,9 +36,15 @@ source_status_record() {
     if [ -f "$SOURCE_STATUS_FILE" ] && [ ! -L "$SOURCE_STATUS_FILE" ]; then
         old_line="$(awk -F '\t' -v id="$id" '$1 == id { print; exit }' "$SOURCE_STATUS_FILE")"
         if [ -n "$old_line" ]; then
-            IFS=$'\t' read -r old_id old_state old_checked last_success last_failure last_reason <<EOF
-$old_line
-EOF
+            # Tab 属于 shell 的空白 IFS 字符，直接 read 会折叠连续 Tab，
+            # 从而把空的“最近成功”列吞掉并令失败时间、原因整体左移。
+            # 逐列读取可同时兼容四列旧格式和六列当前格式。
+            old_id="$(printf '%s\n' "$old_line" | awk -F '\t' '{ print $1 }')"
+            old_state="$(printf '%s\n' "$old_line" | awk -F '\t' '{ print $2 }')"
+            old_checked="$(printf '%s\n' "$old_line" | awk -F '\t' '{ print $3 }')"
+            last_success="$(printf '%s\n' "$old_line" | awk -F '\t' '{ print $4 }')"
+            last_failure="$(printf '%s\n' "$old_line" | awk -F '\t' '{ print $5 }')"
+            last_reason="$(printf '%s\n' "$old_line" | awk -F '\t' '{ print $6 }')"
             # 兼容 V5.5.9 早期测试产生的四列状态文件。
             if [ -z "$last_failure" ] && [ -n "$last_success" ]; then
                 case "$old_state" in ok) last_success="$old_checked" ;; fail) last_reason="$last_success"; last_failure="$old_checked"; last_success="" ;; esac

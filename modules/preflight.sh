@@ -15,6 +15,10 @@ preflight_positive_integer() {
     case "$1" in ''|*[!0-9]*) return 1 ;; *) [ "$1" -gt 0 ] ;; esac
 }
 
+preflight_nonnegative_integer() {
+    case "$1" in ''|*[!0-9]*) return 1 ;; *) return 0 ;; esac
+}
+
 preflight_minimum_kib() {
     case "$1" in
         system-update|new-machine) printf '%s\n' 4194304 ;;
@@ -37,7 +41,24 @@ preflight_plan_text() {
 }
 
 preflight_available_kib() {
-    df -Pk "${ZHOUKEER_PREFLIGHT_SPACE_PATH:-$HOME}" 2>/dev/null | awk 'NR > 1 { value=$4 } END { print value }'
+    df -Pk "$1" 2>/dev/null | awk 'NR > 1 { value=$4 } END { print value }'
+}
+
+preflight_filesystem_identity() {
+    df -Pk "$1" 2>/dev/null | awk 'NR > 1 { value=$1 } END { print value }'
+}
+
+preflight_check_space_path() {
+    local path="$1" label="$2" minimum_kib="$3" available_kib
+
+    available_kib="$(preflight_available_kib "$path")"
+    if preflight_positive_integer "$available_kib" && [ "$available_kib" -ge "$minimum_kib" ]; then
+        printf '%s空间=正常（%s KiB）\n' "$label" "$available_kib" >> "$PREFLIGHT_DETAIL_FILE"
+        return 0
+    fi
+    printf '%s空间=不足（%s KiB，至少需要 %s KiB）\n' \
+        "$label" "${available_kib:-未知}" "$minimum_kib" >> "$PREFLIGHT_DETAIL_FILE"
+    return 1
 }
 
 preflight_power_ok() {
@@ -53,7 +74,7 @@ preflight_power_ok() {
     for item in "$power_root"/*/capacity; do
         [ -r "$item" ] || continue
         capacity="$(tr -d '\r\n' < "$item")"
-        preflight_positive_integer "$capacity" || continue
+        preflight_nonnegative_integer "$capacity" || continue
         [ "$capacity" -ge 20 ] && return 0
         return 1
     done
@@ -80,8 +101,9 @@ preflight_readonly_status() {
 
 run_preflight() {
     local profile="${1:-}"
-    local min_kib available_kib failed=0 readonly_result power_result
+    local min_kib failed=0 readonly_result power_result space_failed=0
     local state_dir
+    local home_space_path root_space_path home_filesystem root_filesystem
 
     min_kib="$(preflight_minimum_kib "$profile")" || {
         echo "未知预检类型：$profile"
@@ -100,12 +122,22 @@ run_preflight() {
     chmod 0600 "$PREFLIGHT_DETAIL_FILE" || return 1
     printf '操作=%s\n时间=%s\n' "$profile" "$(date '+%Y-%m-%d %H:%M:%S')" >> "$PREFLIGHT_DETAIL_FILE"
 
-    available_kib="$(preflight_available_kib)"
-    if preflight_positive_integer "$available_kib" && [ "$available_kib" -ge "$min_kib" ]; then
-        printf '空间=正常（%s KiB）\n' "$available_kib" >> "$PREFLIGHT_DETAIL_FILE"
-    else
+    home_space_path="${ZHOUKEER_PREFLIGHT_SPACE_PATH:-$HOME}"
+    root_space_path="${ZHOUKEER_PREFLIGHT_ROOT_PATH:-/}"
+    preflight_check_space_path "$home_space_path" "用户存储" "$min_kib" || space_failed=1
+    case "$profile" in
+        system-update|new-machine)
+            home_filesystem="$(preflight_filesystem_identity "$home_space_path")"
+            root_filesystem="$(preflight_filesystem_identity "$root_space_path")"
+            if [ -n "$home_filesystem" ] && [ "$home_filesystem" = "$root_filesystem" ]; then
+                printf '系统空间=与用户存储位于同一文件系统，未重复检查\n' >> "$PREFLIGHT_DETAIL_FILE"
+            else
+                preflight_check_space_path "$root_space_path" "系统" "$min_kib" || space_failed=1
+            fi
+            ;;
+    esac
+    if [ "$space_failed" -ne 0 ]; then
         echo "可用空间不足，已停止操作。请先释放内部存储空间。"
-        printf '空间=不足（%s KiB，至少需要 %s KiB）\n' "${available_kib:-未知}" "$min_kib" >> "$PREFLIGHT_DETAIL_FILE"
         failed=1
     fi
 

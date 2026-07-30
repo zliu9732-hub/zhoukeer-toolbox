@@ -43,7 +43,9 @@ _github_mirror_list() {
     # GitHub Release 可使用“代理前缀 + 原始 Release URL”的形式。该源和其他
     # 镜像一样只参与实际文件测速；完整下载仍必须通过调用方的 SHA256 校验。
     case "$url" in
-        https://github.com/*/releases/download/*) printf '%s\n' "https://ghfast.top/" ;;
+        https://github.com/*/releases/download/*|https://github.com/*/archive/*)
+            printf '%s\n' "https://ghfast.top/"
+            ;;
     esac
     printf '%s\n' "https://github.com"
 }
@@ -96,7 +98,7 @@ _github_source_speed() {
 
 get_ranked_github_sources() {
     local url="${1:-https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/VERSION}"
-    local work_dir source index=0 result_file
+    local work_dir source index=0 result_file all_sources ranked
 
     if [ "$url" = "$_GITHUB_RANKED_FOR_URL" ] && [ -n "$_GITHUB_SOURCES_RANKED" ]; then
         printf '%s' "$_GITHUB_SOURCES_RANKED"
@@ -104,6 +106,7 @@ get_ranked_github_sources() {
     fi
 
     work_dir="$(mktemp -d 2>/dev/null)" || return 1
+    all_sources="$(_github_mirror_list "$url")"
     while IFS= read -r source; do
         [ -n "$source" ] || continue
         index=$((index + 1))
@@ -115,20 +118,48 @@ get_ranked_github_sources() {
             esac
             printf '%s|%s|%s\n' "$speed" "$index" "$source" > "$result_file"
         ) &
-    done < <(_github_mirror_list "$url")
+    done <<< "$all_sources"
     wait
 
-    _GITHUB_SOURCES_RANKED="$(cat "$work_dir"/* 2>/dev/null | \
+    ranked="$(cat "$work_dir"/* 2>/dev/null | \
         sort -t'|' -k1,1nr -k2,2n | cut -d'|' -f3- | awk '!seen[$0]++')"
     rm -rf -- "$work_dir"
-    if ! printf '%s\n' "$_GITHUB_SOURCES_RANKED" | grep -Fxq 'https://github.com'; then
-        if [ -n "$_GITHUB_SOURCES_RANKED" ]; then
-            _GITHUB_SOURCES_RANKED="$_GITHUB_SOURCES_RANKED
-https://github.com"
-        else
-            _GITHUB_SOURCES_RANKED="https://github.com"
+
+    # LGC 使用的 ghfast 前缀专门服务 GitHub 发布包。未启用 Steam302 时，
+    # Release/归档先尝试它；Steam302 已就绪时仍按实测吞吐公平排序。
+    _GITHUB_SOURCES_RANKED=""
+    case "$url" in
+        https://github.com/*/releases/download/*|https://github.com/*/archive/*)
+            if ! _github_steam302_is_ready; then
+                _GITHUB_SOURCES_RANKED="https://ghfast.top/"
+            fi
+            ;;
+    esac
+    while IFS= read -r source; do
+        [ -n "$source" ] || continue
+        if ! printf '%s\n' "$_GITHUB_SOURCES_RANKED" | grep -Fxq "$source"; then
+            if [ -n "$_GITHUB_SOURCES_RANKED" ]; then
+                _GITHUB_SOURCES_RANKED="$_GITHUB_SOURCES_RANKED
+$source"
+            else
+                _GITHUB_SOURCES_RANKED="$source"
+            fi
         fi
-    fi
+    done <<< "$ranked"
+
+    # Range 测速失败不代表完整下载不可用。部分代理会拒绝 Range，但普通
+    # 下载仍然正常；将未测得速度的白名单源按原顺序追加到真实回退链。
+    while IFS= read -r source; do
+        [ -n "$source" ] || continue
+        if ! printf '%s\n' "$_GITHUB_SOURCES_RANKED" | grep -Fxq "$source"; then
+            if [ -n "$_GITHUB_SOURCES_RANKED" ]; then
+                _GITHUB_SOURCES_RANKED="$_GITHUB_SOURCES_RANKED
+$source"
+            else
+                _GITHUB_SOURCES_RANKED="$source"
+            fi
+        fi
+    done <<< "$all_sources"
     _GITHUB_RANKED_FOR_URL="$url"
     printf '%s' "$_GITHUB_SOURCES_RANKED"
 }
@@ -182,7 +213,13 @@ download_github_file() {
     esac
     case "$url" in
         https://github.com/*|https://raw.githubusercontent.com/*)
-            ranked_sources="$(get_ranked_github_sources "$url")" || ranked_sources=""
+            # 在当前 shell 更新缓存；命令替换会让全局排名只保留在子 shell，
+            # 导致同一文件的后续尝试重复测速。
+            if get_ranked_github_sources "$url" >/dev/null; then
+                ranked_sources="$_GITHUB_SOURCES_RANKED"
+            else
+                ranked_sources=""
+            fi
             if _github_steam302_is_ready; then
                 echo "已检测到 Steamcommunity 302；将按实际文件测速选择吞吐最快的下载源。"
             fi

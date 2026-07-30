@@ -10,7 +10,16 @@ SCRIPT_PATH="${BASH_SOURCE[0]}"
 CORE_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 PROJECT_ROOT="$(cd "$CORE_DIR/.." && pwd)"
 
-TOOLBOX_VERSION="V5"
+TOOLBOX_RELEASE_VERSION=""
+if [ -r "$PROJECT_ROOT/VERSION" ]; then
+    IFS= read -r TOOLBOX_RELEASE_VERSION < "$PROJECT_ROOT/VERSION" || true
+fi
+if [[ "$TOOLBOX_RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    TOOLBOX_VERSION="V$TOOLBOX_RELEASE_VERSION"
+else
+    TOOLBOX_RELEASE_VERSION="unknown"
+    TOOLBOX_VERSION="V6"
+fi
 TOOLBOX_NAME="周克儿工具箱"
 
 CONFIG_FILE="$PROJECT_ROOT/config/settings.conf"

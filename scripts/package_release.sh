@@ -1,9 +1,13 @@
 #!/bin/bash
 
-set -u
+set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="$(tr -d '\r\n' < "$PROJECT_ROOT/VERSION")"
+[[ "$VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || {
+    echo "VERSION 必须是严格的 x.y.z 数字版本。"
+    exit 1
+}
 DIST_DIR="$PROJECT_ROOT/dist"
 PACKAGE_NAME="zhoukeer-toolbox.tar.gz"
 PACKAGE_PATH="$DIST_DIR/$PACKAGE_NAME"
@@ -22,7 +26,7 @@ cd "$PROJECT_ROOT" || exit 1
 # 只打包 Git 已跟踪文件，避免把本机临时文件或未提交资料带入公开包。
 while IFS= read -r -d '' source_path; do
     case "$source_path" in
-        dist/*|decky-plugins/zhoukeer-localizer/*|modules/clover_boot.sh|assets/background.png|assets/welcome.png|assets/disclaimer-usage.png|assets/windows-switch.png|assets/clover/*|website/*|index.html|todesk.html) continue ;;
+        dist/*|tests/*|decky-plugins/zhoukeer-localizer/*|modules/clover_boot.sh|assets/background.png|assets/welcome.png|assets/disclaimer-usage.png|assets/windows-switch.png|assets/clover/*|website/*|index.html|todesk.html|AGENTS.md|CNAME|.nojekyll|.gitignore|main_old.sh|TODESK_GUIDE.md|STEAMDECK_PASSWORD_RESET_GUIDE.md|scripts/package_release.sh|scripts/deploy_release.sh|scripts/make_round_icon.swift) continue ;;
         third_party/decky-lsfg-vk-zh-v0.12.5/dist/*.map) continue ;;
         # FSR4 的 TypeScript 源码仅用于开发；安装器只会使用下列运行文件。
         # 不把整套源码塞进自更新包，避免 Gitee 对大文件原始下载返回 403。

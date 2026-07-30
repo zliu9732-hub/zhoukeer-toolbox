@@ -119,6 +119,10 @@ valid_sha256() {
     esac
 }
 
+valid_release_version() {
+    [[ "$1" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
+}
+
 checksum_from_manifest() {
     local manifest="$1"
     local package_name="$2"
@@ -323,8 +327,10 @@ trap cleanup EXIT
 if download_with_fallback "$VERSION_FILE" "版本信息" "$DOMAIN_VERSION_URL" "$GITEE_VERSION_URL" "$GITHUB_VERSION_URL"; then
     VERSION="$(tr -d '\r\n' < "$VERSION_FILE")"
 else
-    VERSION="unknown"
+    echo "无法确认工具箱版本，已停止安装。"
+    exit 1
 fi
+valid_release_version "$VERSION" || { echo "版本信息格式无效，已停止安装。"; exit 1; }
 echo "正在安装工具箱..."
 download_verified_package "$PACKAGE_FILE" "$CHECKSUM_FILE" || exit 1
 
@@ -341,6 +347,14 @@ if [ -z "$INSTALLER_PATH" ] || [ ! -f "$INSTALLER_PATH" ]; then
     exit 1
 fi
 PACKAGE_DIR="$(dirname "$INSTALLER_PATH")"
+
+[ -r "$PACKAGE_DIR/VERSION" ] || { echo "项目包不完整：缺少 VERSION"; exit 1; }
+PACKAGE_VERSION="$(tr -d '\r\n' < "$PACKAGE_DIR/VERSION")"
+valid_release_version "$PACKAGE_VERSION" || { echo "包内版本格式无效，已停止安装。"; exit 1; }
+[ "$PACKAGE_VERSION" = "$VERSION" ] || {
+    echo "下载版本与包内版本不一致，已停止安装。"
+    exit 1
+}
 
 if [ ! -f "$PACKAGE_DIR/main.sh" ] || [ ! -d "$PACKAGE_DIR/modules" ] || [ ! -d "$PACKAGE_DIR/core" ]; then
     echo "项目包不完整：缺少 main.sh、modules 或 core"

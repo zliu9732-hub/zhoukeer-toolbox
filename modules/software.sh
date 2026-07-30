@@ -65,6 +65,30 @@ software_details() {
             SOFTWARE_INSTALL_MODE="flatpak"
             SOFTWARE_CATEGORIES="Network;WebBrowser;"
             ;;
+        chrome)
+            SOFTWARE_NAME="Google Chrome"
+            SOFTWARE_DESKTOP_NAME="Google Chrome"
+            SOFTWARE_APP_ID="com.google.Chrome"
+            SOFTWARE_CATEGORIES="Network;WebBrowser;"
+            ;;
+        edge)
+            SOFTWARE_NAME="Microsoft Edge"
+            SOFTWARE_DESKTOP_NAME="Microsoft Edge"
+            SOFTWARE_APP_ID="com.microsoft.Edge"
+            SOFTWARE_CATEGORIES="Network;WebBrowser;"
+            ;;
+        protontricks)
+            SOFTWARE_NAME="Protontricks"
+            SOFTWARE_DESKTOP_NAME="Protontricks"
+            SOFTWARE_APP_ID="com.github.Matoking.protontricks"
+            SOFTWARE_CATEGORIES="Game;Utility;"
+            ;;
+        bottles)
+            SOFTWARE_NAME="Bottles"
+            SOFTWARE_DESKTOP_NAME="Bottles"
+            SOFTWARE_APP_ID="com.usebottles.bottles"
+            SOFTWARE_CATEGORIES="Utility;Game;"
+            ;;
         rustdesk)
             SOFTWARE_NAME="RustDesk"
             SOFTWARE_DESKTOP_NAME="RustDesk"
@@ -393,6 +417,10 @@ choose_install_remotes() {
         echo "测速结果：优先使用中科大缓存（科大 ${fallback_seconds}s，交大 ${primary_seconds}s）。"
     elif [ -n "$primary_seconds" ]; then
         echo "测速结果：优先使用上海交大缓存（${primary_seconds}s）。"
+    elif [ -n "$fallback_seconds" ]; then
+        INSTALL_PRIMARY_REMOTE="$FLATHUB_CN_FALLBACK_REMOTE"
+        INSTALL_FALLBACK_REMOTE="$FLATHUB_CN_REMOTE"
+        echo "上海交大缓存暂时不可用，优先使用已连通的中科大缓存（${fallback_seconds}s）。"
     else
         echo "测速未完成，默认先尝试上海交大缓存。"
     fi
@@ -953,9 +981,10 @@ install_software() {
         fi
         if [ "$_fr_retry" -eq 0 ]; then
             echo "安装失败，正在修复 Flatpak 环境后重试..."
-            bash "$PROJECT_ROOT/modules/domestic_source.sh" enable 2>/dev/null || true
-            ensure_flatpak_remotes 2>/dev/null || true
-            choose_install_remotes 2>/dev/null || true
+            # 用户已在本次安装开始时明确确认过国内缓存风险。内部修复只
+            # 复用该次确认，不能隐藏提示后再次等待输入。
+            ZHOUKEER_AUTO_CONFIRM=1 ensure_flatpak_remotes || true
+            choose_install_remotes || true
             _fr_retry=1
         else
             echo "两个国内缓存均失败或超时，已停止。"
@@ -980,7 +1009,7 @@ show_software_status() {
     local installed_count=0
 
     echo "常用软件与远程协助安装状态："
-    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend; do
+    for target in wechat qq browser chrome edge rustdesk anydesk baidunetdisk libreoffice vlc obs localsend protontricks bottles; do
         software_details "$target" || return 1
         if software_is_installed; then
             echo "✓ $SOFTWARE_NAME：已安装"
@@ -989,14 +1018,14 @@ show_software_status() {
             echo "- $SOFTWARE_NAME：未安装"
         fi
     done
-    echo "已安装：$installed_count / 10"
+    echo "已安装：$installed_count / 14"
 }
 
 repair_software_shortcuts() {
     local target
     local repaired=0
 
-    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend; do
+    for target in wechat qq browser chrome edge rustdesk anydesk baidunetdisk libreoffice vlc obs localsend protontricks bottles; do
         software_details "$target" || return 1
         if software_is_installed; then
             create_software_shortcut || return 1
@@ -1070,7 +1099,7 @@ install_firefox_sjtu() {
 
     if ! flatpak remote-ls --user Sjtu 2>/dev/null | grep -q .; then
         echo "交大镜像源未配置或不可用，请先在系统设置中添加。"
-        echo "命令：bash modules/domestic_source.sh sjtu"
+        echo "命令：bash modules/domestic_source.sh enable"
         return 1
     fi
 
@@ -1265,12 +1294,12 @@ uninstall_software() {
         wechat) uninstall_appimage_software "$WECHAT_APPIMAGE_PATH" "微信" "微信.desktop" ;;
         qq) uninstall_flatpak_software "com.qq.QQ" "QQ" "QQ.desktop" "com.qq.QQ.desktop" ;;
         browser) uninstall_flatpak_software "org.mozilla.firefox" "Firefox 浏览器" "Firefox浏览器.desktop" "org.mozilla.firefox.desktop" ;;
-        chrome) uninstall_flatpak_software "com.google.Chrome" "Google Chrome" "com.google.Chrome.desktop" ;;
-        edge) uninstall_flatpak_software "com.microsoft.Edge" "Microsoft Edge" "com.microsoft.Edge.desktop" ;;
+        chrome) uninstall_flatpak_software "com.google.Chrome" "Google Chrome" "Google Chrome.desktop" "com.google.Chrome.desktop" ;;
+        edge) uninstall_flatpak_software "com.microsoft.Edge" "Microsoft Edge" "Microsoft Edge.desktop" "com.microsoft.Edge.desktop" ;;
         rustdesk) uninstall_appimage_software "$RUSTDESK_APPIMAGE_PATH" "RustDesk" "RustDesk.desktop" ;;
         anydesk) uninstall_flatpak_software "com.anydesk.Anydesk" "AnyDesk" "AnyDesk.desktop" "com.anydesk.Anydesk.desktop" ;;
-        protontricks) uninstall_flatpak_software "com.github.Matoking.protontricks" "Protontricks" "com.github.Matoking.protontricks.desktop" ;;
-        bottles) uninstall_flatpak_software "com.usebottles.bottles" "Bottles" "com.usebottles.bottles.desktop" ;;
+        protontricks) uninstall_flatpak_software "com.github.Matoking.protontricks" "Protontricks" "Protontricks.desktop" "com.github.Matoking.protontricks.desktop" ;;
+        bottles) uninstall_flatpak_software "com.usebottles.bottles" "Bottles" "Bottles.desktop" "com.usebottles.bottles.desktop" ;;
         baidunetdisk) uninstall_flatpak_software "com.baidu.NetDisk" "百度网盘" "com.baidu.NetDisk.desktop" ;;
         libreoffice) uninstall_flatpak_software "org.libreoffice.LibreOffice" "LibreOffice 办公套件" "org.libreoffice.LibreOffice.desktop" ;;
         vlc) uninstall_flatpak_software "org.videolan.VLC" "VLC 播放器" "org.videolan.VLC.desktop" ;;
@@ -1282,15 +1311,11 @@ uninstall_software() {
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
-        wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend) install_software "$1" ;;
+        wechat|qq|browser|chrome|edge|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|protontricks|bottles) install_software "$1" ;;
         firefox-pacman|firefox-sjtu|system-setup)
             echo "该旧版系统级功能已停用，请使用当前 Flatpak 菜单功能。"
             exit 1
             ;;
-        chrome) install_flatpak_app "com.google.Chrome" "Google Chrome" ;;
-        edge) install_flatpak_app "com.microsoft.Edge" "Microsoft Edge" ;;
-        protontricks) install_flatpak_app "com.github.Matoking.protontricks" "Protontricks" ;;
-        bottles) install_flatpak_app "com.usebottles.bottles" "Bottles" ;;
         uninstall)
             [ -n "${2:-}" ] || { echo "用法: $0 uninstall 软件名"; exit 1; }
             uninstall_software "$2"

@@ -31,6 +31,7 @@ done
 if [ -n "$write_out" ]; then
     printf 'probe|%s\n' "$url" >> "${GITHUB_TEST_CALLS:?}"
     case "$url" in
+        *probe-fail.invalid*|https://ghfast.top/*) exit 22 ;;
         *fast.invalid*) printf '2097152' ;;
         *slow.invalid*) printf '262144' ;;
         *) printf '1048576' ;;
@@ -42,7 +43,7 @@ if [ "${GITHUB_TEST_FAIL_DOWNLOAD:-0}" = "1" ]; then
     exit 22
 fi
 case "$url" in
-    *fast.invalid*) cp "${GITHUB_TEST_PAYLOAD:?}" "$output" ;;
+    *fast.invalid*|*probe-fail.invalid*|https://ghfast.top/*) cp "${GITHUB_TEST_PAYLOAD:?}" "$output" ;;
     *) exit 22 ;;
 esac
 EOF
@@ -69,6 +70,11 @@ if printf '%s\n' "$raw_sources" | grep -Fxq 'https://ghfast.top/'; then
     echo "FAIL: ghfast.top 不应被用于非 Release 下载" >&2
     exit 1
 fi
+archive_sources="$(_github_mirror_list 'https://github.com/example/project/archive/refs/tags/v1.0.0.zip')"
+printf '%s\n' "$archive_sources" | grep -Fxq 'https://ghfast.top/' || {
+    echo "FAIL: GitHub 标签归档缺少 ghfast.top 候选源" >&2
+    exit 1
+}
 export PATH="$BIN_DIR:/usr/bin:/bin"
 export GITHUB_TEST_CALLS="$CALLS_FILE"
 export GITHUB_TEST_PAYLOAD="$PAYLOAD"
@@ -88,7 +94,36 @@ grep -Fq "probe|https://fast.invalid/$url" "$CALLS_FILE" || {
     exit 1
 }
 
+probe_count_before="$(grep -c '^probe|' "$CALLS_FILE")"
+download_github_file "$url" "$OUTPUT" "$expected" "缓存测试包"
+probe_count_after="$(grep -c '^probe|' "$CALLS_FILE")"
+[ "$probe_count_after" -eq "$probe_count_before" ] || {
+    echo "FAIL: 同一 GitHub 文件重复下载时仍重新测速" >&2
+    exit 1
+}
+
+# ghfast 可能拒绝 Range 测速，但完整 Release 下载仍可用，不能因此被移出
+# 正式回退链。
 : > "$CALLS_FILE"
+_GITHUB_SOURCES_RANKED=""
+_GITHUB_RANKED_FOR_URL=""
+GITHUB_MIRRORS=""
+release_url="https://github.com/example/project/releases/download/v1.0.0/example.zip"
+download_github_file "$release_url" "$OUTPUT" "$expected" "测速失败回退测试包"
+first_release_download="$(grep '^download|' "$CALLS_FILE" | head -n 1)"
+[ "$first_release_download" = "download|https://ghfast.top/$release_url" ] || {
+    echo "FAIL: 未启用 Steam302 时 Release 没有先尝试 ghfast" >&2
+    exit 1
+}
+grep -Fq "download|https://ghfast.top/$release_url" "$CALLS_FILE" || {
+    echo "FAIL: ghfast 测速失败后没有进入完整下载回退链" >&2
+    exit 1
+}
+
+: > "$CALLS_FILE"
+_GITHUB_SOURCES_RANKED=""
+_GITHUB_RANKED_FOR_URL=""
+GITHUB_MIRRORS="https://slow.invalid/{url} https://fast.invalid/{url}"
 steam302_download_acceleration_is_ready() { return 0; }
 download_github_file "$url" "$OUTPUT" "$expected" "302优先测试"
 downloads="$(grep '^download|' "$CALLS_FILE")"

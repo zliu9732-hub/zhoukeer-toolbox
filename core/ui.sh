@@ -13,6 +13,7 @@ UI_PREFERRED_COLUMNS=120
 UI_PREFERRED_ROWS=32
 UI_LAYOUT_RETRY_COUNT=20
 UI_LAYOUT_RETRY_INTERVAL=0.2
+UI_BOTTOM_ROW_USED=0
 
 ui_detect_layout() {
     local columns="${COLUMNS:-}"
@@ -65,9 +66,9 @@ ui_wait_for_minimum_canvas() {
 
 logo() {
 echo -e "${BLUE}"
-cat << "EOL"
+cat << EOL
 ====================================
-    📦 周克儿工具箱 v5
+    📦 周克儿工具箱 ${TOOLBOX_VERSION:-V6}
    SteamOS Handheld Toolbox
 ====================================
 EOL
@@ -169,6 +170,9 @@ ui_touch_button() {
     ui_move "$((row + 1))" "$UI_PANEL_COL"
     printf '%b────────────────────────────────────────────────────\033[0m' \
         "$separator_color"
+    if [ $((row + 1)) -ge "$UI_LAST_ROW" ]; then
+        UI_BOTTOM_ROW_USED=1
+    fi
 }
 
 draw_category_frame() {
@@ -181,6 +185,7 @@ draw_category_frame() {
     ui_wait_for_minimum_canvas || true
     ui_discard_pending_input
     ui_reset_screen
+    UI_BOTTOM_ROW_USED=0
 
     ui_move 1 3
     printf '\033[1;38;5;245m功能导航\033[0m'
@@ -205,7 +210,7 @@ draw_category_frame() {
     done
 
     if [ -n "$title" ]; then
-        ui_panel_line 2 '\033[1;38;5;203m' "◆ 周克儿工具箱  ·  V5"
+        ui_panel_line 2 '\033[1;38;5;203m' "◆ 周克儿工具箱  ·  ${TOOLBOX_VERSION:-V6}"
         ui_panel_line 3 '\033[1;38;5;45m' "STEAMOS 掌机  /  中文工具"
         ui_panel_line 4 '\033[38;5;203m' "────────────────────────────────────────"
         if [ "$show_context" = "1" ]; then
@@ -221,7 +226,7 @@ draw_disclaimer_frame() {
     ui_reset_screen
 
     ui_move 2 6
-    printf '\033[1;38;5;203m ◆ 周克儿工具箱  ·  V5 \033[0m'
+    printf '\033[1;38;5;203m ◆ 周克儿工具箱  ·  %s \033[0m' "${TOOLBOX_VERSION:-V6}"
     ui_move 3 6
     printf '\033[38;5;203m────────────────────────────────────────────────────────────\033[0m'
     ui_move 5 6
@@ -254,6 +259,9 @@ ui_disclaimer_button() {
 }
 
 ui_prompt() {
+    # 满页菜单的底部按钮占用第 24 行时，保留按钮的第二行触控区，
+    # 避免通用提示覆盖分隔线后又被误认为“返回”按钮。
+    [ "${UI_BOTTOM_ROW_USED:-0}" -eq 0 ] || return 0
     ui_move "$UI_LAST_ROW" "$UI_PANEL_COL"
     printf '\033[0m\033[2K\033[38;5;255m 触屏或触控板点击功能 \033[0m'
 }
