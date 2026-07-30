@@ -54,6 +54,7 @@ memory_config_target_is_safe() {
     return 0
 }
 memory_swap_unit_name() { printf 'test-swap.swap\n'; }
+memory_swap_unit_name_for_path() { printf 'fallback-test-swap.swap\n'; }
 memory_swapfile_is_complete() { return 1; }
 memory_create_swapfile() {
     printf '%s\n' "$1" > "$CREATED"
@@ -122,5 +123,25 @@ memory_move_swapfile_after_forced_immutable_clear "$RETRY_SOURCE" "$RETRY_BACKUP
 [ ! -e "$RETRY_SOURCE" ] || fail "旧 swap 未移动到备份位置"
 [ -f "$RETRY_BACKUP" ] || fail "旧 swap 备份缺失"
 [ "$MEMORY_SWAPFILE_WAS_IMMUTABLE" -eq 1 ] || fail "回退移动未记录不可变保护"
+
+# 系统 swap 无法移动且工具箱备用路径残留旧文件时，应先原子备份旧备用
+# 文件，再启用新文件；失败不能覆盖或丢失旧内容。
+FALLBACK_NEW="$TMP_ROOT/fallback-new"
+MEMORY_FALLBACK_SWAPFILE_PATH="$TMP_ROOT/.zhoukeer-swapfile"
+printf 'new swap\n' > "$FALLBACK_NEW"
+printf 'stale fallback\n' > "$MEMORY_FALLBACK_SWAPFILE_PATH"
+FALLBACK_SWAP_LOG="$TMP_ROOT/fallback-swap.log"
+memory_swap_is_active() { return 1; }
+memory_clear_immutable_attribute() { MEMORY_SWAPFILE_WAS_IMMUTABLE=0; return 0; }
+toolbox_sudo() {
+    case "${1:-}" in
+        swapon) printf '%s\n' "$*" >> "$FALLBACK_SWAP_LOG"; return 0 ;;
+        *) "$@" ;;
+    esac
+}
+memory_activate_fallback_swapfile "$FALLBACK_NEW" || fail "残留备用 swap 存在时未能安全替换"
+[ "$(cat "$MEMORY_FALLBACK_SWAPFILE_PATH")" = 'new swap' ] || fail "新备用 swap 未原子替换到目标路径"
+[ ! -e "${MEMORY_FALLBACK_SWAPFILE_PATH}.backup.$$" ] || fail "成功后仍残留备用 swap 临时备份"
+grep -Fq 'swapon --priority 10' "$FALLBACK_SWAP_LOG" || fail "新备用 swap 未启用"
 
 echo "PASS: zram 与磁盘 swap 一键推荐值、配置和后台启用模拟通过"

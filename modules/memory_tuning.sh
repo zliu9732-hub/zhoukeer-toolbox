@@ -108,10 +108,46 @@ memory_move_swapfile_after_forced_immutable_clear() {
 
 memory_activate_fallback_swapfile() {
     local new_file="$1"
+    local backup_file="${MEMORY_FALLBACK_SWAPFILE_PATH}.backup.$$"
+    local fallback_was_active=0
 
-    toolbox_sudo test ! -e "$MEMORY_FALLBACK_SWAPFILE_PATH" || return 1
-    toolbox_sudo mv -- "$new_file" "$MEMORY_FALLBACK_SWAPFILE_PATH" || return 1
-    toolbox_sudo swapon --priority 10 "$MEMORY_FALLBACK_SWAPFILE_PATH" || return 1
+    toolbox_sudo test ! -e "$backup_file" || return 1
+    if toolbox_sudo test -e "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
+        if ! toolbox_sudo test -f "$MEMORY_FALLBACK_SWAPFILE_PATH" || \
+            toolbox_sudo test -L "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
+            echo "工具箱备用 swap 路径不是安全的普通文件，已保留原内容。"
+            return 1
+        fi
+        if memory_swap_is_active "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
+            fallback_was_active=1
+            toolbox_sudo swapoff "$MEMORY_FALLBACK_SWAPFILE_PATH" || return 1
+        fi
+        memory_clear_immutable_attribute "$MEMORY_FALLBACK_SWAPFILE_PATH" || {
+            [ "$fallback_was_active" -eq 0 ] || toolbox_sudo swapon "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
+            return 1
+        }
+        if ! toolbox_sudo mv -- "$MEMORY_FALLBACK_SWAPFILE_PATH" "$backup_file"; then
+            memory_restore_immutable_attribute "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
+            [ "$fallback_was_active" -eq 0 ] || toolbox_sudo swapon "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
+            return 1
+        fi
+    fi
+    if ! toolbox_sudo mv -- "$new_file" "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
+        toolbox_sudo test ! -e "$backup_file" || \
+            toolbox_sudo mv -- "$backup_file" "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
+        memory_restore_immutable_attribute "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
+        [ "$fallback_was_active" -eq 0 ] || toolbox_sudo swapon "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
+        return 1
+    fi
+    if ! toolbox_sudo swapon --priority 10 "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
+        toolbox_sudo rm -f -- "$MEMORY_FALLBACK_SWAPFILE_PATH"
+        toolbox_sudo test ! -e "$backup_file" || \
+            toolbox_sudo mv -- "$backup_file" "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
+        memory_restore_immutable_attribute "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
+        [ "$fallback_was_active" -eq 0 ] || toolbox_sudo swapon "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
+        return 1
+    fi
+    toolbox_sudo rm -f -- "$backup_file" || true
     MEMORY_SWAPFILE_PATH="$MEMORY_FALLBACK_SWAPFILE_PATH"
     echo "旧 swap 受系统保护无法移动，已保留原文件并启用工具箱独立 swap：$MEMORY_SWAPFILE_PATH"
 }
@@ -131,7 +167,7 @@ memory_swapfile_is_complete() {
 memory_validate_paths() {
     local path
 
-    for path in "$MEMORY_SWAPFILE_PATH" "$MEMORY_ZRAM_CONFIG" \
+    for path in "$MEMORY_SWAPFILE_PATH" "$MEMORY_FALLBACK_SWAPFILE_PATH" "$MEMORY_ZRAM_CONFIG" \
         "$MEMORY_SYSCTL_CONFIG" "$MEMORY_SYSTEMD_DIR"; do
         case "$path" in
             /*) ;;
@@ -148,10 +184,18 @@ memory_validate_paths() {
         echo "虚拟内存保留空间配置无效。"
         return 1
     }
+    [ "$MEMORY_SWAPFILE_PATH" != "$MEMORY_FALLBACK_SWAPFILE_PATH" ] || {
+        echo "主 swap 与工具箱备用 swap 路径不能相同。"
+        return 1
+    }
+}
+
+memory_swap_unit_name_for_path() {
+    systemd-escape --path --suffix=swap "$1"
 }
 
 memory_swap_unit_name() {
-    systemd-escape --path --suffix=swap "$MEMORY_SWAPFILE_PATH"
+    memory_swap_unit_name_for_path "$MEMORY_SWAPFILE_PATH"
 }
 
 memory_show_status() {
@@ -305,7 +349,7 @@ memory_create_swapfile() {
 }
 
 memory_optimize() {
-    local target_gib unit_name tmp_dir zram_file sysctl_file unit_file
+    local target_gib unit_name fallback_unit_name tmp_dir zram_file sysctl_file unit_file
     local command_name
 
     detect_platform
@@ -346,14 +390,20 @@ memory_optimize() {
         echo "检测到工具箱独立 swap，继续使用：$MEMORY_SWAPFILE_PATH"
     fi
     unit_name="$(memory_swap_unit_name)" || return 1
+    fallback_unit_name="$(memory_swap_unit_name_for_path "$MEMORY_FALLBACK_SWAPFILE_PATH")" || return 1
     memory_config_target_is_safe "$MEMORY_ZRAM_CONFIG" || return 1
     memory_config_target_is_safe "$MEMORY_SYSCTL_CONFIG" || return 1
     memory_config_target_is_safe "$MEMORY_SYSTEMD_DIR/$unit_name" || return 1
+    [ "$fallback_unit_name" = "$unit_name" ] || \
+        memory_config_target_is_safe "$MEMORY_SYSTEMD_DIR/$fallback_unit_name" || return 1
     if memory_swapfile_is_complete "$MEMORY_SWAPFILE_PATH" "$target_gib"; then
         echo "[已设置] ${target_gib}GB 磁盘 swap 文件完整，无需重复创建。"
     else
         memory_create_swapfile "$target_gib" || return 1
     fi
+    # 受保护的系统 swap 无法移动时，创建函数会切换到工具箱独立路径。
+    # systemd 单元名必须按最终路径重新计算，不能继续使用原 swap 的名称。
+    unit_name="$(memory_swap_unit_name)" || return 1
 
     tmp_dir="$(mktemp -d)" || return 1
     trap 'rm -rf -- "$tmp_dir"' EXIT INT TERM
