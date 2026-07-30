@@ -64,7 +64,14 @@ preflight_network_ok() {
     if [ "${ZHOUKEER_TEST_MODE:-0}" = "1" ] && [ "${ZHOUKEER_PREFLIGHT_SKIP_NETWORK:-0}" = "1" ]; then
         return 0
     fi
-    bash "$PROJECT_ROOT/modules/network.sh" --preflight
+    ZHOUKEER_NETWORK_QUIET=1 bash "$PROJECT_ROOT/modules/network.sh" --preflight
+}
+
+preflight_needs_network() {
+    case "$1" in
+        system-update|new-machine|decky|steam302) return 0 ;;
+        *) return 1 ;;
+    esac
 }
 
 preflight_readonly_status() {
@@ -109,12 +116,16 @@ run_preflight() {
         failed=1
     fi
 
-    if preflight_network_ok; then
-        printf '网络=至少一条安全线路可用\n' >> "$PREFLIGHT_DETAIL_FILE"
+    if preflight_needs_network "$profile"; then
+        if preflight_network_ok; then
+            printf '网络=至少一条安全线路可用\n' >> "$PREFLIGHT_DETAIL_FILE"
+        else
+            echo "下载连接暂时不可用，工具箱没有开始修改。请检查网络后重试。"
+            printf '网络=不可用\n' >> "$PREFLIGHT_DETAIL_FILE"
+            failed=1
+        fi
     else
-        echo "网络连接不可用，已停止操作。请先运行“检查问题”。"
-        printf '网络=不可用\n' >> "$PREFLIGHT_DETAIL_FILE"
-        failed=1
+        printf '网络=此操作不需要联网，未检查\n' >> "$PREFLIGHT_DETAIL_FILE"
     fi
 
     preflight_readonly_status
@@ -122,10 +133,9 @@ run_preflight() {
     case "$readonly_result" in
         0) printf 'SteamOS只读状态=已保护\n' >> "$PREFLIGHT_DETAIL_FILE" ;;
         1)
-            printf 'SteamOS只读状态=当前未保护\n' >> "$PREFLIGHT_DETAIL_FILE"
+            printf 'SteamOS只读状态=当前可写；本次操作完成后恢复保护\n' >> "$PREFLIGHT_DETAIL_FILE"
             case "$profile" in system-update|new-machine)
-                echo "SteamOS 当前未处于只读保护状态，已停止操作。请先恢复系统保护。"
-                failed=1
+                echo "SteamOS 当前处于可写状态；本次操作完成后会恢复系统保护。"
             esac
             ;;
         *)

@@ -61,11 +61,20 @@ network_probe() {
     local id="$1" label="$2" url="$3" result
     result="$NETWORK_TMP_DIR/$id"
     (
-        if curl --fail --location --silent --show-error \
-            --proto '=https' --proto-redir '=https' \
-            --connect-timeout "${ZHOUKEER_NETWORK_CONNECT_TIMEOUT:-3}" \
-            --max-time "${ZHOUKEER_NETWORK_MAX_TIME:-8}" \
-            --range 0-0 --max-filesize 1048576 --output /dev/null "$url"; then
+        if [ "${ZHOUKEER_NETWORK_QUIET:-0}" = "1" ]; then
+            curl --fail --location --silent --show-error \
+                --proto '=https' --proto-redir '=https' \
+                --connect-timeout "${ZHOUKEER_NETWORK_CONNECT_TIMEOUT:-3}" \
+                --max-time "${ZHOUKEER_NETWORK_MAX_TIME:-8}" \
+                --range 0-0 --max-filesize 1048576 --output /dev/null "$url" 2>/dev/null
+        else
+            curl --fail --location --silent --show-error \
+                --proto '=https' --proto-redir '=https' \
+                --connect-timeout "${ZHOUKEER_NETWORK_CONNECT_TIMEOUT:-3}" \
+                --max-time "${ZHOUKEER_NETWORK_MAX_TIME:-8}" \
+                --range 0-0 --max-filesize 1048576 --output /dev/null "$url"
+        fi
+        if [ "$?" -eq 0 ]; then
             printf 'ok\t%s\t连接正常\n' "$label" > "$result"
         else
             printf 'fail\t%s\t连接超时或被拒绝\n' "$label" > "$result"

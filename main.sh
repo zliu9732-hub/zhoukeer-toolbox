@@ -73,6 +73,8 @@ pause_menu() {
     echo "请点击窗口任意位置返回工具箱"
     enable_mouse_tracking
     read_touch_click || true
+    disable_mouse_tracking
+    ui_discard_pending_input
 }
 
 run_action() {

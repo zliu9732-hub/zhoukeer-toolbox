@@ -89,7 +89,7 @@ check_toolbox_shortcuts() {
 }
 
 check_network() {
-    bash "$PROJECT_ROOT/modules/network.sh" --preflight
+    ZHOUKEER_NETWORK_QUIET=1 bash "$PROJECT_ROOT/modules/network.sh" --preflight
 }
 
 run_new_machine_initialization() {

@@ -10,7 +10,7 @@ SCRIPT_PATH="${BASH_SOURCE[0]}"
 CORE_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 PROJECT_ROOT="$(cd "$CORE_DIR/.." && pwd)"
 
-TOOLBOX_VERSION="V6.0.1（稳定回退）"
+TOOLBOX_VERSION="V6.0.2"
 TOOLBOX_NAME="周克儿工具箱"
 
 CONFIG_FILE="$PROJECT_ROOT/config/settings.conf"
