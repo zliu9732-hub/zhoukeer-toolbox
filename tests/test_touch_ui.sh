@@ -130,8 +130,8 @@ for entry in \
     'ui_sidebar_item 2 init "◆ 新机器设置"' \
     'ui_sidebar_item 4 software "▣ 安装常用软件"' \
     'ui_sidebar_item 6 games "✦ 游戏与插件"' \
-    'ui_sidebar_item 8 network "⌁ 检查网络"' \
-    'ui_sidebar_item 10 support "▤ 检查问题"' \
+    'ui_sidebar_item 8 emulators "▦ 模拟器"' \
+    'ui_sidebar_item 10 support "◎ 检查与维护"' \
     'ui_sidebar_item 12 advanced "! 更多设置"' \
     'ui_sidebar_item 14 uninstall "- 卸载已安装"' \
     'ui_sidebar_item 16 notice "▧ 免责声明与须知"' \
@@ -146,8 +146,8 @@ for mapping in \
     'left:2-3:nav-init' \
     'left:4-5:nav-software' \
     'left:6-7:nav-games' \
-    'left:8-9:nav-network' \
-    'left:10-11:nav-help' \
+    'left:8-9:nav-emulators' \
+    'left:10-11:nav-check' \
     'left:12-13:nav-advanced' \
     'left:14-15:nav-uninstall' \
     'left:16-17:nav-notice' \

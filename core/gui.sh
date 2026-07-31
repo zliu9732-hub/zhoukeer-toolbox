@@ -186,7 +186,6 @@ game_environment_gui_menu() {
             tomoon "ToMoon｜作者 GitHub Release 网络工具插件" \
             battlenet "战网启动器｜首次需在 Steam 兼容性选择 Proton 10.0-4" \
             ubisoft "育碧｜安装育碧游戏平台并添加到 Steam" \
-            emulators "安装模拟器｜Switch、Wii U、PS1 至 PS4" \
             decky-install "安装插件商城｜国内失败自动切换官方源｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -240,10 +239,6 @@ game_environment_gui_menu() {
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft
                 ;;
-            emulators)
-                emulator_gui_menu
-                [ "$GUI_NAV_HOME" -eq 0 ] || return 0
-                ;;
             decky-install)
                 gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。优先使用国内线路，失败自动切换 Decky 官方国外线路；随后会停止旧服务，再校验并更新插件商城，已有插件和设置会保留。是否继续？" && \
                     run_gui_action "安装插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
@@ -269,7 +264,6 @@ emulator_gui_menu() {
             ppsspp "PPSSPP｜PSP 模拟器" \
             mgba "mGBA｜GBA 模拟器" \
             azahar "Azahar｜3DS 模拟器" \
-            back "返回游戏与插件" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -290,7 +284,6 @@ emulator_gui_menu() {
                     run_gui_action "安装模拟器" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/emulators.sh" "$choice"
                 ;;
-            back) return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
         esac
@@ -393,26 +386,6 @@ dual_system_menu() {
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" cleanup-boot
                 ;;
             back) return 0 ;;
-            home) GUI_NAV_HOME=1; return 0 ;;
-            nav-exit) exit 0 ;;
-        esac
-    done
-}
-
-network_store_gui_menu() {
-    local choice
-
-    while true; do
-        choice="$(gui_dialog --menu "检查网络｜自动检查连接并给出下一步建议" \
-            network-status "一键检查网络｜自动检查常用下载连接，不修改设置" \
-            source-status "查看下载状态｜查看最近成功时间和失败原因" \
-            manage-advanced "更多设置｜管理国内下载和加速功能" \
-            home "返回首页" \
-            nav-exit "退出工具箱")" || return 0
-        case "$choice" in
-            network-status) run_gui_action "一键检查网络" bash "$PROJECT_ROOT/modules/network.sh" ;;
-            source-status) run_gui_action "查看下载状态" bash "$PROJECT_ROOT/modules/diagnostics.sh" status ;;
-            manage-advanced) advanced_tools_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
         esac
@@ -604,16 +577,22 @@ support_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "检查问题｜先检查，再按结果处理或发给维护人员" \
+        choice="$(gui_dialog --menu "检查与维护｜检查网络与常见问题，按结果处理或发给维护人员" \
+            network-status "一键检查网络｜自动检查常用下载连接，不修改设置" \
             maintenance "检查常见问题｜检查系统、游戏和可安全清理的内容" \
+            source-status "查看下载状态｜查看最近成功时间和失败原因" \
             diagnostic-bundle "发给维护人员｜生成诊断包，不包含密码和隐私信息" \
             help "使用帮助与设置｜查看指南、备份设置和工具箱更新" \
+            manage-advanced "更多设置｜管理国内下载和加速功能" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
+            network-status) run_gui_action "一键检查网络" bash "$PROJECT_ROOT/modules/network.sh" ;;
             maintenance) maintenance_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
+            source-status) run_gui_action "查看下载状态" bash "$PROJECT_ROOT/modules/diagnostics.sh" status ;;
             diagnostic-bundle) run_gui_action "发给维护人员" bash "$PROJECT_ROOT/modules/diagnostics.sh" bundle ;;
             help) help_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
+            manage-advanced) advanced_tools_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
         esac
@@ -774,8 +753,8 @@ main_gui_menu() {
             nav-init "新机器设置｜第一次使用从这里开始" \
             nav-software "安装常用软件｜聊天、浏览器和远程工具" \
             nav-games "游戏与插件｜浏览插件商城和游戏组件" \
-            nav-network "检查网络｜自动判断连接并尝试已有线路" \
-            nav-help "检查问题｜生成可发给维护人员的安全诊断包" \
+            nav-emulators "模拟器｜Switch、Wii U、PS1 至 3DS 模拟器" \
+            nav-check "检查与维护｜检查网络、常见问题并生成诊断包" \
             nav-advanced "更多设置｜国内下载、内存、密码和双系统" \
             nav-uninstall "卸载已安装｜逐项安全移除软件和系统组件" \
             nav-notice "免责声明与使用须知｜查看完整图文说明" \
@@ -785,8 +764,8 @@ main_gui_menu() {
             nav-init) new_machine_gui_menu ;;
             nav-software) software_menu ;;
             nav-games) game_environment_gui_menu ;;
-            nav-network) network_store_gui_menu ;;
-            nav-help) support_gui_menu ;;
+            nav-emulators) emulator_gui_menu ;;
+            nav-check) support_gui_menu ;;
             nav-advanced) advanced_tools_gui_menu ;;
             nav-uninstall) uninstall_software_gui_menu ;;
             nav-notice)

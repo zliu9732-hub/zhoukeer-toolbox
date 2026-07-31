@@ -42,8 +42,8 @@ for item in \
     '新机器设置｜第一次使用从这里开始' \
     '安装常用软件｜聊天、浏览器和远程工具' \
     '游戏与插件｜浏览插件商城和游戏组件' \
-    '检查网络｜自动判断连接并尝试已有线路' \
-    '检查问题｜生成可发给维护人员的安全诊断包' \
+    '模拟器｜Switch、Wii U、PS1 至 3DS 模拟器' \
+    '检查与维护｜检查网络、常见问题并生成诊断包' \
     '更多设置｜国内下载、内存、密码和双系统' \
     '免责声明与使用须知｜查看完整图文说明'; do
     assert_contains "$touch_home" "$item" "触控首页缺少：$item"
@@ -82,8 +82,10 @@ assert_contains "$touch_plugin_page_2" '战网启动器' "插件第二页缺少�
 assert_contains "$gui_games" '战网启动器' "GUI 游戏与插件缺少战网启动器"
 assert_contains "$touch_plugin_page_2" 'ToMoon' "插件第二页缺少 ToMoon"
 assert_contains "$gui_games" 'ToMoon' "GUI 游戏与插件缺少 ToMoon"
-assert_contains "$touch_plugin_page_2" '安装模拟器' "插件第二页缺少模拟器入口"
-assert_contains "$gui_games" '安装模拟器' "GUI 游戏与插件缺少模拟器入口"
+assert_not_contains "$touch_plugin_page_2" '安装模拟器' "插件第二页仍显示模拟器入口"
+assert_not_contains "$gui_games" '安装模拟器' "GUI 游戏与插件仍显示模拟器入口"
+assert_contains "$touch_plugin_page_2" 'right:19-20:previous' "插件第二页缺少调整后的上一页坐标"
+assert_contains "$touch_plugin_page_2" 'right:22-23:home' "插件第二页缺少调整后的返回首页坐标"
 assert_contains "$touch_plugin_page_2" 'modules/plugin_store.sh" tomoon' "触控 ToMoon 未使用独立安装器"
 assert_contains "$gui_games" 'modules/plugin_store.sh" tomoon' "GUI ToMoon 未使用独立安装器"
 touch_software_buttons="$(printf '%s\n' "$touch_software" | grep 'ui_touch_button')"
@@ -110,18 +112,6 @@ for menu in "$touch_games" "$gui_games"; do
     assert_not_contains "$menu" '兼容层管理' "不存在的兼容层管理仍可见"
 done
 
-touch_network="$(function_source "$MAIN_FILE" network_store_menu)"
-gui_network="$(function_source "$GUI_FILE" network_store_gui_menu)"
-for menu in "$touch_network" "$gui_network"; do
-    for item in '一键检查网络' '查看下载状态' '更多设置'; do
-        assert_contains "$menu" "$item" "检查网络缺少：$item"
-    done
-    for hidden in '网络修复' 'Discover 应用商店修复' '恢复官方源'; do
-        assert_not_contains "$menu" "$hidden" "普通网络页不应显示：$hidden"
-    done
-    assert_not_contains "$menu" 'domestic_source.sh" init' "普通网络页不应直接执行国内源初始化"
-done
-
 touch_maintenance="$(function_source "$MAIN_FILE" maintenance_menu)"
 gui_maintenance="$(function_source "$GUI_FILE" maintenance_gui_menu)"
 for menu in "$touch_maintenance" "$gui_maintenance"; do
@@ -145,6 +135,13 @@ done
 touch_support="$(function_source "$MAIN_FILE" support_menu)"
 gui_support="$(function_source "$GUI_FILE" support_gui_menu)"
 for menu in "$touch_support" "$gui_support"; do
+    for item in '一键检查网络' '检查常见问题' '查看下载状态' '发给维护人员' '使用帮助与设置' '更多设置'; do
+        assert_contains "$menu" "$item" "检查与维护缺少：$item"
+    done
+    for hidden in '网络修复' 'Discover 应用商店修复' '恢复官方源'; do
+        assert_not_contains "$menu" "$hidden" "检查与维护页不应显示：$hidden"
+    done
+    assert_not_contains "$menu" 'domestic_source.sh" init' "检查与维护页不应直接执行国内源初始化"
     assert_contains "$menu" '发给维护人员' "检查问题页缺少面向新手的诊断包入口"
     assert_contains "$menu" '不包含密码和隐私信息' "诊断包入口缺少隐私说明"
     assert_contains "$menu" 'modules/diagnostics.sh" bundle' "诊断包入口映射错误"
@@ -199,6 +196,7 @@ for menu in "$touch_emulators" "$gui_emulators"; do
     assert_contains "$menu" '桌面图标' "模拟器菜单未说明桌面入口"
     assert_contains "$menu" 'Steam 库' "模拟器菜单未说明 Steam 入库"
     assert_not_contains "$menu" 'EmuDeck' "模拟器菜单不应包含 EmuDeck"
+    assert_not_contains "$menu" '返回游戏与插件' "模拟器独立入口仍返回游戏与插件"
 done
 
 touch_dual="$(function_source "$MAIN_FILE" dual_system_menu)"
@@ -219,7 +217,7 @@ for menu in "$touch_dual" "$gui_dual"; do
     assert_not_contains "$menu" 'modules/dual_system.sh" remove' "双系统菜单仍可执行旧 systemd-boot 隐藏动作"
 done
 
-for gui_menu_name in software_menu game_environment_gui_menu plugin_official_gui_pages dual_system_menu network_store_gui_menu steam_accelerator_gui_menu maintenance_gui_menu help_gui_menu new_machine_gui_menu advanced_tools_gui_menu; do
+for gui_menu_name in software_menu game_environment_gui_menu emulator_gui_menu support_gui_menu plugin_official_gui_pages dual_system_menu steam_accelerator_gui_menu maintenance_gui_menu help_gui_menu new_machine_gui_menu advanced_tools_gui_menu; do
     gui_menu="$(function_source "$GUI_FILE" "$gui_menu_name")"
     assert_contains "$gui_menu" 'home "返回首页"' "GUI 页面缺少返回首页：$gui_menu_name"
     assert_contains "$gui_menu" 'nav-exit "退出工具箱"' "GUI 页面缺少退出工具箱：$gui_menu_name"

@@ -201,8 +201,8 @@ draw_category_frame() {
     ui_sidebar_item 2 init "◆ 新机器设置" "$selected"
     ui_sidebar_item 4 software "▣ 安装常用软件" "$selected"
     ui_sidebar_item 6 games "✦ 游戏与插件" "$selected"
-    ui_sidebar_item 8 network "⌁ 检查网络" "$selected"
-    ui_sidebar_item 10 support "▤ 检查问题" "$selected"
+    ui_sidebar_item 8 emulators "▦ 模拟器" "$selected"
+    ui_sidebar_item 10 support "◎ 检查与维护" "$selected"
     ui_sidebar_item 12 advanced "! 更多设置" "$selected" 0
     ui_sidebar_item 14 uninstall "- 卸载已安装" "$selected" 0
     ui_sidebar_item 16 notice "▧ 免责声明与须知" "$selected" 0

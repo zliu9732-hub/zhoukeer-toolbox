@@ -198,8 +198,8 @@ read_touch_menu() {
         left:2-3:nav-init \
         left:4-5:nav-software \
         left:6-7:nav-games \
-        left:8-9:nav-network \
-        left:10-11:nav-help \
+        left:8-9:nav-emulators \
+        left:10-11:nav-check \
         left:12-13:nav-advanced \
         left:14-15:nav-uninstall \
         left:16-17:nav-notice \
@@ -212,15 +212,15 @@ apply_navigation() {
         nav-init) NEXT_CATEGORY="init" ;;
         nav-software) NEXT_CATEGORY="software" ;;
         nav-games) NEXT_CATEGORY="games" ;;
-        nav-network) NEXT_CATEGORY="network" ;;
-        nav-maintenance|nav-help) NEXT_CATEGORY="support" ;;
+        nav-emulators) NEXT_CATEGORY="emulators" ;;
+        nav-network|nav-maintenance|nav-help|nav-check) NEXT_CATEGORY="support" ;;
         nav-advanced) NEXT_CATEGORY="advanced" ;;
         nav-uninstall) NEXT_CATEGORY="uninstall" ;;
         nav-notice) NEXT_CATEGORY="notice" ;;
         # 旧导航 ID 仅保留兼容，不再显示在首页。
         nav-remote) NEXT_CATEGORY="software" ;;
         nav-plugins) NEXT_CATEGORY="games" ;;
-        nav-settings) NEXT_CATEGORY="network" ;;
+        nav-settings) NEXT_CATEGORY="support" ;;
         nav-optimize|nav-guides|nav-changelog|nav-update) NEXT_CATEGORY="support" ;;
         nav-dual) NEXT_CATEGORY="advanced" ;;
         nav-exit) NEXT_CATEGORY="exit" ;;
@@ -507,11 +507,10 @@ plugin_page_2_menu() {
         ui_touch_button 13 '\033[1;97;48;5;24m' "安装 GE 兼容层" "提高 Windows 游戏兼容性"
         ui_touch_button 15 '\033[1;97;48;5;24m' "战网启动器" "安装并添加到 Steam"
         ui_touch_button 17 '\033[1;97;48;5;24m' "育碧" "安装育碧游戏平台并添加到 Steam"
-        ui_touch_button 19 '\033[1;97;48;5;24m' "安装模拟器" "Switch、Wii U、PS1 至 PS4 模拟器"
-        ui_touch_button 21 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
-        ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:simpledeckytdp right:7-8:unifideck right:9-10:tomoon right:11-12:epic right:13-14:ge-proton right:15-16:battlenet right:17-18:ubisoft right:19-20:emulators right:21-22:previous right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:simpledeckytdp right:7-8:unifideck right:9-10:tomoon right:11-12:epic right:13-14:ge-proton right:15-16:battlenet right:17-18:ubisoft right:19-20:previous right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -523,7 +522,6 @@ plugin_page_2_menu() {
             ubisoft) confirm_and_run "安装育碧" "自动安装育碧游戏平台、创建桌面入口并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft ;;
             ge-proton) confirm_and_run "安装 GE 兼容层" "安装第三方 GE-Proton 游戏兼容组件" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
             previous) NEXT_CATEGORY="games"; return 0 ;;
-            emulators) emulator_menu ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "plugin_page_2" ] || return 0
@@ -534,7 +532,7 @@ emulator_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "安装模拟器" "安装后自动创建桌面图标，并添加到 Steam 库" 0
+        draw_category_frame emulators "安装模拟器" "安装后自动创建桌面图标，并添加到 Steam 库" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "Yuzu" "Switch 模拟器"
         ui_touch_button 7 '\033[1;97;48;5;24m' "Cemu" "Wii U 模拟器"
         ui_touch_button 9 '\033[1;97;48;5;24m' "DuckStation" "PS1 模拟器"
@@ -544,9 +542,9 @@ emulator_menu() {
         ui_touch_button 17 '\033[1;97;48;5;24m' "PPSSPP" "PSP 模拟器"
         ui_touch_button 19 '\033[1;97;48;5;24m' "mGBA" "GBA 模拟器"
         ui_touch_button 21 '\033[1;97;48;5;24m' "Azahar" "3DS 模拟器"
-        ui_touch_button 23 '\033[1;97;48;5;238m' "返回游戏与插件" "查看其他插件和启动器"
+        ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:yuzu right:7-8:cemu right:9-10:duckstation right:11-12:pcsx2 right:13-14:rpcs3 right:15-16:shadps4 right:17-18:ppsspp right:19-20:mgba right:21-22:azahar right:23-24:back)"
+        choice="$(read_touch_menu right:5-6:yuzu right:7-8:cemu right:9-10:duckstation right:11-12:pcsx2 right:13-14:rpcs3 right:15-16:shadps4 right:17-18:ppsspp right:19-20:mgba right:21-22:azahar right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -554,9 +552,9 @@ emulator_menu() {
             cemu|duckstation|pcsx2|rpcs3|shadps4|ppsspp|mgba|azahar)
                 confirm_and_run "安装模拟器" "只安装模拟器本体；不包含游戏、BIOS 或固件。完成后会创建桌面图标并添加到 Steam 库；写入 Steam 前会安全退出并重启 Steam。" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/emulators.sh" "$choice"
                 ;;
-            back) return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
         esac
-        [ "$NEXT_CATEGORY" = "plugin_page_2" ] || return 0
+        [ "$NEXT_CATEGORY" = "emulators" ] || return 0
     done
 }
 
@@ -564,7 +562,7 @@ yuzu_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "Yuzu｜Switch 模拟器" "只导入本人合法备份的密钥；不下载或提供密钥" 0
+        draw_category_frame emulators "Yuzu｜Switch 模拟器" "只导入本人合法备份的密钥；不下载或提供密钥" 0
         ui_touch_button 7 '\033[1;97;48;5;24m' "安装 Yuzu" "仅安装模拟器本体"
         ui_touch_button 12 '\033[1;97;48;5;24m' "导入本人备份的密钥" "从桌面 Yuzu密钥 文件夹导入 prod.keys"
         ui_touch_button 17 '\033[1;97;48;5;238m' "查看密钥状态" "只显示是否已就绪，不显示密钥内容"
@@ -868,29 +866,6 @@ uninstall_software_menu() {
     done
 }
 
-network_store_menu() {
-    local choice
-
-    while true; do
-        draw_category_frame network "检查网络" "自动检查连接并给出下一步建议"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "一键检查网络" "自动检查常用下载连接，不修改设置"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "查看下载状态" "查看最近成功时间和失败原因"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "更多设置" "管理国内下载和加速功能"
-        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
-        ui_prompt
-        choice="$(read_touch_menu right:7-8:network-status right:11-12:source-status right:15-16:manage-advanced right:20-21:home)"
-        if apply_navigation "$choice"; then return 0; fi
-
-        case "$choice" in
-            network-status) run_action "一键检查网络" bash "$PROJECT_ROOT/modules/network.sh" ;;
-            source-status) run_action "查看下载状态" bash "$PROJECT_ROOT/modules/diagnostics.sh" status ;;
-            manage-advanced) NEXT_CATEGORY="advanced"; return 0 ;;
-            home) NEXT_CATEGORY="home"; return 0 ;;
-        esac
-        [ "$NEXT_CATEGORY" = "network" ] || return 0
-    done
-}
-
 steam_accelerator_touch_menu() {
     local choice
 
@@ -927,18 +902,24 @@ support_menu() {
     local choice
 
     while true; do
-        draw_category_frame support "检查问题" "先检查，再按结果处理或发给维护人员"
-        ui_touch_button 6 '\033[1;97;48;5;24m' "检查常见问题" "检查系统、游戏和可安全清理的内容"
+        draw_category_frame support "检查与维护" "检查网络与常见问题，按结果处理或发给维护人员"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "一键检查网络" "自动检查常用下载连接，不修改设置"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "检查常见问题" "检查系统、游戏和可安全清理的内容"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "查看下载状态" "查看最近成功时间和失败原因"
         ui_touch_button 11 '\033[1;97;48;5;24m' "发给维护人员" "生成诊断包，不包含密码和隐私信息"
-        ui_touch_button 16 '\033[1;97;48;5;24m' "使用帮助与设置" "查看指南、备份设置和工具箱更新"
-        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "使用帮助与设置" "查看指南、备份设置和工具箱更新"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "更多设置" "管理国内下载和加速功能"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:6-7:maintenance right:11-12:diagnostic-bundle right:16-17:help right:20-21:home)"
+        choice="$(read_touch_menu right:5-6:network-status right:7-8:maintenance right:9-10:source-status right:11-12:diagnostic-bundle right:13-14:help right:15-16:manage-advanced right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
+            network-status) run_action "一键检查网络" bash "$PROJECT_ROOT/modules/network.sh" ;;
             maintenance) maintenance_menu; return 0 ;;
+            source-status) run_action "查看下载状态" bash "$PROJECT_ROOT/modules/diagnostics.sh" status ;;
             diagnostic-bundle) run_action "发给维护人员" bash "$PROJECT_ROOT/modules/diagnostics.sh" bundle ;;
             help) help_menu; return 0 ;;
+            manage-advanced) NEXT_CATEGORY="advanced"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
     done
@@ -1084,8 +1065,8 @@ home_menu() {
     ui_panel_line 2 '\033[1;38;5;220m' "新机器设置｜第一次使用从这里开始"
     ui_panel_line 4 '\033[1;38;5;45m' "安装常用软件｜聊天、浏览器和远程工具"
     ui_panel_line 6 '\033[1;38;5;45m' "游戏与插件｜浏览插件商城和游戏组件"
-    ui_panel_line 8 '\033[1;38;5;45m' "检查网络｜自动判断连接并尝试已有线路"
-    ui_panel_line 10 '\033[1;38;5;114m' "检查问题｜生成可发给维护人员的安全诊断包"
+    ui_panel_line 8 '\033[1;38;5;45m' "模拟器｜Switch、Wii U、PS1 至 3DS 模拟器"
+    ui_panel_line 10 '\033[1;38;5;114m' "检查与维护｜检查网络、常见问题并生成诊断包"
     ui_panel_line 12 '\033[1;38;5;203m' "更多设置｜国内下载、内存、密码和双系统"
     ui_panel_line 14 '\033[1;38;5;203m' "卸载已安装｜逐项安全移除软件和系统组件"
     ui_panel_line 16 '\033[1;38;5;250m' "免责声明与使用须知｜查看完整图文说明"
@@ -1106,15 +1087,15 @@ while true; do
         software) common_software_menu ;;
         games) game_environment_menu ;;
         plugin_page_2) plugin_page_2_menu ;;
-        network) network_store_menu ;;
-        support) support_menu ;;
+        emulators) emulator_menu ;;
+        network|support) support_menu ;;
         advanced) advanced_tools_menu ;;
         uninstall) uninstall_software_menu ;;
         notice) usage_notice_menu ;;
         # 旧分类仅保留内部兼容，不再显示在首页。
         remote) NEXT_CATEGORY="software" ;;
         plugins|plugins-menu) NEXT_CATEGORY="games" ;;
-        settings) NEXT_CATEGORY="network" ;;
+        settings) NEXT_CATEGORY="support" ;;
         dual) NEXT_CATEGORY="advanced" ;;
         maintenance|help|optimize|guides|changelog) NEXT_CATEGORY="support" ;;
         update)

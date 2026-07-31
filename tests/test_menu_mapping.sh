@@ -47,8 +47,8 @@ for mapping in \
     'left:2-3:nav-init' \
     'left:4-5:nav-software' \
     'left:6-7:nav-games' \
-    'left:8-9:nav-network' \
-    'left:10-11:nav-help' \
+    'left:8-9:nav-emulators' \
+    'left:10-11:nav-check' \
     'left:12-13:nav-advanced' \
     'left:14-15:nav-uninstall' \
     'left:16-17:nav-notice' \
@@ -56,22 +56,22 @@ for mapping in \
     assert_contains "$touch_nav" "$mapping" "触控首页映射缺失：$mapping"
 done
 
-for action in nav-init nav-software nav-games nav-network nav-help nav-advanced nav-uninstall nav-notice nav-exit; do
+for action in nav-init nav-software nav-games nav-emulators nav-check nav-advanced nav-uninstall nav-notice nav-exit; do
     assert_contains "$gui_home" "$action" "GUI 首页映射缺失：$action"
 done
 
-for old_action in nav-remote nav-plugins nav-settings nav-dual nav-optimize nav-guides nav-changelog nav-update; do
+for old_action in nav-remote nav-plugins nav-settings nav-dual nav-optimize nav-guides nav-changelog nav-update nav-network nav-help; do
     assert_not_contains "$touch_nav" "$old_action" "旧导航仍显示在触控首页：$old_action"
     assert_not_contains "$gui_home" "$old_action" "旧导航仍显示在 GUI 首页：$old_action"
 done
 
-for selected in init software games network support advanced uninstall notice exit; do
+for selected in init software games emulators support advanced uninstall notice exit; do
     assert_contains "$sidebar" " $selected \"" "侧栏缺少分类：$selected"
 done
 
 touch_software="$(function_source "$MAIN_FILE" common_software_menu)"
 touch_games="$(function_source "$MAIN_FILE" game_environment_menu)"
-touch_network="$(function_source "$MAIN_FILE" network_store_menu)"
+touch_support="$(function_source "$MAIN_FILE" support_menu)"
 touch_maintenance="$(function_source "$MAIN_FILE" maintenance_menu)"
 touch_advanced="$(function_source "$MAIN_FILE" advanced_tools_menu)"
 touch_accelerator="$(function_source "$MAIN_FILE" steam_accelerator_touch_menu)"
@@ -83,16 +83,16 @@ assert_contains "$touch_software" 'right:22-23:more' "常用软件更多页坐�
 assert_contains "$touch_games" 'right:23-24:home' "游戏环境缺少返回首页"
 touch_plugin_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
 assert_contains "$touch_plugin_page_2" 'right:9-10:tomoon' "插件第二页 ToMoon 坐标错误"
-assert_contains "$touch_plugin_page_2" 'right:19-20:emulators' "插件第二页缺少可见区内的模拟器入口"
+assert_contains "$touch_plugin_page_2" 'right:19-20:previous' "插件第二页缺少上一页坐标"
 touch_emulators="$(function_source "$MAIN_FILE" emulator_menu)"
-for mapping in 'right:5-6:yuzu' 'right:7-8:cemu' 'right:9-10:duckstation' 'right:11-12:pcsx2' 'right:13-14:rpcs3' 'right:15-16:shadps4' 'right:17-18:ppsspp' 'right:19-20:mgba' 'right:21-22:azahar' 'right:23-24:back'; do
+for mapping in 'right:5-6:yuzu' 'right:7-8:cemu' 'right:9-10:duckstation' 'right:11-12:pcsx2' 'right:13-14:rpcs3' 'right:15-16:shadps4' 'right:17-18:ppsspp' 'right:19-20:mgba' 'right:21-22:azahar' 'right:23-24:home'; do
     assert_contains "$touch_emulators" "$mapping" "模拟器触控坐标错误：$mapping"
 done
 touch_yuzu="$(function_source "$MAIN_FILE" yuzu_menu)"
 assert_contains "$touch_yuzu" 'right:12-13:keys' "Yuzu 密钥导入坐标错误"
 assert_contains "$touch_yuzu" 'modules/emulators.sh" yuzu-keys' "Yuzu 密钥导入动作缺失"
 assert_contains "$touch_yuzu" '本人合法备份' "Yuzu 密钥入口缺少合法来源说明"
-assert_contains "$touch_network" 'right:20-21:home' "网络与应用商店缺少返回首页"
+assert_contains "$touch_support" 'right:22-23:home' "检查与维护缺少返回首页"
 assert_contains "$touch_maintenance" 'right:22-23:home' "系统维护缺少返回首页"
 assert_contains "$touch_advanced" 'right:11-12:memory-optimize' "系统设置缺少虚拟内存动作"
 assert_contains "$touch_advanced" 'right:22-23:home' "系统设置缺少返回首页"
