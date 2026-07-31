@@ -206,8 +206,6 @@ grep -Fq 'feature-status) print_feature_plugin_status' "$PROJECT_ROOT/modules/pl
 grep -Fq 'uninstall) uninstall_all_decky_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '不会删除 Decky Loader 本体' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'all) show_plugin_download_speed_tip; install_all_plugin_packages' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '下载慢或失败时，工具箱会自动安装并开启 Steam + GitHub 加速。' \
-    "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '正在安装小黄鸭' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '正在安装 FSR4' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。' \

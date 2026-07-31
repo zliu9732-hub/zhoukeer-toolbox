@@ -64,15 +64,8 @@ DECKY_GITEE_ARCHIVE_SHA256="cbe50c9dcd64bba1433713c1945ec73de2fa1cc51f8a8327ef0f
 DECKY_GITEE_ARCHIVE_PREFIX="zhoukeer-toolbox-v6.0.4"
 
 show_plugin_download_speed_tip() {
-    echo ""
-    echo "========== 插件下载提示 =========="
-    if steam302_download_acceleration_is_ready; then
-        echo "Steam302 的 Steam + GitHub 加速已开启。"
-    else
-        echo "下载慢或失败时，工具箱会自动安装并开启 Steam + GitHub 加速。"
-    fi
-    echo "===================================="
-    echo ""
+    # 不再显示多余说明；下载失败时会自动启用加速并重试。
+    return 0
 }
 
 cleanup_decky_tmp() {
