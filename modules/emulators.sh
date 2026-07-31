@@ -284,8 +284,8 @@ install_azahar_emulator() {
         echo "Azahar 桌面图标已创建，但未能安全写入 Steam 库；请先完整登录 Steam 后重试。"
         return 1
     fi
-    if ! import_azahar_keys; then
-        echo "Azahar 已安装；3DS 密钥未导入（可把本人备份的 aes_keys.txt 放到桌面 3DS密钥 文件夹后重试）。"
+    if [ -e "$AZAHAR_KEYS_IMPORT_DIR/aes_keys.txt" ]; then
+        import_azahar_keys || true
     fi
     log "Azahar 模拟器安装完成"
     echo "Azahar 已安装，桌面图标和 Steam 库条目已创建。"
@@ -323,6 +323,9 @@ install_emulator() {
     if ! add_emulator_to_steam "$target"; then
         echo "$EMULATOR_NAME 已安装并创建桌面入口，但未能安全写入 Steam 库；请先完整登录 Steam 后重试。"
         return 1
+    fi
+    if [ "$1" = "yuzu" ] && [ -e "$YUZU_KEY_IMPORT_DIR/prod.keys" ]; then
+        import_yuzu_keys || true
     fi
     log "模拟器安装完成：$EMULATOR_NAME"
     echo "$EMULATOR_NAME 已安装，桌面图标和 Steam 库条目已创建。"

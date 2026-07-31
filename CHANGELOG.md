@@ -3,6 +3,7 @@
 - 修复 SteamOS 上窗口无法关闭：不再用全屏兜底，窗口始终保留标题栏关闭按钮；分辨率检测新增 KDE kscreen-doctor 支持。
 - 新增 PPSSPP（PSP）、mGBA（GBA）模拟器，通过 Flathub 国内源安装，自动创建桌面图标并添加到 Steam 库。
 - 新增 Azahar（3DS）模拟器：检测用户本机安装的 azahar.AppImage，自动创建桌面图标、添加 Steam 库，并自动导入桌面 3DS密钥/aes_keys.txt。
+- Yuzu 与 Azahar 安装时只检测桌面上本人的密钥备份（Yuzu密钥 / 3DS密钥 文件夹），存在才自动导入，不存在则跳过；工具箱不会下载、生成、分享或显示密钥内容。
 
 ## V6.0.12 移除多余下载说明 — 2026-07-31
 
