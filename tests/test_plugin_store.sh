@@ -56,7 +56,9 @@ grep -Fq '1b42bc7ab15f5a0fee69f2c261340247359e55d83c48ee45f95851704217a7b6' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_github_file "$url" "$output" "$expected_sha256" "$name"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/repository/archive/v5.1.1.zip' \
+grep -Fq 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/repository/archive/v6.0.4.zip' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'cbe50c9dcd64bba1433713c1945ec73de2fa1cc51f8a8327ef0f9cdd0ace147a' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_decky_zip_from_gitee_archive' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_tree_atomically' "$PROJECT_ROOT/modules/plugin_store.sh"

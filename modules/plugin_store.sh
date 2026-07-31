@@ -58,9 +58,10 @@ DECKY_FREEDECK_VERSION="0.6"
 : "${DECKY_LSFG_ZH_SHA256:=11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277}"
 : "${DECKY_FSR4_ZH_URL:=https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/Decky-Framegen-FSR4-v0.15.6.zip}"
 : "${DECKY_FSR4_ZH_SHA256:=467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e}"
-: "${DECKY_GITEE_ARCHIVE_URL:=https://gitee.com/zliu9732-hub/zhoukeer-toolbox/repository/archive/v5.1.1.zip}"
-: "${DECKY_GITEE_ARCHIVE_SHA256:=378c0eb83f05fc58585723670a62cd42f07e6c49518136cc037dd4059e7ca764}"
-: "${DECKY_GITEE_ARCHIVE_PREFIX:=zhoukeer-toolbox-v5.1.1}"
+# Gitee 归档必须指向包含当前 dist 汉化包的稳定标签，避免旧归档校验失败。
+DECKY_GITEE_ARCHIVE_URL="https://gitee.com/zliu9732-hub/zhoukeer-toolbox/repository/archive/v6.0.4.zip"
+DECKY_GITEE_ARCHIVE_SHA256="cbe50c9dcd64bba1433713c1945ec73de2fa1cc51f8a8327ef0f9cdd0ace147a"
+DECKY_GITEE_ARCHIVE_PREFIX="zhoukeer-toolbox-v6.0.4"
 
 show_plugin_download_speed_tip() {
     echo ""
