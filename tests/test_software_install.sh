@@ -322,6 +322,35 @@ grep -Fq 'Exec=flatpak run com.anydesk.Anydesk' "$ANYDESK_SHORTCUT"
 grep -Fq 'install --user --noninteractive -y flathub-cn com.anydesk.Anydesk' "$STATE_DIR/commands"
 [ -f "$STATE_DIR/installed.com.anydesk.Anydesk" ]
 
+# repair-shortcuts 必须补齐丢失的桌面快捷方式，且不重复下载或安装。
+rm -f "$SHORTCUT" "$RUSTDESK_SHORTCUT"
+touch "$STATE_DIR/installed.org.libreoffice.LibreOffice"
+curl_calls_before="$(wc -l < "$STATE_DIR/curl-urls" | tr -d '[:space:]')"
+flatpak_calls_before="$(wc -l < "$STATE_DIR/commands" | tr -d '[:space:]')"
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_WECHAT_APPIMAGE_PATH="$STATE_DIR/apps/WeChat.AppImage" \
+ZHOUKEER_WECHAT_MIN_BYTES=4 \
+ZHOUKEER_RUSTDESK_APPIMAGE_PATH="$STATE_DIR/apps/RustDesk.AppImage" \
+ZHOUKEER_RUSTDESK_MIN_BYTES=4 \
+bash "$PROJECT_ROOT/modules/software.sh" repair-shortcuts >/dev/null
+[ -x "$SHORTCUT" ]
+[ -x "$RUSTDESK_SHORTCUT" ]
+[ -x "$HOME_DIR/Desktop/LibreOffice.desktop" ]
+[ "$(wc -l < "$STATE_DIR/curl-urls" | tr -d '[:space:]')" = "$curl_calls_before" ]
+[ "$(wc -l < "$STATE_DIR/commands" | tr -d '[:space:]')" = "$flatpak_calls_before" ]
+
+install_source="$(cat "$PROJECT_ROOT/install.sh")"
+printf '%s\n' "$install_source" | grep -Fq 'repair-shortcuts' || {
+    echo "FAIL: 安装器未在更新后重建桌面快捷方式" >&2
+    exit 1
+}
+if printf '%s\n' "$install_source" | grep -Fq 'apps/rustdesk.AppImage"'; then
+    echo "FAIL: 安装器仍会在更新时删除 RustDesk AppImage" >&2
+    exit 1
+fi
+
 # 两个国内缓存都失败时必须停止，不能继续寻找官方源。
 rm -f "$STATE_DIR/installed.com.qq.QQ"
 set +e

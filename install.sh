@@ -489,8 +489,7 @@ copy_fsr4_chinese
 # 标记由安装器管理的目录，启动器只在这类目录中执行自动更新。
 printf '%s\n' "zhoukeer-toolbox" > "$STAGING_DIR/.zhoukeer-installed"
 
-# RustDesk 已从工具箱退役。更新时同步清除主配置和历史备份里的服务器字段，
-# 避免旧 ID、中继、API 或公钥继续留在安装目录中。
+# 清理历史 RustDesk 服务器配置残留；当前 RustDesk 安装不再使用这些字段。
 while IFS= read -r retired_config; do
     sanitize_retired_rustdesk_config "$retired_config" || {
         echo "清理旧 RustDesk 配置失败: $retired_config"
@@ -501,7 +500,6 @@ while IFS= read -r retired_config; do
         exit 1
     }
 done < <(find "$STAGING_DIR/config" -maxdepth 1 -type f -name 'settings.conf*' -print)
-rm -f -- "$STAGING_DIR/apps/rustdesk.AppImage"
 remove_appledouble_files "$STAGING_DIR" || {
     echo "无法清理安装暂存目录中的 macOS 元数据文件，旧版本保持不变。"
     exit 1
@@ -555,6 +553,13 @@ SWAP_FINISHED=1
 
 if [ -d "$BACKUP_DIR" ]; then
     rm -rf -- "$BACKUP_DIR"
+fi
+
+# 安装或升级后重建已安装应用的桌面快捷方式，避免更新流程导致图标丢失。
+if [ -f "$INSTALL_DIR/modules/software.sh" ]; then
+    ZHOUKEER_AUTO_CONFIRM=1 bash "$INSTALL_DIR/modules/software.sh" repair-shortcuts \
+        >/dev/null 2>&1 || \
+        echo "部分桌面快捷方式重建失败，可在工具箱中重新点击对应软件修复。"
 fi
 
 DESKTOP_FILE="$HOME/Desktop/周克儿工具箱.desktop"
