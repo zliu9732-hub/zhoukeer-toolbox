@@ -78,6 +78,10 @@ fi
 printf '%s\n' "$touch_button" | grep -Fq 'row + 1' || fail "功能按钮之间缺少分隔线"
 printf '%s\n' "$touch_button" | grep -Fq '────────────────' || fail "功能按钮分隔线未绘制"
 
+ui_prompt_source="$(sed -n '/^ui_prompt()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
+printf '%s\n' "$ui_prompt_source" | grep -Fq 'enable_mouse_tracking' \
+    || fail "触控提示没有重新启用鼠标追踪"
+
 sidebar_item="$(sed -n '/^ui_sidebar_item()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
 if printf '%s\n' "$sidebar_item" | grep -Fq '48;5;234'; then
     fail "侧栏分类仍使用独立黑色底块"

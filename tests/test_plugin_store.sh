@@ -20,6 +20,20 @@ grep -Fq 'rollback_decky_install' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'systemctl stop "$DECKY_SERVICE_NAME"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'toolbox_sudo systemctl restart "$DECKY_SERVICE_NAME"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
+decky_component_download="$(sed -n '/^download_decky_component()/,/^}/p' \
+    "$PROJECT_ROOT/modules/plugin_store.sh")"
+if printf '%s\n' "$decky_component_download" | grep -Fq -- '--retry-all-errors'; then
+    echo "FAIL: Decky 组件下载仍会重复重试确定的 404/403 错误" >&2
+    exit 1
+fi
+printf '%s\n' "$decky_component_download" | grep -Fq -- '--speed-limit 65536' || {
+    echo "FAIL: Decky 组件下载缺少低速中断保护" >&2
+    exit 1
+}
+printf '%s\n' "$decky_component_download" | grep -Fq -- '--speed-time 60' || {
+    echo "FAIL: Decky 组件下载缺少低速中断时长" >&2
+    exit 1
+}
 if grep -Fq 'https://www.mhhf.com/Deck/install.sh' "$PROJECT_ROOT/modules/plugin_store.sh" || \
     grep -Fq 'toolbox_sudo bash "$installer"' "$PROJECT_ROOT/modules/plugin_store.sh"; then
     echo "FAIL: 不应继续下载或执行Decky外层安装脚本"
@@ -37,12 +51,14 @@ grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$PROJECT_R
 grep -Fq 'Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CheatDeck/releases/download/v1.2.1/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'Freedeck/archive/refs/tags/0.6.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '1b42bc7ab15f5a0fee69f2c261340247359e55d83c48ee45f95851704217a7b6' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_github_file "$url" "$output" "$expected_sha256" "$name"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/repository/archive/v5.1.1.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_decky_zip_from_gitee_archive' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'GitHub 加速下载失败，切换 Gitee 国内源。' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_tree_atomically' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Lossless Scaling 的 Steam 正版页面' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -168,7 +184,7 @@ grep -Fq 'uninstall) uninstall_all_decky_plugins' "$PROJECT_ROOT/modules/plugin_
 grep -Fq '不会删除 Decky Loader 本体' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'all) show_plugin_download_speed_tip; install_all_plugin_packages' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '查看运行状态或重新开启后台加速后重试' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'GitHub 加速源下载完整汉化包' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'Gitee 国内源下载完整汉化包' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Fq 'Lossless Scaling.rar' "$PROJECT_ROOT/modules/plugin_store.sh" || \

@@ -49,6 +49,10 @@ DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.
 DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
 DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip"
 DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
+# Freedeck 固定使用作者 GitHub 0.6 源码包，避免旧配置继续指向过期 0.2。
+DECKY_FREEDECK_URL="https://github.com/panyiwei-home/Freedeck/archive/refs/tags/0.6.zip"
+DECKY_FREEDECK_SHA256="1b42bc7ab15f5a0fee69f2c261340247359e55d83c48ee45f95851704217a7b6"
+DECKY_FREEDECK_VERSION="0.6"
 # GitHub 完整汉化插件包（含运行核心），通过统一下载器自动选择加速源。
 : "${DECKY_LSFG_ZH_URL:=https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip}"
 : "${DECKY_LSFG_ZH_SHA256:=11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277}"
@@ -156,7 +160,7 @@ download_decky_component() {
     local _dk_curl_options=(
         --fail
         --location
-        --show-error
+        --silent
         --proto '=https'
         --proto-redir '=https'
         --connect-timeout 15
@@ -164,7 +168,8 @@ download_decky_component() {
         --retry 5
         --retry-connrefused
         --retry-delay 2
-        --retry-all-errors
+        --speed-limit 65536
+        --speed-time 60
         --max-filesize "$(download_policy_max_bytes "$url")"
     )
     if [ -n "${DECKY_DOWNLOAD_PROXY:-}" ]; then
@@ -175,23 +180,22 @@ download_decky_component() {
         --output "$output" \
         "$url"; then
         rm -f -- "$output"
-        echo "$name 下载失败，未改动现有Decky安装。"
+        log "$name 下载失败，未改动现有Decky安装。"
         return 1
     fi
     if ! download_policy_response_is_safe "$url" "$output"; then
         rm -f -- "$output"
-        echo "$name 下载响应格式或大小异常，已停止。"
+        log "$name 下载响应格式或大小异常，已停止。"
         return 1
     fi
 
     actual_sha256="$(calculate_decky_sha256 "$output")" || {
         rm -f -- "$output"
-        echo "无法校验$name，已停止安装。"
+        log "无法校验$name，已停止安装。"
         return 1
     }
     if [ "$actual_sha256" != "$expected_sha256" ]; then
         rm -f -- "$output"
-        echo "$name 当前线路的文件已发生变化或下载不完整，已拒绝使用该线路。"
         log "Decky下载线路拒绝: $name SHA256变化"
         return 1
     fi
@@ -215,7 +219,7 @@ download_decky_component_with_fallback() {
         return 1
     fi
 
-    echo "$name 国内线路不可用，正在自动切换 Decky 官方国外线路..."
+    log "Decky下载线路切换: $name domestic→official"
     if download_decky_component "$name" "$official_url" "$expected_sha256" "$output"; then
         echo "$name 已通过 Decky 官方线路获取。"
         log "Decky下载成功: $name source=official"
@@ -789,7 +793,7 @@ install_decky_zip_from_gitee_archive() {
     mkdir -p "$extract_dir"
     trap cleanup_decky_tmp EXIT INT TERM
 
-    echo "GitHub 下载不可用，正在从 Gitee 国内源获取 $display_name..."
+    echo "正在从 Gitee 国内源获取 $display_name..."
     download_github_file \
         "${DECKY_GITEE_ARCHIVE_URL:-}" \
         "$repository_archive" \
@@ -1441,44 +1445,54 @@ install_lsfg_chinese() {
     log "小黄鸭 v$LSFG_OFFICIAL_VERSION 安装完成"
 }
 
-# 优先从 GitHub 加速源下载，失败后使用 Gitee 国内源，最后才回退原版叠加。
+# 优先从 Gitee 国内源下载，失败后使用 GitHub 加速源，最后才回退原版叠加。
 install_lsfg_zh_from_gitee() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local reload_after="${1:-1}"
+    local gitee_ok=0
 
     if feature_plugin_is_present "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" "小黄鸭"; then
         echo "[已安装] 小黄鸭中文插件已存在且文件完整，无需重复安装。"
         return 0
     fi
 
-    if [ -z "${DECKY_LSFG_ZH_URL:-}" ] || [ -z "${DECKY_LSFG_ZH_SHA256:-}" ]; then
-        echo "汉化包下载配置不完整，切换为原版叠加流程。"
-        install_lsfg_bundle "$reload_after" || return 1
-        install_lsfg_chinese "$reload_after" || return 1
-        return 0
-    fi
-
-    echo "正在通过 GitHub 加速源下载完整汉化小黄鸭..."
-    install_decky_zip \
-                         "小黄鸭（LSFG-VK）汉化完整包" \
-                         "${DECKY_LSFG_ZH_URL:-}" \
-                         "${DECKY_LSFG_ZH_SHA256:-}" \
-                         "$LSFG_OFFICIAL_DIRECTORY" \
-                         0 || {
-        echo "GitHub 加速下载失败，切换 Gitee 国内源。"
-        install_decky_zip_from_gitee_archive \
+    if [ -z "${DECKY_GITEE_ARCHIVE_URL:-}" ] || [ -z "${DECKY_GITEE_ARCHIVE_SHA256:-}" ]; then
+        log "小黄鸭 Gitee 归档配置不完整，直接使用 GitHub 加速源"
+    else
+        echo "正在通过 Gitee 国内源下载完整汉化小黄鸭..."
+        if install_decky_zip_from_gitee_archive \
             "小黄鸭（LSFG-VK）汉化完整包" \
             "Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip" \
             "${DECKY_LSFG_ZH_SHA256:-}" \
-            "$LSFG_OFFICIAL_DIRECTORY" || {
+            "$LSFG_OFFICIAL_DIRECTORY"; then
+            gitee_ok=1
+        else
+            log "小黄鸭 Gitee 源不可用，切换 GitHub 加速源"
+        fi
+    fi
+
+    if [ "$gitee_ok" -eq 0 ]; then
+        if [ -z "${DECKY_LSFG_ZH_URL:-}" ] || [ -z "${DECKY_LSFG_ZH_SHA256:-}" ]; then
+            log "小黄鸭汉化包配置不完整，切换为原版叠加流程"
+            install_lsfg_bundle "$reload_after" || return 1
+            install_lsfg_chinese "$reload_after" || return 1
+            return 0
+        fi
+        echo "正在通过 GitHub 加速源下载完整汉化小黄鸭..."
+        install_decky_zip \
+            "小黄鸭（LSFG-VK）汉化完整包" \
+            "${DECKY_LSFG_ZH_URL:-}" \
+            "${DECKY_LSFG_ZH_SHA256:-}" \
+            "$LSFG_OFFICIAL_DIRECTORY" \
+            0 || {
             cleanup_decky_tmp
             trap - EXIT INT TERM
-            echo "Gitee 国内源也不可用，切换为原版叠加流程。"
+            log "小黄鸭 GitHub 源不可用，切换原版叠加"
             install_lsfg_bundle "$reload_after" || return 1
             install_lsfg_chinese "$reload_after"
             return $?
         }
-    }
+    fi
     remove_legacy_lsfg_directories "$plugin_root"
     echo "汉化作者：闲鱼双叶，感谢支持！"
     if [ "$reload_after" = "1" ]; then
@@ -1557,44 +1571,54 @@ install_fsr4_chinese() {
     log "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面安装完成"
 }
 
-# 优先从 GitHub 加速源下载，失败后使用 Gitee 国内源，最后才回退原版叠加。
+# 优先从 Gitee 国内源下载，失败后使用 GitHub 加速源，最后才回退原版叠加。
 install_fsr4_zh_from_gitee() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local reload_after="${1:-1}"
+    local gitee_ok=0
 
     if feature_plugin_is_present "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" "Decky-Framegen(FSR4)"; then
         echo "[已安装] FSR4 中文插件已存在且文件完整，无需重复安装。"
         return 0
     fi
 
-    if [ -z "${DECKY_FSR4_ZH_URL:-}" ] || [ -z "${DECKY_FSR4_ZH_SHA256:-}" ]; then
-        echo "汉化包下载配置不完整，切换为原版叠加流程。"
-        install_configured_plugin fsr4 0 0 || return 1
-        install_fsr4_chinese "$reload_after" || return 1
-        return 0
-    fi
-
-    echo "正在通过 GitHub 加速源下载完整 FSR4 汉化包..."
-    install_decky_zip \
-                         "FSR4（Decky Framegen）汉化完整包" \
-                         "${DECKY_FSR4_ZH_URL:-}" \
-                         "${DECKY_FSR4_ZH_SHA256:-}" \
-                         "$FSR4_OFFICIAL_DIRECTORY" \
-                         0 || {
-        echo "GitHub 加速下载失败，切换 Gitee 国内源。"
-        install_decky_zip_from_gitee_archive \
+    if [ -z "${DECKY_GITEE_ARCHIVE_URL:-}" ] || [ -z "${DECKY_GITEE_ARCHIVE_SHA256:-}" ]; then
+        log "FSR4 Gitee 归档配置不完整，直接使用 GitHub 加速源"
+    else
+        echo "正在通过 Gitee 国内源下载完整 FSR4 汉化包..."
+        if install_decky_zip_from_gitee_archive \
             "FSR4（Decky Framegen）汉化完整包" \
             "Decky-Framegen-FSR4-v0.15.6.zip" \
             "${DECKY_FSR4_ZH_SHA256:-}" \
-            "$FSR4_OFFICIAL_DIRECTORY" || {
+            "$FSR4_OFFICIAL_DIRECTORY"; then
+            gitee_ok=1
+        else
+            log "FSR4 Gitee 源不可用，切换 GitHub 加速源"
+        fi
+    fi
+
+    if [ "$gitee_ok" -eq 0 ]; then
+        if [ -z "${DECKY_FSR4_ZH_URL:-}" ] || [ -z "${DECKY_FSR4_ZH_SHA256:-}" ]; then
+            log "FSR4汉化包配置不完整，切换为原版叠加流程"
+            install_configured_plugin fsr4 0 0 || return 1
+            install_fsr4_chinese "$reload_after" || return 1
+            return 0
+        fi
+        echo "正在通过 GitHub 加速源下载完整 FSR4 汉化包..."
+        install_decky_zip \
+            "FSR4（Decky Framegen）汉化完整包" \
+            "${DECKY_FSR4_ZH_URL:-}" \
+            "${DECKY_FSR4_ZH_SHA256:-}" \
+            "$FSR4_OFFICIAL_DIRECTORY" \
+            0 || {
             cleanup_decky_tmp
             trap - EXIT INT TERM
-            echo "Gitee 国内源也不可用，切换为原版叠加流程。"
+            log "FSR4 GitHub 源不可用，切换原版叠加"
             install_configured_plugin fsr4 0 0 || return 1
             install_fsr4_chinese "$reload_after"
             return $?
         }
-    }
+    fi
     echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面已安装（Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化）。"
     echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
@@ -2064,7 +2088,7 @@ install_feature_plugins() {
     fi
 
     echo "将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。"
-    echo "小黄鸭和 FSR4 优先通过 GitHub 加速源下载完整汉化包，失败则回退原版叠加流程。"
+    echo "小黄鸭和 FSR4 优先通过 Gitee 国内源下载完整汉化包，失败再使用 GitHub 加速源，最后回退原版叠加流程。"
     for plugin in lsfg fsr4 cheatdeck; do
         echo ""
         case "$plugin" in

@@ -79,7 +79,7 @@ download_launcher_installer() {
     }
     rm -f -- "$temporary"
     echo "正在下载 $LAUNCHER_NAME 官方安装器…"
-    if ! curl --fail --location --silent --show-error --proto '=https' --proto-redir '=https' \
+    if ! curl --fail --location --silent --proto '=https' --proto-redir '=https' \
         --connect-timeout 15 --max-time "$DOWNLOAD_TIMEOUT" --retry 2 --retry-delay 2 \
         --max-filesize "$(download_policy_max_bytes "$LAUNCHER_URL")" \
         --output "$temporary" "$LAUNCHER_URL"; then

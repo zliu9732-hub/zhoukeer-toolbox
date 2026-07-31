@@ -82,6 +82,8 @@ custom_json="$(cat "$custom_file")"
 assert_contains "$custom_json" '"name":"SimpleDeckyTDP"' "未生成SimpleDeckyTDP安装请求"
 assert_contains "$custom_json" '"name":"Unifideck"' "未生成Unifideck安装请求"
 assert_contains "$custom_json" "$DECKY_UNIFIDECK_SHA256" "非官方插件未携带SHA256"
+assert_contains "$custom_json" '"name":"Freedeck"' "未生成Freedeck安装请求"
+assert_contains "$custom_json" "$DECKY_FREEDECK_SHA256" "Freedeck 未固定 0.6 校验值"
 
 DECKY_SIMPLE_TDP_URL="http://unsafe.invalid/plugin.zip"
 if build_custom_plugins_json "$TMP_ROOT/unsafe.json" >/dev/null 2>&1; then

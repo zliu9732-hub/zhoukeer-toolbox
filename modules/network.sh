@@ -62,13 +62,13 @@ network_probe() {
     result="$NETWORK_TMP_DIR/$id"
     (
         if [ "${ZHOUKEER_NETWORK_QUIET:-0}" = "1" ]; then
-            curl --fail --location --silent --show-error \
+            curl --fail --location --silent \
                 --proto '=https' --proto-redir '=https' \
                 --connect-timeout "${ZHOUKEER_NETWORK_CONNECT_TIMEOUT:-3}" \
                 --max-time "${ZHOUKEER_NETWORK_MAX_TIME:-8}" \
                 --range 0-0 --max-filesize 1048576 --output /dev/null "$url" 2>/dev/null
         else
-            curl --fail --location --silent --show-error \
+            curl --fail --location --silent \
                 --proto '=https' --proto-redir '=https' \
                 --connect-timeout "${ZHOUKEER_NETWORK_CONNECT_TIMEOUT:-3}" \
                 --max-time "${ZHOUKEER_NETWORK_MAX_TIME:-8}" \

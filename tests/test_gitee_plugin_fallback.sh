@@ -43,14 +43,37 @@ fi
 
 CALLS="$TMP_ROOT/fallback.calls"
 feature_plugin_is_present() { return 1; }
-install_decky_zip() { printf 'github:%s\n' "$1" >> "$CALLS"; return 1; }
-install_decky_zip_from_gitee_archive() { printf 'gitee:%s\n' "$1" >> "$CALLS"; return 0; }
+install_decky_zip() { printf 'github:%s\n' "$1" >> "$CALLS"; return "${GITHUB_RESULT:-1}"; }
+install_decky_zip_from_gitee_archive() { printf 'gitee:%s\n' "$1" >> "$CALLS"; return "${GITEE_RESULT:-1}"; }
+install_lsfg_bundle() { printf 'lsfg-overlay\n' >> "$CALLS"; return 0; }
+install_lsfg_chinese() { printf 'lsfg-zh\n' >> "$CALLS"; return 0; }
+install_configured_plugin() { printf 'fsr4-overlay:%s\n' "$1" >> "$CALLS"; return 0; }
+install_fsr4_chinese() { printf 'fsr4-zh\n' >> "$CALLS"; return 0; }
 remove_legacy_lsfg_directories() { return 0; }
 log() { return 0; }
 
-install_lsfg_zh_from_gitee 0 || fail "小黄鸭没有从 GitHub 失败切换到 Gitee"
-install_fsr4_zh_from_gitee 0 || fail "FSR4 没有从 GitHub 失败切换到 Gitee"
-[ "$(grep -c '^github:' "$CALLS")" -eq 2 ] || fail "两个插件没有先尝试 GitHub"
-[ "$(grep -c '^gitee:' "$CALLS")" -eq 2 ] || fail "两个插件没有回退 Gitee"
+GITEE_RESULT=0
+GITHUB_RESULT=0
+: > "$CALLS"
+install_lsfg_zh_from_gitee 0 || fail "小黄鸭没有优先从 Gitee 安装"
+install_fsr4_zh_from_gitee 0 || fail "FSR4 没有优先从 Gitee 安装"
+[ "$(grep -c '^gitee:' "$CALLS")" -eq 2 ] || fail "两个插件没有先尝试 Gitee"
+[ "$(grep -c '^github:' "$CALLS")" -eq 0 ] || fail "Gitee 可用时不应再尝试 GitHub"
 
-echo "PASS: 小黄鸭与 FSR4 的 GitHub→Gitee 回退及归档校验通过"
+GITEE_RESULT=1
+GITHUB_RESULT=0
+: > "$CALLS"
+install_lsfg_zh_from_gitee 0 || fail "小黄鸭没有从 Gitee 失败切换到 GitHub"
+install_fsr4_zh_from_gitee 0 || fail "FSR4 没有从 Gitee 失败切换到 GitHub"
+[ "$(grep -c '^gitee:' "$CALLS")" -eq 2 ] || fail "两个插件没有先尝试 Gitee"
+[ "$(grep -c '^github:' "$CALLS")" -eq 2 ] || fail "两个插件没有回退 GitHub"
+
+GITEE_RESULT=1
+GITHUB_RESULT=1
+: > "$CALLS"
+install_lsfg_zh_from_gitee 0 || fail "小黄鸭双源失败后没有回退原版叠加"
+install_fsr4_zh_from_gitee 0 || fail "FSR4 双源失败后没有回退原版叠加"
+grep -Fq 'lsfg-overlay' "$CALLS" || fail "小黄鸭没有执行原版叠加回退"
+grep -Fq 'fsr4-overlay' "$CALLS" || fail "FSR4 没有执行原版叠加回退"
+
+echo "PASS: 小黄鸭与 FSR4 的 Gitee→GitHub 回退及归档校验通过"

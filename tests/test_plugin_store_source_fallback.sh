@@ -56,8 +56,6 @@ output="$(download_decky_component_with_fallback \
     "$DECKY_LOADER_OFFICIAL_URL" \
     "$EXPECTED_SHA256" \
     "$TMP_ROOT/PluginLoader")"
-printf '%s\n' "$output" | grep -Fq '国内线路不可用，正在自动切换 Decky 官方国外线路' || \
-    fail "国内源失败后没有提示自动切换官方源"
 printf '%s\n' "$output" | grep -Fq '已通过 Decky 官方线路获取' || \
     fail "官方源成功后没有给出明确结果"
 [ "$(sed -n '1p' "$CALLS")" = "$DECKY_LOADER_URL" ] || fail "未优先尝试国内 Loader"

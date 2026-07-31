@@ -95,6 +95,11 @@ build_custom_plugins_json() {
         "${DECKY_UNIFIDECK_VERSION:-0.7.0}" \
         "${DECKY_UNIFIDECK_URL:-}" \
         "${DECKY_UNIFIDECK_SHA256:-}" || return 1
+    append_custom_plugin_json "$output" \
+        "Freedeck" \
+        "${DECKY_FREEDECK_VERSION:-0.6}" \
+        "${DECKY_FREEDECK_URL:-}" \
+        "${DECKY_FREEDECK_SHA256:-}" || return 1
 }
 
 build_decky_bundle_javascript_legacy() {
@@ -138,7 +143,6 @@ call_decky_frontend() {
         response="$(curl \
             --fail \
             --silent \
-            --show-error \
             --connect-timeout 5 \
             --max-time 90 \
             --header "X-Decky-Auth: $token" \
@@ -204,7 +208,6 @@ install_recommended_decky_plugins() {
     token="$(curl \
         --fail \
         --silent \
-        --show-error \
         --connect-timeout 3 \
         --max-time 10 \
         "$DECKY_API_BASE/auth/token" 2>/dev/null || true)"

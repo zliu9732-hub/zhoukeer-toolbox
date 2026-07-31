@@ -176,7 +176,6 @@ download_flathub_repo_file() {
             --fail \
             --location \
             --silent \
-            --show-error \
             --proto '=https' \
             --proto-redir '=https' \
             --connect-timeout 10 \
@@ -205,7 +204,6 @@ download_official_flathub_repo_file() {
         --fail \
         --location \
         --silent \
-        --show-error \
         --proto '=https' \
         --proto-redir '=https' \
         --connect-timeout 10 \
@@ -453,7 +451,6 @@ resolve_qq_appimage_url() {
             --fail \
             --location \
             --silent \
-            --show-error \
             --proto '=https' \
             --proto-redir '=https' \
             --connect-timeout 10 \
@@ -522,8 +519,7 @@ install_official_qq_appimage() (
     if ! curl \
         --fail \
         --location \
-        --show-error \
-        --progress-bar \
+        --silent \
         --proto '=https' \
         --proto-redir '=https' \
         --connect-timeout 15 \
@@ -603,8 +599,7 @@ install_official_wechat_appimage() (
     if ! curl \
         --fail \
         --location \
-        --show-error \
-        --progress-bar \
+        --silent \
         --proto '=https' \
         --proto-redir '=https' \
         --connect-timeout 15 \
@@ -756,8 +751,7 @@ install_firefox_archive() (
     if ! curl \
         --fail \
         --location \
-        --show-error \
-        --progress-bar \
+        --silent \
         --proto '=https' \
         --proto-redir '=https' \
         --connect-timeout 15 \

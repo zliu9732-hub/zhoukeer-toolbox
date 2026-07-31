@@ -97,7 +97,7 @@ download_one() {
     curl \
         --fail \
         --location \
-        --show-error \
+        --silent \
         --proto '=https' \
         --proto-redir '=https' \
         --connect-timeout "$CONNECT_TIMEOUT" \

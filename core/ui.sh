@@ -254,6 +254,9 @@ ui_disclaimer_button() {
 }
 
 ui_prompt() {
+    # 操作完成后 pause_menu 会暂时关闭鼠标追踪；每次显示触控提示前重新
+    # 进入点击模式，避免下一层菜单退回普通光标导致触控失效。
+    enable_mouse_tracking
     ui_move "$UI_LAST_ROW" "$UI_PANEL_COL"
     printf '\033[0m\033[2K\033[38;5;255m 触屏或触控板点击功能 \033[0m'
 }

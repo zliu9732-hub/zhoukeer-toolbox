@@ -199,7 +199,7 @@ download_github_file() {
         return 1
     }
     curl_options=(
-        --fail --location --show-error --progress-bar
+        --fail --location --silent
         --proto '=https' --proto-redir '=https'
         --connect-timeout "$connect_timeout" --max-time "$max_time"
         --retry "$retries" --retry-delay 1 --retry-connrefused

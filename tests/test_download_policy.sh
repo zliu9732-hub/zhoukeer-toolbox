@@ -44,4 +44,12 @@ for mirror in $GITHUB_MIRRORS; do
     download_policy_github_mirror_allowed "$mirror" || fail "配置 GitHub 镜像未列入白名单：$mirror"
 done
 
+if rg -n -- '--show-error' \
+    "$PROJECT_ROOT/modules" \
+    "$PROJECT_ROOT/utils" \
+    "$PROJECT_ROOT/bootstrap.sh" \
+    "$PROJECT_ROOT/update.sh" >/dev/null 2>&1; then
+    fail "下载路径仍会向界面泄漏 curl 原始错误（--show-error）"
+fi
+
 echo "PASS: 下载白名单、大小限制、危险响应和受控回退清单测试通过"

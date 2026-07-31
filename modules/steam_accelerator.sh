@@ -493,7 +493,7 @@ download_steam302_archive() {
     curl \
         --fail \
         --location \
-        --show-error \
+        --silent \
         --proto '=https' \
         --proto-redir '=https' \
         --connect-timeout "$STEAM302_CONNECT_TIMEOUT" \
