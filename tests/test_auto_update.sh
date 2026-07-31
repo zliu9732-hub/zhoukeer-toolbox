@@ -126,6 +126,10 @@ if grep -Fq 'SHA256校验通过' "$PROJECT_ROOT/update.sh" || grep -Fq 'SHA256�
     echo "FAIL: 工具箱更新或安装仍回显正常校验细节" >&2
     exit 1
 fi
+grep -Fq 'for attempt in 1 2' "$PROJECT_ROOT/update.sh" || {
+    echo "FAIL: 更新包 SHA256 校验失败后没有重试" >&2
+    exit 1
+}
 grep -Fq -- "-name '._*' -exec rm -f -- {} +" "$PROJECT_ROOT/update.sh" || {
     echo "FAIL: 自动更新不会清理 AppleDouble 元数据文件" >&2
     exit 1

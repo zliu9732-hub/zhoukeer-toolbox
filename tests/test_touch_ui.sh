@@ -35,6 +35,11 @@ run_choice_test '\033[<0;8;1M' "agree" "any:1-999:agree"
 run_choice_test '\033[<0;80;19M' "agree" "any:1-999:agree"
 
 grep -Fq 'UI_LAST_ROW=24' "$PROJECT_ROOT/core/ui.sh" || fail "触控画布行数异常"
+grep -Fq 'TOOLBOX_VERSION' "$PROJECT_ROOT/core/ui.sh" || fail "触控标题没有使用真实版本号"
+if grep -Fq '周克儿工具箱  ·  V5' "$PROJECT_ROOT/core/ui.sh"; then
+    fail "触控标题仍硬编码 V5"
+fi
+grep -Fq 'GUI_TITLE="周克儿工具箱 V$(' "$PROJECT_ROOT/core/gui.sh" || fail "图形窗口标题没有使用真实版本号"
 grep -Fq 'Font=Noto Sans Mono CJK SC,12' "$PROJECT_ROOT/install.sh" || fail "中文字体大小没有恢复为默认可读尺寸"
 grep -Fq 'TerminalColumns=120' "$PROJECT_ROOT/install.sh" || fail "终端列数不是紧凑布局"
 grep -Fq 'TerminalRows=32' "$PROJECT_ROOT/install.sh" || fail "终端行数不是紧凑布局"

@@ -180,9 +180,6 @@ verify_package() {
     actual="$(sha256_file "$package_file")"
     expected="$(printf '%s' "$expected" | tr '[:upper:]' '[:lower:]')"
     if [ "$actual" != "$expected" ]; then
-        echo "SHA256校验失败"
-        echo "期望: $expected"
-        echo "实际: $actual"
         return 1
     fi
 
@@ -247,16 +244,24 @@ download_verified_package_from() {
     local checksum_url="$3"
     local package_file="$4"
     local checksum_file="$5"
-    local expected="${ZHOUKEER_SHA256:-}"
+    local expected
+    local attempt
 
-    download_one "$package_url" "$package_file" "${label}更新包" || return 1
-
-    if [ -z "$expected" ]; then
-        download_one "$checksum_url" "$checksum_file" "${label}校验文件" || return 1
-        expected="$(checksum_from_manifest "$checksum_file" "$PACKAGE_NAME")"
-    fi
-
-    verify_package "$package_file" "$expected"
+    # Gitee 国内 CDN 偶尔先刷新小文件、后刷新大文件，首次 SHA256 可能短暂不匹配。
+    # 重新下载一次校验文件和更新包，避免把 CDN 缓存波动误判为源不可用。
+    for attempt in 1 2; do
+        expected="${ZHOUKEER_SHA256:-}"
+        rm -f -- "$package_file" "$checksum_file"
+        if download_one "$package_url" "$package_file" "${label}更新包" && \
+            { [ -n "$expected" ] || download_one "$checksum_url" "$checksum_file" "${label}校验文件"; } && \
+            { [ -n "$expected" ] || expected="$(checksum_from_manifest "$checksum_file" "$PACKAGE_NAME")"; } && \
+            verify_package "$package_file" "$expected"; then
+            return 0
+        fi
+        [ "$attempt" -eq 1 ] || return 1
+        sleep 3
+    done
+    return 1
 }
 
 download_verified_package() {
@@ -457,6 +462,9 @@ if [ "$REMOTE_VERSION" != "unknown" ] && [ "$LOCAL_VERSION" = "$REMOTE_VERSION" 
 fi
 
 echo "正在更新工具箱..."
+if [ "$REMOTE_VERSION" != "unknown" ]; then
+    echo "当前版本 V${LOCAL_VERSION}，正在更新到 V${REMOTE_VERSION}..."
+fi
 download_verified_package "$PACKAGE_FILE" "$CHECKSUM_FILE" || exit 1
 
 mkdir -p "$EXTRACT_DIR"
@@ -504,4 +512,8 @@ fi
 # 安装目录采用原子替换；恢复当前工作目录，避免调用方继续引用已删除的旧目录。
 cd "$PROJECT_ROOT" 2>/dev/null || cd "$HOME" || exit 1
 
-echo "✓ 工具箱更新完成"
+if [ "$REMOTE_VERSION" != "unknown" ]; then
+    echo "✓ 工具箱更新完成，当前版本 V${PACKAGE_VERSION:-$REMOTE_VERSION}"
+else
+    echo "✓ 工具箱更新完成"
+fi

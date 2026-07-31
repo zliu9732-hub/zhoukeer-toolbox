@@ -13,6 +13,8 @@ UI_PREFERRED_COLUMNS=120
 UI_PREFERRED_ROWS=32
 UI_LAYOUT_RETRY_COUNT=20
 UI_LAYOUT_RETRY_INTERVAL=0.2
+TOOLBOX_VERSION="$(tr -d '\r\n' < "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/VERSION" 2>/dev/null || true)"
+[ -n "$TOOLBOX_VERSION" ] || TOOLBOX_VERSION="?"
 
 ui_detect_layout() {
     local columns="${COLUMNS:-}"
@@ -67,7 +69,7 @@ logo() {
 echo -e "${BLUE}"
 cat << "EOL"
 ====================================
-    📦 周克儿工具箱 v5
+    📦 周克儿工具箱 v$TOOLBOX_VERSION
    SteamOS Handheld Toolbox
 ====================================
 EOL
@@ -205,7 +207,7 @@ draw_category_frame() {
     done
 
     if [ -n "$title" ]; then
-        ui_panel_line 2 '\033[1;38;5;203m' "◆ 周克儿工具箱  ·  V5"
+        ui_panel_line 2 '\033[1;38;5;203m' "◆ 周克儿工具箱  ·  V${TOOLBOX_VERSION}"
         ui_panel_line 3 '\033[1;38;5;45m' "STEAMOS 掌机  /  中文工具"
         ui_panel_line 4 '\033[38;5;203m' "────────────────────────────────────────"
         if [ "$show_context" = "1" ]; then
@@ -221,7 +223,7 @@ draw_disclaimer_frame() {
     ui_reset_screen
 
     ui_move 2 6
-    printf '\033[1;38;5;203m ◆ 周克儿工具箱  ·  V5 \033[0m'
+    printf '\033[1;38;5;203m ◆ 周克儿工具箱  ·  V%s \033[0m' "$TOOLBOX_VERSION"
     ui_move 3 6
     printf '\033[38;5;203m────────────────────────────────────────────────────────────\033[0m'
     ui_move 5 6

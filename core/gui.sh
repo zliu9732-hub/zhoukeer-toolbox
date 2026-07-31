@@ -11,7 +11,7 @@ source "$PROJECT_ROOT/core/logger.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/auth.sh"
 
-GUI_TITLE="周克儿工具箱 V4"
+GUI_TITLE="周克儿工具箱 V$(tr -d '\r\n' < "$PROJECT_ROOT/VERSION" 2>/dev/null || printf '?')"
 GUI_ICON="$PROJECT_ROOT/assets/icon-round.png"
 GUI_NAV_HOME=0
 
