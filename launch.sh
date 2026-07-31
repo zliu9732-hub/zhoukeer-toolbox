@@ -7,7 +7,7 @@ MAIN_PROFILE_FILE="$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
 SPLASH_PROFILE_FILE="$HOME/.local/share/konsole/ZhoukeerToolboxSplash.profile"
 PROFILE_FILE="$SPLASH_PROFILE_FILE"
 STARTUP_VIEW="splash"
-WINDOW_SIZE="1280x820"
+WINDOW_SIZE="1280x740"
 STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 LAUNCH_LOG="${ZHOUKEER_LAUNCH_LOG:-$STATE_HOME/zhoukeer-toolbox/launcher.log}"
 
@@ -238,14 +238,14 @@ try_konsole_levels() {
     command -v konsole >/dev/null 2>&1 || return 1
     KONSOLE_HELP="$(konsole --help 2>/dev/null || true)"
 
-    # SteamOS 上全屏能保证 120×32 画布完整、触控坐标不漂移；
-    # 不支持 --fullscreen 时退回固定窗口尺寸。
-    if supports_konsole_option '--fullscreen'; then
-        optional_args+=(--fullscreen)
-        window_mode="全屏"
-    elif supports_konsole_option '--geometry'; then
+    # 固定窗口尺寸保证 32 行画布完整，同时保留可关闭的标题栏；
+    # 不支持 --geometry 时才退回全屏。
+    if supports_konsole_option '--geometry'; then
         optional_args+=(--geometry "$WINDOW_SIZE")
         window_mode="窗口 $WINDOW_SIZE"
+    elif supports_konsole_option '--fullscreen'; then
+        optional_args+=(--fullscreen)
+        window_mode="全屏"
     fi
     if supports_konsole_option '--workdir'; then
         optional_args+=(--workdir "$PROJECT_ROOT")

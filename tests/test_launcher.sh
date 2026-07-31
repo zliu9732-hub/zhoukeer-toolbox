@@ -75,7 +75,7 @@ grep -Fq -- 'ZhoukeerToolboxSplash.profile' "$CALL_LOG"
 grep -Fq -- 'ZHOUKEER_STARTUP_SPLASH=1' "$CALL_LOG"
 
 run_launcher $'--profile\n--workdir\n--geometry'
-grep -Fq -- '--geometry 1280x820' "$CALL_LOG"
+grep -Fq -- '--geometry 1280x740' "$CALL_LOG"
 
 warning_output="$(
     HOME="$HOME_DIR" \
@@ -95,10 +95,14 @@ printf '%s\n' "$warning_output" | grep -Fq 'real terminal error'
 grep -Fq '已隐藏 Konsole 无害布局警告' "$LAUNCH_LOG"
 
 : > "$CALL_LOG"
-run_launcher $'--profile\n--workdir\n--fullscreen\n--geometry'
+run_launcher $'--profile\n--workdir\n--fullscreen'
 grep -Fq -- '--fullscreen' "$CALL_LOG"
-if grep -Fq -- '--geometry' "$CALL_LOG"; then
-    echo "FAIL: 支持全屏时仍传入固定窗口尺寸"
+
+: > "$CALL_LOG"
+run_launcher $'--profile\n--workdir\n--fullscreen\n--geometry'
+grep -Fq -- '--geometry 1280x740' "$CALL_LOG"
+if grep -Fq -- '--fullscreen' "$CALL_LOG"; then
+    echo "FAIL: 支持固定窗口尺寸时不应默认全屏"
     exit 1
 fi
 
@@ -134,7 +138,7 @@ if [ "$(grep -c '^konsole ' "$CALL_LOG")" -ne 2 ]; then
     echo "FAIL: 主题启动失败后未进入Konsole兼容模式"
     exit 1
 fi
-sed -n '2p' "$CALL_LOG" | grep -Fq -- '--geometry 1280x820'
+sed -n '2p' "$CALL_LOG" | grep -Fq -- '--geometry 1280x740'
 if sed -n '2p' "$CALL_LOG" | grep -Fq -- '--profile'; then
     echo "FAIL: Konsole兼容模式仍使用主题参数"
     exit 1
