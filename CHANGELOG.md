@@ -1,3 +1,8 @@
+## V6.0.8 Freedeck Release 资产修复 — 2026-07-31
+
+- Freedeck 改为从作者 GitHub Release 下载 `freedeck.v.0.6.zip` 插件包并固定 SHA256，不再使用源码包；安装后版本与功能与 Decky Loader 安装一致。
+- 安装目录固定为 `freedeck-plugin`；旧源码包配置会在升级时自动纠正。
+
 ## V6.0.7 版本号显示与下载进度修复 — 2026-07-31
 
 - 修复执行页标题把版本号显示成字面量 `v$TOOLBOX_VERSION` 的问题，现在显示真实版本号。

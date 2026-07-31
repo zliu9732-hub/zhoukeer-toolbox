@@ -49,9 +49,9 @@ DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.
 DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
 DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip"
 DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
-# Freedeck 固定使用作者 GitHub 0.6 源码包，避免旧配置继续指向过期 0.2。
-DECKY_FREEDECK_URL="https://github.com/panyiwei-home/Freedeck/archive/refs/tags/0.6.zip"
-DECKY_FREEDECK_SHA256="1b42bc7ab15f5a0fee69f2c261340247359e55d83c48ee45f95851704217a7b6"
+# Freedeck 固定使用作者 GitHub Release 0.6 插件包，避免源码包或旧配置装成 0.2。
+DECKY_FREEDECK_URL="https://github.com/panyiwei-home/Freedeck/releases/download/0.6/freedeck.v.0.6.zip"
+DECKY_FREEDECK_SHA256="04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62"
 DECKY_FREEDECK_VERSION="0.6"
 # 汉化完整包固定使用当前仓库文件，避免旧配置继续指向过期哈希。
 DECKY_LSFG_ZH_URL="https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip"
@@ -1961,7 +1961,7 @@ install_configured_plugin() {
                 "Freedeck（下载游戏和模拟器游戏）感谢作者b站一苇Isidf" \
                 "${DECKY_FREEDECK_URL:-}" \
                 "${DECKY_FREEDECK_SHA256:-}" \
-                "Freedeck-0.6"
+                "freedeck-plugin"
             ;;
         simpledeckytdp)
             install_decky_zip \

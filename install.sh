@@ -111,6 +111,17 @@ assignment_is_retired_chinese_plugin_hash() {
     esac
 }
 
+# Freedeck 曾使用 GitHub 源码包地址，安装后功能版本错误；升级时换回 Release 插件包。
+assignment_is_retired_freedeck_url() {
+    local key="$1"
+    local assignment="$2"
+
+    case "$key:$assignment" in
+        DECKY_FREEDECK_URL:*archive/refs/tags/*|DECKY_FREEDECK_URL:*tags/0.2.zip*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 prepare_config_migration() {
     local config_file="$1"
     local example_file="$2"
@@ -152,6 +163,12 @@ prepare_config_migration() {
         fi
 
         if assignment_is_retired_chinese_plugin_hash "$key" "$current_assignment"; then
+            CONFIG_MIGRATION_KEYS+=("$key")
+            CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
+            continue
+        fi
+
+        if assignment_is_retired_freedeck_url "$key" "$current_assignment"; then
             CONFIG_MIGRATION_KEYS+=("$key")
             CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
         fi

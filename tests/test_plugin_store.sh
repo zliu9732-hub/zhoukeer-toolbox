@@ -59,9 +59,10 @@ grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$PROJECT_R
 grep -Fq 'Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CheatDeck/releases/download/v1.2.1/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'Freedeck/archive/refs/tags/0.6.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '1b42bc7ab15f5a0fee69f2c261340247359e55d83c48ee45f95851704217a7b6' \
+grep -Fq 'Freedeck/releases/download/0.6/freedeck.v.0.6.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '"freedeck-plugin"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_LSFG_ZH_SHA256="11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_FSR4_ZH_SHA256="467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e"' \

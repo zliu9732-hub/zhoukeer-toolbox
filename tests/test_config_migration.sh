@@ -155,6 +155,23 @@ test_chinese_plugin_v504_hashes_migrated() {
         "467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e"
 }
 
+test_retired_freedeck_url_migrated() {
+    local case_root="$TMP_ROOT/retired-freedeck"
+    local install_dir="$case_root/install"
+    local config_file="$install_dir/config/settings.conf"
+
+    mkdir -p "$(dirname "$config_file")"
+    cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
+    sed -i.bak \
+        -e 's|https://github.com/panyiwei-home/Freedeck/releases/download/0.6/freedeck.v.0.6.zip|https://github.com/panyiwei-home/Freedeck/archive/refs/tags/0.6.zip|' \
+        "$config_file"
+
+    run_installer "$case_root/home" "$install_dir"
+
+    assert_value "$config_file" DECKY_FREEDECK_URL \
+        "https://github.com/panyiwei-home/Freedeck/releases/download/0.6/freedeck.v.0.6.zip"
+}
+
 test_retired_rustdesk_config_removed() {
     local case_root="$TMP_ROOT/retired-rustdesk"
     local install_dir="$case_root/install"
@@ -292,6 +309,7 @@ test_blank_config_migration
 test_custom_config_preserved
 test_chinese_plugin_hashes_migrated
 test_chinese_plugin_v504_hashes_migrated
+test_retired_freedeck_url_migrated
 test_retired_rustdesk_config_removed
 test_retired_decky_installer_config_removed
 test_missing_config_created
