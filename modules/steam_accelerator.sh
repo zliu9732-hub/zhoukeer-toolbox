@@ -378,7 +378,15 @@ ensure_steam302_for_download() {
         return 0
     fi
 
-    echo "未检测到 Steam + GitHub 加速。下载慢时请在工具箱中安装或开启 Steam302 后台加速。"
+    echo "未检测到 Steam + GitHub 加速。工具箱中安装或开启 Steam302 后台加速后下载会更快。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        echo "检测到下载较慢，正在自动安装并开启 Steamcommunity 302 加速..."
+        if enable_steam302; then
+            echo "Steamcommunity 302 已开启，正在重试下载。"
+            return 0
+        fi
+        echo "Steamcommunity 302 自动开启未完成，继续原有下载线路。"
+    fi
     return 0
 }
 

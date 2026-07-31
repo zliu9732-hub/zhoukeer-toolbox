@@ -49,6 +49,9 @@ grep -Fq 'Font=Noto Sans Mono CJK SC,12' "$PROJECT_ROOT/install.sh" || fail "中
 grep -Fq 'TerminalColumns=120' "$PROJECT_ROOT/install.sh" || fail "终端列数不是紧凑布局"
 grep -Fq 'TerminalRows=32' "$PROJECT_ROOT/install.sh" || fail "终端行数不是紧凑布局"
 grep -Fq 'WINDOW_SIZE="1280x740"' "$PROJECT_ROOT/launch.sh" || fail "工具箱窗口尺寸未同步"
+grep -Fq 'ZHOUKEER_FONT_SIZE' "$PROJECT_ROOT/launch.sh" || fail "启动器没有按分辨率设置字号"
+grep -Fq 'ui_apply_screen_font' "$PROJECT_ROOT/core/ui.sh" || fail "界面缺少分辨率字号适配"
+grep -Fq 'ui_apply_screen_font' "$PROJECT_ROOT/main.sh" || fail "启动流程没有应用分辨率字号"
 grep -Fq "printf '\\033[0m\\033[r\\033[3J\\033[2J\\033[H'" "$PROJECT_ROOT/launch.sh" || fail "首次进入前未清理更新输出"
 
 layout_wait="$(sed -n '/^ui_wait_for_minimum_canvas()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"

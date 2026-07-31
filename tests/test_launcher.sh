@@ -73,9 +73,26 @@ grep -Fq -- '--profile' "$CALL_LOG"
 grep -Fq -- '--workdir' "$CALL_LOG"
 grep -Fq -- 'ZhoukeerToolboxSplash.profile' "$CALL_LOG"
 grep -Fq -- 'ZHOUKEER_STARTUP_SPLASH=1' "$CALL_LOG"
+grep -Fq 'Operation timed out' "$PROJECT_ROOT/launch.sh" || fail "启动器没有过滤英文超时提示"
+grep -Fq 'filter_terminal_stderr >&2' "$PROJECT_ROOT/launch.sh" || fail "主程序 stderr 没有经过英文错误过滤"
 
 run_launcher $'--profile\n--workdir\n--geometry'
 grep -Fq -- '--geometry 1280x740' "$CALL_LOG"
+
+: > "$CALL_LOG"
+HOME="$HOME_DIR" \
+PATH="$BIN_DIR:/usr/bin:/bin" \
+ZHOUKEER_LAUNCH_LOG="$LAUNCH_LOG" \
+FAKE_TERMINAL_CALL_LOG="$CALL_LOG" \
+FAKE_DIALOG_LOG="$DIALOG_LOG" \
+FAKE_KONSOLE_HELP=$'--profile\n--workdir\n--geometry' \
+FAKE_XTERM_STATUS=0 \
+ZHOUKEER_SCREEN_SIZE=1920x1080 \
+    bash "$PROJECT_ROOT/launch.sh"
+grep -Fq -- '--geometry 1804x993' "$CALL_LOG" || {
+    echo "FAIL: 高分辨率屏幕没有按比例调整窗口尺寸" >&2
+    exit 1
+}
 
 warning_output="$(
     HOME="$HOME_DIR" \
@@ -92,7 +109,7 @@ if printf '%s\n' "$warning_output" | grep -Fq 'QLayout: Cannot add a null widget
     exit 1
 fi
 printf '%s\n' "$warning_output" | grep -Fq 'real terminal error'
-grep -Fq '已隐藏 Konsole 无害布局警告' "$LAUNCH_LOG"
+grep -Fq '已隐藏英文错误提示' "$LAUNCH_LOG"
 
 : > "$CALL_LOG"
 run_launcher $'--profile\n--workdir\n--fullscreen'

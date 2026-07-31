@@ -8,6 +8,7 @@ SPLASH_PROFILE_FILE="$HOME/.local/share/konsole/ZhoukeerToolboxSplash.profile"
 PROFILE_FILE="$SPLASH_PROFILE_FILE"
 STARTUP_VIEW="splash"
 WINDOW_SIZE="1280x740"
+FONT_SIZE="12"
 STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 LAUNCH_LOG="${ZHOUKEER_LAUNCH_LOG:-$STATE_HOME/zhoukeer-toolbox/launcher.log}"
 
@@ -118,7 +119,7 @@ $PROJECT_ROOT/main.sh
 
     if command -v tee >/dev/null 2>&1; then
         ZHOUKEER_LAUNCHED=1 bash "$PROJECT_ROOT/main.sh" --touch \
-            2> >(tee -a "$LAUNCH_LOG" >&2)
+            2> >(tee -a "$LAUNCH_LOG" | filter_terminal_stderr >&2)
         status=$?
     else
         ZHOUKEER_LAUNCHED=1 bash "$PROJECT_ROOT/main.sh" --touch
@@ -170,6 +171,52 @@ esac
 
 launcher_log "启动请求：目录=$PROJECT_ROOT 系统=$(uname -s 2>/dev/null || echo unknown)"
 
+screen_size() {
+    local value="${ZHOUKEER_SCREEN_SIZE:-}"
+
+    if [ -z "$value" ] && command -v xrandr >/dev/null 2>&1; then
+        value="$(xrandr --current 2>/dev/null | awk -F'[ x]' '/\*/ { print $1 "x" $2; exit }')"
+    fi
+    if [ -z "$value" ] && command -v xdpyinfo >/dev/null 2>&1; then
+        value="$(xdpyinfo 2>/dev/null | awk '/dimensions:/ { print $2; exit }')"
+    fi
+    case "$value" in
+        [0-9]*x[0-9]*) printf '%s\n' "$value" ;;
+    esac
+}
+
+adapt_window_size() {
+    local screen width height window_width window_height font
+
+    screen="$(screen_size)"
+    [ -n "$screen" ] || return 0
+    width="${screen%x*}"
+    height="${screen#*x}"
+    case "$width" in ''|*[!0-9]*) return 0 ;; esac
+    case "$height" in ''|*[!0-9]*) return 0 ;; esac
+
+    window_width=$((width * 94 / 100))
+    window_height=$((height * 92 / 100))
+    [ "$window_width" -ge 1024 ] || window_width=1024
+    [ "$window_height" -ge 600 ] || window_height=600
+    [ "$window_width" -le 3840 ] || window_width=3840
+    [ "$window_height" -le 2160 ] || window_height=2160
+
+    if [ "$height" -le 800 ]; then font=12
+    elif [ "$height" -le 1080 ]; then font=14
+    elif [ "$height" -le 1440 ]; then font=16
+    elif [ "$height" -le 1600 ]; then font=18
+    else font=20
+    fi
+
+    WINDOW_SIZE="${window_width}x${window_height}"
+    FONT_SIZE="$font"
+    ZHOUKEER_FONT_SIZE="$font"
+    export ZHOUKEER_FONT_SIZE
+}
+
+adapt_window_size
+
 if [ ! -r "$PROJECT_ROOT/main.sh" ]; then
     show_launch_error "周克儿工具箱启动失败" \
         "安装可能不完整，未找到主程序：
@@ -204,8 +251,19 @@ filter_terminal_stderr() {
 
     while IFS= read -r line; do
         case "$line" in
-            *"QLayout: Cannot add a null widget to QHBoxLayout"*)
-                launcher_log "已隐藏 Konsole 无害布局警告：$line"
+            *"QLayout: Cannot add a null widget to QHBoxLayout"*| \
+            *"curl: ("*| \
+            *"Operation timed out"*| \
+            *"Connection timed out"*| \
+            *"Connection refused"*| \
+            *"Could not resolve host"*| \
+            *"Failed to connect"*| \
+            *"No route to host"*| \
+            *"Empty reply from server"*| \
+            *"HTTP error"*| \
+            *"SSL"*|*"TLS"*| \
+            *"error:"*|*"Error:"*|*"WARNING:"*)
+                launcher_log "已隐藏英文错误提示：$line"
                 ;;
             *)
                 printf '%s\n' "$line" >&2

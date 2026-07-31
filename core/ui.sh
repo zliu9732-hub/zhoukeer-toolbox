@@ -65,6 +65,17 @@ ui_wait_for_minimum_canvas() {
     return 1
 }
 
+ui_apply_screen_font() {
+    local font_size="${ZHOUKEER_FONT_SIZE:-}"
+
+    case "$font_size" in
+        ''|*[!0-9]*) return 0 ;;
+    esac
+    if command -v konsoleprofile >/dev/null 2>&1; then
+        konsoleprofile "Font=Noto Sans Mono CJK SC,$font_size" >/dev/null 2>&1 || true
+    fi
+}
+
 logo() {
     echo -e "${BLUE}"
     echo "===================================="

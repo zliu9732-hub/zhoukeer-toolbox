@@ -239,6 +239,7 @@ grep -Fq '5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f' \
     "$MODULE" || fail "缺少固定 SHA256"
 grep -Fq 'ensure_steam302_for_download()' "$MODULE" || fail "缺少 Steamcommunity 302 工具函数"
 grep -Fq '未检测到 Steam + GitHub 加速' "$MODULE" || fail "未加速时缺少醒目提示"
+grep -Fq '自动安装并开启 Steamcommunity 302' "$MODULE" || fail "缺少自动加速安装入口"
 
 fallback_output="$(MODULE="$MODULE" bash -c '
     source "$MODULE"

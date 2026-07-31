@@ -35,6 +35,7 @@ show_startup_loading() {
 # 首次启动时 Konsole 可能还未应用工具箱的 120×32 配置；先等画布就绪，
 # 避免固定第 24 行的触控导航被裁掉而看起来像菜单或插件分页丢失。
 show_startup_loading
+ui_apply_screen_font
 ui_wait_for_minimum_canvas || true
 
 # V5 默认就是纯触控界面。不再提供数字或字母菜单，避免键盘和触屏事件冲突。

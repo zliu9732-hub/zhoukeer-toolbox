@@ -69,9 +69,7 @@ show_plugin_download_speed_tip() {
     if steam302_download_acceleration_is_ready; then
         echo "Steam302 的 Steam + GitHub 加速已开启。"
     else
-        echo "建议先到【系统设置与双系统 → Steamcommunity 302】完成安装。"
-        echo "安装后会自动在后台加速 Steam 与 GitHub，并设置开机自启。"
-        echo "如果下载仍慢，请在该菜单查看运行状态或重新开启后台加速后重试。"
+        echo "下载慢或失败时，工具箱会自动安装并开启 Steam + GitHub 加速。"
     fi
     echo "===================================="
     echo ""
@@ -707,7 +705,11 @@ install_decky_zip() {
     mkdir -p "$extract_dir"
     trap cleanup_decky_tmp EXIT INT TERM
 
-    download_verified_package "$display_name" "$url" "$sha256" "$archive" || return 1
+    if ! download_verified_package "$display_name" "$url" "$sha256" "$archive"; then
+        echo "插件下载失败或过慢，正在尝试自动启用 Steamcommunity 302 加速后重试..."
+        bash "$PROJECT_ROOT/modules/steam_accelerator.sh" ensure || true
+        download_verified_package "$display_name" "$url" "$sha256" "$archive" || return 1
+    fi
     archive_paths_are_safe "$archive" zip || return 1
     unzip -q "$archive" -d "$extract_dir" || {
         echo "$display_name 解压失败，未改动现有插件。"
@@ -726,7 +728,7 @@ install_decky_zip() {
         echo "$display_name 安装失败，已尽量保留旧版本。"
         return 1
     }
-    echo "$display_name 已安装到：$plugin_root/$expected_dir"
+    echo "$display_name 安装成功。"
     log "$display_name 安装完成"
     PLUGIN_INSTALL_CHANGED=1
     cleanup_decky_tmp
@@ -795,7 +797,7 @@ install_decky_zip_from_gitee_archive() {
     mkdir -p "$extract_dir"
     trap cleanup_decky_tmp EXIT INT TERM
 
-    echo "正在从 Gitee 国内源获取 $display_name..."
+    echo "正在安装 $display_name..."
     download_github_file \
         "${DECKY_GITEE_ARCHIVE_URL:-}" \
         "$repository_archive" \
@@ -819,7 +821,7 @@ install_decky_zip_from_gitee_archive() {
         echo "$display_name 安装失败，已尽量保留旧版本。"
         return 1
     }
-    echo "$display_name 已通过 Gitee 国内源安装到：$plugin_root/$expected_dir"
+    echo "$display_name 安装成功。"
     log "$display_name 通过 Gitee 国内源安装完成"
     PLUGIN_INSTALL_CHANGED=1
     cleanup_decky_tmp
@@ -1465,7 +1467,7 @@ install_lsfg_zh_from_gitee() {
         return 0
     fi
 
-    echo "正在通过 GitHub Release 下载完整汉化小黄鸭..."
+    echo "正在安装小黄鸭..."
     if install_decky_zip \
         "小黄鸭（LSFG-VK）汉化完整包" \
         "${DECKY_LSFG_ZH_URL:-}" \
@@ -1486,7 +1488,7 @@ install_lsfg_zh_from_gitee() {
             install_lsfg_chinese "$reload_after" || return 1
             return 0
         fi
-        echo "正在通过 Gitee 国内源下载完整汉化小黄鸭..."
+        echo "正在安装小黄鸭..."
         install_decky_zip_from_gitee_archive \
             "小黄鸭（LSFG-VK）汉化完整包" \
             "Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip" \
@@ -1501,7 +1503,8 @@ install_lsfg_zh_from_gitee() {
         }
     fi
     remove_legacy_lsfg_directories "$plugin_root"
-    echo "汉化作者：闲鱼双叶，感谢支持！"
+    echo "小黄鸭安装成功。"
+    echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可使用。"
     fi
@@ -1596,7 +1599,7 @@ install_fsr4_zh_from_gitee() {
         return 0
     fi
 
-    echo "正在通过 GitHub Release 下载完整 FSR4 汉化包..."
+    echo "正在安装 FSR4..."
     if install_decky_zip \
         "FSR4（Decky Framegen）汉化完整包" \
         "${DECKY_FSR4_ZH_URL:-}" \
@@ -1617,7 +1620,7 @@ install_fsr4_zh_from_gitee() {
             install_fsr4_chinese "$reload_after" || return 1
             return 0
         fi
-        echo "正在通过 Gitee 国内源下载完整 FSR4 汉化包..."
+        echo "正在安装 FSR4..."
         install_decky_zip_from_gitee_archive \
             "FSR4（Decky Framegen）汉化完整包" \
             "Decky-Framegen-FSR4-v0.15.6.zip" \
@@ -1631,9 +1634,7 @@ install_fsr4_zh_from_gitee() {
             return $?
         }
     fi
-    echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面已安装（Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化）。"
-    echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
-    echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
+    echo "FSR4 安装成功。"
     echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 FSR4 插帧即可看到中文界面。"
@@ -2100,7 +2101,6 @@ install_feature_plugins() {
     fi
 
     echo "将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。"
-    echo "小黄鸭和 FSR4 优先通过 GitHub Release 下载完整汉化包，失败再使用 Gitee 国内源，最后回退原版叠加流程。"
     for plugin in lsfg fsr4 cheatdeck; do
         echo ""
         case "$plugin" in

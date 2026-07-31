@@ -42,6 +42,10 @@ grep -Fq '下载失败，切换备用源。' "$PROJECT_ROOT/modules/plugin_store
     echo "FAIL: Decky 插件下载仍显示具体失败原因" >&2
     exit 1
 }
+grep -Fq '自动启用 Steamcommunity 302 加速后重试' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: 插件下载失败后没有自动启用加速重试" >&2
+    exit 1
+}
 if grep -Fq 'https://www.mhhf.com/Deck/install.sh' "$PROJECT_ROOT/modules/plugin_store.sh" || \
     grep -Fq 'toolbox_sudo bash "$installer"' "$PROJECT_ROOT/modules/plugin_store.sh"; then
     echo "FAIL: 不应继续下载或执行Decky外层安装脚本"
@@ -202,8 +206,10 @@ grep -Fq 'feature-status) print_feature_plugin_status' "$PROJECT_ROOT/modules/pl
 grep -Fq 'uninstall) uninstall_all_decky_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '不会删除 Decky Loader 本体' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'all) show_plugin_download_speed_tip; install_all_plugin_packages' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '查看运行状态或重新开启后台加速后重试' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'GitHub Release 下载完整汉化包' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '下载慢或失败时，工具箱会自动安装并开启 Steam + GitHub 加速。' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '正在安装小黄鸭' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '正在安装 FSR4' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Fq 'Lossless Scaling.rar' "$PROJECT_ROOT/modules/plugin_store.sh" || \
