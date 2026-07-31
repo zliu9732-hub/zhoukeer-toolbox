@@ -33,6 +33,15 @@ assert_contains "$module_text" 'add_emulator_to_steam' "模拟器未添加 Steam
 assert_contains "$module_text" 'stop_steam_for_vdf' "写入 Steam 前未安全退出 Steam"
 assert_contains "$module_text" 'set-icon' "Steam 条目未设置图标"
 assert_contains "$module_text" 'verify' "Steam 条目未校验"
+assert_contains "$module_text" 'install_flatpak_emulator' "缺少 Flatpak 模拟器安装"
+assert_contains "$module_text" 'org.ppsspp.PPSSPP' "缺少 PPSSPP Flatpak 应用 ID"
+assert_contains "$module_text" 'io.mgba.mGBA' "缺少 mGBA Flatpak 应用 ID"
+assert_contains "$module_text" '--launch-options' "Flatpak 模拟器 Steam 条目未使用启动参数"
+assert_contains "$module_text" 'install_azahar_emulator' "缺少 Azahar 3DS 模拟器安装"
+assert_contains "$module_text" 'azahar_key_file_is_valid' "Azahar 3DS 密钥未校验"
+assert_contains "$module_text" 'import_azahar_keys' "缺少 Azahar 3DS 密钥导入"
+assert_contains "$module_text" 'aes_keys.txt' "Azahar 未使用 aes_keys.txt"
+assert_contains "$module_text" 'Applications/3ds' "Azahar 未使用用户本地安装路径"
 assert_contains "$module_text" 'import_yuzu_keys' "缺少 Yuzu 用户自备密钥导入"
 assert_contains "$module_text" 'yuzu_key_file_is_valid' "Yuzu 密钥文件未校验"
 assert_contains "$module_text" 'YUZU_KEY_MAX_BYTES=1048576' "Yuzu 密钥缺少大小限制"
@@ -68,7 +77,7 @@ for action in yuzu cemu duckstation pcsx2 rpcs3 shadps4; do
     assert_contains "$module_text" "$action" "模拟器动作缺失：$action"
 done
 
-for forbidden in EmuDeck Azahar Pegasus 'ES-DE'; do
+for forbidden in EmuDeck Pegasus 'ES-DE'; do
     assert_not_contains "$module_text" "$forbidden" "不应纳入的模拟器或前端：$forbidden"
 done
 

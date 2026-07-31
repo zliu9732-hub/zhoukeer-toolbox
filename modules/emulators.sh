@@ -18,10 +18,16 @@ EMULATOR_ROOT="${ZHOUKEER_EMULATOR_DIR:-$APP_DIR/emulators}"
 YUZU_KEYS_DIR="${ZHOUKEER_YUZU_KEYS_DIR:-$HOME/.local/share/yuzu/keys}"
 YUZU_KEY_IMPORT_DIR="${ZHOUKEER_YUZU_KEY_IMPORT_DIR:-$HOME/Desktop/Yuzu密钥}"
 YUZU_KEY_MAX_BYTES=1048576
+AZAHAR_APPIMAGE="${ZHOUKEER_AZAHAR_APPIMAGE:-$HOME/Applications/3ds/azahar.AppImage}"
+AZAHAR_ICON="${ZHOUKEER_AZAHAR_ICON:-$HOME/Applications/3ds/azahar.png}"
+AZAHAR_KEYS_IMPORT_DIR="${ZHOUKEER_AZAHAR_KEYS_IMPORT_DIR:-$HOME/Desktop/3DS密钥}"
+AZAHAR_KEYS_DIR="${ZHOUKEER_AZAHAR_KEYS_DIR:-$HOME/.local/share/azahar-emu/sysdata}"
+AZAHAR_KEY_MAX_BYTES=1048576
 
 emulator_details() {
     EMULATOR_CATEGORY="Game;Emulator;"
     EMULATOR_MIN_BYTES=20971520
+    EMULATOR_FLATPAK_ID=""
     case "$1" in
         yuzu) EMULATOR_NAME="Yuzu（Switch 模拟器）"; EMULATOR_ASSET="yuzu.AppImage"; EMULATOR_FILE="Yuzu.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/yuzu.png"; EMULATOR_SHA256="6d44d52fc6ebd8f3b2e4707516cce535034285d4567302251bafd109c7972258" ;;
         cemu) EMULATOR_NAME="Cemu（Wii U 模拟器）"; EMULATOR_ASSET="Cemu.AppImage"; EMULATOR_FILE="Cemu.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/cemu.png"; EMULATOR_SHA256="05ad07e3b2fb60f9c19f84c7d65c4e978bc2cf58b4b53d39fca0376227900c27" ;;
@@ -29,6 +35,9 @@ emulator_details() {
         pcsx2) EMULATOR_NAME="PCSX2（PS2 模拟器）"; EMULATOR_ASSET="pcsx2-Qt.AppImage"; EMULATOR_FILE="PCSX2.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/pcsx2.png"; EMULATOR_SHA256="227c8f5a38bd0ae9c565b9350868b4f4bd27ae00cde0a598738c2bdd8ca97e88" ;;
         rpcs3) EMULATOR_NAME="RPCS3（PS3 模拟器）"; EMULATOR_ASSET="rpcs3.AppImage"; EMULATOR_FILE="RPCS3.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/rpcs3.png"; EMULATOR_SHA256="2d258b557c17ebba4bea927be4032cfcbc230c26b8f090b796daa5935faa4a8b" ;;
         shadps4) EMULATOR_NAME="ShadPS4（PS4 模拟器）"; EMULATOR_ASSET="Shadps4-qt.AppImage"; EMULATOR_FILE="ShadPS4.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/shadps4.png"; EMULATOR_SHA256="17385fa479d2b810c3837e162e418c9d0f7c3c32018d3dfb2ef81e8defb611e2" ;;
+        ppsspp) EMULATOR_NAME="PPSSPP（PSP 模拟器）"; EMULATOR_FLATPAK_ID="org.ppsspp.PPSSPP" ;;
+        mgba) EMULATOR_NAME="mGBA（GBA 模拟器）"; EMULATOR_FLATPAK_ID="io.mgba.mGBA" ;;
+        azahar) EMULATOR_NAME="Azahar（3DS 模拟器）"; EMULATOR_FILE="Azahar.AppImage"; EMULATOR_ICON="$AZAHAR_ICON" ;;
         *) echo "未知模拟器：$1"; return 1 ;;
     esac
 }
@@ -120,6 +129,41 @@ show_yuzu_key_status() {
     fi
 }
 
+azahar_key_file_is_valid() {
+    local file="$1" size
+
+    [ -f "$file" ] && [ ! -L "$file" ] || return 1
+    size="$(wc -c < "$file" | tr -d ' ')"
+    [ "${size:-0}" -gt 0 ] && [ "$size" -le "$AZAHAR_KEY_MAX_BYTES" ] || return 1
+    LC_ALL=C grep -Eq '^[[:space:]]*[0-9A-Fa-f]{32}[[:space:]]*$' "$file"
+}
+
+import_azahar_keys() {
+    local source="$AZAHAR_KEYS_IMPORT_DIR/aes_keys.txt"
+    local temporary
+
+    require_steamos || return 1
+    if [ ! -e "$source" ]; then
+        echo "未找到 3DS 密钥：请把本人备份的 aes_keys.txt 放到 $AZAHAR_KEYS_IMPORT_DIR"
+        return 1
+    fi
+    azahar_key_file_is_valid "$source" || {
+        echo "aes_keys.txt 格式无效或不是普通文件，已保留原有密钥。"
+        return 1
+    }
+
+    mkdir -p "$AZAHAR_KEYS_DIR" || return 1
+    chmod 700 "$AZAHAR_KEYS_DIR" || return 1
+    temporary="$AZAHAR_KEYS_DIR/.aes_keys.txt.new.$$"
+    umask 077
+    cp -- "$source" "$temporary" || return 1
+    chmod 600 "$temporary" || { rm -f -- "$temporary"; return 1; }
+    mv -f -- "$temporary" "$AZAHAR_KEYS_DIR/aes_keys.txt"
+
+    log "Azahar 用户自备 3DS 密钥已导入"
+    echo "Azahar 3DS 密钥已导入。密钥内容不会显示或写入日志。"
+}
+
 create_emulator_desktop_shortcut() {
     local executable="$1" desktop_dir="$HOME/Desktop" applications_dir="$HOME/.local/share/applications"
     local desktop_file="$desktop_dir/$EMULATOR_NAME.desktop" application_file="$applications_dir/$EMULATOR_FILE.desktop"
@@ -160,12 +204,109 @@ add_emulator_to_steam() {
     start_steam
 }
 
+flatpak_emulator_icon() {
+    local app_id="$1" desktop icon_name
+
+    desktop="$(find "$HOME/.local/share/flatpak/exports/share/applications" \
+        /var/lib/flatpak/exports/share/applications -name "${app_id}.desktop" \
+        2>/dev/null | head -n 1)"
+    [ -n "$desktop" ] || return 1
+    icon_name="$(sed -n 's/^Icon=//p' "$desktop" | head -n 1)"
+    [ -n "$icon_name" ] || return 1
+    case "$icon_name" in
+        /*) printf '%s\n' "$icon_name"; return 0 ;;
+    esac
+    find "$HOME/.local/share/flatpak/exports/share/icons" \
+        /var/lib/flatpak/exports/share/icons \
+        \( -name "$icon_name" -o -name "$icon_name.png" -o -name "$icon_name.svg" \) \
+        2>/dev/null | head -n 1
+}
+
+add_flatpak_emulator_to_steam() {
+    local app_id="$1" flatpak_bin steam_root shortcut_file icon
+
+    require_command python3 || return 1
+    flatpak_bin="$(command -v flatpak)" || return 1
+    steam_root="$(find_steam_root)" || return 1
+    shortcut_file="$(find_shortcut_file "$steam_root")" || return 1
+    stop_steam_for_vdf || return 1
+    if ! python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" add \
+        --name "$EMULATOR_NAME" --exe "$flatpak_bin" --start-dir "$HOME" \
+        --launch-options "run $app_id" >/dev/null; then
+        start_steam
+        return 1
+    fi
+    icon="$(flatpak_emulator_icon "$app_id")"
+    if [ -n "$icon" ]; then
+        python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" set-icon \
+            --name "$EMULATOR_NAME" --exe "$flatpak_bin" --icon "$icon" >/dev/null || true
+        python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" verify \
+            --name "$EMULATOR_NAME" --exe "$flatpak_bin" --icon "$icon" \
+            --launch-options "run $app_id" >/dev/null
+    else
+        python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" verify \
+            --name "$EMULATOR_NAME" --exe "$flatpak_bin" \
+            --launch-options "run $app_id" >/dev/null
+    fi
+    start_steam
+}
+
+install_flatpak_emulator() {
+    local app_id="$1" app_name="$2"
+
+    require_steamos || return 1
+    if ! declare -F install_flatpak_app >/dev/null 2>&1; then
+        # shellcheck disable=SC1091
+        source "$PROJECT_ROOT/modules/software.sh"
+    fi
+    install_flatpak_app "$app_id" "$app_name" || return 1
+    if ! add_flatpak_emulator_to_steam "$app_id"; then
+        echo "$app_name 已安装并创建桌面图标，但未能安全写入 Steam 库；请先完整登录 Steam 后重试。"
+        return 1
+    fi
+}
+
+install_azahar_emulator() {
+    local target icon
+
+    require_steamos || return 1
+    target="$AZAHAR_APPIMAGE"
+    icon="$AZAHAR_ICON"
+    if [ ! -f "$target" ] || [ ! -x "$target" ]; then
+        echo "未检测到 Azahar：请先把 azahar.AppImage 放到 $HOME/Applications/3ds/ 并设为可执行。"
+        return 1
+    fi
+    [ -f "$icon" ] || icon="$PROJECT_ROOT/assets/icon-toolbox-deck.png"
+    EMULATOR_NAME="Azahar（3DS 模拟器）"
+    EMULATOR_ICON="$icon"
+    create_emulator_desktop_shortcut "$target" || return 1
+    if ! add_emulator_to_steam "$target"; then
+        echo "Azahar 桌面图标已创建，但未能安全写入 Steam 库；请先完整登录 Steam 后重试。"
+        return 1
+    fi
+    if ! import_azahar_keys; then
+        echo "Azahar 已安装；3DS 密钥未导入（可把本人备份的 aes_keys.txt 放到桌面 3DS密钥 文件夹后重试）。"
+    fi
+    log "Azahar 模拟器安装完成"
+    echo "Azahar 已安装，桌面图标和 Steam 库条目已创建。"
+}
+
 install_emulator() {
     local target temporary
     require_steamos || return 1
+    emulator_details "$1" || return 1
+    if [ "$1" = "azahar" ]; then
+        install_azahar_emulator || return 1
+        return 0
+    fi
+    if [ -n "$EMULATOR_FLATPAK_ID" ]; then
+        install_flatpak_emulator "$EMULATOR_FLATPAK_ID" "$EMULATOR_NAME" || return 1
+        log "模拟器安装完成：$EMULATOR_NAME"
+        echo "$EMULATOR_NAME 已安装，桌面图标和 Steam 库条目已创建。"
+        return 0
+    fi
     require_command od || return 1
     require_command python3 || return 1
-    emulator_details "$1" || return 1
     [ -f "$EMULATOR_ICON" ] || { echo "缺少 $EMULATOR_NAME 的专用图标。"; return 1; }
     mkdir -p "$EMULATOR_ROOT" || return 1
     target="$EMULATOR_ROOT/$EMULATOR_FILE"
@@ -189,9 +330,9 @@ install_emulator() {
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
-        yuzu|cemu|duckstation|pcsx2|rpcs3|shadps4) install_emulator "$1" ;;
+        yuzu|cemu|duckstation|pcsx2|rpcs3|shadps4|ppsspp|mgba|azahar) install_emulator "$1" ;;
         yuzu-keys) import_yuzu_keys ;;
         yuzu-keys-status) show_yuzu_key_status ;;
-        *) echo "用法: $0 {yuzu|cemu|duckstation|pcsx2|rpcs3|shadps4|yuzu-keys|yuzu-keys-status}"; exit 1 ;;
+        *) echo "用法: $0 {yuzu|cemu|duckstation|pcsx2|rpcs3|shadps4|ppsspp|mgba|azahar|yuzu-keys|yuzu-keys-status}"; exit 1 ;;
     esac
 fi

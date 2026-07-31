@@ -266,6 +266,9 @@ emulator_gui_menu() {
             pcsx2 "PCSX2｜PS2 模拟器" \
             rpcs3 "RPCS3｜PS3 模拟器" \
             shadps4 "ShadPS4｜PS4 模拟器" \
+            ppsspp "PPSSPP｜PSP 模拟器" \
+            mgba "mGBA｜GBA 模拟器" \
+            azahar "Azahar｜3DS 模拟器" \
             back "返回游戏与插件" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -282,7 +285,7 @@ emulator_gui_menu() {
                     status) run_gui_action "Yuzu 密钥状态" bash "$PROJECT_ROOT/modules/emulators.sh" yuzu-keys-status ;;
                 esac
                 ;;
-            cemu|duckstation|pcsx2|rpcs3|shadps4)
+            cemu|duckstation|pcsx2|rpcs3|shadps4|ppsspp|mgba|azahar)
                 gui_confirm "只安装模拟器本体；不包含游戏、BIOS 或固件。完成后会创建桌面图标并添加到 Steam 库；写入 Steam 前会安全退出并重启 Steam。是否继续？" && \
                     run_gui_action "安装模拟器" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/emulators.sh" "$choice"

@@ -177,6 +177,10 @@ screen_size() {
     if [ -z "$value" ] && command -v xrandr >/dev/null 2>&1; then
         value="$(xrandr --current 2>/dev/null | awk -F'[ x]' '/\*/ { print $1 "x" $2; exit }')"
     fi
+    if [ -z "$value" ] && command -v kscreen-doctor >/dev/null 2>&1; then
+        value="$(kscreen-doctor -o 2>/dev/null | \
+            awk '/[0-9]+x[0-9]+/ { match($0, /[0-9]+x[0-9]+/); print substr($0, RSTART, RLENGTH); exit }')"
+    fi
     if [ -z "$value" ] && command -v xdpyinfo >/dev/null 2>&1; then
         value="$(xdpyinfo 2>/dev/null | awk '/dimensions:/ { print $2; exit }')"
     fi
@@ -296,14 +300,11 @@ try_konsole_levels() {
     command -v konsole >/dev/null 2>&1 || return 1
     KONSOLE_HELP="$(konsole --help 2>/dev/null || true)"
 
-    # 固定窗口尺寸保证 32 行画布完整，同时保留可关闭的标题栏；
-    # 不支持 --geometry 时才退回全屏。
+    # 固定窗口尺寸保证 32 行画布完整，同时保留可关闭的标题栏。
+    # 不支持 --geometry 时直接使用主题默认窗口，由程序内画布请求调整尺寸。
     if supports_konsole_option '--geometry'; then
         optional_args+=(--geometry "$WINDOW_SIZE")
         window_mode="窗口 $WINDOW_SIZE"
-    elif supports_konsole_option '--fullscreen'; then
-        optional_args+=(--fullscreen)
-        window_mode="全屏"
     fi
     if supports_konsole_option '--workdir'; then
         optional_args+=(--workdir "$PROJECT_ROOT")

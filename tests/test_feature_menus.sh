@@ -193,7 +193,7 @@ assert_contains "$touch_games_page_2" 'right:9-10:tomoon' "ToMoon 未紧挨 Unif
 assert_contains "$touch_games_page_2" 'right:17-18:ubisoft' "Ubisoft Connect 未加入插件第二页"
 assert_contains "$touch_games_page_2" '"育碧"' "育碧菜单仍显示旧名称"
 for menu in "$touch_emulators" "$gui_emulators"; do
-    for item in 'Yuzu' 'Cemu' 'DuckStation' 'PCSX2' 'RPCS3' 'ShadPS4'; do
+    for item in 'Yuzu' 'Cemu' 'DuckStation' 'PCSX2' 'RPCS3' 'ShadPS4' 'PPSSPP' 'mGBA' 'Azahar'; do
         assert_contains "$menu" "$item" "模拟器菜单缺少：$item"
     done
     assert_contains "$menu" '桌面图标' "模拟器菜单未说明桌面入口"

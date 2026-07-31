@@ -113,7 +113,14 @@ grep -Fq '已隐藏英文错误提示' "$LAUNCH_LOG"
 
 : > "$CALL_LOG"
 run_launcher $'--profile\n--workdir\n--fullscreen'
-grep -Fq -- '--fullscreen' "$CALL_LOG"
+if grep -Fq -- '--fullscreen' "$CALL_LOG"; then
+    echo "FAIL: 不支持固定窗口尺寸时仍使用全屏" >&2
+    exit 1
+fi
+if grep -Fq -- '--geometry' "$CALL_LOG"; then
+    echo "FAIL: 不支持 --geometry 时仍传入尺寸参数" >&2
+    exit 1
+fi
 
 : > "$CALL_LOG"
 run_launcher $'--profile\n--workdir\n--fullscreen\n--geometry'

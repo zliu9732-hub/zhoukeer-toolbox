@@ -85,7 +85,7 @@ touch_plugin_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
 assert_contains "$touch_plugin_page_2" 'right:9-10:tomoon' "插件第二页 ToMoon 坐标错误"
 assert_contains "$touch_plugin_page_2" 'right:19-20:emulators' "插件第二页缺少可见区内的模拟器入口"
 touch_emulators="$(function_source "$MAIN_FILE" emulator_menu)"
-for mapping in 'right:5-6:yuzu' 'right:8-9:cemu' 'right:11-12:duckstation' 'right:14-15:pcsx2' 'right:17-18:rpcs3' 'right:20-21:shadps4' 'right:23-24:back'; do
+for mapping in 'right:5-6:yuzu' 'right:7-8:cemu' 'right:9-10:duckstation' 'right:11-12:pcsx2' 'right:13-14:rpcs3' 'right:15-16:shadps4' 'right:17-18:ppsspp' 'right:19-20:mgba' 'right:21-22:azahar' 'right:23-24:back'; do
     assert_contains "$touch_emulators" "$mapping" "模拟器触控坐标错误：$mapping"
 done
 touch_yuzu="$(function_source "$MAIN_FILE" yuzu_menu)"
