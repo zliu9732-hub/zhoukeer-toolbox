@@ -94,9 +94,11 @@ fi
 printf '%s\n' "$warning_output" | grep -Fq 'real terminal error'
 grep -Fq '已隐藏 Konsole 无害布局警告' "$LAUNCH_LOG"
 
-run_launcher $'--profile\n--workdir\n--fullscreen'
-if grep -Fq -- '--fullscreen' "$CALL_LOG"; then
-    echo "FAIL: 启动器不应把全屏作为窗口大小后备方案"
+: > "$CALL_LOG"
+run_launcher $'--profile\n--workdir\n--fullscreen\n--geometry'
+grep -Fq -- '--fullscreen' "$CALL_LOG"
+if grep -Fq -- '--geometry' "$CALL_LOG"; then
+    echo "FAIL: 支持全屏时仍传入固定窗口尺寸"
     exit 1
 fi
 

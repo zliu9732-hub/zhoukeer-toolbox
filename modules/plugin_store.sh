@@ -53,11 +53,11 @@ DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03
 DECKY_FREEDECK_URL="https://github.com/panyiwei-home/Freedeck/archive/refs/tags/0.6.zip"
 DECKY_FREEDECK_SHA256="1b42bc7ab15f5a0fee69f2c261340247359e55d83c48ee45f95851704217a7b6"
 DECKY_FREEDECK_VERSION="0.6"
-# GitHub 完整汉化插件包（含运行核心），通过统一下载器自动选择加速源。
-: "${DECKY_LSFG_ZH_URL:=https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip}"
-: "${DECKY_LSFG_ZH_SHA256:=11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277}"
-: "${DECKY_FSR4_ZH_URL:=https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/Decky-Framegen-FSR4-v0.15.6.zip}"
-: "${DECKY_FSR4_ZH_SHA256:=467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e}"
+# 汉化完整包固定使用当前仓库文件，避免旧配置继续指向过期哈希。
+DECKY_LSFG_ZH_URL="https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip"
+DECKY_LSFG_ZH_SHA256="11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"
+DECKY_FSR4_ZH_URL="https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/Decky-Framegen-FSR4-v0.15.6.zip"
+DECKY_FSR4_ZH_SHA256="467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e"
 # Gitee 归档必须指向包含当前 dist 汉化包的稳定标签，避免旧归档校验失败。
 DECKY_GITEE_ARCHIVE_URL="https://gitee.com/zliu9732-hub/zhoukeer-toolbox/repository/archive/v6.0.4.zip"
 DECKY_GITEE_ARCHIVE_SHA256="cbe50c9dcd64bba1433713c1945ec73de2fa1cc51f8a8327ef0f9cdd0ace147a"
@@ -161,7 +161,7 @@ download_decky_component() {
     local _dk_curl_options=(
         --fail
         --location
-        --silent
+        --progress-bar
         --proto '=https'
         --proto-redir '=https'
         --connect-timeout 15
@@ -179,7 +179,8 @@ download_decky_component() {
     if ! curl \
         "${_dk_curl_options[@]}" \
         --output "$output" \
-        "$url"; then
+        "$url" \
+        2> >(grep -v '^curl: (' >&2); then
         rm -f -- "$output"
         log "$name 下载失败，未改动现有Decky安装。"
         return 1
@@ -747,12 +748,12 @@ extract_gitee_plugin_archive() {
     esac
     archive_paths_are_safe "$repository_archive" zip || return 1
     unzip -Z1 "$repository_archive" | grep -Fxq -- "$archive_member" || {
-        echo "Gitee 归档中没有找到插件包：$archive_member"
+        echo "下载失败，切换备用源。"
         return 1
     }
     if ! unzip -p "$repository_archive" "$archive_member" > "$output"; then
         rm -f -- "$output"
-        echo "无法从 Gitee 归档提取插件包。"
+        echo "下载失败，切换备用源。"
         return 1
     fi
     actual_sha256="$(calculate_decky_sha256 "$output")" || {
@@ -761,7 +762,7 @@ extract_gitee_plugin_archive() {
     }
     if [ "$actual_sha256" != "$expected_sha256" ]; then
         rm -f -- "$output"
-        echo "Gitee 插件包 SHA256 校验失败，已停止安装。"
+        echo "下载失败，切换备用源。"
         return 1
     fi
     archive_paths_are_safe "$output" zip || {

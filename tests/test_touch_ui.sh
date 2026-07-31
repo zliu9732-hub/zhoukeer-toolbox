@@ -39,6 +39,11 @@ grep -Fq 'TOOLBOX_VERSION' "$PROJECT_ROOT/core/ui.sh" || fail "触控标题没�
 if grep -Fq '周克儿工具箱  ·  V5' "$PROJECT_ROOT/core/ui.sh"; then
     fail "触控标题仍硬编码 V5"
 fi
+logo_source="$(sed -n '/^logo()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
+printf '%s\n' "$logo_source" | grep -Fq 'v${TOOLBOX_VERSION}' || fail "logo 没有使用真实版本号"
+if printf '%s\n' "$logo_source" | grep -Fq 'cat <<'; then
+    fail "logo 仍使用不会展开变量的 heredoc"
+fi
 grep -Fq 'GUI_TITLE="周克儿工具箱 V$(' "$PROJECT_ROOT/core/gui.sh" || fail "图形窗口标题没有使用真实版本号"
 grep -Fq 'Font=Noto Sans Mono CJK SC,12' "$PROJECT_ROOT/install.sh" || fail "中文字体大小没有恢复为默认可读尺寸"
 grep -Fq 'TerminalColumns=120' "$PROJECT_ROOT/install.sh" || fail "终端列数不是紧凑布局"

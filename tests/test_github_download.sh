@@ -5,6 +5,16 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TEST_ROOT="$(mktemp -d)"
 trap 'rm -rf -- "$TEST_ROOT"' EXIT
+
+grep -Fq -- '--progress-bar' "$PROJECT_ROOT/utils/github_download.sh" || {
+    echo "FAIL: GitHub 下载缺少百分比进度条" >&2
+    exit 1
+}
+grep -Fq '下载失败，切换备用源。' "$PROJECT_ROOT/utils/github_download.sh" || {
+    echo "FAIL: GitHub 下载仍显示具体失败原因" >&2
+    exit 1
+}
+
 BIN_DIR="$TEST_ROOT/bin"
 CALLS_FILE="$TEST_ROOT/curl.calls"
 PAYLOAD="$TEST_ROOT/payload.zip"

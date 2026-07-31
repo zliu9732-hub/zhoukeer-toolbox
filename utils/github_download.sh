@@ -199,7 +199,7 @@ download_github_file() {
         return 1
     }
     curl_options=(
-        --fail --location --silent
+        --fail --location --progress-bar
         --proto '=https' --proto-redir '=https'
         --connect-timeout "$connect_timeout" --max-time "$max_time"
         --retry "$retries" --retry-delay 1 --retry-connrefused
@@ -222,13 +222,14 @@ download_github_file() {
 
         rm -f -- "$temp_file"
         temp_file="$(mktemp "${output}.part.XXXXXX" 2>/dev/null)" || return 1
-        if ! curl "${curl_options[@]}" --output "$temp_file" "$resolved_url"; then
+        if ! curl "${curl_options[@]}" --output "$temp_file" "$resolved_url" \
+            2> >(grep -v '^curl: (' >&2); then
             continue
         fi
         if ! _github_download_is_plausible "$temp_file" || \
             { declare -F download_policy_response_is_safe >/dev/null 2>&1 && \
               ! download_policy_response_is_safe "$url" "$temp_file"; }; then
-            echo "$name 下载内容为空或疑似网页，正在尝试下一源。"
+            echo "$name 下载失败，切换备用源。"
             continue
         fi
         if [ -n "$expected_sha256" ]; then
@@ -238,7 +239,7 @@ download_github_file() {
                 return 1
             }
             if [ "$actual_sha256" != "$expected_sha256" ]; then
-                echo "$name SHA256校验失败，正在尝试下一源。"
+                echo "$name 下载失败，切换备用源。"
                 continue
             fi
         fi

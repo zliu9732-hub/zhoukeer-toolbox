@@ -135,6 +135,26 @@ test_chinese_plugin_hashes_migrated() {
         "467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e"
 }
 
+test_chinese_plugin_v504_hashes_migrated() {
+    local case_root="$TMP_ROOT/chinese-plugin-v504-hashes"
+    local install_dir="$case_root/install"
+    local config_file="$install_dir/config/settings.conf"
+
+    mkdir -p "$(dirname "$config_file")"
+    cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
+    sed -i.bak \
+        -e 's/11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277/d1dbe2cdc83cdf846a12fb2a33e96f8a08e52fd5b05e0305c05c82c288b9c0d4/' \
+        -e 's/467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e/09148bd445abb713278151f3a9e142f5bb8227704163b8f272e41c44e0e71d50/' \
+        "$config_file"
+
+    run_installer "$case_root/home" "$install_dir"
+
+    assert_value "$config_file" DECKY_LSFG_ZH_SHA256 \
+        "11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"
+    assert_value "$config_file" DECKY_FSR4_ZH_SHA256 \
+        "467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e"
+}
+
 test_retired_rustdesk_config_removed() {
     local case_root="$TMP_ROOT/retired-rustdesk"
     local install_dir="$case_root/install"
@@ -271,6 +291,7 @@ test_install_from_replaced_workdir() {
 test_blank_config_migration
 test_custom_config_preserved
 test_chinese_plugin_hashes_migrated
+test_chinese_plugin_v504_hashes_migrated
 test_retired_rustdesk_config_removed
 test_retired_decky_installer_config_removed
 test_missing_config_created

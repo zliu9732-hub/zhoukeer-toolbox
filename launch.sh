@@ -238,11 +238,14 @@ try_konsole_levels() {
     command -v konsole >/dev/null 2>&1 || return 1
     KONSOLE_HELP="$(konsole --help 2>/dev/null || true)"
 
-    if supports_konsole_option '--geometry'; then
+    # SteamOS 上全屏能保证 120×32 画布完整、触控坐标不漂移；
+    # 不支持 --fullscreen 时退回固定窗口尺寸。
+    if supports_konsole_option '--fullscreen'; then
+        optional_args+=(--fullscreen)
+        window_mode="全屏"
+    elif supports_konsole_option '--geometry'; then
         optional_args+=(--geometry "$WINDOW_SIZE")
         window_mode="窗口 $WINDOW_SIZE"
-    # 某些 SteamOS 版本不支持 --geometry，但支持 --fullscreen。
-    # 不把全屏当作后备方案：用户从桌面图标启动时应始终保留正常窗口。
     fi
     if supports_konsole_option '--workdir'; then
         optional_args+=(--workdir "$PROJECT_ROOT")

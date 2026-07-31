@@ -34,6 +34,14 @@ printf '%s\n' "$decky_component_download" | grep -Fq -- '--speed-time 60' || {
     echo "FAIL: Decky 组件下载缺少低速中断时长" >&2
     exit 1
 }
+printf '%s\n' "$decky_component_download" | grep -Fq -- '--progress-bar' || {
+    echo "FAIL: Decky 组件下载缺少百分比进度条" >&2
+    exit 1
+}
+grep -Fq '下载失败，切换备用源。' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: Decky 插件下载仍显示具体失败原因" >&2
+    exit 1
+}
 if grep -Fq 'https://www.mhhf.com/Deck/install.sh' "$PROJECT_ROOT/modules/plugin_store.sh" || \
     grep -Fq 'toolbox_sudo bash "$installer"' "$PROJECT_ROOT/modules/plugin_store.sh"; then
     echo "FAIL: 不应继续下载或执行Decky外层安装脚本"
@@ -53,6 +61,10 @@ grep -Fq 'CheatDeck/releases/download/v1.2.1/CheatDeck.zip' "$PROJECT_ROOT/modul
 grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Freedeck/archive/refs/tags/0.6.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '1b42bc7ab15f5a0fee69f2c261340247359e55d83c48ee45f95851704217a7b6' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'DECKY_LSFG_ZH_SHA256="11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'DECKY_FSR4_ZH_SHA256="467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_github_file "$url" "$output" "$expected_sha256" "$name"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"

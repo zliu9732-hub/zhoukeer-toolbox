@@ -66,14 +66,12 @@ ui_wait_for_minimum_canvas() {
 }
 
 logo() {
-echo -e "${BLUE}"
-cat << "EOL"
-====================================
-    📦 周克儿工具箱 v$TOOLBOX_VERSION
-   SteamOS Handheld Toolbox
-====================================
-EOL
-echo -e "${NC}"
+    echo -e "${BLUE}"
+    echo "===================================="
+    echo "    📦 周克儿工具箱 v${TOOLBOX_VERSION}"
+    echo "   SteamOS Handheld Toolbox"
+    echo "===================================="
+    echo -e "${NC}"
 }
 
 print_header() {
@@ -115,7 +113,7 @@ ui_panel_line() {
 
     ui_resolve_text_color "$color"
     ui_move "$row" "$UI_PANEL_COL"
-    printf ' %b%s \033[0m' "$UI_THEME_COLOR" "$text"
+    printf '\033[?7l %b%s \033[0m\033[?7h' "$UI_THEME_COLOR" "$text"
 }
 
 # 每个分类是两行高的大按钮，内部值只用于程序识别，界面不显示字母或数字。

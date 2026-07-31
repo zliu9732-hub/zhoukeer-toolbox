@@ -104,7 +104,9 @@ assignment_is_retired_chinese_plugin_hash() {
 
     case "$key:$assignment" in
         DECKY_LSFG_ZH_SHA256:*9eed12dc0bb0ca1967e57d55c230e6522c9b8c70d1b8337929d5ec0066c2a4cd*) return 0 ;;
+        DECKY_LSFG_ZH_SHA256:*d1dbe2cdc83cdf846a12fb2a33e96f8a08e52fd5b05e0305c05c82c288b9c0d4*) return 0 ;;
         DECKY_FSR4_ZH_SHA256:*4b9c8939028919e8bcb76c37c75b9dfc2e84d4fd1d2534521606dc70f0789ad0*) return 0 ;;
+        DECKY_FSR4_ZH_SHA256:*09148bd445abb713278151f3a9e142f5bb8227704163b8f272e41c44e0e71d50*) return 0 ;;
         *) return 1 ;;
     esac
 }
