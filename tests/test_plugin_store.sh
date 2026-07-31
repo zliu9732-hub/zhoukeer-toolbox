@@ -63,6 +63,10 @@ grep -Fq 'Freedeck/releases/download/0.6/freedeck.v.0.6.zip' "$PROJECT_ROOT/modu
 grep -Fq '04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '"freedeck-plugin"' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'releases/download/v6.0.9/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'releases/download/v6.0.9/Decky-Framegen-FSR4-v0.15.6.zip' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_LSFG_ZH_SHA256="11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_FSR4_ZH_SHA256="467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e"' \
@@ -199,7 +203,7 @@ grep -Fq 'uninstall) uninstall_all_decky_plugins' "$PROJECT_ROOT/modules/plugin_
 grep -Fq '不会删除 Decky Loader 本体' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'all) show_plugin_download_speed_tip; install_all_plugin_packages' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '查看运行状态或重新开启后台加速后重试' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'Gitee 国内源下载完整汉化包' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'GitHub Release 下载完整汉化包' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Fq 'Lossless Scaling.rar' "$PROJECT_ROOT/modules/plugin_store.sh" || \

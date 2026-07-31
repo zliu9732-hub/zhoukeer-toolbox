@@ -1,3 +1,8 @@
+## V6.0.9 插件全部走 GitHub Release — 2026-07-31
+
+- 小黄鸭、FSR4 汉化完整包改为从工具箱 GitHub Release 资产下载，替代慢速的原始文件；失败自动切换 Gitee 国内源，最后回退原版叠加。
+- Freedeck 与所有独立插件继续固定使用作者 GitHub Release 资产并校验 SHA256。
+
 ## V6.0.8 Freedeck Release 资产修复 — 2026-07-31
 
 - Freedeck 改为从作者 GitHub Release 下载 `freedeck.v.0.6.zip` 插件包并固定 SHA256，不再使用源码包；安装后版本与功能与 Decky Loader 安装一致。
