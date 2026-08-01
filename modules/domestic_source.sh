@@ -142,7 +142,9 @@ packages_installed_without_known_upgrades() {
     local package_name pending_upgrades
 
     pacman -Q "$@" >/dev/null 2>&1 || return 1
-    pending_upgrades="$(pacman -Qu 2>/dev/null)" || return 1
+    # pacman -Qu 在“没有可更新软件包”时会返回 1；这是正常的空结果，
+    # 不能据此把已经安装的组件误判为不完整。
+    pending_upgrades="$(pacman -Qu 2>/dev/null || true)"
     for package_name in "$@"; do
         if printf '%s\n' "$pending_upgrades" | awk -v package="$package_name" \
             '$1 == package { found=1 } END { exit(found ? 0 : 1) }'; then

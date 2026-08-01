@@ -156,11 +156,14 @@ case "${1:-}" in
         exit 0
         ;;
     -Qu)
+        found_upgrade=0
         for upgrade_file in "$state"/upgrade.*; do
             [ -e "$upgrade_file" ] || continue
             package_name="${upgrade_file##*.}"
             printf '%s test-version\n' "$package_name"
+            found_upgrade=1
         done
+        [ "$found_upgrade" -eq 1 ] || exit 1
         exit 0
         ;;
 esac
