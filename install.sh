@@ -604,7 +604,7 @@ DESKTOP_FILE="$HOME/Desktop/周克儿工具箱.desktop"
 APPLICATION_FILE="$HOME/.local/share/applications/zhoukeer-toolbox.desktop"
 ICON_PATH="$INSTALL_DIR/assets/icon-toolbox-deck.png"
 BACKGROUND_PATH="$INSTALL_DIR/assets/background.jpg"
-DISCLAIMER_BACKGROUND_PATH="$INSTALL_DIR/assets/disclaimer-usage.jpg"
+WELCOME_BACKGROUND_PATH="$INSTALL_DIR/assets/welcome.jpg"
 KONSOLE_PROFILE="$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
 KONSOLE_COLOR_SCHEME="$HOME/.local/share/konsole/ZhoukeerToolbox.colorscheme"
 KONSOLE_SPLASH_PROFILE="$HOME/.local/share/konsole/ZhoukeerToolboxSplash.profile"
@@ -640,11 +640,9 @@ TerminalRows=32
 EOF
 fi
 
-if [ -f "$INSTALL_DIR/assets/Zhoukeer.colorscheme.in" ] && [ -f "$DISCLAIMER_BACKGROUND_PATH" ]; then
-    awk -v wallpaper="$DISCLAIMER_BACKGROUND_PATH" '
+if [ -f "$INSTALL_DIR/assets/Zhoukeer.colorscheme.in" ] && [ -f "$WELCOME_BACKGROUND_PATH" ]; then
+    awk -v wallpaper="$WELCOME_BACKGROUND_PATH" '
         /^Wallpaper=@WALLPAPER@$/ { print "Wallpaper=" wallpaper; next }
-        /^FillStyle=/ { print "FillStyle=Adapt"; next }
-        /^WallpaperOpacity=/ { print "WallpaperOpacity=1.00"; next }
         { print }
     ' "$INSTALL_DIR/assets/Zhoukeer.colorscheme.in" > "$KONSOLE_SPLASH_COLOR_SCHEME"
 
@@ -658,7 +656,7 @@ LineSpacing=0
 Name=周克儿工具箱启动页
 Parent=FALLBACK/
 TerminalColumns=120
-TerminalMargin=0
+TerminalMargin=6
 TerminalRows=32
 EOF
 fi

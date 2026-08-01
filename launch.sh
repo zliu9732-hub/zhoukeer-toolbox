@@ -7,6 +7,7 @@ MAIN_PROFILE_FILE="$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
 SPLASH_PROFILE_FILE="$HOME/.local/share/konsole/ZhoukeerToolboxSplash.profile"
 PROFILE_FILE="$SPLASH_PROFILE_FILE"
 STARTUP_VIEW="splash"
+DISCLAIMER_IMAGE_PATH="$PROJECT_ROOT/assets/disclaimer-usage.jpg"
 WINDOW_SIZE="1280x740"
 FONT_SIZE="12"
 STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
@@ -97,6 +98,33 @@ run_startup_update() {
     return 0
 }
 
+filter_terminal_stderr() {
+    local line
+
+    while IFS= read -r line; do
+        case "$line" in
+            *"QLayout: Cannot add a null widget to QHBoxLayout"*| \
+            *"curl: ("*| \
+            *"Operation timed out"*| \
+            *"Connection timed out"*| \
+            *"Connection refused"*| \
+            *"Could not resolve host"*| \
+            *"Failed to connect"*| \
+            *"No route to host"*| \
+            *"Empty reply from server"*| \
+            *"HTTP error"*| \
+            *"SSL"*|*"TLS"*| \
+            *"error:"*|*"Error:"*|*"WARNING:"*)
+                launcher_log "已隐藏英文错误提示：$line"
+                ;;
+            *)
+                printf '%s\n' "$line" >&2
+                launcher_log "终端启动输出：$line"
+                ;;
+        esac
+    done
+}
+
 run_main() {
     local status
     local message
@@ -145,6 +173,21 @@ $LAUNCH_LOG"
 
 prepare_launcher_log || true
 
+show_startup_disclaimer_image() {
+    [ -s "$DISCLAIMER_IMAGE_PATH" ] || return 2
+    command -v kdialog >/dev/null 2>&1 || return 2
+
+    launcher_log "显示独立免责声明图片"
+    if kdialog --title "周克儿工具箱｜免责声明及使用须知" \
+        --ok-label "我已阅读并知悉" --imgbox "$DISCLAIMER_IMAGE_PATH" \
+        >/dev/null 2>&1; then
+        launcher_log "用户已确认独立免责声明图片"
+        return 0
+    fi
+    launcher_log "用户关闭免责声明图片，取消启动"
+    return 1
+}
+
 case "${1:-}" in
     --run-main)
         run_main
@@ -155,11 +198,16 @@ case "${1:-}" in
         STARTUP_VIEW="main"
         ;;
     "")
-        # 旧版安装尚未生成欢迎页主题时，继续使用常规主题启动。
-        if [ ! -f "$SPLASH_PROFILE_FILE" ]; then
-            PROFILE_FILE="$MAIN_PROFILE_FILE"
-            STARTUP_VIEW="main-with-disclaimer"
-        fi
+        # 免责声明使用独立图片窗口；确认后再启动原主题，避免图片残留到菜单背景。
+        PROFILE_FILE="$MAIN_PROFILE_FILE"
+        STARTUP_VIEW="main-with-disclaimer"
+        show_startup_disclaimer_image
+        disclaimer_status=$?
+        case "$disclaimer_status" in
+            0) STARTUP_VIEW="main-after-disclaimer" ;;
+            1) exit 0 ;;
+            2) launcher_log "独立免责声明图片不可用，使用终端文字版" ;;
+        esac
         ;;
     *)
         show_launch_error "周克儿工具箱启动失败" \
@@ -239,6 +287,10 @@ case "$STARTUP_VIEW" in
         RUN_COMMAND=(env ZHOUKEER_SKIP_DISCLAIMER=1 ZHOUKEER_SKIP_STARTUP_UPDATE=1 \
             ZHOUKEER_STARTUP_SPLASH=0 bash "$PROJECT_ROOT/launch.sh" --run-main)
         ;;
+    main-after-disclaimer)
+        RUN_COMMAND=(env ZHOUKEER_SKIP_DISCLAIMER=1 ZHOUKEER_STARTUP_SPLASH=0 \
+            bash "$PROJECT_ROOT/launch.sh" --run-main)
+        ;;
     *)
         RUN_COMMAND=(env ZHOUKEER_STARTUP_SPLASH=0 \
             bash "$PROJECT_ROOT/launch.sh" --run-main)
@@ -248,33 +300,6 @@ KONSOLE_HELP=""
 
 supports_konsole_option() {
     printf '%s\n' "$KONSOLE_HELP" | grep -q -- "$1"
-}
-
-filter_terminal_stderr() {
-    local line
-
-    while IFS= read -r line; do
-        case "$line" in
-            *"QLayout: Cannot add a null widget to QHBoxLayout"*| \
-            *"curl: ("*| \
-            *"Operation timed out"*| \
-            *"Connection timed out"*| \
-            *"Connection refused"*| \
-            *"Could not resolve host"*| \
-            *"Failed to connect"*| \
-            *"No route to host"*| \
-            *"Empty reply from server"*| \
-            *"HTTP error"*| \
-            *"SSL"*|*"TLS"*| \
-            *"error:"*|*"Error:"*|*"WARNING:"*)
-                launcher_log "已隐藏英文错误提示：$line"
-                ;;
-            *)
-                printf '%s\n' "$line" >&2
-                launcher_log "终端启动输出：$line"
-                ;;
-        esac
-    done
 }
 
 try_terminal() {
