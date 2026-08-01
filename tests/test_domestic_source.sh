@@ -167,6 +167,12 @@ esac
 printf 'pacman %s\n' "$*" >> "$state/commands"
 EOF
 
+cat > "$BIN_DIR/pacman-key" <<'EOF'
+#!/bin/sh
+printf 'pacman-key %s\n' "$*" >> "${DOMESTIC_SOURCE_TEST_STATE:?}/commands"
+[ "${DOMESTIC_SOURCE_FAIL_PACMAN_KEY:-0}" != "1" ]
+EOF
+
 chmod +x "$BIN_DIR"/* "$STEAMOS_BIN_DIR"/*
 : > "$STATE_DIR/remotes"
 : > "$STATE_DIR/commands"
@@ -221,10 +227,14 @@ grep -Fq -- '--appstream' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应包含 AppStream 强制刷新"
 grep -Fq 'verify_domestic_flatpak_remote' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应保留应用索引验证"
-for command_text in 'packages_installed_without_known_upgrades' 'base_system_components_ready' 'archlinuxcn_keyring_ready' 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman -Syu --needed --noconfirm git flatpak' 'pacman -S --needed --noconfirm archlinux-keyring' 'pacman -Syu --needed --noconfirm archlinuxcn-keyring' 'pacman-key --populate archlinuxcn' 'locale-gen' 'steamos-readonly disable' 'steamos-readonly enable'; do
+for command_text in 'packages_installed_without_known_upgrades' 'base_system_components_ready' 'archlinuxcn_keyring_ready' 'configure_archlinuxcn_if_ready' 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman -Syu --needed --noconfirm git flatpak' 'pacman -S --needed --noconfirm archlinux-keyring' 'pacman-key --populate archlinuxcn' 'locale-gen' 'steamos-readonly disable' 'steamos-readonly enable'; do
     grep -Fq "$command_text" "$PROJECT_ROOT/modules/domestic_source.sh" || \
         fail "完整国内源初始化缺少：$command_text"
 done
+if grep -Fq 'pacman -Syu --needed --noconfirm archlinuxcn-keyring' \
+    "$PROJECT_ROOT/modules/domestic_source.sh"; then
+    fail "缺少 archlinuxcn 密钥环时不应触发完整系统更新"
+fi
 (
     PATH="$BIN_DIR:$PATH"
     HOME="$HOME_DIR"
@@ -251,8 +261,8 @@ done
 )
 grep -Fq 'https://mirrors.ustc.edu.cn/archlinuxcn/\$arch' \
     "$PROJECT_ROOT/modules/domestic_source.sh" || fail "缺少中科大 archlinuxcn 仓库"
-grep -Fq '初始化国内源并更新系统组件' "$PROJECT_ROOT/modules/new_machine.sh" || \
-    fail "新机初始化没有完整运行国内源与系统组件初始化"
+grep -Fq '初始化国内源并检测系统组件' "$PROJECT_ROOT/modules/new_machine.sh" || \
+    fail "新机初始化没有运行国内源与系统组件检测"
 
 # 配置文件测试只操作临时目录，toolbox_sudo 被替换为直接调用假 install/locale-gen。
 SYSTEM_DIR="$TMP_ROOT/system"
@@ -280,6 +290,18 @@ EOF
         fail "重复执行后 archlinuxcn 仓库不唯一"
     grep -Fq 'Server = https://mirrors.ustc.edu.cn/archlinuxcn/$arch' \
         "$SYSTEM_DIR/pacman.conf" || fail "archlinuxcn 仓库地址错误"
+
+    configure_archlinuxcn_if_ready "$SYSTEM_DIR/pacman.conf"
+    grep -Fq 'pacman-key --populate archlinuxcn' "$STATE_DIR/commands" || \
+        fail "已有可用 archlinuxcn 密钥环时未加载密钥"
+
+    rm -f "$STATE_DIR/installed.archlinuxcn-keyring"
+    configure_archlinuxcn_if_ready "$SYSTEM_DIR/pacman.conf"
+    ! grep -Fq '[archlinuxcn]' "$SYSTEM_DIR/pacman.conf" || \
+        fail "密钥环不可用时仍保留工具箱 archlinuxcn 配置"
+    if grep -Fq 'pacman -Syu --needed --noconfirm archlinuxcn-keyring' "$STATE_DIR/commands"; then
+        fail "密钥环不可用时仍尝试完整系统更新"
+    fi
 
     configure_chinese_locales "$SYSTEM_DIR/locale.gen"
     [ "$(grep -c '^en_US.UTF-8 UTF-8$' "$SYSTEM_DIR/locale.gen")" -eq 1 ] || \

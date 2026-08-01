@@ -579,7 +579,7 @@ new_machine_gui_menu() {
         case "$choice" in
             recommended) software_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             advanced-init)
-                gui_confirm "新机初始化会初始化国内源并完整更新系统组件，再安装多项常用软件、Decky 和 ToDesk。请先在游戏模式开启“启用开发者模式”“使用旧版X11桌面模式”和“CEF远程调试”，再确认继续。" && \
+                gui_confirm "新机初始化会检测系统组件、配置国内源，再安装多项常用软件、Decky 和 ToDesk；已满足的系统组件不会重复更新。请先在游戏模式开启“启用开发者模式”“使用旧版X11桌面模式”和“CEF远程调试”，再确认继续。" && \
                     run_gui_action "新机初始化" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/new_machine.sh"
                 ;;
@@ -618,17 +618,17 @@ support_gui_menu() {
 domestic_source_gui_preflight() {
     local choice
 
-    choice="$(gui_dialog --menu "初始化国内源并更新系统组件｜Flatpak 缓存关闭 GPG；archlinuxcn 保持密钥验证" \
-        configure "初始化国内源并更新系统组件｜密钥环、完整更新、中英文 locale 与国内缓存" \
+    choice="$(gui_dialog --menu "初始化国内源并检测系统组件｜Flatpak 缓存关闭 GPG；archlinuxcn 不额外安装" \
+        configure "初始化国内源并检测系统组件｜已满足时跳过更新，配置 locale 与国内缓存" \
         restore "恢复官方软件源｜恢复 Flathub 并移除工具箱 archlinuxcn" \
         back "返回系统设置")" || return 0
     case "$choice" in
         configure)
-            gui_confirm "将初始化国内源并更新系统组件：会修改 Flatpak 软件源、关闭 Flatpak 国内缓存的 GPG 验证、重建 pacman 与 archlinuxcn 密钥环、运行完整 pacman 更新、生成中英文 locale，并临时关闭 SteamOS 只读保护。
+            gui_confirm "将初始化国内源并检测系统组件：会修改 Flatpak 软件源、关闭 Flatpak 国内缓存的 GPG 验证、生成中英文 locale，并临时关闭 SteamOS 只读保护；基础组件已满足时不会运行 pacman 更新。
 
 pacman 仓库：archlinuxcn
 地址：https://mirrors.ustc.edu.cn/archlinuxcn/\$arch
-验证：安装 archlinuxcn-keyring，保持软件包 GPG 验证
+验证：仅在本机已有且无需更新的 archlinuxcn-keyring 可用时兼容启用；否则跳过，不影响 Flatpak
 
 远程名称：flathub-cn
 地址：https://mirror.sjtu.edu.cn/flathub
@@ -637,7 +637,7 @@ pacman 仓库：archlinuxcn
 地址：https://mirrors.ustc.edu.cn/flathub
 
 确认信任以上镜像并继续？" && \
-                run_gui_action "初始化国内源并更新系统组件" env ZHOUKEER_AUTO_CONFIRM=1 \
+                run_gui_action "初始化国内源并检测系统组件" env ZHOUKEER_AUTO_CONFIRM=1 \
                 bash "$PROJECT_ROOT/modules/domestic_source.sh" init
             ;;
         restore)

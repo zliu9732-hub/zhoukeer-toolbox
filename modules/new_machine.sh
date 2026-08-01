@@ -22,7 +22,7 @@ show_initialization_plan() {
     echo "✓ ToDesk"
     echo "✓ Firefox 浏览器"
     echo "✓ 工具箱快捷方式检查"
-    echo "✓ 初始化国内源并更新系统组件：pacman/archlinuxcn 密钥环、完整系统更新、中英文 locale、Flatpak 国内缓存"
+    echo "✓ 初始化国内源并检测系统组件：中英文 locale、Flatpak 国内缓存；已有可用密钥环时兼容 archlinuxcn"
     echo "  注意：国内 Flatpak 镜像将关闭软件包签名验证，仅在确认信任镜像时继续。"
     echo ""
     echo "初始化时会临时关闭 SteamOS 只读保护，完成后自动恢复。"
@@ -108,7 +108,7 @@ run_new_machine_initialization() {
     fi
     PASS_COUNT=$((PASS_COUNT + 1))
     run_step "网络检测" check_network
-    run_step "初始化国内源并更新系统组件" env ZHOUKEER_AUTO_CONFIRM=1 \
+    run_step "初始化国内源并检测系统组件" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/domestic_source.sh" init
     run_step "插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh"

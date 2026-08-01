@@ -25,7 +25,7 @@
 - GE-Proton兼容层：从作者 GitHub Release 下载并校验SHA256，安装到Steam用户的 `compatibilitytools.d` 目录，不需要管理员权限。
 - ToDesk：使用固定的第三方SteamOS适配包并校验SHA256，安装完成后恢复只读保护。
 - Steam Deck 优化：清理 Steam 下载缓存、着色器缓存，并提供性能模式提示。
-- 国内下载源与系统组件：完整更新 SteamOS 系统组件，刷新 pacman/archlinuxcn 密钥环，添加中科大 archlinuxcn 仓库，生成中英文 locale，并配置上海交大与中科大 Flatpak 国内缓存；完成后恢复 SteamOS 只读保护，恢复入口只移除工具箱管理的国内源，不覆盖用户原有配置。
+- 国内下载源与系统组件：先检测 SteamOS 基础组件，已安装且无对应更新时跳过 pacman 更新；生成中英文 locale，并配置上海交大与中科大 Flatpak 国内缓存。仅在本机已有可用 archlinuxcn 密钥环时兼容启用该仓库，缺失或不可用时安全跳过，不影响 Flatpak；完成后恢复只读保护，恢复入口不覆盖用户原有配置。
 - Steam加速器：使用Steamcommunity 302官方Linux AMD64固定安装包；安装后不创建桌面图标，自动启用 Steam 与 GitHub 规则、立即后台运行并设置开机自启。
 - 更多设置：集中提供国内源、Steam302、zram 与磁盘 swap 一键优化、修改管理员密码和双系统工具。
 - 安全诊断包：一键在桌面生成可发给维护人员的本地诊断包，自动隐藏用户名、HOME、网络地址、密码、Token、Cookie、代理认证和远程协助凭据；不会读取管理员密码便利模式文件，不上传、不联网发送。

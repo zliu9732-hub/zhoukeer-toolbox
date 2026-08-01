@@ -157,6 +157,37 @@ archlinuxcn_keyring_ready() {
     packages_installed_without_known_upgrades archlinuxcn-keyring
 }
 
+configure_archlinuxcn_if_ready() {
+    local pacman_conf="${1:-/etc/pacman.conf}"
+
+    if ! archlinuxcn_keyring_ready; then
+        if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" "$pacman_conf" 2>/dev/null && \
+            ! remove_managed_archlinuxcn_repo "$pacman_conf"; then
+            echo "archlinuxcn 密钥环不可用，且工具箱旧配置移除失败。"
+            return 1
+        fi
+        echo "- 未检测到可直接使用的 archlinuxcn 密钥环，已跳过；不影响 Flatpak 软件安装。"
+        return 0
+    fi
+
+    if ! write_managed_archlinuxcn_repo "$pacman_conf"; then
+        echo "- archlinuxcn 仓库配置失败，已跳过；不影响 Flatpak 软件安装。"
+        return 0
+    fi
+    if toolbox_sudo pacman-key --populate archlinuxcn; then
+        echo "✓ archlinuxcn 密钥环可用，已保持软件包 GPG 验证。"
+        return 0
+    fi
+
+    if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" "$pacman_conf" 2>/dev/null && \
+        ! remove_managed_archlinuxcn_repo "$pacman_conf"; then
+        echo "archlinuxcn 密钥导入失败，且工具箱配置移除失败。"
+        return 1
+    fi
+    echo "- archlinuxcn 密钥导入失败，已安全跳过；不影响 Flatpak 软件安装。"
+    return 0
+}
+
 restore_official_flatpak() {
     local repo_file
 
@@ -291,20 +322,7 @@ prepare_system_packages() (
         fi
     fi
 
-    if ! write_managed_archlinuxcn_repo /etc/pacman.conf; then
-        echo "archlinuxcn 国内仓库配置失败，已停止。"
-        return 1
-    fi
-    if archlinuxcn_keyring_ready; then
-        echo "✓ 已检测到 archlinuxcn 密钥环，无需重复安装。"
-    elif ! toolbox_sudo pacman -Syu --needed --noconfirm archlinuxcn-keyring; then
-        echo "archlinuxcn 密钥环安装失败，已停止。"
-        return 1
-    fi
-    if ! toolbox_sudo pacman-key --populate archlinuxcn; then
-        echo "archlinuxcn 密钥导入失败，已停止。"
-        return 1
-    fi
+    configure_archlinuxcn_if_ready /etc/pacman.conf || return 1
     if ! configure_chinese_locales /etc/locale.gen; then
         echo "中英文 locale 配置失败，已停止。"
         return 1
@@ -328,9 +346,9 @@ initialize_software_sources() {
     fi
 
     echo "================================================"
-    echo " 初始化国内源并更新系统组件"
+    echo " 初始化国内源并检测系统组件"
     echo "================================================"
-    echo "将重建 pacman/archlinuxcn 密钥环、完整更新系统组件、生成中英文 locale，并配置 Flatpak 国内缓存。"
+    echo "将检测系统组件、生成中英文 locale，并配置 Flatpak 国内缓存；已有可用密钥环时兼容 archlinuxcn。"
     echo "可恢复：修改前会在本次临时目录备份 pacman 与语言配置；菜单提供“恢复官方软件源”。"
     echo "管理员权限会读取桌面管理员密码.txt，不会重复询问密码。"
 
@@ -339,10 +357,14 @@ initialize_software_sources() {
 
     echo ""
     echo "国内源与系统组件初始化完成。现在可以正常使用工具箱安装软件。"
-    echo "Arch Linux CN：$ARCHLINUXCN_REPO_URL（GPG 密钥环已启用）"
+    if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" /etc/pacman.conf 2>/dev/null; then
+        echo "Arch Linux CN：$ARCHLINUXCN_REPO_URL（GPG 密钥环已启用）"
+    else
+        echo "Arch Linux CN：未启用（不影响 Flatpak 软件安装）"
+    fi
     echo "上海交大：$FLATHUB_CN_URL"
     echo "中科大：$FLATHUB_CN_FALLBACK_URL"
-    log "国内源与系统组件初始化完成：pacman和archlinuxcn密钥环、完整系统更新、中文locale和Flatpak国内双缓存已配置"
+    log "国内源与系统组件初始化完成：已检测系统组件、配置中文locale和Flatpak国内双缓存"
 }
 
 show_software_source_status() {
