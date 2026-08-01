@@ -246,8 +246,10 @@ done
     source "$PROJECT_ROOT/modules/domestic_source.sh"
 
     touch "$STATE_DIR/installed.git" "$STATE_DIR/installed.flatpak" \
-        "$STATE_DIR/installed.archlinux-keyring" "$STATE_DIR/installed.archlinuxcn-keyring"
+        "$STATE_DIR/installed.archlinuxcn-keyring"
     base_system_components_ready || fail "已安装基础组件未被识别"
+    [ ! -e "$STATE_DIR/installed.archlinux-keyring" ] || \
+        fail "基础组件模拟不应依赖 archlinux-keyring 包名"
     archlinuxcn_keyring_ready || fail "已安装 archlinuxcn 密钥环未被识别"
 
     touch "$STATE_DIR/upgrade.git"

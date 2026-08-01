@@ -153,7 +153,10 @@ packages_installed_without_known_upgrades() {
 }
 
 base_system_components_ready() {
-    packages_installed_without_known_upgrades git flatpak archlinux-keyring
+    # SteamOS 的系统密钥由镜像维护，部分版本不会把 archlinux-keyring 作为
+    # 独立已安装包暴露。git 与 Flatpak 已可用时，不应仅因该包名缺失就触发
+    # 一次完整 pacman 同步；真正缺少组件时，下方修复分支仍会初始化密钥环。
+    packages_installed_without_known_upgrades git flatpak
 }
 
 archlinuxcn_keyring_ready() {
@@ -310,7 +313,7 @@ prepare_system_packages() (
     readonly_disabled=1
 
     if base_system_components_ready; then
-        echo "✓ 已检测到 git、Flatpak 和系统密钥环均已安装，无需更新系统组件。"
+        echo "✓ 已检测到 git 和 Flatpak 均已安装，无需更新系统组件。"
     else
         echo "检测到基础组件不完整，正在初始化系统密钥环并补齐组件..."
         if ! toolbox_sudo pacman-key --init; then
