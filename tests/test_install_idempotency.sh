@@ -55,7 +55,11 @@ mkdir -p "$BIN_DIR"
 cat > "$BIN_DIR/pacman" <<'SCRIPT'
 #!/bin/sh
 printf '%s\n' "$*" >> "${TODESK_TEST_LOG:?}"
-[ "${1:-}" = "-Q" ] && [ "${2:-}" = "todesk-bin" ]
+if [ "${1:-}" = "-Q" ] && [ "${2:-}" = "todesk-bin" ]; then
+    printf '%s\n' 'todesk-bin 4.8.6.2-1'
+    exit 0
+fi
+exit 1
 SCRIPT
 chmod +x "$BIN_DIR/pacman"
 

@@ -11,20 +11,19 @@ source "$PROJECT_ROOT/core/auth.sh"
 
 TODESK_CONNECT_TIMEOUT=15
 TODESK_MAX_TIME=1200
-TODESK_RETRIES=3
-TODESK_INSTALL_RETRY_DELAY=3
+TODESK_BROWSER_WAIT_SECONDS=600
 TODESK_READONLY_CHANGED=0
 TODESK_TMP_DIR=""
 TODESK_DOWNLOADED_PACKAGE=""
 TODESK_CA_BUNDLE_PATHS="${TODESK_CA_BUNDLE_PATHS:-/etc/ssl/certs/ca-certificates.crt:/etc/ca-certificates/extracted/tls-ca-bundle.pem}"
 TODESK_PACMAN_CACHE_DIR="${TODESK_PACMAN_CACHE_DIR:-/var/cache/pacman/pkg}"
-
-# Gitee 的 repository/archive 接口已返回 400，改为拉取同一固定提交。
-# 仍只安装已校验 SHA256 的包，不执行上游的在线安装脚本。
-TODESK_REPOSITORY_URL="${TODESK_REPOSITORY_URL:-https://gitee.com/mclanbai/archtodesk.git}"
-TODESK_REPOSITORY_COMMIT="${TODESK_REPOSITORY_COMMIT:-b2b63a834c0fcb77ff87c1424d6c393804d8e1af}"
-
-load_config
+TODESK_VERSION="4.8.6.2"
+TODESK_PACKAGE_VERSION="4.8.6.2-1"
+TODESK_OFFICIAL_DEB_NAME="todesk-v4.8.6.2-amd64.deb"
+TODESK_OFFICIAL_DEB_URL="https://dl.todesk.com/linux/todesk-v4.8.6.2-amd64.deb"
+TODESK_OFFICIAL_DEB_SHA256="b3f2af7fc120948903df3aa455955cb5823fb5c1f5ec7dca17ac8a4cba53c808"
+TODESK_OFFICIAL_DEB_MIN_BYTES=94371840
+TODESK_LOCAL_PACKAGE_NAME="todesk-bin-4.8.6.2-1-x86_64.pkg.tar.zst"
 
 cleanup_todesk() {
     if [ -n "$TODESK_TMP_DIR" ] && [ -d "$TODESK_TMP_DIR" ]; then
@@ -56,49 +55,34 @@ calculate_sha256() {
 }
 
 validate_todesk_settings() {
-    local value
-
-    for value in TODESK_REPOSITORY_URL TODESK_REPOSITORY_COMMIT TODESK_PACKAGE_NAME TODESK_PACKAGE_SHA256; do
-        case "$value" in
-            TODESK_REPOSITORY_URL) [ -n "${TODESK_REPOSITORY_URL:-}" ] ;;
-            TODESK_REPOSITORY_COMMIT) [ -n "${TODESK_REPOSITORY_COMMIT:-}" ] ;;
-            TODESK_PACKAGE_NAME) [ -n "${TODESK_PACKAGE_NAME:-}" ] ;;
-            TODESK_PACKAGE_SHA256) [ -n "${TODESK_PACKAGE_SHA256:-}" ] ;;
-        esac || {
-            echo "ToDesk配置缺失: $value"
-            return 1
-        }
-    done
-
-    [ "${#TODESK_PACKAGE_SHA256}" -eq 64 ] || {
+    [ -n "$TODESK_VERSION" ] && [ -n "$TODESK_PACKAGE_VERSION" ] && \
+        [ -n "$TODESK_OFFICIAL_DEB_NAME" ] && \
+        [ -n "$TODESK_OFFICIAL_DEB_URL" ] && \
+        [ -n "$TODESK_OFFICIAL_DEB_SHA256" ] && \
+        [ -n "$TODESK_LOCAL_PACKAGE_NAME" ] || {
+        echo "ToDesk官方包配置不完整，请更新工具箱。"
+        return 1
+    }
+    [ "${#TODESK_OFFICIAL_DEB_SHA256}" -eq 64 ] || {
         echo "ToDesk SHA256必须是64位十六进制字符串。"
         return 1
     }
-    case "$TODESK_PACKAGE_SHA256" in
+    case "$TODESK_OFFICIAL_DEB_SHA256" in
         *[!0-9A-Fa-f]*)
             echo "ToDesk SHA256包含无效字符。"
             return 1
             ;;
     esac
-
-    case "$TODESK_REPOSITORY_URL" in
-        https://*) ;;
-        *)
-            echo "ToDesk仓库地址必须使用HTTPS。"
-            return 1
-            ;;
+    case "$TODESK_OFFICIAL_DEB_URL" in
+        https://dl.todesk.com/linux/*.deb) ;;
+        *) echo "ToDesk官方包地址不符合受控规则。"; return 1 ;;
     esac
-    download_policy_url_allowed "$TODESK_REPOSITORY_URL" || {
-        echo "ToDesk 仓库不在受控来源清单中。"
+    download_policy_url_allowed "$TODESK_OFFICIAL_DEB_URL" || {
+        echo "ToDesk官方包地址不在受控来源清单中。"
         return 1
     }
-
-    case "$TODESK_REPOSITORY_COMMIT" in
-        [0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]* ) ;;
-        *)
-            echo "ToDesk固定提交格式无效。"
-            return 1
-            ;;
+    case "$TODESK_OFFICIAL_DEB_MIN_BYTES" in
+        ''|*[!0-9]*) echo "ToDesk官方包大小下限无效。"; return 1 ;;
     esac
 }
 
@@ -106,8 +90,8 @@ show_todesk_warning() {
     echo "================================"
     echo " ToDesk SteamOS 安装说明"
     echo "================================"
-    echo "来源：mclanbai/archtodesk 第三方适配包"
-    echo "版本：4.7.2.0"
+    echo "来源：ToDesk 官方 Linux 安装包"
+    echo "版本：$TODESK_VERSION"
     echo ""
     echo "使用前必须先在游戏模式完成："
     echo "1. Steam键 → 设置 → 系统 → 开启“启用开发者模式”"
@@ -116,11 +100,12 @@ show_todesk_warning() {
     echo "4. 重新进入桌面模式后再安装并启动ToDesk"
     echo ""
     echo "该操作将："
-    echo "- 下载约80MB的第三方ToDesk软件包并校验SHA256"
+    echo "- 下载ToDesk官方DEB并校验固定SHA256"
+    echo "- 在本机转换为SteamOS软件包，不执行官方DEB自带的维护脚本"
     echo "- 优先读取桌面管理员密码.txt自动验证，记录不可用时由系统询问"
     echo "- 临时关闭SteamOS只读保护"
     echo "- 使用pacman安装系统软件并启用todeskd服务"
-    echo "- 若系统证书缺失，只会尝试使用本机 pacman 缓存恢复证书；不会关闭 HTTPS 或签名验证"
+    echo "- 不安装yay、AUR或第三方ToDesk软件包"
     echo "- 完成后恢复SteamOS只读保护"
     echo ""
     echo "SteamOS系统更新可能移除通过pacman安装的软件。"
@@ -142,65 +127,234 @@ confirm_todesk_install() {
 }
 
 todesk_is_installed() {
-    command -v pacman >/dev/null 2>&1 && \
-        pacman -Q todesk-bin >/dev/null 2>&1
+    todesk_installed_version >/dev/null 2>&1
+}
+
+todesk_installed_version() {
+    local query package_name package_version extra
+
+    command -v pacman >/dev/null 2>&1 || return 1
+    query="$(pacman -Q todesk-bin 2>/dev/null)" || return 1
+    read -r package_name package_version extra <<< "$query"
+    [ "$package_name" = "todesk-bin" ] && [ -n "$package_version" ] && \
+        [ -z "$extra" ] || return 1
+    printf '%s\n' "$package_version"
+}
+
+validate_todesk_payload_archive() {
+    local archive="$1" member normalized
+
+    bsdtar -tf "$archive" >/dev/null 2>&1 || {
+        echo "ToDesk官方包的数据归档无法读取。"
+        return 1
+    }
+    while IFS= read -r member; do
+        normalized="${member#./}"
+        case "/$normalized/" in
+            */../*|*/./*) echo "ToDesk官方包包含不安全路径。"; return 1 ;;
+        esac
+        case "$normalized" in
+            ''|etc|etc/|etc/systemd|etc/systemd/|etc/systemd/system|etc/systemd/system/|etc/systemd/system/todeskd.service|\
+            opt|opt/|opt/todesk|opt/todesk/|opt/todesk/*|\
+            usr|usr/|usr/local|usr/local/|usr/local/bin|usr/local/bin/|usr/local/bin/todesk|\
+            usr/share|usr/share/|usr/share/applications|usr/share/applications/|usr/share/applications/todesk.desktop|\
+            usr/share/icons|usr/share/icons/|usr/share/icons/hicolor|usr/share/icons/hicolor/|usr/share/icons/hicolor/*) ;;
+            *) echo "ToDesk官方包包含预期目录以外的文件：$normalized"; return 1 ;;
+        esac
+    done < <(bsdtar -tf "$archive")
+}
+
+validate_todesk_payload_tree() {
+    local root="$1" required link target link_dir
+
+    for required in \
+        opt/todesk/bin/ToDesk \
+        opt/todesk/bin/ToDesk_Service \
+        opt/todesk/bin/ToDesk_Session \
+        usr/local/bin/todesk \
+        usr/share/applications/todesk.desktop \
+        etc/systemd/system/todeskd.service; do
+        [ -f "$root/$required" ] && [ ! -L "$root/$required" ] || {
+            echo "ToDesk官方包缺少必要文件：$required"
+            return 1
+        }
+    done
+    if find "$root" \( -type b -o -type c -o -type p -o -type s \) \
+        -print -quit | grep -q .; then
+        echo "ToDesk官方包包含不支持的特殊文件。"
+        return 1
+    fi
+    while IFS= read -r link; do
+        case "$link" in "$root/opt/todesk/bin/"*) ;; *) return 1 ;; esac
+        target="$(readlink "$link")" || return 1
+        case "$target" in ''|*/*|*..*) return 1 ;; esac
+        link_dir="${link%/*}"
+        [ -f "$link_dir/$target" ] || return 1
+    done < <(find "$root" -type l -print)
+    grep -Fxq 'ExecStart=/opt/todesk/bin/ToDesk_Service' \
+        "$root/etc/systemd/system/todeskd.service" || return 1
+    grep -Fxq 'User=root' "$root/etc/systemd/system/todeskd.service" || return 1
+    grep -Fq 'Exec=env LIBVA_DRIVER_NAME=iHD' \
+        "$root/usr/share/applications/todesk.desktop" || return 1
+}
+
+build_todesk_pacman_package() {
+    local deb_file="$1"
+    local outer_members control_archive data_archive control_text
+    local payload_root package_root package_file installed_size build_date
+
+    outer_members="$(bsdtar -tf "$deb_file" 2>/dev/null)" || return 1
+    [ "$(printf '%s\n' "$outer_members" | grep -Fxc 'debian-binary')" -eq 1 ] && \
+        [ "$(printf '%s\n' "$outer_members" | grep -Fxc 'control.tar.zst')" -eq 1 ] && \
+        [ "$(printf '%s\n' "$outer_members" | grep -Fxc 'data.tar.zst')" -eq 1 ] && \
+        [ "$(printf '%s\n' "$outer_members" | wc -l | tr -d ' ')" -eq 3 ] || {
+        echo "ToDesk官方DEB目录结构不符合预期。"
+        return 1
+    }
+
+    control_archive="$TODESK_TMP_DIR/control.tar.zst"
+    data_archive="$TODESK_TMP_DIR/data.tar.zst"
+    bsdtar -xOf "$deb_file" control.tar.zst > "$control_archive" || return 1
+    bsdtar -xOf "$deb_file" data.tar.zst > "$data_archive" || return 1
+    control_text="$(bsdtar -xOf "$control_archive" ./control 2>/dev/null)" || return 1
+    printf '%s\n' "$control_text" | grep -Fxq 'Package: ToDesk' || return 1
+    printf '%s\n' "$control_text" | grep -Fxq "Version: $TODESK_VERSION" || return 1
+    printf '%s\n' "$control_text" | grep -Fxq 'Architecture: amd64' || return 1
+    printf '%s\n' "$control_text" | grep -Fxq 'Depends: libgtk-3-0' || return 1
+    validate_todesk_payload_archive "$data_archive" || return 1
+
+    payload_root="$TODESK_TMP_DIR/payload"
+    package_root="$TODESK_TMP_DIR/package-root"
+    mkdir -p "$payload_root" "$package_root" || return 1
+    bsdtar -xf "$data_archive" -C "$payload_root" || return 1
+    validate_todesk_payload_tree "$payload_root" || return 1
+    cp -a -- "$payload_root/." "$package_root/" || return 1
+
+    mkdir -p "$package_root/opt/todesk/config" \
+        "$package_root/usr/bin" "$package_root/usr/lib/systemd/system" || return 1
+    chmod 755 "$package_root/opt/todesk/config" || return 1
+    mv -- "$package_root/usr/local/bin/todesk" "$package_root/usr/bin/todesk" || return 1
+    mv -- "$package_root/etc/systemd/system/todeskd.service" \
+        "$package_root/usr/lib/systemd/system/todeskd.service" || return 1
+    rmdir "$package_root/usr/local/bin" "$package_root/usr/local" \
+        "$package_root/etc/systemd/system" "$package_root/etc/systemd" \
+        "$package_root/etc" 2>/dev/null || return 1
+
+    installed_size="$(du -sk "$package_root" | awk '{print $1 * 1024}')" || return 1
+    build_date="$(date +%s)" || return 1
+    case "$installed_size:$build_date" in *[!0-9:]*) return 1 ;; esac
+    printf '%s\n' \
+        '# Generated locally by zhoukeer-toolbox from the official ToDesk DEB' \
+        'pkgname = todesk-bin' \
+        'pkgbase = todesk-bin' \
+        "pkgver = $TODESK_PACKAGE_VERSION" \
+        'pkgdesc = Official ToDesk Linux client converted locally for SteamOS' \
+        'url = https://www.todesk.com/' \
+        "builddate = $build_date" \
+        'packager = zhoukeer-toolbox local converter' \
+        "size = $installed_size" \
+        'arch = x86_64' \
+        'license = custom' \
+        'provides = todesk' \
+        'conflict = todesk' \
+        'depend = gtk3' > "$package_root/.PKGINFO" || return 1
+
+    package_file="$TODESK_TMP_DIR/$TODESK_LOCAL_PACKAGE_NAME"
+    (cd "$package_root" && bsdtar --uid 0 --gid 0 --uname root --gname root \
+        -a -cf "$package_file" .PKGINFO opt usr) || return 1
+    bsdtar -xOf "$package_file" .PKGINFO 2>/dev/null | \
+        grep -Fxq "pkgver = $TODESK_PACKAGE_VERSION" || return 1
+    TODESK_DOWNLOADED_PACKAGE="$package_file"
+}
+
+find_verified_todesk_download() {
+    local directory candidate actual_sha256 expected_sha256
+
+    expected_sha256="$(printf '%s' "$TODESK_OFFICIAL_DEB_SHA256" | tr '[:upper:]' '[:lower:]')"
+    for directory in "$HOME/Downloads" "$HOME/下载" "$HOME/Desktop"; do
+        [ -d "$directory" ] || continue
+        for candidate in "$directory/${TODESK_OFFICIAL_DEB_NAME%.deb}"*.deb; do
+            [ -f "$candidate" ] && [ ! -L "$candidate" ] || continue
+            actual_sha256="$(calculate_sha256 "$candidate" 2>/dev/null || true)"
+            [ "$actual_sha256" = "$expected_sha256" ] || continue
+            printf '%s\n' "$candidate"
+            return 0
+        done
+    done
+    return 1
+}
+
+wait_for_todesk_browser_download() {
+    local destination="$1" elapsed=0 candidate
+
+    command -v xdg-open >/dev/null 2>&1 || return 1
+    echo "官网需要安全验证，已打开浏览器；下载完成后将自动继续。"
+    xdg-open "$TODESK_OFFICIAL_DEB_URL" >/dev/null 2>&1 || return 1
+    while [ "$elapsed" -lt "$TODESK_BROWSER_WAIT_SECONDS" ]; do
+        candidate="$(find_verified_todesk_download 2>/dev/null || true)"
+        if [ -n "$candidate" ]; then
+            cp -- "$candidate" "$destination" || return 1
+            return 0
+        fi
+        sleep 2
+        elapsed=$((elapsed + 2))
+    done
+    return 1
 }
 
 download_todesk_package() {
-    local repository_dir
-    local package_tmp
-    local extracted_package
-    local actual_sha256
-    local expected_sha256
+    local deb_file candidate actual_sha256 expected_sha256 file_size
 
     mkdir -p "$APP_DIR" || return 1
     TODESK_TMP_DIR="$(mktemp -d "$APP_DIR/.todesk-download.XXXXXX")" || return 1
-    repository_dir="$TODESK_TMP_DIR/archtodesk"
+    deb_file="$TODESK_TMP_DIR/$TODESK_OFFICIAL_DEB_NAME"
+    expected_sha256="$(printf '%s' "$TODESK_OFFICIAL_DEB_SHA256" | tr '[:upper:]' '[:lower:]')"
 
-    echo "正在获取固定版本的ToDesk适配包..."
-    if ! timeout "$TODESK_MAX_TIME" git clone --depth 1 "$TODESK_REPOSITORY_URL" "$repository_dir"; then
-        echo "ToDesk适配包获取失败。"
-        return 1
+    candidate="$(find_verified_todesk_download 2>/dev/null || true)"
+    if [ -n "$candidate" ]; then
+        cp -- "$candidate" "$deb_file" || return 1
+        echo "已找到校验通过的ToDesk官方安装包。"
     fi
 
-    if [ "$(git -C "$repository_dir" rev-parse HEAD 2>/dev/null)" != "$TODESK_REPOSITORY_COMMIT" ]; then
-        echo "ToDesk上游版本已变化，固定提交校验未通过，已停止安装。"
-        return 1
+    if [ ! -f "$deb_file" ]; then
+        echo "正在下载ToDesk官方版本..."
+        if ! curl --fail --location --progress-bar \
+            --proto '=https' --proto-redir '=https' \
+            --connect-timeout "$TODESK_CONNECT_TIMEOUT" --max-time "$TODESK_MAX_TIME" \
+            --retry 3 --retry-delay 2 --retry-connrefused \
+            --speed-limit 65536 --speed-time 60 \
+            --max-filesize "$(download_policy_max_bytes "$TODESK_OFFICIAL_DEB_URL")" \
+            --user-agent 'Mozilla/5.0' \
+            --output "$deb_file" "$TODESK_OFFICIAL_DEB_URL" \
+            2> >(grep -v '^curl: (' >&2); then
+            echo "ToDesk官方下载失败。"
+            return 1
+        fi
     fi
 
-    extracted_package="$repository_dir/$TODESK_PACKAGE_NAME"
-    if [ ! -f "$extracted_package" ]; then
-        echo "固定提交中未找到ToDesk安装包。"
-        return 1
+    if ! download_policy_response_is_safe "$TODESK_OFFICIAL_DEB_URL" "$deb_file"; then
+        rm -f -- "$deb_file"
+        wait_for_todesk_browser_download "$deb_file" || {
+            echo "ToDesk官网下载未完成，请稍后重试。"
+            return 1
+        }
+        download_policy_response_is_safe "$TODESK_OFFICIAL_DEB_URL" "$deb_file" || return 1
     fi
-
-    actual_sha256="$(calculate_sha256 "$extracted_package")" || {
-        echo "无法计算ToDesk SHA256。"
+    file_size="$(download_policy_file_size "$deb_file")" || return 1
+    [ "$file_size" -ge "$TODESK_OFFICIAL_DEB_MIN_BYTES" ] || {
+        echo "ToDesk官方包大小异常，已停止安装。"
         return 1
     }
-    expected_sha256="$(printf '%s' "$TODESK_PACKAGE_SHA256" | tr '[:upper:]' '[:lower:]')"
-    if [ "$actual_sha256" != "$expected_sha256" ]; then
-        echo "ToDesk SHA256校验失败，已停止安装。"
-        echo "期望: $expected_sha256"
-        echo "实际: $actual_sha256"
+    actual_sha256="$(calculate_sha256 "$deb_file")" || return 1
+    [ "$actual_sha256" = "$expected_sha256" ] || {
+        echo "ToDesk官方包SHA256校验失败，已停止安装。"
         return 1
-    fi
-    echo "ToDesk SHA256校验通过"
-
-    package_tmp="$APP_DIR/.${TODESK_PACKAGE_NAME}.verified.$$"
-    if ! mv -- "$extracted_package" "$package_tmp"; then
-        echo "无法保存已校验的ToDesk软件包。"
+    }
+    echo "ToDesk官方包校验通过，正在生成SteamOS本地安装包..."
+    build_todesk_pacman_package "$deb_file" || {
+        echo "ToDesk官方包转换失败，现有安装保持不变。"
         return 1
-    fi
-    if ! mv -f -- "$package_tmp" "$APP_DIR/$TODESK_PACKAGE_NAME"; then
-        rm -f -- "$package_tmp"
-        echo "无法更新本地ToDesk软件包。"
-        return 1
-    fi
-
-    rm -rf -- "$TODESK_TMP_DIR"
-    TODESK_TMP_DIR=""
-    TODESK_DOWNLOADED_PACKAGE="$APP_DIR/$TODESK_PACKAGE_NAME"
+    }
 }
 
 has_trusted_ca_bundle() {
@@ -252,32 +406,16 @@ ensure_todesk_ca_certificates() {
 }
 
 install_verified_todesk_package() {
-    local package_path="$1" attempt=1
+    local package_path="$1"
 
-    case "$TODESK_RETRIES:$TODESK_INSTALL_RETRY_DELAY" in
-        *[!0-9:]*|:* ) echo "ToDesk 重试参数无效。"; return 1 ;;
-    esac
-    [ "$TODESK_RETRIES" -gt 0 ] || {
-        echo "ToDesk 安装重试次数必须大于 0。"
-        return 1
-    }
-
-    while [ "$attempt" -le "$TODESK_RETRIES" ]; do
-        if toolbox_sudo pacman -U --noconfirm "$package_path"; then
-            return 0
-        fi
-        if [ "$attempt" -lt "$TODESK_RETRIES" ]; then
-            echo "ToDesk 安装遇到网络或软件源错误，${TODESK_INSTALL_RETRY_DELAY} 秒后重试（$((attempt + 1))/$TODESK_RETRIES）..."
-            [ "$TODESK_INSTALL_RETRY_DELAY" -eq 0 ] || sleep "$TODESK_INSTALL_RETRY_DELAY"
-        fi
-        attempt=$((attempt + 1))
-    done
-    return 1
+    [ -f "$package_path" ] && [ ! -L "$package_path" ] || return 1
+    toolbox_sudo pacman -U --noconfirm "$package_path"
 }
 
 install_todesk() {
     local package_path
     local readonly_status
+    local installed_version
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
@@ -285,12 +423,16 @@ install_todesk() {
         return 1
     fi
 
-    if todesk_is_installed; then
-        echo "[已安装] 已检测到 ToDesk，无需重复下载或安装。"
+    installed_version="$(todesk_installed_version 2>/dev/null || true)"
+    if [ "$installed_version" = "$TODESK_PACKAGE_VERSION" ]; then
+        echo "[已安装] ToDesk $TODESK_VERSION 已存在，无需重复安装。"
         return 0
     fi
+    if [ -n "$installed_version" ]; then
+        echo "检测到旧版 ToDesk $installed_version，将保留配置并更新到 $TODESK_PACKAGE_VERSION。"
+    fi
 
-    for command_name in git timeout sudo pacman pacman-key systemctl steamos-readonly; do
+    for command_name in curl bsdtar sudo pacman systemctl steamos-readonly; do
         require_command "$command_name" || return 1
     done
     validate_todesk_settings || return 1
@@ -299,6 +441,7 @@ install_todesk() {
         return 0
     }
 
+    trap cleanup_todesk EXIT INT TERM
     download_todesk_package || return 1
     package_path="$TODESK_DOWNLOADED_PACKAGE"
 
@@ -324,10 +467,7 @@ install_todesk() {
         trap cleanup_todesk EXIT INT TERM
     fi
 
-    echo "正在准备pacman密钥..."
     ensure_todesk_ca_certificates || return 1
-    toolbox_sudo pacman-key --init || return 1
-    toolbox_sudo pacman-key --populate || return 1
 
     echo "正在安装ToDesk..."
     if ! install_verified_todesk_package "$package_path"; then
@@ -335,8 +475,14 @@ install_todesk() {
         log "ToDesk安装失败: pacman返回错误"
         return 1
     fi
+    if [ "$(todesk_installed_version 2>/dev/null || true)" != "$TODESK_PACKAGE_VERSION" ]; then
+        echo "ToDesk安装后版本检查未通过。"
+        return 1
+    fi
 
-    if ! toolbox_sudo systemctl enable --now todeskd.service; then
+    toolbox_sudo systemctl daemon-reload || return 1
+    toolbox_sudo systemctl enable todeskd.service || return 1
+    if ! toolbox_sudo systemctl restart todeskd.service; then
         echo "ToDesk已安装，但后台服务启动失败。"
         log "ToDesk安装警告: todeskd服务启动失败"
     fi

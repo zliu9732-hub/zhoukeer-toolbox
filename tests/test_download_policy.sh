@@ -14,6 +14,8 @@ download_policy_url_allowed 'https://github.com/rustdesk/rustdesk/releases/downl
 download_policy_url_allowed 'https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.6/PluginLoader' || fail "Decky 官方 Loader 被拒绝"
 download_policy_url_allowed 'https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest' || fail "GitHub 最新 Release API 被拒绝"
 download_policy_url_allowed 'https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service' || fail "Decky 官方服务模板被拒绝"
+download_policy_url_allowed 'https://dl.todesk.com/linux/todesk-v4.8.6.2-amd64.deb' || fail "ToDesk 官方 DEB 被拒绝"
+if download_policy_url_allowed 'https://gitee.com/mclanbai/archtodesk.git'; then fail "旧 ToDesk 第三方仓库仍在白名单"; fi
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/VERSION' || fail "工具箱 Gitee 地址被拒绝"
 if download_policy_url_allowed 'https://evil.example/payload.sh'; then fail "任意域名被白名单接受"; fi
 download_policy_github_mirror_allowed 'https://ghproxy.net/' || fail "现有 GitHub 加速源被拒绝"
@@ -25,6 +27,8 @@ if download_policy_response_is_safe 'https://github.com/SheffeyG/CheatDeck/relea
 fi
 printf '\x50\x4b\x03\x04payload' > "$TMP_ROOT/good.zip"
 download_policy_response_is_safe 'https://github.com/SheffeyG/CheatDeck/releases/download/v1.2.1/CheatDeck.zip' "$TMP_ROOT/good.zip" || fail "合法 ZIP 魔数被拒绝"
+printf '!<arch>\npackage' > "$TMP_ROOT/good.deb"
+download_policy_response_is_safe 'https://dl.todesk.com/linux/todesk-v4.8.6.2-amd64.deb' "$TMP_ROOT/good.deb" || fail "合法 DEB 魔数被拒绝"
 dd if=/dev/zero of="$TMP_ROOT/large.VERSION" bs=1048576 count=3 >/dev/null 2>&1
 if download_policy_response_is_safe 'https://jktool.icu/VERSION' "$TMP_ROOT/large.VERSION"; then fail "超出大小限制的响应被接受"; fi
 

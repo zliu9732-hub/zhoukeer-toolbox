@@ -61,10 +61,15 @@ make_custom_config() {
     local destination="$1"
 
     mkdir -p "$(dirname "$destination")"
-    awk '
-        /^TODESK_ARCHIVE_URL=/ { print "TODESK_ARCHIVE_URL=\"https://custom.example/todesk.tar.gz\""; next }
-        { print }
-    ' "$PROJECT_ROOT/config/settings.example.conf" > "$destination"
+    cp "$PROJECT_ROOT/config/settings.example.conf" "$destination"
+    printf '%s\n' \
+        '# ToDesk第三方SteamOS安装包。' \
+        'TODESK_ARCHIVE_URL="https://custom.example/todesk.tar.gz"' \
+        'TODESK_REPOSITORY_URL="https://gitee.com/mclanbai/archtodesk.git"' \
+        'TODESK_REPOSITORY_COMMIT="b2b63a834c0fcb77ff87c1424d6c393804d8e1af"' \
+        'TODESK_PACKAGE_NAME="todesk-bin-4.7.2.0-4-x86_64.pkg.tar.zst"' \
+        'TODESK_PACKAGE_SHA256="60026e9a7163611cd5feba6ed3d246fa4c9763cb95c04e07da09052243e12a29"' \
+        >> "$destination"
 }
 
 test_blank_config_migration() {
@@ -76,10 +81,9 @@ test_blank_config_migration() {
     make_blank_config "$config_file"
     run_installer "$case_root/home" "$install_dir"
 
-    assert_value "$config_file" TODESK_PACKAGE_NAME \
-        "todesk-bin-4.7.2.0-4-x86_64.pkg.tar.zst"
-    assert_value "$config_file" TODESK_PACKAGE_SHA256 \
-        "60026e9a7163611cd5feba6ed3d246fa4c9763cb95c04e07da09052243e12a29"
+    if grep -Eq 'TODESK_|mclanbai/archtodesk' "$config_file"; then
+        fail "空配置迁移后仍包含退役的 ToDesk 第三方来源"
+    fi
     assert_value "$config_file" DECKY_LSFG_SHA256 \
         "13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
     assert_value "$config_file" DECKY_LOADER_SHA256 \
@@ -103,7 +107,7 @@ test_blank_config_migration() {
     [ "$backup_count" = "1" ] || fail "重复安装不应新增备份，实际为 $backup_count"
 }
 
-test_custom_config_preserved() {
+test_retired_todesk_config_removed() {
     local case_root="$TMP_ROOT/custom"
     local install_dir="$case_root/install"
     local config_file="$install_dir/config/settings.conf"
@@ -111,8 +115,9 @@ test_custom_config_preserved() {
     make_custom_config "$config_file"
     run_installer "$case_root/home" "$install_dir"
 
-    assert_value "$config_file" TODESK_ARCHIVE_URL \
-        "https://custom.example/todesk.tar.gz"
+    if grep -Eq 'TODESK_|mclanbai/archtodesk|custom\.example/todesk' "$config_file"; then
+        fail "升级后仍保留退役的 ToDesk 第三方配置"
+    fi
 }
 
 test_chinese_plugin_hashes_migrated() {
@@ -268,8 +273,9 @@ test_missing_config_created() {
     run_installer "$case_root/home" "$install_dir"
 
     [ -f "$config_file" ] || fail "缺少配置时未创建 settings.conf"
-    assert_value "$config_file" TODESK_PACKAGE_NAME \
-        "todesk-bin-4.7.2.0-4-x86_64.pkg.tar.zst"
+    if grep -Eq 'TODESK_|mclanbai/archtodesk' "$config_file"; then
+        fail "新配置仍包含退役的 ToDesk 第三方来源"
+    fi
 }
 
 test_dry_run_has_no_side_effects() {
@@ -345,7 +351,7 @@ test_install_from_replaced_workdir() {
 }
 
 test_blank_config_migration
-test_custom_config_preserved
+test_retired_todesk_config_removed
 test_chinese_plugin_hashes_migrated
 test_chinese_plugin_v504_hashes_migrated
 test_retired_freedeck_url_migrated

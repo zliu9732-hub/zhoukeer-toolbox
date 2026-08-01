@@ -20,7 +20,7 @@ decky|www.mhhf.com,github.com,raw.githubusercontent.com,plugins.deckbrew.xyz,cdn
 flathub|mirror.sjtu.edu.cn,mirrors.ustc.edu.cn,dl.flathub.org|Flatpak 国内缓存与官方源|flatpakrepo,repo|固定远程|Flatpak GPG；国内缓存例外需明确确认|2097152|上海交大→中科大→官方
 vendors|qq-web.cdn-go.cn,im.qq.com,qqdl.gtimg.cn,dldir1v6.qq.com,launcher-public-service-prod06.ol.epicgames.com,downloader.battle.net,static3.cdn.ubi.com|官方应用安装包|json,AppImage,exe,msi|官方当前版或固定版|官方HTTPS+固定路径+类型/大小；固定版另验SHA256|536870912|停止安装
 steam302|www.dogfight360.com|Steamcommunity 302 固定版本|tar.gz|固定版本|MD5+SHA256+结构检查|536870912|停止安装
-todesk|gitee.com|ToDesk 固定提交源码|git objects,pkg.tar.zst|固定提交|提交号+包 SHA256|536870912|本机 pacman 缓存
+todesk|dl.todesk.com|ToDesk 官方 Linux 客户端|deb|固定官方版本|SHA256+DEB/包内结构|268435456|本地安全转换→停止安装
 EOF
 }
 
@@ -53,7 +53,8 @@ download_policy_url_allowed() {
         https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/*) return 0 ;;
         https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service) return 0 ;;
         https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.8-pre1/dist/plugin_loader-prerelease.service) return 0 ;;
-        https://gitee.com/zliu9732-hub/zhoukeer-toolbox/*|https://gitee.com/mclanbai/archtodesk.git|https://gitee.com/mclanbai/archtodesk/repository/archive/*) return 0 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox/*) return 0 ;;
+        https://dl.todesk.com/linux/todesk-v4.8.6.2-amd64.deb) return 0 ;;
         https://jktool.icu/VERSION|https://jktool.icu/dist/SHA256SUMS|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) return 0 ;;
         https://www.mhhf.com/Deck/decky/*|https://plugins.deckbrew.xyz/plugins|https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/*) return 0 ;;
         https://mirror.sjtu.edu.cn/flathub*|https://mirrors.ustc.edu.cn/flathub*|https://mirrors.ustc.edu.cn/archlinuxcn/*|https://dl.flathub.org/repo/*) return 0 ;;
@@ -74,6 +75,7 @@ download_policy_max_bytes() {
         https://api.github.com/*) printf '%s\n' 2097152 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/zhoukeer-toolbox.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/zhoukeer-toolbox.tar.gz|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) printf '%s\n' 9437184 ;;
         */VERSION|*/SHA256SUMS|*.json|*.flatpakrepo|*.service) printf '%s\n' 2097152 ;;
+        *.deb) printf '%s\n' 268435456 ;;
         *.AppImage|*.exe|*.msi|*.zip) printf '%s\n' 536870912 ;;
         *.tar.gz|*.tar.zst) printf '%s\n' 1073741824 ;;
         *) printf '%s\n' 134217728 ;;
@@ -105,6 +107,7 @@ download_policy_response_is_safe() {
     case "${url%%\?*}" in
         *.zip) case "$prefix" in 504b0304|504b0506|504b0708) ;; *) return 1 ;; esac ;;
         *.tar.gz) [ "${prefix#1f8b}" != "$prefix" ] || return 1 ;;
+        *.deb) [ "$prefix" = "213c6172" ] || return 1 ;;
         *.AppImage) [ "$prefix" = "7f454c46" ] || return 1 ;;
         *.exe) [ "${prefix#4d5a}" != "$prefix" ] || return 1 ;;
         *.msi) case "$prefix" in d0cf11e0|4d5a*) ;; *) return 1 ;; esac ;;

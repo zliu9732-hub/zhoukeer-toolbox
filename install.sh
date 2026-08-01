@@ -22,11 +22,6 @@ CONFIG_EXAMPLE_FILE="$SOURCE_ROOT/config/settings.example.conf"
 
 CONFIG_MIGRATION_VARIABLES=(
     DUAL_BOOT_TIMEOUT
-    TODESK_ARCHIVE_URL
-    TODESK_REPOSITORY_URL
-    TODESK_REPOSITORY_COMMIT
-    TODESK_PACKAGE_NAME
-    TODESK_PACKAGE_SHA256
     DECKY_LOADER_URL
     DECKY_LOADER_SHA256
     DECKY_SERVICE_URL
@@ -221,6 +216,27 @@ sanitize_retired_decky_installer_config() {
     awk '
         /^[[:space:]]*(export[[:space:]]+)?DECKY_INSTALLER_(URL|SHA256)[[:space:]]*=/ { next }
         /Decky Loader 国内安装器/ { next }
+        { print }
+    ' "$config_file" > "$sanitized_file" || {
+        rm -f -- "$sanitized_file"
+        return 1
+    }
+    chmod 600 "$sanitized_file" || {
+        rm -f -- "$sanitized_file"
+        return 1
+    }
+    mv -f -- "$sanitized_file" "$config_file"
+}
+
+sanitize_retired_todesk_config() {
+    local config_file="$1"
+    local sanitized_file
+
+    sanitized_file="$(mktemp "$config_file.sanitize.XXXXXX")" || return 1
+    awk '
+        /^[[:space:]]*(export[[:space:]]+)?TODESK_(ARCHIVE_URL|REPOSITORY_URL|REPOSITORY_COMMIT|PACKAGE_NAME|PACKAGE_SHA256)[[:space:]]*=/ { next }
+        /ToDesk.*第三方/ { next }
+        /mclanbai\/archtodesk/ { next }
         { print }
     ' "$config_file" > "$sanitized_file" || {
         rm -f -- "$sanitized_file"
@@ -515,6 +531,10 @@ while IFS= read -r retired_config; do
     }
     sanitize_retired_decky_installer_config "$retired_config" || {
         echo "清理旧 Decky 外层安装器配置失败: $retired_config"
+        exit 1
+    }
+    sanitize_retired_todesk_config "$retired_config" || {
+        echo "清理旧 ToDesk 第三方配置失败: $retired_config"
         exit 1
     }
 done < <(find "$STAGING_DIR/config" -maxdepth 1 -type f -name 'settings.conf*' -print)
