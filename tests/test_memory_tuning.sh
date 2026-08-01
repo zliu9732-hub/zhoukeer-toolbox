@@ -56,6 +56,43 @@ fi
 grep -Fq '配置路径不是普通文件' "$TMP_ROOT/directory-target-output" || \
     fail "目录配置的安全错误提示缺失"
 
+# 系统原 swap 在两次移动尝试后仍受保护时，创建流程必须把已成功启用的
+# 工具箱独立 swap 视为成功降级，不能把前一次 mv 失败带回主菜单。
+(
+    PROTECTED_MAIN="$TMP_ROOT/protected-swapfile"
+    PROTECTED_FALLBACK="$TMP_ROOT/protected-fallback-swapfile"
+    printf 'protected swap\n' > "$PROTECTED_MAIN"
+    MEMORY_SWAPFILE_PATH="$PROTECTED_MAIN"
+    MEMORY_FALLBACK_SWAPFILE_PATH="$PROTECTED_FALLBACK"
+    MEMORY_MIN_FREE_GIB=1
+    memory_swap_is_active() { return 1; }
+    memory_clear_immutable_attribute() { return 0; }
+    memory_move_swapfile_after_forced_immutable_clear() { return 1; }
+    df() { printf 'Filesystem 1024-blocks Used Available Capacity Mounted on\nmock 99999999 1 99999998 1%% /\n'; }
+    toolbox_sudo() {
+        case "${1:-}" in
+            fallocate) : > "${@: -1}" ;;
+            mkswap|chmod) return 0 ;;
+            mv)
+                if [ "${2:-}" = "--" ] && [ "${3:-}" = "$PROTECTED_MAIN" ]; then
+                    return 1
+                fi
+                shift
+                command mv "$@"
+                ;;
+            swapon) return 0 ;;
+            *) "$@" ;;
+        esac
+    }
+    if ! memory_create_swapfile 8 > "$TMP_ROOT/protected-fallback.output"; then
+        fail "系统原 swap 受保护时，成功启用独立 swap 后仍返回失败"
+    fi
+    [ "$MEMORY_SWAPFILE_PATH" = "$PROTECTED_FALLBACK" ] || \
+        fail "成功降级后没有切换到工具箱独立 swap 路径"
+    grep -Fq '独立 swap 已安全启用，继续配置' "$TMP_ROOT/protected-fallback.output" || \
+        fail "成功降级后没有说明将继续完成其余配置"
+)
+
 CREATED="$TMP_ROOT/created"
 ACTIVE="$TMP_ROOT/active"
 SYSTEMCTL_LOG="$TMP_ROOT/systemctl.log"

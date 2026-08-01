@@ -151,6 +151,7 @@ memory_activate_fallback_swapfile() {
     toolbox_sudo rm -f -- "$backup_file" || true
     MEMORY_SWAPFILE_PATH="$MEMORY_FALLBACK_SWAPFILE_PATH"
     echo "旧 swap 受系统保护无法移动，已保留原文件并启用工具箱独立 swap：$MEMORY_SWAPFILE_PATH"
+    return 0
 }
 
 memory_swapfile_is_complete() {
@@ -480,6 +481,7 @@ memory_create_swapfile() {
                     echo "现有 swap 无法安全移动，已保留原文件。"
                     return 1
                 }
+                echo "独立 swap 已安全启用，继续配置 zram、swappiness 和开机自动启用。"
                 return 0
             }
         fi
@@ -502,6 +504,7 @@ memory_create_swapfile() {
         return 1
     fi
     toolbox_sudo rm -f -- "$backup_file" || true
+    return 0
 }
 
 memory_optimize() {
@@ -545,8 +548,14 @@ memory_optimize() {
         MEMORY_SWAPFILE_PATH="$MEMORY_FALLBACK_SWAPFILE_PATH"
         echo "检测到工具箱独立 swap，继续使用：$MEMORY_SWAPFILE_PATH"
     fi
-    unit_name="$(memory_swap_unit_name)" || return 1
-    fallback_unit_name="$(memory_swap_unit_name_for_path "$MEMORY_FALLBACK_SWAPFILE_PATH")" || return 1
+    unit_name="$(memory_swap_unit_name)" || {
+        echo "无法生成磁盘 swap 的开机配置名称，当前 swap 文件保持不变。"
+        return 1
+    }
+    fallback_unit_name="$(memory_swap_unit_name_for_path "$MEMORY_FALLBACK_SWAPFILE_PATH")" || {
+        echo "无法生成工具箱独立 swap 的开机配置名称，未修改现有配置。"
+        return 1
+    }
     memory_config_target_is_safe "$MEMORY_ZRAM_CONFIG" || return 1
     memory_config_target_is_safe "$MEMORY_SYSCTL_CONFIG" || return 1
     memory_config_target_is_safe "$MEMORY_SYSTEMD_DIR/$unit_name" || return 1
@@ -590,16 +599,37 @@ Priority=10
 [Install]
 WantedBy=swap.target
 EOF
-    memory_write_config "$MEMORY_ZRAM_CONFIG" "$zram_file" || return 1
-    memory_write_config "$MEMORY_SYSCTL_CONFIG" "$sysctl_file" || return 1
-    memory_write_config "$MEMORY_SYSTEMD_DIR/$unit_name" "$unit_file" || return 1
+    memory_write_config "$MEMORY_ZRAM_CONFIG" "$zram_file" || {
+        echo "zram 配置写入失败，当前 swap 文件保持不变。"
+        return 1
+    }
+    memory_write_config "$MEMORY_SYSCTL_CONFIG" "$sysctl_file" || {
+        echo "swappiness 配置写入失败，当前 swap 文件保持不变。"
+        return 1
+    }
+    memory_write_config "$MEMORY_SYSTEMD_DIR/$unit_name" "$unit_file" || {
+        echo "磁盘 swap 开机配置写入失败，当前 swap 仍保持启用。"
+        return 1
+    }
 
-    toolbox_sudo sysctl -w vm.swappiness=1 >/dev/null || return 1
-    toolbox_sudo systemctl daemon-reload || return 1
+    toolbox_sudo sysctl -w vm.swappiness=1 >/dev/null || {
+        echo "swappiness 即时设置失败，配置文件已保留供重启后应用。"
+        return 1
+    }
+    toolbox_sudo systemctl daemon-reload || {
+        echo "systemd 刷新失败，磁盘 swap 当前仍保持启用。"
+        return 1
+    }
     if memory_swap_is_active "$MEMORY_SWAPFILE_PATH"; then
-        toolbox_sudo systemctl enable "$unit_name" >/dev/null || return 1
+        toolbox_sudo systemctl enable "$unit_name" >/dev/null || {
+            echo "磁盘 swap 当前已启用，但开机自动启用设置失败。"
+            return 1
+        }
     else
-        toolbox_sudo systemctl enable --now "$unit_name" >/dev/null || return 1
+        toolbox_sudo systemctl enable --now "$unit_name" >/dev/null || {
+            echo "磁盘 swap 开机配置已写入，但本次启用失败。"
+            return 1
+        }
     fi
 
     echo "虚拟内存最佳组合已设置：zram 优先，${target_gib}GB 磁盘 swap 兜底。"
