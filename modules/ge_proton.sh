@@ -9,9 +9,9 @@ load_config
 
 # 固定使用作者 GitHub Release，防止旧安装保留的配置重新启用退役下载地址。
 # 测试或紧急诊断可以通过 ZHOUKEER_GE_PROTON_* 环境变量明确覆盖。
-GE_PROTON_URL="${ZHOUKEER_GE_PROTON_URL:-https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-1/GE-Proton11-1.tar.gz}"
-GE_PROTON_VERSION="${ZHOUKEER_GE_PROTON_VERSION:-GE-Proton11-1}"
-GE_PROTON_SHA256="${ZHOUKEER_GE_PROTON_SHA256:-ce6dd663ea01725a31805ed5c165723a253cdf0945a6642907330742ae2de5e4}"
+GE_PROTON_URL="${ZHOUKEER_GE_PROTON_URL:-https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-3/GE-Proton11-3.tar.gz}"
+GE_PROTON_VERSION="${ZHOUKEER_GE_PROTON_VERSION:-GE-Proton11-3}"
+GE_PROTON_SHA256="${ZHOUKEER_GE_PROTON_SHA256:-861c2edc8d40d051fb1e7a692deb953be52bd339c46d90f2b7dde50ddad91266}"
 GE_PROTON_TMP_DIR=""
 GE_PROTON_STAGE_DIR=""
 GE_PROTON_BACKUP_DIR=""

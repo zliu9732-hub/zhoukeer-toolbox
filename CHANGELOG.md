@@ -1,3 +1,9 @@
+## V6.0.16 GE-Proton 更新到 GE-Proton11-3 — 2026-08-01
+
+- GE 兼容层默认版本更新到作者最新 Release GE-Proton11-3，固定 SHA256 校验。
+- 同步更新配置迁移默认值；已安装用户升级工具箱后会自动补齐 GE-Proton 新版本配置。
+- GE-Proton 测试断言调整为统一下载器的安全失败提示，下载失败时继续保留旧版本。
+
 ## V6.0.15 修复更新后软件桌面图标缺失 — 2026-08-01
 
 - 修复 RustDesk 更新后被删除：移除安装器里过时的 `apps/rustdesk.AppImage` 清理逻辑，RustDesk AppImage 会随更新保留。
