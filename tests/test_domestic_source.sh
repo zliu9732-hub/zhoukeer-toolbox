@@ -165,6 +165,12 @@ case "${1:-}" in
         ;;
 esac
 printf 'pacman %s\n' "$*" >> "$state/commands"
+case " $* " in
+    *' archlinuxcn-keyring '*)
+        [ "${DOMESTIC_SOURCE_FAIL_PACMAN_INSTALL:-0}" != "1" ] || exit 1
+        touch "$state/installed.archlinuxcn-keyring"
+        ;;
+esac
 EOF
 
 cat > "$BIN_DIR/pacman-key" <<'EOF'
@@ -227,14 +233,10 @@ grep -Fq -- '--appstream' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应包含 AppStream 强制刷新"
 grep -Fq 'verify_domestic_flatpak_remote' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应保留应用索引验证"
-for command_text in 'packages_installed_without_known_upgrades' 'base_system_components_ready' 'archlinuxcn_keyring_ready' 'configure_archlinuxcn_if_ready' 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman -Syu --needed --noconfirm git flatpak' 'pacman -S --needed --noconfirm archlinux-keyring' 'pacman-key --populate archlinuxcn' 'locale-gen' 'steamos-readonly disable' 'steamos-readonly enable'; do
+for command_text in 'packages_installed_without_known_upgrades' 'base_system_components_ready' 'archlinuxcn_keyring_ready' 'configure_archlinuxcn_with_fallback' 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman -Syu --needed --noconfirm git flatpak' 'pacman -S --needed --noconfirm archlinux-keyring' 'pacman -Syu --needed --noconfirm archlinuxcn-keyring' 'pacman-key --populate archlinuxcn' 'locale-gen' 'steamos-readonly disable' 'steamos-readonly enable'; do
     grep -Fq "$command_text" "$PROJECT_ROOT/modules/domestic_source.sh" || \
         fail "完整国内源初始化缺少：$command_text"
 done
-if grep -Fq 'pacman -Syu --needed --noconfirm archlinuxcn-keyring' \
-    "$PROJECT_ROOT/modules/domestic_source.sh"; then
-    fail "缺少 archlinuxcn 密钥环时不应触发完整系统更新"
-fi
 (
     PATH="$BIN_DIR:$PATH"
     HOME="$HOME_DIR"
@@ -259,8 +261,13 @@ fi
         fail "缺少 Flatpak 时仍被识别为基础组件完整"
     fi
 )
-grep -Fq 'https://mirrors.ustc.edu.cn/archlinuxcn/\$arch' \
-    "$PROJECT_ROOT/modules/domestic_source.sh" || fail "缺少中科大 archlinuxcn 仓库"
+for repo_url in \
+    'https://mirror.sjtu.edu.cn/archlinux-cn/\$arch' \
+    'https://mirrors.ustc.edu.cn/archlinuxcn/\$arch' \
+    'https://repo.archlinuxcn.org/\$arch'; do
+    grep -Fq "$repo_url" "$PROJECT_ROOT/modules/domestic_source.sh" || \
+        fail "缺少 archlinuxcn 镜像回退：$repo_url"
+done
 grep -Fq '初始化国内源并检测系统组件' "$PROJECT_ROOT/modules/new_machine.sh" || \
     fail "新机初始化没有运行国内源与系统组件检测"
 
@@ -288,20 +295,34 @@ EOF
     write_managed_archlinuxcn_repo "$SYSTEM_DIR/pacman.conf"
     [ "$(grep -c '^\[archlinuxcn\]$' "$SYSTEM_DIR/pacman.conf")" -eq 1 ] || \
         fail "重复执行后 archlinuxcn 仓库不唯一"
-    grep -Fq 'Server = https://mirrors.ustc.edu.cn/archlinuxcn/$arch' \
-        "$SYSTEM_DIR/pacman.conf" || fail "archlinuxcn 仓库地址错误"
+    for repo_line in \
+        'Server = https://mirror.sjtu.edu.cn/archlinux-cn/$arch' \
+        'Server = https://mirrors.ustc.edu.cn/archlinuxcn/$arch' \
+        'Server = https://repo.archlinuxcn.org/$arch'; do
+        grep -Fq "$repo_line" "$SYSTEM_DIR/pacman.conf" || \
+            fail "archlinuxcn 仓库回退地址错误：$repo_line"
+    done
 
-    configure_archlinuxcn_if_ready "$SYSTEM_DIR/pacman.conf"
+    configure_archlinuxcn_with_fallback "$SYSTEM_DIR/pacman.conf"
     grep -Fq 'pacman-key --populate archlinuxcn' "$STATE_DIR/commands" || \
         fail "已有可用 archlinuxcn 密钥环时未加载密钥"
 
     rm -f "$STATE_DIR/installed.archlinuxcn-keyring"
-    configure_archlinuxcn_if_ready "$SYSTEM_DIR/pacman.conf"
+    configure_archlinuxcn_with_fallback "$SYSTEM_DIR/pacman.conf"
+    grep -Fq 'pacman -Syu --needed --noconfirm archlinuxcn-keyring' "$STATE_DIR/commands" || \
+        fail "缺少密钥环时未执行 archlinuxcn 安装"
+    grep -Fq '[archlinuxcn]' "$SYSTEM_DIR/pacman.conf" || \
+        fail "密钥环安装成功后未保留 archlinuxcn 配置"
+
+    rm -f "$STATE_DIR/installed.archlinuxcn-keyring"
+    DOMESTIC_SOURCE_FAIL_PACMAN_INSTALL=1
+    export DOMESTIC_SOURCE_FAIL_PACMAN_INSTALL
+    failure_output="$(configure_archlinuxcn_with_fallback "$SYSTEM_DIR/pacman.conf")"
+    printf '%s\n' "$failure_output" | grep -Fq '将继续配置 Flatpak 国内缓存' || \
+        fail "archlinuxcn 安装失败时未说明继续配置 Flatpak"
     ! grep -Fq '[archlinuxcn]' "$SYSTEM_DIR/pacman.conf" || \
-        fail "密钥环不可用时仍保留工具箱 archlinuxcn 配置"
-    if grep -Fq 'pacman -Syu --needed --noconfirm archlinuxcn-keyring' "$STATE_DIR/commands"; then
-        fail "密钥环不可用时仍尝试完整系统更新"
-    fi
+        fail "archlinuxcn 安装失败后仍保留工具箱仓库配置"
+    unset DOMESTIC_SOURCE_FAIL_PACMAN_INSTALL
 
     configure_chinese_locales "$SYSTEM_DIR/locale.gen"
     [ "$(grep -c '^en_US.UTF-8 UTF-8$' "$SYSTEM_DIR/locale.gen")" -eq 1 ] || \

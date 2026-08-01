@@ -618,7 +618,7 @@ support_gui_menu() {
 domestic_source_gui_preflight() {
     local choice
 
-    choice="$(gui_dialog --menu "初始化国内源并检测系统组件｜Flatpak 缓存关闭 GPG；archlinuxcn 不额外安装" \
+    choice="$(gui_dialog --menu "初始化国内源并检测系统组件｜Flatpak 缓存关闭 GPG；archlinuxcn 保持 GPG 验证" \
         configure "初始化国内源并检测系统组件｜已满足时跳过更新，配置 locale 与国内缓存" \
         restore "恢复官方软件源｜恢复 Flathub 并移除工具箱 archlinuxcn" \
         back "返回系统设置")" || return 0
@@ -628,7 +628,8 @@ domestic_source_gui_preflight() {
 
 pacman 仓库：archlinuxcn
 地址：https://mirrors.ustc.edu.cn/archlinuxcn/\$arch
-验证：仅在本机已有且无需更新的 archlinuxcn-keyring 可用时兼容启用；否则跳过，不影响 Flatpak
+备用：https://mirror.sjtu.edu.cn/archlinux-cn/\$arch → https://mirrors.ustc.edu.cn/archlinuxcn/\$arch → https://repo.archlinuxcn.org/\$arch
+验证：安装并加载 archlinuxcn-keyring，保持软件包 GPG 验证；三条线路均失败时撤销该仓库并继续 Flatpak
 
 远程名称：flathub-cn
 地址：https://mirror.sjtu.edu.cn/flathub
