@@ -20,7 +20,7 @@ decky|www.mhhf.com,github.com,raw.githubusercontent.com,plugins.deckbrew.xyz,cdn
 flathub|mirror.sjtu.edu.cn,mirrors.ustc.edu.cn,dl.flathub.org|Flatpak 国内缓存与官方源|flatpakrepo,repo|固定远程|Flatpak GPG；国内缓存例外需明确确认|2097152|上海交大→中科大→官方
 vendors|qq-web.cdn-go.cn,im.qq.com,qqdl.gtimg.cn,dldir1v6.qq.com,launcher-public-service-prod06.ol.epicgames.com,downloader.battle.net,static3.cdn.ubi.com|官方应用安装包|json,AppImage,exe,msi|官方当前版或固定版|官方HTTPS+固定路径+类型/大小；固定版另验SHA256|536870912|停止安装
 steam302|www.dogfight360.com|Steamcommunity 302 固定版本|tar.gz|固定版本|MD5+SHA256+结构检查|536870912|停止安装
-todesk|dl.todesk.com|ToDesk 官方 Linux 客户端|deb|固定官方版本|SHA256+DEB/包内结构|268435456|本地安全转换→停止安装
+todesk|github.com,dl.todesk.com|ToDesk 官方 Linux 客户端的未修改镜像与官网|deb|固定官方版本|SHA256+DEB/包内结构|268435456|GitHub镜像源→官网→停止安装
 EOF
 }
 

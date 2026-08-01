@@ -15,6 +15,7 @@ download_policy_url_allowed 'https://github.com/SteamDeckHomebrew/decky-loader/r
 download_policy_url_allowed 'https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest' || fail "GitHub 最新 Release API 被拒绝"
 download_policy_url_allowed 'https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service' || fail "Decky 官方服务模板被拒绝"
 download_policy_url_allowed 'https://dl.todesk.com/linux/todesk-v4.8.6.2-amd64.deb' || fail "ToDesk 官方 DEB 被拒绝"
+download_policy_url_allowed 'https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.25/todesk-v4.8.6.2-amd64.deb' || fail "ToDesk Release 镜像被拒绝"
 if download_policy_url_allowed 'https://gitee.com/mclanbai/archtodesk.git'; then fail "旧 ToDesk 第三方仓库仍在白名单"; fi
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/VERSION' || fail "工具箱 Gitee 地址被拒绝"
 if download_policy_url_allowed 'https://evil.example/payload.sh'; then fail "任意域名被白名单接受"; fi

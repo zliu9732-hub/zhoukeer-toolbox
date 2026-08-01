@@ -109,28 +109,26 @@ printf '2.0\n' > "$DEB_ROOT/debian-binary"
 FAKE_DEB_SHA="$(shasum -a 256 "$FAKE_DEB" | awk '{print $1}')"
 
 BUILT_PATH_FILE="$TMP_ROOT/built-path"
+RELEASE_LOG="$TMP_ROOT/release.log"
 MODULE="$MODULE" FAKE_DEB="$FAKE_DEB" FAKE_DEB_SHA="$FAKE_DEB_SHA" \
-    BUILD_APPS="$BUILD_APPS" BUILT_PATH_FILE="$BUILT_PATH_FILE" bash -c '
+    BUILD_APPS="$BUILD_APPS" BUILT_PATH_FILE="$BUILT_PATH_FILE" \
+    RELEASE_LOG="$RELEASE_LOG" bash -c '
     source "$MODULE"
-    TODESK_OFFICIAL_DEB_URL="https://example.invalid/todesk-v4.8.6.2-amd64.deb"
     TODESK_OFFICIAL_DEB_SHA256="$FAKE_DEB_SHA"
     TODESK_OFFICIAL_DEB_MIN_BYTES=1
     APP_DIR="$BUILD_APPS"
-    download_policy_url_allowed() { return 0; }
-    download_policy_max_bytes() { printf "%s\n" 268435456; }
-    curl() {
-        local output=""
-        while [ "$#" -gt 0 ]; do
-            case "$1" in
-                --output) output="$2"; shift 2 ;;
-                *) shift ;;
-            esac
-        done
-        cp -- "$FAKE_DEB" "$output"
+    download_github_file() {
+        printf "%s|%s|%s\n" "$1" "$3" "$4" >> "$RELEASE_LOG"
+        cp -- "$FAKE_DEB" "$2"
     }
+    curl() { echo "FAIL: GitHub Release 成功后仍请求官网" >&2; return 1; }
     download_todesk_package
     printf "%s\n" "$TODESK_DOWNLOADED_PACKAGE" > "$BUILT_PATH_FILE"
 '
+grep -Fxq "https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.25/todesk-v4.8.6.2-amd64.deb|$FAKE_DEB_SHA|ToDesk官方安装包" "$RELEASE_LOG" || {
+    echo "FAIL: ToDesk 未使用受控 GitHub Release 下载器或未传入固定 SHA256" >&2
+    exit 1
+}
 BUILT_PACKAGE="$(cat "$BUILT_PATH_FILE")"
 [ -s "$BUILT_PACKAGE" ] || {
     echo "FAIL: 未从官方 DEB 生成本地 pacman 软件包" >&2
@@ -162,43 +160,44 @@ if bsdtar -tf "$BUILT_PACKAGE" | grep -Eq '^(\.INSTALL|etc/systemd|usr/local/)';
     exit 1
 fi
 
-BROWSER_HOME="$TMP_ROOT/browser-home"
-BROWSER_APPS="$TMP_ROOT/browser-apps"
-BROWSER_LOG="$TMP_ROOT/browser.log"
-mkdir -p "$BROWSER_HOME" "$BROWSER_APPS"
+FALLBACK_APPS="$TMP_ROOT/fallback-apps"
+FALLBACK_LOG="$TMP_ROOT/fallback.log"
+mkdir -p "$FALLBACK_APPS"
 MODULE="$MODULE" FAKE_DEB="$FAKE_DEB" FAKE_DEB_SHA="$FAKE_DEB_SHA" \
-    BROWSER_HOME="$BROWSER_HOME" BROWSER_APPS="$BROWSER_APPS" \
-    BROWSER_LOG="$BROWSER_LOG" HOME="$BROWSER_HOME" bash -c '
+    FALLBACK_APPS="$FALLBACK_APPS" FALLBACK_LOG="$FALLBACK_LOG" bash -c '
     source "$MODULE"
-    TODESK_OFFICIAL_DEB_URL="https://example.invalid/todesk-v4.8.6.2-amd64.deb"
     TODESK_OFFICIAL_DEB_SHA256="$FAKE_DEB_SHA"
     TODESK_OFFICIAL_DEB_MIN_BYTES=1
-    TODESK_BROWSER_WAIT_SECONDS=2
-    APP_DIR="$BROWSER_APPS"
-    download_policy_url_allowed() { return 0; }
+    APP_DIR="$FALLBACK_APPS"
     download_policy_max_bytes() { printf "%s\n" 268435456; }
+    download_github_file() {
+        printf "%s\n" "$1" >> "$FALLBACK_LOG"
+        return 1
+    }
     curl() {
         local output=""
+        local url=""
         while [ "$#" -gt 0 ]; do
             case "$1" in
                 --output) output="$2"; shift 2 ;;
+                https://*) url="$1"; shift ;;
                 *) shift ;;
             esac
         done
-        printf "<!doctype html>\n" > "$output"
-    }
-    xdg-open() {
-        printf "%s\n" "$1" >> "$BROWSER_LOG"
-        mkdir -p "$HOME/Downloads"
-        cp -- "$FAKE_DEB" "$HOME/Downloads/$TODESK_OFFICIAL_DEB_NAME"
+        printf "%s\n" "$url" >> "$FALLBACK_LOG"
+        cp -- "$FAKE_DEB" "$output"
     }
     download_todesk_package
     test -s "$TODESK_DOWNLOADED_PACKAGE"
 '
-[ "$(wc -l < "$BROWSER_LOG")" -eq 1 ] || {
-    echo "FAIL: 官网验证页没有触发一次浏览器下载兜底" >&2
+grep -Fxq 'https://dl.todesk.com/linux/todesk-v4.8.6.2-amd64.deb' "$FALLBACK_LOG" || {
+    echo "FAIL: GitHub Release 下载失败后未在后台尝试官网" >&2
     exit 1
 }
+if grep -Eq 'xdg-open|find_verified_todesk_download|wait_for_todesk_browser_download|TODESK_BROWSER_WAIT_SECONDS' "$MODULE"; then
+    echo "FAIL: ToDesk 仍依赖浏览器或用户下载目录" >&2
+    exit 1
+fi
 
 PACKAGE_FILE="$TMP_ROOT/todesk-bin.pkg.tar.zst"
 : > "$PACKAGE_FILE"
@@ -360,4 +359,4 @@ grep -Fxq 'steamos-readonly enable' "$UNINSTALL_MISSING_LOG" || {
     exit 1
 }
 
-echo "PASS: ToDesk 官方DEB转换、服务残留修复、只读恢复和单次安装测试通过"
+echo "PASS: ToDesk Release镜像、无浏览器回退、DEB转换、服务残留修复和只读恢复测试通过"

@@ -11,7 +11,6 @@ source "$PROJECT_ROOT/core/auth.sh"
 
 TODESK_CONNECT_TIMEOUT=15
 TODESK_MAX_TIME=1200
-TODESK_BROWSER_WAIT_SECONDS=600
 TODESK_READONLY_CHANGED=0
 TODESK_TMP_DIR=""
 TODESK_DOWNLOADED_PACKAGE=""
@@ -20,6 +19,7 @@ TODESK_PACMAN_CACHE_DIR="${TODESK_PACMAN_CACHE_DIR:-/var/cache/pacman/pkg}"
 TODESK_VERSION="4.8.6.2"
 TODESK_PACKAGE_VERSION="4.8.6.2-1"
 TODESK_OFFICIAL_DEB_NAME="todesk-v4.8.6.2-amd64.deb"
+TODESK_RELEASE_DEB_URL="https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.25/todesk-v4.8.6.2-amd64.deb"
 TODESK_OFFICIAL_DEB_URL="https://dl.todesk.com/linux/todesk-v4.8.6.2-amd64.deb"
 TODESK_OFFICIAL_DEB_SHA256="b3f2af7fc120948903df3aa455955cb5823fb5c1f5ec7dca17ac8a4cba53c808"
 TODESK_OFFICIAL_DEB_MIN_BYTES=94371840
@@ -60,6 +60,7 @@ calculate_sha256() {
 validate_todesk_settings() {
     [ -n "$TODESK_VERSION" ] && [ -n "$TODESK_PACKAGE_VERSION" ] && \
         [ -n "$TODESK_OFFICIAL_DEB_NAME" ] && \
+        [ -n "$TODESK_RELEASE_DEB_URL" ] && \
         [ -n "$TODESK_OFFICIAL_DEB_URL" ] && \
         [ -n "$TODESK_OFFICIAL_DEB_SHA256" ] && \
         [ -n "$TODESK_LOCAL_PACKAGE_NAME" ] || {
@@ -80,6 +81,14 @@ validate_todesk_settings() {
         https://dl.todesk.com/linux/*.deb) ;;
         *) echo "ToDesk官方包地址不符合受控规则。"; return 1 ;;
     esac
+    case "$TODESK_RELEASE_DEB_URL" in
+        https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.25/todesk-v4.8.6.2-amd64.deb) ;;
+        *) echo "ToDesk镜像地址不符合受控规则。"; return 1 ;;
+    esac
+    download_policy_url_allowed "$TODESK_RELEASE_DEB_URL" || {
+        echo "ToDesk镜像地址不在受控来源清单中。"
+        return 1
+    }
     download_policy_url_allowed "$TODESK_OFFICIAL_DEB_URL" || {
         echo "ToDesk官方包地址不在受控来源清单中。"
         return 1
@@ -103,7 +112,7 @@ show_todesk_warning() {
     echo "4. 重新进入桌面模式后再安装并启动ToDesk"
     echo ""
     echo "该操作将："
-    echo "- 下载ToDesk官方DEB并校验固定SHA256"
+    echo "- 通过工具箱受控镜像下载未修改的ToDesk官方DEB并校验固定SHA256"
     echo "- 在本机转换为SteamOS软件包，不执行官方DEB自带的维护脚本"
     echo "- 优先读取桌面管理员密码.txt自动验证，记录不可用时由系统询问"
     echo "- 临时关闭SteamOS只读保护"
@@ -282,57 +291,19 @@ build_todesk_pacman_package() {
     TODESK_DOWNLOADED_PACKAGE="$package_file"
 }
 
-find_verified_todesk_download() {
-    local directory candidate actual_sha256 expected_sha256
-
-    expected_sha256="$(printf '%s' "$TODESK_OFFICIAL_DEB_SHA256" | tr '[:upper:]' '[:lower:]')"
-    for directory in "$HOME/Downloads" "$HOME/下载" "$HOME/Desktop"; do
-        [ -d "$directory" ] || continue
-        for candidate in "$directory/${TODESK_OFFICIAL_DEB_NAME%.deb}"*.deb; do
-            [ -f "$candidate" ] && [ ! -L "$candidate" ] || continue
-            actual_sha256="$(calculate_sha256 "$candidate" 2>/dev/null || true)"
-            [ "$actual_sha256" = "$expected_sha256" ] || continue
-            printf '%s\n' "$candidate"
-            return 0
-        done
-    done
-    return 1
-}
-
-wait_for_todesk_browser_download() {
-    local destination="$1" elapsed=0 candidate
-
-    command -v xdg-open >/dev/null 2>&1 || return 1
-    echo "官网需要安全验证，已打开浏览器；下载完成后将自动继续。"
-    xdg-open "$TODESK_OFFICIAL_DEB_URL" >/dev/null 2>&1 || return 1
-    while [ "$elapsed" -lt "$TODESK_BROWSER_WAIT_SECONDS" ]; do
-        candidate="$(find_verified_todesk_download 2>/dev/null || true)"
-        if [ -n "$candidate" ]; then
-            cp -- "$candidate" "$destination" || return 1
-            return 0
-        fi
-        sleep 2
-        elapsed=$((elapsed + 2))
-    done
-    return 1
-}
-
 download_todesk_package() {
-    local deb_file candidate actual_sha256 expected_sha256 file_size
+    local deb_file actual_sha256 expected_sha256 file_size
 
     mkdir -p "$APP_DIR" || return 1
     TODESK_TMP_DIR="$(mktemp -d "$APP_DIR/.todesk-download.XXXXXX")" || return 1
     deb_file="$TODESK_TMP_DIR/$TODESK_OFFICIAL_DEB_NAME"
     expected_sha256="$(printf '%s' "$TODESK_OFFICIAL_DEB_SHA256" | tr '[:upper:]' '[:lower:]')"
 
-    candidate="$(find_verified_todesk_download 2>/dev/null || true)"
-    if [ -n "$candidate" ]; then
-        cp -- "$candidate" "$deb_file" || return 1
-        echo "已找到校验通过的ToDesk官方安装包。"
-    fi
-
-    if [ ! -f "$deb_file" ]; then
-        echo "正在下载ToDesk官方版本..."
+    if ! GITHUB_MAX_TIME="$TODESK_MAX_TIME" GITHUB_RETRIES=3 \
+        download_github_file "$TODESK_RELEASE_DEB_URL" "$deb_file" \
+            "$expected_sha256" "ToDesk官方安装包"; then
+        rm -f -- "$deb_file"
+        echo "ToDesk镜像下载失败，正在尝试官网..."
         if ! curl --fail --location --progress-bar \
             --proto '=https' --proto-redir '=https' \
             --connect-timeout "$TODESK_CONNECT_TIMEOUT" --max-time "$TODESK_MAX_TIME" \
@@ -342,18 +313,16 @@ download_todesk_package() {
             --user-agent 'Mozilla/5.0' \
             --output "$deb_file" "$TODESK_OFFICIAL_DEB_URL" \
             2> >(grep -v '^curl: (' >&2); then
-            echo "ToDesk官方下载失败。"
+            rm -f -- "$deb_file"
+            echo "ToDesk下载失败，请稍后重试。"
             return 1
         fi
     fi
 
     if ! download_policy_response_is_safe "$TODESK_OFFICIAL_DEB_URL" "$deb_file"; then
         rm -f -- "$deb_file"
-        wait_for_todesk_browser_download "$deb_file" || {
-            echo "ToDesk官网下载未完成，请稍后重试。"
-            return 1
-        }
-        download_policy_response_is_safe "$TODESK_OFFICIAL_DEB_URL" "$deb_file" || return 1
+        echo "ToDesk安装包格式异常，已停止安装。"
+        return 1
     fi
     file_size="$(download_policy_file_size "$deb_file")" || return 1
     [ "$file_size" -ge "$TODESK_OFFICIAL_DEB_MIN_BYTES" ] || {

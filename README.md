@@ -146,7 +146,7 @@ ${HOME}/.local/share/zhoukeer-toolbox/logs/toolbox.log
 
 ## ToDesk说明
 
-用户提供的 `curl -L todesk.lanbai.top | sh` 和旧版 yay 教程会执行可变脚本或引入 AUR、base-devel 与第三方软件包。本工具不会执行这些流程，而是固定下载 ToDesk 官网 4.8.6.2 DEB 并校验 SHA256，在本机只提取数据文件、重新生成最小 SteamOS 软件包；不会执行官方 DEB 自带的维护脚本，也不依赖第三方 ToDesk 包。安装前会明确提示风险并要求管理员验证，完成后尝试恢复只读保护。
+用户提供的 `curl -L todesk.lanbai.top | sh` 和旧版 yay 教程会执行可变脚本或引入 AUR、base-devel 与第三方软件包。本工具不会执行这些流程，而是通过现有 GitHub Release 镜像测速链路下载未修改的 ToDesk 官方 4.8.6.2 DEB，全部镜像失败时再在后台尝试官网，全程不需要浏览器。安装包必须通过固定 SHA256、DEB 格式与包内结构校验，然后才在本机只提取数据文件、重新生成最小 SteamOS 软件包；不会执行官方 DEB 自带的维护脚本，也不依赖第三方 ToDesk 包。安装前会明确提示风险并要求管理员验证，完成后尝试恢复只读保护。
 
 ToDesk并非SteamOS原生软件，SteamOS系统更新可能移除通过pacman安装的内容。工具不会删除已有ToDesk用户配置，也不会使用 `chmod 777`。
 
