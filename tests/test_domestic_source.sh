@@ -144,6 +144,29 @@ cat > "$BIN_DIR/locale-gen" <<'EOF'
 printf 'locale-gen\n' >> "${DOMESTIC_SOURCE_TEST_STATE:?}/commands"
 EOF
 
+cat > "$BIN_DIR/pacman" <<'EOF'
+#!/bin/sh
+state="${DOMESTIC_SOURCE_TEST_STATE:?}"
+case "${1:-}" in
+    -Q)
+        shift
+        for package_name in "$@"; do
+            [ -f "$state/installed.$package_name" ] || exit 1
+        done
+        exit 0
+        ;;
+    -Qu)
+        for upgrade_file in "$state"/upgrade.*; do
+            [ -e "$upgrade_file" ] || continue
+            package_name="${upgrade_file##*.}"
+            printf '%s test-version\n' "$package_name"
+        done
+        exit 0
+        ;;
+esac
+printf 'pacman %s\n' "$*" >> "$state/commands"
+EOF
+
 chmod +x "$BIN_DIR"/* "$STEAMOS_BIN_DIR"/*
 : > "$STATE_DIR/remotes"
 : > "$STATE_DIR/commands"
@@ -198,10 +221,34 @@ grep -Fq -- '--appstream' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应包含 AppStream 强制刷新"
 grep -Fq 'verify_domestic_flatpak_remote' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应保留应用索引验证"
-for command_text in 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman -Syu --needed --noconfirm git flatpak' 'pacman -S --needed --noconfirm archlinux-keyring' 'pacman -Syu --needed --noconfirm archlinuxcn-keyring' 'pacman-key --populate archlinuxcn' 'locale-gen' 'steamos-readonly disable' 'steamos-readonly enable'; do
+for command_text in 'packages_installed_without_known_upgrades' 'base_system_components_ready' 'archlinuxcn_keyring_ready' 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman -Syu --needed --noconfirm git flatpak' 'pacman -S --needed --noconfirm archlinux-keyring' 'pacman -Syu --needed --noconfirm archlinuxcn-keyring' 'pacman-key --populate archlinuxcn' 'locale-gen' 'steamos-readonly disable' 'steamos-readonly enable'; do
     grep -Fq "$command_text" "$PROJECT_ROOT/modules/domestic_source.sh" || \
         fail "完整国内源初始化缺少：$command_text"
 done
+(
+    PATH="$BIN_DIR:$PATH"
+    HOME="$HOME_DIR"
+    DOMESTIC_SOURCE_TEST_STATE="$STATE_DIR"
+    export PATH HOME DOMESTIC_SOURCE_TEST_STATE
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/domestic_source.sh"
+
+    touch "$STATE_DIR/installed.git" "$STATE_DIR/installed.flatpak" \
+        "$STATE_DIR/installed.archlinux-keyring" "$STATE_DIR/installed.archlinuxcn-keyring"
+    base_system_components_ready || fail "已安装基础组件未被识别"
+    archlinuxcn_keyring_ready || fail "已安装 archlinuxcn 密钥环未被识别"
+
+    touch "$STATE_DIR/upgrade.git"
+    if base_system_components_ready; then
+        fail "git 存在待更新版本时仍被识别为无需更新"
+    fi
+    rm -f "$STATE_DIR/upgrade.git"
+
+    rm -f "$STATE_DIR/installed.flatpak"
+    if base_system_components_ready; then
+        fail "缺少 Flatpak 时仍被识别为基础组件完整"
+    fi
+)
 grep -Fq 'https://mirrors.ustc.edu.cn/archlinuxcn/\$arch' \
     "$PROJECT_ROOT/modules/domestic_source.sh" || fail "缺少中科大 archlinuxcn 仓库"
 grep -Fq '初始化国内源并更新系统组件' "$PROJECT_ROOT/modules/new_machine.sh" || \

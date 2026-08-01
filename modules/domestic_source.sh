@@ -135,6 +135,28 @@ configure_domestic_flatpak() {
     echo "国内下载源配置完成：${FLATHUB_CN_REMOTE}、${FLATHUB_CN_FALLBACK_REMOTE}。"
 }
 
+packages_installed_without_known_upgrades() {
+    local package_name pending_upgrades
+
+    pacman -Q "$@" >/dev/null 2>&1 || return 1
+    pending_upgrades="$(pacman -Qu 2>/dev/null)" || return 1
+    for package_name in "$@"; do
+        if printf '%s\n' "$pending_upgrades" | awk -v package="$package_name" \
+            '$1 == package { found=1 } END { exit(found ? 0 : 1) }'; then
+            return 1
+        fi
+    done
+    return 0
+}
+
+base_system_components_ready() {
+    packages_installed_without_known_upgrades git flatpak archlinux-keyring
+}
+
+archlinuxcn_keyring_ready() {
+    packages_installed_without_known_upgrades archlinuxcn-keyring
+}
+
 restore_official_flatpak() {
     local repo_file
 
@@ -243,19 +265,48 @@ prepare_system_packages() (
     cp -- /etc/pacman.conf "$pacman_backup" || return 1
     cp -- /etc/locale.gen "$locale_backup" || return 1
 
-    echo "[1/2] 初始化 pacman/archlinuxcn 密钥环并完整更新系统组件..."
+    echo "[1/2] 检测 pacman/archlinuxcn 密钥环与系统组件..."
     toolbox_sudo steamos-readonly disable || return 1
     readonly_disabled=1
 
-    if ! toolbox_sudo pacman-key --init || \
-        ! toolbox_sudo pacman-key --populate archlinux || \
-        ! toolbox_sudo pacman -Syu --needed --noconfirm git flatpak || \
-        ! toolbox_sudo pacman -S --needed --noconfirm archlinux-keyring || \
-        ! write_managed_archlinuxcn_repo /etc/pacman.conf || \
-        ! toolbox_sudo pacman -Syu --needed --noconfirm archlinuxcn-keyring || \
-        ! toolbox_sudo pacman-key --populate archlinuxcn || \
-        ! configure_chinese_locales /etc/locale.gen; then
-        echo "系统组件、archlinuxcn 或中文 locale 初始化失败，已尝试回滚配置并恢复 SteamOS 只读保护。"
+    if base_system_components_ready; then
+        echo "✓ 已检测到 git、Flatpak 和系统密钥环均已安装，无需更新系统组件。"
+    else
+        echo "检测到基础组件不完整，正在初始化系统密钥环并补齐组件..."
+        if ! toolbox_sudo pacman-key --init; then
+            echo "pacman 密钥环初始化失败，已停止。"
+            return 1
+        fi
+        if ! toolbox_sudo pacman-key --populate archlinux; then
+            echo "Arch Linux 系统密钥导入失败，已停止。"
+            return 1
+        fi
+        if ! toolbox_sudo pacman -Syu --needed --noconfirm git flatpak; then
+            echo "git 或 Flatpak 组件补齐失败，已停止。"
+            return 1
+        fi
+        if ! toolbox_sudo pacman -S --needed --noconfirm archlinux-keyring; then
+            echo "Arch Linux 系统密钥环安装失败，已停止。"
+            return 1
+        fi
+    fi
+
+    if ! write_managed_archlinuxcn_repo /etc/pacman.conf; then
+        echo "archlinuxcn 国内仓库配置失败，已停止。"
+        return 1
+    fi
+    if archlinuxcn_keyring_ready; then
+        echo "✓ 已检测到 archlinuxcn 密钥环，无需重复安装。"
+    elif ! toolbox_sudo pacman -Syu --needed --noconfirm archlinuxcn-keyring; then
+        echo "archlinuxcn 密钥环安装失败，已停止。"
+        return 1
+    fi
+    if ! toolbox_sudo pacman-key --populate archlinuxcn; then
+        echo "archlinuxcn 密钥导入失败，已停止。"
+        return 1
+    fi
+    if ! configure_chinese_locales /etc/locale.gen; then
+        echo "中英文 locale 配置失败，已停止。"
         return 1
     fi
 
