@@ -128,15 +128,26 @@ show_disclaimer() {
     local choice
 
     while true; do
-        # 免责声明独占整个窗口，避免侧栏和长句把确认按钮挤出可见区域。
-        draw_disclaimer_frame
-        ui_disclaimer_line 8 '\033[1;38;5;220m' "Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）制作"
-        ui_disclaimer_line 9 '\033[38;5;45m' "GitHub：Ren-Amamiya-pixie / zliu9732-hub"
-        ui_disclaimer_line 10 '\033[38;5;45m' "支持免费使用；禁止商业、销售、转卖或借此盈利"
-        ui_disclaimer_line 11 '\033[38;5;45m' "下载内容均来自官方免费发布或开源项目"
-        ui_disclaimer_line 12 '\033[38;5;45m' "不包含付费软件本体、破解或商业授权"
-        ui_disclaimer_line 13 '\033[1;38;5;220m' "第三方软件与插件均从作者或官方发布页获取；欢迎支持作者"
-        ui_disclaimer_button 16 '\033[1;38;5;114m' "点击窗口任意位置开始使用" "点击即表示已阅读上述说明；关闭窗口即可退出"
+        if [ "${ZHOUKEER_STARTUP_SPLASH:-0}" = "1" ]; then
+            # 启动页主题以 100% 不透明度完整展示本地免责声明图片。自动更新可能
+            # 已在当前 Konsole 中重建主题，因此进入页面前主动重新应用一次。
+            if command -v konsoleprofile >/dev/null 2>&1; then
+                konsoleprofile "ColorScheme=ZhoukeerToolboxSplash" >/dev/null 2>&1 || true
+            fi
+            ui_wait_for_minimum_canvas || true
+            ui_discard_pending_input
+            ui_reset_screen
+        else
+            # 缺少启动页主题时保留文字版回退，确保仍能阅读并确认。
+            draw_disclaimer_frame
+            ui_disclaimer_line 8 '\033[1;38;5;220m' "Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）制作"
+            ui_disclaimer_line 9 '\033[38;5;45m' "GitHub：Ren-Amamiya-pixie / zliu9732-hub"
+            ui_disclaimer_line 10 '\033[38;5;45m' "支持免费使用；禁止商业、销售、转卖或借此盈利"
+            ui_disclaimer_line 11 '\033[38;5;45m' "下载内容均来自官方免费发布或开源项目"
+            ui_disclaimer_line 12 '\033[38;5;45m' "不包含付费软件本体、破解或商业授权"
+            ui_disclaimer_line 13 '\033[1;38;5;220m' "第三方软件与插件均从作者或官方发布页获取；欢迎支持作者"
+            ui_disclaimer_button 16 '\033[1;38;5;114m' "点击窗口任意位置开始使用" "点击即表示已阅读上述说明；关闭窗口即可退出"
+        fi
         # 非全屏 Konsole 的可见行数和触屏坐标可能在首帧不同步，不能再把进入
         # 工具箱限定在固定的第 12–19 行；欢迎页不执行任何系统操作，因此任意
         # 主指针点击均视为确认，关闭窗口仍可直接退出。
