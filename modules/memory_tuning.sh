@@ -155,13 +155,14 @@ memory_activate_fallback_swapfile() {
 memory_swapfile_is_complete() {
     local path="$1"
     local target_gib="$2"
-    local expected_bytes actual_bytes
+    local expected_bytes actual_bytes swap_type
 
-    [ -f "$path" ] && [ ! -L "$path" ] || return 1
+    toolbox_sudo test -f "$path" && ! toolbox_sudo test -L "$path" || return 1
     expected_bytes=$((target_gib * 1024 * 1024 * 1024))
     actual_bytes="$(memory_file_size_bytes "$path")" || return 1
     [ "$actual_bytes" -eq "$expected_bytes" ] || return 1
-    [ "$(blkid -p -s TYPE -o value "$path" 2>/dev/null || true)" = "swap" ]
+    swap_type="$(toolbox_sudo blkid -p -s TYPE -o value "$path" 2>/dev/null || true)"
+    [ "$swap_type" = "swap" ]
 }
 
 memory_validate_paths() {

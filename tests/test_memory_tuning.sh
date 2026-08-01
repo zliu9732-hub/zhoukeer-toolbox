@@ -25,6 +25,21 @@ ZHOUKEER_TEST_MODE=1
 # shellcheck disable=SC1090
 source "$MODULE"
 
+# SteamOS 的 swap 通常是 root:root 0600。普通用户无法用 blkid 读取时，
+# 完整性检测必须通过已有管理员权限识别，避免重复创建和替换正常 swap。
+ROOT_SWAP="$TMP_ROOT/root-swapfile"
+: > "$ROOT_SWAP"
+memory_file_size_bytes() { printf '%s\n' $((16 * 1024 * 1024 * 1024)); }
+blkid() { return 1; }
+toolbox_sudo() {
+    case "${1:-}" in
+        blkid) printf 'swap\n' ;;
+        *) "$@" ;;
+    esac
+}
+memory_swapfile_is_complete "$ROOT_SWAP" 16 || \
+    fail "root:root 0600 swap 未通过管理员权限完成完整性检测"
+
 [ "$(recommended_swap_gib)" = "16" ] || fail "16GB Steam Deck 未推荐 16GB 磁盘 swap"
 printf 'MemTotal:       4194304 kB\n' > "$MEMINFO"
 [ "$(recommended_swap_gib)" = "8" ] || fail "小内存设备未使用 8GB 下限"
