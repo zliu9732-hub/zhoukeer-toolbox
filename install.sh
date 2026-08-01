@@ -122,6 +122,18 @@ assignment_is_retired_freedeck_url() {
     esac
 }
 
+assignment_is_retired_unifideck_default() {
+    local key="$1"
+    local assignment="$2"
+
+    case "$key:$assignment" in
+        DECKY_UNIFIDECK_URL:*releases/download/Release-0.7/unifideck.prod.v0.7.0.zip*) return 0 ;;
+        DECKY_UNIFIDECK_VERSION:*=\"0.7.0\"|DECKY_UNIFIDECK_VERSION:*=\'0.7.0\'|DECKY_UNIFIDECK_VERSION:*=0.7.0) return 0 ;;
+        DECKY_UNIFIDECK_SHA256:*4715b74d0033b8c1587040e90c1d19b925c7110c7723926605aa62128c4c03e0*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 prepare_config_migration() {
     local config_file="$1"
     local example_file="$2"
@@ -169,6 +181,12 @@ prepare_config_migration() {
         fi
 
         if assignment_is_retired_freedeck_url "$key" "$current_assignment"; then
+            CONFIG_MIGRATION_KEYS+=("$key")
+            CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
+            continue
+        fi
+
+        if assignment_is_retired_unifideck_default "$key" "$current_assignment"; then
             CONFIG_MIGRATION_KEYS+=("$key")
             CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
         fi

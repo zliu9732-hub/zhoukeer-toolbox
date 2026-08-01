@@ -49,6 +49,10 @@ DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.
 DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
 DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip"
 DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
+# Unifideck 固定使用作者最新正式 Release，避免用户旧配置继续下载更大的 0.7.0 包。
+DECKY_UNIFIDECK_URL="https://github.com/mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip"
+DECKY_UNIFIDECK_VERSION="0.7.2"
+DECKY_UNIFIDECK_SHA256="a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59366936de"
 # Freedeck 固定使用作者 GitHub Release 0.6 插件包，避免源码包或旧配置装成 0.2。
 DECKY_FREEDECK_URL="https://github.com/panyiwei-home/Freedeck/releases/download/0.6/freedeck.v.0.6.zip"
 DECKY_FREEDECK_SHA256="04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62"
@@ -1967,7 +1971,8 @@ install_configured_plugin() {
                 "SimpleDeckyTDP"
             ;;
         unifideck)
-            install_decky_zip \
+            ensure_steam302_for_download || true
+            GITHUB_RETRIES=1 GITHUB_MIN_SPEED_TIME=20 install_decky_zip \
                 "Unifideck" \
                 "${DECKY_UNIFIDECK_URL:-}" \
                 "${DECKY_UNIFIDECK_SHA256:-}" \

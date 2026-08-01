@@ -63,6 +63,20 @@ grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$PROJECT_R
 grep -Fq 'Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CheatDeck/releases/download/v1.2.1/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59366936de' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+unifideck_install="$(sed -n '/^[[:space:]]*unifideck)/,/^[[:space:]]*;;/p' \
+    "$PROJECT_ROOT/modules/plugin_store.sh" | head -n 12)"
+printf '%s\n' "$unifideck_install" | grep -Fq 'ensure_steam302_for_download' || {
+    echo "FAIL: Unifideck 大包下载前未先检查 Steam302 加速" >&2
+    exit 1
+}
+printf '%s\n' "$unifideck_install" | grep -Fq 'GITHUB_MIN_SPEED_TIME=20' || {
+    echo "FAIL: Unifideck 下载仍会长时间等待低速来源" >&2
+    exit 1
+}
 grep -Fq 'Freedeck/releases/download/0.6/freedeck.v.0.6.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62' \
     "$PROJECT_ROOT/modules/plugin_store.sh"

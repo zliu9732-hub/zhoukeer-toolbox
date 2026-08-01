@@ -16,6 +16,7 @@ MEMORY_SYSCTL_CONFIG="${ZHOUKEER_MEMORY_SYSCTL_CONFIG:-/etc/sysctl.d/90-zhoukeer
 MEMORY_SYSTEMD_DIR="${ZHOUKEER_SYSTEMD_DIR:-/etc/systemd/system}"
 MEMORY_MIN_FREE_GIB="${ZHOUKEER_MEMORY_MIN_FREE_GIB:-4}"
 MEMORY_SWAPFILE_WAS_IMMUTABLE=0
+MEMORY_UNIT_WAS_ENABLED=0
 
 memory_value_is_positive_integer() {
     case "$1" in
@@ -303,6 +304,42 @@ memory_remove_managed_config() {
     }
 }
 
+memory_disable_managed_unit() {
+    local unit_name="$1"
+    local unit_state
+
+    MEMORY_UNIT_WAS_ENABLED=0
+    unit_state="$(toolbox_sudo systemctl is-enabled "$unit_name" 2>/dev/null || true)"
+    case "$unit_state" in
+        enabled|enabled-runtime|linked|linked-runtime|alias)
+            MEMORY_UNIT_WAS_ENABLED=1
+            ;;
+        disabled|static|indirect|masked|not-found)
+            return 0
+            ;;
+    esac
+    if toolbox_sudo systemctl disable "$unit_name" >/dev/null 2>&1; then
+        return 0
+    fi
+    unit_state="$(toolbox_sudo systemctl is-enabled "$unit_name" 2>/dev/null || true)"
+    case "$unit_state" in
+        disabled|static|indirect|masked|not-found) return 0 ;;
+    esac
+    echo "无法停用工具箱 swap 开机配置，未继续删除：$unit_name"
+    log "虚拟内存撤销失败: systemd单元无法停用 unit=$unit_name state=${unit_state:-unknown}"
+    return 1
+}
+
+memory_restore_managed_unit_enablement() {
+    local unit_name="$1"
+
+    [ "$MEMORY_UNIT_WAS_ENABLED" -eq 1 ] || return 0
+    toolbox_sudo systemctl enable "$unit_name" >/dev/null 2>&1 || {
+        echo "警告：无法恢复 swap 开机启用状态：$unit_name"
+        return 1
+    }
+}
+
 memory_remove_managed_main_unit() {
     local unit_name="$1"
     local unit_path="$MEMORY_SYSTEMD_DIR/$unit_name"
@@ -314,9 +351,10 @@ memory_remove_managed_main_unit() {
         echo "发现非工具箱 swap 配置，已保留：$unit_path"
         return 0
     fi
-    toolbox_sudo systemctl disable "$unit_name" >/dev/null 2>&1 || return 1
+    memory_disable_managed_unit "$unit_name" || return 1
     if ! toolbox_sudo rm -f -- "$unit_path"; then
-        toolbox_sudo systemctl enable "$unit_name" >/dev/null 2>&1 || true
+        memory_restore_managed_unit_enablement "$unit_name" || true
+        echo "工具箱 swap 开机配置删除失败：$unit_path"
         return 1
     fi
 }
@@ -348,11 +386,11 @@ memory_remove_managed_fallback_swap() {
             return 1
         fi
     fi
-    toolbox_sudo systemctl disable "$unit_name" >/dev/null 2>&1 || return 1
+    memory_disable_managed_unit "$unit_name" || return 1
     if memory_swap_is_active "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
         fallback_was_active=1
         if ! toolbox_sudo swapoff "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
-            toolbox_sudo systemctl enable "$unit_name" >/dev/null 2>&1 || true
+            memory_restore_managed_unit_enablement "$unit_name" || true
             echo "工具箱独立 swap 正在使用，无法安全停用。"
             return 1
         fi
@@ -361,18 +399,23 @@ memory_remove_managed_fallback_swap() {
         memory_clear_immutable_attribute "$MEMORY_FALLBACK_SWAPFILE_PATH" || {
             [ "$fallback_was_active" -eq 0 ] || \
                 toolbox_sudo swapon --priority 10 "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
-            toolbox_sudo systemctl enable "$unit_name" >/dev/null 2>&1 || true
+            memory_restore_managed_unit_enablement "$unit_name" || true
+            echo "工具箱独立 swap 的文件保护无法解除，未删除。"
             return 1
         }
         if ! toolbox_sudo rm -f -- "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
             memory_restore_immutable_attribute "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
             [ "$fallback_was_active" -eq 0 ] || \
                 toolbox_sudo swapon --priority 10 "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
-            toolbox_sudo systemctl enable "$unit_name" >/dev/null 2>&1 || true
+            memory_restore_managed_unit_enablement "$unit_name" || true
+            echo "工具箱独立 swap 删除失败，已尝试恢复原状态。"
             return 1
         fi
     fi
-    toolbox_sudo rm -f -- "$unit_path" || return 1
+    toolbox_sudo rm -f -- "$unit_path" || {
+        echo "工具箱 swap 开机配置删除失败：$unit_path"
+        return 1
+    }
 }
 
 memory_create_swapfile() {
@@ -596,15 +639,25 @@ memory_restore_toolbox() {
         return 1
     }
 
-    main_unit_name="$(memory_swap_unit_name_for_path "$MEMORY_SWAPFILE_PATH")" || return 1
+    main_unit_name="$(memory_swap_unit_name_for_path "$MEMORY_SWAPFILE_PATH")" || {
+        echo "无法识别系统原 swap 的开机配置名称。"
+        return 1
+    }
     fallback_unit_name="$(memory_swap_unit_name_for_path \
-        "$MEMORY_FALLBACK_SWAPFILE_PATH")" || return 1
+        "$MEMORY_FALLBACK_SWAPFILE_PATH")" || {
+        echo "无法识别工具箱独立 swap 的开机配置名称。"
+        return 1
+    }
     memory_remove_managed_fallback_swap "$fallback_unit_name" || return 1
     [ "$main_unit_name" = "$fallback_unit_name" ] || \
         memory_remove_managed_main_unit "$main_unit_name" || return 1
     memory_remove_managed_config "$MEMORY_ZRAM_CONFIG" || return 1
     memory_remove_managed_config "$MEMORY_SYSCTL_CONFIG" || return 1
-    toolbox_sudo systemctl daemon-reload >/dev/null 2>&1 || return 1
+    toolbox_sudo systemctl daemon-reload >/dev/null 2>&1 || {
+        echo "虚拟内存配置已清理，但 systemd 刷新失败，请重启后再检查。"
+        log "虚拟内存撤销失败: systemd daemon-reload失败"
+        return 1
+    }
 
     echo "工具箱虚拟内存优化已撤销；系统原 swap 已保留，请重启。"
     log "工具箱虚拟内存优化已撤销，系统原 swap 已保留"

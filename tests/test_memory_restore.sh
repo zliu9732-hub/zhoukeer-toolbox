@@ -27,6 +27,9 @@ SYSTEMCTL_LOG="$TMP_ROOT/systemctl.log"
 SWAP_LOG="$TMP_ROOT/swap.log"
 FALLBACK_ACTIVE=1
 SWAPOFF_FAIL=0
+SYSTEMCTL_DISABLE_FAIL=0
+FALLBACK_UNIT_STATE=enabled
+MAIN_UNIT_STATE=enabled
 
 detect_platform() { IS_STEAMOS=1; }
 id() { [ "${1:-}" = "-u" ] && printf '1000\n'; }
@@ -45,7 +48,31 @@ toolbox_sudo() {
     case "${1:-}" in
         true) return 0 ;;
         blkid) printf 'swap\n' ;;
-        systemctl) printf '%s\n' "$*" >> "$SYSTEMCTL_LOG"; return 0 ;;
+        systemctl)
+            printf '%s\n' "$*" >> "$SYSTEMCTL_LOG"
+            case "${2:-}" in
+                is-enabled)
+                    case "${3:-}" in
+                        fallback.swap) printf '%s\n' "$FALLBACK_UNIT_STATE"; [ "$FALLBACK_UNIT_STATE" = enabled ] ;;
+                        main.swap) printf '%s\n' "$MAIN_UNIT_STATE"; [ "$MAIN_UNIT_STATE" = enabled ] ;;
+                        *) return 1 ;;
+                    esac
+                    ;;
+                disable)
+                    [ "$SYSTEMCTL_DISABLE_FAIL" -eq 0 ] || return 1
+                    case "${3:-}" in
+                        fallback.swap) FALLBACK_UNIT_STATE=disabled ;;
+                        main.swap) MAIN_UNIT_STATE=disabled ;;
+                    esac
+                    ;;
+                enable)
+                    case "${3:-}" in
+                        fallback.swap) FALLBACK_UNIT_STATE=enabled ;;
+                        main.swap) MAIN_UNIT_STATE=enabled ;;
+                    esac
+                    ;;
+            esac
+            ;;
         swapoff)
             printf '%s\n' "$*" >> "$SWAP_LOG"
             [ "$SWAPOFF_FAIL" -eq 0 ] || return 1
@@ -60,6 +87,8 @@ toolbox_sudo() {
 }
 
 prepare_managed_files() {
+    FALLBACK_UNIT_STATE=enabled
+    MAIN_UNIT_STATE=enabled
     mkdir -p "$ZHOUKEER_SYSTEMD_DIR" "$(dirname "$ZHOUKEER_ZRAM_CONFIG")"
     printf 'system original\n' > "$MEMORY_SWAPFILE_PATH"
     printf 'toolbox fallback\n' > "$MEMORY_FALLBACK_SWAPFILE_PATH"
@@ -122,5 +151,29 @@ fi
 [ -f "$MEMORY_FALLBACK_SWAPFILE_PATH" ] || fail "停用失败后删除了独立 swap"
 [ -f "$ZHOUKEER_SYSTEMD_DIR/fallback.swap" ] || fail "停用失败后删除了独立 swap 单元"
 grep -Fq 'enable fallback.swap' "$SYSTEMCTL_LOG" || fail "停用失败后未恢复单元启用状态"
+
+# 已经 disabled 的工具箱单元无需重复 disable，仍应完成安全撤销。
+SWAPOFF_FAIL=0
+SYSTEMCTL_DISABLE_FAIL=1
+prepare_managed_files
+FALLBACK_UNIT_STATE=disabled
+MAIN_UNIT_STATE=disabled
+FALLBACK_ACTIVE=1
+memory_restore_toolbox > "$TMP_ROOT/already-disabled.output" || \
+    fail "已停用的工具箱单元导致撤销失败"
+[ ! -e "$MEMORY_FALLBACK_SWAPFILE_PATH" ] || fail "已停用场景未删除工具箱独立 swap"
+[ -f "$MEMORY_SWAPFILE_PATH" ] || fail "已停用场景删除了系统原 swap"
+
+# 单元仍启用且 systemctl disable 真正失败时，必须显示原因并保留全部文件。
+prepare_managed_files
+FALLBACK_ACTIVE=1
+SYSTEMCTL_DISABLE_FAIL=1
+if memory_restore_toolbox > "$TMP_ROOT/disable-fail.output" 2>&1; then
+    fail "开机单元停用失败时仍报告撤销成功"
+fi
+[ -f "$MEMORY_FALLBACK_SWAPFILE_PATH" ] || fail "停用单元失败后删除了独立 swap"
+[ -f "$ZHOUKEER_SYSTEMD_DIR/fallback.swap" ] || fail "停用单元失败后删除了独立 swap 单元"
+grep -Fq '无法停用工具箱 swap 开机配置' "$TMP_ROOT/disable-fail.output" || \
+    fail "开机单元停用失败仍没有明确提示"
 
 echo "PASS: 工具箱虚拟内存撤销、原 swap 保留、幂等与失败回滚模拟通过"

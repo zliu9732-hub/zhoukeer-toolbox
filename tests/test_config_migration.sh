@@ -172,6 +172,44 @@ test_retired_freedeck_url_migrated() {
         "https://github.com/panyiwei-home/Freedeck/releases/download/0.6/freedeck.v.0.6.zip"
 }
 
+test_retired_unifideck_default_migrated() {
+    local case_root="$TMP_ROOT/retired-unifideck"
+    local install_dir="$case_root/install"
+    local config_file="$install_dir/config/settings.conf"
+
+    mkdir -p "$(dirname "$config_file")"
+    cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
+    sed -i.bak \
+        -e 's|Release-0.7.2/unifideck.prod.v0.7.2.zip|Release-0.7/unifideck.prod.v0.7.0.zip|' \
+        -e 's/DECKY_UNIFIDECK_VERSION="0.7.2"/DECKY_UNIFIDECK_VERSION="0.7.0"/' \
+        -e 's/a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59366936de/4715b74d0033b8c1587040e90c1d19b925c7110c7723926605aa62128c4c03e0/' \
+        "$config_file"
+
+    run_installer "$case_root/home" "$install_dir"
+
+    assert_value "$config_file" DECKY_UNIFIDECK_URL \
+        "https://github.com/mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip"
+    assert_value "$config_file" DECKY_UNIFIDECK_VERSION "0.7.2"
+    assert_value "$config_file" DECKY_UNIFIDECK_SHA256 \
+        "a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59366936de"
+}
+
+test_custom_unifideck_version_preserved() {
+    local case_root="$TMP_ROOT/custom-unifideck"
+    local install_dir="$case_root/install"
+    local config_file="$install_dir/config/settings.conf"
+
+    mkdir -p "$(dirname "$config_file")"
+    cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
+    sed -i.bak \
+        's/DECKY_UNIFIDECK_VERSION="0.7.2"/DECKY_UNIFIDECK_VERSION="10.7.0-custom"/' \
+        "$config_file"
+
+    run_installer "$case_root/home" "$install_dir"
+
+    assert_value "$config_file" DECKY_UNIFIDECK_VERSION "10.7.0-custom"
+}
+
 test_retired_rustdesk_config_removed_app_preserved() {
     local case_root="$TMP_ROOT/retired-rustdesk"
     local install_dir="$case_root/install"
@@ -311,6 +349,8 @@ test_custom_config_preserved
 test_chinese_plugin_hashes_migrated
 test_chinese_plugin_v504_hashes_migrated
 test_retired_freedeck_url_migrated
+test_retired_unifideck_default_migrated
+test_custom_unifideck_version_preserved
 test_retired_rustdesk_config_removed_app_preserved
 test_retired_decky_installer_config_removed
 test_missing_config_created
