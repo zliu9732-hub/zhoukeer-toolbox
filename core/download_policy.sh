@@ -52,6 +52,7 @@ download_policy_url_allowed() {
             ;;
         https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/*) return 0 ;;
         https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service) return 0 ;;
+        https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.8-pre1/dist/plugin_loader-prerelease.service) return 0 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/*|https://gitee.com/mclanbai/archtodesk.git|https://gitee.com/mclanbai/archtodesk/repository/archive/*) return 0 ;;
         https://jktool.icu/VERSION|https://jktool.icu/dist/SHA256SUMS|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) return 0 ;;
         https://www.mhhf.com/Deck/decky/*|https://plugins.deckbrew.xyz/plugins|https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/*) return 0 ;;

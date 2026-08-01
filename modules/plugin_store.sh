@@ -22,8 +22,16 @@ DECKY_SERVICE_SHA256="${DECKY_SERVICE_SHA256:-64d6aa626aa45e1659e3137aa3afd72edd
 # 国内镜像不可用时，只回退到 Decky 官方固定版本文件；两条线路共用同一组 SHA256。
 DECKY_LOADER_OFFICIAL_URL="https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.6/PluginLoader"
 DECKY_SERVICE_OFFICIAL_URL="https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service"
+DECKY_STABLE_VERSION="v3.2.6"
+# 测试版只使用 Decky 官方固定 prerelease，不经过国内镜像。
+DECKY_PRERELEASE_VERSION="v3.2.8-pre1"
+DECKY_PRERELEASE_LOADER_URL="https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8-pre1/PluginLoader"
+DECKY_PRERELEASE_LOADER_SHA256="9df160a81df3fc49c96e5665a1d1b3ba5c79de5bf271adc266d6bfedfda399d8"
+DECKY_PRERELEASE_SERVICE_URL="https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.8-pre1/dist/plugin_loader-prerelease.service"
+DECKY_PRERELEASE_SERVICE_SHA256="f6fd73f68dca18a64e4cffa2962ae697b247aaf5f3fd9cd8526597f0291fb63e"
 DECKY_HOMEBREW_DIR="${ZHOUKEER_DECKY_HOMEBREW_DIR:-$HOME/homebrew}"
 DECKY_UNIT_PATH="${ZHOUKEER_DECKY_UNIT_PATH:-/etc/systemd/system/plugin_loader.service}"
+DECKY_USER_UNIT_PATH="$HOME/.config/systemd/user/plugin_loader.service"
 DECKY_SERVICE_NAME="plugin_loader.service"
 DECKY_TMP_DIR=""
 PLUGIN_INSTALL_CHANGED=0
@@ -91,10 +99,16 @@ calculate_decky_sha256() {
 }
 
 confirm_decky_install() {
+    local channel="${1:-stable}"
     local answer
 
     echo "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，并重新进入桌面模式。"
-    echo "将安装或更新 Decky Loader，已有插件和设置会保留。"
+    if [ "$channel" = "prerelease" ]; then
+        echo "仅当 SteamOS 使用测试或预览通道、稳定版 Decky 不兼容时，才安装测试版插件商城。"
+        echo "将从 Decky 官方 Release 安装测试版 ${DECKY_PRERELEASE_VERSION}，已有插件和设置会保留。"
+    else
+        echo "将安装或更新 Decky Loader 稳定版，已有插件和设置会保留。"
+    fi
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi
@@ -103,6 +117,61 @@ confirm_decky_install() {
         y|Y|yes|YES) return 0 ;;
         *) return 1 ;;
     esac
+}
+
+prepare_decky_loader_channel_settings() {
+    local input="$1"
+    local output="$2"
+    local branch="$3"
+
+    case "$branch" in 0|1) ;; *) return 1 ;; esac
+    [ -f "$input" ] && [ ! -L "$input" ] || return 1
+    jq --argjson branch "$branch" \
+        'if type == "object" then .branch = $branch else error("invalid loader settings") end' \
+        "$input" > "$output" || {
+        echo "Decky 分支配置无法安全读取，未修改：$input"
+        return 1
+    }
+    jq -e --argjson branch "$branch" \
+        'type == "object" and .branch == $branch' "$output" >/dev/null || return 1
+    chmod 0600 "$output" || return 1
+}
+
+stop_legacy_decky_user_service() {
+    DECKY_USER_OLD_ACTIVE=0
+    DECKY_USER_OLD_ENABLED=0
+    DECKY_USER_SERVICE_STOPPED=0
+
+    if [ -e "$DECKY_USER_UNIT_PATH" ] && \
+       [ ! -f "$DECKY_USER_UNIT_PATH" ] && [ ! -L "$DECKY_USER_UNIT_PATH" ]; then
+        echo "旧版 Decky 用户服务路径类型异常，未继续：$DECKY_USER_UNIT_PATH"
+        return 1
+    fi
+    systemctl --user is-active --quiet "$DECKY_SERVICE_NAME" >/dev/null 2>&1 && \
+        DECKY_USER_OLD_ACTIVE=1
+    systemctl --user is-enabled --quiet "$DECKY_SERVICE_NAME" >/dev/null 2>&1 && \
+        DECKY_USER_OLD_ENABLED=1
+    if [ "$DECKY_USER_OLD_ACTIVE" -eq 0 ] && \
+       [ "$DECKY_USER_OLD_ENABLED" -eq 0 ]; then
+        return 0
+    fi
+
+    echo "检测到旧版 Decky 用户服务，正在停用后切换到当前版本。"
+    systemctl --user disable --now "$DECKY_SERVICE_NAME" >/dev/null 2>&1 || {
+        if systemctl --user is-active --quiet "$DECKY_SERVICE_NAME" >/dev/null 2>&1 || \
+           systemctl --user is-enabled --quiet "$DECKY_SERVICE_NAME" >/dev/null 2>&1; then
+            echo "旧版 Decky 用户服务无法停用，未替换现有文件。"
+            return 1
+        fi
+    }
+    DECKY_USER_SERVICE_STOPPED=1
+}
+
+remove_legacy_decky_user_unit() {
+    if [ -e "$DECKY_USER_UNIT_PATH" ] || [ -L "$DECKY_USER_UNIT_PATH" ]; then
+        toolbox_sudo rm -f -- "$DECKY_USER_UNIT_PATH" || return 1
+    fi
+    systemctl --user daemon-reload >/dev/null 2>&1 || return 1
 }
 
 write_flingtrainer_desktop_note() {
@@ -300,6 +369,30 @@ run_decky_homebrew_operation() {
 }
 
 rollback_decky_install() {
+    if [ "${DECKY_SETTINGS_SWAP_STARTED:-0}" -eq 1 ]; then
+        if [ "${DECKY_SETTINGS_HAD_OLD:-0}" -eq 1 ] && \
+           run_decky_homebrew_operation test -f "$DECKY_SETTINGS_BACKUP"; then
+            run_decky_homebrew_operation rm -f -- "$DECKY_SETTINGS_TARGET" || true
+            run_decky_homebrew_operation mv -- \
+                "$DECKY_SETTINGS_BACKUP" "$DECKY_SETTINGS_TARGET" || true
+        else
+            run_decky_homebrew_operation rm -f -- "$DECKY_SETTINGS_TARGET" || true
+        fi
+        run_decky_homebrew_operation rm -f -- "$DECKY_SETTINGS_NEW" || true
+    fi
+
+    if [ "${DECKY_VERSION_SWAP_STARTED:-0}" -eq 1 ]; then
+        if [ "${DECKY_VERSION_HAD_OLD:-0}" -eq 1 ] && \
+           run_decky_homebrew_operation test -f "$DECKY_VERSION_BACKUP"; then
+            run_decky_homebrew_operation rm -f -- "$DECKY_VERSION_TARGET" || true
+            run_decky_homebrew_operation mv -- \
+                "$DECKY_VERSION_BACKUP" "$DECKY_VERSION_TARGET" || true
+        else
+            run_decky_homebrew_operation rm -f -- "$DECKY_VERSION_TARGET" || true
+        fi
+        run_decky_homebrew_operation rm -f -- "$DECKY_VERSION_NEW" || true
+    fi
+
     if [ "${DECKY_UNIT_SWAP_STARTED:-0}" -eq 1 ]; then
         if [ "${DECKY_UNIT_HAD_OLD:-0}" -eq 1 ]; then
             if toolbox_sudo test -f "$DECKY_UNIT_BACKUP"; then
@@ -347,6 +440,15 @@ rollback_decky_install() {
        [ "${DECKY_OLD_ACTIVE:-0}" -eq 1 ]; then
         toolbox_sudo systemctl start "$DECKY_SERVICE_NAME" >/dev/null 2>&1 || true
     fi
+
+    if [ "${DECKY_USER_SERVICE_STOPPED:-0}" -eq 1 ]; then
+        if [ "${DECKY_USER_OLD_ENABLED:-0}" -eq 1 ]; then
+            systemctl --user enable "$DECKY_SERVICE_NAME" >/dev/null 2>&1 || true
+        fi
+        if [ "${DECKY_USER_OLD_ACTIVE:-0}" -eq 1 ]; then
+            systemctl --user start "$DECKY_SERVICE_NAME" >/dev/null 2>&1 || true
+        fi
+    fi
 }
 
 finish_plugin_store_install() {
@@ -361,6 +463,42 @@ finish_plugin_store_install() {
 }
 
 install_plugin_store() (
+    local channel="${1:-stable}"
+    local selected_version
+    local loader_url
+    local loader_official_url
+    local loader_sha256
+    local service_url
+    local service_official_url
+    local service_sha256
+    local channel_branch
+
+    case "$channel" in
+        stable)
+            selected_version="$DECKY_STABLE_VERSION"
+            loader_url="$DECKY_LOADER_URL"
+            loader_official_url="$DECKY_LOADER_OFFICIAL_URL"
+            loader_sha256="$DECKY_LOADER_SHA256"
+            service_url="$DECKY_SERVICE_URL"
+            service_official_url="$DECKY_SERVICE_OFFICIAL_URL"
+            service_sha256="$DECKY_SERVICE_SHA256"
+            channel_branch=0
+            ;;
+        prerelease)
+            selected_version="$DECKY_PRERELEASE_VERSION"
+            loader_url="$DECKY_PRERELEASE_LOADER_URL"
+            loader_official_url="$DECKY_PRERELEASE_LOADER_URL"
+            loader_sha256="$DECKY_PRERELEASE_LOADER_SHA256"
+            service_url="$DECKY_PRERELEASE_SERVICE_URL"
+            service_official_url="$DECKY_PRERELEASE_SERVICE_URL"
+            service_sha256="$DECKY_PRERELEASE_SERVICE_SHA256"
+            channel_branch=1
+            ;;
+        *)
+            echo "未知 Decky Loader 版本通道：$channel"
+            return 1
+            ;;
+    esac
     if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
         ! bash "$PROJECT_ROOT/modules/preflight.sh" decky; then
         echo "插件商城安装已停止：准备检查未通过。"
@@ -371,6 +509,8 @@ install_plugin_store() (
     local service_template
     local rendered_service
     local services_dir
+    local settings_rendered
+    local version_rendered
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
@@ -381,10 +521,10 @@ install_plugin_store() (
         echo "请使用Steam Deck桌面用户运行工具箱，不要直接以root运行。"
         return 1
     fi
-    for command_name in curl sudo install systemctl; do
+    for command_name in curl sudo install systemctl jq; do
         require_command "$command_name" || return 1
     done
-    confirm_decky_install || {
+    confirm_decky_install "$channel" || {
         echo "已取消插件商城更新。"
         return 0
     }
@@ -394,6 +534,8 @@ install_plugin_store() (
     loader_download="$tmp_dir/PluginLoader.download"
     service_template="$tmp_dir/plugin_loader-release.service.download"
     rendered_service="$tmp_dir/plugin_loader.service"
+    settings_rendered="$tmp_dir/loader.json"
+    version_rendered="$tmp_dir/.loader.version"
     services_dir="$DECKY_HOMEBREW_DIR/services"
 
     DECKY_INSTALL_COMMITTED=0
@@ -410,21 +552,35 @@ install_plugin_store() (
     DECKY_OLD_ENABLED=0
     DECKY_OLD_ACTIVE=0
     DECKY_SERVICE_STOPPED=0
+    DECKY_USER_OLD_ENABLED=0
+    DECKY_USER_OLD_ACTIVE=0
+    DECKY_USER_SERVICE_STOPPED=0
+    DECKY_VERSION_TARGET="$services_dir/.loader.version"
+    DECKY_VERSION_NEW="$services_dir/.loader.version.new.$$"
+    DECKY_VERSION_BACKUP="$services_dir/.loader.version.backup.$$"
+    DECKY_VERSION_HAD_OLD=0
+    DECKY_VERSION_SWAP_STARTED=0
+    DECKY_SETTINGS_TARGET="$DECKY_HOMEBREW_DIR/settings/loader.json"
+    DECKY_SETTINGS_NEW="$DECKY_HOMEBREW_DIR/settings/.loader.json.new.$$"
+    DECKY_SETTINGS_BACKUP="$DECKY_HOMEBREW_DIR/settings/.loader.json.backup.$$"
+    DECKY_SETTINGS_HAD_OLD=0
+    DECKY_SETTINGS_SHOULD_SWAP=0
+    DECKY_SETTINGS_SWAP_STARTED=0
 
     trap 'exit 130' INT TERM
     trap 'finish_plugin_store_install $?' EXIT
 
     download_decky_component_with_fallback \
         "Decky PluginLoader" \
-        "$DECKY_LOADER_URL" \
-        "$DECKY_LOADER_OFFICIAL_URL" \
-        "$DECKY_LOADER_SHA256" \
+        "$loader_url" \
+        "$loader_official_url" \
+        "$loader_sha256" \
         "$loader_download" || return 1
     download_decky_component_with_fallback \
         "Decky systemd服务模板" \
-        "$DECKY_SERVICE_URL" \
-        "$DECKY_SERVICE_OFFICIAL_URL" \
-        "$DECKY_SERVICE_SHA256" \
+        "$service_url" \
+        "$service_official_url" \
+        "$service_sha256" \
         "$service_template" || return 1
     render_decky_service "$service_template" "$rendered_service" "$DECKY_HOMEBREW_DIR" || return 1
     prepare_decky_homebrew_dirs "$DECKY_HOMEBREW_DIR" || return 1
@@ -432,11 +588,17 @@ install_plugin_store() (
     if [ -L "$DECKY_LOADER_TARGET" ] || \
         { [ -e "$DECKY_LOADER_TARGET" ] && [ ! -f "$DECKY_LOADER_TARGET" ]; } || \
         [ -L "$DECKY_UNIT_PATH" ] || \
-        { [ -e "$DECKY_UNIT_PATH" ] && [ ! -f "$DECKY_UNIT_PATH" ]; }; then
+        { [ -e "$DECKY_UNIT_PATH" ] && [ ! -f "$DECKY_UNIT_PATH" ]; } || \
+        [ -L "$DECKY_VERSION_TARGET" ] || \
+        { [ -e "$DECKY_VERSION_TARGET" ] && [ ! -f "$DECKY_VERSION_TARGET" ]; } || \
+        [ -L "$DECKY_SETTINGS_TARGET" ] || \
+        { [ -e "$DECKY_SETTINGS_TARGET" ] && [ ! -f "$DECKY_SETTINGS_TARGET" ]; }; then
         echo "Decky现有程序或服务文件类型异常，已停止安装。"
         return 1
     fi
     if [ -e "$DECKY_LOADER_NEW" ] || [ -e "$DECKY_LOADER_BACKUP" ] || \
+        [ -e "$DECKY_VERSION_NEW" ] || [ -e "$DECKY_VERSION_BACKUP" ] || \
+        [ -e "$DECKY_SETTINGS_NEW" ] || [ -e "$DECKY_SETTINGS_BACKUP" ] || \
         toolbox_sudo test -e "$DECKY_UNIT_NEW" || toolbox_sudo test -e "$DECKY_UNIT_BACKUP"; then
         echo "检测到未清理的Decky安装暂存文件，已停止以避免覆盖。"
         return 1
@@ -452,6 +614,13 @@ install_plugin_store() (
         toolbox_sudo systemctl is-active --quiet "$DECKY_SERVICE_NAME" >/dev/null 2>&1 && \
             DECKY_OLD_ACTIVE=1
     fi
+    [ ! -f "$DECKY_VERSION_TARGET" ] || DECKY_VERSION_HAD_OLD=1
+    if [ -f "$DECKY_SETTINGS_TARGET" ]; then
+        DECKY_SETTINGS_HAD_OLD=1
+        prepare_decky_loader_channel_settings \
+            "$DECKY_SETTINGS_TARGET" "$settings_rendered" "$channel_branch" || return 1
+        DECKY_SETTINGS_SHOULD_SWAP=1
+    fi
 
     if [ "$DECKY_LOADER_HAD_OLD" -eq 1 ] || [ "$DECKY_UNIT_HAD_OLD" -eq 1 ]; then
         echo "检测到已有 Decky Loader，正在更新并保留全部插件与设置。"
@@ -466,9 +635,17 @@ install_plugin_store() (
         }
         DECKY_SERVICE_STOPPED=1
     fi
+    stop_legacy_decky_user_service || return 1
 
     run_decky_homebrew_operation install -m 0755 -- "$loader_download" "$DECKY_LOADER_NEW" || return 1
     toolbox_sudo install -m 0644 -- "$rendered_service" "$DECKY_UNIT_NEW" || return 1
+    printf '%s\n' "$selected_version" > "$version_rendered" || return 1
+    run_decky_homebrew_operation install -m 0644 -- \
+        "$version_rendered" "$DECKY_VERSION_NEW" || return 1
+    if [ "$DECKY_SETTINGS_SHOULD_SWAP" -eq 1 ]; then
+        run_decky_homebrew_operation install -m 0600 -- \
+            "$settings_rendered" "$DECKY_SETTINGS_NEW" || return 1
+    fi
 
     DECKY_LOADER_SWAP_STARTED=1
     if [ "$DECKY_LOADER_HAD_OLD" -eq 1 ]; then
@@ -482,6 +659,22 @@ install_plugin_store() (
     fi
     toolbox_sudo mv -- "$DECKY_UNIT_NEW" "$DECKY_UNIT_PATH" || return 1
 
+    DECKY_VERSION_SWAP_STARTED=1
+    if [ "$DECKY_VERSION_HAD_OLD" -eq 1 ]; then
+        run_decky_homebrew_operation mv -- \
+            "$DECKY_VERSION_TARGET" "$DECKY_VERSION_BACKUP" || return 1
+    fi
+    run_decky_homebrew_operation mv -- \
+        "$DECKY_VERSION_NEW" "$DECKY_VERSION_TARGET" || return 1
+
+    if [ "$DECKY_SETTINGS_SHOULD_SWAP" -eq 1 ]; then
+        DECKY_SETTINGS_SWAP_STARTED=1
+        run_decky_homebrew_operation mv -- \
+            "$DECKY_SETTINGS_TARGET" "$DECKY_SETTINGS_BACKUP" || return 1
+        run_decky_homebrew_operation mv -- \
+            "$DECKY_SETTINGS_NEW" "$DECKY_SETTINGS_TARGET" || return 1
+    fi
+
     echo "正在启动更新后的 Decky Loader 服务..."
     toolbox_sudo systemctl daemon-reload || return 1
     toolbox_sudo systemctl restart "$DECKY_SERVICE_NAME" || return 1
@@ -489,10 +682,14 @@ install_plugin_store() (
 
     DECKY_INSTALL_COMMITTED=1
     run_decky_homebrew_operation rm -f -- "$DECKY_LOADER_BACKUP" || true
+    run_decky_homebrew_operation rm -f -- "$DECKY_VERSION_BACKUP" || true
+    run_decky_homebrew_operation rm -f -- "$DECKY_SETTINGS_BACKUP" || true
     toolbox_sudo rm -f -- "$DECKY_UNIT_BACKUP" || true
+    remove_legacy_decky_user_unit || \
+        echo "Decky 已更新，但旧用户服务文件未能清理；请重启后再检查。"
 
-    echo "Decky Loader更新完成，已有插件未被改动。请返回游戏模式检查插件菜单。"
-    log "Decky Loader更新完成"
+    echo "Decky Loader $selected_version 更新完成，已有插件未被改动。请返回游戏模式检查插件菜单。"
+    log "Decky Loader更新完成 channel=$channel version=$selected_version"
 )
 
 decky_plugin_store_is_installed() {
@@ -520,6 +717,9 @@ ensure_plugin_store_ready() {
 
 uninstall_plugin_store() {
     local loader_path="$DECKY_HOMEBREW_DIR/services/PluginLoader"
+    local version_path="$DECKY_HOMEBREW_DIR/services/.loader.version"
+    local saved_systemd_dir="$DECKY_HOMEBREW_DIR/services/.systemd"
+    local managed_path
     local answer
 
     detect_platform
@@ -529,29 +729,63 @@ uninstall_plugin_store() {
     fi
     if ! decky_plugin_store_is_installed && \
        [ ! -e "$loader_path" ] && [ ! -L "$loader_path" ] && \
-       [ ! -e "$DECKY_UNIT_PATH" ] && [ ! -L "$DECKY_UNIT_PATH" ]; then
+       [ ! -e "$version_path" ] && [ ! -L "$version_path" ] && \
+       [ ! -e "$DECKY_UNIT_PATH" ] && [ ! -L "$DECKY_UNIT_PATH" ] && \
+       [ ! -e "$DECKY_USER_UNIT_PATH" ] && [ ! -L "$DECKY_USER_UNIT_PATH" ] && \
+       [ ! -e "$saved_systemd_dir/plugin_loader.service" ] && \
+       [ ! -e "$saved_systemd_dir/plugin_loader-release.service" ] && \
+       [ ! -e "$saved_systemd_dir/plugin_loader-prerelease.service" ]; then
         echo "Decky Loader 插件商城未安装。"
         return 0
     fi
-    if [ -L "$loader_path" ] || \
-       { [ -e "$loader_path" ] && [ ! -f "$loader_path" ]; } || \
-       [ -L "$DECKY_UNIT_PATH" ] || \
-       { [ -e "$DECKY_UNIT_PATH" ] && [ ! -f "$DECKY_UNIT_PATH" ]; }; then
-        echo "Decky Loader 路径类型异常，拒绝自动删除。"
-        return 1
-    fi
-    echo "将卸载 Decky Loader 插件商城，但保留全部插件目录和插件设置。"
+    for managed_path in \
+        "$loader_path" \
+        "$version_path" \
+        "$DECKY_UNIT_PATH" \
+        "$DECKY_USER_UNIT_PATH" \
+        "$saved_systemd_dir/plugin_loader.service" \
+        "$saved_systemd_dir/plugin_loader-release.service" \
+        "$saved_systemd_dir/plugin_loader-prerelease.service"; do
+        if [ -e "$managed_path" ] && [ ! -f "$managed_path" ] && [ ! -L "$managed_path" ]; then
+            echo "Decky Loader 路径类型异常，拒绝自动删除：$managed_path"
+            return 1
+        fi
+    done
+    echo "将卸载 Decky Loader 稳定版或测试版本体，但保留全部插件目录和插件设置。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
         read -r -p "确认卸载请输入 UNINSTALL：" answer
         [ "$answer" = "UNINSTALL" ] || { echo "已取消卸载。"; return 0; }
     fi
     require_command sudo || return 1
     require_command systemctl || return 1
-    toolbox_sudo systemctl disable --now "$DECKY_SERVICE_NAME" >/dev/null 2>&1 || true
-    toolbox_sudo rm -f -- "$loader_path" "$DECKY_UNIT_PATH" || return 1
+    if toolbox_sudo systemctl is-active --quiet "$DECKY_SERVICE_NAME" >/dev/null 2>&1; then
+        toolbox_sudo systemctl disable --now "$DECKY_SERVICE_NAME" >/dev/null 2>&1 || {
+            echo "Decky Loader 系统服务无法停用，未继续删除。"
+            return 1
+        }
+    else
+        toolbox_sudo systemctl disable "$DECKY_SERVICE_NAME" >/dev/null 2>&1 || true
+    fi
+    if systemctl --user is-active --quiet "$DECKY_SERVICE_NAME" >/dev/null 2>&1; then
+        systemctl --user disable --now "$DECKY_SERVICE_NAME" >/dev/null 2>&1 || {
+            echo "Decky Loader 旧用户服务无法停用，未继续删除。"
+            return 1
+        }
+    else
+        systemctl --user disable "$DECKY_SERVICE_NAME" >/dev/null 2>&1 || true
+    fi
+    toolbox_sudo rm -f -- \
+        "$loader_path" \
+        "$version_path" \
+        "$DECKY_UNIT_PATH" \
+        "$DECKY_USER_UNIT_PATH" \
+        "$saved_systemd_dir/plugin_loader.service" \
+        "$saved_systemd_dir/plugin_loader-release.service" \
+        "$saved_systemd_dir/plugin_loader-prerelease.service" || return 1
     toolbox_sudo systemctl daemon-reload >/dev/null 2>&1 || return 1
-    echo "Decky Loader 已卸载；$DECKY_HOMEBREW_DIR/plugins 中的插件文件已保留。"
-    log "Decky Loader 已卸载并保留插件目录"
+    systemctl --user daemon-reload >/dev/null 2>&1 || return 1
+    echo "Decky Loader 稳定版和测试版残留已卸载；$DECKY_HOMEBREW_DIR/plugins 中的插件文件与设置已保留。"
+    log "Decky Loader 稳定版和测试版残留已卸载并保留插件与设置"
 }
 
 download_verified_package() {
@@ -1976,7 +2210,7 @@ install_configured_plugin() {
                 "Unifideck" \
                 "${DECKY_UNIFIDECK_URL:-}" \
                 "${DECKY_UNIFIDECK_SHA256:-}" \
-                "unifideck"
+                "Unifideck"
             ;;
         *) return 1 ;;
     esac || return 1
@@ -2192,7 +2426,8 @@ install_25_plugins() {
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-store}" in
-        store) show_plugin_download_speed_tip; install_plugin_store ;;
+        store) show_plugin_download_speed_tip; install_plugin_store stable ;;
+        store-test) show_plugin_download_speed_tip; install_plugin_store prerelease ;;
         store-uninstall) uninstall_plugin_store ;;
         lsfg) show_plugin_download_speed_tip; install_configured_plugin lsfg ;;
         lsfg-zh) install_lsfg_chinese && refresh_feature_usage_guides ;;

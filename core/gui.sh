@@ -173,6 +173,7 @@ remote_menu() {
 
 game_environment_gui_menu() {
     local choice
+    local decky_choice
 
     while true; do
         choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
@@ -186,7 +187,7 @@ game_environment_gui_menu() {
             tomoon "ToMoon｜作者 GitHub Release 网络工具插件" \
             battlenet "战网启动器｜首次需在 Steam 兼容性选择 Proton 10.0-4" \
             ubisoft "育碧｜安装育碧游戏平台并添加到 Steam" \
-            decky-install "安装插件商城｜国内失败自动切换官方源｜高级操作" \
+            decky-install "安装插件商城｜稳定版国内失败自动切换官方源｜可选测试版｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
         case "$choice" in
@@ -240,9 +241,22 @@ game_environment_gui_menu() {
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft
                 ;;
             decky-install)
-                gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。优先使用国内线路，失败自动切换 Decky 官方国外线路；随后会停止旧服务，再校验并更新插件商城，已有插件和设置会保留。是否继续？" && \
-                    run_gui_action "安装插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/plugin_store.sh" store
+                decky_choice="$(gui_dialog --menu "安装插件商城｜请选择与 SteamOS 系统通道匹配的版本" \
+                    stable "安装稳定版｜适合 SteamOS 正式系统" \
+                    test "安装测试版｜仅适合 SteamOS 测试或预览系统｜官方 Release" \
+                    back "返回插件列表")" || continue
+                case "$decky_choice" in
+                    stable)
+                        gui_confirm "适合 SteamOS 正式系统。优先使用国内线路，失败自动切换 Decky 官方 Release；会停用旧版用户服务并切换到稳定通道，已有插件和设置保留。是否继续？" && \
+                            run_gui_action "安装稳定版插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
+                            bash "$PROJECT_ROOT/modules/plugin_store.sh" store
+                        ;;
+                    test)
+                        gui_confirm "仅当 SteamOS 使用测试或预览通道、稳定版 Decky 明确不兼容时使用。测试版只从 Decky 官方 prerelease Release 下载，不使用国内源；已有插件和设置保留。是否继续？" && \
+                            run_gui_action "安装测试版插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
+                            bash "$PROJECT_ROOT/modules/plugin_store.sh" store-test
+                        ;;
+                esac
                 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;

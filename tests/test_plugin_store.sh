@@ -13,6 +13,16 @@ grep -Fq 'https://www.mhhf.com/Deck/decky/plugin_loader-release.service' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'releases/download/v3.2.8-pre1/PluginLoader' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '9df160a81df3fc49c96e5665a1d1b3ba5c79de5bf271adc266d6bfedfda399d8' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'v3.2.8-pre1/dist/plugin_loader-prerelease.service' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'store-test) show_plugin_download_speed_tip; install_plugin_store prerelease' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'systemctl --user disable --now "$DECKY_SERVICE_NAME"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_decky_component' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '下载较慢，正在启用加速，请耐心等待' "$PROJECT_ROOT/modules/steam_accelerator.sh"
 grep -Fq 'render_decky_service' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -75,6 +85,10 @@ printf '%s\n' "$unifideck_install" | grep -Fq 'ensure_steam302_for_download' || 
 }
 printf '%s\n' "$unifideck_install" | grep -Fq 'GITHUB_MIN_SPEED_TIME=20' || {
     echo "FAIL: Unifideck 下载仍会长时间等待低速来源" >&2
+    exit 1
+}
+printf '%s\n' "$unifideck_install" | grep -Fq '"Unifideck"' || {
+    echo "FAIL: Unifideck 未使用官方压缩包中的大写目录" >&2
     exit 1
 }
 grep -Fq 'Freedeck/releases/download/0.6/freedeck.v.0.6.zip' "$PROJECT_ROOT/modules/plugin_store.sh"

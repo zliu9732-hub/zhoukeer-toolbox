@@ -465,7 +465,7 @@ game_environment_menu() {
 
     while true; do
         draw_category_frame games "游戏与插件｜插件商城" "浏览插件商城、运行组件和启动器" 0
-        ui_touch_button 5 '\033[1;97;48;5;160m' "安装插件商城" "国内失败自动切换官方源 · 高级操作"
+        ui_touch_button 5 '\033[1;97;48;5;160m' "安装插件商城" "稳定版国内失败自动切换官方源 · 可选测试版 · 高级操作"
         ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭等三款插件"
         ui_touch_button 9 '\033[1;97;48;5;24m' "常用插件加27款精选插件" "优先安装三件套，已装则跳过；再补精选"
         ui_touch_button 11 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
@@ -480,7 +480,7 @@ game_environment_menu() {
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            decky-install) confirm_and_run "安装插件商城" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；优先使用国内线路，失败自动切换 Decky 官方国外线路；随后停止旧服务并更新，已有插件保留" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store ;;
+            decky-install) NEXT_CATEGORY="decky_loader"; return 0 ;;
             features) confirm_and_run "安装常用插件组合" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；未安装插件商城时会先安装插件商城，再继续安装三款插件；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
             all) confirm_and_run "安装常用插件加27款精选插件" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；三件套已装则跳过，未装则安装；再补27款精选；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" all ;;
             browse) plugin_official_touch_pages ;;
@@ -492,6 +492,35 @@ game_environment_menu() {
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "game_environment" ] || return 0
+    done
+}
+
+decky_loader_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame games "安装插件商城｜Decky Loader" "稳定版适合正式系统 · 测试版只适合测试或预览系统" 0
+        ui_touch_button 5 '\033[1;97;48;5;24m' "安装稳定版插件商城" "国内失败自动切换 Decky 官方 Release"
+        ui_touch_button 9 '\033[1;97;48;5;160m' "安装测试版插件商城" "仅用于 SteamOS 测试或预览通道 · 只走官方 Release"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "不进行安装"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:5-6:stable right:9-10:test right:19-20:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 0; fi
+
+        case "$choice" in
+            stable)
+                confirm_and_run "安装稳定版插件商城" "适合 SteamOS 正式系统；优先使用国内线路，失败自动切换 Decky 官方 Release；会停用旧版用户服务并切换到稳定通道，已有插件和设置保留" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store
+                ;;
+            test)
+                confirm_and_run "安装测试版插件商城" "仅当 SteamOS 使用测试或预览通道、稳定版 Decky 明确不兼容时使用；只从 Decky 官方 prerelease Release 下载，不使用国内源；已有插件和设置保留" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store-test
+                ;;
+            back) NEXT_CATEGORY="games"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = "decky_loader" ] || return 0
     done
 }
 
@@ -1120,6 +1149,7 @@ while true; do
         init) new_machine_menu ;;
         software) common_software_menu ;;
         games) game_environment_menu ;;
+        decky_loader) decky_loader_menu ;;
         plugin_page_2) plugin_page_2_menu ;;
         emulators) emulator_menu ;;
         network|support) support_menu ;;
