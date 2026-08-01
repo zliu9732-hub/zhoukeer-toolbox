@@ -52,6 +52,9 @@ if [ "${GITHUB_TEST_FAIL_DOWNLOAD:-0}" = "1" ]; then
     exit 22
 fi
 case "$url" in
+    *api.github.com/*/releases/latest)
+        cp "${GITHUB_TEST_API_JSON:?}" "$output"
+        ;;
     *fast.invalid*) cp "${GITHUB_TEST_PAYLOAD:?}" "$output" ;;
     *) exit 22 ;;
 esac
@@ -59,7 +62,15 @@ EOF
 chmod +x "$BIN_DIR/curl"
 
 # shellcheck disable=SC1091
+source "$PROJECT_ROOT/core/download_policy.sh"
+# shellcheck disable=SC1091
 source "$PROJECT_ROOT/utils/github_download.sh"
+
+# 模拟测试使用虚构域名，放开白名单但保留下载器自身的 SHA256 与原子替换逻辑。
+download_policy_url_allowed() { return 0; }
+download_policy_github_mirror_allowed() { return 0; }
+download_policy_github_repo_allowed() { return 0; }
+download_policy_response_is_safe() { return 0; }
 GITHUB_MIRRORS="https://slow.invalid/{url} https://fast.invalid/{url}"
 GITHUB_PROBE_CONNECT_TIMEOUT=1
 GITHUB_PROBE_MAX_TIME=1
@@ -122,6 +133,59 @@ grep -Fxq 'keep existing file' "$OUTPUT" || {
 }
 find "$TEST_ROOT" -maxdepth 1 -name 'output.zip.part.*' | grep -q . && {
     echo "FAIL: 下载失败后遗留临时文件" >&2
+    exit 1
+}
+
+cat > "$TEST_ROOT/latest.json" <<'EOF'
+{
+  "tag_name": "GE-Proton11-3",
+  "assets": [
+    {
+      "name": "GE-Proton11-3-aarch64.tar.gz",
+      "digest": "sha256:143a5e8593bd07600674da65cfaa0a64a50beeba116c14b2df21585a94877c37",
+      "browser_download_url": "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-3/GE-Proton11-3-aarch64.tar.gz"
+    },
+    {
+      "name": "GE-Proton11-3.tar.gz",
+      "digest": "sha256:861c2edc8d40d051fb1e7a692deb953be52bd339c46d90f2b7dde50ddad91266",
+      "browser_download_url": "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-3/GE-Proton11-3.tar.gz"
+    }
+  ]
+}
+EOF
+
+export GITHUB_TEST_API_JSON="$TEST_ROOT/latest.json"
+: > "$CALLS_FILE"
+curl() {
+    local output=""
+    local url=""
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            --output) output="$2"; shift 2 ;;
+            --*) shift ;;
+            *) url="$1"; shift ;;
+        esac
+    done
+    printf 'download|%s\n' "$url" >> "$CALLS_FILE"
+    cp "$GITHUB_TEST_API_JSON" "$output"
+}
+resolve_latest_github_release "GloriousEggroll/proton-ge-custom" \
+    '^GE-Proton[0-9]+-[0-9]+\.tar\.gz$' "GE-Proton" >/dev/null
+unset -f curl
+[ "$_LATEST_RELEASE_TAG" = "GE-Proton11-3" ] || {
+    echo "FAIL: 最新 Release 标签解析错误" >&2
+    exit 1
+}
+[ "$_LATEST_RELEASE_ASSET" = "GE-Proton11-3.tar.gz" ] || {
+    echo "FAIL: 最新 Release 资产解析错误" >&2
+    exit 1
+}
+[ "$_LATEST_RELEASE_SHA256" = "861c2edc8d40d051fb1e7a692deb953be52bd339c46d90f2b7dde50ddad91266" ] || {
+    echo "FAIL: 最新 Release SHA256 解析错误" >&2
+    exit 1
+}
+grep -Fq "download|https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest" "$CALLS_FILE" || {
+    echo "FAIL: 未请求 GitHub API 最新 Release" >&2
     exit 1
 }
 

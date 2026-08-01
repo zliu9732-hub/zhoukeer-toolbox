@@ -1,3 +1,10 @@
+## V6.0.17 GE-Proton 自动抓取最新 Release — 2026-08-01
+
+- GE-Proton 默认通过 GitHub API 自动解析作者最新正式 Release，获取资产 SHA256 digest 后下载，不再依赖人工固定版本。
+- 新增 GitHub 最新 Release 解析与下载辅助函数，下载策略放行 `api.github.com/repos/*/releases/latest`。
+- API 失败、限流或资产缺少 SHA256 时自动回退固定版本，不会跳过校验。
+- 测试覆盖最新 Release 元数据解析、白名单和 GE-Proton 原子安装。
+
 ## V6.0.16 GE-Proton 更新到 GE-Proton11-3 — 2026-08-01
 
 - GE 兼容层默认版本更新到作者最新 Release GE-Proton11-3，固定 SHA256 校验。

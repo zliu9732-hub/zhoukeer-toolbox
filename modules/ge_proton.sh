@@ -7,11 +7,11 @@ source "$PROJECT_ROOT/core/logger.sh"
 
 load_config
 
-# 固定使用作者 GitHub Release，防止旧安装保留的配置重新启用退役下载地址。
-# 测试或紧急诊断可以通过 ZHOUKEER_GE_PROTON_* 环境变量明确覆盖。
+# 默认自动检测作者最新正式 Release；API 失败或测试/紧急诊断时可回退固定版本。
 GE_PROTON_URL="${ZHOUKEER_GE_PROTON_URL:-https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-3/GE-Proton11-3.tar.gz}"
 GE_PROTON_VERSION="${ZHOUKEER_GE_PROTON_VERSION:-GE-Proton11-3}"
 GE_PROTON_SHA256="${ZHOUKEER_GE_PROTON_SHA256:-861c2edc8d40d051fb1e7a692deb953be52bd339c46d90f2b7dde50ddad91266}"
+GE_PROTON_AUTO_UPDATE="${ZHOUKEER_GE_PROTON_AUTO_UPDATE:-1}"
 GE_PROTON_TMP_DIR=""
 GE_PROTON_STAGE_DIR=""
 GE_PROTON_BACKUP_DIR=""
@@ -80,6 +80,25 @@ validate_ge_proton_config() {
     case "$GE_PROTON_SHA256" in
         *[!0-9A-Fa-f]*) echo "GE-Proton SHA256包含无效字符。"; return 1 ;;
     esac
+}
+
+resolve_ge_proton_latest() {
+    if [ "${GE_PROTON_AUTO_UPDATE:-1}" != "1" ] || \
+        [ -n "${ZHOUKEER_GE_PROTON_URL:-}" ] || \
+        [ -n "${ZHOUKEER_GE_PROTON_VERSION:-}" ] || \
+        [ -n "${ZHOUKEER_GE_PROTON_SHA256:-}" ]; then
+        return 0
+    fi
+
+    if resolve_latest_github_release "GloriousEggroll/proton-ge-custom" \
+        '^GE-Proton[0-9]+-[0-9]+\.tar\.gz$' "GE-Proton"; then
+        GE_PROTON_URL="$_LATEST_RELEASE_URL"
+        GE_PROTON_VERSION="$_LATEST_RELEASE_TAG"
+        GE_PROTON_SHA256="$_LATEST_RELEASE_SHA256"
+        log "GE-Proton 自动检测最新版本: $GE_PROTON_VERSION"
+    else
+        echo "自动检测最新 GE-Proton 失败，继续使用固定版本 $GE_PROTON_VERSION。"
+    fi
 }
 
 validate_archive_members() {
@@ -175,6 +194,7 @@ install_ge_proton() {
     local actual_sha256
     local command_name
 
+    resolve_ge_proton_latest
     validate_ge_proton_config || return 1
     compatibility_dir="$(resolve_compatibilitytools_dir)" || return 1
     if ge_proton_is_installed "$compatibility_dir"; then
@@ -254,6 +274,7 @@ install_ge_proton() {
 uninstall_ge_proton() {
     local compatibility_dir target_dir answer
 
+    resolve_ge_proton_latest
     validate_ge_proton_config || return 1
     compatibility_dir="$(resolve_compatibilitytools_dir)" || return 1
     target_dir="$compatibility_dir/$GE_PROTON_VERSION"

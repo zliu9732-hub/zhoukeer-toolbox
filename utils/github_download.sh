@@ -9,6 +9,10 @@ GITHUB_DOWNLOAD_LOADED=1
 
 _GITHUB_SOURCES_RANKED=""
 _GITHUB_RANKED_FOR_URL=""
+_LATEST_RELEASE_TAG=""
+_LATEST_RELEASE_ASSET=""
+_LATEST_RELEASE_SHA256=""
+_LATEST_RELEASE_URL=""
 
 _github_positive_integer() {
     case "$1" in
@@ -258,6 +262,118 @@ EOF
     echo "$name 下载失败，所有可用源均未成功；现有文件未改动。"
     declare -F log >/dev/null 2>&1 && log "GitHub 下载失败: $name"
     return 1
+}
+
+# 解析 GitHub 最新正式 Release 元数据，只接受匹配资产名并带 SHA256 digest 的资产。
+_parse_latest_github_release() {
+    local json_file="$1"
+    local asset_pattern="$2"
+    local metadata
+
+    metadata="$(awk -v pattern="$asset_pattern" '
+        function field_value(line, re, result) {
+            if (match(line, re)) {
+                result = substr(line, RSTART, RLENGTH)
+                sub(/^"[^"]*"[[:space:]]*:[[:space:]]*"/, "", result)
+                sub(/"$/, "", result)
+                return result
+            }
+            return ""
+        }
+        {
+            line = $0
+            value = field_value(line, "\"tag_name\"[[:space:]]*:[[:space:]]*\"[^\"]*\"")
+            if (value != "") tag = value
+            value = field_value(line, "\"name\"[[:space:]]*:[[:space:]]*\"[^\"]*\"")
+            if (value != "") {
+                if (asset != "" && digest != "" && url != "" && asset ~ pattern) {
+                    print tag "\t" asset "\t" digest "\t" url
+                    exit
+                }
+                asset = value
+                digest = ""
+                url = ""
+            }
+            value = field_value(line, "\"digest\"[[:space:]]*:[[:space:]]*\"sha256:[0-9a-fA-F]{64}\"")
+            if (value != "" && asset != "") {
+                digest = value
+                sub(/^sha256:/, "", digest)
+            }
+            value = field_value(line, "\"browser_download_url\"[[:space:]]*:[[:space:]]*\"[^\"]*\"")
+            if (value != "" && asset != "") url = value
+        }
+        END {
+            if (asset != "" && digest != "" && url != "" && asset ~ pattern) {
+                print tag "\t" asset "\t" digest "\t" url
+            }
+        }
+    ' "$json_file")" || return 1
+    [ -n "$metadata" ] || return 1
+
+    IFS=$'\t' read -r _LATEST_RELEASE_TAG _LATEST_RELEASE_ASSET \
+        _LATEST_RELEASE_SHA256 _LATEST_RELEASE_URL <<< "$metadata"
+    case "$_LATEST_RELEASE_SHA256" in
+        ''|*[!0-9A-Fa-f]*) return 1 ;;
+    esac
+    [ "${#_LATEST_RELEASE_SHA256}" -eq 64 ] || return 1
+}
+
+resolve_latest_github_release() {
+    local repo="$1"
+    local asset_pattern="$2"
+    local name="${3:-Release文件}"
+    local api_url="https://api.github.com/repos/$repo/releases/latest"
+    local temp_file
+
+    _LATEST_RELEASE_TAG=""
+    _LATEST_RELEASE_ASSET=""
+    _LATEST_RELEASE_SHA256=""
+    _LATEST_RELEASE_URL=""
+
+    if declare -F download_policy_github_repo_allowed >/dev/null 2>&1 && \
+        ! download_policy_github_repo_allowed "$repo"; then
+        echo "$name 最新 Release 仓库不在受控来源清单中。"
+        return 1
+    fi
+    if declare -F download_policy_url_allowed >/dev/null 2>&1 && \
+        ! download_policy_url_allowed "$api_url"; then
+        echo "$name 最新 Release 元数据地址不在受控来源清单中。"
+        return 1
+    fi
+
+    temp_file="$(mktemp 2>/dev/null)" || return 1
+    if ! curl --fail --location --silent --proto '=https' --proto-redir '=https' \
+        --connect-timeout "$(_github_setting "${GITHUB_API_CONNECT_TIMEOUT:-}" 10)" \
+        --max-time "$(_github_setting "${GITHUB_API_MAX_TIME:-}" 30)" \
+        --retry 2 --retry-delay 2 --retry-all-errors \
+        --max-filesize "$(download_policy_max_bytes "$api_url")" \
+        --output "$temp_file" "$api_url" || \
+        { declare -F download_policy_response_is_safe >/dev/null 2>&1 && \
+          ! download_policy_response_is_safe "$api_url" "$temp_file"; }; then
+        rm -f -- "$temp_file"
+        echo "$name 最新 Release 元数据获取失败。"
+        return 1
+    fi
+
+    if ! _parse_latest_github_release "$temp_file" "$asset_pattern"; then
+        rm -f -- "$temp_file"
+        echo "$name 最新 Release 中未找到匹配资产或缺少 SHA256。"
+        return 1
+    fi
+    rm -f -- "$temp_file"
+    echo "$name 最新 Release: $_LATEST_RELEASE_TAG / $_LATEST_RELEASE_ASSET"
+    return 0
+}
+
+download_latest_github_release() {
+    local repo="$1"
+    local asset_pattern="$2"
+    local output="$3"
+    local name="${4:-Release文件}"
+
+    resolve_latest_github_release "$repo" "$asset_pattern" "$name" || return 1
+    download_github_release "$repo" "$_LATEST_RELEASE_TAG" "$_LATEST_RELEASE_ASSET" \
+        "$output" "$_LATEST_RELEASE_SHA256" "$name"
 }
 
 download_github_release() {

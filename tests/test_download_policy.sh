@@ -12,6 +12,7 @@ fail() { echo "FAIL: $*" >&2; exit 1; }
 
 download_policy_url_allowed 'https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-x86_64.AppImage' || fail "固定 GitHub Release 被拒绝"
 download_policy_url_allowed 'https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.6/PluginLoader' || fail "Decky 官方 Loader 被拒绝"
+download_policy_url_allowed 'https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest' || fail "GitHub 最新 Release API 被拒绝"
 download_policy_url_allowed 'https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service' || fail "Decky 官方服务模板被拒绝"
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/VERSION' || fail "工具箱 Gitee 地址被拒绝"
 if download_policy_url_allowed 'https://evil.example/payload.sh'; then fail "任意域名被白名单接受"; fi
