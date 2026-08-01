@@ -1604,6 +1604,18 @@ install_lsfg_bundle() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local open_store_after="${1:-1}"
     local skip_existing="${2:-1}"
+    local installed_version
+
+    if [ "$skip_existing" = "1" ] && \
+       ! feature_plugin_is_current "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" \
+            "$LSFG_OFFICIAL_VERSION" "Decky LSFG-VK" "小黄鸭"; then
+        if feature_plugin_is_present "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" \
+            "Decky LSFG-VK" "小黄鸭"; then
+            installed_version="$(decky_plugin_version "$plugin_root/$LSFG_OFFICIAL_DIRECTORY" || true)"
+            echo "检测到小黄鸭旧版本 ${installed_version:-未知}，将更新到 $LSFG_OFFICIAL_VERSION。"
+        fi
+        skip_existing=0
+    fi
 
     install_decky_zip \
         "小黄鸭（LSFG-VK）" \
@@ -1633,8 +1645,9 @@ install_lsfg_chinese() {
         echo "小黄鸭仅支持真实 SteamOS 环境。"
         return 1
     fi
-    if feature_plugin_is_present "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" "小黄鸭"; then
-        echo "[已安装] 小黄鸭中文插件已存在且文件完整，无需重复安装。"
+    if feature_plugin_is_current "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" \
+        "$LSFG_OFFICIAL_VERSION" "小黄鸭"; then
+        echo "[已安装] 小黄鸭 v$LSFG_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
         return 0
     fi
     if [ -L "$LSFG_ZH_SOURCE_DIR" ] || \
@@ -1692,10 +1705,17 @@ install_lsfg_zh_from_gitee() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local reload_after="${1:-1}"
     local release_ok=0
+    local installed_version
 
-    if feature_plugin_is_present "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" "小黄鸭"; then
-        echo "[已安装] 小黄鸭中文插件已存在且文件完整，无需重复安装。"
+    if feature_plugin_is_current "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" \
+        "$LSFG_OFFICIAL_VERSION" "小黄鸭"; then
+        echo "[已安装] 小黄鸭 v$LSFG_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
         return 0
+    fi
+    if feature_plugin_is_present "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" \
+        "Decky LSFG-VK" "小黄鸭"; then
+        installed_version="$(decky_plugin_version "$plugin_root/$LSFG_OFFICIAL_DIRECTORY" || true)"
+        echo "检测到现有小黄鸭版本 ${installed_version:-未知}，正在更新中文插件到 $LSFG_OFFICIAL_VERSION。"
     fi
 
     if [ -z "${DECKY_LSFG_ZH_URL:-}" ] || [ -z "${DECKY_LSFG_ZH_SHA256:-}" ]; then
@@ -1760,8 +1780,9 @@ install_fsr4_chinese() {
         echo "FSR4 中文界面仅支持真实 SteamOS 环境。"
         return 1
     fi
-    if feature_plugin_is_present "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" "Decky-Framegen(FSR4)"; then
-        echo "[已安装] FSR4 中文插件已存在且文件完整，无需重复安装。"
+    if feature_plugin_is_current "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" \
+        "$FSR4_OFFICIAL_VERSION" "Decky-Framegen(FSR4)"; then
+        echo "[已安装] FSR4 v$FSR4_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
         return 0
     fi
     if [ -L "$FSR4_ZH_SOURCE_DIR" ] || \
@@ -1824,10 +1845,17 @@ install_fsr4_zh_from_gitee() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local reload_after="${1:-1}"
     local release_ok=0
+    local installed_version
 
-    if feature_plugin_is_present "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" "Decky-Framegen(FSR4)"; then
-        echo "[已安装] FSR4 中文插件已存在且文件完整，无需重复安装。"
+    if feature_plugin_is_current "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" \
+        "$FSR4_OFFICIAL_VERSION" "Decky-Framegen(FSR4)"; then
+        echo "[已安装] FSR4 v$FSR4_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
         return 0
+    fi
+    if feature_plugin_is_present "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" \
+        "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then
+        installed_version="$(decky_plugin_version "$plugin_root/$FSR4_OFFICIAL_DIRECTORY" || true)"
+        echo "检测到现有 FSR4 版本 ${installed_version:-未知}，正在更新中文插件到 $FSR4_OFFICIAL_VERSION。"
     fi
 
     if [ -z "${DECKY_FSR4_ZH_URL:-}" ] || [ -z "${DECKY_FSR4_ZH_SHA256:-}" ]; then
@@ -2175,6 +2203,7 @@ install_configured_plugin() {
     local action="$1"
     local reload_after_install="${2:-1}"
     local open_lsfg_store="${3:-1}"
+    local installed_version
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
@@ -2185,11 +2214,23 @@ install_configured_plugin() {
     case "$action" in
         lsfg) install_lsfg_bundle "$open_lsfg_store" ;;
         fsr4)
-            install_decky_zip \
-                "FSR4（Decky Framegen）" \
-                "${DECKY_FSR4_URL:-}" \
-                "${DECKY_FSR4_SHA256:-}" \
-                "Decky-Framegen"
+            if feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
+                "$FSR4_OFFICIAL_DIRECTORY" "$FSR4_OFFICIAL_VERSION" \
+                "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then
+                echo "[已安装] FSR4 v$FSR4_OFFICIAL_VERSION 已存在且文件完整，无需重复安装。"
+                PLUGIN_INSTALL_CHANGED=0
+            else
+                installed_version="$(decky_plugin_version \
+                    "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/$FSR4_OFFICIAL_DIRECTORY" || true)"
+                [ -z "$installed_version" ] || \
+                    echo "检测到 FSR4 旧版本 $installed_version，将更新到 $FSR4_OFFICIAL_VERSION。"
+                install_decky_zip \
+                    "FSR4（Decky Framegen）" \
+                    "${DECKY_FSR4_URL:-}" \
+                    "${DECKY_FSR4_SHA256:-}" \
+                    "$FSR4_OFFICIAL_DIRECTORY" \
+                    0
+            fi
             ;;
         cheatdeck)
             install_decky_zip \
@@ -2252,6 +2293,18 @@ decky_plugin_version() {
         "$plugin_dir/package.json" | head -n 1
 }
 
+feature_plugin_is_current() {
+    local plugin_root="$1"
+    local directory_name="$2"
+    local expected_version="$3"
+    local installed_version
+
+    shift 3
+    feature_plugin_is_present "$plugin_root" "$directory_name" "$@" || return 1
+    installed_version="$(decky_plugin_version "$plugin_root/$directory_name" || true)"
+    [ "$installed_version" = "$expected_version" ]
+}
+
 feature_plugin_is_present() {
     local plugin_root="$1"
     local directory_name="$2"
@@ -2275,7 +2328,7 @@ feature_plugin_is_present() {
 print_feature_plugin_status() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local missing=0
-    local lsfg_version
+    local lsfg_version fsr4_version
 
     echo ""
     echo "========== 常用功能插件状态 =========="
@@ -2285,7 +2338,7 @@ print_feature_plugin_status() {
         if [ "$lsfg_version" = "$LSFG_OFFICIAL_VERSION" ]; then
             echo "✓ 小黄鸭（LSFG-VK）：已写入 Decky，官方版本 $lsfg_version"
         else
-            echo "✗ 小黄鸭（LSFG-VK）：检测到版本 ${lsfg_version:-未知}，请重新安装官方 $LSFG_OFFICIAL_VERSION"
+            echo "✗ 小黄鸭（LSFG-VK）：检测到版本 ${lsfg_version:-未知}，请更新到 $LSFG_OFFICIAL_VERSION"
             missing=1
         fi
     else
@@ -2293,7 +2346,13 @@ print_feature_plugin_status() {
         missing=1
     fi
     if feature_plugin_is_present "$plugin_root" "Decky-Framegen" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then
-        echo "✓ FSR4（Decky-Framegen）：已写入 Decky"
+        fsr4_version="$(decky_plugin_version "$plugin_root/$FSR4_OFFICIAL_DIRECTORY" || true)"
+        if [ "$fsr4_version" = "$FSR4_OFFICIAL_VERSION" ]; then
+            echo "✓ FSR4（Decky-Framegen）：已写入 Decky，官方版本 $fsr4_version"
+        else
+            echo "✗ FSR4（Decky-Framegen）：检测到版本 ${fsr4_version:-未知}，请更新到 $FSR4_OFFICIAL_VERSION"
+            missing=1
+        fi
     else
         echo "✗ FSR4（Decky-Framegen）：未找到完整插件文件"
         missing=1
@@ -2326,8 +2385,8 @@ install_feature_plugins() {
 
     # 先检测三件套是否都已安装，是则跳过
     local _all_installed=1
-    if ! feature_plugin_is_present "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭"; then _all_installed=0; fi
-    if ! feature_plugin_is_present "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "Decky-Framegen" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then _all_installed=0; fi
+    if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "$LSFG_OFFICIAL_VERSION" "Decky LSFG-VK" "小黄鸭"; then _all_installed=0; fi
+    if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$FSR4_OFFICIAL_DIRECTORY" "$FSR4_OFFICIAL_VERSION" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then _all_installed=0; fi
     if ! feature_plugin_is_present "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "CheatDeck" "CheatDeck"; then _all_installed=0; fi
     if [ "$_all_installed" = "1" ]; then
         echo "三款常用功能插件已全部安装，无需重复安装。"
@@ -2345,16 +2404,16 @@ install_feature_plugins() {
         case "$plugin" in
             lsfg)
                 echo "========== 小黄鸭（LSFG-VK） =========="
-                if feature_plugin_is_present "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭"; then
-                    echo "[已安装] 小黄鸭已安装，跳过。"
+                if feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "$LSFG_OFFICIAL_VERSION" "Decky LSFG-VK" "小黄鸭"; then
+                    echo "[已安装] 小黄鸭 v$LSFG_OFFICIAL_VERSION 已安装，跳过。"
                     continue
                 fi
                 install_lsfg_zh_from_gitee 0 || failed=1
                 ;;
             fsr4)
                 echo "========== FSR4（Decky Framegen） =========="
-                if feature_plugin_is_present "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "Decky-Framegen" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then
-                    echo "[已安装] FSR4 已安装，跳过。"
+                if feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$FSR4_OFFICIAL_DIRECTORY" "$FSR4_OFFICIAL_VERSION" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then
+                    echo "[已安装] FSR4 v$FSR4_OFFICIAL_VERSION 已安装，跳过。"
                     continue
                 fi
                 install_fsr4_zh_from_gitee 0 || failed=1

@@ -267,11 +267,12 @@ done
 printf '{"name":"Decky LSFG-VK"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
 printf '{"version":"0.12.5"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
 printf '{ "name": "Decky-Framegen" }\n' > "$PLUGIN_ROOT/Decky-Framegen/plugin.json"
+printf '{"version":"0.15.6"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
 printf '{"name": "CheatDeck"}\n' > "$PLUGIN_ROOT/CheatDeck/plugin.json"
 status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
     bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"
 printf '%s\n' "$status_output" | grep -Fq '✓ 小黄鸭（LSFG-VK）：已写入 Decky'
-printf '%s\n' "$status_output" | grep -Fq '✓ FSR4（Decky-Framegen）：已写入 Decky'
+printf '%s\n' "$status_output" | grep -Fq '✓ FSR4（Decky-Framegen）：已写入 Decky，官方版本 0.15.6'
 printf '%s\n' "$status_output" | grep -Fq '✓ CheatDeck：已写入 Decky'
 
 printf '{"name":"小黄鸭"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
@@ -287,6 +288,46 @@ if stale_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
     exit 1
 fi
 printf '%s\n' "$stale_status_output" | \
-    grep -Fq '检测到版本 0.12.1，请重新安装官方 0.12.5'
+    grep -Fq '检测到版本 0.12.1，请更新到 0.12.5'
+
+printf '{"version":"0.12.5"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
+printf '{"version":"0.15.5"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
+if stale_fsr4_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
+    bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"; then
+    echo "FAIL: 旧版 FSR4 不应被识别为官方 0.15.6" >&2
+    exit 1
+fi
+printf '%s\n' "$stale_fsr4_status_output" | \
+    grep -Fq '检测到版本 0.15.5，请更新到 0.15.6'
+
+# 整组安装必须把同名旧版送入更新流程，不能只凭名称和目录跳过。
+printf '{"version":"0.12.1"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
+update_output="$(
+    DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+        source "$PROJECT_ROOT/modules/plugin_store.sh"
+        detect_platform() { IS_STEAMOS=1; }
+        ensure_plugin_store_ready() { return 0; }
+        install_lsfg_zh_from_gitee() {
+            printf '\''{"version":"%s"}\n'\'' "$LSFG_OFFICIAL_VERSION" > \
+                "$DECKY_PLUGIN_DIR/$LSFG_OFFICIAL_DIRECTORY/package.json"
+            echo "TEST_UPDATE: LSFG"
+        }
+        install_fsr4_zh_from_gitee() {
+            printf '\''{"version":"%s"}\n'\'' "$FSR4_OFFICIAL_VERSION" > \
+                "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/package.json"
+            echo "TEST_UPDATE: FSR4"
+        }
+        refresh_feature_usage_guides() { return 0; }
+        reload_decky_plugins() { return 0; }
+        check_lossless_scaling_installation() { return 0; }
+        write_flingtrainer_desktop_note() { return 0; }
+        print_cef_remote_debugging_tip() { return 0; }
+        install_feature_plugins
+    '
+)"
+printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: LSFG'
+printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: FSR4'
+printf '%s\n' "$update_output" | grep -Fq '官方版本 0.12.5'
+printf '%s\n' "$update_output" | grep -Fq '官方版本 0.15.6'
 
 echo "PASS: Decky国内源、独立功能插件和完整清单配置检查通过"
