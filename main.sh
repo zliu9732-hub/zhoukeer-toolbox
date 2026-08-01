@@ -300,16 +300,18 @@ common_software_more_menu() {
         ui_touch_button 6 '\033[1;97;48;5;24m' "OBS Studio" "录屏、直播与视频采集"
         ui_touch_button 8 '\033[1;97;48;5;24m' "LocalSend 局域网传文件" "手机与电脑免登录互传"
         ui_touch_button 10 '\033[1;97;48;5;24m' "百度网盘" "Flathub 安装百度网盘 Linux 版"
+        ui_touch_button 12 '\033[1;97;48;5;24m' "PeaZip 压缩工具" "解压与压缩常用格式"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回常用软件" "查看常用软件第一页"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:2-3:libreoffice right:4-5:vlc right:6-7:obs right:8-9:localsend right:10-11:baidunetdisk right:18-19:back right:22-23:home)"
+        choice="$(read_touch_menu right:2-3:libreoffice right:4-5:vlc right:6-7:obs right:8-9:localsend right:10-11:baidunetdisk right:12-13:peazip right:18-19:back right:22-23:home)"
         case "$choice" in
             libreoffice) confirm_and_run "安装 LibreOffice 办公套件" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" libreoffice ;;
             vlc) confirm_and_run "安装 VLC 播放器" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" vlc ;;
             obs) confirm_and_run "安装 OBS Studio" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" obs ;;
             localsend) confirm_and_run "安装 LocalSend 局域网传文件" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" localsend ;;
             baidunetdisk) confirm_and_run "安装百度网盘" "Flathub 安装百度网盘 Linux 版，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" baidunetdisk ;;
+            peazip) confirm_and_run "安装 PeaZip 压缩工具" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" peazip ;;
             back) return 0 ;;
             home) NEXT_CATEGORY="home"; return 1 ;;
         esac
@@ -878,11 +880,12 @@ uninstall_software_menu() {
                 ui_touch_button 11 '\033[1;97;48;5;160m' "卸载 LocalSend" "卸载 LocalSend Flatpak"
                 ui_touch_button 13 '\033[1;97;48;5;160m' "卸载 Protontricks" "卸载 Protontricks Flatpak"
                 ui_touch_button 15 '\033[1;97;48;5;160m' "卸载 Bottles" "卸载 Bottles Flatpak"
+                ui_touch_button 17 '\033[1;97;48;5;160m' "卸载 PeaZip" "卸载 PeaZip Flatpak"
                 ui_touch_button 19 '\033[1;97;48;5;24m' "上一页" "返回远程与网盘"
                 ui_touch_button 21 '\033[1;97;48;5;24m' "下一页" "系统组件与插件"
                 ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
                 ui_prompt
-                choice="$(read_touch_menu right:5-6:libreoffice right:7-8:vlc right:9-10:obs right:11-12:localsend right:13-14:protontricks right:15-16:bottles right:19-20:previous right:21-22:next right:23-24:home)"
+                choice="$(read_touch_menu right:5-6:libreoffice right:7-8:vlc right:9-10:obs right:11-12:localsend right:13-14:protontricks right:15-16:bottles right:17-18:peazip right:19-20:previous right:21-22:next right:23-24:home)"
                 ;;
             *)
                 draw_category_frame uninstall "卸载已安装" "系统组件与插件 · 第 4/4 页"
@@ -898,7 +901,7 @@ uninstall_software_menu() {
         esac
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
-            wechat|qq|browser|chrome|edge|rustdesk|baidunetdisk|libreoffice|vlc|obs|localsend|protontricks|bottles)
+            wechat|qq|browser|chrome|edge|rustdesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|protontricks|bottles)
                 confirm_and_run "卸载软件" "只卸载所选软件及工具箱创建的快捷方式" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" uninstall "$choice"
                 ;;

@@ -102,6 +102,7 @@ software_menu() {
             vlc "VLC 播放器｜本地视频与音频播放" \
             obs "OBS Studio｜录屏、直播与视频采集" \
             localsend "LocalSend 局域网传文件｜手机与电脑免登录互传" \
+            peazip "PeaZip 压缩工具｜解压与压缩常用格式" \
             protontricks "游戏兼容设置｜安装 Protontricks" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -139,6 +140,7 @@ software_menu() {
             vlc) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 VLC。是否继续？" && run_gui_action "安装 VLC 播放器" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" vlc ;;
             obs) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 OBS Studio。是否继续？" && run_gui_action "安装 OBS Studio" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" obs ;;
             localsend) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 LocalSend。是否继续？" && run_gui_action "安装 LocalSend 局域网传文件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" localsend ;;
+            peazip) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 PeaZip。是否继续？" && run_gui_action "安装 PeaZip 压缩工具" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" peazip ;;
             protontricks) gui_confirm "将通过 Flatpak 安装 Protontricks。是否继续？" && run_gui_action "安装 Protontricks" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
             bottles) gui_confirm "将通过 Flatpak 安装 Bottles。是否继续？" && run_gui_action "安装 Bottles" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
             home) GUI_NAV_HOME=1; return 0 ;;
@@ -736,6 +738,7 @@ uninstall_software_gui_menu() {
                     vlc "卸载 VLC｜Flatpak" \
                     obs "卸载 OBS Studio｜Flatpak" \
                     localsend "卸载 LocalSend｜Flatpak" \
+                    peazip "卸载 PeaZip｜Flatpak" \
                     protontricks "卸载 Protontricks｜Flatpak" \
                     bottles "卸载 Bottles｜Flatpak" \
                     previous "上一页" next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
@@ -750,7 +753,7 @@ uninstall_software_gui_menu() {
                 ;;
         esac
         case "$choice" in
-            wechat|qq|browser|chrome|edge|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|protontricks|bottles)
+            wechat|qq|browser|chrome|edge|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|protontricks|bottles)
                 target="$choice"
                 gui_confirm "只卸载所选软件及工具箱创建的快捷方式，确认继续？" && \
                     run_gui_action "卸载软件" env ZHOUKEER_AUTO_CONFIRM=1 \

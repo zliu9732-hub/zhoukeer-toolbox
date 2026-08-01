@@ -327,6 +327,18 @@ grep -Fq 'Exec=flatpak run com.anydesk.Anydesk' "$ANYDESK_SHORTCUT"
 grep -Fq 'install --user --noninteractive -y flathub-cn com.anydesk.Anydesk' "$STATE_DIR/commands"
 [ -f "$STATE_DIR/installed.com.anydesk.Anydesk" ]
 
+# PeaZip 复用常用软件的用户级 Flatpak 国内缓存、安装验证和桌面入口。
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" peazip >/dev/null
+PEAZIP_SHORTCUT="$HOME_DIR/Desktop/PeaZip.desktop"
+[ -x "$PEAZIP_SHORTCUT" ]
+grep -Fq 'Exec=flatpak run io.github.peazip.PeaZip' "$PEAZIP_SHORTCUT"
+grep -Fq 'install --user --noninteractive -y flathub-cn io.github.peazip.PeaZip' "$STATE_DIR/commands"
+[ -f "$STATE_DIR/installed.io.github.peazip.PeaZip" ]
+
 # repair-shortcuts 必须补齐丢失的桌面快捷方式，且不重复下载或安装。
 rm -f "$SHORTCUT" "$RUSTDESK_SHORTCUT"
 touch "$STATE_DIR/installed.org.libreoffice.LibreOffice"

@@ -106,6 +106,12 @@ software_details() {
             SOFTWARE_APP_ID="org.localsend.localsend_app"
             SOFTWARE_CATEGORIES="Network;FileTransfer;"
             ;;
+        peazip)
+            SOFTWARE_NAME="PeaZip 压缩工具"
+            SOFTWARE_DESKTOP_NAME="PeaZip"
+            SOFTWARE_APP_ID="io.github.peazip.PeaZip"
+            SOFTWARE_CATEGORIES="Utility;Archiving;"
+            ;;
         *)
             echo "未知软件: $1"
             return 1
@@ -913,7 +919,7 @@ show_software_status() {
     local installed_count=0
 
     echo "常用软件与远程协助安装状态："
-    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend; do
+    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend peazip; do
         software_details "$target" || return 1
         if software_is_installed; then
             echo "✓ $SOFTWARE_NAME：已安装"
@@ -922,14 +928,14 @@ show_software_status() {
             echo "- $SOFTWARE_NAME：未安装"
         fi
     done
-    echo "已安装：$installed_count / 10"
+    echo "已安装：$installed_count / 11"
 }
 
 repair_software_shortcuts() {
     local target
     local repaired=0
 
-    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend; do
+    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend peazip; do
         software_details "$target" || return 1
         if software_is_installed; then
             create_software_shortcut || return 1
@@ -1209,13 +1215,14 @@ uninstall_software() {
         vlc) uninstall_flatpak_software "org.videolan.VLC" "VLC 播放器" "org.videolan.VLC.desktop" ;;
         obs) uninstall_flatpak_software "com.obsproject.Studio" "OBS Studio" "com.obsproject.Studio.desktop" ;;
         localsend) uninstall_flatpak_software "org.localsend.localsend_app" "LocalSend" "org.localsend.localsend_app.desktop" ;;
+        peazip) uninstall_flatpak_software "io.github.peazip.PeaZip" "PeaZip 压缩工具" "PeaZip.desktop" "io.github.peazip.PeaZip.desktop" ;;
         *) echo "未知卸载目标：$1"; return 1 ;;
     esac
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
-        wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend) install_software "$1" ;;
+        wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip) install_software "$1" ;;
         firefox-pacman|firefox-sjtu|system-setup)
             echo "该旧版系统级功能已停用，请使用当前 Flatpak 菜单功能。"
             exit 1
@@ -1230,6 +1237,6 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
             ;;
         status) require_command od && show_software_status ;;
         repair-shortcuts) require_command od && repair_software_shortcuts ;;
-        *) echo "用法: $0 {wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|chrome|edge|protontricks|bottles|status|repair-shortcuts}"; exit 1 ;;
+        *) echo "用法: $0 {wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|chrome|edge|protontricks|bottles|status|repair-shortcuts}"; exit 1 ;;
     esac
 fi
