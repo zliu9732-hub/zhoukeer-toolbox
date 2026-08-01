@@ -35,7 +35,10 @@ cleanup_todesk() {
         if ! toolbox_sudo steamos-readonly enable; then
             echo "警告：未能恢复只读保护，请执行: sudo steamos-readonly enable"
             log "ToDesk安装警告: 未能恢复SteamOS只读保护"
+            return 1
         fi
+        TODESK_READONLY_CHANGED=0
+        echo "SteamOS 只读保护已恢复。"
     fi
 }
 
@@ -124,6 +127,18 @@ confirm_todesk_install() {
     echo ""
     read -r -p "确认安装请输入 INSTALL：" answer
     [ "$answer" = "INSTALL" ]
+}
+
+confirm_todesk_service_repair() {
+    local answer
+
+    echo "ToDesk程序已经安装，将修复后台服务并恢复旧版遗留的启用链接。"
+    echo "该操作会临时关闭 SteamOS 只读保护，完成后立即恢复；不会重新下载或安装软件包。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        return 0
+    fi
+    read -r -p "确认修复请输入 REPAIR：" answer
+    [ "$answer" = "REPAIR" ]
 }
 
 todesk_is_installed() {
@@ -412,10 +427,43 @@ install_verified_todesk_package() {
     toolbox_sudo pacman -U --noconfirm "$package_path"
 }
 
+todesk_service_is_ready() {
+    command -v systemctl >/dev/null 2>&1 && \
+        systemctl is-enabled --quiet todeskd.service >/dev/null 2>&1 && \
+        systemctl is-active --quiet todeskd.service >/dev/null 2>&1
+}
+
+configure_todesk_service() {
+    echo "正在配置ToDesk后台服务..."
+    if ! toolbox_sudo systemctl daemon-reload; then
+        echo "ToDesk服务配置刷新失败。"
+        return 1
+    fi
+    # 旧版安装或卸载失败可能留下遮罩或指向旧路径的启用链接。
+    # 仅处理 ToDesk 自己的服务，并让 systemd 原子替换冲突链接。
+    if ! toolbox_sudo systemctl unmask todeskd.service; then
+        echo "ToDesk旧服务遮罩清理失败。"
+        return 1
+    fi
+    if ! toolbox_sudo systemctl enable --force todeskd.service; then
+        echo "ToDesk开机服务启用失败。"
+        return 1
+    fi
+    if ! toolbox_sudo systemctl restart todeskd.service; then
+        echo "ToDesk后台服务启动失败。"
+        return 1
+    fi
+    if ! todesk_service_is_ready; then
+        echo "ToDesk后台服务状态检查未通过。"
+        return 1
+    fi
+}
+
 install_todesk() {
     local package_path
     local readonly_status
     local installed_version
+    local repair_service=0
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
@@ -425,27 +473,43 @@ install_todesk() {
 
     installed_version="$(todesk_installed_version 2>/dev/null || true)"
     if [ "$installed_version" = "$TODESK_PACKAGE_VERSION" ]; then
-        echo "[已安装] ToDesk $TODESK_VERSION 已存在，无需重复安装。"
-        return 0
-    fi
-    if [ -n "$installed_version" ]; then
+        if todesk_service_is_ready; then
+            echo "[已安装] ToDesk $TODESK_VERSION 和后台服务均正常。"
+            return 0
+        fi
+        echo "检测到 ToDesk $TODESK_VERSION 已安装，但后台服务未正常启用，将直接修复服务。"
+        repair_service=1
+    elif [ -n "$installed_version" ]; then
         echo "检测到旧版 ToDesk $installed_version，将保留配置并更新到 $TODESK_PACKAGE_VERSION。"
     fi
 
-    for command_name in curl bsdtar sudo pacman systemctl steamos-readonly; do
+    for command_name in sudo pacman systemctl steamos-readonly; do
         require_command "$command_name" || return 1
     done
-    validate_todesk_settings || return 1
-    confirm_todesk_install || {
-        echo "已取消ToDesk安装。"
-        return 0
-    }
+    if [ "$repair_service" -eq 0 ]; then
+        require_command curl || return 1
+        require_command bsdtar || return 1
+        validate_todesk_settings || return 1
+    fi
+    if [ "$repair_service" -eq 1 ]; then
+        confirm_todesk_service_repair || {
+            echo "已取消ToDesk服务修复。"
+            return 0
+        }
+    else
+        confirm_todesk_install || {
+            echo "已取消ToDesk安装。"
+            return 0
+        }
+    fi
 
     trap cleanup_todesk EXIT INT TERM
-    download_todesk_package || return 1
-    package_path="$TODESK_DOWNLOADED_PACKAGE"
+    if [ "$repair_service" -eq 0 ]; then
+        download_todesk_package || return 1
+        package_path="$TODESK_DOWNLOADED_PACKAGE"
+    fi
 
-    echo "安装需要Steam Deck管理员密码。"
+    echo "操作需要Steam Deck管理员密码。"
     if ! toolbox_sudo true; then
         echo "管理员验证失败，未修改系统。"
         return 1
@@ -467,25 +531,22 @@ install_todesk() {
         trap cleanup_todesk EXIT INT TERM
     fi
 
-    ensure_todesk_ca_certificates || return 1
+    if [ "$repair_service" -eq 0 ]; then
+        ensure_todesk_ca_certificates || return 1
 
-    echo "正在安装ToDesk..."
-    if ! install_verified_todesk_package "$package_path"; then
-        echo "ToDesk安装失败；未删除原有配置。"
-        log "ToDesk安装失败: pacman返回错误"
-        return 1
-    fi
-    if [ "$(todesk_installed_version 2>/dev/null || true)" != "$TODESK_PACKAGE_VERSION" ]; then
-        echo "ToDesk安装后版本检查未通过。"
-        return 1
+        echo "正在安装ToDesk..."
+        if ! install_verified_todesk_package "$package_path"; then
+            echo "ToDesk安装失败；未删除原有配置。"
+            log "ToDesk安装失败: pacman返回错误"
+            return 1
+        fi
+        if [ "$(todesk_installed_version 2>/dev/null || true)" != "$TODESK_PACKAGE_VERSION" ]; then
+            echo "ToDesk安装后版本检查未通过。"
+            return 1
+        fi
     fi
 
-    toolbox_sudo systemctl daemon-reload || return 1
-    toolbox_sudo systemctl enable todeskd.service || return 1
-    if ! toolbox_sudo systemctl restart todeskd.service; then
-        echo "ToDesk已安装，但后台服务启动失败。"
-        log "ToDesk安装警告: todeskd服务启动失败"
-    fi
+    configure_todesk_service || return 1
 
     if [ -f /usr/share/applications/todesk.desktop ]; then
         mkdir -p "$HOME/Desktop"
@@ -493,11 +554,18 @@ install_todesk() {
         chmod +x "$HOME/Desktop/ToDesk.desktop"
     fi
 
-    cleanup_todesk
-    TODESK_READONLY_CHANGED=0
+    if ! cleanup_todesk; then
+        echo "ToDesk已安装，但恢复 SteamOS 只读保护失败。"
+        return 1
+    fi
     trap - EXIT INT TERM
-    echo "ToDesk安装完成。"
-    log "ToDesk安装完成"
+    if [ "$repair_service" -eq 1 ]; then
+        echo "ToDesk后台服务修复完成。"
+        log "ToDesk后台服务修复完成"
+    else
+        echo "ToDesk安装完成。"
+        log "ToDesk安装完成"
+    fi
 }
 
 uninstall_todesk() {
@@ -530,11 +598,20 @@ uninstall_todesk() {
     else
         trap cleanup_todesk EXIT INT TERM
     fi
-    toolbox_sudo systemctl disable --now todeskd.service >/dev/null 2>&1 || true
+    if ! toolbox_sudo systemctl disable --now todeskd.service; then
+        if systemctl is-active --quiet todeskd.service >/dev/null 2>&1 || \
+            systemctl is-enabled --quiet todeskd.service >/dev/null 2>&1; then
+            echo "ToDesk后台服务停用失败，软件包尚未卸载。"
+            return 1
+        fi
+        echo "未检测到运行中的ToDesk后台服务，继续卸载软件包。"
+    fi
     toolbox_sudo pacman -Rns --noconfirm todesk-bin || return 1
     rm -f -- "$HOME/Desktop/ToDesk.desktop" || return 1
-    cleanup_todesk
-    TODESK_READONLY_CHANGED=0
+    if ! cleanup_todesk; then
+        echo "ToDesk已卸载，但恢复 SteamOS 只读保护失败。"
+        return 1
+    fi
     trap - EXIT INT TERM
     echo "ToDesk 已卸载。"
     log "ToDesk 已卸载"

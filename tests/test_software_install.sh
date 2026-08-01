@@ -118,6 +118,7 @@ case "$command" in
         [ ! -f "$state/remotes" ] || cat "$state/remotes"
         ;;
     remote-add)
+        printf 'remote-add %s\n' "$*" >> "$state/commands"
         remote=""
         for arg in "$@"; do
             case "$arg" in
@@ -206,6 +207,10 @@ QQ_SHORTCUT="$HOME_DIR/Desktop/QQ.desktop"
 grep -Fq 'Exec=flatpak run com.qq.QQ' "$QQ_SHORTCUT"
 grep -Fq 'Icon=com.qq.QQ' "$QQ_SHORTCUT"
 grep -Fq 'install --user --noninteractive -y flathub-cn com.qq.QQ' "$STATE_DIR/commands"
+grep -Fq 'remote-add --user --if-not-exists --no-gpg-verify flathub-cn https://mirror.sjtu.edu.cn/flathub' \
+    "$STATE_DIR/commands"
+grep -Fq 'remote-add --user --if-not-exists --no-gpg-verify flathub-ustc https://mirrors.ustc.edu.cn/flathub' \
+    "$STATE_DIR/commands"
 [ -f "$STATE_DIR/installed.com.qq.QQ" ]
 
 # QQ 已安装时只修复快捷方式，不重复安装。

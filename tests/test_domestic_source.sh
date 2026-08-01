@@ -78,7 +78,8 @@ case "$command" in
     remote-add)
         case " $* " in
             *' --from '*) ;;
-            *) echo "local flatpakrepo missing --from" >&2; exit 1 ;;
+            *' --no-gpg-verify '*) ;;
+            *) echo "remote-add missing verified mode" >&2; exit 1 ;;
         esac
         remote=""
         for arg in "$@"; do
@@ -188,12 +189,10 @@ grep -Fq 'remote-modify --user flathub-cn --url=https://mirror.test.invalid/flat
     "$STATE_DIR/commands" || fail "国内缓存地址配置错误"
 grep -Fq 'remote-modify --user flathub-ustc --url=https://fallback.test.invalid/flathub' \
     "$STATE_DIR/commands" || fail "国内备用缓存地址配置错误"
-grep -Fq 'remote-add --user --if-not-exists --from flathub-cn ' \
-    "$STATE_DIR/commands" || fail "上海交大配置文件未按 flatpakrepo 解析"
-grep -Fq 'remote-add --user --if-not-exists --from flathub-ustc ' \
-    "$STATE_DIR/commands" || fail "中科大配置文件未按 flatpakrepo 解析"
-grep -Fxq 'https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo' \
-    "$STATE_DIR/curl-urls" || fail "未通过假 curl 获取签名配置"
+grep -Fq 'remote-add --user --if-not-exists --no-gpg-verify flathub-cn https://mirror.test.invalid/flathub' \
+    "$STATE_DIR/commands" || fail "上海交大用户级远程没有直接使用已确认的国内地址"
+grep -Fq 'remote-add --user --if-not-exists --no-gpg-verify flathub-ustc https://fallback.test.invalid/flathub' \
+    "$STATE_DIR/commands" || fail "中科大用户级远程没有直接使用已确认的国内地址"
 [ ! -e "$STATE_DIR/sudo-calls" ] || fail "用户级国内源配置不应调用 sudo"
 grep -Fq -- '--appstream' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应包含 AppStream 强制刷新"

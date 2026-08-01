@@ -229,4 +229,135 @@ if printf '%s\n' "$install_output" | grep -Fq '网络或软件源错误'; then
     exit 1
 fi
 
-echo "PASS: ToDesk 官方DEB校验、本地安全转换、证书预检和单次安装测试通过"
+SERVICE_LOG="$TMP_ROOT/service.log"
+MODULE="$MODULE" SERVICE_LOG="$SERVICE_LOG" bash -c '
+    source "$MODULE"
+    toolbox_sudo() {
+        printf "%s\n" "$*" >> "$SERVICE_LOG"
+    }
+    systemctl() {
+        case "${1:-}" in
+            is-enabled|is-active) return 0 ;;
+            *) return 1 ;;
+        esac
+    }
+    configure_todesk_service
+'
+for expected in \
+    'systemctl daemon-reload' \
+    'systemctl unmask todeskd.service' \
+    'systemctl enable --force todeskd.service' \
+    'systemctl restart todeskd.service'; do
+    grep -Fxq "$expected" "$SERVICE_LOG" || {
+        echo "FAIL: ToDesk 服务修复缺少命令：$expected" >&2
+        exit 1
+    }
+done
+
+REPAIR_LOG="$TMP_ROOT/repair.log"
+MODULE="$MODULE" REPAIR_LOG="$REPAIR_LOG" ZHOUKEER_AUTO_CONFIRM=1 bash -c '
+    source "$MODULE"
+    detect_platform() { IS_STEAMOS=1; }
+    require_command() { return 0; }
+    todesk_installed_version() { printf "%s\n" "4.8.6.2-1"; }
+    todesk_service_is_ready() { [ -f "$REPAIR_LOG.ready" ]; }
+    configure_todesk_service() {
+        printf "%s\n" service-repair >> "$REPAIR_LOG"
+        : > "$REPAIR_LOG.ready"
+    }
+    download_todesk_package() { printf "%s\n" unexpected-download >> "$REPAIR_LOG"; return 1; }
+    install_verified_todesk_package() { printf "%s\n" unexpected-install >> "$REPAIR_LOG"; return 1; }
+    steamos-readonly() { [ "${1:-}" = status ] && printf "%s\n" enabled; }
+    toolbox_sudo() {
+        printf "%s\n" "$*" >> "$REPAIR_LOG"
+        return 0
+    }
+    install_todesk
+'
+grep -Fxq 'service-repair' "$REPAIR_LOG" || {
+    echo "FAIL: 已安装 ToDesk 的异常服务没有进入修复流程" >&2
+    exit 1
+}
+if grep -Eq 'unexpected-(download|install)' "$REPAIR_LOG"; then
+    echo "FAIL: ToDesk 服务修复仍重复下载或安装软件包" >&2
+    exit 1
+fi
+grep -Fxq 'steamos-readonly disable' "$REPAIR_LOG" || {
+    echo "FAIL: ToDesk 服务修复前没有临时解除只读保护" >&2
+    exit 1
+}
+grep -Fxq 'steamos-readonly enable' "$REPAIR_LOG" || {
+    echo "FAIL: ToDesk 服务修复后没有恢复只读保护" >&2
+    exit 1
+}
+
+UNINSTALL_LOG="$TMP_ROOT/uninstall.log"
+set +e
+uninstall_output="$(
+    MODULE="$MODULE" UNINSTALL_LOG="$UNINSTALL_LOG" ZHOUKEER_AUTO_CONFIRM=1 bash -c '
+        source "$MODULE"
+        detect_platform() { IS_STEAMOS=1; }
+        todesk_is_installed() { return 0; }
+        require_command() { return 0; }
+        steamos-readonly() { [ "${1:-}" = status ] && printf "%s\n" enabled; }
+        systemctl() {
+            [ "${1:-}" = is-active ] && return 0
+            return 1
+        }
+        toolbox_sudo() {
+            printf "%s\n" "$*" >> "$UNINSTALL_LOG"
+            if [ "${1:-}" = systemctl ] && [ "${2:-}" = disable ]; then
+                return 1
+            fi
+            return 0
+        }
+        uninstall_todesk
+    ' 2>&1
+)"
+uninstall_status=$?
+set -e
+[ "$uninstall_status" -ne 0 ] || {
+    echo "FAIL: ToDesk 服务停用失败时卸载仍报告成功" >&2
+    exit 1
+}
+printf '%s\n' "$uninstall_output" | grep -Fq '软件包尚未卸载' || {
+    echo "FAIL: ToDesk 卸载没有显示服务停用失败位置" >&2
+    exit 1
+}
+if grep -Fq 'pacman -Rns' "$UNINSTALL_LOG"; then
+    echo "FAIL: ToDesk 服务停用失败后仍删除软件包" >&2
+    exit 1
+fi
+grep -Fxq 'steamos-readonly enable' "$UNINSTALL_LOG" || {
+    echo "FAIL: ToDesk 卸载失败后没有恢复只读保护" >&2
+    exit 1
+}
+
+UNINSTALL_MISSING_LOG="$TMP_ROOT/uninstall-missing.log"
+MODULE="$MODULE" UNINSTALL_MISSING_LOG="$UNINSTALL_MISSING_LOG" \
+    ZHOUKEER_AUTO_CONFIRM=1 bash -c '
+    source "$MODULE"
+    detect_platform() { IS_STEAMOS=1; }
+    todesk_is_installed() { return 0; }
+    require_command() { return 0; }
+    steamos-readonly() { [ "${1:-}" = status ] && printf "%s\n" enabled; }
+    systemctl() { return 1; }
+    toolbox_sudo() {
+        printf "%s\n" "$*" >> "$UNINSTALL_MISSING_LOG"
+        if [ "${1:-}" = systemctl ] && [ "${2:-}" = disable ]; then
+            return 1
+        fi
+        return 0
+    }
+    uninstall_todesk
+'
+grep -Fxq 'pacman -Rns --noconfirm todesk-bin' "$UNINSTALL_MISSING_LOG" || {
+    echo "FAIL: ToDesk 服务已经不存在时没有继续卸载软件包" >&2
+    exit 1
+}
+grep -Fxq 'steamos-readonly enable' "$UNINSTALL_MISSING_LOG" || {
+    echo "FAIL: ToDesk 无服务卸载后没有恢复只读保护" >&2
+    exit 1
+}
+
+echo "PASS: ToDesk 官方DEB转换、服务残留修复、只读恢复和单次安装测试通过"

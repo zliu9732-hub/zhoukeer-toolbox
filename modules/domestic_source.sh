@@ -125,7 +125,6 @@ configure_domestic_flatpak() {
     require_steamos || return 1
     require_command flatpak || return 1
     require_command timeout || return 1
-    require_command curl || return 1
 
     echo "[2/2] 配置上海交大和中科大 Flatpak 国内缓存..."
     if ! ensure_flatpak_remotes; then

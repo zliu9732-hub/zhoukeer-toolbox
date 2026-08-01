@@ -61,7 +61,14 @@ if [ "${1:-}" = "-Q" ] && [ "${2:-}" = "todesk-bin" ]; then
 fi
 exit 1
 SCRIPT
-chmod +x "$BIN_DIR/pacman"
+cat > "$BIN_DIR/systemctl" <<'SCRIPT'
+#!/bin/sh
+case "${1:-}" in
+    is-enabled|is-active) exit 0 ;;
+    *) exit 1 ;;
+esac
+SCRIPT
+chmod +x "$BIN_DIR/pacman" "$BIN_DIR/systemctl"
 
 todesk_output="$(
     PATH="$BIN_DIR:/usr/bin:/bin" \

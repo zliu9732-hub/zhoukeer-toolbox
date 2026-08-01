@@ -15,8 +15,6 @@ FLATHUB_CN_REMOTE="flathub-cn"
 FLATHUB_CN_FALLBACK_REMOTE="flathub-ustc"
 FLATHUB_CN_URL="${ZHOUKEER_FLATHUB_CN_URL:-https://mirror.sjtu.edu.cn/flathub}"
 FLATHUB_CN_FALLBACK_URL="${ZHOUKEER_FLATHUB_CN_FALLBACK_URL:-https://mirrors.ustc.edu.cn/flathub}"
-FLATHUB_REPO_FILE_PRIMARY="https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo"
-FLATHUB_REPO_FILE_FALLBACK="https://mirrors.ustc.edu.cn/flathub/flathub.flatpakrepo"
 FLATHUB_OFFICIAL_REMOTE="flathub"
 FLATHUB_OFFICIAL_REPO_FILE="https://dl.flathub.org/repo/flathub.flatpakrepo"
 FLATPAK_INSTALL_TIMEOUT="${ZHOUKEER_FLATPAK_INSTALL_TIMEOUT:-300}"
@@ -153,39 +151,6 @@ confirm_software_install() {
     esac
 }
 
-download_flathub_repo_file() {
-    local destination="$1"
-    local source
-
-    for source in \
-        "$FLATHUB_REPO_FILE_PRIMARY" \
-        "$FLATHUB_REPO_FILE_FALLBACK" \
-        "$FLATHUB_OFFICIAL_REPO_FILE"; do
-        download_policy_url_allowed "$source" || continue
-        echo "正在获取 Flathub 签名配置..."
-        if curl \
-            --fail \
-            --location \
-            --silent \
-            --proto '=https' \
-            --proto-redir '=https' \
-            --connect-timeout 10 \
-            --max-time 30 \
-            --retry 2 \
-            --max-filesize "$(download_policy_max_bytes "$source")" \
-            --output "$destination" \
-            "$source" && download_policy_response_is_safe "$source" "$destination" && \
-            grep -q '^\[Flatpak Repo\]$' "$destination" && \
-            grep -q '^GPGKey=' "$destination"; then
-            return 0
-        fi
-        rm -f -- "$destination"
-    done
-
-    echo "无法获取Flathub签名配置。"
-    return 1
-}
-
 download_official_flathub_repo_file() {
     local destination="$1"
 
@@ -245,8 +210,6 @@ confirm_official_flatpak_restore() {
 }
 
 ensure_flatpak_remotes() {
-    local repo_file=""
-
     if [ "${ZHOUKEER_FORCE_FLATPAK_RECONFIGURE:-0}" != "1" ] && \
        flatpak_remote_exists "$FLATHUB_CN_REMOTE" && \
        flatpak_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE"; then
@@ -257,20 +220,11 @@ ensure_flatpak_remotes() {
         return 1
     }
 
-    if ! flatpak_remote_exists "$FLATHUB_CN_REMOTE" || \
-        ! flatpak_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE"; then
-        repo_file="$(mktemp)" || return 1
-        if ! download_flathub_repo_file "$repo_file"; then
-            rm -f -- "$repo_file"
-            return 1
-        fi
-    fi
-
     if ! flatpak_remote_exists "$FLATHUB_CN_REMOTE"; then
         echo "正在添加Flathub国内缓存源..."
-        if ! timeout --foreground 30 flatpak remote-add --user --if-not-exists --from \
-            "$FLATHUB_CN_REMOTE" "$repo_file"; then
-            rm -f -- "$repo_file"
+        if ! timeout --foreground 30 flatpak remote-add --user --if-not-exists \
+            --no-gpg-verify "$FLATHUB_CN_REMOTE" "$FLATHUB_CN_URL"; then
+            echo "无法添加上海交大Flathub缓存源。"
             return 1
         fi
     fi
@@ -278,37 +232,31 @@ ensure_flatpak_remotes() {
     if ! timeout --foreground 30 flatpak remote-modify --user "$FLATHUB_CN_REMOTE" \
         --url="$FLATHUB_CN_URL"; then
         echo "无法配置上海交大Flathub缓存源。"
-        rm -f -- "$repo_file"
         return 1
     fi
     # 国内镜像关闭 GPG 校验
     if ! timeout --foreground 30 flatpak remote-modify --no-gpg-verify --user "$FLATHUB_CN_REMOTE"; then
         echo "无法关闭上海交大缓存源的 GPG 验证，已停止配置。"
-        rm -f -- "$repo_file"
         return 1
     fi
 
     if ! flatpak_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE"; then
         echo "正在添加中科大Flathub缓存源..."
-        if ! timeout --foreground 30 flatpak remote-add --user --if-not-exists --from \
-            "$FLATHUB_CN_FALLBACK_REMOTE" "$repo_file"; then
-            rm -f -- "$repo_file"
+        if ! timeout --foreground 30 flatpak remote-add --user --if-not-exists \
+            --no-gpg-verify "$FLATHUB_CN_FALLBACK_REMOTE" "$FLATHUB_CN_FALLBACK_URL"; then
+            echo "无法添加中科大Flathub缓存源。"
             return 1
         fi
     fi
     if ! timeout --foreground 30 flatpak remote-modify --user "$FLATHUB_CN_FALLBACK_REMOTE" \
         --url="$FLATHUB_CN_FALLBACK_URL"; then
         echo "无法配置中科大Flathub缓存源。"
-        rm -f -- "$repo_file"
         return 1
     fi
     if ! timeout --foreground 30 flatpak remote-modify --no-gpg-verify --user "$FLATHUB_CN_FALLBACK_REMOTE"; then
         echo "无法关闭中科大缓存源的 GPG 验证，已停止配置。"
-        rm -f -- "$repo_file"
         return 1
     fi
-
-    rm -f -- "$repo_file"
 }
 
 run_flatpak_install() {
