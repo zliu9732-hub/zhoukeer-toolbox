@@ -39,7 +39,12 @@ SCRIPT
 chmod +x "$BIN_DIR/curl"
 
 mkdir -p "$TARGET_ROOT/GE-Proton8-1"
-printf '%s\n' 'keep older version' > "$TARGET_ROOT/GE-Proton8-1/marker.txt"
+printf '%s\n' 'compatibility tool' > "$TARGET_ROOT/GE-Proton8-1/compatibilitytool.vdf"
+printf '%s\n' '#!/bin/bash' > "$TARGET_ROOT/GE-Proton8-1/proton"
+printf '%s\n' 'manifest' > "$TARGET_ROOT/GE-Proton8-1/toolmanifest.vdf"
+mkdir -p "$TARGET_ROOT/GE-Proton10-1" "$TARGET_ROOT/GE-Proton-custom"
+printf '%s\n' 'newer version' > "$TARGET_ROOT/GE-Proton10-1/marker.txt"
+printf '%s\n' 'custom tool' > "$TARGET_ROOT/GE-Proton-custom/marker.txt"
 
 run_install() {
     HOME="$HOME_DIR" \
@@ -60,10 +65,19 @@ test -x "$TARGET_ROOT/GE-Proton9-99/proton" || {
 }
 grep -Fq '请完全退出并重新启动Steam' "$TMP_ROOT/install.output"
 grep -Fq 'https://download.example/GE-Proton9-99.tar.gz' "$CURL_LOG"
-test -f "$TARGET_ROOT/GE-Proton8-1/marker.txt" || {
-    echo "FAIL: 安装新版本时删除了其他GE-Proton版本"
+test ! -e "$TARGET_ROOT/GE-Proton8-1" || {
+    echo "FAIL: 安装新版本后未删除完整的旧版 GE-Proton"
     exit 1
 }
+test -f "$TARGET_ROOT/GE-Proton10-1/marker.txt" || {
+    echo "FAIL: 安装旧版本时误删了版本号更高的 GE-Proton"
+    exit 1
+}
+test -f "$TARGET_ROOT/GE-Proton-custom/marker.txt" || {
+    echo "FAIL: 安装 GE-Proton 时误删了自定义兼容层"
+    exit 1
+}
+grep -Fq '已清理 1 个旧版 GE-Proton' "$TMP_ROOT/install.output"
 
 printf '%s\n' 'old-install' > "$TARGET_ROOT/GE-Proton9-99/old-version.txt"
 curl_calls_before="$(wc -l < "$CURL_LOG" | tr -d '[:space:]')"
@@ -100,4 +114,4 @@ if find "$TARGET_ROOT" -maxdepth 1 -name '.GE-Proton9-99.*' | grep -q .; then
     exit 1
 fi
 
-echo "PASS: GE-Proton目录解析、校验和原子安装测试通过"
+echo "PASS: GE-Proton目录解析、校验、原子安装和旧版安全清理测试通过"

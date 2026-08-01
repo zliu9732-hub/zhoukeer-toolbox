@@ -21,6 +21,12 @@ grep -Fq 'v3.2.8-pre1/dist/plugin_loader-prerelease.service' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'store-test) show_plugin_download_speed_tip; install_plugin_store prerelease' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
+prerelease_download_block="$(sed -n '/if \[ "$channel" = "prerelease" \]; then/,/^[[:space:]]*else$/p' \
+    "$PROJECT_ROOT/modules/plugin_store.sh")"
+printf '%s\n' "$prerelease_download_block" | grep -Fq 'download_github_file' || {
+    echo "FAIL: Decky 测试版未进入统一 GitHub 镜像测速下载流程" >&2
+    exit 1
+}
 grep -Fq 'systemctl --user disable --now "$DECKY_SERVICE_NAME"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_decky_component' "$PROJECT_ROOT/modules/plugin_store.sh"

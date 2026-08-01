@@ -95,19 +95,21 @@ toolbox_sudo() {
         shift
         mock_systemctl system "$@"
     else
+        printf 'sudo %s\n' "$*" >> "$CALLS"
         "$@"
     fi
 }
 
-download_decky_component_with_fallback() {
-    local name="$1"
-    local primary_url="$2"
-    local official_url="$3"
-    local expected_sha256="$4"
-    local output="$5"
+install() {
+    printf 'install %s\n' "$*" >> "$CALLS"
+    command install "$@"
+}
 
-    printf 'download %s|%s|%s|%s\n' \
-        "$name" "$primary_url" "$official_url" "$expected_sha256" >> "$CALLS"
+write_mock_decky_component() {
+    local name="$1"
+    local source_url="$2"
+    local output="$3"
+
     case "$name" in
         'Decky PluginLoader') printf '#!/bin/sh\nexit 0\n' > "$output" ;;
         'Decky systemd服务模板')
@@ -127,12 +129,35 @@ Environment=LOG_LEVEL=INFO
 [Install]
 WantedBy=multi-user.target
 SERVICE
-            if [[ "$primary_url" == *prerelease* ]]; then
+            if [[ "$source_url" == *prerelease* ]]; then
                 sed -i.bak 's/LOG_LEVEL=INFO/LOG_LEVEL=DEBUG/' "$output"
             fi
             ;;
         *) return 1 ;;
     esac
+}
+
+download_decky_component_with_fallback() {
+    local name="$1"
+    local primary_url="$2"
+    local official_url="$3"
+    local expected_sha256="$4"
+    local output="$5"
+
+    printf 'download %s|%s|%s|%s\n' \
+        "$name" "$primary_url" "$official_url" "$expected_sha256" >> "$CALLS"
+    write_mock_decky_component "$name" "$primary_url" "$output"
+}
+
+download_github_file() {
+    local url="$1"
+    local output="$2"
+    local expected_sha256="$3"
+    local name="$4"
+
+    printf 'github %s|%s|%s\n' \
+        "$name" "$url" "$expected_sha256" >> "$CALLS"
+    write_mock_decky_component "$name" "$url" "$output"
 }
 
 prepare_old_testing_install() {
@@ -163,6 +188,13 @@ grep -Fq 'user disable --now plugin_loader.service' "$CALLS" || \
     fail "稳定版安装未停用旧测试版用户服务"
 grep -Fq "download Decky PluginLoader|$DECKY_LOADER_URL|$DECKY_LOADER_OFFICIAL_URL" \
     "$CALLS" || fail "稳定版未使用国内到官方的回退顺序"
+stable_stop_line="$(grep -n 'system stop plugin_loader.service' "$CALLS" | head -n 1 | cut -d: -f1)"
+stable_user_stop_line="$(grep -n 'user disable --now plugin_loader.service' "$CALLS" | head -n 1 | cut -d: -f1)"
+stable_install_line="$(grep -n '^install -m 0755 .*PluginLoader.new' "$CALLS" | head -n 1 | cut -d: -f1)"
+[ -n "$stable_stop_line" ] && [ -n "$stable_user_stop_line" ] && \
+    [ -n "$stable_install_line" ] && [ "$stable_stop_line" -lt "$stable_install_line" ] && \
+    [ "$stable_user_stop_line" -lt "$stable_install_line" ] || \
+    fail "稳定版未在写入新文件前停用系统级和用户级旧服务"
 
 # 新服务启动失败时，必须恢复稳定版文件、通道和旧用户服务状态。
 : > "$SYSTEM_RESTART_FAIL"
@@ -182,17 +214,30 @@ rm -f -- "$SYSTEM_RESTART_FAIL"
 
 : > "$CALLS"
 printf '[Service]\n' > "$USER_UNIT_PATH"
+: > "$SYSTEM_ACTIVE"
+: > "$USER_ACTIVE"
+: > "$USER_ENABLED"
 install_plugin_store prerelease > "$TMP_ROOT/prerelease.output" || \
     fail "Decky 官方测试版安装失败"
 grep -Fxq 'v3.2.8-pre1' "$SERVICES_DIR/.loader.version" || \
     fail "测试版安装未更新版本标记"
 grep -Eq '"branch"[[:space:]]*:[[:space:]]*1' "$SETTINGS_DIR/loader.json" || \
     fail "测试版安装未切换到预发布分支"
-grep -Fq "download Decky PluginLoader|$DECKY_PRERELEASE_LOADER_URL|$DECKY_PRERELEASE_LOADER_URL" \
-    "$CALLS" || fail "测试版未只使用 Decky 官方 Release"
+grep -Fq "github Decky PluginLoader|$DECKY_PRERELEASE_LOADER_URL|$DECKY_PRERELEASE_LOADER_SHA256" \
+    "$CALLS" || fail "测试版未使用统一 GitHub Release 下载流程"
+grep -Fq "github Decky systemd服务模板|$DECKY_PRERELEASE_SERVICE_URL|$DECKY_PRERELEASE_SERVICE_SHA256" \
+    "$CALLS" || fail "测试版服务模板未使用统一 GitHub 下载流程"
 if grep -Fq 'www.mhhf.com' "$CALLS"; then
     fail "测试版安装错误使用了国内源"
 fi
+prerelease_stop_line="$(grep -n 'system stop plugin_loader.service' "$CALLS" | head -n 1 | cut -d: -f1)"
+prerelease_user_stop_line="$(grep -n 'user disable --now plugin_loader.service' "$CALLS" | head -n 1 | cut -d: -f1)"
+prerelease_install_line="$(grep -n '^install -m 0755 .*PluginLoader.new' "$CALLS" | head -n 1 | cut -d: -f1)"
+[ -n "$prerelease_stop_line" ] && [ -n "$prerelease_user_stop_line" ] && \
+    [ -n "$prerelease_install_line" ] && \
+    [ "$prerelease_stop_line" -lt "$prerelease_install_line" ] && \
+    [ "$prerelease_user_stop_line" -lt "$prerelease_install_line" ] || \
+    fail "测试版未在写入新文件前停用系统级和用户级旧服务"
 grep -Fq 'LOG_LEVEL=DEBUG' "$UNIT_PATH" || fail "测试版未安装官方预发布服务模板"
 
 mkdir -p "$SERVICES_DIR/.systemd"

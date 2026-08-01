@@ -23,7 +23,7 @@ DECKY_SERVICE_SHA256="${DECKY_SERVICE_SHA256:-64d6aa626aa45e1659e3137aa3afd72edd
 DECKY_LOADER_OFFICIAL_URL="https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.6/PluginLoader"
 DECKY_SERVICE_OFFICIAL_URL="https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service"
 DECKY_STABLE_VERSION="v3.2.6"
-# 测试版只使用 Decky 官方固定 prerelease，不经过国内镜像。
+# 测试版固定使用 Decky 官方 prerelease，并通过统一 GitHub 下载链路选择传输源。
 DECKY_PRERELEASE_VERSION="v3.2.8-pre1"
 DECKY_PRERELEASE_LOADER_URL="https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8-pre1/PluginLoader"
 DECKY_PRERELEASE_LOADER_SHA256="9df160a81df3fc49c96e5665a1d1b3ba5c79de5bf271adc266d6bfedfda399d8"
@@ -570,18 +570,31 @@ install_plugin_store() (
     trap 'exit 130' INT TERM
     trap 'finish_plugin_store_install $?' EXIT
 
-    download_decky_component_with_fallback \
-        "Decky PluginLoader" \
-        "$loader_url" \
-        "$loader_official_url" \
-        "$loader_sha256" \
-        "$loader_download" || return 1
-    download_decky_component_with_fallback \
-        "Decky systemd服务模板" \
-        "$service_url" \
-        "$service_official_url" \
-        "$service_sha256" \
-        "$service_template" || return 1
+    if [ "$channel" = "prerelease" ]; then
+        download_github_file \
+            "$loader_url" \
+            "$loader_download" \
+            "$loader_sha256" \
+            "Decky PluginLoader" || return 1
+        download_github_file \
+            "$service_url" \
+            "$service_template" \
+            "$service_sha256" \
+            "Decky systemd服务模板" || return 1
+    else
+        download_decky_component_with_fallback \
+            "Decky PluginLoader" \
+            "$loader_url" \
+            "$loader_official_url" \
+            "$loader_sha256" \
+            "$loader_download" || return 1
+        download_decky_component_with_fallback \
+            "Decky systemd服务模板" \
+            "$service_url" \
+            "$service_official_url" \
+            "$service_sha256" \
+            "$service_template" || return 1
+    fi
     render_decky_service "$service_template" "$rendered_service" "$DECKY_HOMEBREW_DIR" || return 1
     prepare_decky_homebrew_dirs "$DECKY_HOMEBREW_DIR" || return 1
 
@@ -609,11 +622,13 @@ install_plugin_store() (
     fi
     if toolbox_sudo test -f "$DECKY_UNIT_PATH"; then
         DECKY_UNIT_HAD_OLD=1
-        toolbox_sudo systemctl is-enabled --quiet "$DECKY_SERVICE_NAME" >/dev/null 2>&1 && \
-            DECKY_OLD_ENABLED=1
-        toolbox_sudo systemctl is-active --quiet "$DECKY_SERVICE_NAME" >/dev/null 2>&1 && \
-            DECKY_OLD_ACTIVE=1
     fi
+    # 稳定版和测试版最终都由 plugin_loader.service 承载。即使旧 unit 不在
+    # 当前预期路径，也要先按 systemd 实际状态停掉旧服务，再替换任何文件。
+    toolbox_sudo systemctl is-enabled --quiet "$DECKY_SERVICE_NAME" >/dev/null 2>&1 && \
+        DECKY_OLD_ENABLED=1
+    toolbox_sudo systemctl is-active --quiet "$DECKY_SERVICE_NAME" >/dev/null 2>&1 && \
+        DECKY_OLD_ACTIVE=1
     [ ! -f "$DECKY_VERSION_TARGET" ] || DECKY_VERSION_HAD_OLD=1
     if [ -f "$DECKY_SETTINGS_TARGET" ]; then
         DECKY_SETTINGS_HAD_OLD=1

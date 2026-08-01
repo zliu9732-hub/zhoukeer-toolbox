@@ -173,6 +173,54 @@ ge_proton_is_installed() {
         validate_extracted_tool "$target_dir" >/dev/null 2>&1
 }
 
+cleanup_older_ge_proton_versions() {
+    local compatibility_dir="$1"
+    local current_name="$2"
+    local current_numbers current_major current_build
+    local candidate candidate_name candidate_numbers candidate_major candidate_build
+    local removed=0
+
+    current_numbers="${current_name#GE-Proton}"
+    current_major="${current_numbers%%-*}"
+    current_build="${current_numbers#*-}"
+    case "$current_major:$current_build" in
+        *[!0-9:]*) return 1 ;;
+    esac
+
+    for candidate in "$compatibility_dir"/GE-Proton*; do
+        [ -e "$candidate" ] || [ -L "$candidate" ] || continue
+        candidate_name="${candidate##*/}"
+        [ "$candidate_name" != "$current_name" ] || continue
+        case "$candidate_name" in
+            GE-Proton[0-9]*-[0-9]*) ;;
+            *) continue ;;
+        esac
+        candidate_numbers="${candidate_name#GE-Proton}"
+        candidate_major="${candidate_numbers%%-*}"
+        candidate_build="${candidate_numbers#*-}"
+        case "$candidate_major:$candidate_build" in
+            *[!0-9:]*) continue ;;
+        esac
+        if [ "$candidate_major" -gt "$current_major" ] || \
+           { [ "$candidate_major" -eq "$current_major" ] && \
+             [ "$candidate_build" -ge "$current_build" ]; }; then
+            continue
+        fi
+        if [ ! -d "$candidate" ] || [ -L "$candidate" ] || \
+           ! validate_extracted_tool "$candidate" >/dev/null 2>&1; then
+            log "跳过类型异常或不完整的旧版 GE-Proton：$candidate"
+            continue
+        fi
+        rm -rf -- "$candidate" || return 1
+        removed=$((removed + 1))
+        log "已删除旧版 GE-Proton：$candidate_name"
+    done
+
+    if [ "$removed" -gt 0 ]; then
+        echo "已清理 $removed 个旧版 GE-Proton。"
+    fi
+}
+
 cleanup_ge_proton() {
     if [ "$GE_PROTON_SWAP_STARTED" -eq 1 ] && \
         [ "$GE_PROTON_SWAP_FINISHED" -eq 0 ] && \
@@ -198,6 +246,10 @@ install_ge_proton() {
     validate_ge_proton_config || return 1
     compatibility_dir="$(resolve_compatibilitytools_dir)" || return 1
     if ge_proton_is_installed "$compatibility_dir"; then
+        cleanup_older_ge_proton_versions "$compatibility_dir" "$GE_PROTON_VERSION" || {
+            echo "旧版 GE-Proton 清理失败。"
+            return 1
+        }
         echo "[已安装] $GE_PROTON_VERSION 已存在且文件完整，无需重复安装。"
         return 0
     fi
@@ -262,6 +314,10 @@ install_ge_proton() {
     rm -rf -- "$GE_PROTON_BACKUP_DIR"
     GE_PROTON_BACKUP_DIR=""
 
+    cleanup_older_ge_proton_versions "$compatibility_dir" "$GE_PROTON_VERSION" || {
+        echo "$GE_PROTON_VERSION 已安装，但旧版 GE-Proton 清理失败。"
+        return 1
+    }
     log "$GE_PROTON_VERSION 已安装到 $GE_PROTON_TARGET_DIR"
     echo "$GE_PROTON_VERSION 安装完成。"
     echo "请完全退出并重新启动Steam，然后在游戏属性的兼容性页面选择该版本。"
