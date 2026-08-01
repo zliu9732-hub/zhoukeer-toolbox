@@ -353,6 +353,7 @@ fi
 
 # 两个国内缓存都失败时必须停止，不能继续寻找官方源。
 rm -f "$STATE_DIR/installed.com.qq.QQ"
+remote_modify_before_failure="$(grep -c '^modify ' "$STATE_DIR/commands")"
 set +e
 failure_output="$(
     PATH="$BIN_DIR:$PATH" \
@@ -366,9 +367,10 @@ failure_status=$?
 set -e
 [ "$failure_status" -ne 0 ]
 printf '%s\n' "$failure_output" | grep -Fq '两个国内缓存均失败或超时'
-printf '%s\n' "$failure_output" | grep -Fq '不再额外寻找Flathub官方源'
+printf '%s\n' "$failure_output" | grep -Fq '检测到下载源不可用，正在切换至国内源，请耐心等待'
 # 首轮失败后修复一次 Flatpak 环境，再对两个国内缓存各重试一次。
-[ "$(printf '%s\n' "$failure_output" | grep -c '正在从 flathub-.*安装\|正在从 flathub-cn 安装')" -eq 4 ]
+[ "$(grep -c '^install .* com.qq.QQ$' "$STATE_DIR/commands")" -eq 5 ]
+[ "$(( $(grep -c '^modify ' "$STATE_DIR/commands") - remote_modify_before_failure ))" -eq 4 ]
 ! grep -Fq ' flathub com.qq.QQ' "$STATE_DIR/commands"
 ! grep -Fq 'https://dl.flathub.org/repo/summary.idx' "$STATE_DIR/curl-urls"
 

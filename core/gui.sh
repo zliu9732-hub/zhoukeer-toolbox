@@ -632,6 +632,41 @@ pacman 仓库：archlinuxcn
     esac
 }
 
+memory_gui_menu() {
+    local choice
+
+    while true; do
+        choice="$(gui_dialog --menu "虚拟内存｜优化、查看或撤销工具箱设置" \
+            optimize "一键优化｜设置 zram 与磁盘 swap" \
+            status "查看状态" \
+            restore "撤销工具箱优化｜保留系统原 swap" \
+            back "返回更多设置" \
+            home "返回首页" \
+            nav-exit "退出工具箱")" || return 0
+        case "$choice" in
+            optimize)
+                gui_confirm "将设置 zram、磁盘 swap 和 swappiness；失败时自动恢复。确认继续？" && \
+                    run_gui_action "一键优化虚拟内存" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/memory_tuning.sh" optimize
+                return 0
+                ;;
+            status)
+                run_gui_action "虚拟内存状态" bash "$PROJECT_ROOT/modules/memory_tuning.sh" status
+                return 0
+                ;;
+            restore)
+                gui_confirm "只删除工具箱创建的配置和独立 swap；系统原 swap 会保留。确认撤销？" && \
+                    run_gui_action "撤销工具箱虚拟内存优化" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/memory_tuning.sh" restore
+                return 0
+                ;;
+            back) return 0 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
+        esac
+    done
+}
+
 advanced_tools_gui_menu() {
     local choice
 
@@ -639,7 +674,7 @@ advanced_tools_gui_menu() {
         choice="$(gui_dialog --menu "更多设置｜国内下载、网络加速、内存、密码与双系统" \
             domestic-source "国内软件源｜会修改 Flatpak 软件源｜高级操作" \
             accelerator "Steamcommunity 302｜可能修改 DNS 和证书｜高级操作" \
-            memory-optimize "一键优化虚拟内存｜同时设置 zram 与磁盘 swap｜高级操作" \
+            memory "虚拟内存｜设置 zram、swap 或撤销｜高级操作" \
             change-password "修改管理员密码｜会更换 SteamOS 管理密码｜高级操作" \
             dual "双系统与互通盘｜管理磁盘和开机菜单｜高级操作" \
             home "返回首页" \
@@ -647,11 +682,7 @@ advanced_tools_gui_menu() {
         case "$choice" in
             domestic-source) domestic_source_gui_preflight ;;
             accelerator) steam_accelerator_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
-            memory-optimize)
-                gui_confirm "将设置压缩内存和磁盘虚拟内存。原文件会先在同目录临时备份，失败时自动恢复；需要管理员权限并在重启后完全生效。确认继续？" && \
-                    run_gui_action "一键优化虚拟内存" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/memory_tuning.sh" optimize
-                ;;
+            memory) memory_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             change-password)
                 gui_confirm "将读取旧记录并明文保存新密码；当前用户运行的软件都可能读取。确认继续？" && \
                     run_gui_action "修改管理员密码" bash "$PROJECT_ROOT/modules/password.sh" change

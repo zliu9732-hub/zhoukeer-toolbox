@@ -118,42 +118,33 @@ software_details() {
 confirm_software_install() {
     local answer
 
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        return 0
+    fi
     case "$SOFTWARE_INSTALL_MODE" in
         appimage)
             echo "将从腾讯QQ官网国内CDN下载官方AppImage：$SOFTWARE_NAME"
-            echo "安装位置：$QQ_APPIMAGE_PATH"
-            echo "下载最长等待 $QQ_DOWNLOAD_TIMEOUT 秒，失败后会保留旧版本。"
             ;;
         wechat_appimage)
             echo "将从微信Linux版官网下载官方x86_64 AppImage。"
-            echo "安装位置：$WECHAT_APPIMAGE_PATH"
-            echo "下载最长等待 $WECHAT_DOWNLOAD_TIMEOUT 秒，失败后会保留旧版本。"
             ;;
         flatpak_official)
             echo "将从官方 Flathub 安装 Firefox（org.mozilla.firefox）。"
-            echo "使用官方 Flathub，Firefox 后续可在系统内自动更新。"
             ;;
         rustdesk_appimage)
             echo "将从 RustDesk 作者 GitHub Release 下载 x86_64 AppImage。"
-            echo "安装位置：$RUSTDESK_APPIMAGE_PATH"
-            echo "下载最长等待 $RUSTDESK_DOWNLOAD_TIMEOUT 秒，失败后会保留旧版本。"
             ;;
         baidunetdisk)
             SOFTWARE_NAME="百度网盘"
             SOFTWARE_DESKTOP_NAME="百度网盘"
             SOFTWARE_APP_ID="com.baidu.NetDisk"
             SOFTWARE_CATEGORIES="Network;FileTransfer;"
+            echo "将通过 Flatpak 国内源安装：$SOFTWARE_NAME"
             ;;
         *)
-            echo "将通过Flatpak以当前用户身份安装：$SOFTWARE_NAME"
-            echo "应用ID：$SOFTWARE_APP_ID"
-            echo "下载顺序：上海交大Flathub缓存 → 中科大Flathub缓存"
-            echo "每个来源最长等待 $FLATPAK_INSTALL_TIMEOUT 秒，不再额外寻找Flathub官方源。"
+            echo "将通过 Flatpak 国内源安装：$SOFTWARE_NAME"
             ;;
     esac
-    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
-        return 0
-    fi
 
     read -r -p "是否继续？[y/N] " answer
     case "$answer" in
@@ -256,6 +247,11 @@ confirm_official_flatpak_restore() {
 ensure_flatpak_remotes() {
     local repo_file=""
 
+    if [ "${ZHOUKEER_FORCE_FLATPAK_RECONFIGURE:-0}" != "1" ] && \
+       flatpak_remote_exists "$FLATHUB_CN_REMOTE" && \
+       flatpak_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE"; then
+        return 0
+    fi
     confirm_domestic_flatpak_risk || {
         echo "已取消国内 Flatpak 源配置，未修改任何远程源。"
         return 1
@@ -327,7 +323,6 @@ run_flatpak_install() {
     fi
 
     while [ "$attempt" -le "$FLATPAK_INSTALL_RETRIES" ]; do
-        echo "正在从 $remote 安装（第 $attempt/$FLATPAK_INSTALL_RETRIES 次尝试）..."
         if LC_ALL="$locale_name" LANG="$locale_name" \
             timeout --foreground "$FLATPAK_INSTALL_TIMEOUT" \
             flatpak install --user --noninteractive -y "$remote" "$SOFTWARE_APP_ID"; then
@@ -388,11 +383,6 @@ choose_install_remotes() {
         awk "BEGIN { exit !($fallback_seconds < $primary_seconds) }"; then
         INSTALL_PRIMARY_REMOTE="$FLATHUB_CN_FALLBACK_REMOTE"
         INSTALL_FALLBACK_REMOTE="$FLATHUB_CN_REMOTE"
-        echo "测速结果：优先使用中科大缓存（科大 ${fallback_seconds}s，交大 ${primary_seconds}s）。"
-    elif [ -n "$primary_seconds" ]; then
-        echo "测速结果：优先使用上海交大缓存（${primary_seconds}s）。"
-    else
-        echo "测速未完成，默认先尝试上海交大缓存。"
     fi
     log "$SOFTWARE_NAME 下载源顺序: $INSTALL_PRIMARY_REMOTE -> $INSTALL_FALLBACK_REMOTE"
 }
@@ -870,7 +860,6 @@ Categories=$SOFTWARE_CATEGORIES
 EOF
     chmod +x "$desktop_file" || return 1
 
-    echo "已创建桌面快捷方式：$desktop_file"
     log "$SOFTWARE_NAME 桌面快捷方式已创建: $desktop_file"
 }
 
@@ -884,7 +873,7 @@ install_software() {
     }
 
     if software_is_installed; then
-        echo "[已安装] $SOFTWARE_NAME 已存在，无需重复安装；正在检查桌面快捷方式。"
+        echo "[已安装] $SOFTWARE_NAME"
         create_software_shortcut
         return $?
     fi
@@ -941,14 +930,16 @@ install_software() {
         if run_flatpak_install "$INSTALL_PRIMARY_REMOTE"; then
             break
         fi
-        echo "$INSTALL_PRIMARY_REMOTE 安装失败或超时，切换备用源 $INSTALL_FALLBACK_REMOTE。"
         if run_flatpak_install "$INSTALL_FALLBACK_REMOTE"; then
             break
         fi
         if [ "$_fr_retry" -eq 0 ]; then
-            echo "安装失败，正在修复 Flatpak 环境后重试..."
-            bash "$PROJECT_ROOT/modules/domestic_source.sh" enable 2>/dev/null || true
-            ensure_flatpak_remotes 2>/dev/null || true
+            echo "检测到下载源不可用，正在切换至国内源，请耐心等待..."
+            if ! ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
+                bash "$PROJECT_ROOT/modules/domestic_source.sh" enable >/dev/null 2>&1; then
+                ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
+                    ensure_flatpak_remotes >/dev/null 2>&1 || true
+            fi
             choose_install_remotes 2>/dev/null || true
             _fr_retry=1
         else

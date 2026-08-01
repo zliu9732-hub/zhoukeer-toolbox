@@ -62,6 +62,7 @@ printf '%s\n' "$canvas_request" | grep -Fq '\033[8;%s;%st' || fail "没有请求
 grep -Fq 'ui_wait_for_minimum_canvas || true' "$PROJECT_ROOT/main.sh" || fail "主程序首次绘制前没有等待窗口尺寸就绪"
 startup_loading="$(sed -n '/^show_startup_loading()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$startup_loading" | grep -Fq '工具箱启动中，请耐心等待' || fail "启动等待阶段缺少明确提示"
+printf '%s\n' "$startup_loading" | grep -Fq '若启动较慢，工具箱可能正在更新，请耐心等待' || fail "启动等待阶段缺少更新说明"
 main_prefix="$(sed -n '1,/^# V5 默认就是纯触控界面/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$main_prefix" | grep -Fq 'show_startup_loading' || fail "启动提示没有在触控界面初始化前显示"
 

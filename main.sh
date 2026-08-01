@@ -29,7 +29,7 @@ ensure_runtime_dirs
 
 show_startup_loading() {
     # 终端恢复尺寸前可能会短暂只显示背景横线；先给出明确反馈，避免误以为卡住。
-    printf '\033[0m\033[2J\033[H\n\n  工具箱启动中，请耐心等待…\n'
+    printf '\033[0m\033[2J\033[H\n\n  工具箱启动中，请耐心等待…\n  若启动较慢，工具箱可能正在更新，请耐心等待。\n'
 }
 
 # 首次启动时 Konsole 可能还未应用工具箱的 120×32 配置；先等画布就绪，
@@ -753,6 +753,40 @@ domestic_source_preflight() {
     done
 }
 
+memory_touch_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame advanced "虚拟内存" "优化、查看或撤销工具箱设置"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "一键优化" "设置 zram 与磁盘 swap"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "查看状态" "查看当前 zram 与 swap"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "撤销工具箱优化" "保留系统原 swap"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回更多设置" "查看其他系统功能"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:7-8:optimize right:11-12:status right:15-16:restore right:19-20:advanced right:22-23:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            optimize)
+                confirm_and_run "一键优化虚拟内存" "会设置 zram、磁盘 swap 和 swappiness；失败时自动恢复" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/memory_tuning.sh" optimize
+                return 0
+                ;;
+            status)
+                run_action "虚拟内存状态" bash "$PROJECT_ROOT/modules/memory_tuning.sh" status
+                return 0
+                ;;
+            restore)
+                confirm_and_run "撤销工具箱虚拟内存优化" "只删除工具箱创建的配置和独立 swap；系统原 swap 会保留" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/memory_tuning.sh" restore
+                return 0
+                ;;
+            advanced) return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+    done
+}
+
 advanced_tools_menu() {
     local choice
 
@@ -760,17 +794,17 @@ advanced_tools_menu() {
         draw_category_frame advanced "更多设置" "国内下载、网络加速、内存、密码与双系统"
         ui_touch_button 7 '\033[1;97;48;5;160m' "国内软件源" "会修改 Flatpak 软件源 · 高级操作"
         ui_touch_button 9 '\033[1;97;48;5;160m' "Steamcommunity 302" "可能修改 DNS 和证书 · 高级操作"
-        ui_touch_button 11 '\033[1;97;48;5;160m' "一键优化虚拟内存" "同时设置 zram 与磁盘 swap · 高级操作"
+        ui_touch_button 11 '\033[1;97;48;5;160m' "虚拟内存" "设置 zram、swap 或撤销 · 高级操作"
         ui_touch_button 13 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
         ui_touch_button 15 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单 · 高级操作"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:memory-optimize right:13-14:change-password right:15-16:dual right:22-23:home)"
+        choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:memory right:13-14:change-password right:15-16:dual right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             domestic-source) domestic_source_preflight ;;
             accelerator) steam_accelerator_touch_menu ;;
-            memory-optimize) confirm_and_run "一键优化虚拟内存" "会设置压缩内存和磁盘虚拟内存；原文件先在同目录临时备份，失败自动恢复；需重启完全生效" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/memory_tuning.sh" optimize ;;
+            memory) memory_touch_menu ;;
             change-password) confirm_and_run "修改管理员密码" "将读取旧记录并明文保存新密码；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;
             dual) dual_system_menu ;;
             home) NEXT_CATEGORY="home"; return 0 ;;

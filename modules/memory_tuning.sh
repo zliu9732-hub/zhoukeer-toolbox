@@ -219,17 +219,25 @@ memory_show_status() {
 memory_confirm_optimize() {
     local answer
 
-    echo "将一次性优化两种虚拟内存："
-    echo "1. zram：物理内存的一半，zstd 压缩，优先级 100"
-    echo "2. 磁盘 swap：按内存自动取 8-16GB，优先级 10"
-    echo "3. swappiness：设为 1，减少不必要的磁盘写入"
-    echo "会在原 swap 正常停用后原子替换；空间不足或停用失败会停止。"
-    echo "原 swap 会先移到同目录临时备份；失败时尽量恢复，成功后才清理临时备份。"
+    echo "将设置 zram、8-16GB 磁盘 swap 和 swappiness。"
+    echo "原 swap 会先安全停用并备份，失败时自动恢复。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi
     read -r -p "确认优化请输入 OPTIMIZE MEMORY：" answer
     [ "$answer" = "OPTIMIZE MEMORY" ]
+}
+
+memory_confirm_restore() {
+    local answer
+
+    echo "将删除工具箱创建的 zram、swappiness 和独立 swap；系统原 swap 会保留。"
+    echo "撤销将在重启后完全生效。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        return 0
+    fi
+    read -r -p "确认撤销请输入 RESTORE MEMORY：" answer
+    [ "$answer" = "RESTORE MEMORY" ]
 }
 
 memory_write_config() {
@@ -261,6 +269,110 @@ memory_config_target_is_safe() {
         echo "发现非工具箱管理的配置，未覆盖：$target"
         return 1
     fi
+}
+
+memory_file_is_toolbox_managed() {
+    local path="$1"
+
+    toolbox_sudo test -f "$path" &&
+        ! toolbox_sudo test -L "$path" &&
+        toolbox_sudo grep -Fqx '# Managed by Zhoukeer Toolbox' "$path"
+}
+
+memory_swap_unit_is_toolbox_managed() {
+    local unit_path="$1"
+    local swap_path="$2"
+
+    memory_file_is_toolbox_managed "$unit_path" &&
+        toolbox_sudo grep -Fqx "What=$swap_path" "$unit_path"
+}
+
+memory_remove_managed_config() {
+    local path="$1"
+
+    if ! toolbox_sudo test -e "$path" && ! toolbox_sudo test -L "$path"; then
+        return 0
+    fi
+    if ! memory_file_is_toolbox_managed "$path"; then
+        echo "发现非工具箱配置，已保留：$path"
+        return 0
+    fi
+    toolbox_sudo rm -f -- "$path" || {
+        echo "工具箱配置删除失败：$path"
+        return 1
+    }
+}
+
+memory_remove_managed_main_unit() {
+    local unit_name="$1"
+    local unit_path="$MEMORY_SYSTEMD_DIR/$unit_name"
+
+    if ! toolbox_sudo test -e "$unit_path" && ! toolbox_sudo test -L "$unit_path"; then
+        return 0
+    fi
+    if ! memory_swap_unit_is_toolbox_managed "$unit_path" "$MEMORY_SWAPFILE_PATH"; then
+        echo "发现非工具箱 swap 配置，已保留：$unit_path"
+        return 0
+    fi
+    toolbox_sudo systemctl disable "$unit_name" >/dev/null 2>&1 || return 1
+    if ! toolbox_sudo rm -f -- "$unit_path"; then
+        toolbox_sudo systemctl enable "$unit_name" >/dev/null 2>&1 || true
+        return 1
+    fi
+}
+
+memory_remove_managed_fallback_swap() {
+    local unit_name="$1"
+    local unit_path="$MEMORY_SYSTEMD_DIR/$unit_name"
+    local fallback_was_active=0
+    local swap_type
+
+    if ! toolbox_sudo test -e "$unit_path" && ! toolbox_sudo test -L "$unit_path"; then
+        return 0
+    fi
+    if ! memory_swap_unit_is_toolbox_managed "$unit_path" "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
+        echo "发现非工具箱 swap 配置，已保留：$unit_path"
+        return 0
+    fi
+    if toolbox_sudo test -e "$MEMORY_FALLBACK_SWAPFILE_PATH" || \
+       toolbox_sudo test -L "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
+        if ! toolbox_sudo test -f "$MEMORY_FALLBACK_SWAPFILE_PATH" || \
+           toolbox_sudo test -L "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
+            echo "工具箱独立 swap 路径异常，已保留。"
+            return 1
+        fi
+        swap_type="$(toolbox_sudo blkid -p -s TYPE -o value \
+            "$MEMORY_FALLBACK_SWAPFILE_PATH" 2>/dev/null || true)"
+        if [ "$swap_type" != "swap" ]; then
+            echo "工具箱独立 swap 内容异常，已保留。"
+            return 1
+        fi
+    fi
+    toolbox_sudo systemctl disable "$unit_name" >/dev/null 2>&1 || return 1
+    if memory_swap_is_active "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
+        fallback_was_active=1
+        if ! toolbox_sudo swapoff "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
+            toolbox_sudo systemctl enable "$unit_name" >/dev/null 2>&1 || true
+            echo "工具箱独立 swap 正在使用，无法安全停用。"
+            return 1
+        fi
+    fi
+    if toolbox_sudo test -e "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
+        memory_clear_immutable_attribute "$MEMORY_FALLBACK_SWAPFILE_PATH" || {
+            [ "$fallback_was_active" -eq 0 ] || \
+                toolbox_sudo swapon --priority 10 "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
+            toolbox_sudo systemctl enable "$unit_name" >/dev/null 2>&1 || true
+            return 1
+        }
+        if ! toolbox_sudo rm -f -- "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
+            memory_restore_immutable_attribute "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
+            [ "$fallback_was_active" -eq 0 ] || \
+                toolbox_sudo swapon --priority 10 "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
+            toolbox_sudo systemctl enable "$unit_name" >/dev/null 2>&1 || true
+            return 1
+        fi
+    fi
+    toolbox_sudo rm -f -- "$unit_path" || return 1
 }
 
 memory_create_swapfile() {
@@ -454,10 +566,55 @@ EOF
     trap - EXIT INT TERM
 }
 
+memory_restore_toolbox() {
+    local main_unit_name fallback_unit_name command_name
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "虚拟内存撤销仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    [ "$(id -u)" -ne 0 ] || {
+        echo "请使用桌面用户运行工具箱，不要直接以 root 运行。"
+        return 1
+    }
+    if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
+        ! bash "$PROJECT_ROOT/modules/preflight.sh" memory-restore; then
+        echo "虚拟内存撤销已停止：准备检查未通过。"
+        return 1
+    fi
+    memory_validate_paths || return 1
+    for command_name in blkid grep readlink swapon swapoff systemctl systemd-escape; do
+        require_command "$command_name" || return 1
+    done
+    memory_confirm_restore || {
+        echo "已取消撤销。"
+        return 0
+    }
+    toolbox_sudo true || {
+        echo "管理员权限验证失败，未修改虚拟内存。"
+        return 1
+    }
+
+    main_unit_name="$(memory_swap_unit_name_for_path "$MEMORY_SWAPFILE_PATH")" || return 1
+    fallback_unit_name="$(memory_swap_unit_name_for_path \
+        "$MEMORY_FALLBACK_SWAPFILE_PATH")" || return 1
+    memory_remove_managed_fallback_swap "$fallback_unit_name" || return 1
+    [ "$main_unit_name" = "$fallback_unit_name" ] || \
+        memory_remove_managed_main_unit "$main_unit_name" || return 1
+    memory_remove_managed_config "$MEMORY_ZRAM_CONFIG" || return 1
+    memory_remove_managed_config "$MEMORY_SYSCTL_CONFIG" || return 1
+    toolbox_sudo systemctl daemon-reload >/dev/null 2>&1 || return 1
+
+    echo "工具箱虚拟内存优化已撤销；系统原 swap 已保留，请重启。"
+    log "工具箱虚拟内存优化已撤销，系统原 swap 已保留"
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-status}" in
         status) memory_show_status ;;
         optimize) memory_optimize ;;
-        *) echo "用法: $0 {status|optimize}"; exit 1 ;;
+        restore) memory_restore_toolbox ;;
+        *) echo "用法: $0 {status|optimize|restore}"; exit 1 ;;
     esac
 fi

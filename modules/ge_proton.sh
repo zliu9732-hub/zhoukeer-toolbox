@@ -234,8 +234,6 @@ install_ge_proton() {
         echo "GE-Proton SHA256校验失败，已有兼容层保持不变。"
         return 1
     fi
-    echo "GE-Proton SHA256校验通过。"
-
     validate_archive_members "$archive" || return 1
     if ! tar --no-same-owner --no-same-permissions -xzf "$archive" -C "$extract_dir"; then
         echo "GE-Proton解压失败。"
@@ -265,9 +263,7 @@ install_ge_proton() {
     GE_PROTON_BACKUP_DIR=""
 
     log "$GE_PROTON_VERSION 已安装到 $GE_PROTON_TARGET_DIR"
-    echo ""
     echo "$GE_PROTON_VERSION 安装完成。"
-    echo "安装位置：$GE_PROTON_TARGET_DIR"
     echo "请完全退出并重新启动Steam，然后在游戏属性的兼容性页面选择该版本。"
 }
 

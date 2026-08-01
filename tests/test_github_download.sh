@@ -10,8 +10,12 @@ grep -Fq -- '--progress-bar' "$PROJECT_ROOT/utils/github_download.sh" || {
     echo "FAIL: GitHub 下载缺少百分比进度条" >&2
     exit 1
 }
-grep -Fq '下载失败，切换备用源。' "$PROJECT_ROOT/utils/github_download.sh" || {
-    echo "FAIL: GitHub 下载仍显示具体失败原因" >&2
+if grep -Fq '下载失败，切换备用源。' "$PROJECT_ROOT/utils/github_download.sh"; then
+    echo "FAIL: GitHub 下载仍显示逐线路失败提示" >&2
+    exit 1
+fi
+grep -Fq 'echo "$name 下载失败。"' "$PROJECT_ROOT/utils/github_download.sh" || {
+    echo "FAIL: GitHub 下载缺少简洁失败提示" >&2
     exit 1
 }
 

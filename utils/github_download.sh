@@ -187,9 +187,6 @@ download_github_file() {
     case "$url" in
         https://github.com/*|https://raw.githubusercontent.com/*)
             ranked_sources="$(get_ranked_github_sources "$url")" || ranked_sources=""
-            if _github_steam302_is_ready; then
-                echo "已检测到 Steamcommunity 302；将按实际文件测速选择吞吐最快的下载源。"
-            fi
             ;;
         https://*) ranked_sources="DIRECT" ;;
         *)
@@ -233,7 +230,6 @@ download_github_file() {
         if ! _github_download_is_plausible "$temp_file" || \
             { declare -F download_policy_response_is_safe >/dev/null 2>&1 && \
               ! download_policy_response_is_safe "$url" "$temp_file"; }; then
-            echo "$name 下载失败，切换备用源。"
             continue
         fi
         if [ -n "$expected_sha256" ]; then
@@ -243,13 +239,11 @@ download_github_file() {
                 return 1
             }
             if [ "$actual_sha256" != "$expected_sha256" ]; then
-                echo "$name 下载失败，切换备用源。"
                 continue
             fi
         fi
         if mv -f -- "$temp_file" "$output"; then
-            [ -z "$expected_sha256" ] || echo "$name 下载完成并通过完整性校验。"
-            [ -n "$expected_sha256" ] || echo "$name 下载完成。"
+            echo "$name 下载完成。"
             declare -F log >/dev/null 2>&1 && log "GitHub 下载成功: $name"
             return 0
         fi
@@ -259,7 +253,7 @@ $ranked_sources
 EOF
 
     rm -f -- "$temp_file"
-    echo "$name 下载失败，所有可用源均未成功；现有文件未改动。"
+    echo "$name 下载失败。"
     declare -F log >/dev/null 2>&1 && log "GitHub 下载失败: $name"
     return 1
 }

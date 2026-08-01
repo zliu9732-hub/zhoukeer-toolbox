@@ -14,7 +14,7 @@ grep -Fq 'https://www.mhhf.com/Deck/decky/plugin_loader-release.service' \
 grep -Fq '64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_decky_component' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '工具箱中安装或开启 Steam302 后台加速' "$PROJECT_ROOT/modules/steam_accelerator.sh"
+grep -Fq '下载较慢，正在启用加速，请耐心等待' "$PROJECT_ROOT/modules/steam_accelerator.sh"
 grep -Fq 'render_decky_service' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'rollback_decky_install' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'systemctl stop "$DECKY_SERVICE_NAME"' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -42,7 +42,7 @@ grep -Fq '下载失败，切换备用源。' "$PROJECT_ROOT/modules/plugin_store
     echo "FAIL: Decky 插件下载仍显示具体失败原因" >&2
     exit 1
 }
-grep -Fq '自动启用 Steamcommunity 302 加速后重试' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+grep -Fq 'modules/steam_accelerator.sh" ensure' "$PROJECT_ROOT/modules/plugin_store.sh" || {
     echo "FAIL: 插件下载失败后没有自动启用加速重试" >&2
     exit 1
 }

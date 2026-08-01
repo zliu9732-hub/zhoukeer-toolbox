@@ -19,19 +19,9 @@ preflight_minimum_kib() {
     case "$1" in
         system-update|new-machine) printf '%s\n' 4194304 ;;
         memory) printf '%s\n' 4194304 ;;
+        memory-restore) printf '%s\n' 1 ;;
         decky) printf '%s\n' 1048576 ;;
         steam302) printf '%s\n' 524288 ;;
-        *) return 1 ;;
-    esac
-}
-
-preflight_plan_text() {
-    case "$1" in
-        system-update) echo "将更新系统组件和工具箱管理的软件来源；失败时恢复配置备份，备份位于本次临时工作目录。" ;;
-        new-machine) echo "将依次完成新机器设置；各安装器保留旧版本或临时备份，失败项目会安全停止。" ;;
-        decky) echo "将安装或更新插件商城/插件；旧版本会先备份，失败时尽量恢复，备份位于插件目录旁。" ;;
-        steam302) echo "将安装或启动网络加速；程序旧版本会先备份，卸载入口可移除工具箱创建的文件。" ;;
-        memory) echo "将调整工具箱管理的虚拟内存；原文件会先备份，失败时尽量恢复到原状态。" ;;
         *) return 1 ;;
     esac
 }
@@ -161,9 +151,7 @@ run_preflight() {
         log "高风险操作预检失败: $profile"
         return 1
     fi
-    echo "准备检查通过，可以安全继续。"
-    preflight_plan_text "$profile"
-    echo "详细信息：$PREFLIGHT_DETAIL_FILE"
+    [ "${ZHOUKEER_PREFLIGHT_QUIET_SUCCESS:-0}" = "1" ] || echo "检查通过，正在继续..."
     log "高风险操作预检通过: $profile"
 }
 

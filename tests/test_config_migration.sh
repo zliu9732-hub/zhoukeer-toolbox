@@ -172,7 +172,7 @@ test_retired_freedeck_url_migrated() {
         "https://github.com/panyiwei-home/Freedeck/releases/download/0.6/freedeck.v.0.6.zip"
 }
 
-test_retired_rustdesk_config_removed() {
+test_retired_rustdesk_config_removed_app_preserved() {
     local case_root="$TMP_ROOT/retired-rustdesk"
     local install_dir="$case_root/install"
     local config_file="$install_dir/config/settings.conf"
@@ -195,7 +195,8 @@ test_retired_rustdesk_config_removed() {
     if grep -Eqi 'RUSTDESK|private\.example|private-public-key' "$config_file" "$backup_file"; then
         fail "退役的 RustDesk 服务器配置仍留在配置或备份中"
     fi
-    [ ! -e "$retired_app" ] || fail "退役的 RustDesk AppImage 仍留在安装目录中"
+    [ "$(cat "$retired_app")" = "retired app" ] || \
+        fail "迁移旧 RustDesk 配置时不应删除用户已有的 AppImage"
 }
 
 test_retired_decky_installer_config_removed() {
@@ -310,7 +311,7 @@ test_custom_config_preserved
 test_chinese_plugin_hashes_migrated
 test_chinese_plugin_v504_hashes_migrated
 test_retired_freedeck_url_migrated
-test_retired_rustdesk_config_removed
+test_retired_rustdesk_config_removed_app_preserved
 test_retired_decky_installer_config_removed
 test_missing_config_created
 test_dry_run_has_no_side_effects

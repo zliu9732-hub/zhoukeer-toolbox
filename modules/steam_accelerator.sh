@@ -66,23 +66,8 @@ calculate_steam302_sha256() {
 }
 
 show_steam302_risk_notice() {
-    echo "========================================"
-    echo " Steamcommunity 302 安装与安全说明"
-    echo "========================================"
-    echo "版本：V$STEAM302_VERSION（Linux AMD64 / Steam Deck）"
-    echo "来源：Dogfight360 官方发布页"
-    echo ""
-    echo "工具箱只会："
-    echo "- 从固定的官方 HTTPS 地址下载并同时校验 MD5、SHA256"
-    echo "- 解压到用户目录：$STEAM302_INSTALL_DIR"
-    echo "- 只启用 Steam 与 GitHub 规则，并创建工具箱托管的开机自启服务"
-    echo ""
-    echo "工具箱不会调用 pacman，不会关闭 SteamOS 只读保护，"
-    echo "也不会在桌面创建 Steamcommunity 302 图标。"
-    echo "更新时旧版本会备份在程序目录旁；失败时恢复，安全卸载可移除工具箱文件。"
-    echo ""
-    echo "重要：官方程序启动加速时会请求管理员权限，并可能安装根证书、"
-    echo "修改 hosts 或拦截 DNS。请只开启自己理解并需要的功能。"
+    echo "将安装官方 Steamcommunity 302 V$STEAM302_VERSION，并启用 Steam 与 GitHub 加速。"
+    echo "启动时需要管理员权限，官方程序可能修改代理、hosts、DNS 或根证书。"
 }
 
 confirm_steam302_install() {
@@ -214,7 +199,6 @@ ensure_steam302_config() {
         rm -f "$temporary_config"
         return 1
     fi
-    echo "已生成 Steam + GitHub 内置加速规则。"
 }
 
 steam302_installed_version() {
@@ -247,9 +231,7 @@ steam302_service_is_toolbox_managed() {
 confirm_steam302_service_start() {
     local answer
 
-    echo "将启动官方 Steamcommunity 302 CLI 后台进程。"
-    echo "内置规则只接管 Steam 和 GitHub，不需要客户另开 302 界面。"
-    echo "首次启动可能请求管理员权限，并按官方程序写入代理、hosts/DNS 或根证书。"
+    echo "将启动 Steam 与 GitHub 后台加速；可能需要管理员权限并修改网络设置。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi
@@ -259,13 +241,7 @@ confirm_steam302_service_start() {
 }
 
 print_steam302_ready_notice() {
-    echo "========================================"
-    echo " GitHub + Steam 加速已开启"
-    echo "========================================"
-    echo "已接管：GitHub、Steam 下载。"
-    echo "现在直接返回工具箱下载插件、兼容层或 RustDesk 即可。"
-    echo "无需再打开 Steamcommunity 302 图形界面，后台服务会继续运行。"
-    echo "如果 GitHub 仍慢或下载失败，请在工具箱查看 Steamcommunity 302 状态后重试。"
+    echo "Steam + GitHub 加速已开启。"
 }
 
 start_steam302_service() {
@@ -280,12 +256,10 @@ start_steam302_service() {
     }
     ensure_steam302_config || return 1
     if steam302_service_is_active; then
-        echo "官方 Steamcommunity 302 服务已在运行。"
         print_steam302_ready_notice
         return 0
     fi
     if steam302_cli_is_running; then
-        echo "Steamcommunity 302 内置加速已在运行。"
         print_steam302_ready_notice
         return 0
     fi
@@ -318,7 +292,6 @@ start_steam302_service() {
     pid="$(sed -n '1p' "$STEAM302_PID_FILE" 2>/dev/null || true)"
     if steam302_cli_is_running; then
         print_steam302_ready_notice
-        echo "后台日志：$STEAM302_LOG_FILE"
         return 0
     fi
     echo "官方 CLI 未保持运行，请查看日志：$STEAM302_LOG_FILE"
@@ -360,32 +333,28 @@ enable_steam302() {
     start_steam302_service
 }
 
-print_steam302_download_fallback() {
-    echo "========================================"
-    echo " GitHub + Steam 加速未确认"
-    echo "========================================"
-    echo "请在工具箱中重新安装或开启 Steamcommunity 302 后台加速后重试。"
-}
-
 steam302_download_acceleration_is_ready() {
     steam302_config_has_download_targets || return 1
     steam302_cli_is_running || steam302_service_is_active
 }
 
 ensure_steam302_for_download() {
+    local enable_output
+
     if steam302_download_acceleration_is_ready; then
-        echo "已检测到 Steamcommunity 302 的 Steam + GitHub 加速，继续下载。"
         return 0
     fi
 
-    echo "未检测到 Steam + GitHub 加速。工具箱中安装或开启 Steam302 后台加速后下载会更快。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
-        echo "检测到下载较慢，正在自动安装并开启 Steamcommunity 302 加速..."
-        if enable_steam302; then
-            echo "Steamcommunity 302 已开启，正在重试下载。"
+        echo "下载较慢，正在启用加速，请耐心等待..."
+        if enable_output="$(ZHOUKEER_PREFLIGHT_QUIET_SUCCESS=1 enable_steam302 2>&1)"; then
+            echo "加速已开启，正在重试下载。"
             return 0
         fi
-        echo "Steamcommunity 302 自动开启未完成，继续原有下载线路。"
+        log "Steamcommunity 302 自动加速未开启: $enable_output"
+        echo "加速未能开启，继续下载。"
+    else
+        echo "Steam + GitHub 加速未开启。"
     fi
     return 0
 }
@@ -394,13 +363,12 @@ steam302_setup_autostart() {
     local service_file="$STEAM302_SERVICE_FILE"
 
     if steam302_service_is_toolbox_managed; then
-        echo "工具箱托管的 Steamcommunity 302 系统服务已存在，跳过创建。"
+        :
     elif [ -e "$service_file" ] || [ -L "$service_file" ] || steam302_service_exists; then
         echo "检测到非工具箱创建的同名系统服务，拒绝覆盖：$STEAM302_SERVICE_NAME"
         echo "请先在原程序中停用该服务，再由工具箱配置后台加速。"
         return 1
     else
-        echo "正在创建 Steamcommunity 302 开机自启服务..."
         local tmp_service
         tmp_service="$(mktemp)" || return 1
         cat > "$tmp_service" << SERVICE_EOF
@@ -433,31 +401,25 @@ SERVICE_EOF
         fi
         rm -f "$tmp_service"
         toolbox_sudo systemctl daemon-reload >/dev/null 2>&1 || true
-        echo "已创建开机自启服务。"
     fi
 
     if ! steam302_service_is_enabled; then
-        echo "正在启用开机自启..."
         toolbox_sudo systemctl enable "$STEAM302_SERVICE_NAME" >/dev/null 2>&1 || {
             echo "开机自启启用失败。"
             return 1
         }
-        echo "已启用开机自启，下次开机将自动加速 Steam + GitHub。"
     fi
 
     # 启动（如果未运行）
     if steam302_service_is_active; then
-        echo "Steamcommunity 302 服务正在运行。"
+        :
     else
-        echo "正在启动后台服务..."
         toolbox_sudo systemctl start "$STEAM302_SERVICE_NAME" >/dev/null 2>&1 || {
             echo "系统服务启动失败，将使用内置加速方式重试。"
             return 1
         }
         sleep 1
-        if steam302_service_is_active; then
-            echo "后台服务已启动。"
-        fi
+        steam302_service_is_active || return 1
     fi
 }
 
@@ -547,7 +509,6 @@ verify_steam302_archive() {
         return 1
     fi
 
-    echo "MD5 与 SHA256 校验均通过。"
 }
 
 validate_steam302_archive_layout() {
@@ -647,7 +608,6 @@ EOF
         return 1
     fi
 
-    echo "已创建桌面快捷方式：$STEAM302_DESKTOP_FILE"
 }
 
 launch_steam302() {
@@ -769,11 +729,10 @@ install_steam302() (
     if steam302_is_installed; then
         current_version="$(steam302_installed_version)"
         if [ "$current_version" = "$STEAM302_VERSION" ]; then
-            echo "Steamcommunity 302 V$STEAM302_VERSION 已安装，正在检查后台加速。"
             ensure_steam302_config || return 1
             rm -f -- "$STEAM302_DESKTOP_FILE" || return 1
             steam302_setup_autostart || return 1
-            echo "Steam + GitHub 后台加速已生效并设为开机自启。"
+            echo "Steam + GitHub 加速已开启。"
             return 0
         fi
     fi
@@ -864,8 +823,7 @@ install_steam302() (
         echo "Steamcommunity 302 已安装，但后台自启未完成。"
         return 1
     fi
-    echo "Steamcommunity 302 安装完成。"
-    echo "Steam + GitHub 后台加速已生效并设为开机自启；不会创建桌面图标。"
+    echo "Steam + GitHub 加速已开启。"
 )
 
 show_steam302_status() {

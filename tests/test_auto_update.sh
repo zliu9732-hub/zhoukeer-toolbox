@@ -156,6 +156,10 @@ printf '%s\n' "$run_main_source" | grep -Fq '工具箱启动中，请耐心等�
     echo "FAIL: 启动更新前没有显示工具箱启动提示" >&2
     exit 1
 }
+printf '%s\n' "$run_main_source" | grep -Fq '若启动较慢，工具箱可能正在更新，请耐心等待' || {
+    echo "FAIL: 启动更新前没有说明启动缓慢可能正在更新" >&2
+    exit 1
+}
 startup_prompt_line="$(printf '%s\n' "$run_main_source" | grep -n '工具箱启动中，请耐心等待' | head -n 1 | cut -d: -f1)"
 startup_update_line="$(printf '%s\n' "$run_main_source" | grep -n 'run_startup_update' | head -n 1 | cut -d: -f1)"
 if [ -z "$startup_prompt_line" ] || [ -z "$startup_update_line" ] || \

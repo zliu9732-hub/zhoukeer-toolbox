@@ -93,7 +93,7 @@ test -f "$TARGET_ROOT/GE-Proton9-99/existing.txt" || {
     echo "FAIL: SHA256错误破坏了已有GE-Proton"
     exit 1
 }
-grep -Fq '下载失败，所有可用源均未成功' "$TMP_ROOT/bad-sha.output"
+grep -Fq '下载失败' "$TMP_ROOT/bad-sha.output"
 
 if find "$TARGET_ROOT" -maxdepth 1 -name '.GE-Proton9-99.*' | grep -q .; then
     echo "FAIL: 安装后遗留暂存或备份目录"

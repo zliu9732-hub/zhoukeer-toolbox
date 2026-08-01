@@ -27,7 +27,10 @@ PREFLIGHT_TEST_AVAILABLE=5000000 HOME="$TMP_ROOT/home" PATH="$BIN_DIR:/usr/bin:/
     ZHOUKEER_TEST_MODE=1 ZHOUKEER_PREFLIGHT_SKIP_NETWORK=1 \
     ZHOUKEER_POWER_SUPPLY_ROOT="$POWER_ROOT" ZHOUKEER_PREFLIGHT_DETAIL_FILE="$TMP_ROOT/preflight-ok.txt" \
     bash "$PROJECT_ROOT/modules/preflight.sh" memory > "$TMP_ROOT/ok.output"
-grep -Fq '准备检查通过' "$TMP_ROOT/ok.output" || fail "正常条件没有通过预检"
+grep -Fq '检查通过，正在继续' "$TMP_ROOT/ok.output" || fail "正常条件没有通过预检"
+if grep -Fq '详细信息' "$TMP_ROOT/ok.output"; then
+    fail "预检成功仍向普通用户显示日志路径"
+fi
 grep -Fq '网络=此操作不需要联网，未检查' "$TMP_ROOT/preflight-ok.txt" || fail "虚拟内存预检仍错误要求联网"
 
 if PREFLIGHT_TEST_AVAILABLE=100 HOME="$TMP_ROOT/home" PATH="$BIN_DIR:/usr/bin:/bin" \

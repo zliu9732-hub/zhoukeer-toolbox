@@ -56,8 +56,11 @@ output="$(download_decky_component_with_fallback \
     "$DECKY_LOADER_OFFICIAL_URL" \
     "$EXPECTED_SHA256" \
     "$TMP_ROOT/PluginLoader")"
-printf '%s\n' "$output" | grep -Fq '已通过 Decky 官方线路获取' || \
+printf '%s\n' "$output" | grep -Fq 'Decky PluginLoader 下载完成' || \
     fail "官方源成功后没有给出明确结果"
+if printf '%s\n' "$output" | grep -Fq '官方线路'; then
+    fail "插件下载成功仍向普通用户显示线路实现细节"
+fi
 [ "$(sed -n '1p' "$CALLS")" = "$DECKY_LOADER_URL" ] || fail "未优先尝试国内 Loader"
 [ "$(sed -n '2p' "$CALLS")" = "$DECKY_LOADER_OFFICIAL_URL" ] || fail "Loader 未回退 Decky 官方源"
 cmp -s "$TMP_ROOT/expected" "$TMP_ROOT/PluginLoader" || fail "官方 Loader 下载结果不一致"

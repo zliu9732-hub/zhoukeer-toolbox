@@ -238,8 +238,8 @@ grep -Fq '4b9994102b2256ca5fdf2e806a2c7035' "$MODULE" || fail "缺少官方 MD5"
 grep -Fq '5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f' \
     "$MODULE" || fail "缺少固定 SHA256"
 grep -Fq 'ensure_steam302_for_download()' "$MODULE" || fail "缺少 Steamcommunity 302 工具函数"
-grep -Fq '未检测到 Steam + GitHub 加速' "$MODULE" || fail "未加速时缺少醒目提示"
-grep -Fq '自动安装并开启 Steamcommunity 302' "$MODULE" || fail "缺少自动加速安装入口"
+grep -Fq '下载较慢，正在启用加速，请耐心等待' "$MODULE" || fail "缺少简洁的自动加速提示"
+grep -Fq '加速已开启，正在重试下载' "$MODULE" || fail "缺少自动加速完成提示"
 
 fallback_output="$(MODULE="$MODULE" bash -c '
     source "$MODULE"
@@ -250,18 +250,15 @@ fallback_output="$(MODULE="$MODULE" bash -c '
     install_steam302() { return 1; }
     ensure_steam302_for_download
 ' 2>&1)" || fail "自动加速失败后不应阻断插件安装"
-printf '%s\n' "$fallback_output" | grep -Fq '未检测到 Steam + GitHub 加速' || \
+printf '%s\n' "$fallback_output" | grep -Fq 'Steam + GitHub 加速未开启' || \
     fail "未加速时没有醒目提示"
-printf '%s\n' "$fallback_output" | grep -Fq '工具箱中安装或开启' || \
-    fail "未加速时没有说明 Steam302 后台配置方法"
 
 ready_output="$(MODULE="$MODULE" bash -c '
     source "$MODULE"
     steam302_download_acceleration_is_ready() { return 0; }
     ensure_steam302_for_download
 ')" || fail "加速状态检测不应阻断下载"
-printf '%s\n' "$ready_output" | grep -Fq '已检测到 Steamcommunity 302' || \
-    fail "已开启加速时没有正确提示"
+[ -z "$ready_output" ] || fail "已开启加速时仍显示多余提示"
 
 launch_function="$(sed -n '/^launch_steam302()/,/^}/p' "$MODULE")"
 printf '%s\n' "$launch_function" | grep -Fq 'toolbox_sudo /usr/bin/env -i' || \
@@ -308,8 +305,11 @@ SHORTCUT="$HOME_DIR/Desktop/Steamcommunity 302.desktop"
 [ "$(sed -n '1p' "$TARGET/.zhoukeer-version")" = "14.0.02" ] || \
     fail "版本标记错误"
 [ ! -e "$SHORTCUT" ] || fail "后台加速模式不应创建桌面快捷方式"
-printf '%s\n' "$install_output" | grep -Fq 'Steam + GitHub 内置加速规则' || \
-    fail "安装完成后缺少内置规则提示"
+printf '%s\n' "$install_output" | grep -Fq 'Steam + GitHub 加速已开启' || \
+    fail "安装完成后缺少简洁成功提示"
+if printf '%s\n' "$install_output" | grep -Eq '内置加速规则|校验均通过|开机自启服务|桌面图标'; then
+    fail "安装成功仍显示面向实现的冗余细节"
+fi
 [ -f "$TARGET/S302.ini" ] || fail "没有生成内置配置"
 grep -Fq 'enabled = Steam_store,Steam_store_unlock' "$TARGET/S302.ini" || \
     fail "内置配置没有启用 Steam 规则"
@@ -363,7 +363,7 @@ printf '%s\n' "$status_output" | grep -Fq '版本：14.0.02' || \
 
 # 后台服务已经运行时，一键启动必须保持幂等，不能重复拉起第二个 CLI。
 start_output="$(run_start_service)" || fail "一键启动内置加速失败"
-printf '%s\n' "$start_output" | grep -Fq 'GitHub + Steam 加速已开启' || \
+printf '%s\n' "$start_output" | grep -Fq 'Steam + GitHub 加速已开启' || \
     fail "一键启动没有报告内置加速成功"
 [ ! -f "$TARGET/.zhoukeer-cli.pid" ] || fail "已有后台服务时又重复拉起了 CLI"
 stop_output="$(

@@ -89,11 +89,8 @@ calculate_decky_sha256() {
 confirm_decky_install() {
     local answer
 
-    echo "将优先通过国内线路更新插件商城；下载失败时自动切换 Decky 官方线路。"
     echo "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，并重新进入桌面模式。"
-    echo "工具箱会分别校验程序和服务模板，不会执行下载源提供的外层安装脚本。"
-    echo "会先停止旧 Decky 服务，再原子替换加载器和服务模板；已有插件会完整保留。"
-    echo "旧加载器会备份在 Decky 服务目录旁；替换失败时自动恢复。"
+    echo "将安装或更新 Decky Loader，已有插件和设置会保留。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi
@@ -192,7 +189,6 @@ download_decky_component() {
         log "Decky下载线路拒绝: $name SHA256变化"
         return 1
     fi
-    echo "$name 下载完成并通过SHA256校验。"
 }
 
 download_decky_component_with_fallback() {
@@ -203,22 +199,22 @@ download_decky_component_with_fallback() {
     local output="$5"
 
     if download_decky_component "$name" "$domestic_url" "$expected_sha256" "$output"; then
-        echo "$name 已通过国内线路获取。"
+        echo "$name 下载完成。"
         log "Decky下载成功: $name source=domestic"
         return 0
     fi
     if [ "$domestic_url" = "$official_url" ]; then
-        echo "$name 官方线路不可用，现有安装未改动。"
+        echo "$name 下载失败。"
         return 1
     fi
 
     log "Decky下载线路切换: $name domestic→official"
     if download_decky_component "$name" "$official_url" "$expected_sha256" "$output"; then
-        echo "$name 已通过 Decky 官方线路获取。"
+        echo "$name 下载完成。"
         log "Decky下载成功: $name source=official"
         return 0
     fi
-    echo "$name 国内线路和 Decky 官方线路均不可用，现有安装未改动。"
+    echo "$name 下载失败。"
     log "Decky下载失败: $name domestic+official"
     return 1
 }
@@ -564,10 +560,7 @@ download_verified_package() {
         echo "$name 的下载配置不完整，请先更新工具箱。"
         return 1
     fi
-    download_github_file "$url" "$output" "$expected_sha256" "$name" || {
-        print_steam302_download_fallback
-        return 1
-    }
+    download_github_file "$url" "$output" "$expected_sha256" "$name"
 }
 
 archive_paths_are_safe() {
@@ -699,7 +692,6 @@ install_decky_zip() {
     trap cleanup_decky_tmp EXIT INT TERM
 
     if ! download_verified_package "$display_name" "$url" "$sha256" "$archive"; then
-        echo "插件下载失败或过慢，正在尝试自动启用 Steamcommunity 302 加速后重试..."
         bash "$PROJECT_ROOT/modules/steam_accelerator.sh" ensure || true
         download_verified_package "$display_name" "$url" "$sha256" "$archive" || return 1
     fi
