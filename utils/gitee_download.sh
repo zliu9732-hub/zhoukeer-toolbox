@@ -286,7 +286,7 @@ download_gitee_mirror_file() {
             return 1
         }
         GITEE_MIRROR_QUIET=1
-        echo "正在下载 $name (Gitee 分块镜像)..."
+        echo "正在安装 $name..."
         index=1
         while [ "$index" -le "$_GITEE_MIRROR_CHUNKS" ]; do
             part_name="$(printf 'part.%04d' "$index")"
