@@ -25,6 +25,8 @@ launcher_details() {
             LAUNCHER_NAME="Epic Games 启动器"
             LAUNCHER_FILE_NAME="EpicGamesLauncherInstaller.msi"
             LAUNCHER_URL="https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi"
+            LAUNCHER_FALLBACK_URL="https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Windows/EpicInstaller-20.1.4.msi?launcherfilename=EpicInstaller-20.1.4.msi"
+            LAUNCHER_FALLBACK_SHA256="1513d6cc2afda0367c8375b6f25f490c162da5607ce4b4adbb41906a2d742236"
             LAUNCHER_MIN_BYTES=52428800
             LAUNCHER_MAGIC="d0cf11e0"
             LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe\nProgram Files/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe'
@@ -33,6 +35,8 @@ launcher_details() {
             LAUNCHER_NAME="战网启动器"
             LAUNCHER_FILE_NAME="Battle.net-Setup.exe"
             LAUNCHER_URL="https://downloader.battle.net/download/getInstallerForGame?os=win&installer=Battle.net-Setup.exe"
+            LAUNCHER_FALLBACK_URL=""
+            LAUNCHER_FALLBACK_SHA256=""
             LAUNCHER_MIN_BYTES=1048576
             LAUNCHER_MAGIC="4d5a"
             LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Battle.net/Battle.net Launcher.exe\nProgram Files (x86)/Battle.net/Battle.net.exe'
@@ -41,6 +45,8 @@ launcher_details() {
             LAUNCHER_NAME="育碧"
             LAUNCHER_FILE_NAME="UbisoftConnectInstaller.exe"
             LAUNCHER_URL="https://static3.cdn.ubi.com/orbit/launcher_installer/UbisoftConnectInstaller.exe"
+            LAUNCHER_FALLBACK_URL=""
+            LAUNCHER_FALLBACK_SHA256=""
             LAUNCHER_MIN_BYTES=10485760
             LAUNCHER_MAGIC="4d5a"
             LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe\nProgram Files (x86)/Ubisoft/Ubisoft Game Launcher/upc.exe'
@@ -64,6 +70,18 @@ verify_installer() {
     fi
     if [ "${magic#"$LAUNCHER_MAGIC"}" = "$magic" ]; then
         echo "下载文件格式不正确，已保留原有安装包。"
+        return 1
+    fi
+}
+
+launcher_file_sha256() {
+    local file="$1"
+
+    if command -v sha256sum >/dev/null 2>&1; then
+        sha256sum -- "$file" | awk '{print $1}'
+    elif command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 -- "$file" | awk '{print $1}'
+    else
         return 1
     fi
 }
@@ -104,6 +122,24 @@ download_launcher_installer() {
         rm -f -- "$temporary"
         [ "$attempt" -eq 1 ] && echo "$LAUNCHER_NAME 下载响应异常，正在使用备用请求方式重试..."
     done
+    if [ -n "${LAUNCHER_FALLBACK_URL:-}" ] && [ -n "${LAUNCHER_FALLBACK_SHA256:-}" ]; then
+        rm -f -- "$temporary"
+        echo "正在从 $LAUNCHER_NAME 官方 CDN 备用线路下载…"
+        if download_policy_url_allowed "$LAUNCHER_FALLBACK_URL" && \
+            curl --fail --location --progress-bar --proto '=https' --proto-redir '=https' \
+                --connect-timeout 15 --max-time "$DOWNLOAD_TIMEOUT" --retry 2 --retry-delay 2 \
+                --max-filesize "$(download_policy_max_bytes "$LAUNCHER_FALLBACK_URL")" \
+                --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36' \
+                --compressed --http1.1 \
+                --output "$temporary" "$LAUNCHER_FALLBACK_URL" && \
+            download_policy_response_is_safe "$LAUNCHER_FALLBACK_URL" "$temporary" && \
+            verify_installer "$temporary" >/dev/null 2>&1 && \
+            [ "$(launcher_file_sha256 "$temporary")" = "$LAUNCHER_FALLBACK_SHA256" ]; then
+            mv -f -- "$temporary" "$output" || return 1
+            return 0
+        fi
+        rm -f -- "$temporary"
+    fi
     echo "$LAUNCHER_NAME 下载响应格式或大小异常。"
     return 1
 }

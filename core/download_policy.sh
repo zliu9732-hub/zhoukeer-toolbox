@@ -18,7 +18,7 @@ github-proxy|ghproxy.net,gh.api.99988866.xyz,github.moeyy.xyz,gh.llkk.cc,mirror.
 github-api|api.github.com|GitHub 最新正式 Release 元数据|json|仅最新正式 Release|GitHub SHA256 digest|2097152|固定版本回退
 decky|www.mhhf.com,github.com,raw.githubusercontent.com,plugins.deckbrew.xyz,cdn.tzatzikiweeb.moe|Decky 国内镜像、官方国外源和官方插件|binary,service,json,zip|固定版本或 Decky 官方数据库|SHA256/Decky hash|536870912|国内镜像→Decky官方源→停止安装
 flathub|mirror.sjtu.edu.cn,mirrors.ustc.edu.cn,dl.flathub.org|Flatpak 国内缓存与官方源|flatpakrepo,repo|固定远程|Flatpak GPG；国内缓存例外需明确确认|2097152|上海交大→中科大→官方
-vendors|qq-web.cdn-go.cn,im.qq.com,qqdl.gtimg.cn,dldir1v6.qq.com,launcher-public-service-prod06.ol.epicgames.com,downloader.battle.net,static3.cdn.ubi.com|官方应用安装包|json,AppImage,exe,msi|官方当前版或固定版|官方HTTPS+固定路径+类型/大小；固定版另验SHA256|536870912|停止安装
+vendors|qq-web.cdn-go.cn,im.qq.com,qqdl.gtimg.cn,dldir1v6.qq.com,launcher-public-service-prod06.ol.epicgames.com,epicgames-download1.akamaized.net,downloader.battle.net,static3.cdn.ubi.com|官方应用安装包|json,AppImage,exe,msi|官方当前版或固定版|官方HTTPS+固定路径+类型/大小；固定版另验SHA256|536870912|停止安装
 steam302|www.dogfight360.com|Steamcommunity 302 固定版本|tar.gz|固定版本|MD5+SHA256+结构检查|536870912|停止安装
 todesk|github.com,dl.todesk.com|ToDesk 官方 Linux 客户端的未修改镜像与官网|deb|固定官方版本|SHA256+DEB/包内结构|268435456|GitHub镜像源→官网→停止安装
 EOF
@@ -60,6 +60,7 @@ download_policy_url_allowed() {
         https://mirror.sjtu.edu.cn/flathub*|https://mirrors.ustc.edu.cn/flathub*|https://mirrors.ustc.edu.cn/archlinuxcn/*|https://dl.flathub.org/repo/*) return 0 ;;
         https://qq-web.cdn-go.cn/im.qq.com_new/latest/rainbow/pcConfig.json|https://im.qq.com/proxy/domain/qq-web.cdn-go.cn/im.qq.com_new/latest/rainbow/pcConfig.json|https://qqdl.gtimg.cn/qqfile/*.AppImage|https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_x86_64.AppImage) return 0 ;;
         https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi|https://downloader.battle.net/download/getInstallerForGame\?os=win\&installer=Battle.net-Setup.exe|https://static3.cdn.ubi.com/orbit/launcher_installer/UbisoftConnectInstaller.exe) return 0 ;;
+        https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Windows/EpicInstaller-20.1.4.msi*) return 0 ;;
         https://www.dogfight360.com/blog/wp-content/uploads/2026/02/steamcommunity_302_Linux_AMD64_V14.0.02.tar.gz) return 0 ;;
         *)
             if [ "${ZHOUKEER_TEST_MODE:-0}" = "1" ]; then

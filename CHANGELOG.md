@@ -1,3 +1,9 @@
+## V6.0.42 修复 Epic 启动器 Cloudflare 拦截 — 2026-08-02
+
+- Epic 官方动态入口被 Cloudflare 拦截时，自动切换官方 Akamai CDN 固定版本 `EpicInstaller-20.1.4.msi`，固定 SHA256 `1513d6cc2afda0367c8375b6f25f490c162da5607ce4b4adbb41906a2d742236`。
+- 备用线路仍校验 HTTPS、大小、MSI 魔数、SHA256 和安装包结构；失败不会覆盖已有安装包。
+- 下载白名单加入 `epicgames-download1.akamaized.net`。
+
 ## V6.0.41 修复 Epic 官方安装器下载被拦截 — 2026-08-02
 
 - 官方启动器下载增加浏览器 User-Agent、压缩响应支持和 HTTP/1.1 备用重试，应对 Epic Cloudflare/CDN 返回拦截页或空响应。

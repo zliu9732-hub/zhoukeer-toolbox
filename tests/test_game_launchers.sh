@@ -642,5 +642,13 @@ grep -Fq -- '--http1.1' "$MODULE" || {
     echo "FAIL: 官方启动器下载缺少备用请求方式" >&2
     exit 1
 }
+grep -Fq 'LAUNCHER_FALLBACK_URL' "$MODULE" || {
+    echo "FAIL: Epic 缺少官方 CDN 备用线路" >&2
+    exit 1
+}
+grep -Fq '1513d6cc2afda0367c8375b6f25f490c162da5607ce4b4adbb41906a2d742236' "$MODULE" || {
+    echo "FAIL: Epic 官方 CDN 备用包缺少固定 SHA256" >&2
+    exit 1
+}
 
 echo "PASS: Steam条目写入、启动器安装和战网分步Steam流程测试通过"
