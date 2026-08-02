@@ -243,7 +243,7 @@ download_decky_component() {
         "${_dk_curl_options[@]}" \
         --output "$output" \
         "$url" \
-        2> >(grep -v '^curl: (' >&2); then
+        2> >(grep -Ev '^(Warning: Problem :|curl: \()' >&2); then
         rm -f -- "$output"
         log "$name 下载失败，未改动现有Decky安装。"
         return 1

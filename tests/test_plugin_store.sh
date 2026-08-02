@@ -42,6 +42,10 @@ if printf '%s\n' "$decky_component_download" | grep -Fq -- '--retry-all-errors';
     echo "FAIL: Decky 组件下载仍会重复重试确定的 404/403 错误" >&2
     exit 1
 fi
+grep -Fq 'Warning: Problem :' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: Decky 组件下载未过滤 curl 超时英文警告" >&2
+    exit 1
+}
 printf '%s\n' "$decky_component_download" | grep -Fq -- '--speed-limit 65536' || {
     echo "FAIL: Decky 组件下载缺少低速中断保护" >&2
     exit 1

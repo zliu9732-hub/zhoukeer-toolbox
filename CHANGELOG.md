@@ -1,3 +1,8 @@
+## V6.0.43 过滤 Decky 下载超时英文警告 — 2026-08-02
+
+- Decky 组件下载保持 mhhf 国内源优先，只过滤 curl 的英文超时重试警告，不再在安装界面刷屏。
+- 线路顺序、固定 SHA256、低速中断保护和回滚逻辑保持不变。
+
 ## V6.0.42 修复 Epic 启动器 Cloudflare 拦截 — 2026-08-02
 
 - Epic 官方动态入口被 Cloudflare 拦截时，自动切换官方 Akamai CDN 固定版本 `EpicInstaller-20.1.4.msi`，固定 SHA256 `1513d6cc2afda0367c8375b6f25f490c162da5607ce4b4adbb41906a2d742236`。
