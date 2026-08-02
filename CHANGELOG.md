@@ -1,3 +1,9 @@
+## V1.0.2 插件与 GE-Proton Gitee 镜像自动同步 — 2026-08-03
+
+- 新增 GitHub Actions：每 6 小时自动检测插件和 GE-Proton 官方最新 Release。
+- 官方更新后自动下载、拆 8MB 分块，并推送到 `zhoukeer-toolbox-mirror` 与 `zhoukeer-toolbox-mirror-2`。
+- GE-Proton 继续按两个仓库拆分，插件继续走独立 Gitee 镜像。
+
 ## V1.0.1 插件最新版自动检测与发布体验优化 — 2026-08-03
 
 - 所有官方 Decky 插件（小黄鸭、FSR4、CheatDeck、ToMoon、DeckRecall、Unifideck、Freedeck、SimpleDeckyTDP）安装前自动检测作者最新 GitHub Release。
