@@ -6,8 +6,8 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TEST_ROOT="$(mktemp -d)"
 trap 'rm -rf -- "$TEST_ROOT"' EXIT
 
-grep -Fq -- '--progress-bar' "$PROJECT_ROOT/utils/github_download.sh" || {
-    echo "FAIL: GitHub 下载缺少百分比进度条" >&2
+grep -Fq -- '--progress-meter' "$PROJECT_ROOT/utils/github_download.sh" || {
+    echo "FAIL: GitHub 下载缺少实时速度显示" >&2
     exit 1
 }
 if grep -Fq '下载失败，切换备用源。' "$PROJECT_ROOT/utils/github_download.sh"; then
@@ -96,9 +96,9 @@ if printf '%s\n' "$release_proxy_sources" | grep -Fxq 'https://unknown-mirror.ex
 fi
 GITHUB_RELEASE_PROXY="https://ghfast.top/"
 
-filtered_progress="$(printf '################ 42.0%%\rWarning: Problem : timeout. Will retry in 1 second. 1 retry left.\n' | _github_filter_curl_progress)"
-printf '%s\n' "$filtered_progress" | grep -Fq '42.0%' || {
-    echo "FAIL: GitHub 下载英文重试过滤误删百分比进度" >&2
+filtered_progress="$(printf '%b' ' 42 8148k  42 3421k    0     0  1024k      0  0:00:03  0:00:01  0:00:02 1023k\rWarning: Problem : timeout. Will retry in 1 second. 1 retry left.\n' | _github_filter_curl_progress '测试包')"
+printf '%s\n' "$filtered_progress" | grep -Fq '正在下载 测试包...（1023 KB/s）' || {
+    echo "FAIL: GitHub 下载未显示实时下载速度" >&2
     exit 1
 }
 if printf '%s\n' "$filtered_progress" | grep -Eiq 'warning:|timeout|retry'; then

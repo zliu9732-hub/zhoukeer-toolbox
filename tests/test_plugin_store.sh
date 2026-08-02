@@ -42,8 +42,8 @@ if printf '%s\n' "$decky_component_download" | grep -Fq -- '--retry-all-errors';
     echo "FAIL: Decky 组件下载仍会重复重试确定的 404/403 错误" >&2
     exit 1
 fi
-grep -Fq 'Warning: Problem :' "$PROJECT_ROOT/modules/plugin_store.sh" || {
-    echo "FAIL: Decky 组件下载未过滤 curl 超时英文警告" >&2
+grep -Fq 'download_progress_filter "$name"' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: Decky 组件下载未使用实时速度过滤" >&2
     exit 1
 }
 printf '%s\n' "$decky_component_download" | grep -Fq -- '--speed-limit 65536' || {
@@ -54,8 +54,8 @@ printf '%s\n' "$decky_component_download" | grep -Fq -- '--speed-time 60' || {
     echo "FAIL: Decky 组件下载缺少低速中断时长" >&2
     exit 1
 }
-printf '%s\n' "$decky_component_download" | grep -Fq -- '--progress-bar' || {
-    echo "FAIL: Decky 组件下载缺少百分比进度条" >&2
+printf '%s\n' "$decky_component_download" | grep -Fq -- '--progress-meter' || {
+    echo "FAIL: Decky 组件下载缺少实时速度显示" >&2
     exit 1
 }
 grep -Fq '下载失败，切换备用源。' "$PROJECT_ROOT/modules/plugin_store.sh" || {

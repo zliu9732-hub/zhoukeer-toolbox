@@ -101,7 +101,7 @@ download_launcher_installer() {
         rm -f -- "$temporary"
         echo "正在下载 $LAUNCHER_NAME 官方安装器…"
         curl_options=(
-            --fail --location --progress-bar
+            --fail --location --progress-meter
             --proto '=https' --proto-redir '=https'
             --connect-timeout 15 --max-time "$DOWNLOAD_TIMEOUT"
             --retry 2 --retry-delay 2
@@ -112,7 +112,8 @@ download_launcher_installer() {
         if [ "$attempt" -eq 2 ]; then
             curl_options+=(--http1.1)
         fi
-        if curl "${curl_options[@]}" --output "$temporary" "$LAUNCHER_URL"; then
+        if curl "${curl_options[@]}" --output "$temporary" "$LAUNCHER_URL" \
+            2> >(download_progress_filter "$LAUNCHER_NAME" >&2); then
             if download_policy_response_is_safe "$LAUNCHER_URL" "$temporary" && \
                 verify_installer "$temporary" >/dev/null 2>&1; then
                 mv -f -- "$temporary" "$output" || return 1
@@ -126,12 +127,13 @@ download_launcher_installer() {
         rm -f -- "$temporary"
         echo "正在从 $LAUNCHER_NAME 官方 CDN 备用线路下载…"
         if download_policy_url_allowed "$LAUNCHER_FALLBACK_URL" && \
-            curl --fail --location --progress-bar --proto '=https' --proto-redir '=https' \
+            curl --fail --location --progress-meter --proto '=https' --proto-redir '=https' \
                 --connect-timeout 15 --max-time "$DOWNLOAD_TIMEOUT" --retry 2 --retry-delay 2 \
                 --max-filesize "$(download_policy_max_bytes "$LAUNCHER_FALLBACK_URL")" \
                 --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36' \
                 --compressed --http1.1 \
-                --output "$temporary" "$LAUNCHER_FALLBACK_URL" && \
+                --output "$temporary" "$LAUNCHER_FALLBACK_URL" \
+                2> >(download_progress_filter "$LAUNCHER_NAME" >&2) && \
             download_policy_response_is_safe "$LAUNCHER_FALLBACK_URL" "$temporary" && \
             verify_installer "$temporary" >/dev/null 2>&1 && \
             [ "$(launcher_file_sha256 "$temporary")" = "$LAUNCHER_FALLBACK_SHA256" ]; then

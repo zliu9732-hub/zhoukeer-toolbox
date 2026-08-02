@@ -1,3 +1,8 @@
+## V6.0.45 下载进度改为实时速度显示 — 2026-08-02
+
+- 所有安装包下载（GitHub Release、Decky、启动器、常用软件、Steam302、ToDesk、工具箱更新）把进度条改为“正在下载…（速度 KB/s）”实时显示，不再刷进度条。
+- 保留 SHA256、大小、文件魔数、压缩包结构和原子替换校验；curl 英文超时警告继续隐藏。
+
 ## V6.0.44 GitHub Release 优先走 ghfast.top — 2026-08-02
 
 - 所有 GitHub Release 下载（小黄鸭、FSR4、Freedeck、ToMoon、GE-Proton、ToDesk 镜像等）把 `https://ghfast.top/` 放在候选最前，其他镜像和官方源继续参与实际测速与逐源回退。

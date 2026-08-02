@@ -92,7 +92,7 @@ download_one() {
     curl \
         --fail \
         --location \
-        --progress-bar \
+        --progress-meter \
         --proto '=https' \
         --proto-redir '=https' \
         --connect-timeout "$CONNECT_TIMEOUT" \
@@ -102,7 +102,9 @@ download_one() {
         --retry-all-errors \
         --max-filesize "$max_bytes" \
         --output "$output" \
-        "$request_url" && download_policy_response_is_safe "$url" "$output"
+        "$request_url" \
+        2> >(download_progress_filter "$label" >&2) && \
+        download_policy_response_is_safe "$url" "$output"
 }
 
 download_version_one() {

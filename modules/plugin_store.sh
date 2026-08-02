@@ -224,7 +224,7 @@ download_decky_component() {
     local _dk_curl_options=(
         --fail
         --location
-        --progress-bar
+        --progress-meter
         --proto '=https'
         --proto-redir '=https'
         --connect-timeout 15
@@ -243,7 +243,7 @@ download_decky_component() {
         "${_dk_curl_options[@]}" \
         --output "$output" \
         "$url" \
-        2> >(grep -Ev '^(Warning: Problem :|curl: \()' >&2); then
+        2> >(download_progress_filter "$name" >&2); then
         rm -f -- "$output"
         log "$name 下载失败，未改动现有Decky安装。"
         return 1

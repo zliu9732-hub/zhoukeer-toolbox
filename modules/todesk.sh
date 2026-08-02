@@ -304,7 +304,7 @@ download_todesk_package() {
             "$expected_sha256" "ToDesk官方安装包"; then
         rm -f -- "$deb_file"
         echo "ToDesk镜像下载失败，正在尝试官网..."
-        if ! curl --fail --location --progress-bar \
+        if ! curl --fail --location --progress-meter \
             --proto '=https' --proto-redir '=https' \
             --connect-timeout "$TODESK_CONNECT_TIMEOUT" --max-time "$TODESK_MAX_TIME" \
             --retry 3 --retry-delay 2 --retry-connrefused \
@@ -312,7 +312,7 @@ download_todesk_package() {
             --max-filesize "$(download_policy_max_bytes "$TODESK_OFFICIAL_DEB_URL")" \
             --user-agent 'Mozilla/5.0' \
             --output "$deb_file" "$TODESK_OFFICIAL_DEB_URL" \
-            2> >(grep -v '^curl: (' >&2); then
+            2> >(download_progress_filter "ToDesk" >&2); then
             rm -f -- "$deb_file"
             echo "ToDesk下载失败，请稍后重试。"
             return 1

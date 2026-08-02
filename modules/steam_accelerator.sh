@@ -465,7 +465,7 @@ download_steam302_archive() {
     curl \
         --fail \
         --location \
-        --progress-bar \
+        --progress-meter \
         --proto '=https' \
         --proto-redir '=https' \
         --connect-timeout "$STEAM302_CONNECT_TIMEOUT" \
@@ -475,7 +475,8 @@ download_steam302_archive() {
         --retry-all-errors \
         --max-filesize "$(download_policy_max_bytes "$STEAM302_ARCHIVE_URL")" \
         --output "$destination" \
-        "$STEAM302_ARCHIVE_URL" || return 1
+        "$STEAM302_ARCHIVE_URL" \
+        2> >(download_progress_filter "Steamcommunity 302" >&2) || return 1
     if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
         ! download_policy_response_is_safe "$STEAM302_ARCHIVE_URL" "$destination"; then
         rm -f -- "$destination"

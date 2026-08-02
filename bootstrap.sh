@@ -97,7 +97,7 @@ download_one() {
     curl \
         --fail \
         --location \
-        --progress-bar \
+        --progress-meter \
         --proto '=https' \
         --proto-redir '=https' \
         --connect-timeout "$CONNECT_TIMEOUT" \
@@ -107,7 +107,9 @@ download_one() {
         --retry-all-errors \
         --max-filesize 9437184 \
         --output "$output" \
-        "$url" && bootstrap_response_safe "$url" "$output"
+        "$url" \
+        2> >(download_progress_filter "$label" >&2) && \
+        bootstrap_response_safe "$url" "$output"
 }
 
 valid_sha256() {

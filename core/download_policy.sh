@@ -24,6 +24,36 @@ todesk|github.com,dl.todesk.com|ToDesk 官方 Linux 客户端的未修改镜像�
 EOF
 }
 
+download_progress_filter() {
+    local label="${1:-下载}"
+
+    tr '\r' '\n' | awk -v label="$label" '
+        function progress_line(line) {
+            return line ~ /^[ ]*[0-9]+[ ]+[0-9]+/ && NF >= 8
+        }
+        {
+            line = $0
+            lowered = tolower(line)
+            if (lowered ~ /^curl: \(/ || \
+                (lowered ~ /warning:/ && lowered ~ /(retry|timeout|problem)/)) {
+                next
+            }
+            if (progress_line(line)) {
+                speed = $NF
+                unit = "B/s"
+                if (speed ~ /[kK]$/) { unit = "KB/s"; speed = substr(speed, 1, length(speed) - 1) }
+                else if (speed ~ /[mM]$/) { unit = "MB/s"; speed = substr(speed, 1, length(speed) - 1) }
+                else if (speed ~ /[gG]$/) { unit = "GB/s"; speed = substr(speed, 1, length(speed) - 1) }
+                printf "\r\033[2K正在下载 %s...（%s %s）", label, speed, unit
+                fflush()
+                next
+            }
+            if (line != "") print line
+        }
+        END { printf "\n" }
+    '
+}
+
 download_policy_github_repo_allowed() {
     case "$1" in
         SteamDeckHomebrew/decky-loader|xXJSONDeruloXx/decky-lsfg-vk|xXJSONDeruloXx/Decky-Framegen|SheffeyG/CheatDeck|YukiCoco/ToMoon|Ren-Amamiya-pixle/DeckRecall|aarron-lee/SimpleDeckyTDP|mubaraknumann/unifideck|panyiwei-home/Freedeck|GloriousEggroll/proton-ge-custom|rustdesk/rustdesk|zliu9732-hub/zhoukeer-toolbox) return 0 ;;

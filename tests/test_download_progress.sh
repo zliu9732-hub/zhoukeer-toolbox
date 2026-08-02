@@ -25,8 +25,8 @@ assert_payload_progress() {
 
     body="$(function_section "$file" "$start" "$end")"
     [ -n "$body" ] || fail "没有找到下载函数：$file $start"
-    printf '%s\n' "$body" | grep -Fq -- '--progress-bar' || \
-        fail "$file 的 $start 没有显示百分比进度条"
+    printf '%s\n' "$body" | grep -Fq -- '--progress-meter' || \
+        fail "$file 的 $start 没有显示实时下载速度"
     if printf '%s\n' "$body" | grep -Fq -- '--silent'; then
         fail "$file 的 $start 仍用静默模式隐藏下载进度"
     fi
@@ -52,4 +52,4 @@ if grep -Eq 'flatpak install .*2>/dev/null' "$PROJECT_ROOT/modules/software.sh";
     fail "Flatpak 安装仍把原生百分比进度重定向隐藏"
 fi
 
-echo "PASS: 软件、插件、启动器和更新包下载均显示百分比进度，元数据请求保持静默"
+echo "PASS: 软件、插件、启动器和更新包下载均显示实时速度，元数据请求保持静默"

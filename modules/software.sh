@@ -485,7 +485,7 @@ install_official_qq_appimage() (
     if ! curl \
         --fail \
         --location \
-        --progress-bar \
+        --progress-meter \
         --proto '=https' \
         --proto-redir '=https' \
         --connect-timeout 15 \
@@ -497,7 +497,8 @@ install_official_qq_appimage() (
         -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
         --referer "https://im.qq.com/" \
         --output "$temp_file" \
-        "$appimage_url"; then
+        "$appimage_url" \
+        2> >(download_progress_filter "QQ" >&2); then
         echo "QQ下载失败或超时，已停止；原有版本未受影响。"
         return 1
     fi
@@ -565,7 +566,7 @@ install_official_wechat_appimage() (
     if ! curl \
         --fail \
         --location \
-        --progress-bar \
+        --progress-meter \
         --proto '=https' \
         --proto-redir '=https' \
         --connect-timeout 15 \
@@ -575,7 +576,8 @@ install_official_wechat_appimage() (
         --retry-all-errors \
         --max-filesize "$(download_policy_max_bytes "$WECHAT_APPIMAGE_URL")" \
         --output "$temp_file" \
-        "$WECHAT_APPIMAGE_URL"; then
+        "$WECHAT_APPIMAGE_URL" \
+        2> >(download_progress_filter "微信" >&2); then
         echo "微信下载失败或超时，已停止；原有版本未受影响。"
         return 1
     fi
@@ -717,7 +719,7 @@ install_firefox_archive() (
     if ! curl \
         --fail \
         --location \
-        --progress-bar \
+        --progress-meter \
         --proto '=https' \
         --proto-redir '=https' \
         --connect-timeout 15 \
@@ -726,7 +728,8 @@ install_firefox_archive() (
         --retry-delay 2 \
         --retry-all-errors \
         --output "$archive_file" \
-        "$FIREFOX_DOWNLOAD_URL"; then
+        "$FIREFOX_DOWNLOAD_URL" \
+        2> >(download_progress_filter "Firefox" >&2); then
         echo "Firefox下载失败或超时，已停止；原有版本未受影响。"
         return 1
     fi
