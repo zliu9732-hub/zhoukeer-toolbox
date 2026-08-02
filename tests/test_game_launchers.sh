@@ -630,5 +630,17 @@ if grep -Fq '当前版本仅支持已安装启动器的自动入库' "$MODULE"; 
     echo "FAIL: Epic 不应限制为仅已安装启动器" >&2
     exit 1
 fi
+grep -Fq -- '--user-agent' "$MODULE" || {
+    echo "FAIL: 官方启动器下载缺少浏览器 UA" >&2
+    exit 1
+}
+grep -Fq -- '--compressed' "$MODULE" || {
+    echo "FAIL: 官方启动器下载缺少压缩响应支持" >&2
+    exit 1
+}
+grep -Fq -- '--http1.1' "$MODULE" || {
+    echo "FAIL: 官方启动器下载缺少备用请求方式" >&2
+    exit 1
+}
 
 echo "PASS: Steam条目写入、启动器安装和战网分步Steam流程测试通过"

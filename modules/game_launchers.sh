@@ -71,32 +71,41 @@ verify_installer() {
 download_launcher_installer() {
     local output="$1"
     local temporary="$output.new.$$"
+    local attempt
+    local -a curl_options
 
     require_command curl || return 1
     download_policy_url_allowed "$LAUNCHER_URL" || {
         echo "$LAUNCHER_NAME 下载地址不在受控来源清单中。"
         return 1
     }
-    rm -f -- "$temporary"
-    echo "正在下载 $LAUNCHER_NAME 官方安装器…"
-    if ! curl --fail --location --progress-bar --proto '=https' --proto-redir '=https' \
-        --connect-timeout 15 --max-time "$DOWNLOAD_TIMEOUT" --retry 2 --retry-delay 2 \
-        --max-filesize "$(download_policy_max_bytes "$LAUNCHER_URL")" \
-        --output "$temporary" "$LAUNCHER_URL"; then
+    for attempt in 1 2; do
         rm -f -- "$temporary"
-        echo "$LAUNCHER_NAME 官方安装器下载失败。"
-        return 1
-    fi
-    download_policy_response_is_safe "$LAUNCHER_URL" "$temporary" || {
+        echo "正在下载 $LAUNCHER_NAME 官方安装器…"
+        curl_options=(
+            --fail --location --progress-bar
+            --proto '=https' --proto-redir '=https'
+            --connect-timeout 15 --max-time "$DOWNLOAD_TIMEOUT"
+            --retry 2 --retry-delay 2
+            --max-filesize "$(download_policy_max_bytes "$LAUNCHER_URL")"
+            --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36'
+            --compressed
+        )
+        if [ "$attempt" -eq 2 ]; then
+            curl_options+=(--http1.1)
+        fi
+        if curl "${curl_options[@]}" --output "$temporary" "$LAUNCHER_URL"; then
+            if download_policy_response_is_safe "$LAUNCHER_URL" "$temporary" && \
+                verify_installer "$temporary" >/dev/null 2>&1; then
+                mv -f -- "$temporary" "$output" || return 1
+                return 0
+            fi
+        fi
         rm -f -- "$temporary"
-        echo "$LAUNCHER_NAME 下载响应格式或大小异常。"
-        return 1
-    }
-    if ! verify_installer "$temporary"; then
-        rm -f -- "$temporary"
-        return 1
-    fi
-    mv -f -- "$temporary" "$output" || return 1
+        [ "$attempt" -eq 1 ] && echo "$LAUNCHER_NAME 下载响应异常，正在使用备用请求方式重试..."
+    done
+    echo "$LAUNCHER_NAME 下载响应格式或大小异常。"
+    return 1
 }
 
 find_steam_root() {
