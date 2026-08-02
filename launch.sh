@@ -105,6 +105,13 @@ filter_terminal_stderr() {
         case "$line" in
             *"QLayout: Cannot add a null widget to QHBoxLayout"*| \
             *"curl: ("*| \
+            *"Warning:"*"retry"*| \
+            *"Warning:"*"retries"*| \
+            *"Warning:"*"timeout"*| \
+            *"Warning:"*"Problem"*| \
+            *"Will retry in"*| \
+            *"retries left"*| \
+            *"Timeout was reached"*| \
             *"Operation timed out"*| \
             *"Connection timed out"*| \
             *"Connection refused"*| \
