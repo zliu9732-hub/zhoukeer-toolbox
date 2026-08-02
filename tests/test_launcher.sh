@@ -75,16 +75,12 @@ if grep -Fq -- '--geometry' "$CALL_LOG"; then
 fi
 grep -Fq -- '--profile' "$CALL_LOG"
 grep -Fq -- '--workdir' "$CALL_LOG"
-grep -Fq -- 'ZhoukeerToolbox.profile' "$CALL_LOG"
-if grep -Fq -- 'ZhoukeerToolboxSplash.profile' "$CALL_LOG"; then
-    echo "FAIL: 确认免责声明后仍把图片主题带入主界面"
+grep -Fq -- 'ZhoukeerToolboxSplash.profile' "$CALL_LOG"
+grep -Fq -- 'ZHOUKEER_STARTUP_SPLASH=1' "$CALL_LOG"
+if grep -Fq -- '--imgbox' "$DIALOG_LOG"; then
+    echo "FAIL: 启动免责声明仍依赖右下角确定按钮"
     exit 1
 fi
-grep -Fq -- 'ZHOUKEER_SKIP_DISCLAIMER=1' "$CALL_LOG"
-grep -Fq -- 'ZHOUKEER_STARTUP_SPLASH=0' "$CALL_LOG"
-grep -Fq -- '--imgbox' "$DIALOG_LOG"
-grep -Fq -- 'assets/disclaimer-usage.jpg' "$DIALOG_LOG"
-grep -Fq -- '--ok-label 我已阅读并知悉' "$DIALOG_LOG"
 grep -Fq 'Operation timed out' "$PROJECT_ROOT/launch.sh" || fail "启动器没有过滤英文超时提示"
 grep -Fq 'filter_terminal_stderr >&2' "$PROJECT_ROOT/launch.sh" || fail "主程序 stderr 没有经过英文错误过滤"
 
@@ -157,23 +153,18 @@ fi
 grep -Fq -- 'ZHOUKEER_SKIP_DISCLAIMER=1' "$CALL_LOG"
 grep -Fq -- 'ZHOUKEER_SKIP_STARTUP_UPDATE=1' "$CALL_LOG"
 
-mv "$BIN_DIR/kdialog" "$BIN_DIR/kdialog.disabled"
+mv "$HOME_DIR/.local/share/konsole/ZhoukeerToolboxSplash.profile" \
+    "$HOME_DIR/.local/share/konsole/ZhoukeerToolboxSplash.profile.disabled"
 run_launcher $'--profile\n--workdir\n--geometry'
 grep -Fq -- 'ZhoukeerToolbox.profile' "$CALL_LOG"
 if grep -Fq -- 'ZHOUKEER_SKIP_DISCLAIMER=1' "$CALL_LOG"; then
-    echo "FAIL: 独立图片不可用时不应跳过文字免责声明"
+    echo "FAIL: 图片主题不可用时不应跳过文字免责声明"
     exit 1
 fi
 grep -Fq -- 'ZHOUKEER_STARTUP_SPLASH=0' "$CALL_LOG"
 grep -Fq '使用终端文字版' "$LAUNCH_LOG"
-mv "$BIN_DIR/kdialog.disabled" "$BIN_DIR/kdialog"
-
-run_launcher $'--profile\n--workdir\n--geometry' none 0 1
-if [ -s "$CALL_LOG" ]; then
-    echo "FAIL: 用户关闭免责声明后仍启动了工具箱"
-    exit 1
-fi
-grep -Fq '取消启动' "$LAUNCH_LOG"
+mv "$HOME_DIR/.local/share/konsole/ZhoukeerToolboxSplash.profile.disabled" \
+    "$HOME_DIR/.local/share/konsole/ZhoukeerToolboxSplash.profile"
 
 run_launcher $'--profile\n--workdir\n--geometry' profile
 if [ "$(grep -c '^konsole ' "$CALL_LOG")" -ne 2 ]; then
@@ -185,9 +176,10 @@ if sed -n '2p' "$CALL_LOG" | grep -Fq -- '--profile'; then
     echo "FAIL: Konsole兼容模式仍使用主题参数"
     exit 1
 fi
+sed -n '2p' "$CALL_LOG" | grep -Fq -- 'ZHOUKEER_STARTUP_SPLASH=0'
 
 run_launcher $'--profile\n--workdir\n--geometry' all
-grep -Fq 'xterm -e env ZHOUKEER_SKIP_DISCLAIMER=1 ZHOUKEER_STARTUP_SPLASH=0 bash' "$CALL_LOG"
+grep -Fq 'xterm -e env ZHOUKEER_STARTUP_SPLASH=0 bash' "$CALL_LOG"
 grep -Fq 'Konsole 各级启动均不可用' "$LAUNCH_LOG"
 
 mv "$BIN_DIR/konsole" "$BIN_DIR/konsole.disabled"

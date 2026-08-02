@@ -173,21 +173,6 @@ $LAUNCH_LOG"
 
 prepare_launcher_log || true
 
-show_startup_disclaimer_image() {
-    [ -s "$DISCLAIMER_IMAGE_PATH" ] || return 2
-    command -v kdialog >/dev/null 2>&1 || return 2
-
-    launcher_log "显示独立免责声明图片"
-    if kdialog --title "周克儿工具箱｜免责声明及使用须知" \
-        --ok-label "我已阅读并知悉" --imgbox "$DISCLAIMER_IMAGE_PATH" \
-        >/dev/null 2>&1; then
-        launcher_log "用户已确认独立免责声明图片"
-        return 0
-    fi
-    launcher_log "用户关闭免责声明图片，取消启动"
-    return 1
-}
-
 case "${1:-}" in
     --run-main)
         run_main
@@ -198,16 +183,13 @@ case "${1:-}" in
         STARTUP_VIEW="main"
         ;;
     "")
-        # 免责声明使用独立图片窗口；确认后再启动原主题，避免图片残留到菜单背景。
-        PROFILE_FILE="$MAIN_PROFILE_FILE"
-        STARTUP_VIEW="main-with-disclaimer"
-        show_startup_disclaimer_image
-        disclaimer_status=$?
-        case "$disclaimer_status" in
-            0) STARTUP_VIEW="main-after-disclaimer" ;;
-            1) exit 0 ;;
-            2) launcher_log "独立免责声明图片不可用，使用终端文字版" ;;
-        esac
+        # 完整免责声明使用独立 Konsole 启动页。点击任意位置后关闭该窗口，
+        # 再由常规主题打开主界面，确保图片不会残留到后续菜单背景。
+        if [ ! -s "$DISCLAIMER_IMAGE_PATH" ] || [ ! -f "$SPLASH_PROFILE_FILE" ]; then
+            PROFILE_FILE="$MAIN_PROFILE_FILE"
+            STARTUP_VIEW="main-with-disclaimer"
+            launcher_log "免责声明图片主题不可用，使用终端文字版"
+        fi
         ;;
     *)
         show_launch_error "周克儿工具箱启动失败" \
@@ -282,18 +264,18 @@ case "$STARTUP_VIEW" in
     splash)
         RUN_COMMAND=(env ZHOUKEER_STARTUP_SPLASH=1 \
             bash "$PROJECT_ROOT/launch.sh" --run-main)
+        FALLBACK_RUN_COMMAND=(env ZHOUKEER_STARTUP_SPLASH=0 \
+            bash "$PROJECT_ROOT/launch.sh" --run-main)
         ;;
     main)
         RUN_COMMAND=(env ZHOUKEER_SKIP_DISCLAIMER=1 ZHOUKEER_SKIP_STARTUP_UPDATE=1 \
             ZHOUKEER_STARTUP_SPLASH=0 bash "$PROJECT_ROOT/launch.sh" --run-main)
-        ;;
-    main-after-disclaimer)
-        RUN_COMMAND=(env ZHOUKEER_SKIP_DISCLAIMER=1 ZHOUKEER_STARTUP_SPLASH=0 \
-            bash "$PROJECT_ROOT/launch.sh" --run-main)
+        FALLBACK_RUN_COMMAND=("${RUN_COMMAND[@]}")
         ;;
     *)
         RUN_COMMAND=(env ZHOUKEER_STARTUP_SPLASH=0 \
             bash "$PROJECT_ROOT/launch.sh" --run-main)
+        FALLBACK_RUN_COMMAND=("${RUN_COMMAND[@]}")
         ;;
 esac
 KONSOLE_HELP=""
@@ -345,40 +327,40 @@ try_konsole_levels() {
 
     if [ "${#optional_args[@]}" -gt 0 ]; then
         if try_terminal "Konsole 兼容模式（${window_mode}）" \
-            konsole "${optional_args[@]}" -e "${RUN_COMMAND[@]}"; then
+            konsole "${optional_args[@]}" -e "${FALLBACK_RUN_COMMAND[@]}"; then
             return 0
         fi
     fi
 
-    try_terminal "Konsole 最小参数模式" konsole -e "${RUN_COMMAND[@]}"
+    try_terminal "Konsole 最小参数模式" konsole -e "${FALLBACK_RUN_COMMAND[@]}"
 }
 
 try_fallback_terminals() {
     if command -v x-terminal-emulator >/dev/null 2>&1 && \
-        try_terminal "系统默认终端" x-terminal-emulator -e "${RUN_COMMAND[@]}"; then
+        try_terminal "系统默认终端" x-terminal-emulator -e "${FALLBACK_RUN_COMMAND[@]}"; then
         return 0
     fi
     if command -v gnome-terminal >/dev/null 2>&1 && \
         try_terminal "GNOME Terminal" gnome-terminal \
-            --working-directory="$PROJECT_ROOT" -- "${RUN_COMMAND[@]}"; then
+            --working-directory="$PROJECT_ROOT" -- "${FALLBACK_RUN_COMMAND[@]}"; then
         return 0
     fi
     if command -v qterminal >/dev/null 2>&1 && \
         try_terminal "QTerminal" qterminal --workdir "$PROJECT_ROOT" \
-            -e "${RUN_COMMAND[@]}"; then
+            -e "${FALLBACK_RUN_COMMAND[@]}"; then
         return 0
     fi
     if command -v kitty >/dev/null 2>&1 && \
-        try_terminal "Kitty" kitty --directory "$PROJECT_ROOT" "${RUN_COMMAND[@]}"; then
+        try_terminal "Kitty" kitty --directory "$PROJECT_ROOT" "${FALLBACK_RUN_COMMAND[@]}"; then
         return 0
     fi
     if command -v alacritty >/dev/null 2>&1 && \
         try_terminal "Alacritty" alacritty --working-directory "$PROJECT_ROOT" \
-            -e "${RUN_COMMAND[@]}"; then
+            -e "${FALLBACK_RUN_COMMAND[@]}"; then
         return 0
     fi
     if command -v xterm >/dev/null 2>&1 && \
-        try_terminal "XTerm" xterm -e "${RUN_COMMAND[@]}"; then
+        try_terminal "XTerm" xterm -e "${FALLBACK_RUN_COMMAND[@]}"; then
         return 0
     fi
     return 1
