@@ -1,0 +1,46 @@
+name: Sync Decky Gitee mirror
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Sync Decky mirror files
+        run: bash scripts/sync_decky_gitee.sh
+
+      - name: Commit mirror updates
+        run: |
+          git config --global user.name "zhoukeer-toolbox[bot]"
+          git config --global user.email "bot@users.noreply.github.com"
+          git add decky-installer-cn
+          if git diff --cached --quiet; then
+            echo "No Decky mirror changes"
+          else
+            git commit -m "Sync Decky Loader mirror to latest"
+          fi
+
+      - name: Push GitHub
+        run: git push origin main
+
+      - name: Push Gitee
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+        run: |
+          if [ -z "$GITEE_TOKEN" ]; then
+            echo "GITEE_TOKEN secret is missing"
+            exit 1
+          fi
+          git remote add gitee "https://zliu9732-hub:${GITEE_TOKEN}@gitee.com/zliu9732-hub/zhoukeer-toolbox.git"
+          git push gitee main
