@@ -129,9 +129,19 @@ configure_domestic_flatpak() {
     require_command flatpak || return 1
     require_command timeout || return 1
 
+    DOMESTIC_FLATPAK_SKIPPED=0
+    export DOMESTIC_FLATPAK_SKIPPED
+
     echo "[2/2] 配置上海交大和中科大 Flatpak 国内缓存..."
     if ! ensure_flatpak_remotes; then
-        echo "Flatpak 国内缓存配置失败，现有软件和其他来源保持不变。"
+        if flatpak_any_remote_exists; then
+            DOMESTIC_FLATPAK_SKIPPED=1
+            export DOMESTIC_FLATPAK_SKIPPED
+            echo "Flatpak 国内缓存本次已跳过，继续使用现有软件源，不影响其他功能。"
+            log "Flatpak国内缓存配置未完成；检测到现有远程，按可选项跳过"
+            return 0
+        fi
+        echo "未检测到任何可用的 Flatpak 软件源，后续应用安装无法继续。"
         return 1
     fi
 
@@ -167,9 +177,10 @@ archlinuxcn_keyring_ready() {
 
 configure_archlinuxcn_with_fallback() {
     local pacman_conf="${1:-/etc/pacman.conf}"
+    local populate_output
 
     if ! write_managed_archlinuxcn_repo "$pacman_conf"; then
-        echo "- archlinuxcn 仓库配置失败；将继续配置 Flatpak 国内缓存。"
+        echo "- archlinuxcn 本次未启用，已跳过并继续配置 Flatpak 国内缓存。"
         return 0
     fi
 
@@ -183,22 +194,24 @@ configure_archlinuxcn_with_fallback() {
                 echo "archlinuxcn 密钥环安装失败，且工具箱配置移除失败。"
                 return 1
             fi
-            echo "- archlinuxcn 密钥环安装失败，已撤销该仓库；将继续配置 Flatpak 国内缓存。"
+            echo "- archlinuxcn 密钥环本次未启用，已撤销并跳过；将继续配置 Flatpak 国内缓存。"
             return 0
         fi
     fi
 
-    if toolbox_sudo pacman-key --populate archlinuxcn; then
+    if populate_output="$(toolbox_sudo pacman-key --populate archlinuxcn 2>&1)"; then
+        [ -z "$populate_output" ] || log "archlinuxcn 密钥导入明细: ${populate_output//$'\n'/；}"
         echo "✓ archlinuxcn 密钥环可用，已保持软件包 GPG 验证。"
         return 0
     fi
+    [ -z "$populate_output" ] || log "archlinuxcn 密钥导入未完成: ${populate_output//$'\n'/；}"
 
     if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" "$pacman_conf" 2>/dev/null && \
         ! remove_managed_archlinuxcn_repo "$pacman_conf"; then
         echo "archlinuxcn 密钥导入失败，且工具箱配置移除失败。"
         return 1
     fi
-    echo "- archlinuxcn 密钥导入失败，已撤销该仓库；将继续配置 Flatpak 国内缓存。"
+    echo "- archlinuxcn 密钥本次未启用，已撤销并跳过；将继续配置 Flatpak 国内缓存。"
     return 0
 }
 
@@ -246,6 +259,18 @@ restore_official_flatpak() {
         echo "官方源已恢复，但移除 $FLATHUB_CN_FALLBACK_REMOTE 失败。"
         return 1
     fi
+    if flatpak_system_remote_exists "$FLATHUB_CN_REMOTE" && \
+        ! toolbox_sudo timeout --foreground 30 flatpak remote-delete --system --force \
+            "$FLATHUB_CN_REMOTE"; then
+        echo "官方源已恢复，但移除系统级 $FLATHUB_CN_REMOTE 失败。"
+        return 1
+    fi
+    if flatpak_system_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE" && \
+        ! toolbox_sudo timeout --foreground 30 flatpak remote-delete --system --force \
+            "$FLATHUB_CN_FALLBACK_REMOTE"; then
+        echo "官方源已恢复，但移除系统级 $FLATHUB_CN_FALLBACK_REMOTE 失败。"
+        return 1
+    fi
 
     if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" /etc/pacman.conf 2>/dev/null; then
         require_command steamos-readonly || return 1
@@ -271,6 +296,7 @@ restore_official_flatpak() {
 
 prepare_system_packages() (
     local readonly_disabled=0
+    local readonly_status=""
     local configuration_complete=0
     local pacman_backup=""
     local locale_backup=""
@@ -311,8 +337,16 @@ prepare_system_packages() (
     cp -- /etc/locale.gen "$locale_backup" || return 1
 
     echo "[1/2] 检测 pacman/archlinuxcn 密钥环与系统组件..."
-    toolbox_sudo steamos-readonly disable || return 1
-    readonly_disabled=1
+    readonly_status="$(steamos-readonly status 2>/dev/null || true)"
+    if printf '%s' "$readonly_status" | grep -qi 'enabled'; then
+        toolbox_sudo steamos-readonly disable >/dev/null 2>&1 || return 1
+        readonly_disabled=1
+    elif ! printf '%s' "$readonly_status" | grep -qi 'disabled'; then
+        toolbox_sudo steamos-readonly disable >/dev/null 2>&1 || return 1
+        readonly_disabled=1
+    else
+        log "SteamOS rootfs 已处于可写状态，本次保持原状态"
+    fi
 
     if base_system_components_ready; then
         echo "✓ 已检测到 git 和 Flatpak 均已安装，无需更新系统组件。"
@@ -342,11 +376,13 @@ prepare_system_packages() (
         return 1
     fi
 
-    if ! toolbox_sudo steamos-readonly enable; then
-        echo "系统组件已更新，但恢复 SteamOS 只读保护失败。"
-        return 1
+    if [ "$readonly_disabled" -eq 1 ]; then
+        if ! toolbox_sudo steamos-readonly enable; then
+            echo "系统组件已更新，但恢复 SteamOS 只读保护失败。"
+            return 1
+        fi
+        readonly_disabled=0
     fi
-    readonly_disabled=0
     configuration_complete=1
 )
 
@@ -370,14 +406,18 @@ initialize_software_sources() {
     configure_domestic_flatpak || return 1
 
     echo ""
-    echo "国内源与系统组件初始化完成。现在可以正常使用工具箱安装软件。"
+    echo "国内源与系统组件检测完成。现在可以继续使用工具箱安装软件。"
     if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" /etc/pacman.conf 2>/dev/null; then
         echo "Arch Linux CN：上海交大 → 中科大 → 官方源（GPG 密钥环已启用）"
     else
         echo "Arch Linux CN：本次未启用；Flatpak 国内缓存已继续配置"
     fi
-    echo "上海交大：$FLATHUB_CN_URL"
-    echo "中科大：$FLATHUB_CN_FALLBACK_URL"
+    if [ "${DOMESTIC_FLATPAK_SKIPPED:-0}" = "1" ]; then
+        echo "Flatpak 国内缓存：本次已跳过，继续使用原有软件源"
+    else
+        echo "上海交大：$FLATHUB_CN_URL"
+        echo "中科大：$FLATHUB_CN_FALLBACK_URL"
+    fi
     log "国内源与系统组件初始化完成：已检测系统组件、处理archlinuxcn密钥环、配置中文locale和Flatpak国内双缓存"
 }
 
@@ -390,9 +430,12 @@ show_software_source_status() {
     else
         echo "pacman 国内仓库：未配置 archlinuxcn"
     fi
-    echo "当前用户的 Flatpak 下载源："
+    echo "用户级 Flatpak 下载源："
     flatpak remotes --user --show-details 2>/dev/null || \
         flatpak remotes --user 2>/dev/null || true
+    echo "系统级 Flatpak 下载源："
+    flatpak remotes --system --show-details 2>/dev/null || \
+        flatpak remotes --system 2>/dev/null || true
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then

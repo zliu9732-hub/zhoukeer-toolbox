@@ -187,6 +187,25 @@ flatpak_remote_exists() {
     flatpak remotes --user --columns=name 2>/dev/null | grep -Fxq "$1"
 }
 
+flatpak_system_remote_exists() {
+    flatpak remotes --system --columns=name 2>/dev/null | grep -Fxq "$1"
+}
+
+flatpak_remote_scope() {
+    if flatpak_remote_exists "$1"; then
+        printf '%s\n' user
+    elif flatpak_system_remote_exists "$1"; then
+        printf '%s\n' system
+    else
+        printf '%s\n' missing
+    fi
+}
+
+flatpak_any_remote_exists() {
+    flatpak remotes --user --columns=name 2>/dev/null | grep -q . && return 0
+    flatpak remotes --system --columns=name 2>/dev/null | grep -q .
+}
+
 confirm_domestic_flatpak_risk() {
     local answer
 
@@ -215,10 +234,46 @@ confirm_official_flatpak_restore() {
     [ "$answer" = "RESTORE" ]
 }
 
+configure_domestic_flatpak_remote() {
+    local remote="$1"
+    local url="$2"
+    local display_name="$3"
+    local scope
+
+    scope="$(flatpak_remote_scope "$remote")"
+    if [ "$scope" = "missing" ]; then
+        if ! timeout --foreground 30 flatpak remote-add --user --if-not-exists \
+            --no-gpg-verify "$remote" "$url"; then
+            log "未能添加${display_name}Flathub缓存源: $remote"
+            return 1
+        fi
+        scope=user
+    fi
+
+    if [ "$scope" = "system" ]; then
+        log "沿用旧版系统级 Flatpak 远程: $remote"
+        if ! toolbox_sudo timeout --foreground 30 flatpak remote-modify --system \
+            "$remote" --url="$url" || \
+           ! toolbox_sudo timeout --foreground 30 flatpak remote-modify --system \
+            --no-gpg-verify "$remote"; then
+            log "未能更新系统级${display_name}Flathub缓存源: $remote"
+            return 1
+        fi
+    else
+        if ! timeout --foreground 30 flatpak remote-modify --user \
+            "$remote" --url="$url" || \
+           ! timeout --foreground 30 flatpak remote-modify --user \
+            --no-gpg-verify "$remote"; then
+            log "未能更新${display_name}Flathub缓存源: $remote"
+            return 1
+        fi
+    fi
+}
+
 ensure_flatpak_remotes() {
     if [ "${ZHOUKEER_FORCE_FLATPAK_RECONFIGURE:-0}" != "1" ] && \
-       flatpak_remote_exists "$FLATHUB_CN_REMOTE" && \
-       flatpak_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE"; then
+       [ "$(flatpak_remote_scope "$FLATHUB_CN_REMOTE")" != "missing" ] && \
+       [ "$(flatpak_remote_scope "$FLATHUB_CN_FALLBACK_REMOTE")" != "missing" ]; then
         return 0
     fi
     confirm_domestic_flatpak_risk || {
@@ -226,43 +281,10 @@ ensure_flatpak_remotes() {
         return 1
     }
 
-    if ! flatpak_remote_exists "$FLATHUB_CN_REMOTE"; then
-        echo "正在添加Flathub国内缓存源..."
-        if ! timeout --foreground 30 flatpak remote-add --user --if-not-exists \
-            --no-gpg-verify "$FLATHUB_CN_REMOTE" "$FLATHUB_CN_URL"; then
-            echo "无法添加上海交大Flathub缓存源。"
-            return 1
-        fi
-    fi
-
-    if ! timeout --foreground 30 flatpak remote-modify --user "$FLATHUB_CN_REMOTE" \
-        --url="$FLATHUB_CN_URL"; then
-        echo "无法配置上海交大Flathub缓存源。"
-        return 1
-    fi
-    # 国内镜像关闭 GPG 校验
-    if ! timeout --foreground 30 flatpak remote-modify --no-gpg-verify --user "$FLATHUB_CN_REMOTE"; then
-        echo "无法关闭上海交大缓存源的 GPG 验证，已停止配置。"
-        return 1
-    fi
-
-    if ! flatpak_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE"; then
-        echo "正在添加中科大Flathub缓存源..."
-        if ! timeout --foreground 30 flatpak remote-add --user --if-not-exists \
-            --no-gpg-verify "$FLATHUB_CN_FALLBACK_REMOTE" "$FLATHUB_CN_FALLBACK_URL"; then
-            echo "无法添加中科大Flathub缓存源。"
-            return 1
-        fi
-    fi
-    if ! timeout --foreground 30 flatpak remote-modify --user "$FLATHUB_CN_FALLBACK_REMOTE" \
-        --url="$FLATHUB_CN_FALLBACK_URL"; then
-        echo "无法配置中科大Flathub缓存源。"
-        return 1
-    fi
-    if ! timeout --foreground 30 flatpak remote-modify --no-gpg-verify --user "$FLATHUB_CN_FALLBACK_REMOTE"; then
-        echo "无法关闭中科大缓存源的 GPG 验证，已停止配置。"
-        return 1
-    fi
+    configure_domestic_flatpak_remote "$FLATHUB_CN_REMOTE" \
+        "$FLATHUB_CN_URL" "上海交大" || return 1
+    configure_domestic_flatpak_remote "$FLATHUB_CN_FALLBACK_REMOTE" \
+        "$FLATHUB_CN_FALLBACK_URL" "中科大" || return 1
 }
 
 run_flatpak_install() {

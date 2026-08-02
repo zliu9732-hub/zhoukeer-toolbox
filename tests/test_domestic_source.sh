@@ -64,18 +64,21 @@ command="${1:-}"
 [ "$#" -eq 0 ] || shift
 case "$command" in
     remotes)
+        remotes_file="$state/remotes"
+        case " $* " in *' --system '*) remotes_file="$state/system-remotes" ;; esac
         case " $* " in
             *' --show-details '*)
                 while IFS= read -r remote; do
                     [ -n "$remote" ] && printf '%s\thttps://example.invalid/%s\n' "$remote" "$remote"
-                done < "$state/remotes"
+                done < "$remotes_file"
                 ;;
             *)
-                [ ! -f "$state/remotes" ] || cat "$state/remotes"
+                [ ! -f "$remotes_file" ] || cat "$remotes_file"
                 ;;
         esac
         ;;
     remote-add)
+        [ "${DOMESTIC_SOURCE_FAIL_REMOTE_ADD:-0}" != "1" ] || exit 1
         case " $* " in
             *' --from '*) ;;
             *' --no-gpg-verify '*) ;;
@@ -95,11 +98,13 @@ case "$command" in
         printf 'remote-modify %s\n' "$*" >> "$state/commands"
         ;;
     remote-delete)
+        remotes_file="$state/remotes"
+        case " $* " in *' --system '*) remotes_file="$state/system-remotes" ;; esac
         remote=""
         for arg in "$@"; do remote="$arg"; done
         printf 'remote-delete %s\n' "$*" >> "$state/commands"
-        awk -v remove="$remote" '$0 != remove' "$state/remotes" > "$state/remotes.new"
-        mv "$state/remotes.new" "$state/remotes"
+        awk -v remove="$remote" '$0 != remove' "$remotes_file" > "$remotes_file.new"
+        mv "$remotes_file.new" "$remotes_file"
         ;;
     remote-ls)
         printf 'remote-ls %s\n' "$*" >> "$state/commands"
@@ -184,6 +189,7 @@ EOF
 
 chmod +x "$BIN_DIR"/* "$STEAMOS_BIN_DIR"/*
 : > "$STATE_DIR/remotes"
+: > "$STATE_DIR/system-remotes"
 : > "$STATE_DIR/commands"
 
 run_enable() {
@@ -340,6 +346,55 @@ EOF
     ! grep -Fq '[archlinuxcn]' "$SYSTEM_DIR/pacman.conf" || \
         fail "恢复后仍保留工具箱管理的 archlinuxcn"
 )
+
+# 兼容旧版本遗留的系统级国内远程：沿用现有 flathub-cn，不能重复添加同名用户远程。
+LEGACY_STATE="$TMP_ROOT/legacy-state"
+mkdir -p "$LEGACY_STATE"
+: > "$LEGACY_STATE/remotes"
+: > "$LEGACY_STATE/commands"
+printf '%s\n' flathub-cn > "$LEGACY_STATE/system-remotes"
+(
+    PATH="$STEAMOS_BIN_DIR:$BIN_DIR:$PATH"
+    HOME="$HOME_DIR"
+    DOMESTIC_SOURCE_TEST_STATE="$LEGACY_STATE"
+    ZHOUKEER_AUTO_CONFIRM=1
+    ZHOUKEER_FLATHUB_CN_URL="https://mirror.test.invalid/flathub"
+    ZHOUKEER_FLATHUB_CN_FALLBACK_URL="https://fallback.test.invalid/flathub"
+    export PATH HOME DOMESTIC_SOURCE_TEST_STATE ZHOUKEER_AUTO_CONFIRM
+    export ZHOUKEER_FLATHUB_CN_URL ZHOUKEER_FLATHUB_CN_FALLBACK_URL
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/software.sh"
+    toolbox_sudo() { "$@"; }
+    ensure_flatpak_remotes
+)
+grep -Fq 'remote-modify --system flathub-cn --url=https://mirror.test.invalid/flathub' \
+    "$LEGACY_STATE/commands" || fail "没有沿用旧版系统级上海交大远程"
+if grep -Fq 'remote-add --user --if-not-exists --no-gpg-verify flathub-cn ' \
+    "$LEGACY_STATE/commands"; then
+    fail "系统级上海交大远程存在时仍重复添加用户级同名远程"
+fi
+grep -Fxq flathub-ustc "$LEGACY_STATE/remotes" || fail "没有补充缺少的用户级中科大远程"
+
+# 国内缓存属于可选加速项：添加失败但已有官方源时应跳过并返回成功。
+SKIP_STATE="$TMP_ROOT/skip-state"
+mkdir -p "$SKIP_STATE"
+printf '%s\n' flathub > "$SKIP_STATE/remotes"
+: > "$SKIP_STATE/system-remotes"
+: > "$SKIP_STATE/commands"
+skip_output="$(
+    PATH="$STEAMOS_BIN_DIR:$BIN_DIR:$PATH" \
+    HOME="$HOME_DIR" \
+    DOMESTIC_SOURCE_TEST_STATE="$SKIP_STATE" \
+    DOMESTIC_SOURCE_FAIL_REMOTE_ADD=1 \
+    ZHOUKEER_AUTO_CONFIRM=1 \
+    ZHOUKEER_TEST_MODE=1 \
+        bash "$PROJECT_ROOT/modules/domestic_source.sh" enable
+)"
+printf '%s\n' "$skip_output" | grep -Fq '本次已跳过，继续使用现有软件源' || \
+    fail "国内缓存不可用但已有软件源时没有按可选项跳过"
+if printf '%s\n' "$skip_output" | grep -Fq '失败'; then
+    fail "可选国内缓存跳过时仍向用户显示失败"
+fi
 
 # 重复启用只更新镜像地址，不应重复添加两个远程源。
 run_enable >/dev/null
