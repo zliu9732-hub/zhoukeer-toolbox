@@ -21,10 +21,24 @@ grep -Fq 'v3.2.8-pre1/dist/plugin_loader-prerelease.service' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'store-test) show_plugin_download_speed_tip; install_plugin_store prerelease' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-prerelease_download_block="$(sed -n '/if \[ "$channel" = "prerelease" \]; then/,/^[[:space:]]*else$/p' \
-    "$PROJECT_ROOT/modules/plugin_store.sh")"
-printf '%s\n' "$prerelease_download_block" | grep -Fq 'download_decky_prerelease_component' || {
-    echo "FAIL: Decky 测试版未进入统一 GitHub 镜像测速下载流程" >&2
+grep -Fq 'download_decky_gitee_loader' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: Decky 测试版未接入 Gitee 国内镜像加载流程" >&2
+    exit 1
+}
+grep -Fq 'download_decky_gitee_service' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: Decky 测试版未接入 Gitee 国内镜像服务模板" >&2
+    exit 1
+}
+grep -Fq 'load_decky_gitee_mirror_meta' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: Decky 测试版未读取 Gitee 镜像版本清单" >&2
+    exit 1
+}
+grep -Fq 'DECKY_GITEE_MIRROR_META' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: Decky 测试版缺少 Gitee 镜像清单地址" >&2
+    exit 1
+}
+grep -Fq 'download_decky_prerelease_component' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: Decky 测试版 Gitee 失败后缺少官方 Release 回退" >&2
     exit 1
 }
 grep -Fq 'ensure_steam302_for_download' "$PROJECT_ROOT/modules/plugin_store.sh" || {

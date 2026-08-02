@@ -23,12 +23,15 @@ DECKY_SERVICE_SHA256="${DECKY_SERVICE_SHA256:-64d6aa626aa45e1659e3137aa3afd72edd
 DECKY_LOADER_OFFICIAL_URL="https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.6/PluginLoader"
 DECKY_SERVICE_OFFICIAL_URL="https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service"
 DECKY_STABLE_VERSION="v3.2.6"
-# 测试版固定使用 Decky 官方 prerelease，并通过统一 GitHub 下载链路选择传输源。
+# 测试版优先使用 Gitee 国内镜像，失败后回退 Decky 官方 prerelease，并通过统一 GitHub 下载链路选择传输源。
 DECKY_PRERELEASE_VERSION="v3.2.8-pre1"
 DECKY_PRERELEASE_LOADER_URL="https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8-pre1/PluginLoader"
 DECKY_PRERELEASE_LOADER_SHA256="9df160a81df3fc49c96e5665a1d1b3ba5c79de5bf271adc266d6bfedfda399d8"
 DECKY_PRERELEASE_SERVICE_URL="https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.8-pre1/dist/plugin_loader-prerelease.service"
 DECKY_PRERELEASE_SERVICE_SHA256="f6fd73f68dca18a64e4cffa2962ae697b247aaf5f3fd9cd8526597f0291fb63e"
+# Decky 安装文件镜像托管在本仓库 decky-installer-cn 目录；latest.txt 由发布时同步更新。
+DECKY_GITEE_MIRROR_BASE="https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn"
+DECKY_GITEE_MIRROR_META="$DECKY_GITEE_MIRROR_BASE/latest.txt"
 DECKY_HOMEBREW_DIR="${ZHOUKEER_DECKY_HOMEBREW_DIR:-$HOME/homebrew}"
 DECKY_UNIT_PATH="${ZHOUKEER_DECKY_UNIT_PATH:-/etc/systemd/system/plugin_loader.service}"
 DECKY_USER_UNIT_PATH="$HOME/.config/systemd/user/plugin_loader.service"
@@ -118,6 +121,158 @@ calculate_decky_sha256() {
     fi
 }
 
+validate_decky_gitee_part_hashes() {
+    local parts="$1"
+    local list="$2"
+    local part_entries=()
+    local entry
+
+    case "$parts" in
+        ''|*[!0-9]*) return 1 ;;
+    esac
+    [ "$parts" -ge 1 ] 2>/dev/null || return 1
+    IFS=',' read -r -a part_entries <<< "$list"
+    [ "${#part_entries[@]}" -eq "$parts" ] || return 1
+    for entry in "${part_entries[@]}"; do
+        case "$entry" in
+            [0-9a-fA-F]*) ;;
+            *) return 1 ;;
+        esac
+        [ "${#entry}" -eq 64 ] || return 1
+    done
+    return 0
+}
+
+load_decky_gitee_mirror_meta() {
+    local meta_file="$1"
+    local key value
+
+    DECKY_GITEE_STABLE_VERSION=""
+    DECKY_GITEE_STABLE_PARTS=""
+    DECKY_GITEE_STABLE_SHA256=""
+    DECKY_GITEE_STABLE_PART_SHA256=""
+    DECKY_GITEE_STABLE_SERVICE_SHA256=""
+    DECKY_GITEE_PRERELEASE_VERSION=""
+    DECKY_GITEE_PRERELEASE_PARTS=""
+    DECKY_GITEE_PRERELEASE_SHA256=""
+    DECKY_GITEE_PRERELEASE_PART_SHA256=""
+    DECKY_GITEE_PRERELEASE_SERVICE_SHA256=""
+
+    if ! download_github_file "$DECKY_GITEE_MIRROR_META" "$meta_file" "" "Decky Gitee镜像元数据"; then
+        log "Decky Gitee镜像元数据获取失败，改用既有线路。"
+        return 1
+    fi
+    while IFS='=' read -r key value; do
+        case "$key" in
+            stable_version) DECKY_GITEE_STABLE_VERSION="$value" ;;
+            stable_parts) DECKY_GITEE_STABLE_PARTS="$value" ;;
+            stable_sha256) DECKY_GITEE_STABLE_SHA256="$value" ;;
+            stable_part_sha256) DECKY_GITEE_STABLE_PART_SHA256="$value" ;;
+            stable_service_sha256) DECKY_GITEE_STABLE_SERVICE_SHA256="$value" ;;
+            prerelease_version) DECKY_GITEE_PRERELEASE_VERSION="$value" ;;
+            prerelease_parts) DECKY_GITEE_PRERELEASE_PARTS="$value" ;;
+            prerelease_sha256) DECKY_GITEE_PRERELEASE_SHA256="$value" ;;
+            prerelease_part_sha256) DECKY_GITEE_PRERELEASE_PART_SHA256="$value" ;;
+            prerelease_service_sha256) DECKY_GITEE_PRERELEASE_SERVICE_SHA256="$value" ;;
+        esac
+    done < "$meta_file"
+
+    case "$DECKY_GITEE_STABLE_VERSION" in ''|*[!-0-9A-Za-z._]*) return 1 ;; esac
+    case "$DECKY_GITEE_PRERELEASE_VERSION" in ''|*[!-0-9A-Za-z._]*) return 1 ;; esac
+    case "$DECKY_GITEE_STABLE_PARTS" in ''|*[!0-9]*) return 1 ;; esac
+    case "$DECKY_GITEE_PRERELEASE_PARTS" in ''|*[!0-9]*) return 1 ;; esac
+    [ "$DECKY_GITEE_STABLE_PARTS" -ge 1 ] 2>/dev/null || return 1
+    [ "$DECKY_GITEE_PRERELEASE_PARTS" -ge 1 ] 2>/dev/null || return 1
+    for value in \
+        "$DECKY_GITEE_STABLE_SHA256" \
+        "$DECKY_GITEE_STABLE_SERVICE_SHA256" \
+        "$DECKY_GITEE_PRERELEASE_SHA256" \
+        "$DECKY_GITEE_PRERELEASE_SERVICE_SHA256"; do
+        case "$value" in
+            [0-9a-fA-F]*) ;;
+            *) return 1 ;;
+        esac
+        [ "${#value}" -eq 64 ] || return 1
+    done
+    validate_decky_gitee_part_hashes \
+        "$DECKY_GITEE_STABLE_PARTS" "$DECKY_GITEE_STABLE_PART_SHA256" || return 1
+    validate_decky_gitee_part_hashes \
+        "$DECKY_GITEE_PRERELEASE_PARTS" "$DECKY_GITEE_PRERELEASE_PART_SHA256" || return 1
+    return 0
+}
+
+download_decky_gitee_loader() {
+    local channel="$1"
+    local output="$2"
+    local version parts expected_sha256 part_sha256 prefix
+    local part_entries=()
+    local i part_name part_file part_sha
+
+    case "$channel" in
+        stable)
+            version="$DECKY_GITEE_STABLE_VERSION"
+            parts="$DECKY_GITEE_STABLE_PARTS"
+            expected_sha256="$DECKY_GITEE_STABLE_SHA256"
+            part_sha256="$DECKY_GITEE_STABLE_PART_SHA256"
+            prefix="PluginLoader"
+            ;;
+        prerelease)
+            version="$DECKY_GITEE_PRERELEASE_VERSION"
+            parts="$DECKY_GITEE_PRERELEASE_PARTS"
+            expected_sha256="$DECKY_GITEE_PRERELEASE_SHA256"
+            part_sha256="$DECKY_GITEE_PRERELEASE_PART_SHA256"
+            prefix="PluginLoader-pre"
+            ;;
+        *) return 1 ;;
+    esac
+    validate_decky_gitee_part_hashes "$parts" "$part_sha256" || return 1
+    IFS=',' read -r -a part_entries <<< "$part_sha256"
+    rm -f -- "$output"
+    for ((i = 0; i < parts; i++)); do
+        part_name="$(printf '%02d' "$i")"
+        part_file="${output}.part.${i}"
+        if ! download_github_file \
+            "$DECKY_GITEE_MIRROR_BASE/${prefix}.part.${part_name}" \
+            "$part_file" "${part_entries[$i]}" "Decky PluginLoader分块${part_name}"; then
+            rm -f -- "$output"
+            return 1
+        fi
+        if ! cat -- "$part_file" >> "$output"; then
+            rm -f -- "$output" "$part_file"
+            return 1
+        fi
+        rm -f -- "$part_file"
+    done
+    if [ "$(calculate_decky_sha256 "$output")" != "$expected_sha256" ]; then
+        rm -f -- "$output"
+        log "Decky Gitee镜像PluginLoader整体SHA256校验失败。"
+        return 1
+    fi
+    DECKY_GITEE_SELECTED_VERSION="$version"
+    return 0
+}
+
+download_decky_gitee_service() {
+    local channel="$1"
+    local output="$2"
+    local service_file expected_sha256
+
+    case "$channel" in
+        stable)
+            service_file="plugin_loader-release.service"
+            expected_sha256="$DECKY_GITEE_STABLE_SERVICE_SHA256"
+            ;;
+        prerelease)
+            service_file="plugin_loader-prerelease.service"
+            expected_sha256="$DECKY_GITEE_PRERELEASE_SERVICE_SHA256"
+            ;;
+        *) return 1 ;;
+    esac
+    download_github_file \
+        "$DECKY_GITEE_MIRROR_BASE/$service_file" \
+        "$output" "$expected_sha256" "Decky systemd服务模板(Gitee)"
+}
+
 confirm_decky_install() {
     local channel="${1:-stable}"
     local answer
@@ -125,9 +280,9 @@ confirm_decky_install() {
     echo "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，并重新进入桌面模式。"
     if [ "$channel" = "prerelease" ]; then
         echo "仅当 SteamOS 使用测试或预览通道、稳定版 Decky 不兼容时，才安装测试版插件商城。"
-        echo "将从 Decky 官方 Release 安装测试版 ${DECKY_PRERELEASE_VERSION}，已有插件和设置会保留。"
+        echo "将从 Gitee 国内镜像安装测试版 ${DECKY_PRERELEASE_VERSION}，失败自动回退 Decky 官方 Release，已有插件和设置会保留。"
     else
-        echo "将安装或更新 Decky Loader 稳定版，已有插件和设置会保留。"
+        echo "将安装或更新 Decky Loader 稳定版（Gitee 国内镜像优先），已有插件和设置会保留。"
     fi
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
@@ -544,6 +699,8 @@ install_plugin_store() (
     local services_dir
     local settings_rendered
     local version_rendered
+    local gitee_meta_file
+    local gitee_meta_ok=0
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
@@ -570,6 +727,10 @@ install_plugin_store() (
     settings_rendered="$tmp_dir/loader.json"
     version_rendered="$tmp_dir/.loader.version"
     services_dir="$DECKY_HOMEBREW_DIR/services"
+    gitee_meta_file="$tmp_dir/gitee-decky-mirror.txt"
+    if load_decky_gitee_mirror_meta "$gitee_meta_file"; then
+        gitee_meta_ok=1
+    fi
 
     DECKY_INSTALL_COMMITTED=0
     DECKY_HOME_OP_SUDO=0
@@ -603,17 +764,16 @@ install_plugin_store() (
     trap 'exit 130' INT TERM
     trap 'finish_plugin_store_install $?' EXIT
 
-    if [ "$channel" = "prerelease" ]; then
+    if [ "$gitee_meta_ok" -eq 1 ] && download_decky_gitee_loader "$channel" "$loader_download"; then
+        selected_version="$DECKY_GITEE_SELECTED_VERSION"
+        echo "Decky PluginLoader 已从 Gitee 国内镜像下载。"
+        log "Decky下载成功: Decky PluginLoader source=gitee"
+    elif [ "$channel" = "prerelease" ]; then
         download_decky_prerelease_component \
             "Decky PluginLoader" \
             "$loader_url" \
             "$loader_sha256" \
             "$loader_download" || return 1
-        download_decky_prerelease_component \
-            "Decky systemd服务模板" \
-            "$service_url" \
-            "$service_sha256" \
-            "$service_template" || return 1
     else
         download_decky_component_with_fallback \
             "Decky PluginLoader" \
@@ -621,6 +781,17 @@ install_plugin_store() (
             "$loader_official_url" \
             "$loader_sha256" \
             "$loader_download" || return 1
+    fi
+    if [ "$gitee_meta_ok" -eq 1 ] && download_decky_gitee_service "$channel" "$service_template"; then
+        echo "Decky systemd服务模板 已从 Gitee 国内镜像下载。"
+        log "Decky下载成功: Decky systemd服务模板 source=gitee"
+    elif [ "$channel" = "prerelease" ]; then
+        download_decky_prerelease_component \
+            "Decky systemd服务模板" \
+            "$service_url" \
+            "$service_sha256" \
+            "$service_template" || return 1
+    else
         download_decky_component_with_fallback \
             "Decky systemd服务模板" \
             "$service_url" \

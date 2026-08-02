@@ -137,6 +137,56 @@ SERVICE
     esac
 }
 
+GITEE_FAIL=0
+printf '#!/bin/sh\nexit 0\n' > "$TMP_ROOT/mock-loader"
+MOCK_LOADER_SHA="$(calculate_decky_sha256 "$TMP_ROOT/mock-loader")"
+cat > "$TMP_ROOT/mock-release.service" <<'SERVICE'
+[Unit]
+Description=SteamDeck Plugin Loader
+After=network.target
+[Service]
+Type=simple
+User=root
+Restart=always
+ExecStart=${HOMEBREW_FOLDER}/services/PluginLoader
+WorkingDirectory=${HOMEBREW_FOLDER}/services
+Environment=UNPRIVILEGED_PATH=${HOMEBREW_FOLDER}
+Environment=PRIVILEGED_PATH=${HOMEBREW_FOLDER}
+Environment=LOG_LEVEL=INFO
+[Install]
+WantedBy=multi-user.target
+SERVICE
+cat > "$TMP_ROOT/mock-prerelease.service" <<'SERVICE'
+[Unit]
+Description=SteamDeck Plugin Loader
+After=network.target
+[Service]
+Type=simple
+User=root
+Restart=always
+ExecStart=${HOMEBREW_FOLDER}/services/PluginLoader
+WorkingDirectory=${HOMEBREW_FOLDER}/services
+Environment=UNPRIVILEGED_PATH=${HOMEBREW_FOLDER}
+Environment=PRIVILEGED_PATH=${HOMEBREW_FOLDER}
+Environment=LOG_LEVEL=DEBUG
+[Install]
+WantedBy=multi-user.target
+SERVICE
+MOCK_RELEASE_SERVICE_SHA="$(calculate_decky_sha256 "$TMP_ROOT/mock-release.service")"
+MOCK_PRERELEASE_SERVICE_SHA="$(calculate_decky_sha256 "$TMP_ROOT/mock-prerelease.service")"
+cat > "$TMP_ROOT/gitee-latest.txt" <<EOF
+stable_version=v3.2.6
+stable_parts=1
+stable_sha256=$MOCK_LOADER_SHA
+stable_part_sha256=$MOCK_LOADER_SHA
+stable_service_sha256=$MOCK_RELEASE_SERVICE_SHA
+prerelease_version=v3.2.8-pre1
+prerelease_parts=1
+prerelease_sha256=$MOCK_LOADER_SHA
+prerelease_part_sha256=$MOCK_LOADER_SHA
+prerelease_service_sha256=$MOCK_PRERELEASE_SERVICE_SHA
+EOF
+
 download_decky_component_with_fallback() {
     local name="$1"
     local primary_url="$2"
@@ -157,7 +207,27 @@ download_github_file() {
 
     printf 'github %s|%s|%s\n' \
         "$name" "$url" "$expected_sha256" >> "$CALLS"
-    write_mock_decky_component "$name" "$url" "$output"
+    case "$url" in
+        */decky-installer-cn/latest.txt)
+            [ "$GITEE_FAIL" -eq 0 ] || return 1
+            cp "$TMP_ROOT/gitee-latest.txt" "$output"
+            ;;
+        */decky-installer-cn/PluginLoader.part.00|*/decky-installer-cn/PluginLoader-pre.part.00)
+            [ "$GITEE_FAIL" -eq 0 ] || return 1
+            printf '#!/bin/sh\nexit 0\n' > "$output"
+            ;;
+        */decky-installer-cn/plugin_loader-release.service)
+            [ "$GITEE_FAIL" -eq 0 ] || return 1
+            cp "$TMP_ROOT/mock-release.service" "$output"
+            ;;
+        */decky-installer-cn/plugin_loader-prerelease.service)
+            [ "$GITEE_FAIL" -eq 0 ] || return 1
+            cp "$TMP_ROOT/mock-prerelease.service" "$output"
+            ;;
+        *)
+            write_mock_decky_component "$name" "$url" "$output"
+            ;;
+    esac
 }
 
 prepare_old_testing_install() {
@@ -186,8 +256,13 @@ grep -Fq '"keep": "yes"' "$SETTINGS_DIR/loader.json" || \
 [ -f "$PLUGIN_DIR/KeepMe/data" ] || fail "稳定版安装删除了现有插件"
 grep -Fq 'user disable --now plugin_loader.service' "$CALLS" || \
     fail "稳定版安装未停用旧测试版用户服务"
-grep -Fq "download Decky PluginLoader|$DECKY_LOADER_URL|$DECKY_LOADER_OFFICIAL_URL" \
-    "$CALLS" || fail "稳定版未使用国内到官方的回退顺序"
+grep -Fq 'github Decky PluginLoader分块00|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/PluginLoader.part.00|' \
+    "$CALLS" || fail "稳定版未优先使用 Gitee 国内镜像"
+grep -Fq 'github Decky systemd服务模板(Gitee)|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/plugin_loader-release.service|' \
+    "$CALLS" || fail "稳定版服务模板未使用 Gitee 镜像"
+if grep -Fq "download Decky PluginLoader|$DECKY_LOADER_URL|$DECKY_LOADER_OFFICIAL_URL" "$CALLS"; then
+    fail "Gitee 镜像成功时稳定版仍回退到国内/官方线路"
+fi
 stable_stop_line="$(grep -n 'system stop plugin_loader.service' "$CALLS" | head -n 1 | cut -d: -f1)"
 stable_user_stop_line="$(grep -n 'user disable --now plugin_loader.service' "$CALLS" | head -n 1 | cut -d: -f1)"
 stable_install_line="$(grep -n '^install -m 0755 .*PluginLoader.new' "$CALLS" | head -n 1 | cut -d: -f1)"
@@ -223,10 +298,13 @@ grep -Fxq 'v3.2.8-pre1' "$SERVICES_DIR/.loader.version" || \
     fail "测试版安装未更新版本标记"
 grep -Eq '"branch"[[:space:]]*:[[:space:]]*1' "$SETTINGS_DIR/loader.json" || \
     fail "测试版安装未切换到预发布分支"
-grep -Fq "github Decky PluginLoader|$DECKY_PRERELEASE_LOADER_URL|$DECKY_PRERELEASE_LOADER_SHA256" \
-    "$CALLS" || fail "测试版未使用统一 GitHub Release 下载流程"
-grep -Fq "github Decky systemd服务模板|$DECKY_PRERELEASE_SERVICE_URL|$DECKY_PRERELEASE_SERVICE_SHA256" \
-    "$CALLS" || fail "测试版服务模板未使用统一 GitHub 下载流程"
+grep -Fq 'github Decky PluginLoader分块00|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/PluginLoader-pre.part.00|' \
+    "$CALLS" || fail "测试版未优先使用 Gitee 国内镜像"
+grep -Fq 'github Decky systemd服务模板(Gitee)|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/plugin_loader-prerelease.service|' \
+    "$CALLS" || fail "测试版服务模板未使用 Gitee 镜像"
+if grep -Fq "$DECKY_PRERELEASE_LOADER_URL" "$CALLS"; then
+    fail "Gitee 镜像成功时测试版仍回退到官方 GitHub"
+fi
 if grep -Fq 'www.mhhf.com' "$CALLS"; then
     fail "测试版安装错误使用了国内源"
 fi
@@ -239,6 +317,20 @@ prerelease_install_line="$(grep -n '^install -m 0755 .*PluginLoader.new' "$CALLS
     [ "$prerelease_user_stop_line" -lt "$prerelease_install_line" ] || \
     fail "测试版未在写入新文件前停用系统级和用户级旧服务"
 grep -Fq 'LOG_LEVEL=DEBUG' "$UNIT_PATH" || fail "测试版未安装官方预发布服务模板"
+
+# Gitee 镜像不可用时，必须回退到原有国内/官方线路。
+: > "$CALLS"
+GITEE_FAIL=1
+install_plugin_store stable >/dev/null || \
+    fail "Gitee 镜像失败后稳定版未回退既有线路"
+grep -Fq "download Decky PluginLoader|$DECKY_LOADER_URL|$DECKY_LOADER_OFFICIAL_URL" \
+    "$CALLS" || fail "Gitee 镜像失败后稳定版未使用国内到官方的回退顺序"
+: > "$CALLS"
+install_plugin_store prerelease >/dev/null || \
+    fail "Gitee 镜像失败后测试版未回退官方 Release"
+grep -Fq "github Decky PluginLoader|$DECKY_PRERELEASE_LOADER_URL|$DECKY_PRERELEASE_LOADER_SHA256" \
+    "$CALLS" || fail "Gitee 镜像失败后测试版未使用统一 GitHub Release 下载流程"
+GITEE_FAIL=0
 
 mkdir -p "$SERVICES_DIR/.systemd"
 for service_file in plugin_loader.service plugin_loader-release.service \

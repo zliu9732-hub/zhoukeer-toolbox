@@ -506,7 +506,7 @@ decky_loader_menu() {
     while true; do
         draw_category_frame games "安装插件商城｜Decky Loader" "稳定版适合正式系统 · 测试版只适合测试或预览系统" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "安装稳定版插件商城" "国内失败自动切换 Decky 官方 Release"
-        ui_touch_button 9 '\033[1;97;48;5;160m' "安装测试版插件商城" "仅用于 SteamOS 测试或预览通道 · 只走官方 Release"
+        ui_touch_button 9 '\033[1;97;48;5;160m' "安装测试版插件商城" "仅用于 SteamOS 测试或预览通道 · Gitee 国内源优先"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "不进行安装"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -519,7 +519,7 @@ decky_loader_menu() {
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store
                 ;;
             test)
-                confirm_and_run "安装测试版插件商城" "仅当 SteamOS 使用测试或预览通道、稳定版 Decky 明确不兼容时使用；只从 Decky 官方 prerelease Release 下载，不使用国内源；已有插件和设置保留" \
+                confirm_and_run "安装测试版插件商城" "仅当 SteamOS 使用测试或预览通道、稳定版 Decky 明确不兼容时使用；优先从 Gitee 国内镜像下载，失败自动回退 Decky 官方 prerelease Release；已有插件和设置保留" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store-test
                 ;;
             back) NEXT_CATEGORY="games"; return 0 ;;
