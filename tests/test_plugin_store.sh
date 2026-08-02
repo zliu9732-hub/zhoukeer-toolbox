@@ -83,10 +83,11 @@ grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$PROJECT_R
 grep -Fq 'Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CheatDeck/releases/download/v1.2.1/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'Ren-Amamiya-pixle/DeckRecall/releases/download/v0.1.6/DeckRecall.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '00271a40dbc723a65cbe3d4d5cfaa5b2c90397c33c7bc4a959bb23a4c59db337' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'DECKY_DECKRECALL_SHA256="00271a40dbc723a65cbe3d4d5cfaa5b2c90397c33c7bc4a959bb23a4c59db337"' \
+grep -Fq 'Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.3/DeckRecall.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '9171a8a656f0900014cafddeb8c81806de5fbe376bf66ec78f595bebe85d96d0' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'DECKY_DECKRECALL_SHA256="9171a8a656f0900014cafddeb8c81806de5fbe376bf66ec78f595bebe85d96d0"' \
     "$PROJECT_ROOT/config/settings.example.conf"
+grep -Fq 'resolve_deckrecall_latest' "$PROJECT_ROOT/modules/plugin_store.sh"
 deckrecall_install="$(sed -n '/^[[:space:]]*deckrecall)/,/^[[:space:]]*;;/p' "$PROJECT_ROOT/modules/plugin_store.sh")"
 printf '%s\n' "$deckrecall_install" | grep -Fq '"DeckRecall"' || {
     echo "FAIL: DeckRecall 未校验发布包插件目录" >&2

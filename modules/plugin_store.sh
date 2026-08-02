@@ -57,8 +57,9 @@ DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.
 DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
 DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip"
 DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
-DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.1.6/DeckRecall.zip"
-DECKY_DECKRECALL_SHA256="00271a40dbc723a65cbe3d4d5cfaa5b2c90397c33c7bc4a959bb23a4c59db337"
+DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.3/DeckRecall.zip"
+DECKY_DECKRECALL_SHA256="9171a8a656f0900014cafddeb8c81806de5fbe376bf66ec78f595bebe85d96d0"
+DECKY_DECKRECALL_AUTO_UPDATE="${ZHOUKEER_DECKY_DECKRECALL_AUTO_UPDATE:-1}"
 # Unifideck 固定使用作者最新正式 Release，避免用户旧配置继续下载更大的 0.7.0 包。
 DECKY_UNIFIDECK_URL="https://github.com/mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip"
 DECKY_UNIFIDECK_VERSION="0.7.2"
@@ -80,6 +81,23 @@ DECKY_GITEE_ARCHIVE_PREFIX="zhoukeer-toolbox-v6.0.4"
 show_plugin_download_speed_tip() {
     # 不再显示多余说明；下载失败时会自动启用加速并重试。
     return 0
+}
+
+resolve_deckrecall_latest() {
+    if [ "${DECKY_DECKRECALL_AUTO_UPDATE:-1}" != "1" ] || \
+        [ -n "${ZHOUKEER_DECKY_DECKRECALL_URL:-}" ] || \
+        [ -n "${ZHOUKEER_DECKY_DECKRECALL_SHA256:-}" ]; then
+        return 0
+    fi
+
+    if resolve_latest_github_release "Ren-Amamiya-pixle/DeckRecall" \
+        '^DeckRecall[.]zip$' "DeckRecall"; then
+        DECKY_DECKRECALL_URL="$_LATEST_RELEASE_URL"
+        DECKY_DECKRECALL_SHA256="$_LATEST_RELEASE_SHA256"
+        log "DeckRecall 自动检测最新版本: $_LATEST_RELEASE_TAG"
+    else
+        echo "自动检测最新 DeckRecall 失败，继续使用固定版本。"
+    fi
 }
 
 cleanup_decky_tmp() {
@@ -2261,6 +2279,7 @@ install_configured_plugin() {
                 "tomoon"
             ;;
         deckrecall)
+            resolve_deckrecall_latest
             install_decky_zip \
                 "DeckRecall（添加启动项及恢复游戏可玩状态）" \
                 "${DECKY_DECKRECALL_URL:-}" \

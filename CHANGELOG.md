@@ -1,3 +1,8 @@
+## V6.0.47 DeckRecall 自动抓取最新 Release — 2026-08-02
+
+- DeckRecall 改为像 GE-Proton 一样通过 GitHub API 自动解析作者最新正式 Release 和 SHA256；API 失败或限流时回退固定版本 v0.2.3。
+- 同步更新配置默认值和测试，继续保留 SHA256、ZIP 结构校验与原子替换。
+
 ## V6.0.46 小黄鸭/FSR4 改为 Gitee 国内源优先 — 2026-08-02
 
 - 小黄鸭与 FSR4 汉化完整包改为 Gitee 国内源优先，GitHub Release 只做备用，最后才回退原版叠加，避免 GitHub 测速过慢导致安装卡住。
