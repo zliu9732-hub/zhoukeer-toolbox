@@ -19,6 +19,7 @@ download_policy_url_allowed 'https://github.com/zliu9732-hub/zhoukeer-toolbox/re
 download_policy_url_allowed 'https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Windows/EpicInstaller-20.1.4.msi?launcherfilename=EpicInstaller-20.1.4.msi' || fail "Epic Akamai CDN 备用地址被拒绝"
 if download_policy_url_allowed 'https://gitee.com/mclanbai/archtodesk.git'; then fail "旧 ToDesk 第三方仓库仍在白名单"; fi
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/VERSION' || fail "工具箱 Gitee 地址被拒绝"
+download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/lsfg/latest.txt' || fail "独立镜像仓库地址被拒绝"
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/latest.txt' || fail "Decky Gitee 镜像清单地址被拒绝"
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/PluginLoader-pre.part.00' || fail "Decky Gitee 镜像分块地址被拒绝"
 [ "$(download_policy_max_bytes 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/latest.txt')" -le 2097152 ] || fail "Decky Gitee 镜像清单大小限制过大"

@@ -84,6 +84,7 @@ download_policy_url_allowed() {
         https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service) return 0 ;;
         https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.8-pre1/dist/plugin_loader-prerelease.service) return 0 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/*) return 0 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/*) return 0 ;;
         https://dl.todesk.com/linux/todesk-v4.8.6.2-amd64.deb) return 0 ;;
         https://jktool.icu/VERSION|https://jktool.icu/dist/SHA256SUMS|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) return 0 ;;
         https://www.mhhf.com/Deck/decky/*|https://plugins.deckbrew.xyz/plugins|https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/*) return 0 ;;
@@ -105,7 +106,9 @@ download_policy_max_bytes() {
     case "${1%%\?*}" in
         https://api.github.com/*) printf '%s\n' 2097152 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/mirrors/*/latest.txt) printf '%s\n' 2097152 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/*/latest.txt) printf '%s\n' 2097152 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/mirrors/*/part.*) printf '%s\n' 8388608 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/*/part.*) printf '%s\n' 8388608 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/zhoukeer-toolbox.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/zhoukeer-toolbox.tar.gz|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) printf '%s\n' 9437184 ;;
         */VERSION|*/SHA256SUMS|*.json|*.flatpakrepo|*.service|*.txt) printf '%s\n' 2097152 ;;
         *.deb) printf '%s\n' 268435456 ;;
