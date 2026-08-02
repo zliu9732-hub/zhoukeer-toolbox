@@ -106,6 +106,75 @@ resolve_deckrecall_latest() {
     fi
 }
 
+resolve_plugin_latest() {
+    local action="$1"
+
+    case "$action" in
+        lsfg)
+            [ -z "${ZHOUKEER_DECKY_LSFG_URL:-}" ] || return 0
+            if resolve_latest_github_release "xXJSONDeruloXx/decky-lsfg-vk" \
+                '^Decky[.]LSFG-VK[.]zip$' "Decky LSFG-VK"; then
+                DECKY_LSFG_URL="$_LATEST_RELEASE_URL"
+                DECKY_LSFG_SHA256="$_LATEST_RELEASE_SHA256"
+            fi
+            ;;
+        fsr4)
+            [ -z "${ZHOUKEER_DECKY_FSR4_URL:-}" ] || return 0
+            if resolve_latest_github_release "xXJSONDeruloXx/Decky-Framegen" \
+                '^Decky-Framegen[.]zip$' "Decky-Framegen"; then
+                DECKY_FSR4_URL="$_LATEST_RELEASE_URL"
+                DECKY_FSR4_SHA256="$_LATEST_RELEASE_SHA256"
+            fi
+            ;;
+        cheatdeck)
+            [ -z "${ZHOUKEER_DECKY_CHEATDECK_URL:-}" ] || return 0
+            if resolve_latest_github_release "SheffeyG/CheatDeck" \
+                '^CheatDeck[.]zip$' "CheatDeck"; then
+                DECKY_CHEATDECK_URL="$_LATEST_RELEASE_URL"
+                DECKY_CHEATDECK_SHA256="$_LATEST_RELEASE_SHA256"
+            fi
+            ;;
+        tomoon)
+            [ -z "${ZHOUKEER_DECKY_TOMOON_URL:-}" ] || return 0
+            if resolve_latest_github_release "YukiCoco/ToMoon" \
+                '^tomoon-v[0-9.]+[.]zip$' "ToMoon"; then
+                DECKY_TOMOON_URL="$_LATEST_RELEASE_URL"
+                DECKY_TOMOON_SHA256="$_LATEST_RELEASE_SHA256"
+            fi
+            ;;
+        deckrecall)
+            resolve_deckrecall_latest
+            ;;
+        unifideck)
+            [ -z "${ZHOUKEER_DECKY_UNIFIDECK_URL:-}" ] || return 0
+            if resolve_latest_github_release "mubaraknumann/unifideck" \
+                '^unifideck[.]prod[.]v[0-9.]+[.]zip$' "Unifideck"; then
+                DECKY_UNIFIDECK_URL="$_LATEST_RELEASE_URL"
+                DECKY_UNIFIDECK_SHA256="$_LATEST_RELEASE_SHA256"
+                DECKY_UNIFIDECK_VERSION="$_LATEST_RELEASE_TAG"
+            fi
+            ;;
+        freedeck)
+            [ -z "${ZHOUKEER_DECKY_FREEDECK_URL:-}" ] || return 0
+            if resolve_latest_github_release "panyiwei-home/Freedeck" \
+                '^freedeck[.]v[0-9.]+[.]zip$' "Freedeck"; then
+                DECKY_FREEDECK_URL="$_LATEST_RELEASE_URL"
+                DECKY_FREEDECK_SHA256="$_LATEST_RELEASE_SHA256"
+                DECKY_FREEDECK_VERSION="$_LATEST_RELEASE_TAG"
+            fi
+            ;;
+        simpledeckytdp)
+            [ -z "${ZHOUKEER_DECKY_SIMPLE_TDP_URL:-}" ] || return 0
+            if resolve_latest_github_release "aarron-lee/SimpleDeckyTDP" \
+                '^SimpleDeckyTDP[.]zip$' "SimpleDeckyTDP"; then
+                DECKY_SIMPLE_TDP_URL="$_LATEST_RELEASE_URL"
+                DECKY_SIMPLE_TDP_SHA256="$_LATEST_RELEASE_SHA256"
+                DECKY_SIMPLE_TDP_VERSION="$_LATEST_RELEASE_TAG"
+            fi
+            ;;
+    esac
+}
+
 resolve_decky_latest() {
     if [ "${ZHOUKEER_TEST_MODE:-0}" = "1" ]; then
         return 1
@@ -2509,8 +2578,12 @@ install_configured_plugin() {
     fi
 
     case "$action" in
-        lsfg) install_lsfg_bundle "$open_lsfg_store" ;;
+        lsfg)
+            resolve_plugin_latest lsfg
+            install_lsfg_bundle "$open_lsfg_store"
+            ;;
         fsr4)
+            resolve_plugin_latest fsr4
             if feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
                 "$FSR4_OFFICIAL_DIRECTORY" "$FSR4_OFFICIAL_VERSION" \
                 "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then
@@ -2530,6 +2603,7 @@ install_configured_plugin() {
             fi
             ;;
         cheatdeck)
+            resolve_plugin_latest cheatdeck
             install_decky_zip \
                 "CheatDeck" \
                 "${DECKY_CHEATDECK_URL:-}" \
@@ -2537,6 +2611,7 @@ install_configured_plugin() {
                 "CheatDeck"
             ;;
         tomoon)
+            resolve_plugin_latest tomoon
             install_decky_zip \
                 "ToMoon" \
                 "${DECKY_TOMOON_URL:-}" \
@@ -2544,7 +2619,7 @@ install_configured_plugin() {
                 "tomoon"
             ;;
         deckrecall)
-            resolve_deckrecall_latest
+            resolve_plugin_latest deckrecall
             install_decky_zip \
                 "DeckRecall（添加启动项及恢复游戏可玩状态）" \
                 "${DECKY_DECKRECALL_URL:-}" \
@@ -2552,6 +2627,7 @@ install_configured_plugin() {
                 "DeckRecall"
             ;;
         freedeck)
+            resolve_plugin_latest freedeck
             install_decky_zip \
                 "Freedeck（下载游戏和模拟器游戏）感谢作者b站一苇Isidf" \
                 "${DECKY_FREEDECK_URL:-}" \
@@ -2559,6 +2635,7 @@ install_configured_plugin() {
                 "freedeck-plugin"
             ;;
         simpledeckytdp)
+            resolve_plugin_latest simpledeckytdp
             install_decky_zip \
                 "SimpleDeckyTDP" \
                 "${DECKY_SIMPLE_TDP_URL:-}" \
@@ -2566,6 +2643,7 @@ install_configured_plugin() {
                 "SimpleDeckyTDP"
             ;;
         unifideck)
+            resolve_plugin_latest unifideck
             ensure_steam302_for_download || true
             GITHUB_RETRIES=1 GITHUB_MIN_SPEED_TIME=20 install_decky_zip \
                 "Unifideck" \

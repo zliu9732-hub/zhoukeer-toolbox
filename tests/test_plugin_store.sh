@@ -116,7 +116,11 @@ grep -Fq 'mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod
 grep -Fq 'a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59366936de' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 unifideck_install="$(sed -n '/^[[:space:]]*unifideck)/,/^[[:space:]]*;;/p' \
-    "$PROJECT_ROOT/modules/plugin_store.sh" | head -n 12)"
+    "$PROJECT_ROOT/modules/plugin_store.sh" | head -n 16)"
+printf '%s\n' "$unifideck_install" | grep -Fq 'resolve_plugin_latest unifideck' || {
+    echo "FAIL: Unifideck 安装前未自动检测最新 Release" >&2
+    exit 1
+}
 printf '%s\n' "$unifideck_install" | grep -Fq 'ensure_steam302_for_download' || {
     echo "FAIL: Unifideck 大包下载前未先检查 Steam302 加速" >&2
     exit 1

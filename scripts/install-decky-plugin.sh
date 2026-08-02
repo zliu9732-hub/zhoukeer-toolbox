@@ -43,6 +43,26 @@ case "$PLUGIN_ID" in
         ;;
 esac
 
+_LATEST_RELEASE_URL=""
+case "$PLUGIN_ID" in
+    lsfg)
+        resolve_latest_github_release "xXJSONDeruloXx/decky-lsfg-vk" \
+            '^Decky[.]LSFG-VK[.]zip$' "Decky LSFG-VK" || true
+        ;;
+    framegen)
+        resolve_latest_github_release "xXJSONDeruloXx/Decky-Framegen" \
+            '^Decky-Framegen[.]zip$' "Decky-Framegen" || true
+        ;;
+    cheatdeck)
+        resolve_latest_github_release "SheffeyG/CheatDeck" \
+            '^CheatDeck[.]zip$' "CheatDeck" || true
+        ;;
+esac
+if [ -n "$_LATEST_RELEASE_URL" ]; then
+    PLUGIN_URL="$_LATEST_RELEASE_URL"
+    PLUGIN_SHA256="$_LATEST_RELEASE_SHA256"
+fi
+
 for command_name in curl unzip find sha256sum; do
     command -v "$command_name" >/dev/null 2>&1 || {
         echo "缺少命令：$command_name"
