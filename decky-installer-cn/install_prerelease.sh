@@ -22,13 +22,24 @@ sudo -u $SUDO_USER touch "${USER_DIR}/.steam/steam/.cef-enable-remote-debugging"
 # if installed as flatpak, put .cef-enable-remote-debugging there
 [ -d "${USER_DIR}/.var/app/com.valvesoftware.Steam/data/Steam/" ] && sudo -u $SUDO_USER touch "${USER_DIR}/.var/app/com.valvesoftware.Steam/data/Steam/.cef-enable-remote-debugging"
 
-# Mirrored pre-release on Gitee
+# Mirrored pre-release on Gitee (large binary is split into 8MB chunks)
 VERSION="v3.2.8-pre1"
-DOWNLOADURL="https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/PluginLoader-pre"
+MIRROR_BASE="https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn"
+DOWNLOAD_PARTS=4
+EXPECTED_SHA256="9df160a81df3fc49c96e5665a1d1b3ba5c79de5bf271adc266d6bfedfda399d8"
 
 printf "Installing version %s...\n" "${VERSION}"
-curl -L $DOWNLOADURL --output ${HOMEBREW_FOLDER}/services/PluginLoader
+rm -f "${HOMEBREW_FOLDER}/services/PluginLoader"
+for i in $(seq 0 $((DOWNLOAD_PARTS - 1))); do
+    part=$(printf '%02d' "$i")
+    curl -fL "${MIRROR_BASE}/PluginLoader-pre.part.${part}" >> "${HOMEBREW_FOLDER}/services/PluginLoader" || { echo "PluginLoader 分块下载失败: ${part}"; exit 1; }
+done
 chmod +x ${HOMEBREW_FOLDER}/services/PluginLoader
+actual_sha=$(sha256sum "${HOMEBREW_FOLDER}/services/PluginLoader" | cut -d' ' -f1)
+if [ "$actual_sha" != "$EXPECTED_SHA256" ]; then
+    echo "PluginLoader SHA256 校验失败"
+    exit 1
+fi
 
 echo "Check for SELinux presence and if it is present, set the correct permission on the binary file..."
 hash getenforce 2>/dev/null && getenforce | grep "Enforcing" >/dev/null && chcon -t bin_t ${HOMEBREW_FOLDER}/services/PluginLoader
