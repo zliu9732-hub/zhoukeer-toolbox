@@ -4,6 +4,7 @@ set -u
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="$(tr -d '\r\n' < "$PROJECT_ROOT/VERSION")"
+# 版本号规则：1.0.9 之后为 1.1.0，严格按语义化版本递增，不做跳版。
 DIST_DIR="$PROJECT_ROOT/dist"
 PACKAGE_NAME="zhoukeer-toolbox.tar.gz"
 PACKAGE_PATH="$DIST_DIR/$PACKAGE_NAME"
