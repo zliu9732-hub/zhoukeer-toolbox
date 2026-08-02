@@ -20,7 +20,16 @@ if download_policy_url_allowed 'https://gitee.com/mclanbai/archtodesk.git'; then
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/VERSION' || fail "工具箱 Gitee 地址被拒绝"
 if download_policy_url_allowed 'https://evil.example/payload.sh'; then fail "任意域名被白名单接受"; fi
 download_policy_github_mirror_allowed 'https://ghfast.top/' || fail "GitHub Release 加速源被拒绝"
-if download_policy_github_mirror_allowed 'https://ghproxy.net/'; then fail "过期 GitHub 加速源仍被接受"; fi
+for mirror in \
+    'https://ghproxy.net/' \
+    'https://gh.api.99988866.xyz/' \
+    'https://github.moeyy.xyz/' \
+    'https://gh.llkk.cc/' \
+    'https://mirror.ghproxy.com/' \
+    'https://gh.ddlc.com/' \
+    'https://gh-proxy.lanqier.me/'; do
+    download_policy_github_mirror_allowed "$mirror" || fail "现有 GitHub 加速源被拒绝：$mirror"
+done
 if download_policy_github_mirror_allowed 'https://unknown-mirror.example/'; then fail "未知 GitHub 加速源被接受"; fi
 
 printf '<!doctype html><html>403</html>\n' > "$TMP_ROOT/error.zip"
@@ -52,7 +61,7 @@ for mirror in $GITHUB_MIRRORS; do
 done
 download_policy_github_mirror_allowed "$GITHUB_RELEASE_PROXY" || fail "GitHub Release 代理未列入白名单：$GITHUB_RELEASE_PROXY"
 
-for stale_proxy in ghproxy.net gh.api.99988866.xyz ghproxy.com mirror.ghproxy.com ghfast.top.cn ghproxy.cc github.moeyy.xyz; do
+for stale_proxy in https://ghproxy.com https://ghfast.top.cn https://ghproxy.cc https://unknown-mirror.example; do
     if rg -F "$stale_proxy" \
         "$PROJECT_ROOT/config/settings.conf" \
         "$PROJECT_ROOT/config/settings.example.conf" \

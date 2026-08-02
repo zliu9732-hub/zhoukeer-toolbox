@@ -76,8 +76,8 @@ load_config() {
 
     # 仅 GitHub Release 使用此受控代理；其他 GitHub 内容走官方源。
     : "${GITHUB_RELEASE_PROXY:=https://ghfast.top/}"
-    # 额外镜像默认关闭。
-    : "${GITHUB_MIRRORS:=}"
+    # 额外镜像与 Release 代理一起参与实际文件测速，按吞吐排序后回退官方源。
+    : "${GITHUB_MIRRORS:=https://ghproxy.net/ https://gh.api.99988866.xyz/ https://github.moeyy.xyz/ https://gh.llkk.cc/ https://mirror.ghproxy.com/ https://gh.ddlc.com/ https://gh-proxy.lanqier.me/}"
 }
 
 # shellcheck disable=SC1091

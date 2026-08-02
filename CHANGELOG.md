@@ -1,3 +1,9 @@
+## V6.0.38 恢复 GitHub 多镜像测速 — 2026-08-02
+
+- 恢复 V6.0.17 的多 GitHub 加速源配置，小黄鸭、FSR4、Freedeck、ToMoon 等 Release 下载重新按实际吞吐测速排序，不再只依赖 ghfast.top。
+- 下载策略白名单同步恢复 ghproxy.net、gh.api.99988866.xyz、github.moeyy.xyz、gh.llkk.cc、mirror.ghproxy.com、gh.ddlc.com、gh-proxy.lanqier.me，保留 ghfast.top 和官方源兜底。
+- 测试覆盖多镜像候选、白名单与逐源回退。
+
 ## V6.0.25 ToDesk 无浏览器下载与官方包镜像 — 2026-08-01
 
 - 将未修改的 ToDesk 官方 4.8.6.2 DEB 作为工具箱 GitHub Release 附件托管，固定官方 SHA256 和版本，不引入 AUR、yay 或第三方重打包。

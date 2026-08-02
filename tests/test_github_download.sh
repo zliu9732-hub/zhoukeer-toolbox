@@ -72,6 +72,17 @@ source "$PROJECT_ROOT/utils/github_download.sh"
 
 GITHUB_MIRRORS=""
 GITHUB_RELEASE_PROXY="https://ghfast.top/"
+GITHUB_MIRRORS="https://ghproxy.net/ https://gh.llkk.cc/"
+restored_sources="$(_github_mirror_list 'https://github.com/example/project/releases/download/v1.0.0/example.zip')"
+printf '%s\n' "$restored_sources" | grep -Fxq 'https://ghproxy.net/' || {
+    echo "FAIL: GitHub Release 未参与已恢复镜像测速" >&2
+    exit 1
+}
+printf '%s\n' "$restored_sources" | grep -Fxq 'https://gh.llkk.cc/' || {
+    echo "FAIL: GitHub Release 缺少恢复的 gh.llkk.cc 候选源" >&2
+    exit 1
+}
+GITHUB_MIRRORS=""
 release_proxy_sources="$(_github_mirror_list 'https://github.com/example/project/releases/download/v1.0.0/example.zip')"
 printf '%s\n' "$release_proxy_sources" | grep -Fxq 'https://ghfast.top/' || {
     echo "FAIL: GitHub Release 未读取可配置的代理前缀" >&2
