@@ -1,3 +1,10 @@
+## V6.0.49 Gitee 分块镜像与第三方 License 清单 — 2026-08-03
+
+- 新增 `utils/gitee_download.sh` 与 `scripts/mirror_gitee_assets.sh`，支持 Gitee 8MiB 分块镜像、跨仓库拆分和自动回退 GitHub。
+- 新增 `THIRD_PARTY_LICENSES.md`，记录第三方依赖协议、上游地址与是否可镜像。
+- Decky Loader、官方插件、ToDesk、Steam302 迁移到独立 Gitee 镜像仓库；GE-Proton 分块拆分到两个 Gitee 镜像仓库。
+- 模拟器与 RustDesk 的 AppImage 保持官方/GitHub 源，不进入公开镜像。
+
 ## V6.0.48 小文件跳过测速与测试版插件商城加速重试 — 2026-08-03
 
 - GitHub 下载先探测远程 Content-Length，2 MiB 以内的小文件直接走官方源，不再并行测速镜像；DeckRecall、ToMoon 等小插件安装不再被测速卡住。
