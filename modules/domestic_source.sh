@@ -188,7 +188,7 @@ configure_archlinuxcn_with_fallback() {
         echo "✓ 已检测到 archlinuxcn 密钥环，无需重复安装。"
     else
         echo "正在通过上海交大、中科大和官方回退源安装 archlinuxcn 密钥环..."
-        if ! toolbox_sudo pacman -Syu --needed --noconfirm archlinuxcn-keyring; then
+        if ! toolbox_sudo pacman -Sy --needed --noconfirm archlinuxcn-keyring; then
             if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" "$pacman_conf" 2>/dev/null && \
                 ! remove_managed_archlinuxcn_repo "$pacman_conf"; then
                 echo "archlinuxcn 密钥环安装失败，且工具箱配置移除失败。"
@@ -360,7 +360,7 @@ prepare_system_packages() (
             echo "Arch Linux 系统密钥导入失败，已停止。"
             return 1
         fi
-        if ! toolbox_sudo pacman -Syu --needed --noconfirm git flatpak; then
+        if ! toolbox_sudo pacman -Sy --needed --noconfirm git flatpak; then
             echo "git 或 Flatpak 组件补齐失败，已停止。"
             return 1
         fi

@@ -1,3 +1,8 @@
+## V6.0.39 修复系统组件初始化失败 — 2026-08-02
+
+- “初始化国内源并检测系统组件”不再触发整机 `pacman -Syu`，改为只同步数据库并补齐目标组件（git、Flatpak、archlinuxcn-keyring），避免 SteamOS 上全量 pacman 更新冲突导致操作失败。
+- 保留 archlinuxcn 镜像回退、GPG 密钥环、locale 与 Flatpak 国内缓存逻辑；失败时继续安全回滚或跳过，不阻断其他功能。
+
 ## V6.0.38 恢复 GitHub 多镜像测速 — 2026-08-02
 
 - 恢复 V6.0.17 的多 GitHub 加速源配置，小黄鸭、FSR4、Freedeck、ToMoon 等 Release 下载重新按实际吞吐测速排序，不再只依赖 ghfast.top。

@@ -242,7 +242,7 @@ grep -Fq -- '--appstream' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应包含 AppStream 强制刷新"
 grep -Fq 'verify_domestic_flatpak_remote' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应保留应用索引验证"
-for command_text in 'packages_installed_without_known_upgrades' 'base_system_components_ready' 'archlinuxcn_keyring_ready' 'configure_archlinuxcn_with_fallback' 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman -Syu --needed --noconfirm git flatpak' 'pacman -S --needed --noconfirm archlinux-keyring' 'pacman -Syu --needed --noconfirm archlinuxcn-keyring' 'pacman-key --populate archlinuxcn' 'locale-gen' 'steamos-readonly disable' 'steamos-readonly enable'; do
+for command_text in 'packages_installed_without_known_upgrades' 'base_system_components_ready' 'archlinuxcn_keyring_ready' 'configure_archlinuxcn_with_fallback' 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman -Sy --needed --noconfirm git flatpak' 'pacman -S --needed --noconfirm archlinux-keyring' 'pacman -Sy --needed --noconfirm archlinuxcn-keyring' 'pacman-key --populate archlinuxcn' 'locale-gen' 'steamos-readonly disable' 'steamos-readonly enable'; do
     grep -Fq "$command_text" "$PROJECT_ROOT/modules/domestic_source.sh" || \
         fail "完整国内源初始化缺少：$command_text"
 done
@@ -320,7 +320,7 @@ EOF
 
     rm -f "$STATE_DIR/installed.archlinuxcn-keyring"
     configure_archlinuxcn_with_fallback "$SYSTEM_DIR/pacman.conf"
-    grep -Fq 'pacman -Syu --needed --noconfirm archlinuxcn-keyring' "$STATE_DIR/commands" || \
+    grep -Fq 'pacman -Sy --needed --noconfirm archlinuxcn-keyring' "$STATE_DIR/commands" || \
         fail "缺少密钥环时未执行 archlinuxcn 安装"
     grep -Fq '[archlinuxcn]' "$SYSTEM_DIR/pacman.conf" || \
         fail "密钥环安装成功后未保留 archlinuxcn 配置"
