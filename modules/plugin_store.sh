@@ -1012,12 +1012,19 @@ download_verified_package() {
     local url="$2"
     local expected_sha256="$3"
     local output="$4"
+    local mirror_id
 
     if [ -z "$url" ] || [ -z "$expected_sha256" ]; then
         echo "$name 的下载配置不完整，请先更新工具箱。"
         return 1
     fi
-    download_github_file "$url" "$output" "$expected_sha256" "$name"
+    mirror_id="$(gitee_mirror_id_for_url "$url" 2>/dev/null || true)"
+    if [ -n "$mirror_id" ]; then
+        download_with_gitee_mirror_fallback \
+            "$mirror_id" "$url" "$expected_sha256" "$output" "$name"
+    else
+        download_github_file "$url" "$output" "$expected_sha256" "$name"
+    fi
 }
 
 archive_paths_are_safe() {

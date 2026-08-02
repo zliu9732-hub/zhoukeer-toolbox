@@ -84,3 +84,5 @@ load_config() {
 source "$PROJECT_ROOT/core/download_policy.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/utils/github_download.sh"
+# shellcheck disable=SC1091
+source "$PROJECT_ROOT/utils/gitee_download.sh"

@@ -299,23 +299,26 @@ download_todesk_package() {
     deb_file="$TODESK_TMP_DIR/$TODESK_OFFICIAL_DEB_NAME"
     expected_sha256="$(printf '%s' "$TODESK_OFFICIAL_DEB_SHA256" | tr '[:upper:]' '[:lower:]')"
 
-    if ! GITHUB_MAX_TIME="$TODESK_MAX_TIME" GITHUB_RETRIES=3 \
-        download_github_file "$TODESK_RELEASE_DEB_URL" "$deb_file" \
-            "$expected_sha256" "ToDesk官方安装包"; then
-        rm -f -- "$deb_file"
-        echo "ToDesk镜像下载失败，正在尝试官网..."
-        if ! curl --fail --location --progress-meter \
-            --proto '=https' --proto-redir '=https' \
-            --connect-timeout "$TODESK_CONNECT_TIMEOUT" --max-time "$TODESK_MAX_TIME" \
-            --retry 3 --retry-delay 2 --retry-connrefused \
-            --speed-limit 65536 --speed-time 60 \
-            --max-filesize "$(download_policy_max_bytes "$TODESK_OFFICIAL_DEB_URL")" \
-            --user-agent 'Mozilla/5.0' \
-            --output "$deb_file" "$TODESK_OFFICIAL_DEB_URL" \
-            2> >(download_progress_filter "ToDesk" >&2); then
+    if ! download_gitee_mirror_file \
+        "todesk" "$deb_file" "$expected_sha256" "ToDesk官方安装包"; then
+        if ! GITHUB_MAX_TIME="$TODESK_MAX_TIME" GITHUB_RETRIES=3 \
+            download_github_file "$TODESK_RELEASE_DEB_URL" "$deb_file" \
+                "$expected_sha256" "ToDesk官方安装包"; then
             rm -f -- "$deb_file"
-            echo "ToDesk下载失败，请稍后重试。"
-            return 1
+            echo "ToDesk镜像下载失败，正在尝试官网..."
+            if ! curl --fail --location --progress-meter \
+                --proto '=https' --proto-redir '=https' \
+                --connect-timeout "$TODESK_CONNECT_TIMEOUT" --max-time "$TODESK_MAX_TIME" \
+                --retry 3 --retry-delay 2 --retry-connrefused \
+                --speed-limit 65536 --speed-time 60 \
+                --max-filesize "$(download_policy_max_bytes "$TODESK_OFFICIAL_DEB_URL")" \
+                --user-agent 'Mozilla/5.0' \
+                --output "$deb_file" "$TODESK_OFFICIAL_DEB_URL" \
+                2> >(download_progress_filter "ToDesk" >&2); then
+                rm -f -- "$deb_file"
+                echo "ToDesk下载失败，请稍后重试。"
+                return 1
+            fi
         fi
     fi
 

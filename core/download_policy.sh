@@ -11,7 +11,7 @@ ZHOUKEER_DOWNLOAD_POLICY_LOADED=1
 download_policy_source_catalog() {
     cat <<'EOF'
 ID|域名|用途|允许文件类型|版本策略|校验方式|大小上限（字节）|回退规则
-toolbox-gitee|gitee.com|工具箱版本、校验文件与固定归档|text,sha256,tar.gz,zip|固定 main 或固定标签|SHA256+包内版本|9437184|域名源→GitHub
+toolbox-gitee|gitee.com|工具箱版本、校验文件、固定归档与分块镜像|text,sha256,tar.gz,zip,deb,AppImage|固定 main 或固定标签|SHA256+分块重组+包内版本|1073741824|域名源→GitHub
 toolbox-github|raw.githubusercontent.com,github.com|工具箱更新与固定 Release|text,sha256,tar.gz,zip,AppImage|固定仓库、版本或标签|SHA256+结构检查|1073741824|Gitee/域名源
 toolbox-domain|jktool.icu|工具箱更新备用|text,sha256,tar.gz|固定 main 发布内容|SHA256+包内版本|9437184|GitHub→Gitee
 github-proxy|ghproxy.net,gh.api.99988866.xyz,github.moeyy.xyz,gh.llkk.cc,mirror.ghproxy.com,gh.ddlc.com,gh-proxy.lanqier.me,ghfast.top|固定 GitHub 文件加速|同原始文件|只转发白名单 GitHub URL|调用方固定 SHA256|1073741824|GitHub 官方源
@@ -20,7 +20,7 @@ decky|gitee.com,www.mhhf.com,github.com,raw.githubusercontent.com,plugins.deckbr
 flathub|mirror.sjtu.edu.cn,mirrors.ustc.edu.cn,dl.flathub.org|Flatpak 国内缓存与官方源|flatpakrepo,repo|固定远程|Flatpak GPG；国内缓存例外需明确确认|2097152|上海交大→中科大→官方
 vendors|qq-web.cdn-go.cn,im.qq.com,qqdl.gtimg.cn,dldir1v6.qq.com,launcher-public-service-prod06.ol.epicgames.com,epicgames-download1.akamaized.net,downloader.battle.net,static3.cdn.ubi.com|官方应用安装包|json,AppImage,exe,msi|官方当前版或固定版|官方HTTPS+固定路径+类型/大小；固定版另验SHA256|536870912|停止安装
 steam302|www.dogfight360.com|Steamcommunity 302 固定版本|tar.gz|固定版本|MD5+SHA256+结构检查|536870912|停止安装
-todesk|github.com,dl.todesk.com|ToDesk 官方 Linux 客户端的未修改镜像与官网|deb|固定官方版本|SHA256+DEB/包内结构|268435456|GitHub镜像源→官网→停止安装
+todesk|github.com,dl.todesk.com|ToDesk 官方 Linux 客户端的未修改镜像与官网|deb|固定官方版本|SHA256+DEB/包内结构|268435456|Gitee镜像→GitHub镜像源→官网→停止安装
 EOF
 }
 
@@ -104,6 +104,8 @@ download_policy_url_allowed() {
 download_policy_max_bytes() {
     case "${1%%\?*}" in
         https://api.github.com/*) printf '%s\n' 2097152 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/mirrors/*/latest.txt) printf '%s\n' 2097152 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/mirrors/*/part.*) printf '%s\n' 8388608 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/zhoukeer-toolbox.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/zhoukeer-toolbox.tar.gz|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) printf '%s\n' 9437184 ;;
         */VERSION|*/SHA256SUMS|*.json|*.flatpakrepo|*.service|*.txt) printf '%s\n' 2097152 ;;
         *.deb) printf '%s\n' 268435456 ;;

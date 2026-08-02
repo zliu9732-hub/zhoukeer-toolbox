@@ -117,6 +117,7 @@ MODULE="$MODULE" FAKE_DEB="$FAKE_DEB" FAKE_DEB_SHA="$FAKE_DEB_SHA" \
     TODESK_OFFICIAL_DEB_SHA256="$FAKE_DEB_SHA"
     TODESK_OFFICIAL_DEB_MIN_BYTES=1
     APP_DIR="$BUILD_APPS"
+    download_gitee_mirror_file() { return 1; }
     download_github_file() {
         printf "%s|%s|%s\n" "$1" "$3" "$4" >> "$RELEASE_LOG"
         cp -- "$FAKE_DEB" "$2"
@@ -170,6 +171,7 @@ MODULE="$MODULE" FAKE_DEB="$FAKE_DEB" FAKE_DEB_SHA="$FAKE_DEB_SHA" \
     TODESK_OFFICIAL_DEB_MIN_BYTES=1
     APP_DIR="$FALLBACK_APPS"
     download_policy_max_bytes() { printf "%s\n" 268435456; }
+    download_gitee_mirror_file() { return 1; }
     download_github_file() {
         printf "%s\n" "$1" >> "$FALLBACK_LOG"
         return 1

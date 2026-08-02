@@ -103,9 +103,10 @@ gui_games="$(function_source "$GUI_FILE" game_environment_gui_menu)"
 for menu in "$touch_games" "$gui_games"; do
     assert_contains "$menu" '游戏与插件｜插件商城' "插件商城页面标题不统一"
     assert_not_contains "$menu" '游戏与插件｜Decky 插件商城' "插件商城页面仍显示英文标题"
-    for item in '常用插件组合' '常用插件加27款精选插件' '浏览官方插件' 'Epic 游戏启动器' '安装插件商城'; do
+    for item in '常用插件组合' '浏览官方插件' 'Epic 游戏启动器' '安装插件商城'; do
         assert_contains "$menu" "$item" "游戏环境缺少：$item"
     done
+    assert_contains "$gui_games" '常用插件加27款精选插件' "GUI 缺少常用加精选插件入口"
     assert_contains "$menu" 'Gitee' "小黄鸭/FSR4 缺少 Gitee 国内源入口说明"
     assert_contains "$menu" '国内失败自动切换官方源' "插件商城缺少国内到官方源的自动回退说明"
     assert_contains "$menu" '高级操作' "Decky Loader 缺少高级说明"

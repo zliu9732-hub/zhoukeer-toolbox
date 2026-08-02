@@ -84,16 +84,21 @@ assert_contains "$custom_json" '"name":"Unifideck"' "未生成Unifideck安装请
 assert_contains "$custom_json" "$DECKY_UNIFIDECK_SHA256" "非官方插件未携带SHA256"
 assert_contains "$custom_json" '"name":"Freedeck"' "未生成Freedeck安装请求"
 assert_contains "$custom_json" "$DECKY_FREEDECK_SHA256" "Freedeck 未固定 0.6 校验值"
+assert_contains "$custom_json" 'gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/mirrors/simpledeckytdp' "SimpleDeckyTDP 未使用 Gitee 镜像地址"
 
 DECKY_SIMPLE_TDP_URL="http://unsafe.invalid/plugin.zip"
+DECKY_SIMPLE_TDP_MIRROR_URL="http://unsafe.invalid/plugin.zip"
 if build_custom_plugins_json "$TMP_ROOT/unsafe.json" >/dev/null 2>&1; then
     fail "非HTTPS插件地址不应被接受"
 fi
 
 DECKY_SIMPLE_TDP_URL=""
 DECKY_SIMPLE_TDP_SHA256=""
+DECKY_SIMPLE_TDP_MIRROR_URL=""
 DECKY_UNIFIDECK_URL=""
 DECKY_UNIFIDECK_SHA256=""
+DECKY_UNIFIDECK_MIRROR_URL=""
+DECKY_FREEDECK_MIRROR_URL=""
 CAPTURE_FILE="$TMP_ROOT/decky-request.json"
 
 curl() {

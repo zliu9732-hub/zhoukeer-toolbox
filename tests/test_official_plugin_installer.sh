@@ -17,7 +17,7 @@ grep -Fq 'SheffeyG/CheatDeck/releases/download/v1.2.1/CheatDeck.zip' "$INSTALLER
 grep -Fq 'PLUGIN_SHA256' "$INSTALLER"
 grep -Fq 'source "$PROJECT_ROOT/core/env.sh"' "$INSTALLER"
 grep -Fq 'load_config' "$INSTALLER"
-grep -Fq 'download_github_file "$PLUGIN_URL" "$ARCHIVE" "$PLUGIN_SHA256" "$PLUGIN_NAME"' "$INSTALLER"
+grep -Fq 'download_with_gitee_mirror_fallback' "$INSTALLER"
 if grep -Fq -- '--output "$ARCHIVE" "$PLUGIN_URL"' "$INSTALLER"; then
     echo "FAIL: 官方插件安装器不应绕过统一 GitHub 下载器"
     exit 1

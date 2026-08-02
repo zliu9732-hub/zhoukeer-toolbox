@@ -23,12 +23,15 @@ DECKY_BUNDLE_TMP_DIR=""
 DECKY_SIMPLE_TDP_URL="${ZHOUKEER_DECKY_SIMPLE_TDP_URL:-https://github.com/aarron-lee/SimpleDeckyTDP/releases/download/v1.0.5/SimpleDeckyTDP.zip}"
 DECKY_SIMPLE_TDP_VERSION="${ZHOUKEER_DECKY_SIMPLE_TDP_VERSION:-v1.0.5}"
 DECKY_SIMPLE_TDP_SHA256="${ZHOUKEER_DECKY_SIMPLE_TDP_SHA256:-ebf1c68147b6300ee17c2d7ea00a9cfe9ac1c78af78d364d9d306ac64a2cc057}"
+DECKY_SIMPLE_TDP_MIRROR_URL="$(gitee_mirror_direct_url simpledeckytdp v1.0.5 SimpleDeckyTDP.zip)"
 DECKY_UNIFIDECK_URL="${ZHOUKEER_DECKY_UNIFIDECK_URL:-https://github.com/mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip}"
 DECKY_UNIFIDECK_VERSION="${ZHOUKEER_DECKY_UNIFIDECK_VERSION:-0.7.2}"
 DECKY_UNIFIDECK_SHA256="${ZHOUKEER_DECKY_UNIFIDECK_SHA256:-a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59366936de}"
+DECKY_UNIFIDECK_MIRROR_URL="$(gitee_mirror_direct_url unifideck Release-0.7.2 unifideck.prod.v0.7.2.zip)"
 DECKY_FREEDECK_URL="${ZHOUKEER_DECKY_FREEDECK_URL:-https://github.com/panyiwei-home/Freedeck/releases/download/0.6/freedeck.v.0.6.zip}"
 DECKY_FREEDECK_SHA256="${ZHOUKEER_DECKY_FREEDECK_SHA256:-04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62}"
 DECKY_FREEDECK_VERSION="${ZHOUKEER_DECKY_FREEDECK_VERSION:-0.6}"
+DECKY_FREEDECK_MIRROR_URL="$(gitee_mirror_direct_url freedeck 0.6 freedeck.v.0.6.zip)"
 
 # Names must exactly match the official Decky store database.
 DECKY_OFFICIAL_PLUGIN_NAMES='["CSS Loader","vibrantDeck","Animation Changer","Audio Loader","SteamGridDB","PowerTools","Storage Cleaner","AutoFlatpaks","Bluetooth","ProtonDB Badges","Deck Settings","HLTB for Deck","PlayCount","TabMaster","Wine Cellar","Pause Games","Controller Tools","Volume Mixer","Battery Tracker","PlayTime","Free Loader","DeckMTP","MangoPeel"]'
@@ -88,17 +91,17 @@ build_custom_plugins_json() {
     append_custom_plugin_json "$output" \
         "SimpleDeckyTDP" \
         "${DECKY_SIMPLE_TDP_VERSION:-v1.0.4}" \
-        "${DECKY_SIMPLE_TDP_URL:-}" \
+        "${DECKY_SIMPLE_TDP_MIRROR_URL:-$DECKY_SIMPLE_TDP_URL}" \
         "${DECKY_SIMPLE_TDP_SHA256:-}" || return 1
     append_custom_plugin_json "$output" \
         "Unifideck" \
         "${DECKY_UNIFIDECK_VERSION:-0.7.2}" \
-        "${DECKY_UNIFIDECK_URL:-}" \
+        "${DECKY_UNIFIDECK_MIRROR_URL:-$DECKY_UNIFIDECK_URL}" \
         "${DECKY_UNIFIDECK_SHA256:-}" || return 1
     append_custom_plugin_json "$output" \
         "Freedeck" \
         "${DECKY_FREEDECK_VERSION:-0.6}" \
-        "${DECKY_FREEDECK_URL:-}" \
+        "${DECKY_FREEDECK_MIRROR_URL:-$DECKY_FREEDECK_URL}" \
         "${DECKY_FREEDECK_SHA256:-}" || return 1
 }
 

@@ -90,7 +90,13 @@ resolve_ge_proton_latest() {
         return 0
     fi
 
-    if resolve_latest_github_release "GloriousEggroll/proton-ge-custom" \
+    if resolve_latest_gitee_mirror "ge-proton" \
+        '^GE-Proton[0-9]+-[0-9]+[.]tar[.]gz$' "GE-Proton"; then
+        GE_PROTON_URL="$_GITEE_MIRROR_LATEST_URL"
+        GE_PROTON_VERSION="$_GITEE_MIRROR_LATEST_VERSION"
+        GE_PROTON_SHA256="$_GITEE_MIRROR_LATEST_SHA256"
+        log "GE-Proton Gitee 镜像最新版本: $GE_PROTON_VERSION"
+    elif resolve_latest_github_release "GloriousEggroll/proton-ge-custom" \
         '^GE-Proton[0-9]+-[0-9]+[.]tar[.]gz$' "GE-Proton"; then
         GE_PROTON_URL="$_LATEST_RELEASE_URL"
         GE_PROTON_VERSION="$_LATEST_RELEASE_TAG"
@@ -275,8 +281,10 @@ install_ge_proton() {
     extract_dir="$GE_PROTON_TMP_DIR/extracted"
     mkdir -p "$extract_dir" || return 1
 
-    if ! GITHUB_MAX_TIME=1800 GITHUB_RETRIES=3 download_github_file \
-        "$GE_PROTON_URL" "$archive" "$GE_PROTON_SHA256" "$GE_PROTON_VERSION"; then
+    if ! GITHUB_MAX_TIME=1800 GITHUB_RETRIES=3 \
+        download_with_gitee_mirror_fallback \
+        "ge-proton" "$GE_PROTON_URL" "$GE_PROTON_SHA256" \
+        "$archive" "$GE_PROTON_VERSION"; then
         echo "GE-Proton下载失败。"
         return 1
     fi

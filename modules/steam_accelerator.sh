@@ -462,6 +462,11 @@ download_steam302_archive() {
         return 1
     }
     echo "正在下载 Steamcommunity 302 V$STEAM302_VERSION..."
+    if download_gitee_mirror_file \
+        "steam302" "$destination" "$STEAM302_ARCHIVE_SHA256" \
+        "Steamcommunity 302"; then
+        return 0
+    fi
     curl \
         --fail \
         --location \

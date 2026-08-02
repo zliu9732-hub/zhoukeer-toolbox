@@ -17,6 +17,7 @@ case "$PLUGIN_ID" in
         PLUGIN_NAME="Decky LSFG-VK（小黄鸭）"
         PLUGIN_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
         PLUGIN_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
+        PLUGIN_MIRROR_ID="lsfg"
         PLUGIN_DIRECTORY="Decky LSFG-VK"
         PLUGIN_AUTHOR="xXJSONDeruloXx"
         ;;
@@ -24,6 +25,7 @@ case "$PLUGIN_ID" in
         PLUGIN_NAME="Decky-Framegen（FSR4）"
         PLUGIN_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip"
         PLUGIN_SHA256="236dc5aef5c908d905a848d7e448689634479ab61cd9184154ba8a725b3f2089"
+        PLUGIN_MIRROR_ID="fsr4"
         PLUGIN_DIRECTORY="Decky-Framegen"
         PLUGIN_AUTHOR="xXJSONDeruloXx"
         ;;
@@ -31,6 +33,7 @@ case "$PLUGIN_ID" in
         PLUGIN_NAME="CheatDeck"
         PLUGIN_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.2.1/CheatDeck.zip"
         PLUGIN_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
+        PLUGIN_MIRROR_ID="cheatdeck"
         PLUGIN_DIRECTORY="CheatDeck"
         PLUGIN_AUTHOR="SheffeyG"
         ;;
@@ -145,9 +148,12 @@ BACKUP_DIR="$PLUGIN_ROOT/.${PLUGIN_DIRECTORY}.backup.$$"
 TARGET_DIR="$PLUGIN_ROOT/$PLUGIN_DIRECTORY"
 
 echo "正在准备下载 $PLUGIN_NAME..."
-# 与工具箱内插件菜单共用 GitHub 下载器：对 Release 文件测速选择 ghfast、
-# 已配置镜像或官方源，逐源回退，并在写入前完成 SHA256 校验。
-download_github_file "$PLUGIN_URL" "$ARCHIVE" "$PLUGIN_SHA256" "$PLUGIN_NAME"
+# 与工具箱内插件菜单共用 Gitee/GitHub 双源下载器：Gitee 分块镜像优先，
+# 失败后对 Release 文件测速选择 ghfast、已配置镜像或官方源，逐源回退，
+# 并在写入前完成 SHA256 校验。
+download_with_gitee_mirror_fallback \
+    "$PLUGIN_MIRROR_ID" "$PLUGIN_URL" "$PLUGIN_SHA256" \
+    "$ARCHIVE" "$PLUGIN_NAME"
 
 ACTUAL_SHA256="$(sha256sum "$ARCHIVE" | awk '{print tolower($1)}')"
 if [ "$ACTUAL_SHA256" != "$PLUGIN_SHA256" ]; then
