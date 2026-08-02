@@ -1,3 +1,11 @@
+## V1.0.1 插件最新版自动检测与发布体验优化 — 2026-08-03
+
+- 所有官方 Decky 插件（小黄鸭、FSR4、CheatDeck、ToMoon、DeckRecall、Unifideck、Freedeck、SimpleDeckyTDP）安装前自动检测作者最新 GitHub Release。
+- Epic 启动器下载增加低速自动中断重试，不再长时间卡在 0 B/s。
+- 新增 GitHub Actions 自动同步 Decky Gitee 镜像；GITEE_TOKEN 配置后每 6 小时自动更新。
+- 分块镜像安装提示简化为“正在安装 xxx...”。
+- 版本号规则明确：1.0.9 之后为 1.1.0，严格按语义化版本递增。
+
 ## V1.0.0 首个正式版 — 2026-08-03
 
 - 以 1.0.0 作为首个正式版起点，后续继续按原有更新规则递增小版本。
