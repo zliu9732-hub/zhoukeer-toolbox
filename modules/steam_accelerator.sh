@@ -459,11 +459,10 @@ download_steam302_archive() {
         echo "Steamcommunity 302 下载地址不在受控来源清单中。"
         return 1
     }
-    echo "正在下载 Steamcommunity 302 V$STEAM302_VERSION..."
     curl \
         --fail \
         --location \
-        --silent \
+        --progress-bar \
         --proto '=https' \
         --proto-redir '=https' \
         --connect-timeout "$STEAM302_CONNECT_TIMEOUT" \

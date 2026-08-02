@@ -212,7 +212,6 @@ download_github_file() {
     fi
     [ -z "$proxy" ] || curl_options+=(--proxy "$proxy")
 
-    echo "正在下载 $name..."
     while IFS= read -r source; do
         [ -n "$source" ] || continue
         if [ "$source" = "DIRECT" ]; then
@@ -243,7 +242,6 @@ download_github_file() {
             fi
         fi
         if mv -f -- "$temp_file" "$output"; then
-            echo "$name 下载完成。"
             declare -F log >/dev/null 2>&1 && log "GitHub 下载成功: $name"
             return 0
         fi

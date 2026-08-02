@@ -54,8 +54,12 @@ printf '%s\n' "$decky_component_download" | grep -Fq -- '--progress-bar' || {
     echo "FAIL: Decky 组件下载缺少百分比进度条" >&2
     exit 1
 }
-grep -Fq '下载失败，切换备用源。' "$PROJECT_ROOT/modules/plugin_store.sh" || {
-    echo "FAIL: Decky 插件下载仍显示具体失败原因" >&2
+if grep -Fq 'echo "下载失败，切换备用源。"' "$PROJECT_ROOT/modules/plugin_store.sh"; then
+    echo "FAIL: Decky 插件自动回退仍显示多余提示" >&2
+    exit 1
+fi
+grep -Fq '静默切换备用源' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: Decky 插件自动回退没有写入内部日志" >&2
     exit 1
 }
 grep -Fq 'modules/steam_accelerator.sh" ensure' "$PROJECT_ROOT/modules/plugin_store.sh" || {

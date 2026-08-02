@@ -988,12 +988,12 @@ extract_gitee_plugin_archive() {
     esac
     archive_paths_are_safe "$repository_archive" zip || return 1
     unzip -Z1 "$repository_archive" | grep -Fxq -- "$archive_member" || {
-        echo "下载失败，切换备用源。"
+        log "Gitee归档缺少目标插件，静默切换备用源"
         return 1
     }
     if ! unzip -p "$repository_archive" "$archive_member" > "$output"; then
         rm -f -- "$output"
-        echo "下载失败，切换备用源。"
+        log "Gitee归档提取失败，静默切换备用源"
         return 1
     fi
     actual_sha256="$(calculate_decky_sha256 "$output")" || {
@@ -1002,7 +1002,7 @@ extract_gitee_plugin_archive() {
     }
     if [ "$actual_sha256" != "$expected_sha256" ]; then
         rm -f -- "$output"
-        echo "下载失败，切换备用源。"
+        log "Gitee归档插件校验失败，静默切换备用源"
         return 1
     fi
     archive_paths_are_safe "$output" zip || {

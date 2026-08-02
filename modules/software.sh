@@ -437,7 +437,6 @@ install_official_qq_appimage() (
             ;;
     esac
 
-    echo "正在向腾讯官网查询最新版QQ下载地址..."
     appimage_url="$(resolve_qq_appimage_url)" || {
         echo "未能从腾讯官网获取QQ下载地址，请稍后重试。"
         return 1
@@ -458,12 +457,11 @@ install_official_qq_appimage() (
     }
     trap cleanup_qq_download EXIT INT TERM
 
-    echo "正在从腾讯国内CDN下载QQ，最长等待 $QQ_DOWNLOAD_TIMEOUT 秒..."
     download_policy_url_allowed "$appimage_url" || { echo "QQ 下载地址不在受控来源清单中。"; return 1; }
     if ! curl \
         --fail \
         --location \
-        --silent \
+        --progress-bar \
         --proto '=https' \
         --proto-redir '=https' \
         --connect-timeout 15 \
@@ -538,12 +536,11 @@ install_official_wechat_appimage() (
     trap cleanup_wechat_download EXIT
     trap 'exit 130' INT TERM
 
-    echo "正在从腾讯国内CDN下载微信，最长等待 $WECHAT_DOWNLOAD_TIMEOUT 秒..."
     download_policy_url_allowed "$WECHAT_APPIMAGE_URL" || { echo "微信下载地址不在受控来源清单中。"; return 1; }
     if ! curl \
         --fail \
         --location \
-        --silent \
+        --progress-bar \
         --proto '=https' \
         --proto-redir '=https' \
         --connect-timeout 15 \
@@ -616,7 +613,6 @@ install_rustdesk_appimage() (
     trap cleanup_rustdesk_download EXIT
     trap 'exit 130' INT TERM
 
-    echo "正在从 RustDesk 作者 GitHub Release 下载，最长等待 $RUSTDESK_DOWNLOAD_TIMEOUT 秒..."
     if ! GITHUB_MAX_TIME="$RUSTDESK_DOWNLOAD_TIMEOUT" download_github_file \
         "$RUSTDESK_DOWNLOAD_URL" "$temp_file" "$RUSTDESK_SHA256" "RustDesk AppImage"; then
         echo "RustDesk下载失败或超时，已停止；原有版本未受影响。"
@@ -691,11 +687,10 @@ install_firefox_archive() (
     trap cleanup_firefox_install EXIT
     trap 'exit 130' INT TERM
 
-    echo "正在下载Firefox完整安装包，最长等待 $FIREFOX_DOWNLOAD_TIMEOUT 秒..."
     if ! curl \
         --fail \
         --location \
-        --silent \
+        --progress-bar \
         --proto '=https' \
         --proto-redir '=https' \
         --connect-timeout 15 \
@@ -880,7 +875,6 @@ install_software() {
     choose_install_remotes
     local _fr_retry=0
     while [ "$_fr_retry" -le 1 ]; do
-        echo "正在安装 $SOFTWARE_NAME..."
         if run_flatpak_install "$INSTALL_PRIMARY_REMOTE"; then
             break
         fi
@@ -888,7 +882,7 @@ install_software() {
             break
         fi
         if [ "$_fr_retry" -eq 0 ]; then
-            echo "检测到下载源不可用，正在切换至国内源，请耐心等待..."
+            log "$SOFTWARE_NAME 下载源不可用，正在静默刷新国内源后重试"
             if ! ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
                 bash "$PROJECT_ROOT/modules/domestic_source.sh" enable >/dev/null 2>&1; then
                 ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
@@ -1086,12 +1080,10 @@ install_flatpak_app() {
         return 0
     fi
 
-    echo "提示：如遇下载缓慢，请在工具箱【系统设置 → 国内源】中初始化国内 Flathub 源。"
-    echo "正在安装 $app_name..."
     for _fp_src in Sjtu Ustc flathub; do
         if flatpak remote-list --user 2>/dev/null | grep -q "$_fp_src"; then
-            echo "  从 $_fp_src 安装..."
-            if flatpak install -y "$_fp_src" "$app_id" 2>/dev/null; then
+            log "$app_name Flatpak安装尝试: $_fp_src user"
+            if flatpak install --noninteractive -y "$_fp_src" "$app_id"; then
                 echo "$app_name 安装完成。"
                 _fp_desk="$(find "$HOME/.local/share/flatpak/exports/share/applications" /var/lib/flatpak/exports/share/applications -name "${app_id}.desktop" 2>/dev/null | head -1)"
                 [ -n "$_fp_desk" ] && cp "$_fp_desk" "$HOME/Desktop/" 2>/dev/null && chmod +x "$HOME/Desktop/${app_id}.desktop" 2>/dev/null && echo "  桌面快捷方式已创建。"
@@ -1100,8 +1092,8 @@ install_flatpak_app() {
             fi
         fi
         if flatpak remote-list --system 2>/dev/null | grep -q "$_fp_src"; then
-            echo "  从 $_fp_src 安装(system)..."
-            if toolbox_sudo flatpak install -y "$_fp_src" "$app_id" 2>/dev/null; then
+            log "$app_name Flatpak安装尝试: $_fp_src system"
+            if toolbox_sudo flatpak install --noninteractive -y "$_fp_src" "$app_id"; then
                 echo "$app_name 安装完成。"
                 _fp_desk="$(find "$HOME/.local/share/flatpak/exports/share/applications" /var/lib/flatpak/exports/share/applications -name "${app_id}.desktop" 2>/dev/null | head -1)"
                 [ -n "$_fp_desk" ] && cp "$_fp_desk" "$HOME/Desktop/" 2>/dev/null && chmod +x "$HOME/Desktop/${app_id}.desktop" 2>/dev/null && echo "  桌面快捷方式已创建。"
@@ -1109,14 +1101,13 @@ install_flatpak_app() {
                 return 0
             fi
         fi
-        echo "  $_fp_src 不可用，尝试下一个..."
     done
 
     # 兜底
     if command -v flatpak >/dev/null 2>&1; then
-        echo "  尝试从 flathub 官方源安装..."
-        if toolbox_sudo flatpak install --system -y flathub "$app_id" 2>/dev/null || \
-           flatpak install --user -y flathub "$app_id" 2>/dev/null; then
+        log "$app_name Flatpak安装尝试: flathub fallback"
+        if toolbox_sudo flatpak install --system --noninteractive -y flathub "$app_id" || \
+           flatpak install --user --noninteractive -y flathub "$app_id"; then
             echo "$app_name 安装完成。"
             _fp_desk="$(find "$HOME/.local/share/flatpak/exports/share/applications" /var/lib/flatpak/exports/share/applications -name "${app_id}.desktop" 2>/dev/null | head -1)"
             [ -n "$_fp_desk" ] && cp "$_fp_desk" "$HOME/Desktop/" 2>/dev/null && chmod +x "$HOME/Desktop/${app_id}.desktop" 2>/dev/null && echo "  桌面快捷方式已创建。"
