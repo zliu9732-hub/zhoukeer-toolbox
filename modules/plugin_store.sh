@@ -48,7 +48,7 @@ FSR4_RUNTIME_ARCHIVE="Optiscaler_0.9.2a-final.20260517._Reup.7z"
 FSR4_RUNTIME_UPSCALER="amd_fidelityfx_upscaler_dx12.dll"
 FSR4_RUNTIME_PATCHER="OptiPatcher_rolling.asi"
 
-# 四款独立插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
+# 五款独立插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
 DECKY_LSFG_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
 DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip"
@@ -57,6 +57,8 @@ DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.
 DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
 DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip"
 DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
+DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.1.6/DeckRecall.zip"
+DECKY_DECKRECALL_SHA256="00271a40dbc723a65cbe3d4d5cfaa5b2c90397c33c7bc4a959bb23a4c59db337"
 # Unifideck 固定使用作者最新正式 Release，避免用户旧配置继续下载更大的 0.7.0 包。
 DECKY_UNIFIDECK_URL="https://github.com/mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip"
 DECKY_UNIFIDECK_VERSION="0.7.2"
@@ -2246,6 +2248,13 @@ install_configured_plugin() {
                 "${DECKY_TOMOON_SHA256:-}" \
                 "tomoon"
             ;;
+        deckrecall)
+            install_decky_zip \
+                "DeckRecall（添加启动项及恢复游戏可玩状态）" \
+                "${DECKY_DECKRECALL_URL:-}" \
+                "${DECKY_DECKRECALL_SHA256:-}" \
+                "DeckRecall"
+            ;;
         freedeck)
             install_decky_zip \
                 "Freedeck（下载游戏和模拟器游戏）感谢作者b站一苇Isidf" \
@@ -2514,6 +2523,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         fsr4) show_plugin_download_speed_tip; install_configured_plugin fsr4 ;;
         cheatdeck) show_plugin_download_speed_tip; install_configured_plugin cheatdeck ;;
         tomoon) show_plugin_download_speed_tip; install_configured_plugin tomoon ;;
+        deckrecall) show_plugin_download_speed_tip; install_configured_plugin deckrecall ;;
         freedeck) show_plugin_download_speed_tip; install_configured_plugin freedeck ;;
         simpledeckytdp) show_plugin_download_speed_tip; install_configured_plugin simpledeckytdp ;;
         unifideck) show_plugin_download_speed_tip; install_configured_plugin unifideck ;;

@@ -26,7 +26,7 @@ EOF
 
 download_policy_github_repo_allowed() {
     case "$1" in
-        SteamDeckHomebrew/decky-loader|xXJSONDeruloXx/decky-lsfg-vk|xXJSONDeruloXx/Decky-Framegen|SheffeyG/CheatDeck|YukiCoco/ToMoon|aarron-lee/SimpleDeckyTDP|mubaraknumann/unifideck|panyiwei-home/Freedeck|GloriousEggroll/proton-ge-custom|rustdesk/rustdesk|zliu9732-hub/zhoukeer-toolbox) return 0 ;;
+        SteamDeckHomebrew/decky-loader|xXJSONDeruloXx/decky-lsfg-vk|xXJSONDeruloXx/Decky-Framegen|SheffeyG/CheatDeck|YukiCoco/ToMoon|Ren-Amamiya-pixle/DeckRecall|aarron-lee/SimpleDeckyTDP|mubaraknumann/unifideck|panyiwei-home/Freedeck|GloriousEggroll/proton-ge-custom|rustdesk/rustdesk|zliu9732-hub/zhoukeer-toolbox) return 0 ;;
         *) return 1 ;;
     esac
 }

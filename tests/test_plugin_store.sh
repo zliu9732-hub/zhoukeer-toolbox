@@ -79,6 +79,15 @@ grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$PROJECT_R
 grep -Fq 'Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CheatDeck/releases/download/v1.2.1/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'Ren-Amamiya-pixle/DeckRecall/releases/download/v0.1.6/DeckRecall.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '00271a40dbc723a65cbe3d4d5cfaa5b2c90397c33c7bc4a959bb23a4c59db337' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'DECKY_DECKRECALL_SHA256="00271a40dbc723a65cbe3d4d5cfaa5b2c90397c33c7bc4a959bb23a4c59db337"' \
+    "$PROJECT_ROOT/config/settings.example.conf"
+deckrecall_install="$(sed -n '/^[[:space:]]*deckrecall)/,/^[[:space:]]*;;/p' "$PROJECT_ROOT/modules/plugin_store.sh")"
+printf '%s\n' "$deckrecall_install" | grep -Fq '"DeckRecall"' || {
+    echo "FAIL: DeckRecall 未校验发布包插件目录" >&2
+    exit 1
+}
 grep -Fq 'mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59366936de' \
@@ -235,6 +244,7 @@ grep -Fq 'toolbox_sudo systemctl restart "$DECKY_SERVICE_NAME"' "$PROJECT_ROOT/m
 grep -Fq '旧版通用扫描式汉化已停用' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'features) show_plugin_download_speed_tip; install_feature_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'tomoon) show_plugin_download_speed_tip; install_configured_plugin tomoon' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'deckrecall) show_plugin_download_speed_tip; install_configured_plugin deckrecall' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '"tomoon"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'feature-status) print_feature_plugin_status' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'uninstall) uninstall_all_decky_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
