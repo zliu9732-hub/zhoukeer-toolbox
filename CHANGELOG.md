@@ -1,3 +1,8 @@
+## V1.0.0 首个正式版 — 2026-08-03
+
+- 以 1.0.0 作为首个正式版起点，后续继续按原有更新规则递增小版本。
+- 保留 Gitee 镜像、GE-Proton 双仓库分块、Decky 自动同步与低速重试等全部现有功能。
+
 ## V6.0.49 Gitee 分块镜像与第三方 License 清单 — 2026-08-03
 
 - 新增 `utils/gitee_download.sh` 与 `scripts/mirror_gitee_assets.sh`，支持 Gitee 8MiB 分块镜像、跨仓库拆分和自动回退 GitHub。
