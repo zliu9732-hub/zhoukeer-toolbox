@@ -5,6 +5,8 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../core/env.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/platform.sh"
 # shellcheck disable=SC1091
+source "$PROJECT_ROOT/core/logger.sh"
+# shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/auth.sh"
 
 STEAM302_VERSION="14.0.02"
@@ -459,6 +461,7 @@ download_steam302_archive() {
         echo "Steamcommunity 302 下载地址不在受控来源清单中。"
         return 1
     }
+    echo "正在下载 Steamcommunity 302 V$STEAM302_VERSION..."
     curl \
         --fail \
         --location \

@@ -233,6 +233,7 @@ run_start_service() {
 }
 
 bash -n "$MODULE" || fail "模块语法检查失败"
+grep -Fq 'core/logger.sh' "$MODULE" || fail "独立加速模块没有加载日志函数"
 grep -Fq 'V14.0.02.tar.gz' "$MODULE" || fail "缺少固定官方版本地址"
 grep -Fq '4b9994102b2256ca5fdf2e806a2c7035' "$MODULE" || fail "缺少官方 MD5"
 grep -Fq '5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f' \

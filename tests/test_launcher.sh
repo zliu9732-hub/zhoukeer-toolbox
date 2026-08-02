@@ -23,8 +23,6 @@ if [ "${1:-}" = "--help" ]; then
 fi
 if [ "${FAKE_KONSOLE_WARNINGS:-0}" = "1" ]; then
     echo 'QLayout: Cannot add a null widget to QHBoxLayout/' >&2
-    echo 'Warning: Problem : timeout. Will retry in 1 seconds. 2 retries left.' >&2
-    echo 'curl: (28) Operation timed out after 1000 milliseconds' >&2
     echo 'real terminal error' >&2
 fi
 printf 'konsole %s\n' "$*" >> "$FAKE_TERMINAL_CALL_LOG"
@@ -116,10 +114,6 @@ warning_output="$(
 )"
 if printf '%s\n' "$warning_output" | grep -Fq 'QLayout: Cannot add a null widget'; then
     echo "FAIL: Konsole 无害布局警告仍显示在窗口中"
-    exit 1
-fi
-if printf '%s\n' "$warning_output" | grep -Eiq 'timeout|retry|curl:'; then
-    echo "FAIL: curl 英文超时或重试提示仍显示在窗口中"
     exit 1
 fi
 printf '%s\n' "$warning_output" | grep -Fq 'real terminal error'

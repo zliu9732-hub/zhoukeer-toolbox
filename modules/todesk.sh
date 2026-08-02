@@ -303,7 +303,7 @@ download_todesk_package() {
         download_github_file "$TODESK_RELEASE_DEB_URL" "$deb_file" \
             "$expected_sha256" "ToDesk官方安装包"; then
         rm -f -- "$deb_file"
-        log "ToDesk镜像下载失败，静默切换官网"
+        echo "ToDesk镜像下载失败，正在尝试官网..."
         if ! curl --fail --location --progress-bar \
             --proto '=https' --proto-redir '=https' \
             --connect-timeout "$TODESK_CONNECT_TIMEOUT" --max-time "$TODESK_MAX_TIME" \

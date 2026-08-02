@@ -52,33 +52,6 @@ gui_notice() {
     gui_dialog --msgbox "$1"
 }
 
-filter_user_action_output() {
-    # 原始输出已经由 tee 写入日志；这里只隐藏普通用户无需理解的 curl
-    # 超时与自动重试英文，并保留同一行前面的百分比进度内容。
-    awk '
-        {
-            visible = $0
-            lowered = tolower(visible)
-            technical_at = 0
-            if (lowered ~ /warning:.*(retry|retries|timeout|timed out|problem)/ ||
-                lowered ~ /curl: \([0-9]+\)/ ||
-                lowered ~ /(operation|connection) timed out/ ||
-                lowered ~ /timeout was reached/ ||
-                lowered ~ /failed to connect/ ||
-                lowered ~ /could not resolve host/ ||
-                lowered ~ /connection refused/ ||
-                lowered ~ /will retry in/ ||
-                lowered ~ /retries left/) {
-                technical_at = index(lowered, "warning:")
-                if (!technical_at) technical_at = index(lowered, "curl: (")
-                if (!technical_at) technical_at = 1
-                visible = substr(visible, 1, technical_at - 1)
-            }
-            if (visible != "") print visible
-        }
-    '
-}
-
 run_gui_action() {
     local status action_log failure_detail
     local title="$1"
@@ -90,7 +63,7 @@ run_gui_action() {
     mkdir -p "$LOG_DIR" 2>/dev/null || true
     action_log="$(mktemp "$LOG_DIR/gui-action.XXXXXX" 2>/dev/null || true)"
     if [ -n "$action_log" ]; then
-        "$@" 2>&1 | tee "$action_log" | filter_user_action_output
+        "$@" 2>&1 | tee "$action_log"
         status="${PIPESTATUS[0]}"
     else
         "$@"
@@ -100,7 +73,7 @@ run_gui_action() {
     if [ "$status" -eq 0 ]; then
         gui_notice "$title 已完成。"
     else
-        failure_detail="$(tail -n 12 "$action_log" 2>/dev/null | filter_user_action_output || true)"
+        failure_detail="$(tail -n 12 "$action_log" 2>/dev/null || true)"
         if [ -n "$failure_detail" ]; then
             gui_dialog --error "$title 未完成。\n\n失败详情：\n$failure_detail\n\n完整日志：$action_log"
         else

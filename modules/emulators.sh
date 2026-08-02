@@ -312,6 +312,7 @@ install_emulator() {
     target="$EMULATOR_ROOT/$EMULATOR_FILE"
     if ! emulator_file_is_valid "$target"; then
         temporary="$target.new.$$"
+        echo "正在下载并校验 $EMULATOR_NAME…"
         download_github_release "$EMULATOR_RELEASE_REPO" "$EMULATOR_RELEASE_TAG" "$EMULATOR_ASSET" \
             "$temporary" "$EMULATOR_SHA256" "$EMULATOR_NAME" || return 1
         emulator_file_is_valid "$temporary" || { rm -f -- "$temporary"; echo "模拟器文件格式或大小异常。"; return 1; }

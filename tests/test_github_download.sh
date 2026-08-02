@@ -70,6 +70,16 @@ source "$PROJECT_ROOT/core/download_policy.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/utils/github_download.sh"
 
+filtered_progress="$(printf '################ 42.0%%\rWarning: Problem : timeout. Will retry in 1 second. 1 retry left.\n' | _github_filter_curl_progress)"
+printf '%s\n' "$filtered_progress" | grep -Fq '42.0%' || {
+    echo "FAIL: GitHub 下载英文重试过滤误删百分比进度" >&2
+    exit 1
+}
+if printf '%s\n' "$filtered_progress" | grep -Eiq 'warning:|timeout|retry'; then
+    echo "FAIL: GitHub 下载仍向用户显示 curl 英文重试提示" >&2
+    exit 1
+fi
+
 # 模拟测试使用虚构域名，放开白名单但保留下载器自身的 SHA256 与原子替换逻辑。
 download_policy_url_allowed() { return 0; }
 download_policy_github_mirror_allowed() { return 0; }

@@ -155,6 +155,24 @@ _github_download_is_plausible() {
     fi
 }
 
+_github_filter_curl_progress() {
+    # 只处理 GitHub 安装包下载的显示：保留进度条内容，去掉 curl 自动重试
+    # 与错误码英文；下载策略、重试次数和返回状态完全由原 curl 命令决定。
+    awk '
+        {
+            visible = $0
+            lowered = tolower(visible)
+            technical_at = index(lowered, "warning:")
+            if (technical_at && substr(lowered, technical_at) !~ /(retry|timeout|problem)/) {
+                technical_at = 0
+            }
+            if (!technical_at) technical_at = index(lowered, "curl: (")
+            if (technical_at) visible = substr(visible, 1, technical_at - 1)
+            if (visible != "") print visible
+        }
+    '
+}
+
 download_github_file() {
     local url="$1"
     local output="$2"
@@ -212,6 +230,7 @@ download_github_file() {
     fi
     [ -z "$proxy" ] || curl_options+=(--proxy "$proxy")
 
+    echo "正在下载 $name..."
     while IFS= read -r source; do
         [ -n "$source" ] || continue
         if [ "$source" = "DIRECT" ]; then
@@ -223,7 +242,7 @@ download_github_file() {
         rm -f -- "$temp_file"
         temp_file="$(mktemp "${output}.part.XXXXXX" 2>/dev/null)" || return 1
         if ! curl "${curl_options[@]}" --output "$temp_file" "$resolved_url" \
-            2> >(grep -v '^curl: (' >&2); then
+            2> >(_github_filter_curl_progress >&2); then
             continue
         fi
         if ! _github_download_is_plausible "$temp_file" || \
@@ -242,6 +261,7 @@ download_github_file() {
             fi
         fi
         if mv -f -- "$temp_file" "$output"; then
+            echo "$name 下载完成。"
             declare -F log >/dev/null 2>&1 && log "GitHub 下载成功: $name"
             return 0
         fi
