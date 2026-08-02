@@ -10,6 +10,14 @@ grep -Fq -- '--progress-meter' "$PROJECT_ROOT/utils/github_download.sh" || {
     echo "FAIL: GitHub 下载缺少实时速度显示" >&2
     exit 1
 }
+grep -Fq 'GITHUB_SMALL_FILE_MAX_BYTES' "$PROJECT_ROOT/utils/github_download.sh" || {
+    echo "FAIL: GitHub 下载缺少小文件跳过测速逻辑" >&2
+    exit 1
+}
+grep -Fq '_github_remote_size_bytes' "$PROJECT_ROOT/utils/github_download.sh" || {
+    echo "FAIL: GitHub 下载缺少远程大小探测" >&2
+    exit 1
+}
 if grep -Fq '下载失败，切换备用源。' "$PROJECT_ROOT/utils/github_download.sh"; then
     echo "FAIL: GitHub 下载仍显示逐线路失败提示" >&2
     exit 1
@@ -31,8 +39,11 @@ cat > "$BIN_DIR/curl" <<'EOF'
 output=""
 write_out=""
 url=""
+head_mode=0
 while [ "$#" -gt 0 ]; do
     case "$1" in
+        -I|--head) head_mode=1; shift ;;
+        -D) shift 2 ;;
         --output|-o) output="$2"; shift 2 ;;
         --write-out|-w) write_out="$2"; shift 2 ;;
         --connect-timeout|--max-time|--proto|--proto-redir|--retry|--retry-delay|--speed-limit|--speed-time|--proxy|--range|--max-filesize)
@@ -42,6 +53,10 @@ while [ "$#" -gt 0 ]; do
         *) url="$1"; shift ;;
     esac
 done
+if [ "$head_mode" = "1" ]; then
+    printf 'HTTP/2 200\r\nContent-Length: 100\r\n\r\n'
+    exit 0
+fi
 if [ -n "$write_out" ]; then
     printf 'probe|%s\n' "$url" >> "${GITHUB_TEST_CALLS:?}"
     case "$url" in
@@ -59,6 +74,7 @@ case "$url" in
     *api.github.com/*/releases/latest)
         cp "${GITHUB_TEST_API_JSON:?}" "$output"
         ;;
+    *raw.githubusercontent.com/*) cp "${GITHUB_TEST_PAYLOAD:?}" "$output" ;;
     *fast.invalid*) cp "${GITHUB_TEST_PAYLOAD:?}" "$output" ;;
     *) exit 22 ;;
 esac
@@ -119,6 +135,7 @@ GITHUB_MAX_TIME=5
 GITHUB_RETRIES=1
 GITHUB_MIN_SPEED_BYTES=1
 GITHUB_MIN_SPEED_TIME=1
+GITHUB_SMALL_FILE_MAX_BYTES=1
 
 release_sources="$(_github_mirror_list 'https://github.com/example/project/releases/download/v1.0.0/example.zip')"
 ghfast_rank="$(printf '%s\n' "$release_sources" | grep -n '^https://ghfast.top/' | head -n 1 | cut -d: -f1)"

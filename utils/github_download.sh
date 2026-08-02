@@ -165,6 +165,20 @@ _github_download_is_plausible() {
     fi
 }
 
+_github_remote_size_bytes() {
+    local url="$1"
+    local size
+
+    size="$(curl -s -S -L -I --max-time 5 --proto '=https' --proto-redir '=https' \
+        -D - -o /dev/null "$url" 2>/dev/null | \
+        awk 'tolower($0) ~ /^content-length:/ { gsub(/[^0-9]/,"",$2); print $2 }' | \
+        tail -n 1)"
+    case "$size" in
+        ''|*[!0-9]*) return 1 ;;
+        *) printf '%s\n' "$size" ;;
+    esac
+}
+
 _github_filter_curl_progress() {
     download_progress_filter "$@"
 }
@@ -177,6 +191,7 @@ download_github_file() {
     local connect_timeout max_time retries min_speed min_speed_time
     local proxy="${GITHUB_DOWNLOAD_PROXY:-${DECKY_DOWNLOAD_PROXY:-}}"
     local ranked_sources source resolved_url temp_file actual_sha256 max_bytes
+    local remote_size="" small_file_max
     local curl_options=()
 
     connect_timeout="$(_github_setting "${GITHUB_CONNECT_TIMEOUT:-}" 10)"
@@ -200,7 +215,17 @@ download_github_file() {
     esac
     case "$url" in
         https://github.com/*|https://raw.githubusercontent.com/*)
-            ranked_sources="$(get_ranked_github_sources "$url")" || ranked_sources=""
+            small_file_max="$(_github_setting "${GITHUB_SMALL_FILE_MAX_BYTES:-}" 2097152)"
+            if [ "${GITHUB_SKIP_RANKING:-0}" = "1" ]; then
+                ranked_sources="https://github.com"
+            else
+                remote_size="$(_github_remote_size_bytes "$url" 2>/dev/null)" || remote_size=""
+                if [ -n "$remote_size" ] && [ "$remote_size" -le "$small_file_max" ]; then
+                    ranked_sources="https://github.com"
+                else
+                    ranked_sources="$(get_ranked_github_sources "$url")" || ranked_sources=""
+                fi
+            fi
             ;;
         https://*) ranked_sources="DIRECT" ;;
         *)

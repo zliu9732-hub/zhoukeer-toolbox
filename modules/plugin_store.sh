@@ -312,6 +312,19 @@ download_decky_component_with_fallback() {
     return 1
 }
 
+download_decky_prerelease_component() {
+    local name="$1"
+    local url="$2"
+    local expected_sha256="$3"
+    local output="$4"
+
+    if ! download_github_file "$url" "$output" "$expected_sha256" "$name"; then
+        echo "$name 下载失败，正在启用 Steam + GitHub 加速后重试..."
+        ensure_steam302_for_download || true
+        download_github_file "$url" "$output" "$expected_sha256" "$name"
+    fi
+}
+
 render_decky_service() {
     local template="$1"
     local output="$2"
@@ -591,16 +604,16 @@ install_plugin_store() (
     trap 'finish_plugin_store_install $?' EXIT
 
     if [ "$channel" = "prerelease" ]; then
-        download_github_file \
+        download_decky_prerelease_component \
+            "Decky PluginLoader" \
             "$loader_url" \
-            "$loader_download" \
             "$loader_sha256" \
-            "Decky PluginLoader" || return 1
-        download_github_file \
+            "$loader_download" || return 1
+        download_decky_prerelease_component \
+            "Decky systemd服务模板" \
             "$service_url" \
-            "$service_template" \
             "$service_sha256" \
-            "Decky systemd服务模板" || return 1
+            "$service_template" || return 1
     else
         download_decky_component_with_fallback \
             "Decky PluginLoader" \

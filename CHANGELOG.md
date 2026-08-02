@@ -1,3 +1,9 @@
+## V6.0.48 小文件跳过测速与测试版插件商城加速重试 — 2026-08-03
+
+- GitHub 下载先探测远程 Content-Length，2 MiB 以内的小文件直接走官方源，不再并行测速镜像；DeckRecall、ToMoon 等小插件安装不再被测速卡住。
+- 测试版插件商城下载失败时自动启用 Steam + GitHub 加速并重试。
+- GitHub Release 默认代理从 ghfast.top 切换为 gh.llkk.cc，ghfast 保留为备用镜像；在 ghfast 被重置的网络下优先使用可用镜像。
+
 ## V6.0.47 DeckRecall 自动抓取最新 Release — 2026-08-02
 
 - DeckRecall 改为像 GE-Proton 一样通过 GitHub API 自动解析作者最新正式 Release 和 SHA256；API 失败或限流时回退固定版本 v0.2.3。
