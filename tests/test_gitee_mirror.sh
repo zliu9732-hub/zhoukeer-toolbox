@@ -48,10 +48,10 @@ curl() {
         esac
     done
     case "$url" in
-        *'/mirrors/test/latest.txt') cp "$FIXTURE/latest.txt" "$output" ;;
-        *'/mirrors/test/v1/part.0001') cp "$FIXTURE/v1/part.0001" "$output" ;;
-        *'/mirrors/test/v1/part.0002') cp "$FIXTURE/v1/part.0002" "$output" ;;
-        *'/mirrors/test/v1/part.0003') cp "$FIXTURE/v1/part.0003" "$output" ;;
+        *'/raw/main/test/latest.txt') cp "$FIXTURE/latest.txt" "$output" ;;
+        *'/raw/main/test/v1/part.0001') cp "$FIXTURE/v1/part.0001" "$output" ;;
+        *'/raw/main/test/v1/part.0002') cp "$FIXTURE/v1/part.0002" "$output" ;;
+        *'/raw/main/test/v1/part.0003') cp "$FIXTURE/v1/part.0003" "$output" ;;
         *) return 1 ;;
     esac
 }
@@ -74,7 +74,7 @@ resolve_latest_gitee_mirror test '^payload[.]bin$' "测试镜像" >/dev/null
 
 mirror_url="$(gitee_mirror_direct_url lsfg v0.12.5 Decky.LSFG-VK.zip)"
 case "$mirror_url" in
-    https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/mirrors/lsfg/v0.12.5/Decky.LSFG-VK.zip) ;;
+    https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/lsfg/v0.12.5/Decky.LSFG-VK.zip) ;;
     *) FAIL "Gitee 直接镜像 URL 格式错误：$mirror_url" ;;
 esac
 

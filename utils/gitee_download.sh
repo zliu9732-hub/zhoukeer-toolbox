@@ -24,6 +24,9 @@ _GITEE_MIRROR_SHA256=""
 _GITEE_MIRROR_SIZE=""
 _GITEE_MIRROR_CHUNKS=""
 _GITEE_MIRROR_CHUNK_SIZE=""
+_GITEE_MIRROR_REPO1=""
+_GITEE_MIRROR_REPO2=""
+_GITEE_MIRROR_PARTS_REPO1=""
 _GITEE_MIRROR_LATEST_VERSION=""
 _GITEE_MIRROR_LATEST_FILE=""
 _GITEE_MIRROR_LATEST_SHA256=""
@@ -44,7 +47,7 @@ gitee_mirror_id_is_valid() {
 }
 
 gitee_mirror_raw_base() {
-    printf 'https://gitee.com/%s/%s/raw/%s/mirrors' \
+    printf 'https://gitee.com/%s/%s/raw/%s' \
         "$GITEE_MIRROR_OWNER" "$GITEE_MIRROR_REPO" "$GITEE_MIRROR_BRANCH"
 }
 
@@ -69,6 +72,9 @@ _gitee_mirror_parse_manifest() {
     _GITEE_MIRROR_SIZE=""
     _GITEE_MIRROR_CHUNKS=""
     _GITEE_MIRROR_CHUNK_SIZE=""
+    _GITEE_MIRROR_REPO1=""
+    _GITEE_MIRROR_REPO2=""
+    _GITEE_MIRROR_PARTS_REPO1=""
 
     while IFS= read -r line || [ -n "$line" ]; do
         case "$line" in
@@ -87,6 +93,9 @@ _gitee_mirror_parse_manifest() {
                 size) _GITEE_MIRROR_SIZE="$value" ;;
                 chunks) _GITEE_MIRROR_CHUNKS="$value" ;;
                 chunk_size) _GITEE_MIRROR_CHUNK_SIZE="$value" ;;
+                repo1) _GITEE_MIRROR_REPO1="$value" ;;
+                repo2) _GITEE_MIRROR_REPO2="$value" ;;
+                parts_repo1) _GITEE_MIRROR_PARTS_REPO1="$value" ;;
                 *) continue ;;
             esac
         fi
@@ -103,6 +112,14 @@ _gitee_mirror_parse_manifest() {
     _gitee_mirror_positive_integer "$_GITEE_MIRROR_CHUNKS" || return 1
     if [ "$_GITEE_MIRROR_CHUNKS" -gt 0 ]; then
         _gitee_mirror_positive_integer "${_GITEE_MIRROR_CHUNK_SIZE:-}" || return 1
+        if [ -n "$_GITEE_MIRROR_REPO1" ] || [ -n "$_GITEE_MIRROR_REPO2" ] || \
+            [ -n "$_GITEE_MIRROR_PARTS_REPO1" ]; then
+            [ -n "$_GITEE_MIRROR_REPO1" ] && [ -n "$_GITEE_MIRROR_REPO2" ] && \
+                _gitee_mirror_positive_integer "$_GITEE_MIRROR_PARTS_REPO1" || return 1
+            case "$_GITEE_MIRROR_REPO1$_GITEE_MIRROR_REPO2" in
+                *'/'*) return 1 ;;
+            esac
+        fi
     fi
 }
 
@@ -263,7 +280,16 @@ download_gitee_mirror_file() {
         while [ "$index" -le "$_GITEE_MIRROR_CHUNKS" ]; do
             part_name="$(printf 'part.%04d' "$index")"
             part_file="$temp_dir/$part_name"
-            file_url="$base_url/$part_name"
+            part_repo="$GITEE_MIRROR_REPO"
+            if [ -n "$_GITEE_MIRROR_REPO1" ] && [ -n "$_GITEE_MIRROR_REPO2" ] && \
+                _gitee_mirror_positive_integer "$_GITEE_MIRROR_PARTS_REPO1"; then
+                if [ "$index" -le "$_GITEE_MIRROR_PARTS_REPO1" ]; then
+                    part_repo="$_GITEE_MIRROR_REPO1"
+                else
+                    part_repo="$_GITEE_MIRROR_REPO2"
+                fi
+            fi
+            file_url="https://gitee.com/zliu9732-hub/$part_repo/raw/main/$id/$_GITEE_MIRROR_VERSION/$part_name"
             if ! _gitee_mirror_download_one "$file_url" "$part_file" \
                 "$_GITEE_MIRROR_CHUNK_SIZE"; then
                 rm -rf -- "$temp_dir"
