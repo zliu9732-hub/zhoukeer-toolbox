@@ -55,18 +55,18 @@ log() { return 0; }
 GITHUB_RESULT=0
 GITEE_RESULT=0
 : > "$CALLS"
-install_lsfg_zh_from_gitee 0 || fail "小黄鸭没有优先从 GitHub Release 安装"
-install_fsr4_zh_from_gitee 0 || fail "FSR4 没有优先从 GitHub Release 安装"
-[ "$(grep -c '^github:' "$CALLS")" -eq 2 ] || fail "两个插件没有先尝试 GitHub Release"
-[ "$(grep -c '^gitee:' "$CALLS")" -eq 0 ] || fail "GitHub Release 可用时不应再尝试 Gitee"
+install_lsfg_zh_from_gitee 0 || fail "小黄鸭没有优先从 Gitee 国内源安装"
+install_fsr4_zh_from_gitee 0 || fail "FSR4 没有优先从 Gitee 国内源安装"
+[ "$(grep -c '^gitee:' "$CALLS")" -eq 2 ] || fail "两个插件没有先尝试 Gitee"
+[ "$(grep -c '^github:' "$CALLS")" -eq 0 ] || fail "Gitee 可用时不应再尝试 GitHub Release"
 
-GITHUB_RESULT=1
-GITEE_RESULT=0
+GITEE_RESULT=1
+GITHUB_RESULT=0
 : > "$CALLS"
-install_lsfg_zh_from_gitee 0 || fail "小黄鸭没有从 GitHub Release 失败切换到 Gitee"
-install_fsr4_zh_from_gitee 0 || fail "FSR4 没有从 GitHub Release 失败切换到 Gitee"
-[ "$(grep -c '^github:' "$CALLS")" -eq 2 ] || fail "两个插件没有先尝试 GitHub Release"
-[ "$(grep -c '^gitee:' "$CALLS")" -eq 2 ] || fail "两个插件没有回退 Gitee"
+install_lsfg_zh_from_gitee 0 || fail "小黄鸭没有从 Gitee 失败切换到 GitHub Release"
+install_fsr4_zh_from_gitee 0 || fail "FSR4 没有从 Gitee 失败切换到 GitHub Release"
+[ "$(grep -c '^gitee:' "$CALLS")" -eq 2 ] || fail "两个插件没有先尝试 Gitee"
+[ "$(grep -c '^github:' "$CALLS")" -eq 2 ] || fail "两个插件没有回退 GitHub Release"
 
 GITHUB_RESULT=1
 GITEE_RESULT=1
@@ -76,4 +76,4 @@ install_fsr4_zh_from_gitee 0 || fail "FSR4 双源失败后没有回退原版叠�
 grep -Fq 'lsfg-overlay' "$CALLS" || fail "小黄鸭没有执行原版叠加回退"
 grep -Fq 'fsr4-overlay' "$CALLS" || fail "FSR4 没有执行原版叠加回退"
 
-echo "PASS: 小黄鸭与 FSR4 的 GitHub Release→Gitee 回退及归档校验通过"
+echo "PASS: 小黄鸭与 FSR4 的 Gitee→GitHub Release 回退及归档校验通过"

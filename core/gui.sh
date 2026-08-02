@@ -181,8 +181,8 @@ game_environment_gui_menu() {
         choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
             features "常用插件组合｜安装小黄鸭等三款插件" \
             all "常用插件加27款精选插件｜优先安装三件套，已装则跳过；再补27款精选" \
-            lsfg "小黄鸭｜GitHub 失败自动切换 Gitee 国内源" \
-            fsr4 "FSR4｜GitHub 失败自动切换 Gitee 国内源" \
+            lsfg "小黄鸭｜Gitee 国内源优先，失败自动切换 GitHub" \
+            fsr4 "FSR4｜Gitee 国内源优先，失败自动切换 GitHub" \
             browse "浏览官方插件｜逐个查看插件作用" \
             ge-proton "安装 GE 兼容层｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
@@ -204,12 +204,12 @@ game_environment_gui_menu() {
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" all
                 ;;
             lsfg)
-                run_gui_action "安装小黄鸭（GitHub + Gitee 双源）" \
+                run_gui_action "安装小黄鸭（Gitee + GitHub 双源）" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                 ;;
             fsr4)
-                run_gui_action "安装 FSR4（GitHub + Gitee 双源）" \
+                run_gui_action "安装 FSR4（Gitee + GitHub 双源）" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee
                 ;;
