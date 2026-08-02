@@ -210,7 +210,7 @@ curl() {
     cp "$GITHUB_TEST_API_JSON" "$output"
 }
 resolve_latest_github_release "GloriousEggroll/proton-ge-custom" \
-    '^GE-Proton[0-9]+-[0-9]+\.tar\.gz$' "GE-Proton" >/dev/null
+    '^GE-Proton[0-9]+-[0-9]+[.]tar[.]gz$' "GE-Proton" >/dev/null
 unset -f curl
 [ "$_LATEST_RELEASE_TAG" = "GE-Proton11-3" ] || {
     echo "FAIL: 最新 Release 标签解析错误" >&2

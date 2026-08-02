@@ -91,7 +91,7 @@ resolve_ge_proton_latest() {
     fi
 
     if resolve_latest_github_release "GloriousEggroll/proton-ge-custom" \
-        '^GE-Proton[0-9]+-[0-9]+\.tar\.gz$' "GE-Proton"; then
+        '^GE-Proton[0-9]+-[0-9]+[.]tar[.]gz$' "GE-Proton"; then
         GE_PROTON_URL="$_LATEST_RELEASE_URL"
         GE_PROTON_VERSION="$_LATEST_RELEASE_TAG"
         GE_PROTON_SHA256="$_LATEST_RELEASE_SHA256"
