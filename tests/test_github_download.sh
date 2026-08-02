@@ -70,6 +70,21 @@ source "$PROJECT_ROOT/core/download_policy.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/utils/github_download.sh"
 
+GITHUB_MIRRORS=""
+GITHUB_RELEASE_PROXY="https://ghfast.top/"
+release_proxy_sources="$(_github_mirror_list 'https://github.com/example/project/releases/download/v1.0.0/example.zip')"
+printf '%s\n' "$release_proxy_sources" | grep -Fxq 'https://ghfast.top/' || {
+    echo "FAIL: GitHub Release 未读取可配置的代理前缀" >&2
+    exit 1
+}
+GITHUB_RELEASE_PROXY="https://unknown-mirror.example/"
+release_proxy_sources="$(_github_mirror_list 'https://github.com/example/project/releases/download/v1.0.0/example.zip')"
+if printf '%s\n' "$release_proxy_sources" | grep -Fxq 'https://unknown-mirror.example/'; then
+    echo "FAIL: 未审核的 GitHub Release 代理被使用" >&2
+    exit 1
+fi
+GITHUB_RELEASE_PROXY="https://ghfast.top/"
+
 filtered_progress="$(printf '################ 42.0%%\rWarning: Problem : timeout. Will retry in 1 second. 1 retry left.\n' | _github_filter_curl_progress)"
 printf '%s\n' "$filtered_progress" | grep -Fq '42.0%' || {
     echo "FAIL: GitHub 下载英文重试过滤误删百分比进度" >&2

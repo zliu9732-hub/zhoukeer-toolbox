@@ -34,20 +34,29 @@ _github_setting() {
 _github_mirror_list() {
     local url="$1"
     local configured="${GITHUB_MIRRORS:-}"
-    local source
+    local source release_proxy
 
     for source in $configured; do
         if declare -F download_policy_github_mirror_allowed >/dev/null 2>&1 && \
             ! download_policy_github_mirror_allowed "$source"; then
-            printf '忽略未列入白名单的 GitHub 下载源：%s\n' "$source" >&2
+            declare -F log >/dev/null 2>&1 && log "忽略未列入白名单的 GitHub 下载源：$source"
             continue
         fi
-        case "$source" in https://*) printf '%s\n' "$source" ;; *) printf '忽略非 HTTPS GitHub 下载源：%s\n' "$source" >&2 ;; esac
+        case "$source" in https://*) printf '%s\n' "$source" ;; *) declare -F log >/dev/null 2>&1 && log "忽略非 HTTPS GitHub 下载源：$source" ;; esac
     done
     # GitHub Release 可使用“代理前缀 + 原始 Release URL”的形式。该源和其他
     # 镜像一样只参与实际文件测速；完整下载仍必须通过调用方的 SHA256 校验。
     case "$url" in
-        https://github.com/*/releases/download/*) printf '%s\n' "https://ghfast.top/" ;;
+        https://github.com/*/releases/download/*)
+            release_proxy="${GITHUB_RELEASE_PROXY:-https://ghfast.top/}"
+            if ! declare -F download_policy_github_mirror_allowed >/dev/null 2>&1 || \
+                download_policy_github_mirror_allowed "$release_proxy"; then
+                printf '%s\n' "$release_proxy"
+            else
+                declare -F log >/dev/null 2>&1 && \
+                    log "GitHub Release 代理未列入白名单，改用官方源：$release_proxy"
+            fi
+            ;;
     esac
     printf '%s\n' "https://github.com"
 }
