@@ -107,6 +107,9 @@ resolve_deckrecall_latest() {
 }
 
 resolve_decky_latest() {
+    if [ "${ZHOUKEER_TEST_MODE:-0}" = "1" ]; then
+        return 1
+    fi
     if [ -n "$DECKY_LATEST_GITHUB_VERSION" ]; then
         return 0
     fi
@@ -117,6 +120,43 @@ resolve_decky_latest() {
         DECKY_LATEST_GITHUB_SHA256="$_LATEST_RELEASE_SHA256"
         log "Decky Loader 自动检测最新版本: $_LATEST_RELEASE_TAG"
     fi
+}
+
+resolve_decky_prerelease_latest() {
+    local api_url temp_file latest_json
+
+    if [ "${ZHOUKEER_TEST_MODE:-0}" = "1" ]; then
+        return 1
+    fi
+    if [ -n "$DECKY_LATEST_GITHUB_VERSION" ]; then
+        return 0
+    fi
+    command -v jq >/dev/null 2>&1 || return 1
+    api_url="https://api.github.com/repos/SteamDeckHomebrew/decky-loader/releases?per_page=20"
+    download_policy_url_allowed "$api_url" || return 1
+    temp_file="$(mktemp 2>/dev/null)" || return 1
+    if ! curl --fail --location --silent --proto '=https' --proto-redir '=https' \
+        --connect-timeout 10 --max-time 30 --retry 2 --retry-all-errors \
+        --max-filesize 2097152 --output "$temp_file" "$api_url"; then
+        rm -f -- "$temp_file"
+        return 1
+    fi
+    latest_json="$(jq -r '
+        [.[] | select(.prerelease == true) |
+         .assets[]? | select(.name == "PluginLoader") |
+         {tag: .tag_name, url: .browser_download_url,
+          sha: (.digest // "" | sub("^sha256:"; ""))}] |
+        map(select(.sha | test("^[0-9a-fA-F]{64}$"))) |
+        .[0] | "\(.tag)\t\(.url)\t\(.sha)"
+    ' "$temp_file")" || {
+        rm -f -- "$temp_file"
+        return 1
+    }
+    rm -f -- "$temp_file"
+    [ -n "$latest_json" ] || return 1
+    IFS=$'\t' read -r DECKY_LATEST_GITHUB_VERSION \
+        DECKY_LATEST_GITHUB_URL DECKY_LATEST_GITHUB_SHA256 <<< "$latest_json"
+    log "Decky Loader 自动检测测试版: $DECKY_LATEST_GITHUB_VERSION"
 }
 
 cleanup_decky_tmp() {
@@ -224,6 +264,7 @@ download_decky_gitee_loader() {
     local part_entries=()
     local i part_name part_file part_sha
 
+    DECKY_LATEST_GITHUB_VERSION=""
     case "$channel" in
         stable)
             version="$DECKY_GITEE_STABLE_VERSION"
@@ -243,17 +284,19 @@ download_decky_gitee_loader() {
     esac
     if [ "$channel" = "stable" ]; then
         resolve_decky_latest
-        if [ -n "$DECKY_LATEST_GITHUB_VERSION" ] && \
-            [ "$version" != "$DECKY_LATEST_GITHUB_VERSION" ]; then
-            if download_github_file \
-                "$DECKY_LATEST_GITHUB_URL" "$output" \
-                "$DECKY_LATEST_GITHUB_SHA256" "Decky PluginLoader"; then
-                DECKY_GITEE_SELECTED_VERSION="$DECKY_LATEST_GITHUB_VERSION"
-                echo "Decky Loader 已自动检测最新版 $DECKY_LATEST_GITHUB_VERSION。"
-                return 0
-            fi
-            echo "自动检测最新版下载失败，继续使用 Gitee 镜像版本 $version。"
+    else
+        resolve_decky_prerelease_latest
+    fi
+    if [ -n "$DECKY_LATEST_GITHUB_VERSION" ] && \
+        [ "$version" != "$DECKY_LATEST_GITHUB_VERSION" ]; then
+        if download_github_file \
+            "$DECKY_LATEST_GITHUB_URL" "$output" \
+            "$DECKY_LATEST_GITHUB_SHA256" "Decky PluginLoader"; then
+            DECKY_GITEE_SELECTED_VERSION="$DECKY_LATEST_GITHUB_VERSION"
+            echo "Decky Loader 已自动检测最新版 $DECKY_LATEST_GITHUB_VERSION。"
+            return 0
         fi
+        echo "自动检测最新版下载失败，继续使用 Gitee 镜像版本 $version。"
     fi
     GITHUB_QUIET=1
     validate_decky_gitee_part_hashes "$parts" "$part_sha256" || return 1

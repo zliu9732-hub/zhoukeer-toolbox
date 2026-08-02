@@ -74,6 +74,7 @@ download_policy_url_allowed() {
 
     case "$url" in
         https://api.github.com/repos/*/releases/latest) return 0 ;;
+        https://api.github.com/repos/SteamDeckHomebrew/decky-loader/releases?per_page=*) return 0 ;;
         https://github.com/*)
             rest="${url#https://github.com/}"
             repo="${rest%%/releases/*}"
