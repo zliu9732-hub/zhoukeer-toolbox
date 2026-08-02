@@ -63,6 +63,9 @@ DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03
 DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.3/DeckRecall.zip"
 DECKY_DECKRECALL_SHA256="9171a8a656f0900014cafddeb8c81806de5fbe376bf66ec78f595bebe85d96d0"
 DECKY_DECKRECALL_AUTO_UPDATE="${ZHOUKEER_DECKY_DECKRECALL_AUTO_UPDATE:-1}"
+DECKY_LATEST_GITHUB_VERSION=""
+DECKY_LATEST_GITHUB_URL=""
+DECKY_LATEST_GITHUB_SHA256=""
 # Unifideck 固定使用作者最新正式 Release，避免用户旧配置继续下载更大的 0.7.0 包。
 DECKY_UNIFIDECK_URL="https://github.com/mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip"
 DECKY_UNIFIDECK_VERSION="0.7.2"
@@ -100,6 +103,19 @@ resolve_deckrecall_latest() {
         log "DeckRecall 自动检测最新版本: $_LATEST_RELEASE_TAG"
     else
         echo "自动检测最新 DeckRecall 失败，继续使用固定版本。"
+    fi
+}
+
+resolve_decky_latest() {
+    if [ -n "$DECKY_LATEST_GITHUB_VERSION" ]; then
+        return 0
+    fi
+    if resolve_latest_github_release "SteamDeckHomebrew/decky-loader" \
+        '^PluginLoader$' "Decky Loader"; then
+        DECKY_LATEST_GITHUB_VERSION="$_LATEST_RELEASE_TAG"
+        DECKY_LATEST_GITHUB_URL="$_LATEST_RELEASE_URL"
+        DECKY_LATEST_GITHUB_SHA256="$_LATEST_RELEASE_SHA256"
+        log "Decky Loader 自动检测最新版本: $_LATEST_RELEASE_TAG"
     fi
 }
 
@@ -225,6 +241,21 @@ download_decky_gitee_loader() {
             ;;
         *) return 1 ;;
     esac
+    if [ "$channel" = "stable" ]; then
+        resolve_decky_latest
+        if [ -n "$DECKY_LATEST_GITHUB_VERSION" ] && \
+            [ "$version" != "$DECKY_LATEST_GITHUB_VERSION" ]; then
+            if download_github_file \
+                "$DECKY_LATEST_GITHUB_URL" "$output" \
+                "$DECKY_LATEST_GITHUB_SHA256" "Decky PluginLoader"; then
+                DECKY_GITEE_SELECTED_VERSION="$DECKY_LATEST_GITHUB_VERSION"
+                echo "Decky Loader 已自动检测最新版 $DECKY_LATEST_GITHUB_VERSION。"
+                return 0
+            fi
+            echo "自动检测最新版下载失败，继续使用 Gitee 镜像版本 $version。"
+        fi
+    fi
+    GITHUB_QUIET=1
     validate_decky_gitee_part_hashes "$parts" "$part_sha256" || return 1
     IFS=',' read -r -a part_entries <<< "$part_sha256"
     rm -f -- "$output"

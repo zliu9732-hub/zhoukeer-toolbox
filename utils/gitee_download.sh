@@ -190,6 +190,7 @@ _gitee_mirror_sha256() {
 _gitee_mirror_download_one() {
     local url="$1" output="$2" max_bytes="$3"
     local connect_timeout max_time retries
+    local quiet="${GITEE_MIRROR_QUIET:-0}"
     local curl_options=()
 
     if declare -F download_policy_url_allowed >/dev/null 2>&1 && \
@@ -200,16 +201,24 @@ _gitee_mirror_download_one() {
     max_time="$(_gitee_mirror_setting "${GITEE_MIRROR_MAX_TIME:-}" 1200)"
     retries="$(_gitee_mirror_setting "${GITEE_MIRROR_RETRIES:-}" 2)"
     curl_options=(
-        --fail --location --progress-meter
+        --fail --location
         --proto '=https' --proto-redir '=https'
         --connect-timeout "$connect_timeout" --max-time "$max_time"
         --retry "$retries" --retry-delay 1 --retry-connrefused
         --speed-limit 65536 --speed-time 60
         --max-filesize "$max_bytes"
     )
-    if ! curl "${curl_options[@]}" --output "$output" "$url" \
-        2> >(download_progress_filter "Gitee镜像" >&2); then
-        return 1
+    if [ "$quiet" = "1" ]; then
+        curl_options+=(--silent)
+        if ! curl "${curl_options[@]}" --output "$output" "$url" 2>/dev/null; then
+            return 1
+        fi
+    else
+        curl_options+=(--progress-meter)
+        if ! curl "${curl_options[@]}" --output "$output" "$url" \
+            2> >(download_progress_filter "Gitee镜像" >&2); then
+            return 1
+        fi
     fi
     if declare -F download_policy_response_is_safe >/dev/null 2>&1 && \
         ! download_policy_response_is_safe "$url" "$output"; then
@@ -276,6 +285,8 @@ download_gitee_mirror_file() {
             echo "$name 无法创建分块目录。"
             return 1
         }
+        GITEE_MIRROR_QUIET=1
+        echo "正在下载 $name (Gitee 分块镜像)..."
         index=1
         while [ "$index" -le "$_GITEE_MIRROR_CHUNKS" ]; do
             part_name="$(printf 'part.%04d' "$index")"

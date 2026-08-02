@@ -192,6 +192,7 @@ download_github_file() {
     local proxy="${GITHUB_DOWNLOAD_PROXY:-${DECKY_DOWNLOAD_PROXY:-}}"
     local ranked_sources source resolved_url temp_file actual_sha256 max_bytes
     local remote_size="" small_file_max
+    local quiet="${GITHUB_QUIET:-0}"
     local curl_options=()
 
     connect_timeout="$(_github_setting "${GITHUB_CONNECT_TIMEOUT:-}" 10)"
@@ -239,19 +240,26 @@ download_github_file() {
         return 1
     }
     curl_options=(
-        --fail --location --progress-meter
+        --fail --location
         --proto '=https' --proto-redir '=https'
         --connect-timeout "$connect_timeout" --max-time "$max_time"
         --retry "$retries" --retry-delay 1 --retry-connrefused
         --speed-limit "$min_speed" --speed-time "$min_speed_time"
     )
+    if [ "$quiet" = "1" ]; then
+        curl_options+=(--silent)
+    else
+        curl_options+=(--progress-meter)
+    fi
     if declare -F download_policy_max_bytes >/dev/null 2>&1; then
         max_bytes="$(download_policy_max_bytes "$url")"
         curl_options+=(--max-filesize "$max_bytes")
     fi
     [ -z "$proxy" ] || curl_options+=(--proxy "$proxy")
 
-    echo "正在下载 $name..."
+    if [ "$quiet" != "1" ]; then
+        echo "正在下载 $name..."
+    fi
     while IFS= read -r source; do
         [ -n "$source" ] || continue
         if [ "$source" = "DIRECT" ]; then
@@ -262,9 +270,16 @@ download_github_file() {
 
         rm -f -- "$temp_file"
         temp_file="$(mktemp "${output}.part.XXXXXX" 2>/dev/null)" || return 1
-        if ! curl "${curl_options[@]}" --output "$temp_file" "$resolved_url" \
-            2> >(_github_filter_curl_progress "$name" >&2); then
-            continue
+        if [ "$quiet" = "1" ]; then
+            if ! curl "${curl_options[@]}" --output "$temp_file" "$resolved_url" \
+                2>/dev/null; then
+                continue
+            fi
+        else
+            if ! curl "${curl_options[@]}" --output "$temp_file" "$resolved_url" \
+                2> >(_github_filter_curl_progress "$name" >&2); then
+                continue
+            fi
         fi
         if ! _github_download_is_plausible "$temp_file" || \
             { declare -F download_policy_response_is_safe >/dev/null 2>&1 && \
