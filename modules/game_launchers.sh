@@ -104,7 +104,8 @@ download_launcher_installer() {
             --fail --location --progress-meter
             --proto '=https' --proto-redir '=https'
             --connect-timeout 15 --max-time "$DOWNLOAD_TIMEOUT"
-            --retry 2 --retry-delay 2
+            --retry 3 --retry-delay 2 --retry-connrefused --retry-all-errors
+            --speed-limit 65536 --speed-time 60
             --max-filesize "$(download_policy_max_bytes "$LAUNCHER_URL")"
             --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36'
             --compressed
@@ -129,6 +130,7 @@ download_launcher_installer() {
         if download_policy_url_allowed "$LAUNCHER_FALLBACK_URL" && \
             curl --fail --location --progress-meter --proto '=https' --proto-redir '=https' \
                 --connect-timeout 15 --max-time "$DOWNLOAD_TIMEOUT" --retry 2 --retry-delay 2 \
+                --speed-limit 65536 --speed-time 60 \
                 --max-filesize "$(download_policy_max_bytes "$LAUNCHER_FALLBACK_URL")" \
                 --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36' \
                 --compressed --http1.1 \
