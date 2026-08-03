@@ -44,7 +44,7 @@ fi
 CALLS="$TMP_ROOT/fallback.calls"
 feature_plugin_is_present() { return 1; }
 install_decky_zip() { printf 'github:%s\n' "$1" >> "$CALLS"; return "${GITHUB_RESULT:-1}"; }
-install_decky_zip_from_gitee_archive() { printf 'gitee:%s\n' "$1" >> "$CALLS"; return "${GITEE_RESULT:-1}"; }
+install_decky_zip_from_mirror() { printf 'gitee:%s\n' "$1" >> "$CALLS"; return "${GITEE_RESULT:-1}"; }
 install_lsfg_bundle() { printf 'lsfg-overlay\n' >> "$CALLS"; return 0; }
 install_lsfg_chinese() { printf 'lsfg-zh\n' >> "$CALLS"; return 0; }
 install_configured_plugin() { printf 'fsr4-overlay:%s\n' "$1" >> "$CALLS"; return 0; }

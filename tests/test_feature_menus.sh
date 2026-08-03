@@ -65,7 +65,7 @@ for menu in "$touch_software" "$gui_software"; do
 done
 
 for menu in "$touch_software_more" "$gui_software"; do
-    for item in 'LibreOffice 办公套件' 'VLC 播放器' 'OBS Studio' 'LocalSend 局域网传文件' 'PeaZip 压缩工具'; do
+    for item in 'LibreOffice 办公套件' 'VLC 播放器' 'OBS Studio' 'LocalSend 局域网传文件' 'PeaZip 压缩工具' 'WiliWili'; do
         assert_contains "$menu" "$item" "更多常用软件缺少：$item"
     done
 done
@@ -178,7 +178,7 @@ done
 touch_uninstall="$(function_source "$MAIN_FILE" uninstall_software_menu)"
 gui_uninstall="$(function_source "$GUI_FILE" uninstall_software_gui_menu)"
 for menu in "$touch_uninstall" "$gui_uninstall"; do
-    for item in '卸载微信' '卸载 QQ' '卸载 Firefox' '卸载 Chrome' '卸载 Edge' '卸载 RustDesk' '卸载 ToDesk' '卸载百度网盘' '卸载 LibreOffice' '卸载 VLC' '卸载 OBS Studio' '卸载 LocalSend' '卸载 PeaZip' '卸载 Protontricks' '卸载 Bottles' '卸载 Steam302' '卸载 GE-Proton' '卸载 Decky Loader' '清空全部 Decky 插件'; do
+    for item in '卸载微信' '卸载 QQ' '卸载 Firefox' '卸载 Chrome' '卸载 Edge' '卸载 RustDesk' '卸载 ToDesk' '卸载百度网盘' '卸载 WiliWili' '卸载 LibreOffice' '卸载 VLC' '卸载 OBS Studio' '卸载 LocalSend' '卸载 PeaZip' '卸载 Protontricks' '卸载 Bottles' '卸载 Steam302' '卸载 GE-Proton' '卸载 Decky Loader' '清空全部 Decky 插件'; do
         assert_contains "$menu" "$item" "卸载已安装缺少：$item"
     done
     assert_contains "$menu" '第 1/4 页' "卸载菜单缺少第一页"

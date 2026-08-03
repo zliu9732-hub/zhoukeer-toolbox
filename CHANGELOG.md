@@ -1,3 +1,8 @@
+## V1.0.6 小黄鸭/FSR4 Gitee 镜像优先与 WiliWili — 2026-08-03
+
+- 小黄鸭和 FSR4 汉化安装改为直接使用 Gitee 分块镜像，镜像失败才回退 GitHub Release，不再下载整仓归档。
+- 常用软件新增 WiliWili（B站客户端，`cn.xfangfang.wiliwili`），触控与 GUI 均提供安装、卸载入口。
+
 ## V1.0.5 README 文案与桌面图标更新 — 2026-08-03
 
 - README 清理 V5 时代过时文案：更新当前版本号、软件与远程协助清单、GE-Proton 双源下载、启动免责声明文字版、窗口尺寸和发布流程。

@@ -168,6 +168,8 @@ printf '%s\n' "$software" | grep -Fq 'right:14-15:todesk' || fail "ToDesk触控�
 printf '%s\n' "$software" | grep -Fq 'modules/software.sh" browser' || fail "Firefox安装动作缺失"
 more_software="$(sed -n '/^common_software_more_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$more_software" | grep -Fq '百度网盘' || fail "更多常用软件缺少百度网盘"
+printf '%s\n' "$more_software" | grep -Fq 'WiliWili' || fail "更多常用软件缺少 WiliWili"
+printf '%s\n' "$more_software" | grep -Fq 'right:14-15:willwill' || fail "WiliWili 触控坐标错误"
 for item in 'LibreOffice 办公套件' 'VLC 播放器' 'OBS Studio' 'LocalSend 局域网传文件' 'right:2-3:libreoffice' 'right:8-9:localsend'; do
     printf '%s\n' "$more_software" | grep -Fq "$item" || fail "更多常用软件缺少：$item"
 done

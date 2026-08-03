@@ -259,11 +259,12 @@ for app_id in \
     com.microsoft.Edge \
     com.github.Matoking.protontricks \
     com.usebottles.bottles \
-    com.baidu.NetDisk; do
+    com.baidu.NetDisk \
+    cn.xfangfang.wiliwili; do
     touch "$STATE_DIR/installed.$app_id"
 done
 flatpak_calls_before="$(grep -c '^install ' "$STATE_DIR/commands")"
-for target in chrome edge protontricks bottles baidunetdisk; do
+for target in chrome edge protontricks bottles baidunetdisk willwill; do
     output="$(PATH="$BIN_DIR:$PATH" \
         HOME="$HOME_DIR" \
         FLATPAK_TEST_STATE="$STATE_DIR" \
@@ -338,6 +339,19 @@ PEAZIP_SHORTCUT="$HOME_DIR/Desktop/PeaZip.desktop"
 grep -Fq 'Exec=flatpak run io.github.peazip.PeaZip' "$PEAZIP_SHORTCUT"
 grep -Fq 'install --user --noninteractive -y flathub-cn io.github.peazip.PeaZip' "$STATE_DIR/commands"
 [ -f "$STATE_DIR/installed.io.github.peazip.PeaZip" ]
+
+# WiliWili 复用常用软件的用户级 Flatpak 国内缓存、安装验证和桌面入口。
+rm -f "$STATE_DIR/installed.cn.xfangfang.wiliwili"
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" willwill >/dev/null
+WILIWILI_SHORTCUT="$HOME_DIR/Desktop/WiliWili.desktop"
+[ -x "$WILIWILI_SHORTCUT" ]
+grep -Fq 'Exec=flatpak run cn.xfangfang.wiliwili' "$WILIWILI_SHORTCUT"
+grep -Fq 'install --user --noninteractive -y flathub-cn cn.xfangfang.wiliwili' "$STATE_DIR/commands"
+[ -f "$STATE_DIR/installed.cn.xfangfang.wiliwili" ]
 
 # Flatpak 安装彻底失败时，必须提示先初始化国内源，而不是只报任务失败。
 rm -f "$STATE_DIR/installed.com.baidu.NetDisk"

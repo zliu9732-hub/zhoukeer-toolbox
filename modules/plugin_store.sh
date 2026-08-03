@@ -1420,6 +1420,66 @@ install_decky_zip_from_gitee_archive() {
     trap - EXIT INT TERM
 }
 
+install_decky_zip_from_mirror() {
+    local display_name="$1"
+    local mirror_id="$2"
+    local plugin_sha256="$3"
+    local expected_dir="$4"
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local tmp_dir plugin_archive extract_dir plugin_source
+
+    require_command unzip || return 1
+    prepare_plugin_root "$plugin_root" || return 1
+    tmp_dir="$(mktemp -d)" || return 1
+    DECKY_TMP_DIR="$tmp_dir"
+    plugin_archive="$tmp_dir/plugin.zip"
+    extract_dir="$tmp_dir/extracted"
+    mkdir -p "$extract_dir"
+    trap cleanup_decky_tmp EXIT INT TERM
+
+    if ! download_gitee_mirror_file \
+        "$mirror_id" "$plugin_archive" "$plugin_sha256" "$display_name"; then
+        cleanup_decky_tmp
+        trap - EXIT INT TERM
+        echo "下载失败，切换备用源。"
+        return 1
+    fi
+    archive_paths_are_safe "$plugin_archive" zip || {
+        cleanup_decky_tmp
+        trap - EXIT INT TERM
+        return 1
+    }
+    if ! unzip -q "$plugin_archive" -d "$extract_dir"; then
+        cleanup_decky_tmp
+        trap - EXIT INT TERM
+        echo "$display_name 解压失败，未改动现有插件。"
+        return 1
+    fi
+    plugin_source="$(find_plugin_source "$extract_dir")" || {
+        cleanup_decky_tmp
+        trap - EXIT INT TERM
+        echo "$display_name 压缩包中没有找到 plugin.json。"
+        return 1
+    }
+    if [ "$(basename "$plugin_source")" != "$expected_dir" ]; then
+        cleanup_decky_tmp
+        trap - EXIT INT TERM
+        echo "$display_name 的目录结构不符合预期，已停止安装。"
+        return 1
+    fi
+    if ! install_tree_atomically "$plugin_source" "$plugin_root" "$expected_dir"; then
+        cleanup_decky_tmp
+        trap - EXIT INT TERM
+        echo "$display_name 安装失败，已尽量保留原版本。"
+        return 1
+    fi
+    echo "$display_name 安装成功。"
+    log "$display_name 通过 Gitee 镜像安装完成"
+    PLUGIN_INSTALL_CHANGED=1
+    cleanup_decky_tmp
+    trap - EXIT INT TERM
+}
+
 reload_decky_plugins() {
     local success_message="$1"
 
@@ -2080,32 +2140,22 @@ install_lsfg_zh_from_gitee() {
 
     echo "正在安装小黄鸭..."
     if [ -z "${DECKY_GITEE_ARCHIVE_URL:-}" ] || [ -z "${DECKY_GITEE_ARCHIVE_SHA256:-}" ]; then
-        log "小黄鸭 Gitee 归档配置不完整，切换 GitHub Release"
-        if install_decky_zip \
-            "小黄鸭（LSFG-VK）汉化完整包" \
-            "${DECKY_LSFG_ZH_URL:-}" \
-            "${DECKY_LSFG_ZH_SHA256:-}" \
-            "$LSFG_OFFICIAL_DIRECTORY" \
-            0; then
-            :
-        else
-            cleanup_decky_tmp
-            trap - EXIT INT TERM
-            log "小黄鸭 GitHub Release 不可用，切换原版叠加"
-            install_lsfg_bundle "$reload_after" || return 1
-            install_lsfg_chinese "$reload_after"
-            return $?
-        fi
-    elif install_decky_zip_from_gitee_archive \
-        "小黄鸭（LSFG-VK）汉化完整包" \
-        "Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip" \
-        "${DECKY_LSFG_ZH_SHA256:-}" \
+        log "小黄鸭汉化包配置不完整，切换为原版叠加流程"
+        install_lsfg_bundle "$reload_after" || return 1
+        install_lsfg_chinese "$reload_after" || return 1
+        return 0
+    fi
+
+    if install_decky_zip_from_mirror \
+        "小黄鸭（LSFG-VK）" \
+        "lsfg" \
+        "${DECKY_LSFG_SHA256:-}" \
         "$LSFG_OFFICIAL_DIRECTORY"; then
-        :
+        install_lsfg_chinese "$reload_after" || return 1
     else
         cleanup_decky_tmp
         trap - EXIT INT TERM
-        log "小黄鸭 Gitee 源不可用，切换 GitHub Release"
+        log "小黄鸭 Gitee 镜像不可用，切换 GitHub Release 汉化完整包"
         if install_decky_zip \
             "小黄鸭（LSFG-VK）汉化完整包" \
             "${DECKY_LSFG_ZH_URL:-}" \
@@ -2226,32 +2276,22 @@ install_fsr4_zh_from_gitee() {
 
     echo "正在安装 FSR4..."
     if [ -z "${DECKY_GITEE_ARCHIVE_URL:-}" ] || [ -z "${DECKY_GITEE_ARCHIVE_SHA256:-}" ]; then
-        log "FSR4 Gitee 归档配置不完整，切换 GitHub Release"
-        if install_decky_zip \
-            "FSR4（Decky Framegen）汉化完整包" \
-            "${DECKY_FSR4_ZH_URL:-}" \
-            "${DECKY_FSR4_ZH_SHA256:-}" \
-            "$FSR4_OFFICIAL_DIRECTORY" \
-            0; then
-            :
-        else
-            cleanup_decky_tmp
-            trap - EXIT INT TERM
-            log "FSR4 GitHub Release 不可用，切换原版叠加"
-            install_configured_plugin fsr4 0 0 || return 1
-            install_fsr4_chinese "$reload_after"
-            return $?
-        fi
-    elif install_decky_zip_from_gitee_archive \
-        "FSR4（Decky Framegen）汉化完整包" \
-        "Decky-Framegen-FSR4-v0.15.6.zip" \
-        "${DECKY_FSR4_ZH_SHA256:-}" \
+        log "FSR4汉化包配置不完整，切换为原版叠加流程"
+        install_configured_plugin fsr4 0 0 || return 1
+        install_fsr4_chinese "$reload_after" || return 1
+        return 0
+    fi
+
+    if install_decky_zip_from_mirror \
+        "FSR4（Decky Framegen）" \
+        "fsr4" \
+        "${DECKY_FSR4_SHA256:-}" \
         "$FSR4_OFFICIAL_DIRECTORY"; then
-        :
+        install_fsr4_chinese "$reload_after" || return 1
     else
         cleanup_decky_tmp
         trap - EXIT INT TERM
-        log "FSR4 Gitee 源不可用，切换 GitHub Release"
+        log "FSR4 Gitee 镜像不可用，切换 GitHub Release 汉化完整包"
         if install_decky_zip \
             "FSR4（Decky Framegen）汉化完整包" \
             "${DECKY_FSR4_ZH_URL:-}" \
