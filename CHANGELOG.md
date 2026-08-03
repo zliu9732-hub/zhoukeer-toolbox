@@ -1,3 +1,8 @@
+## V1.0.3 修复安装进度过滤命令缺失 — 2026-08-03
+
+- 修复 bootstrap 安装时 `download_progress_filter: 未找到命令`，安装进度恢复实时速度显示。
+- 修正 GitHub 下载进度测试对 quiet 分支的误判，以及 SimpleDeckyTDP 独立 Gitee 镜像仓库断言。
+
 ## V1.0.2 插件与 GE-Proton Gitee 镜像自动同步 — 2026-08-03
 
 - 新增 GitHub Actions：每 6 小时自动检测插件和 GE-Proton 官方最新 Release。

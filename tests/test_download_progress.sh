@@ -21,6 +21,7 @@ assert_payload_progress() {
     local file="$1"
     local start="$2"
     local end="$3"
+    local allow_conditional_silent="${4:-0}"
     local body
 
     body="$(function_section "$file" "$start" "$end")"
@@ -28,11 +29,16 @@ assert_payload_progress() {
     printf '%s\n' "$body" | grep -Fq -- '--progress-meter' || \
         fail "$file 的 $start 没有显示实时下载速度"
     if printf '%s\n' "$body" | grep -Fq -- '--silent'; then
-        fail "$file 的 $start 仍用静默模式隐藏下载进度"
+        if [ "$allow_conditional_silent" = "1" ]; then
+            printf '%s\n' "$body" | grep -Fq 'if [ "$quiet" = "1" ]; then' || \
+                fail "$file 的 $start 的静默开关未限制在 quiet 分支"
+        else
+            fail "$file 的 $start 仍用静默模式隐藏下载进度"
+        fi
     fi
 }
 
-assert_payload_progress utils/github_download.sh download_github_file _parse_latest_github_release
+assert_payload_progress utils/github_download.sh download_github_file _parse_latest_github_release 1
 assert_payload_progress modules/software.sh install_official_qq_appimage install_official_wechat_appimage
 assert_payload_progress modules/software.sh install_official_wechat_appimage install_rustdesk_appimage
 assert_payload_progress modules/software.sh install_firefox_archive software_is_installed
@@ -42,6 +48,8 @@ assert_payload_progress modules/todesk.sh download_todesk_package has_trusted_ca
 assert_payload_progress modules/plugin_store.sh download_decky_component download_decky_component_with_fallback
 assert_payload_progress update.sh download_one download_version_one
 assert_payload_progress bootstrap.sh download_one valid_sha256
+grep -Eq '^download_progress_filter\(\)' "$PROJECT_ROOT/bootstrap.sh" || \
+    fail "bootstrap.sh 缺少独立 download_progress_filter 定义"
 
 # 版本查询、测速和 API 元数据请求不是安装包下载，必须继续保持静默，
 # 否则一次安装会闪出多个没有意义的 100%。

@@ -84,6 +84,37 @@ sha256_file() {
     fi
 }
 
+# 安装完成前 core/download_policy.sh 尚不存在，这里保留独立副本供 bootstrap 使用。
+download_progress_filter() {
+    local label="${1:-下载}"
+
+    tr '\r' '\n' | awk -v label="$label" '
+        function progress_line(line) {
+            return line ~ /^[ ]*[0-9]+[ ]+[0-9]+/ && NF >= 8
+        }
+        {
+            line = $0
+            lowered = tolower(line)
+            if (lowered ~ /^curl: \(/ || \
+                (lowered ~ /warning:/ && lowered ~ /(retry|timeout|problem)/)) {
+                next
+            }
+            if (progress_line(line)) {
+                speed = $NF
+                unit = "B/s"
+                if (speed ~ /[kK]$/) { unit = "KB/s"; speed = substr(speed, 1, length(speed) - 1) }
+                else if (speed ~ /[mM]$/) { unit = "MB/s"; speed = substr(speed, 1, length(speed) - 1) }
+                else if (speed ~ /[gG]$/) { unit = "GB/s"; speed = substr(speed, 1, length(speed) - 1) }
+                printf "\r\033[2K正在下载 %s...（%s %s）", label, speed, unit
+                fflush()
+                next
+            }
+            if (line != "") print line
+        }
+        END { printf "\n" }
+    '
+}
+
 download_one() {
     local url="$1"
     local output="$2"
