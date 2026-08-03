@@ -688,6 +688,8 @@ install_launcher_steam_artwork() {
                 "$grid_dir/${artwork_id}_hero.jpg" || return 1
             install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name.png" \
                 "$grid_dir/${artwork_id}_logo.png" || return 1
+            install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-background.jpg" \
+                "$grid_dir/${artwork_id}_background.jpg" || return 1
         done
     done
 }

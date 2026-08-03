@@ -357,7 +357,7 @@ for current_app_id in "$app_id" "$artwork_raw_app_id"; do
     fi
     for current_app_id in "$current_app_id" "$signed_app_id"; do
     for artwork in "$current_app_id.jpg" "${current_app_id}p.jpg" "${current_app_id}_hero.jpg" \
-        "${current_app_id}_logo.png" "${current_app_id}_icon.png"; do
+        "${current_app_id}_logo.png" "${current_app_id}_icon.png" "${current_app_id}_background.jpg"; do
         [ -s "$(dirname "$art_shortcuts")/grid/$artwork" ] || {
             echo "FAIL: Steam 库美化文件缺失：$artwork" >&2
             exit 1
