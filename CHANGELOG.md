@@ -1,3 +1,9 @@
+## V1.1.8 Epic MSI 镜像与 Steam 库封面修复 — 2026-08-04
+
+- Epic Gitee 镜像改用官方 MSI（`EpicInstaller-20.1.4.msi`），恢复 `msiexec /qn` 静默安装；EXE 引导器在 Proton 下无法可靠安装，不再作为镜像内容。
+- Epic 静默安装等待时间从 20 秒提高到 120 秒，避免安装未完成就回退并弹出第二个安装窗口。
+- Steam 库封面同时写入 32 位 appid 和 64 位 gameid64 文件名，覆盖新版 Steam 与 Big Picture 的取图路径；移除 Steam 不认的 `_background.jpg` 写入。
+
 ## V1.1.7 Epic EXE 安装器静默安装对齐 — 2026-08-04
 
 - Epic Gitee 镜像的 EXE 安装器改为与育碧一致，静默安装使用 `/S` 参数；静默失败仍回退可见安装窗口，官方 MSI 静默线路保持不变。

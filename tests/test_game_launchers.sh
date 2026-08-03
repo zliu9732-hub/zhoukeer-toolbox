@@ -384,23 +384,32 @@ art_shortcuts="$TMP_ROOT/art-account/config/shortcuts.vdf"
 artwork_raw_app_id="$(python3 "$HELPER" --shortcut-file "$art_shortcuts" appid-raw \
     --name "Epic Games 启动器" --exe "$INSTALLER")"
 mkdir -p "$(dirname "$art_shortcuts")"
-MODULE="$MODULE" ART_SHORTCUTS="$art_shortcuts" APP_ID="$app_id" RAW_APP_ID="$artwork_raw_app_id" bash -c '
+MODULE="$MODULE" ART_SHORTCUTS="$art_shortcuts" APP_ID="$app_id" RAW_APP_ID="$artwork_raw_app_id" GAME_ID="$game_id" bash -c '
     source "$MODULE"
-    install_launcher_steam_artwork epic "$ART_SHORTCUTS" "$APP_ID" "$RAW_APP_ID"
+    install_launcher_steam_artwork epic "$ART_SHORTCUTS" "$APP_ID" "$RAW_APP_ID" "$GAME_ID"
 '
 for current_app_id in "$app_id" "$artwork_raw_app_id"; do
     signed_app_id="$current_app_id"
     if [ "$current_app_id" -gt 2147483647 ]; then
         signed_app_id=$((current_app_id - 4294967296))
     fi
-    for current_app_id in "$current_app_id" "$signed_app_id"; do
-    for artwork in "$current_app_id.jpg" "${current_app_id}p.jpg" "${current_app_id}_hero.jpg" \
-        "${current_app_id}_logo.png" "${current_app_id}_icon.png" "${current_app_id}_background.jpg"; do
+    for check_id in "$current_app_id" "$signed_app_id"; do
+        for artwork in "$check_id.jpg" "${check_id}p.jpg" "${check_id}_hero.jpg" \
+            "${check_id}_logo.png" "${check_id}_icon.png"; do
+            [ -s "$(dirname "$art_shortcuts")/grid/$artwork" ] || {
+                echo "FAIL: Steam 库美化文件缺失：$artwork" >&2
+                exit 1
+            }
+        done
+    done
+done
+for check_id in "$game_id"; do
+    for artwork in "$check_id.jpg" "${check_id}p.jpg" "${check_id}_hero.jpg" \
+        "${check_id}_logo.png" "${check_id}_icon.png"; do
         [ -s "$(dirname "$art_shortcuts")/grid/$artwork" ] || {
             echo "FAIL: Steam 库美化文件缺失：$artwork" >&2
             exit 1
         }
-    done
     done
 done
 
@@ -730,11 +739,11 @@ grep -Fq 'LAUNCHER_GITEE_MIRROR_ID="epic"' "$MODULE" || {
     echo "FAIL: Epic 未启用 Gitee 分块镜像优先" >&2
     exit 1
 }
-grep -Fq '7bda7fbb3eea3ffdced17b5679c057943464a6ecc5e5274968b728feae470b7b' "$MODULE" || {
-    echo "FAIL: Epic Gitee 镜像缺少固定 SHA256" >&2
+grep -Fq '1513d6cc2afda0367c8375b6f25f490c162da5607ce4b4adbb41906a2d742236' "$MODULE" || {
+    echo "FAIL: Epic Gitee 镜像缺少固定 MSI SHA256" >&2
     exit 1
 }
-grep -Fq 'EpicInstaller-20.1.4.exe' "$MODULE" || {
+grep -Fq 'EpicInstaller-20.1.4.msi' "$MODULE" || {
     echo "FAIL: Epic 镜像安装包文件名缺失" >&2
     exit 1
 }
