@@ -210,4 +210,34 @@ grep -Fq '模拟主程序错误' "$LAUNCH_LOG"
 grep -Fq '主程序结束：状态码=37' "$LAUNCH_LOG"
 grep -Fq '主程序异常退出（状态码：37）' "$DIALOG_LOG"
 
+# 专用 Konsole 别名存在时，必须优先使用别名而不是普通 konsole。
+mkdir -p "$HOME_DIR/.local/bin"
+cat > "$HOME_DIR/.local/bin/zhoukeer-konsole" <<'SCRIPT'
+#!/bin/bash
+if [ "${1:-}" = "--help" ]; then
+    printf '%s\n' $'--profile\n--workdir\n--geometry'
+    exit 0
+fi
+printf 'zhoukeer-konsole %s\n' "$*" >> "$FAKE_TERMINAL_CALL_LOG"
+exit 0
+SCRIPT
+chmod +x "$HOME_DIR/.local/bin/zhoukeer-konsole"
+: > "$CALL_LOG"
+HOME="$HOME_DIR" \
+PATH="$BIN_DIR:/usr/bin:/bin" \
+ZHOUKEER_LAUNCH_LOG="$LAUNCH_LOG" \
+FAKE_TERMINAL_CALL_LOG="$CALL_LOG" \
+FAKE_DIALOG_LOG="$DIALOG_LOG" \
+FAKE_KONSOLE_HELP=$'--profile\n--workdir\n--geometry' \
+    bash "$PROJECT_ROOT/launch.sh"
+grep -Eq '^zhoukeer-konsole ' "$CALL_LOG" || {
+    echo "FAIL: 存在专用 Konsole 别名时未优先使用" >&2
+    exit 1
+}
+if grep -Eq '^konsole ' "$CALL_LOG"; then
+    echo "FAIL: 存在专用 Konsole 别名时仍使用了普通 Konsole" >&2
+    exit 1
+fi
+rm -f "$HOME_DIR/.local/bin/zhoukeer-konsole"
+
 echo "PASS: 启动器多级兼容、失败提示与独立日志测试通过"

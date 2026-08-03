@@ -1,3 +1,8 @@
+## V1.0.8 入口描述与工具箱专用 Konsole 图标 — 2026-08-04
+
+- 小黄鸭、FSR4、ToMoon 入口改为功能描述：小黄鸭为“插帧神器（必装）”，FSR4 为“画质补丁（阅读桌面文档慎用）”，ToMoon 为“网络工具”，不再显示下载来源说明。
+- 实验：为工具箱创建专用 `zhoukeer-konsole` 启动别名，并在桌面入口使用 `StartupWMClass`，尝试让任务栏只显示工具箱图标；别名不可用时自动回退普通 Konsole。
+
 ## V1.0.7 国内源完整系统更新与去除 Gitee 下载提示 — 2026-08-04
 
 - “初始化国内源并检测系统组件”改为完整流程：初始化/填充 pacman 密钥环（archlinuxcn、archlinux、holo），执行两次完整 `pacman -Syyu`，重装 archlinux/archlinuxcn 密钥环，并生成中英文 locale。

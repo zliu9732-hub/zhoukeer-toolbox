@@ -183,12 +183,12 @@ game_environment_gui_menu() {
         choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
             features "常用插件组合｜安装小黄鸭等三款插件" \
             all "常用插件加27款精选插件｜优先安装三件套，已装则跳过；再补27款精选" \
-            lsfg "小黄鸭｜国内源优先，失败自动切换 GitHub" \
-            fsr4 "FSR4｜国内源优先，失败自动切换 GitHub" \
+            lsfg "小黄鸭｜插帧神器（必装）" \
+            fsr4 "FSR4｜画质补丁（阅读桌面文档慎用）" \
             browse "浏览官方插件｜逐个查看插件作用" \
             ge-proton "安装 GE 兼容层｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
-            tomoon "ToMoon｜作者 GitHub Release 网络工具插件" \
+            tomoon "ToMoon｜网络工具" \
             battlenet "战网启动器｜首次需在 Steam 兼容性选择 Proton 10.0-4" \
             ubisoft "育碧｜安装育碧游戏平台并添加到 Steam" \
             decky-install "安装插件商城｜稳定版国内失败自动切换官方源｜可选测试版｜高级操作" \
@@ -206,12 +206,12 @@ game_environment_gui_menu() {
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" all
                 ;;
             lsfg)
-                run_gui_action "安装小黄鸭（国内 + GitHub 双源）" \
+                run_gui_action "安装小黄鸭（插帧神器）" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                 ;;
             fsr4)
-                run_gui_action "安装 FSR4（国内 + GitHub 双源）" \
+                run_gui_action "安装 FSR4（画质补丁）" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee
                 ;;
@@ -230,7 +230,7 @@ game_environment_gui_menu() {
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
                 ;;
             tomoon)
-                gui_confirm "将从 ToMoon 作者 GitHub Release 下载固定版本并校验 SHA256，随后安装 Decky 网络工具插件。是否继续？" && \
+                gui_confirm "将下载 ToMoon 网络工具插件并校验 SHA256，随后安装到 Decky。是否继续？" && \
                     run_gui_action "安装 ToMoon" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon
                 ;;

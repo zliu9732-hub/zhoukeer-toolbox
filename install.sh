@@ -616,6 +616,18 @@ if [ ! -d "$HOME/Desktop" ]; then
     mkdir -p "$HOME/Desktop"
 fi
 
+# 工具箱专用 Konsole 别名：让窗口使用独立名称，便于 Plasma 按 StartupWMClass
+# 只把工具箱窗口匹配成工具箱图标，而不影响其他 Konsole 窗口。
+KONSOLE_BIN="$(command -v konsole 2>/dev/null || true)"
+KONSOLE_ALIAS="$HOME/.local/bin/zhoukeer-konsole"
+KONSOLE_WM_CLASS="konsole"
+if [ -n "$KONSOLE_BIN" ]; then
+    mkdir -p "$HOME/.local/bin" 2>/dev/null || true
+    if ln -sf -- "$KONSOLE_BIN" "$KONSOLE_ALIAS" 2>/dev/null; then
+        KONSOLE_WM_CLASS="zhoukeer-konsole"
+    fi
+fi
+
 if [ -f "$INSTALL_DIR/assets/Zhoukeer.colorscheme.in" ] && [ -f "$BACKGROUND_PATH" ]; then
     awk -v wallpaper="$BACKGROUND_PATH" '
         /^Wallpaper=@WALLPAPER@$/ { print "Wallpaper=" wallpaper; next }
@@ -649,6 +661,7 @@ Comment=Steam Deck工具箱
 Exec=/usr/bin/env bash "$INSTALL_DIR/launch.sh"
 Icon=$ICON_ENTRY
 Terminal=false
+StartupWMClass=$KONSOLE_WM_CLASS
 Categories=Utility;
 EOF
 

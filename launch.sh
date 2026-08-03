@@ -286,12 +286,25 @@ try_terminal() {
     return "$status"
 }
 
+find_toolbox_konsole() {
+    if [ -x "$HOME/.local/bin/zhoukeer-konsole" ]; then
+        printf '%s\n' "$HOME/.local/bin/zhoukeer-konsole"
+        return 0
+    fi
+    if command -v konsole >/dev/null 2>&1; then
+        command -v konsole
+        return 0
+    fi
+    return 1
+}
+
 try_konsole_levels() {
     local optional_args=()
     local window_mode="默认尺寸"
+    local konsole_bin
 
-    command -v konsole >/dev/null 2>&1 || return 1
-    KONSOLE_HELP="$(konsole --help 2>/dev/null || true)"
+    konsole_bin="$(find_toolbox_konsole)" || return 1
+    KONSOLE_HELP="$("$konsole_bin" --help 2>/dev/null || true)"
 
     # 固定窗口尺寸保证 32 行画布完整，同时保留可关闭的标题栏。
     # 不支持 --geometry 时直接使用主题默认窗口，由程序内画布请求调整尺寸。
@@ -305,7 +318,7 @@ try_konsole_levels() {
 
     if [ -f "$PROFILE_FILE" ] && supports_konsole_option '--profile'; then
         if try_terminal "Konsole 完整主题（${window_mode}）" \
-            konsole "${optional_args[@]}" --profile "$PROFILE_FILE" \
+            "$konsole_bin" "${optional_args[@]}" --profile "$PROFILE_FILE" \
             -e "${RUN_COMMAND[@]}"; then
             return 0
         fi
@@ -313,12 +326,12 @@ try_konsole_levels() {
 
     if [ "${#optional_args[@]}" -gt 0 ]; then
         if try_terminal "Konsole 兼容模式（${window_mode}）" \
-            konsole "${optional_args[@]}" -e "${FALLBACK_RUN_COMMAND[@]}"; then
+            "$konsole_bin" "${optional_args[@]}" -e "${FALLBACK_RUN_COMMAND[@]}"; then
             return 0
         fi
     fi
 
-    try_terminal "Konsole 最小参数模式" konsole -e "${FALLBACK_RUN_COMMAND[@]}"
+    try_terminal "Konsole 最小参数模式" "$konsole_bin" -e "${FALLBACK_RUN_COMMAND[@]}"
 }
 
 try_fallback_terminals() {
