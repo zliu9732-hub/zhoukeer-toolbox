@@ -621,6 +621,35 @@ remove_pending_battlenet_desktop_shortcut() {
     echo "已移除未完成安装阶段的旧战网桌面入口。"
 }
 
+remove_legacy_battlenet_steam_entries() {
+    local shortcut_file="$1" keep_exe="$2" remove_output
+
+    remove_output="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" remove \
+        --exe-basename "Battle.net Launcher.exe" \
+        --exe-basename "Battle.net.exe" \
+        --exe-basename "Battle.net-Setup.exe" \
+        --exe-basename "launch-battlenet.sh" \
+        --keep-exe "$keep_exe" --keep-name "$LAUNCHER_NAME")" || return 1
+    if [ "$remove_output" = "removed" ]; then
+        echo "已清理旧版战网 Steam 条目，只保留“战网启动器”。"
+    fi
+}
+
+remove_legacy_battlenet_desktop_installer() {
+    local old_installer="$HOME/Desktop/Battle.net-Setup.exe" size magic
+
+    [ -f "$old_installer" ] && [ ! -L "$old_installer" ] || return 0
+    size="$(wc -c < "$old_installer" | tr -d ' ')"
+    magic="$(od -An -tx1 -N2 "$old_installer" | tr -d ' \n')"
+    case "$size" in
+        ''|*[!0-9]*) return 0 ;;
+    esac
+    [ "$size" -ge "${LAUNCHER_MIN_BYTES:-1048576}" ] || return 0
+    [ "$magic" = "4d5a" ] || return 0
+    rm -f -- "$old_installer" || return 1
+    echo "已移除旧版工具箱下载到桌面的战网安装包。"
+}
+
 install_launcher_steam_artwork() {
     local target="$1" shortcut_file="$2"
     local asset_name grid_dir app_id artwork_id signed_app_id
@@ -712,6 +741,7 @@ finish_battlenet_steam_entry() {
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" verify \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe" --icon "$icon_path" \
         --launch-options "$launch_options" >/dev/null || return 1
+    remove_legacy_battlenet_steam_entries "$shortcut_file" "$launcher_exe" || return 1
     app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
     artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
@@ -725,6 +755,7 @@ finish_battlenet_steam_entry() {
     wrapper="$(create_launcher_wrapper battlenet "$steam_root" "$prefix_dir" "$proton_runner" \
         "$launcher_exe" "$APP_DIR/game-launchers/battlenet" "$app_id" "$game_id")" || return 1
     create_launcher_desktop_shortcut battlenet "$wrapper" || return 1
+    remove_legacy_battlenet_desktop_installer || return 1
     start_steam
     echo "战网启动器已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
 }

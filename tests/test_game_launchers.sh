@@ -115,6 +115,31 @@ assert sys.argv[2].encode() in data
 assert sys.argv[3].encode() not in data
 PY
 
+# 旧版“Battle.net”条目指向不同 EXE 时，正式条目写入后应被清理，只保留“战网启动器”。
+LEGACY_SHORTCUTS="$TMP_ROOT/legacy-shortcuts.vdf"
+LEGACY_OLD_EXE="$TMP_ROOT/old-prefix/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net.exe"
+LEGACY_NEW_EXE="$TMP_ROOT/new-prefix/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe"
+mkdir -p "$(dirname "$LEGACY_OLD_EXE")" "$(dirname "$LEGACY_NEW_EXE")"
+: > "$LEGACY_OLD_EXE"
+: > "$LEGACY_NEW_EXE"
+python3 "$HELPER" --shortcut-file "$LEGACY_SHORTCUTS" add \
+    --name "Battle.net" --exe "$LEGACY_OLD_EXE" --start-dir "$(dirname "$LEGACY_OLD_EXE")" >/dev/null
+python3 "$HELPER" --shortcut-file "$LEGACY_SHORTCUTS" add \
+    --name "战网启动器" --exe "$LEGACY_NEW_EXE" --start-dir "$(dirname "$LEGACY_NEW_EXE")" >/dev/null
+python3 "$HELPER" --shortcut-file "$LEGACY_SHORTCUTS" remove \
+    --exe-basename "Battle.net Launcher.exe" --exe-basename "Battle.net.exe" \
+    --exe-basename "Battle.net-Setup.exe" --exe-basename "launch-battlenet.sh" \
+    --keep-exe "$LEGACY_NEW_EXE" --keep-name "战网启动器" | grep -Fxq removed
+python3 - "$LEGACY_SHORTCUTS" "$LEGACY_OLD_EXE" "$LEGACY_NEW_EXE" <<'PY'
+from pathlib import Path
+import sys
+
+data = Path(sys.argv[1]).read_bytes()
+assert sys.argv[2].encode() not in data
+assert sys.argv[3].encode() in data
+assert data.count("战网启动器".encode()) == 1
+PY
+
 # Steam 的文本 config.vdf 只修改指定兼容层映射，并能幂等覆盖旧值。
 COMPAT_CONFIG="$TMP_ROOT/config.vdf"
 printf '%s\n' '"InstallConfigStore"' '{' '    "Software"' '    {' \
@@ -520,6 +545,13 @@ EXISTING_P10_RUNNER="$EXISTING_STEAM/steamapps/common/Proton 10.0-4/proton"
 mkdir -p "$(dirname "$EXISTING_P10_RUNNER")"
 printf '#!/bin/bash\nexit 0\n' > "$EXISTING_P10_RUNNER"
 chmod +x "$EXISTING_P10_RUNNER"
+# 旧版工具箱可能留下指向不同路径的“Battle.net”条目和桌面安装包，正式入库后必须只保留“战网启动器”。
+LEGACY_OLD_BATTLENET="$EXISTING_STEAM/steamapps/compatdata/old/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net.exe"
+python3 "$HELPER" --shortcut-file "$EXISTING_SHORTCUTS" add \
+    --name "Battle.net" --exe "$LEGACY_OLD_BATTLENET" --start-dir "$(dirname "$LEGACY_OLD_BATTLENET")" >/dev/null
+mkdir -p "$FAKE_HOME/Desktop"
+printf 'MZ' > "$FAKE_HOME/Desktop/Battle.net-Setup.exe"
+dd if=/dev/zero bs=1048574 count=1 >> "$FAKE_HOME/Desktop/Battle.net-Setup.exe" 2>/dev/null
 existing_output="$(
     MODULE="$MODULE" ZHOUKEER_STEAM_ROOT="$EXISTING_STEAM" \
         ZHOUKEER_SHORTCUT_FILE="$EXISTING_SHORTCUTS" \
@@ -531,8 +563,16 @@ printf '%s\n' "$existing_output" | grep -Fq '跳过安装包下载' || {
     echo "FAIL: 已安装战网没有跳过安装包" >&2
     exit 1
 }
+printf '%s\n' "$existing_output" | grep -Fq '已清理旧版战网 Steam 条目' || {
+    echo "FAIL: 旧版战网 Steam 条目没有被清理" >&2
+    exit 1
+}
 [ ! -e "$EXISTING_APP_DIR/game-launchers/battlenet/Battle.net-Setup.exe" ] || {
     echo "FAIL: 已安装战网仍生成了安装器" >&2
+    exit 1
+}
+[ ! -e "$FAKE_HOME/Desktop/Battle.net-Setup.exe" ] || {
+    echo "FAIL: 旧版桌面战网安装包没有被清理" >&2
     exit 1
 }
 [ -x "$FAKE_HOME/Desktop/战网启动器.desktop" ] || {
@@ -544,7 +584,7 @@ grep -Fq "Icon=$PROJECT_ROOT/assets/game-launchers/battlenet.png" \
     echo "FAIL: 战网桌面入口没有使用带工具箱标识的图标" >&2
     exit 1
 }
-python3 - "$EXISTING_SHORTCUTS" <<'PY'
+python3 - "$EXISTING_SHORTCUTS" "$LEGACY_OLD_BATTLENET" <<'PY'
 from pathlib import Path
 import sys
 
@@ -552,6 +592,8 @@ data = Path(sys.argv[1]).read_bytes()
 assert b"Battle.net Launcher.exe" in data
 assert b"Battle.net-Setup.exe" not in data
 assert b"STEAM_COMPAT_DATA_PATH=" in data
+assert sys.argv[2].encode() not in data
+assert data.count("战网启动器".encode()) == 1
 PY
 grep -Fq "Exec=$EXISTING_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" \
     "$FAKE_HOME/Desktop/战网启动器.desktop" || {

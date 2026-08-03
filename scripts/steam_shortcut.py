@@ -245,6 +245,39 @@ def update_shortcut(args: argparse.Namespace) -> None:
     raise VdfError("the installer shortcut was not found")
 
 
+def remove_shortcuts(args: argparse.Namespace) -> None:
+    entries = load_shortcuts(args.shortcut_file)
+    basenames = {name.casefold() for name in args.exe_basename}
+    keep_exe = quote_path(args.keep_exe) if args.keep_exe else None
+    keep_name = args.keep_name
+    kept = []
+    removed = 0
+
+    for entry in entries:
+        if entry[0] == TYPE_OBJECT:
+            exe = entry_value(entry, b"exe")
+            if exe is not None:
+                raw = exe
+                if raw.startswith('"') and raw.endswith('"'):
+                    raw = raw[1:-1]
+                if Path(raw).name.casefold() in basenames:
+                    is_keep = (
+                        keep_exe is not None
+                        and exe == keep_exe
+                        and (keep_name is None or entry_value(entry, b"appname") == keep_name)
+                    )
+                    if not is_keep:
+                        removed += 1
+                        continue
+        kept.append(entry)
+
+    if removed:
+        save_shortcuts(args.shortcut_file, kept)
+        print("removed")
+    else:
+        print("none")
+
+
 def verify_shortcut(args: argparse.Namespace) -> None:
     entries = load_shortcuts(args.shortcut_file)
     quoted_exe = quote_path(args.exe)
@@ -312,6 +345,11 @@ def main() -> None:
     update.add_argument("--old-exe", required=True)
     update.add_argument("--new-exe", required=True)
 
+    remove = subparsers.add_parser("remove")
+    remove.add_argument("--exe-basename", action="append", required=True)
+    remove.add_argument("--keep-exe")
+    remove.add_argument("--keep-name")
+
     verify = subparsers.add_parser("verify")
     verify.add_argument("--name", required=True)
     verify.add_argument("--exe", required=True)
@@ -346,6 +384,10 @@ def main() -> None:
         if not os.path.isabs(args.old_exe) or not os.path.isabs(args.new_exe):
             parser.error("shortcut paths must be absolute")
         update_shortcut(args)
+    elif args.command == "remove":
+        if args.keep_exe and not os.path.isabs(args.keep_exe):
+            parser.error("shortcut paths must be absolute")
+        remove_shortcuts(args)
     elif args.command == "verify":
         if not os.path.isabs(args.exe):
             parser.error("shortcut paths must be absolute")

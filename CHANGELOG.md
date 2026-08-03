@@ -1,3 +1,9 @@
+## V1.1.1 战网重复条目清理与正式入库整理 — 2026-08-04
+
+- 战网正式入库时清理旧版“Battle.net”Steam 条目和旧启动包装器条目，只保留“战网启动器”，避免 Steam 库出现两个战网。
+- 清理旧版工具箱下载到桌面的 `Battle.net-Setup.exe` 安装包；仅删除确认是官方 PE 安装器的普通文件，且清理失败会停止入库。
+- `steam_shortcut.py` 新增 `remove` 子命令，按 EXE 文件名清理旧条目，并用 `--keep-exe/--keep-name` 保护正式条目。
+
 ## V1.1.0 ToDesk 残留冲突自动处理 — 2026-08-04
 
 - ToDesk 安装前检测未被 pacman 登记的旧文件（`/opt/todesk`、`/usr/bin/todesk`、`todeskd.service` 等），先整包备份到用户状态目录，再清理后继续安装，修复“文件系统中已存在 `/opt/todesk/res/fake.png`”导致的安装失败。
