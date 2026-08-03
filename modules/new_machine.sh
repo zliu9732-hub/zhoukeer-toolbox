@@ -22,7 +22,7 @@ show_initialization_plan() {
     echo "✓ ToDesk"
     echo "✓ Firefox 浏览器"
     echo "✓ 工具箱快捷方式检查"
-    echo "✓ 初始化国内源并检测系统组件：archlinuxcn 镜像回退与密钥环、中英文 locale、Flatpak 国内缓存"
+    echo "✓ 初始化国内源并检测系统组件：完整系统更新、archlinuxcn 镜像回退与密钥环、中英文 locale、Flatpak 国内缓存"
     echo "  注意：国内 Flatpak 镜像将关闭软件包签名验证，仅在确认信任镜像时继续。"
     echo ""
     echo "初始化时会临时关闭 SteamOS 只读保护，完成后自动恢复。"

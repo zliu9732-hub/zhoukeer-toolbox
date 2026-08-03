@@ -5,7 +5,7 @@
 # check if gitee.com is reachable
 if ! curl -Is https://gitee.com | head -1 | grep 200 > /dev/null
 then
-    echo "Gitee appears to be unreachable, you may not be connected to the internet"
+    echo "Mirror appears to be unreachable, you may not be connected to the internet"
     exit 1
 fi
 

@@ -1,3 +1,8 @@
+## V1.0.7 国内源完整系统更新与去除 Gitee 下载提示 — 2026-08-04
+
+- “初始化国内源并检测系统组件”改为完整流程：初始化/填充 pacman 密钥环（archlinuxcn、archlinux、holo），执行两次完整 `pacman -Syyu`，重装 archlinux/archlinuxcn 密钥环，并生成中英文 locale。
+- 工具箱所有下载链路（小黄鸭/FSR4、Decky、ToDesk、Steam302、GE-Proton、工具箱自更新）不再显示 Gitee 字样，统一为“镜像/国内镜像”提示。
+
 ## V1.0.6 小黄鸭/FSR4 Gitee 镜像优先与 WiliWili — 2026-08-03
 
 - 小黄鸭和 FSR4 汉化安装改为直接使用 Gitee 分块镜像，镜像失败才回退 GitHub Release，不再下载整仓归档。

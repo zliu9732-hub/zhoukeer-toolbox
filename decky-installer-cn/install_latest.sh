@@ -56,7 +56,7 @@ META_FILE="$TMP_DIR/latest.txt"
 PLUGIN_LOADER="$TMP_DIR/PluginLoader"
 SERVICE_TEMPLATE="$TMP_DIR/plugin_loader.service"
 
-echo "正在从 Gitee 获取 Decky 最新版本清单..."
+echo "正在从国内镜像获取 Decky 最新版本清单..."
 curl -fSL --proto '=https' --proto-redir '=https' --connect-timeout 15 --max-time 60 \
     --retry 3 --retry-delay 2 "$META_URL" --output "$META_FILE" || {
     echo "获取版本清单失败，请稍后重试。"
@@ -135,7 +135,7 @@ for entry in "$@"; do
     [ "${#entry}" -eq 64 ] || { echo "分块 SHA256 格式异常。"; exit 1; }
 done
 
-echo "正在从 Gitee 下载 Decky Loader ${VERSION}..."
+echo "正在从国内镜像下载 Decky Loader ${VERSION}..."
 : > "$PLUGIN_LOADER"
 i=0
 for part_sha in "$@"; do
@@ -159,7 +159,7 @@ done
     exit 1
 }
 
-echo "正在从 Gitee 下载 systemd 服务模板..."
+echo "正在从国内镜像下载 systemd 服务模板..."
 curl -fSL --proto '=https' --proto-redir '=https' --connect-timeout 15 --max-time 120 \
     --retry 5 --retry-delay 2 \
     "${MIRROR_BASE}/${SERVICE_FILE}" --output "$SERVICE_TEMPLATE" || {

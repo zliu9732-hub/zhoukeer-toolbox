@@ -68,7 +68,7 @@ source_status_show() {
     fi
     awk -F '\t' '
         function label(id) {
-            if (id == "update-gitee") return "工具箱更新（Gitee）"
+            if (id == "update-gitee") return "工具箱更新（国内镜像）"
             if (id == "update-github") return "工具箱更新（GitHub）"
             if (id == "update-domain") return "工具箱更新（域名备用）"
             if (id == "flathub-cn") return "应用下载（上海交大）"

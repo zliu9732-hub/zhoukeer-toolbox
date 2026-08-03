@@ -183,8 +183,8 @@ game_environment_gui_menu() {
         choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
             features "常用插件组合｜安装小黄鸭等三款插件" \
             all "常用插件加27款精选插件｜优先安装三件套，已装则跳过；再补27款精选" \
-            lsfg "小黄鸭｜Gitee 国内源优先，失败自动切换 GitHub" \
-            fsr4 "FSR4｜Gitee 国内源优先，失败自动切换 GitHub" \
+            lsfg "小黄鸭｜国内源优先，失败自动切换 GitHub" \
+            fsr4 "FSR4｜国内源优先，失败自动切换 GitHub" \
             browse "浏览官方插件｜逐个查看插件作用" \
             ge-proton "安装 GE 兼容层｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
@@ -206,12 +206,12 @@ game_environment_gui_menu() {
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" all
                 ;;
             lsfg)
-                run_gui_action "安装小黄鸭（Gitee + GitHub 双源）" \
+                run_gui_action "安装小黄鸭（国内 + GitHub 双源）" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                 ;;
             fsr4)
-                run_gui_action "安装 FSR4（Gitee + GitHub 双源）" \
+                run_gui_action "安装 FSR4（国内 + GitHub 双源）" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee
                 ;;
@@ -247,7 +247,7 @@ game_environment_gui_menu() {
             decky-install)
                 decky_choice="$(gui_dialog --menu "安装插件商城｜请选择与 SteamOS 系统通道匹配的版本" \
                     stable "安装稳定版｜适合 SteamOS 正式系统" \
-                    test "安装测试版｜仅适合 SteamOS 测试或预览系统｜Gitee 国内源优先" \
+                    test "安装测试版｜仅适合 SteamOS 测试或预览系统｜国内源优先" \
                     back "返回插件列表")" || continue
                 case "$decky_choice" in
                     stable)
@@ -256,7 +256,7 @@ game_environment_gui_menu() {
                             bash "$PROJECT_ROOT/modules/plugin_store.sh" store
                         ;;
                     test)
-                        gui_confirm "仅当 SteamOS 使用测试或预览通道、稳定版 Decky 明确不兼容时使用。优先从 Gitee 国内镜像下载，失败自动回退 Decky 官方 prerelease Release；已有插件和设置保留。是否继续？" && \
+                        gui_confirm "仅当 SteamOS 使用测试或预览通道、稳定版 Decky 明确不兼容时使用。优先从国内镜像下载，失败自动回退 Decky 官方 prerelease Release；已有插件和设置保留。是否继续？" && \
                             run_gui_action "安装测试版插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
                             bash "$PROJECT_ROOT/modules/plugin_store.sh" store-test
                         ;;
@@ -581,7 +581,7 @@ new_machine_gui_menu() {
         case "$choice" in
             recommended) software_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             advanced-init)
-                gui_confirm "新机初始化会检测系统组件、配置国内源，再安装多项常用软件、Decky 和 ToDesk；已满足的系统组件不会重复更新。请先在游戏模式开启“启用开发者模式”“使用旧版X11桌面模式”和“CEF远程调试”，再确认继续。" && \
+                gui_confirm "新机初始化会完整更新系统组件、配置国内源，再安装多项常用软件、Decky 和 ToDesk。请先在游戏模式开启“启用开发者模式”“使用旧版X11桌面模式”和“CEF远程调试”，再确认继续。" && \
                     run_gui_action "新机初始化" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/new_machine.sh"
                 ;;
@@ -621,12 +621,12 @@ domestic_source_gui_preflight() {
     local choice
 
     choice="$(gui_dialog --menu "初始化国内源并检测系统组件｜Flatpak 缓存关闭 GPG；archlinuxcn 保持 GPG 验证" \
-        configure "初始化国内源并检测系统组件｜已满足时跳过更新，配置 locale 与国内缓存" \
+        configure "初始化国内源并检测系统组件｜完整更新系统组件，配置 locale 与国内缓存" \
         restore "恢复官方软件源｜恢复 Flathub 并移除工具箱 archlinuxcn" \
         back "返回系统设置")" || return 0
     case "$choice" in
         configure)
-            gui_confirm "将初始化国内源并检测系统组件：会修改 Flatpak 软件源、关闭 Flatpak 国内缓存的 GPG 验证、生成中英文 locale，并临时关闭 SteamOS 只读保护；基础组件已满足时不会运行 pacman 更新。
+            gui_confirm "将初始化国内源并检测系统组件：会完整更新系统组件（pacman -Syyu）、重装 archlinux/archlinuxcn 密钥环、修改 Flatpak 软件源、关闭 Flatpak 国内缓存的 GPG 验证、生成中英文 locale，并临时关闭 SteamOS 只读保护。
 
 pacman 仓库：archlinuxcn
 地址：https://mirrors.ustc.edu.cn/archlinuxcn/\$arch

@@ -138,7 +138,7 @@ run_network_diagnostics() {
 
     if command -v curl >/dev/null 2>&1; then
         network_probe steam "Steam" "https://store.steampowered.com/"
-        network_probe gitee "Gitee" "https://gitee.com/"
+        network_probe gitee "国内线路" "https://gitee.com/"
         network_probe github "GitHub" "https://github.com/"
         network_probe flathub-cn "应用下载国内线路一" "https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo"
         network_probe flathub-ustc "应用下载国内线路二" "https://mirrors.ustc.edu.cn/flathub/flathub.flatpakrepo"

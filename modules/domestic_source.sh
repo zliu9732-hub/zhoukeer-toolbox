@@ -164,13 +164,6 @@ packages_installed_without_known_upgrades() {
     return 0
 }
 
-base_system_components_ready() {
-    # SteamOS 的系统密钥由镜像维护，部分版本不会把 archlinux-keyring 作为
-    # 独立已安装包暴露。git 与 Flatpak 已可用时，不应仅因该包名缺失就触发
-    # 一次完整 pacman 同步；真正缺少组件时，下方修复分支仍会初始化密钥环。
-    packages_installed_without_known_upgrades git flatpak
-}
-
 archlinuxcn_keyring_ready() {
     packages_installed_without_known_upgrades archlinuxcn-keyring
 }
@@ -295,6 +288,8 @@ restore_official_flatpak() {
 }
 
 prepare_system_packages() (
+    local pacman_conf="${1:-/etc/pacman.conf}"
+    local locale_gen="${2:-/etc/locale.gen}"
     local readonly_disabled=0
     local readonly_status=""
     local configuration_complete=0
@@ -305,11 +300,11 @@ prepare_system_packages() (
         if [ "$configuration_complete" -ne 1 ]; then
             if [ -n "$pacman_backup" ] && [ -f "$pacman_backup" ]; then
                 toolbox_sudo install -m 0644 -- "$pacman_backup" \
-                    /etc/pacman.conf >/dev/null 2>&1 || true
+                    "$pacman_conf" >/dev/null 2>&1 || true
             fi
             if [ -n "$locale_backup" ] && [ -f "$locale_backup" ]; then
                 toolbox_sudo install -m 0644 -- "$locale_backup" \
-                    /etc/locale.gen >/dev/null 2>&1 || true
+                    "$locale_gen" >/dev/null 2>&1 || true
             fi
         fi
         [ -z "$pacman_backup" ] || rm -f -- "$pacman_backup"
@@ -326,17 +321,17 @@ prepare_system_packages() (
         require_command "$command_name" || return 1
     done
 
-    if [ ! -f /etc/pacman.conf ] || [ -L /etc/pacman.conf ] || \
-        [ ! -f /etc/locale.gen ] || [ -L /etc/locale.gen ]; then
+    if [ ! -f "$pacman_conf" ] || [ -L "$pacman_conf" ] || \
+        [ ! -f "$locale_gen" ] || [ -L "$locale_gen" ]; then
         echo "pacman 或 locale 配置文件异常，未修改系统。"
         return 1
     fi
     pacman_backup="$(mktemp)" || return 1
     locale_backup="$(mktemp)" || return 1
-    cp -- /etc/pacman.conf "$pacman_backup" || return 1
-    cp -- /etc/locale.gen "$locale_backup" || return 1
+    cp -- "$pacman_conf" "$pacman_backup" || return 1
+    cp -- "$locale_gen" "$locale_backup" || return 1
 
-    echo "[1/2] 检测 pacman/archlinuxcn 密钥环与系统组件..."
+    echo "[1/2] 初始化 pacman 密钥环并完整更新系统组件..."
     readonly_status="$(steamos-readonly status 2>/dev/null || true)"
     if printf '%s' "$readonly_status" | grep -qi 'enabled'; then
         toolbox_sudo steamos-readonly disable >/dev/null 2>&1 || return 1
@@ -348,30 +343,44 @@ prepare_system_packages() (
         log "SteamOS rootfs 已处于可写状态，本次保持原状态"
     fi
 
-    if base_system_components_ready; then
-        echo "✓ 已检测到 git 和 Flatpak 均已安装，无需更新系统组件。"
-    else
-        echo "检测到基础组件不完整，正在初始化系统密钥环并补齐组件..."
-        if ! toolbox_sudo pacman-key --init; then
-            echo "pacman 密钥环初始化失败，已停止。"
-            return 1
-        fi
-        if ! toolbox_sudo pacman-key --populate archlinux; then
-            echo "Arch Linux 系统密钥导入失败，已停止。"
-            return 1
-        fi
-        if ! toolbox_sudo pacman -Sy --needed --noconfirm git flatpak; then
-            echo "git 或 Flatpak 组件补齐失败，已停止。"
-            return 1
-        fi
-        if ! toolbox_sudo pacman -S --needed --noconfirm archlinux-keyring; then
-            echo "Arch Linux 系统密钥环安装失败，已停止。"
-            return 1
-        fi
+    if ! toolbox_sudo pacman-key --init; then
+        echo "pacman 密钥环初始化失败，已停止。"
+        return 1
+    fi
+    if ! toolbox_sudo pacman-key --populate archlinux; then
+        echo "Arch Linux 系统密钥导入失败，已停止。"
+        return 1
+    fi
+    if ! toolbox_sudo pacman-key --populate holo; then
+        echo "SteamOS（holo）系统密钥导入失败，已停止。"
+        return 1
     fi
 
-    configure_archlinuxcn_with_fallback /etc/pacman.conf || return 1
-    if ! configure_chinese_locales /etc/locale.gen; then
+    configure_archlinuxcn_with_fallback "$pacman_conf" || return 1
+
+    if ! toolbox_sudo pacman -Syyu --noconfirm; then
+        echo "系统组件完整更新失败，已停止。"
+        return 1
+    fi
+    if ! toolbox_sudo pacman -S --needed --noconfirm git flatpak; then
+        echo "git 或 Flatpak 组件补齐失败，已停止。"
+        return 1
+    fi
+    if ! toolbox_sudo pacman -S --noconfirm archlinux-keyring; then
+        echo "archlinux-keyring 重装失败，已停止。"
+        return 1
+    fi
+    if pacman_conf_has_archlinuxcn "$pacman_conf" 2>/dev/null && \
+        ! toolbox_sudo pacman -S --noconfirm archlinuxcn-keyring; then
+        echo "archlinuxcn-keyring 重装失败，已停止。"
+        return 1
+    fi
+    if ! toolbox_sudo pacman -Syyu --noconfirm; then
+        echo "密钥环修复后的复查更新失败，已停止。"
+        return 1
+    fi
+
+    if ! configure_chinese_locales "$locale_gen"; then
         echo "中英文 locale 配置失败，已停止。"
         return 1
     fi
@@ -398,7 +407,7 @@ initialize_software_sources() {
     echo "================================================"
     echo " 初始化国内源并检测系统组件"
     echo "================================================"
-    echo "将检测系统组件、配置 archlinuxcn 镜像回退和密钥环、生成中英文 locale，并配置 Flatpak 国内缓存。"
+    echo "将完整更新系统组件、配置 archlinuxcn 镜像回退和密钥环、生成中英文 locale，并配置 Flatpak 国内缓存。"
     echo "可恢复：修改前会在本次临时目录备份 pacman 与语言配置；菜单提供“恢复官方软件源”。"
     echo "管理员权限会读取桌面管理员密码.txt，不会重复询问密码。"
 
@@ -406,7 +415,7 @@ initialize_software_sources() {
     configure_domestic_flatpak || return 1
 
     echo ""
-    echo "国内源与系统组件检测完成。现在可以继续使用工具箱安装软件。"
+    echo "国内源与系统组件初始化完成。现在可以继续使用工具箱安装软件。"
     if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" /etc/pacman.conf 2>/dev/null; then
         echo "Arch Linux CN：上海交大 → 中科大 → 官方源（GPG 密钥环已启用）"
     else
@@ -418,7 +427,7 @@ initialize_software_sources() {
         echo "上海交大：$FLATHUB_CN_URL"
         echo "中科大：$FLATHUB_CN_FALLBACK_URL"
     fi
-    log "国内源与系统组件初始化完成：已检测系统组件、处理archlinuxcn密钥环、配置中文locale和Flatpak国内双缓存"
+    log "国内源与系统组件初始化完成：已完整更新系统组件、处理archlinuxcn密钥环、配置中文locale和Flatpak国内双缓存"
 }
 
 show_software_source_status() {

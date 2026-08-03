@@ -289,9 +289,9 @@ download_verified_package() {
             return 0
         fi
         source_status_record update-domain fail "更新包或校验文件不可用" >/dev/null 2>&1 || true
-        echo "域名源不可用，切换Gitee备用源。"
+        echo "域名源不可用，切换国内镜像备用源。"
         if download_verified_package_from \
-            "Gitee" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
+            "国内镜像" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
             "$package_file" "$checksum_file"; then
             DOWNLOAD_SOURCE="Gitee"
             source_status_record update-gitee ok "更新包与校验文件可用" >/dev/null 2>&1 || true
@@ -299,12 +299,12 @@ download_verified_package() {
         fi
         source_status_record update-gitee fail "更新包或校验文件不可用" >/dev/null 2>&1 || true
 
-        echo "更新包验证失败：GitHub、域名源和Gitee均不可用。旧版本不会被覆盖。"
+        echo "更新包验证失败：GitHub、域名源和国内镜像均不可用。旧版本不会被覆盖。"
         return 1
     fi
 
     if download_verified_package_from \
-        "Gitee" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
+        "国内镜像" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
         DOWNLOAD_SOURCE="Gitee"
         source_status_record update-gitee ok "更新包与校验文件可用" >/dev/null 2>&1 || true
@@ -312,7 +312,7 @@ download_verified_package() {
     fi
     source_status_record update-gitee fail "更新包或校验文件不可用" >/dev/null 2>&1 || true
 
-    echo "Gitee包或校验文件不可用，切换域名源。"
+    echo "国内镜像包或校验文件不可用，切换域名源。"
     if download_verified_package_from \
         "域名" "$DOMAIN_PACKAGE_URL" "$DOMAIN_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
@@ -332,21 +332,21 @@ download_verified_package() {
     fi
     source_status_record update-github fail "更新包或校验文件不可用" >/dev/null 2>&1 || true
 
-    echo "更新包验证失败：Gitee、域名源和GitHub均不可用。旧版本不会被覆盖。"
+    echo "更新包验证失败：国内镜像、域名源和GitHub均不可用。旧版本不会被覆盖。"
     return 1
 }
 
 download_version_with_fallback() {
     local output="$1"
 
-    if download_version_one "$GITEE_VERSION_URL" "$output" "Gitee"; then
+    if download_version_one "$GITEE_VERSION_URL" "$output" "国内镜像"; then
         VERSION_SOURCE="Gitee"
         source_status_record update-gitee ok "版本检查成功" >/dev/null 2>&1 || true
         return 0
     fi
     source_status_record update-gitee fail "版本检查失败" >/dev/null 2>&1 || true
 
-    echo "Gitee版本检测失败，切换GitHub备用源。"
+    echo "国内镜像版本检测失败，切换GitHub备用源。"
     if download_version_one "$GITHUB_VERSION_URL" "$output" "GitHub"; then
         VERSION_SOURCE="GitHub"
         source_status_record update-github ok "版本检查成功" >/dev/null 2>&1 || true
@@ -362,7 +362,7 @@ download_version_with_fallback() {
     fi
     source_status_record update-domain fail "版本检查失败" >/dev/null 2>&1 || true
 
-    echo "版本检测失败：Gitee和GitHub均不可用。旧版本不会被覆盖。"
+    echo "版本检测失败：国内镜像和GitHub均不可用。旧版本不会被覆盖。"
     return 1
 }
 

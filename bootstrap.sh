@@ -265,13 +265,13 @@ download_verified_package() {
     local checksum_file="$2"
 
     if download_verified_package_from \
-        "Gitee" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
+        "国内镜像" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
         DOWNLOAD_SOURCE="Gitee"
         return 0
     fi
 
-    echo "Gitee不可用，切换GitHub备用源。"
+    echo "国内镜像不可用，切换GitHub备用源。"
     if download_verified_package_from \
         "GitHub" "$GITHUB_PACKAGE_URL" "$GITHUB_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
@@ -298,12 +298,12 @@ download_with_fallback() {
     local gitee_url="$4"
     local github_url="$5"
 
-    if download_one "$gitee_url" "$output" "Gitee"; then
+    if download_one "$gitee_url" "$output" "国内镜像"; then
         DOWNLOAD_SOURCE="Gitee"
         return 0
     fi
 
-    echo "Gitee不可用，切换GitHub备用源。"
+    echo "国内镜像不可用，切换GitHub备用源。"
     if download_one "$github_url" "$output" "GitHub"; then
         DOWNLOAD_SOURCE="GitHub"
         return 0
@@ -336,7 +336,7 @@ need_command tar
 
 if [ "$DRY_RUN" -eq 1 ]; then
     echo "[dry-run] 将优先从域名获取版本: $DOMAIN_VERSION_URL"
-    echo "[dry-run] Gitee发布包: $GITEE_PACKAGE_URL"
+    echo "[dry-run] 国内镜像发布包: $GITEE_PACKAGE_URL"
     echo "[dry-run] GitHub备用包: $GITHUB_PACKAGE_URL"
     echo "[dry-run] 将安装到: $INSTALL_DIR"
     echo "[dry-run] 不会创建目录、下载文件或调用安装器。"

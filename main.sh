@@ -464,8 +464,8 @@ game_environment_menu() {
         ui_touch_button 9 '\033[1;97;48;5;24m' "DeckRecall" "添加启动项及恢复游戏可玩状态"
         ui_touch_button 11 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
         ui_touch_button 13 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "小黄鸭｜Release+Gitee" "双源安装汉化版·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "FSR4｜Release+Gitee" "双源安装汉化版·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "小黄鸭｜国内+Release" "双源安装汉化版·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "FSR4｜国内+Release" "双源安装汉化版·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
         ui_touch_button 19 '\033[1;97;48;5;24m' "Freedeck" "下载游戏和模拟器游戏·感谢作者b站一苇Isidf"
         ui_touch_button 21 '\033[1;97;48;5;238m' "下一页…" "查看剩余插件"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -479,8 +479,8 @@ game_environment_menu() {
             deckrecall) confirm_and_run "安装 DeckRecall" "添加启动项及恢复游戏可玩状态；来自作者 GitHub Release，下载后会校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckrecall ;;
             browse) plugin_official_touch_pages ;;
             cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
-            lsfg) confirm_and_run "安装小黄鸭" "Gitee 国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
-            fsr4) confirm_and_run "安装 FSR4" "Gitee 国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
+            lsfg) confirm_and_run "安装小黄鸭" "国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
+            fsr4) confirm_and_run "安装 FSR4" "国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             freedeck) confirm_and_run "安装 Freedeck" "下载游戏和模拟器游戏；感谢作者b站一苇Isidf" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck ;;
             next) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
@@ -495,7 +495,7 @@ decky_loader_menu() {
     while true; do
         draw_category_frame games "安装插件商城｜Decky Loader" "稳定版适合正式系统 · 测试版只适合测试或预览系统" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "安装稳定版插件商城" "国内失败自动切换 Decky 官方 Release"
-        ui_touch_button 9 '\033[1;97;48;5;160m' "安装测试版插件商城" "仅用于 SteamOS 测试或预览通道 · Gitee 国内源优先"
+        ui_touch_button 9 '\033[1;97;48;5;160m' "安装测试版插件商城" "仅用于 SteamOS 测试或预览通道 · 国内源优先"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "不进行安装"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -508,7 +508,7 @@ decky_loader_menu() {
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store
                 ;;
             test)
-                confirm_and_run "安装测试版插件商城" "仅当 SteamOS 使用测试或预览通道、稳定版 Decky 明确不兼容时使用；优先从 Gitee 国内镜像下载，失败自动回退 Decky 官方 prerelease Release；已有插件和设置保留" \
+                confirm_and_run "安装测试版插件商城" "仅当 SteamOS 使用测试或预览通道、稳定版 Decky 明确不兼容时使用；优先从国内镜像下载，失败自动回退 Decky 官方 prerelease Release；已有插件和设置保留" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store-test
                 ;;
             back) NEXT_CATEGORY="games"; return 0 ;;
@@ -744,13 +744,13 @@ domestic_source_preflight() {
     local choice
 
     while true; do
-        draw_category_frame advanced "初始化国内源并检测系统组件" "提高国内应用下载速度，已满足时跳过系统更新"
+        draw_category_frame advanced "初始化国内源并检测系统组件" "提高国内应用下载速度，完整更新系统组件"
         ui_panel_line 7 '\033[1;38;5;220m' "flathub-cn｜https://mirror.sjtu.edu.cn/flathub"
         ui_panel_line 9 '\033[1;38;5;220m' "flathub-ustc｜https://mirrors.ustc.edu.cn/flathub"
         ui_panel_line 11 '\033[1;38;5;220m' "archlinuxcn｜上海交大 → 中科大 → 官方回退"
         ui_panel_line 13 '\033[1;38;5;203m' "Flatpak 缓存关闭 GPG；archlinuxcn 保持 GPG 验证"
-        ui_panel_line 15 '\033[1;38;5;203m' "pacman 检测 + locale｜临时关闭只读保护｜可恢复"
-        ui_touch_button 17 '\033[1;97;48;5;160m' "初始化国内源并检测系统组件" "已满足时跳过更新并配置国内缓存"
+        ui_panel_line 15 '\033[1;38;5;203m' "pacman 完整更新 + locale｜临时关闭只读保护｜可恢复"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "初始化国内源并检测系统组件" "完整更新系统组件并配置国内缓存"
         ui_touch_button 19 '\033[1;97;48;5;30m' "恢复官方软件源" "恢复 Flathub 并移除工具箱 archlinuxcn"
         ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "不做任何修改"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"

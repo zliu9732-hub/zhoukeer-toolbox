@@ -283,7 +283,7 @@ load_decky_gitee_mirror_meta() {
     DECKY_GITEE_PRERELEASE_PART_SHA256=""
     DECKY_GITEE_PRERELEASE_SERVICE_SHA256=""
 
-    if ! download_github_file "$DECKY_GITEE_MIRROR_META" "$meta_file" "" "Decky Gitee镜像元数据"; then
+    if ! download_github_file "$DECKY_GITEE_MIRROR_META" "$meta_file" "" "Decky 镜像元数据"; then
         log "Decky Gitee镜像元数据获取失败，改用既有线路。"
         return 1
     fi
@@ -365,7 +365,7 @@ download_decky_gitee_loader() {
             echo "Decky Loader 已自动检测最新版 $DECKY_LATEST_GITHUB_VERSION。"
             return 0
         fi
-        echo "自动检测最新版下载失败，继续使用 Gitee 镜像版本 $version。"
+        echo "自动检测最新版下载失败，继续使用镜像版本 $version。"
     fi
     GITHUB_QUIET=1
     validate_decky_gitee_part_hashes "$parts" "$part_sha256" || return 1
@@ -413,7 +413,7 @@ download_decky_gitee_service() {
     esac
     download_github_file \
         "$DECKY_GITEE_MIRROR_BASE/$service_file" \
-        "$output" "$expected_sha256" "Decky systemd服务模板(Gitee)"
+        "$output" "$expected_sha256" "Decky systemd服务模板"
 }
 
 confirm_decky_install() {
@@ -423,9 +423,9 @@ confirm_decky_install() {
     echo "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，并重新进入桌面模式。"
     if [ "$channel" = "prerelease" ]; then
         echo "仅当 SteamOS 使用测试或预览通道、稳定版 Decky 不兼容时，才安装测试版插件商城。"
-        echo "将从 Gitee 国内镜像安装测试版 ${DECKY_PRERELEASE_VERSION}，失败自动回退 Decky 官方 Release，已有插件和设置会保留。"
+        echo "将从国内镜像安装测试版 ${DECKY_PRERELEASE_VERSION}，失败自动回退 Decky 官方 Release，已有插件和设置会保留。"
     else
-        echo "将安装或更新 Decky Loader 稳定版（Gitee 国内镜像优先），已有插件和设置会保留。"
+        echo "将安装或更新 Decky Loader 稳定版（国内镜像优先），已有插件和设置会保留。"
     fi
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
@@ -909,7 +909,7 @@ install_plugin_store() (
 
     if [ "$gitee_meta_ok" -eq 1 ] && download_decky_gitee_loader "$channel" "$loader_download"; then
         selected_version="$DECKY_GITEE_SELECTED_VERSION"
-        echo "Decky PluginLoader 已从 Gitee 国内镜像下载。"
+        echo "Decky PluginLoader 已从国内镜像下载。"
         log "Decky下载成功: Decky PluginLoader source=gitee"
     elif [ "$channel" = "prerelease" ]; then
         download_decky_prerelease_component \
@@ -926,7 +926,7 @@ install_plugin_store() (
             "$loader_download" || return 1
     fi
     if [ "$gitee_meta_ok" -eq 1 ] && download_decky_gitee_service "$channel" "$service_template"; then
-        echo "Decky systemd服务模板 已从 Gitee 国内镜像下载。"
+        echo "Decky systemd服务模板 已从国内镜像下载。"
         log "Decky下载成功: Decky systemd服务模板 source=gitee"
     elif [ "$channel" = "prerelease" ]; then
         download_decky_prerelease_component \
@@ -1336,7 +1336,7 @@ extract_gitee_plugin_archive() {
 
     case "$archive_member" in
         ''|/*|*'../'*|*'/..')
-            echo "Gitee 归档内插件路径不安全，已停止提取。"
+            echo "归档内插件路径不安全，已停止提取。"
             return 1
             ;;
     esac
@@ -1394,7 +1394,7 @@ install_decky_zip_from_gitee_archive() {
         "${DECKY_GITEE_ARCHIVE_URL:-}" \
         "$repository_archive" \
         "${DECKY_GITEE_ARCHIVE_SHA256:-}" \
-        "Gitee 工具箱归档" || return 1
+        "工具箱归档" || return 1
     extract_gitee_plugin_archive \
         "$repository_archive" "$archive_member" "$plugin_archive" "$plugin_sha256" || return 1
     unzip -q "$plugin_archive" -d "$extract_dir" || {
@@ -1438,7 +1438,8 @@ install_decky_zip_from_mirror() {
     trap cleanup_decky_tmp EXIT INT TERM
 
     if ! download_gitee_mirror_file \
-        "$mirror_id" "$plugin_archive" "$plugin_sha256" "$display_name"; then
+        "$mirror_id" "$plugin_archive" "$plugin_sha256" "$display_name" \
+        >/dev/null 2>&1; then
         cleanup_decky_tmp
         trap - EXIT INT TERM
         echo "下载失败，切换备用源。"

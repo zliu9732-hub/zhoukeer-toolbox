@@ -28,7 +28,13 @@ EOF
 
 cat > "$STEAMOS_BIN_DIR/steamos-readonly" <<'EOF'
 #!/bin/sh
-exit 99
+state="${DOMESTIC_SOURCE_TEST_STATE:?}"
+printf 'steamos-readonly %s\n' "$*" >> "$state/commands"
+case "${1:-}" in
+    status) printf 'enabled\n' ;;
+    disable|enable) exit 0 ;;
+    *) exit 99 ;;
+esac
 EOF
 
 cat > "$BIN_DIR/curl" <<'EOF'
@@ -171,6 +177,10 @@ case "${1:-}" in
         [ "$found_upgrade" -eq 1 ] || exit 1
         exit 0
         ;;
+    -Syyu)
+        printf 'pacman %s\n' "$*" >> "$state/commands"
+        exit 0
+        ;;
 esac
 printf 'pacman %s\n' "$*" >> "$state/commands"
 case " $* " in
@@ -179,6 +189,20 @@ case " $* " in
         touch "$state/installed.archlinuxcn-keyring"
         ;;
 esac
+case " $* " in
+    *' git '*|*' flatpak '*)
+        [ "${DOMESTIC_SOURCE_FAIL_PACMAN_INSTALL:-0}" != "1" ] || exit 1
+        touch "$state/installed.git"
+        touch "$state/installed.flatpak"
+        ;;
+esac
+case " $* " in
+    *' archlinux-keyring '*)
+        [ "${DOMESTIC_SOURCE_FAIL_PACMAN_INSTALL:-0}" != "1" ] || exit 1
+        touch "$state/installed.archlinux-keyring"
+        ;;
+esac
+exit 0
 EOF
 
 cat > "$BIN_DIR/pacman-key" <<'EOF'
@@ -242,7 +266,7 @@ grep -Fq -- '--appstream' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应包含 AppStream 强制刷新"
 grep -Fq 'verify_domestic_flatpak_remote' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应保留应用索引验证"
-for command_text in 'packages_installed_without_known_upgrades' 'base_system_components_ready' 'archlinuxcn_keyring_ready' 'configure_archlinuxcn_with_fallback' 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman -Sy --needed --noconfirm git flatpak' 'pacman -S --needed --noconfirm archlinux-keyring' 'pacman -Sy --needed --noconfirm archlinuxcn-keyring' 'pacman-key --populate archlinuxcn' 'locale-gen' 'steamos-readonly disable' 'steamos-readonly enable'; do
+for command_text in 'packages_installed_without_known_upgrades' 'archlinuxcn_keyring_ready' 'configure_archlinuxcn_with_fallback' 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman-key --populate holo' 'pacman -Syyu --noconfirm' 'pacman -S --needed --noconfirm git flatpak' 'pacman -S --noconfirm archlinux-keyring' 'pacman -S --noconfirm archlinuxcn-keyring' 'pacman -Sy --needed --noconfirm archlinuxcn-keyring' 'pacman-key --populate archlinuxcn' 'locale-gen' 'steamos-readonly disable' 'steamos-readonly enable'; do
     grep -Fq "$command_text" "$PROJECT_ROOT/modules/domestic_source.sh" || \
         fail "完整国内源初始化缺少：$command_text"
 done
@@ -254,22 +278,18 @@ done
     # shellcheck disable=SC1090
     source "$PROJECT_ROOT/modules/domestic_source.sh"
 
-    touch "$STATE_DIR/installed.git" "$STATE_DIR/installed.flatpak" \
-        "$STATE_DIR/installed.archlinuxcn-keyring"
-    base_system_components_ready || fail "已安装基础组件未被识别"
-    [ ! -e "$STATE_DIR/installed.archlinux-keyring" ] || \
-        fail "基础组件模拟不应依赖 archlinux-keyring 包名"
+    touch "$STATE_DIR/installed.archlinuxcn-keyring"
     archlinuxcn_keyring_ready || fail "已安装 archlinuxcn 密钥环未被识别"
 
-    touch "$STATE_DIR/upgrade.git"
-    if base_system_components_ready; then
-        fail "git 存在待更新版本时仍被识别为无需更新"
+    touch "$STATE_DIR/upgrade.archlinuxcn-keyring"
+    if archlinuxcn_keyring_ready; then
+        fail "archlinuxcn-keyring 存在待更新版本时仍被识别为可用"
     fi
-    rm -f "$STATE_DIR/upgrade.git"
+    rm -f "$STATE_DIR/upgrade.archlinuxcn-keyring"
 
-    rm -f "$STATE_DIR/installed.flatpak"
-    if base_system_components_ready; then
-        fail "缺少 Flatpak 时仍被识别为基础组件完整"
+    rm -f "$STATE_DIR/installed.archlinuxcn-keyring"
+    if archlinuxcn_keyring_ready; then
+        fail "缺少 archlinuxcn-keyring 时仍被识别为可用"
     fi
 )
 for repo_url in \
@@ -345,6 +365,57 @@ EOF
     remove_managed_archlinuxcn_repo "$SYSTEM_DIR/pacman.conf"
     ! grep -Fq '[archlinuxcn]' "$SYSTEM_DIR/pacman.conf" || \
         fail "恢复后仍保留工具箱管理的 archlinuxcn"
+)
+
+# 完整初始化流程：密钥环初始化/填充 → 完整 pacman -Syyu → 重装两个
+# keyring → 复查 -Syyu → locale；全程只操作临时目录与模拟命令。
+FLOW_STATE="$TMP_ROOT/flow-state"
+FLOW_DIR="$TMP_ROOT/flow-system"
+mkdir -p "$FLOW_STATE" "$FLOW_DIR"
+: > "$FLOW_STATE/commands"
+cat > "$FLOW_DIR/pacman.conf" <<'EOF'
+[options]
+Architecture = auto
+EOF
+cat > "$FLOW_DIR/locale.gen" <<'EOF'
+#en_US.UTF-8 UTF-8
+#zh_CN.UTF-8 UTF-8
+EOF
+(
+    PATH="$STEAMOS_BIN_DIR:$BIN_DIR:$PATH"
+    HOME="$HOME_DIR"
+    DOMESTIC_SOURCE_TEST_STATE="$FLOW_STATE"
+    export PATH HOME DOMESTIC_SOURCE_TEST_STATE
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/domestic_source.sh"
+    toolbox_sudo() { "$@"; }
+
+    prepare_system_packages "$FLOW_DIR/pacman.conf" "$FLOW_DIR/locale.gen" || \
+        fail "完整系统更新流程未成功完成"
+    grep -Fxq 'steamos-readonly disable' "$FLOW_STATE/commands" || \
+        fail "完整流程未临时关闭只读保护"
+    grep -Fxq 'pacman-key --init' "$FLOW_STATE/commands" || \
+        fail "完整流程未初始化 pacman 密钥环"
+    grep -Fxq 'pacman-key --populate archlinux' "$FLOW_STATE/commands" || \
+        fail "完整流程未填充 Arch Linux 系统密钥"
+    grep -Fxq 'pacman-key --populate holo' "$FLOW_STATE/commands" || \
+        fail "完整流程未填充 SteamOS（holo）系统密钥"
+    grep -Fq 'pacman-key --populate archlinuxcn' "$FLOW_STATE/commands" || \
+        fail "完整流程未填充 archlinuxcn 密钥"
+    [ "$(grep -c '^pacman -Syyu --noconfirm$' "$FLOW_STATE/commands")" -eq 2 ] || \
+        fail "完整流程未执行两次 pacman -Syyu"
+    grep -Fxq 'pacman -S --needed --noconfirm git flatpak' "$FLOW_STATE/commands" || \
+        fail "完整流程未补齐 git 与 Flatpak"
+    grep -Fxq 'pacman -S --noconfirm archlinux-keyring' "$FLOW_STATE/commands" || \
+        fail "完整流程未重装 archlinux-keyring"
+    grep -Fxq 'pacman -S --noconfirm archlinuxcn-keyring' "$FLOW_STATE/commands" || \
+        fail "完整流程未重装 archlinuxcn-keyring"
+    grep -Fxq 'locale-gen' "$FLOW_STATE/commands" || \
+        fail "完整流程未生成 locale"
+    grep -Fxq 'steamos-readonly enable' "$FLOW_STATE/commands" || \
+        fail "完整流程未恢复只读保护"
+    grep -Fq '[archlinuxcn]' "$FLOW_DIR/pacman.conf" || \
+        fail "完整流程未保留 archlinuxcn 配置"
 )
 
 # 兼容旧版本遗留的系统级国内远程：沿用现有 flathub-cn，不能重复添加同名用户远程。
