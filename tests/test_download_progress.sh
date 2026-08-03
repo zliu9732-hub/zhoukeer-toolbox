@@ -51,6 +51,24 @@ assert_payload_progress bootstrap.sh download_one valid_sha256
 grep -Eq '^download_progress_filter\(\)' "$PROJECT_ROOT/bootstrap.sh" || \
     fail "bootstrap.sh 缺少独立 download_progress_filter 定义"
 
+# curl --progress-meter 自带的英文表头、警告和错误不能漏到终端。
+# shellcheck disable=SC1090
+source "$PROJECT_ROOT/core/download_policy.sh"
+filtered="$(
+    printf '%s\n' \
+        '  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current' \
+        '                                 Dload  Upload   Total   Spent    Left  Speed' \
+        '  100  1234  100  1234    0     0   5678      0 --:--:-- --:--:-- --:--:--  5678' \
+        'curl: (28) Operation timed out' \
+        'warning: some proxy warning' |
+        download_progress_filter "测试下载"
+)"
+printf '%s\n' "$filtered" | grep -Fq '正在下载 测试下载' || \
+    fail "实时下载速度被过滤掉了"
+if printf '%s\n' "$filtered" | grep -Eq 'Dload|% Total|curl: \(|warning:'; then
+    fail "curl 英文表头/警告/错误泄漏到终端"
+fi
+
 # 版本查询、测速和 API 元数据请求不是安装包下载，必须继续保持静默，
 # 否则一次安装会闪出多个没有意义的 100%。
 function_section update.sh download_version_one valid_release_version | \

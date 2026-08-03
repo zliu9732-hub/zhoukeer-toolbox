@@ -35,7 +35,10 @@ download_progress_filter() {
             line = $0
             lowered = tolower(line)
             if (lowered ~ /^curl: \(/ || \
-                (lowered ~ /warning:/ && lowered ~ /(retry|timeout|problem)/)) {
+                lowered ~ /warning:/) {
+                next
+            }
+            if (line ~ /% Total/ || line ~ /Dload/ || line ~ /Upload/) {
                 next
             }
             if (progress_line(line)) {

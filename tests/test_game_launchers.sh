@@ -394,17 +394,24 @@ for current_app_id in "$app_id" "$artwork_raw_app_id"; do
         signed_app_id=$((current_app_id - 4294967296))
     fi
     for check_id in "$current_app_id" "$signed_app_id"; do
-        for artwork in "$check_id.jpg" "${check_id}p.jpg" "${check_id}_hero.jpg" \
+        for artwork in "$check_id.png" "${check_id}p.png" "${check_id}_hero.png" \
             "${check_id}_logo.png" "${check_id}_icon.png"; do
             [ -s "$(dirname "$art_shortcuts")/grid/$artwork" ] || {
                 echo "FAIL: Steam 库美化文件缺失：$artwork" >&2
                 exit 1
             }
         done
+        for stale in "$check_id.jpg" "$check_id.jpeg" "${check_id}p.jpg" \
+            "${check_id}_hero.jpg" "${check_id}_background.jpg"; do
+            [ ! -e "$(dirname "$art_shortcuts")/grid/$stale" ] || {
+                echo "FAIL: Steam 库旧封面未清理：$stale" >&2
+                exit 1
+            }
+        done
     done
 done
 for check_id in "$game_id"; do
-    for artwork in "$check_id.jpg" "${check_id}p.jpg" "${check_id}_hero.jpg" \
+    for artwork in "$check_id.png" "${check_id}p.png" "${check_id}_hero.png" \
         "${check_id}_logo.png" "${check_id}_icon.png"; do
         [ -s "$(dirname "$art_shortcuts")/grid/$artwork" ] || {
             echo "FAIL: Steam 库美化文件缺失：$artwork" >&2

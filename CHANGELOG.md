@@ -1,3 +1,9 @@
+## V1.1.9 Steam 库封面改用 PNG 并清理冲突残留 — 2026-08-04
+
+- 启动器 Steam 库封面（横版、竖版、hero/背景）全部改为 Steam 优先读取的 PNG 格式；写入前清理同编号残留的 jpg/jpeg/background 文件，避免 Steam 取图结果不确定。
+- 继续同时写入 32 位 appid 与 64 位 gameid64 文件名；更新后完全退出 Steam 或重启 Deck 一次即可重新取图。
+- 下载进度过滤同步去掉 curl 英文表头与无关 warning 输出。
+
 ## V1.1.8 Epic MSI 镜像与 Steam 库封面修复 — 2026-08-04
 
 - Epic Gitee 镜像改用官方 MSI（`EpicInstaller-20.1.4.msi`），恢复 `msiexec /qn` 静默安装；EXE 引导器在 Proton 下无法可靠安装，不再作为镜像内容。

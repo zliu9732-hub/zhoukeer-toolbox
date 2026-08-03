@@ -373,21 +373,21 @@ run_launcher_installer() {
                 if [ "$install_mode" = "silent" ]; then
                     STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
                         STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
-                        "$proton_runner" run msiexec /i "$installer_file" /qn /norestart || status=$?
+                        "$proton_runner" run msiexec /i "$installer_file" /qn /norestart 2>/dev/null || status=$?
                 else
                     STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
                         STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
-                        "$proton_runner" run msiexec /i "$installer_file" || status=$?
+                        "$proton_runner" run msiexec /i "$installer_file" 2>/dev/null || status=$?
                 fi
             else
                 if [ "$install_mode" = "silent" ]; then
                     STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
                         STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
-                        "$proton_runner" run "$installer_file" /S || status=$?
+                        "$proton_runner" run "$installer_file" /S 2>/dev/null || status=$?
                 else
                     STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
                         STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
-                        "$proton_runner" run "$installer_file" || status=$?
+                        "$proton_runner" run "$installer_file" 2>/dev/null || status=$?
                 fi
             fi
             ;;
@@ -395,11 +395,11 @@ run_launcher_installer() {
             if [ "$install_mode" = "silent" ]; then
                 STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
                     STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
-                    "$proton_runner" run "$installer_file" /S || status=$?
+                    "$proton_runner" run "$installer_file" /S 2>/dev/null || status=$?
             else
                 STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
                     STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
-                    "$proton_runner" run "$installer_file" || status=$?
+                    "$proton_runner" run "$installer_file" 2>/dev/null || status=$?
             fi
             ;;
     esac
@@ -735,14 +735,34 @@ install_launcher_steam_artwork() {
 install_launcher_artwork_for_id() {
     local asset_name="$1" grid_dir="$2" artwork_id="$3"
 
+    # Steam 自己的 SetCustomArtworkForApp 写入 PNG；同 stem 残留的 jpg/jpeg
+    # 会让取图结果不确定，必须先清理再写入。
+    rm -f -- \
+        "$grid_dir/${artwork_id}.jpg" \
+        "$grid_dir/${artwork_id}.jpeg" \
+        "$grid_dir/${artwork_id}.png" \
+        "$grid_dir/${artwork_id}p.jpg" \
+        "$grid_dir/${artwork_id}p.jpeg" \
+        "$grid_dir/${artwork_id}p.png" \
+        "$grid_dir/${artwork_id}_hero.jpg" \
+        "$grid_dir/${artwork_id}_hero.jpeg" \
+        "$grid_dir/${artwork_id}_hero.png" \
+        "$grid_dir/${artwork_id}_logo.jpg" \
+        "$grid_dir/${artwork_id}_logo.jpeg" \
+        "$grid_dir/${artwork_id}_logo.png" \
+        "$grid_dir/${artwork_id}_icon.jpg" \
+        "$grid_dir/${artwork_id}_icon.jpeg" \
+        "$grid_dir/${artwork_id}_icon.png" \
+        "$grid_dir/${artwork_id}_background.jpg" \
+        "$grid_dir/${artwork_id}_background.png"
     install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name.png" \
         "$grid_dir/${artwork_id}_icon.png" || return 1
-    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-grid.jpg" \
-        "$grid_dir/${artwork_id}.jpg" || return 1
-    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-portrait.jpg" \
-        "$grid_dir/${artwork_id}p.jpg" || return 1
-    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-hero.jpg" \
-        "$grid_dir/${artwork_id}_hero.jpg" || return 1
+    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-grid.png" \
+        "$grid_dir/${artwork_id}.png" || return 1
+    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-portrait.png" \
+        "$grid_dir/${artwork_id}p.png" || return 1
+    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-hero.png" \
+        "$grid_dir/${artwork_id}_hero.png" || return 1
     install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name.png" \
         "$grid_dir/${artwork_id}_logo.png" || return 1
 }
