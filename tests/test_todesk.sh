@@ -361,4 +361,61 @@ grep -Fxq 'steamos-readonly enable' "$UNINSTALL_MISSING_LOG" || {
     exit 1
 }
 
+# 残留的旧 ToDesk 文件必须备份后清理，避免 pacman 文件冲突。
+ORPHAN_ROOT="$TMP_ROOT/orphan-root"
+mkdir -p "$ORPHAN_ROOT/opt/todesk/res" "$ORPHAN_ROOT/usr/bin" \
+    "$ORPHAN_ROOT/etc/systemd/system" "$TMP_ROOT/home"
+printf 'fake\n' > "$ORPHAN_ROOT/opt/todesk/res/fake.png"
+printf '#!/bin/sh\n' > "$ORPHAN_ROOT/usr/bin/todesk"
+printf '[Unit]\n' > "$ORPHAN_ROOT/etc/systemd/system/todeskd.service"
+ORPHAN_LOG="$TMP_ROOT/orphan.log"
+MODULE="$MODULE" ORPHAN_ROOT="$ORPHAN_ROOT" ORPHAN_LOG="$ORPHAN_LOG" \
+    ZHOUKEER_TEST_TODESK_ORPHAN_PATHS="$ORPHAN_ROOT/opt/todesk $ORPHAN_ROOT/usr/bin/todesk $ORPHAN_ROOT/etc/systemd/system/todeskd.service" \
+    HOME="$TMP_ROOT/home" bash -c '
+    source "$MODULE"
+    toolbox_sudo() {
+        printf "%s\n" "$*" >> "$ORPHAN_LOG"
+        "$@"
+    }
+    pacman() { return 1; }
+    cleanup_todesk_orphan_files
+    [ ! -e "$ORPHAN_ROOT/opt/todesk" ] || {
+        echo "FAIL: 未被 pacman 登记的 /opt/todesk 未清理" >&2
+        exit 1
+    }
+    [ ! -e "$ORPHAN_ROOT/usr/bin/todesk" ] || {
+        echo "FAIL: 未被 pacman 登记的 /usr/bin/todesk 未清理" >&2
+        exit 1
+    }
+    [ ! -e "$ORPHAN_ROOT/etc/systemd/system/todeskd.service" ] || {
+        echo "FAIL: 未被 pacman 登记的服务文件未清理" >&2
+        exit 1
+    }
+    [ -s "$TODESK_ORPHAN_BACKUP" ] || {
+        echo "FAIL: 未生成 ToDesk 残留备份" >&2
+        exit 1
+    }
+'
+grep -Fq 'pacman -Qo' "$ORPHAN_LOG" || {
+    echo "FAIL: ToDesk 残留清理没有检查 pacman 登记状态" >&2
+    exit 1
+}
+
+# pacman 已登记的文件不能误清理。
+OWNED_ROOT="$TMP_ROOT/owned-root"
+mkdir -p "$OWNED_ROOT/opt/todesk/res"
+printf 'owned\n' > "$OWNED_ROOT/opt/todesk/res/fake.png"
+MODULE="$MODULE" OWNED_ROOT="$OWNED_ROOT" \
+    ZHOUKEER_TEST_TODESK_ORPHAN_PATHS="$OWNED_ROOT/opt/todesk" \
+    HOME="$TMP_ROOT/home" bash -c '
+    source "$MODULE"
+    toolbox_sudo() { "$@"; }
+    pacman() { return 0; }
+    cleanup_todesk_orphan_files
+    [ -f "$OWNED_ROOT/opt/todesk/res/fake.png" ] || {
+        echo "FAIL: pacman 已登记文件被误清理" >&2
+        exit 1
+    }
+'
+
 echo "PASS: ToDesk Release镜像、无浏览器回退、DEB转换、服务残留修复和只读恢复测试通过"

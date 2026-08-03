@@ -14,6 +14,8 @@ TODESK_MAX_TIME=1200
 TODESK_READONLY_CHANGED=0
 TODESK_TMP_DIR=""
 TODESK_DOWNLOADED_PACKAGE=""
+TODESK_ORPHAN_BACKUP=""
+TODESK_ORPHAN_CANDIDATES="${ZHOUKEER_TEST_TODESK_ORPHAN_PATHS:-/opt/todesk /usr/bin/todesk /usr/local/bin/todesk /usr/lib/systemd/system/todeskd.service /etc/systemd/system/todeskd.service /usr/share/applications/todesk.desktop}"
 TODESK_CA_BUNDLE_PATHS="${TODESK_CA_BUNDLE_PATHS:-/etc/ssl/certs/ca-certificates.crt:/etc/ca-certificates/extracted/tls-ca-bundle.pem}"
 TODESK_PACMAN_CACHE_DIR="${TODESK_PACMAN_CACHE_DIR:-/var/cache/pacman/pkg}"
 TODESK_VERSION="4.8.6.2"
@@ -399,6 +401,48 @@ install_verified_todesk_package() {
     toolbox_sudo pacman -U --noconfirm "$package_path"
 }
 
+cleanup_todesk_orphan_files() {
+    local path relative_path backup_dir backup_file orphan_count=0
+    local backup_paths=""
+
+    for path in $TODESK_ORPHAN_CANDIDATES; do
+        [ -e "$path" ] || [ -L "$path" ] || continue
+        if ! toolbox_sudo pacman -Qo "$path" >/dev/null 2>&1; then
+            backup_paths="$backup_paths ${path#/}"
+            orphan_count=$((orphan_count + 1))
+        fi
+    done
+    [ "$orphan_count" -eq 0 ] && return 0
+
+    backup_dir="${XDG_STATE_HOME:-$HOME/.local/state}/zhoukeer-toolbox/todesk-backup"
+    mkdir -p "$backup_dir" || return 1
+    backup_file="$backup_dir/todesk-orphans-$(date '+%Y%m%d-%H%M%S').tar.gz"
+    # shellcheck disable=SC2086
+    if ! toolbox_sudo tar -czf "$backup_file" -C / $backup_paths >/dev/null 2>&1; then
+        echo "ToDesk 旧文件备份失败，已停止安装。"
+        return 1
+    fi
+    chmod 600 "$backup_file" 2>/dev/null || true
+
+    for path in $backup_paths; do
+        relative_path="/$path"
+        if [ -d "$relative_path" ] && [ ! -L "$relative_path" ]; then
+            if ! toolbox_sudo rm -rf -- "$relative_path"; then
+                echo "ToDesk 旧目录清理失败，已停止安装。"
+                return 1
+            fi
+        elif ! toolbox_sudo rm -f -- "$relative_path"; then
+            echo "ToDesk 旧文件清理失败，已停止安装。"
+            return 1
+        fi
+    done
+
+    TODESK_ORPHAN_BACKUP="$backup_file"
+    echo "检测到未被 pacman 登记的 ToDesk 旧文件，已备份到：$backup_file"
+    log "ToDesk 旧文件已备份并清理: $backup_file"
+    return 0
+}
+
 todesk_service_is_ready() {
     command -v systemctl >/dev/null 2>&1 && \
         systemctl is-enabled --quiet todeskd.service >/dev/null 2>&1 && \
@@ -505,6 +549,7 @@ install_todesk() {
 
     if [ "$repair_service" -eq 0 ]; then
         ensure_todesk_ca_certificates || return 1
+        cleanup_todesk_orphan_files || return 1
 
         echo "正在安装ToDesk..."
         if ! install_verified_todesk_package "$package_path"; then
