@@ -1,10 +1,12 @@
-# 周克儿工具箱 V5
+# 周克儿工具箱
 
 周克儿工具箱是面向 Steam Deck 及其他 SteamOS 掌机的 Bash 工具箱，提供一键新机初始化、常用软件、远程协助、插件商城、系统维护和安全更新入口。界面会按终端宽度收紧导航栏；体检、诊断、攻略和启动器功能尽量适配 SteamOS 掌机，涉及引导、只读分区等系统功能仍会先检查环境。
 
+当前正式版：V1.0.4；版本号按语义化版本递增（1.0.9 之后为 1.1.0）。
+
 - 双系统设置：只保留互通盘挂载与只读保护、TF 卡 exFAT 初始化、NTFS/exFAT 基础修复、只读健康检查和受保护的第三方引导项清理。rEFInd、Clover、EFI/BootOrder 修改和“一键切换 Windows”均不提供入口。
 
-远程协助中提供 RustDesk 和 ToDesk。RustDesk 使用作者 GitHub Release 安装独立 AppImage 并自动创建桌面图标，不会修改 SteamOS 只读系统分区，也不会被工具箱自动写入任何服务器配置。
+远程协助中提供 RustDesk、AnyDesk 和 ToDesk。RustDesk 使用作者 GitHub Release 安装独立 AppImage 并自动创建桌面图标，不会修改 SteamOS 只读系统分区，也不会被工具箱自动写入任何服务器配置；AnyDesk 通过 Flathub 国内镜像安装；ToDesk 使用固定官方 DEB 的 SteamOS 适配包。
 
 [查看 Steam Deck ToDesk 图文安装教程](TODESK_GUIDE.md)
 
@@ -17,12 +19,12 @@
 ## 功能
 
 - 一键新机初始化：一次确认后依次检查SteamOS和网络，并自动执行当前清单中的新机常用项目。
-- 插件商城：当前完整清单共28款，包括小黄鸭、FSR4、CheatDeck三款独立功能插件，以及包含SimpleDeckyTDP和Unifideck在内的25款精选插件；支持全部一键安装、商店插件分页浏览、单项安装和三件套文件状态检查。Decky-Framegen 即 FSR4，CheatDeck 安装完成后也可在 Decky 右侧栏显示。安装或检测到三款功能插件后会在桌面补充风灵月影、小黄鸭和 FSR4 小白教程；检测到 FSR4 时另建支持游戏名单，两个文件均提醒 FSR/FSR4 不适合所有游戏。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
+- 插件商城：包含小黄鸭、FSR4、CheatDeck 三款独立功能插件和 Decky 官方精选插件，支持全部一键安装、商店插件分页浏览、单项安装和三件套文件状态检查。Decky-Framegen 即 FSR4，CheatDeck 安装完成后也可在 Decky 右侧栏显示。安装或检测到三款功能插件后会在桌面补充风灵月影、小黄鸭和 FSR4 小白教程；检测到 FSR4 时另建支持游戏名单，两个文件均提醒 FSR/FSR4 不适合所有游戏。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
 
 使用小黄鸭前，安装完成后请在 Steam 正版页面打开游戏右侧齿轮，进入“属性 → 测试版”，选择名称以 Linux 开头的可用版本；随后进入游戏模式，按 Steam Deck 机身右下角的“三个点（…）”按钮，在打开的菜单中依次点击插头图标 → 小黄鸭 → 安装 LSFG。
-- 常用软件与远程协助：微信直接从腾讯官网国内 CDN 安装官方 AppImage；QQ 会在上海交大和中科大 Flatpak 缓存间测速、限时切换，避开腾讯 QQ AppImage CDN 的 403 限制；Firefox 使用官方 Flathub 的 `org.mozilla.firefox`，RustDesk 使用作者 GitHub Release 提供的 AppImage。安装成功后会创建桌面快捷方式，不修改SteamOS只读分区。
+- 常用软件与远程协助：微信使用腾讯官网官方 AppImage；QQ、Chrome、Edge、AnyDesk、百度网盘、LibreOffice、VLC、OBS Studio、LocalSend、PeaZip、Protontricks、Bottles 通过上海交大和中科大 Flathub 国内缓存安装；Firefox 使用官方 Flathub 的 `org.mozilla.firefox`；RustDesk 使用作者 GitHub Release 提供的 AppImage。安装成功后会创建桌面快捷方式，不修改 SteamOS 只读分区。
 - 安装与卸载：软件、兼容层和插件会先检测现有完整安装，已安装时不重复下载；独立的四页卸载菜单可逐项移除，系统组件和全部插件仍需风险确认。
-- GE-Proton兼容层：从作者 GitHub Release 下载并校验SHA256，安装到Steam用户的 `compatibilitytools.d` 目录，不需要管理员权限。
+- GE-Proton兼容层：优先使用 Gitee 分块镜像，失败后回退作者 GitHub Release；下载后校验 SHA256，安装到 Steam 用户的 `compatibilitytools.d` 目录，不需要管理员权限。
 - ToDesk：使用固定的第三方SteamOS适配包并校验SHA256，安装完成后恢复只读保护。
 - Steam Deck 优化：清理 Steam 下载缓存、着色器缓存，并提供性能模式提示。
 - 国内下载源与系统组件：先检测 SteamOS 基础组件，已安装且无对应更新时跳过 pacman 更新；archlinuxcn 使用上海交大、中科大和官方 HTTPS 镜像逐级回退，安装并加载 GPG 密钥环；三条线路均失败时撤销工具箱写入的该仓库并继续配置 locale 与 Flatpak 国内缓存，不阻断其他软件安装。完成后恢复只读保护，恢复入口不覆盖用户原有配置。
@@ -41,11 +43,11 @@
 - 更新日志：可在工具箱内用触屏查看当前版本的主要改动。
 - 自动更新工具箱：每次启动会快速检测版本，发现新版本后自动下载并校验更新；优先使用Gitee，失败后切换GitHub，断网或更新失败时继续启动现有版本。
 - 纯触控界面：大按钮支持触屏和触控板，菜单忽略键盘数字和字母输入。
-- 专用视觉主题：安装时自动配置大字体、深色遮罩和工具箱背景图，不修改其他 Konsole 会话。
+- 专用视觉主题：安装时自动配置大字体、深色遮罩和工具箱背景图；启动免责声明使用终端文字版，不展示大图开屏，不修改其他 Konsole 会话。
 
 ## 主菜单
 
-Steam Deck桌面快捷方式会通过兼容启动器打开约 `1280×820` 的双栏 Konsole 界面，使用 12 号中文字体和固定九分类触控坐标。直接运行 `main.sh` 也会自动转入专用主题窗口。启动器会依次尝试完整主题、无主题兼容参数、Konsole最小参数和系统中的其他终端；主程序异常退出或所有终端均不可用时会显示明确提示。独立启动日志保存在 `~/.local/state/zhoukeer-toolbox/launcher.log`，不与业务操作日志混用。
+Steam Deck桌面快捷方式会通过兼容启动器打开约 `1280×740` 的双栏 Konsole 界面，使用 12 号中文字体和固定九分类触控坐标。直接运行 `main.sh` 也会自动转入专用主题窗口。启动器会依次尝试完整主题、无主题兼容参数、Konsole最小参数和系统中的其他终端；主程序异常退出或所有终端均不可用时会显示明确提示。独立启动日志保存在 `~/.local/state/zhoukeer-toolbox/launcher.log`，不与业务操作日志混用。
 
 ## 一行命令安装（推荐）
 
@@ -67,7 +69,7 @@ curl -L https://jktool.icu/i | sh
 
 ## 三款插件独立安装
 
-以下命令只下载原作者 GitHub Release 的固定版本，下载后会校验 SHA256 并原子替换 Decky 插件目录；不使用或转存第三方 ZIP。运行前请先安装 Decky Loader。
+以下命令由工具箱下载器统一处理：Gitee 分块镜像优先，失败后回退作者 GitHub Release；下载后校验 SHA256 并原子替换 Decky 插件目录，不使用或转存第三方 ZIP。运行前请先安装 Decky Loader。
 
 ```bash
 curl -fsSL https://jktool.icu/scripts/install-decky-plugin.sh | bash -s -- lsfg
@@ -160,7 +162,7 @@ ToDesk并非SteamOS原生软件，SteamOS系统更新可能移除通过pacman安
 
 ## SteamOS密码便利模式
 
-“设置系统密码”和“修改系统密码”会更新当前SteamOS用户的密码，并将新密码以明文写入：
+“设置管理员密码”和“修改管理员密码”会更新当前 SteamOS 用户的密码，并将新密码以明文写入：
 
 ```text
 $HOME/Desktop/管理员密码.txt
@@ -198,25 +200,26 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh"
 bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 ```
 
-## 发布 GitHub Release
+## 发布版本
 
 建议发布流程：
 
 1. 确认 `bash -n` 检查通过。
 2. 确认 `config/settings.conf` 不包含私人配置。
-3. 执行 `bash scripts/package_release.sh` 生成发布包、`.sha256` 和 `SHA256SUMS` 校验文件。
-4. 只显式暂存本次发布文件，提交代码并打 tag，例如 `v5.5.9`；禁止 `git add .`、force push 或改写历史。
-5. 在 GitHub Release 中上传发布包和 `.sha256` 校验文件。
-6. 在 Release 中写明安装、更新、卸载命令。
-7. 不要在 Release 包中包含密码、Token、邮箱或个人路径；桌面的 `管理员密码.txt` 仅在用户设备本地生成。
+3. 更新 `VERSION` 与 `CHANGELOG.md`，确认 `gh auth status` 的 active 账号是 `zliu9732-hub`。
+4. 执行 `bash scripts/deploy_release.sh` 生成发布包、`.sha256` 和 `SHA256SUMS` 校验文件；发布包必须不超过 9,437,184 字节。
+5. 只显式暂存本次发布文件，提交代码并打 tag，例如 `v1.0.4`；禁止 `git add .`、force push 或改写历史。
+6. 推送 `main` 与 tag 到 GitHub 和 Gitee，再在 GitHub Release 中上传版本化发布包和 `.sha256` 校验文件。
+7. 在 Release 中写明安装、更新、卸载命令。
+8. 不要在 Release 包中包含密码、Token、邮箱或个人路径；桌面的 `管理员密码.txt` 仅在用户设备本地生成。
 
 默认下载顺序：
 
 1. Gitee项目内固定包：`dist/zhoukeer-toolbox.tar.gz`
 2. GitHub项目内相同固定包：`dist/zhoukeer-toolbox.tar.gz`
 
-## V5 最终版维护范围
+## 当前版本与维护
 
-V5.5.9 完成全部安全诊断、预检、备份恢复、下载可靠性、供应链白名单和菜单易用性工作后，作为周克儿工具箱 V5 最终功能版。此后只接受两类维护：新增插件，以及维护 GitHub 镜像源；不再新增工具箱功能或改版主菜单。
+当前正式版为 V1.0.4，版本号按语义化版本递增，不跳版。后续维护继续围绕 SteamOS 实际使用更新下载链路、插件镜像、菜单与修复；rEFInd、Clover、EFI/BootOrder 和“一键切换 Windows”等高风险入口保持停用。
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。
