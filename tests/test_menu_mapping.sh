@@ -7,11 +7,6 @@ MAIN_FILE="$PROJECT_ROOT/main.sh"
 GUI_FILE="$PROJECT_ROOT/core/gui.sh"
 UI_FILE="$PROJECT_ROOT/core/ui.sh"
 
-[ -s "$PROJECT_ROOT/assets/disclaimer-usage.jpg" ] || {
-    echo "FAIL: 免责声明图片资源缺失" >&2
-    exit 1
-}
-
 fail() {
     echo "FAIL: $*" >&2
     exit 1

@@ -899,6 +899,7 @@ install_software() {
     fi
     if ! ensure_flatpak_remotes; then
         echo "国内Flathub缓存源配置失败，已停止，不会转连官方源。"
+        echo "提示：请先在工具箱【初始化国内源并检测系统组件】中初始化国内源后重试。"
         return 1
     fi
 
@@ -923,6 +924,7 @@ install_software() {
             _fr_retry=1
         else
             echo "两个国内缓存均失败或超时，已停止。"
+            echo "提示：请先在工具箱【初始化国内源并检测系统组件】中初始化国内源后重试。"
             log "$SOFTWARE_NAME Flatpak安装失败"
             return 1
         fi

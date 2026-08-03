@@ -75,8 +75,8 @@ if grep -Fq -- '--geometry' "$CALL_LOG"; then
 fi
 grep -Fq -- '--profile' "$CALL_LOG"
 grep -Fq -- '--workdir' "$CALL_LOG"
-grep -Fq -- 'ZhoukeerToolboxSplash.profile' "$CALL_LOG"
-grep -Fq -- 'ZHOUKEER_STARTUP_SPLASH=1' "$CALL_LOG"
+grep -Fq -- 'ZhoukeerToolbox.profile' "$CALL_LOG"
+grep -Fq -- 'ZHOUKEER_STARTUP_SPLASH=0' "$CALL_LOG"
 if grep -Fq -- '--imgbox' "$DIALOG_LOG"; then
     echo "FAIL: 启动免责声明仍依赖右下角确定按钮"
     exit 1
@@ -153,18 +153,14 @@ fi
 grep -Fq -- 'ZHOUKEER_SKIP_DISCLAIMER=1' "$CALL_LOG"
 grep -Fq -- 'ZHOUKEER_SKIP_STARTUP_UPDATE=1' "$CALL_LOG"
 
-mv "$HOME_DIR/.local/share/konsole/ZhoukeerToolboxSplash.profile" \
-    "$HOME_DIR/.local/share/konsole/ZhoukeerToolboxSplash.profile.disabled"
 run_launcher $'--profile\n--workdir\n--geometry'
 grep -Fq -- 'ZhoukeerToolbox.profile' "$CALL_LOG"
-if grep -Fq -- 'ZHOUKEER_SKIP_DISCLAIMER=1' "$CALL_LOG"; then
-    echo "FAIL: 图片主题不可用时不应跳过文字免责声明"
+if grep -Fq -- 'ZhoukeerToolboxSplash.profile' "$CALL_LOG"; then
+    echo "FAIL: 启动免责声明仍使用图片主题"
     exit 1
 fi
 grep -Fq -- 'ZHOUKEER_STARTUP_SPLASH=0' "$CALL_LOG"
 grep -Fq '使用终端文字版' "$LAUNCH_LOG"
-mv "$HOME_DIR/.local/share/konsole/ZhoukeerToolboxSplash.profile.disabled" \
-    "$HOME_DIR/.local/share/konsole/ZhoukeerToolboxSplash.profile"
 
 run_launcher $'--profile\n--workdir\n--geometry' profile
 if [ "$(grep -c '^konsole ' "$CALL_LOG")" -ne 2 ]; then

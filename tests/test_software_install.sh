@@ -339,6 +339,26 @@ grep -Fq 'Exec=flatpak run io.github.peazip.PeaZip' "$PEAZIP_SHORTCUT"
 grep -Fq 'install --user --noninteractive -y flathub-cn io.github.peazip.PeaZip' "$STATE_DIR/commands"
 [ -f "$STATE_DIR/installed.io.github.peazip.PeaZip" ]
 
+# Flatpak 安装彻底失败时，必须提示先初始化国内源，而不是只报任务失败。
+rm -f "$STATE_DIR/installed.com.baidu.NetDisk"
+set +e
+failed_output="$(PATH="$BIN_DIR:$PATH" \
+    HOME="$HOME_DIR" \
+    FLATPAK_TEST_STATE="$STATE_DIR" \
+    FLATPAK_TEST_FAIL_INSTALL=1 \
+    ZHOUKEER_AUTO_CONFIRM=1 \
+    bash "$PROJECT_ROOT/modules/software.sh" baidunetdisk 2>&1)"
+failed_status=$?
+set -e
+[ "$failed_status" -ne 0 ] || {
+    echo "FAIL: 模拟百度网盘安装失败仍返回成功" >&2
+    exit 1
+}
+printf '%s\n' "$failed_output" | grep -Fq '请先在工具箱【初始化国内源并检测系统组件】中初始化国内源后重试。' || {
+    echo "FAIL: 百度网盘安装失败时未提示初始化国内源" >&2
+    exit 1
+}
+
 # repair-shortcuts 必须补齐丢失的桌面快捷方式，且不重复下载或安装。
 rm -f "$SHORTCUT" "$RUSTDESK_SHORTCUT"
 touch "$STATE_DIR/installed.org.libreoffice.LibreOffice"

@@ -72,17 +72,18 @@ main_disclaimer="$(sed -n '/^show_disclaimer()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 if printf '%s\n' "$main_disclaimer" | grep -Fq 'ui_disclaimer_line 14'; then
     fail "免责声明正文仍紧贴首个按钮"
 fi
-printf '%s\n' "$main_disclaimer" | grep -Fq 'konsoleprofile "ColorScheme=ZhoukeerToolboxSplash"' || fail "启动页没有重新应用完整免责声明图片主题"
+printf '%s\n' "$main_disclaimer" | grep -Fq 'draw_disclaimer_frame' || fail "启动免责声明没有使用终端文字版"
 printf '%s\n' "$main_disclaimer" | grep -Fq 'any:1-999:agree' || fail "欢迎页没有允许任意位置点击进入"
 printf '%s\n' "$main_disclaimer" | grep -Fq '关闭窗口即可退出' || fail "欢迎页没有说明非全屏时的退出方式"
-printf '%s\n' "$main_disclaimer" | grep -Fq 'exec bash "$PROJECT_ROOT/launch.sh" --open-main' || fail "点击免责声明后没有用原主题打开独立主界面"
+if printf '%s\n' "$main_disclaimer" | grep -Fq 'launch.sh" --open-main'; then
+    fail "启动免责声明仍使用独立图片主题"
+fi
 grep -Fq 'ZHOUKEER_SKIP_DISCLAIMER' "$PROJECT_ROOT/main.sh" || fail "常规工具箱没有跳过重复免责声明"
-grep -Fq 'DISCLAIMER_BACKGROUND_PATH' "$PROJECT_ROOT/install.sh" || fail "安装程序没有配置免责声明图片背景"
-grep -Fq 'assets/disclaimer-usage.jpg' "$PROJECT_ROOT/install.sh" || fail "安装程序没有使用完整免责声明图片"
-grep -Fq 'FillStyle=Adapt' "$PROJECT_ROOT/install.sh" || fail "免责声明图片没有保持比例完整显示"
-grep -Fq 'WallpaperOpacity=1.00' "$PROJECT_ROOT/install.sh" || fail "免责声明图片没有以完整清晰度显示"
+if grep -Fq 'ColorScheme=ZhoukeerToolboxSplash' "$PROJECT_ROOT/install.sh"; then
+    fail "安装程序仍在生成免责声明图片主题"
+fi
+[ ! -e "$PROJECT_ROOT/assets/disclaimer-usage.jpg" ] || fail "免责声明大图仍保留在项目资源中"
 grep -Fq 'assets/icon-toolbox-deck.png' "$PROJECT_ROOT/install.sh" || fail "安装程序没有使用新的工具箱桌面图标"
-grep -Fq 'ZhoukeerToolboxSplash' "$PROJECT_ROOT/install.sh" || fail "安装程序没有生成欢迎页主题"
 
 touch_button="$(sed -n '/^ui_touch_button()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
 printf '%s\n' "$touch_button" | grep -Fq 'if [ -n "$hint" ]' || fail "空说明按钮仍会显示分隔符"

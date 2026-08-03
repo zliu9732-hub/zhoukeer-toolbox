@@ -106,7 +106,7 @@ curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/bootstrap.sh
 - 桌面快捷方式：`~/Desktop/周克儿工具箱.desktop`
 - 应用菜单入口：`~/.local/share/applications/zhoukeer-toolbox.desktop`
 
-桌面快捷方式使用原创的 `assets/icon-toolbox-deck.png`：通用掌机与工具箱组合图案，不含 Steam、Valve、游戏角色或其他第三方商标素材。
+桌面快捷方式使用 `assets/icon-toolbox-deck.png` 作为图标；如需更换，直接替换该文件后重新安装即可。
 
 如果桌面快捷方式提示不受信任，请右键选择允许启动。
 

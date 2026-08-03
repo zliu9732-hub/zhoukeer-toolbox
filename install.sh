@@ -604,11 +604,8 @@ DESKTOP_FILE="$HOME/Desktop/周克儿工具箱.desktop"
 APPLICATION_FILE="$HOME/.local/share/applications/zhoukeer-toolbox.desktop"
 ICON_PATH="$INSTALL_DIR/assets/icon-toolbox-deck.png"
 BACKGROUND_PATH="$INSTALL_DIR/assets/background.jpg"
-DISCLAIMER_BACKGROUND_PATH="$INSTALL_DIR/assets/disclaimer-usage.jpg"
 KONSOLE_PROFILE="$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
 KONSOLE_COLOR_SCHEME="$HOME/.local/share/konsole/ZhoukeerToolbox.colorscheme"
-KONSOLE_SPLASH_PROFILE="$HOME/.local/share/konsole/ZhoukeerToolboxSplash.profile"
-KONSOLE_SPLASH_COLOR_SCHEME="$HOME/.local/share/konsole/ZhoukeerToolboxSplash.colorscheme"
 ICON_ENTRY="utilities-terminal"
 
 if [ -f "$ICON_PATH" ]; then
@@ -640,28 +637,9 @@ TerminalRows=32
 EOF
 fi
 
-if [ -f "$INSTALL_DIR/assets/Zhoukeer.colorscheme.in" ] && [ -f "$DISCLAIMER_BACKGROUND_PATH" ]; then
-    awk -v wallpaper="$DISCLAIMER_BACKGROUND_PATH" '
-        /^Wallpaper=@WALLPAPER@$/ { print "Wallpaper=" wallpaper; next }
-        /^FillStyle=/ { print "FillStyle=Adapt"; next }
-        /^WallpaperOpacity=/ { print "WallpaperOpacity=1.00"; next }
-        { print }
-    ' "$INSTALL_DIR/assets/Zhoukeer.colorscheme.in" > "$KONSOLE_SPLASH_COLOR_SCHEME"
-
-    cat > "$KONSOLE_SPLASH_PROFILE" <<EOF
-[Appearance]
-ColorScheme=ZhoukeerToolboxSplash
-Font=Noto Sans Mono CJK SC,12,-1,5,50,0,0,0,0,0
-LineSpacing=0
-
-[General]
-Name=周克儿工具箱启动页
-Parent=FALLBACK/
-TerminalColumns=120
-TerminalMargin=0
-TerminalRows=32
-EOF
-fi
+# 启动免责声明已改回终端文字版，删除旧版图片主题，避免引用已移除的背景图。
+rm -f "$HOME/.local/share/konsole/ZhoukeerToolboxSplash.profile" \
+    "$HOME/.local/share/konsole/ZhoukeerToolboxSplash.colorscheme" 2>/dev/null || true
 
 cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]

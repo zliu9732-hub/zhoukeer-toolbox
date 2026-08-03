@@ -84,6 +84,8 @@ rm -f "$HOME/Desktop/周克儿工具箱.desktop"
 rm -f "$HOME/.local/share/applications/zhoukeer-toolbox.desktop"
 rm -f "$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
 rm -f "$HOME/.local/share/konsole/ZhoukeerToolbox.colorscheme"
+rm -f "$HOME/.local/share/konsole/ZhoukeerToolboxSplash.profile"
+rm -f "$HOME/.local/share/konsole/ZhoukeerToolboxSplash.colorscheme"
 echo "已删除快捷方式"
 
 if [ "$DELETE_PASSWORD_RECORD" -eq 1 ]; then

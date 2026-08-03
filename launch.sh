@@ -4,10 +4,8 @@ set -u
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MAIN_PROFILE_FILE="$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
-SPLASH_PROFILE_FILE="$HOME/.local/share/konsole/ZhoukeerToolboxSplash.profile"
-PROFILE_FILE="$SPLASH_PROFILE_FILE"
-STARTUP_VIEW="splash"
-DISCLAIMER_IMAGE_PATH="$PROJECT_ROOT/assets/disclaimer-usage.jpg"
+PROFILE_FILE="$MAIN_PROFILE_FILE"
+STARTUP_VIEW="main-with-disclaimer"
 WINDOW_SIZE="1280x740"
 FONT_SIZE="12"
 STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
@@ -183,13 +181,7 @@ case "${1:-}" in
         STARTUP_VIEW="main"
         ;;
     "")
-        # 完整免责声明使用独立 Konsole 启动页。点击任意位置后关闭该窗口，
-        # 再由常规主题打开主界面，确保图片不会残留到后续菜单背景。
-        if [ ! -s "$DISCLAIMER_IMAGE_PATH" ] || [ ! -f "$SPLASH_PROFILE_FILE" ]; then
-            PROFILE_FILE="$MAIN_PROFILE_FILE"
-            STARTUP_VIEW="main-with-disclaimer"
-            launcher_log "免责声明图片主题不可用，使用终端文字版"
-        fi
+        launcher_log "免责声明使用终端文字版"
         ;;
     *)
         show_launch_error "周克儿工具箱启动失败" \
@@ -261,12 +253,6 @@ $PROJECT_ROOT/main.sh
 fi
 
 case "$STARTUP_VIEW" in
-    splash)
-        RUN_COMMAND=(env ZHOUKEER_STARTUP_SPLASH=1 \
-            bash "$PROJECT_ROOT/launch.sh" --run-main)
-        FALLBACK_RUN_COMMAND=(env ZHOUKEER_STARTUP_SPLASH=0 \
-            bash "$PROJECT_ROOT/launch.sh" --run-main)
-        ;;
     main)
         RUN_COMMAND=(env ZHOUKEER_SKIP_DISCLAIMER=1 ZHOUKEER_SKIP_STARTUP_UPDATE=1 \
             ZHOUKEER_STARTUP_SPLASH=0 bash "$PROJECT_ROOT/launch.sh" --run-main)
