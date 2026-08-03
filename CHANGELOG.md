@@ -1,3 +1,9 @@
+## V1.1.6 Epic 启动器 Gitee 分块镜像 — 2026-08-04
+
+- Epic 官方安装包下载改为 Gitee 分块镜像优先，镜像失败后回退官方源与官方 CDN 固定版；新增固定 SHA256 校验，并支持官方 EXE 安装器通过 Proton 直接运行。
+- 新增 `scripts/seed_gitee_local_asset.sh`，可从本地已核验安装包生成分块并推送到 Gitee 独立镜像仓库，方便后续固定版本更新。
+- 下载白名单加入官方 `EpicInstaller-20.1.4.exe` 固定地址，第三方许可清单同步记录 Epic 镜像授权情况。
+
 ## V1.1.5 仓库瘦身清理 — 2026-08-04
 
 - 删除仓库内已无引用的旧大文件：旧 FSR4/LSFG 汉化完整包 zip（约 92 MB）、调试用 `index.js.map`（约 16 MB）、旧版 `background.png`/`welcome.png`/`disclaimer-usage.png`（约 7 MB）。

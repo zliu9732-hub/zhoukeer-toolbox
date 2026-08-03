@@ -351,6 +351,59 @@ mirror_process_entry() {
     echo "镜像完成：$id -> $MIRROR_ROOT/$id/latest.txt"
 }
 
+mirror_process_local_file() {
+    local id="$1" name="$2" version="$3" file="$4" source_url="$5" local_file="$6"
+    local size sha256 target_dir target chunks=0
+
+    mirror_path_is_safe "$id" || { echo "镜像标识不安全：$id"; return 1; }
+    mirror_path_is_safe "$version" || { echo "镜像版本路径不安全：$version"; return 1; }
+    mirror_path_is_safe "$file" || { echo "镜像文件名不安全：$file"; return 1; }
+    [ -f "$local_file" ] && [ ! -L "$local_file" ] || {
+        echo "本地安装包不存在：$local_file"
+        return 1
+    }
+    size="$(wc -c < "$local_file" | tr -d ' ')"
+    mirror_positive_integer "$size" || {
+        echo "无法读取本地安装包大小：$local_file"
+        return 1
+    }
+    [ "$size" -gt 0 ] || {
+        echo "本地安装包为空：$local_file"
+        return 1
+    }
+    if ! download_policy_response_is_safe "$source_url" "$local_file"; then
+        echo "本地安装包格式或大小校验失败：$local_file"
+        return 1
+    fi
+    sha256="$(mirror_sha256 "$local_file")" || return 1
+
+    echo "正在处理本地镜像: $name ($version)"
+    target_dir="$MIRROR_ROOT/$id/$version"
+    target="$target_dir/$file"
+    if mirror_output_is_current "$id" "$version" "$file" "$sha256" "$CHUNK_BYTES"; then
+        size="$(sed -n 's/^size=//p' "$MIRROR_ROOT/$id/latest.txt")"
+        chunks="$(sed -n 's/^chunks=//p' "$MIRROR_ROOT/$id/latest.txt")"
+        mirror_write_manifest "$id" "$name" "$version" "$file" \
+            "$source_url" "$sha256" "$size" "$chunks" \
+            "$([ "$chunks" -gt 0 ] && printf '%s' "$CHUNK_BYTES" || printf '0')" || return 1
+        echo "镜像已存在且校验通过：$id/$version/$file"
+        return 0
+    fi
+
+    mkdir -p "$target_dir" || return 1
+    rm -f -- "$target" "$target_dir"/part.*
+    if [ "$size" -le "$DIRECT_MAX_BYTES" ]; then
+        cp -f -- "$local_file" "$target" || return 1
+    else
+        mirror_split_file "$local_file" "$target_dir" "$CHUNK_BYTES" "$size" || return 1
+        chunks=$(( (size + CHUNK_BYTES - 1) / CHUNK_BYTES ))
+    fi
+    mirror_write_manifest "$id" "$name" "$version" "$file" \
+        "$source_url" "$sha256" "$size" "$chunks" \
+        "$([ "$chunks" -gt 0 ] && printf '%s' "$CHUNK_BYTES" || printf '0')" || return 1
+    echo "镜像完成：$id -> $MIRROR_ROOT/$id/latest.txt"
+}
+
 mirror_ge_proton_latest() {
     local version url sha256
 
@@ -411,11 +464,20 @@ mirror_main() {
 }
 
 case "${1:-}" in
+    --local)
+        shift
+        if [ "$#" -ne 6 ]; then
+            echo "用法: bash scripts/mirror_gitee_assets.sh --local <id> <name> <version> <file> <source_url> <local_file>"
+            exit 1
+        fi
+        mirror_process_local_file "$@"
+        ;;
     --only)
         mirror_main "${2:-}"
         ;;
     -h|--help)
         echo "用法: bash scripts/mirror_gitee_assets.sh [--only <id>]"
+        echo "      bash scripts/mirror_gitee_assets.sh --local <id> <name> <version> <file> <source_url> <local_file>"
         ;;
     *)
         mirror_main ""

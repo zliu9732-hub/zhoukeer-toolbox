@@ -15,6 +15,7 @@ trap 'rm -rf "$TMP_ROOT"' EXIT
 
 SHORTCUTS="$TMP_ROOT/shortcuts.vdf"
 INSTALLER="$TMP_ROOT/EpicGamesLauncherInstaller.msi"
+printf '\xd0\xcf\x11\xe0' > "$INSTALLER"
 EPIC_EXE="$TMP_ROOT/compatdata/123/pfx/drive_c/Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe"
 DIRECT_PREFIX="$TMP_ROOT/direct-prefix"
 DIRECT_EXE="$DIRECT_PREFIX/pfx/drive_c/Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe"
@@ -311,6 +312,39 @@ silent_result="$(
 }
 grep -Fq '/qn /norestart' "$PROTON_LOG" || {
     echo "FAIL: Epic 静默安装参数缺失" >&2
+    exit 1
+}
+
+EXE_INSTALLER="$TMP_ROOT/EpicInstaller-20.1.4.exe"
+printf 'MZ\0' > "$EXE_INSTALLER"
+exe_result="$(
+    MODULE="$MODULE" PROTON_LOG="$PROTON_LOG" DIRECT_PREFIX="$DIRECT_PREFIX" \
+        FAKE_PROTON="$FAKE_PROTON" INSTALLER="$EXE_INSTALLER" TMP_ROOT="$TMP_ROOT" \
+        bash -c '
+            source "$MODULE"
+            POST_INSTALL_TIMEOUT=0
+            run_launcher_installer epic "$TMP_ROOT/steam" "$INSTALLER" "$DIRECT_PREFIX" "$FAKE_PROTON"
+        '
+)"
+[ "$exe_result" = "$DIRECT_EXE" ] || {
+    echo "FAIL: Epic EXE 没有通过 Proton 直接运行" >&2
+    exit 1
+}
+grep -Fq "run $EXE_INSTALLER" "$PROTON_LOG" || {
+    echo "FAIL: Epic EXE 未作为可执行文件运行" >&2
+    exit 1
+}
+silent_exe_result="$(
+    MODULE="$MODULE" PROTON_LOG="$PROTON_LOG" DIRECT_PREFIX="$DIRECT_PREFIX" \
+        FAKE_PROTON="$FAKE_PROTON" INSTALLER="$EXE_INSTALLER" TMP_ROOT="$TMP_ROOT" \
+        bash -c '
+            source "$MODULE"
+            POST_INSTALL_TIMEOUT=0
+            run_launcher_installer epic "$TMP_ROOT/steam" "$INSTALLER" "$DIRECT_PREFIX" "$FAKE_PROTON" 0 silent
+        '
+)" || true
+[ -z "$silent_exe_result" ] || {
+    echo "FAIL: Epic EXE 不应跳过可见安装窗口直接静默安装" >&2
     exit 1
 }
 
@@ -686,6 +720,18 @@ grep -Fq -- '--http1.1' "$MODULE" || {
 }
 grep -Fq 'LAUNCHER_FALLBACK_URL' "$MODULE" || {
     echo "FAIL: Epic 缺少官方 CDN 备用线路" >&2
+    exit 1
+}
+grep -Fq 'LAUNCHER_GITEE_MIRROR_ID="epic"' "$MODULE" || {
+    echo "FAIL: Epic 未启用 Gitee 分块镜像优先" >&2
+    exit 1
+}
+grep -Fq '7bda7fbb3eea3ffdced17b5679c057943464a6ecc5e5274968b728feae470b7b' "$MODULE" || {
+    echo "FAIL: Epic Gitee 镜像缺少固定 SHA256" >&2
+    exit 1
+}
+grep -Fq 'EpicInstaller-20.1.4.exe' "$MODULE" || {
+    echo "FAIL: Epic 镜像安装包文件名缺失" >&2
     exit 1
 }
 grep -Fq '1513d6cc2afda0367c8375b6f25f490c162da5607ce4b4adbb41906a2d742236' "$MODULE" || {

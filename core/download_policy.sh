@@ -94,6 +94,7 @@ download_policy_url_allowed() {
         https://qq-web.cdn-go.cn/im.qq.com_new/latest/rainbow/pcConfig.json|https://im.qq.com/proxy/domain/qq-web.cdn-go.cn/im.qq.com_new/latest/rainbow/pcConfig.json|https://qqdl.gtimg.cn/qqfile/*.AppImage|https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_x86_64.AppImage) return 0 ;;
         https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi|https://downloader.battle.net/download/getInstallerForGame\?os=win\&installer=Battle.net-Setup.exe|https://static3.cdn.ubi.com/orbit/launcher_installer/UbisoftConnectInstaller.exe) return 0 ;;
         https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Windows/EpicInstaller-20.1.4.msi*) return 0 ;;
+        https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Windows/EpicInstaller-20.1.4.exe*) return 0 ;;
         https://www.dogfight360.com/blog/wp-content/uploads/2026/02/steamcommunity_302_Linux_AMD64_V14.0.02.tar.gz) return 0 ;;
         *)
             if [ "${ZHOUKEER_TEST_MODE:-0}" = "1" ]; then

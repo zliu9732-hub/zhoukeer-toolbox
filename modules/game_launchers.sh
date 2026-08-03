@@ -27,8 +27,12 @@ launcher_details() {
             LAUNCHER_URL="https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi"
             LAUNCHER_FALLBACK_URL="https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Windows/EpicInstaller-20.1.4.msi?launcherfilename=EpicInstaller-20.1.4.msi"
             LAUNCHER_FALLBACK_SHA256="1513d6cc2afda0367c8375b6f25f490c162da5607ce4b4adbb41906a2d742236"
+            LAUNCHER_GITEE_MIRROR_ID="epic"
+            LAUNCHER_GITEE_MIRROR_SHA256="7bda7fbb3eea3ffdced17b5679c057943464a6ecc5e5274968b728feae470b7b"
+            LAUNCHER_GITEE_MIRROR_URL="https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Windows/EpicInstaller-20.1.4.exe"
             LAUNCHER_MIN_BYTES=52428800
             LAUNCHER_MAGIC="d0cf11e0"
+            LAUNCHER_MAGIC_ALT="4d5a"
             LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe\nProgram Files/Epic Games/Launcher/Portal/Binaries/Win64/EpicGamesLauncher.exe'
             ;;
         battlenet)
@@ -60,7 +64,7 @@ launcher_details() {
 
 verify_installer() {
     local file="$1"
-    local size magic
+    local size magic magic_ok
 
     size="$(wc -c < "$file" | tr -d ' ')"
     magic="$(od -An -tx1 -N4 "$file" | tr -d ' \n')"
@@ -68,7 +72,16 @@ verify_installer() {
         echo "下载文件过小，已保留原有安装包。"
         return 1
     fi
-    if [ "${magic#"$LAUNCHER_MAGIC"}" = "$magic" ]; then
+    magic_ok=0
+    case "$magic" in
+        "$LAUNCHER_MAGIC"*) magic_ok=1 ;;
+    esac
+    if [ -n "${LAUNCHER_MAGIC_ALT:-}" ]; then
+        case "$magic" in
+            "$LAUNCHER_MAGIC_ALT"*) magic_ok=1 ;;
+        esac
+    fi
+    if [ "$magic_ok" -ne 1 ]; then
         echo "下载文件格式不正确，已保留原有安装包。"
         return 1
     fi
@@ -93,6 +106,17 @@ download_launcher_installer() {
     local -a curl_options
 
     require_command curl || return 1
+    if [ -n "${LAUNCHER_GITEE_MIRROR_ID:-}" ] && [ -n "${LAUNCHER_GITEE_MIRROR_SHA256:-}" ]; then
+        rm -f -- "$temporary"
+        if download_gitee_mirror_file "$LAUNCHER_GITEE_MIRROR_ID" "$temporary" \
+            "$LAUNCHER_GITEE_MIRROR_SHA256" "$LAUNCHER_NAME" && \
+            verify_installer "$temporary" >/dev/null 2>&1; then
+            mv -f -- "$temporary" "$output" || return 1
+            return 0
+        fi
+        rm -f -- "$temporary"
+        echo "$LAUNCHER_NAME 镜像下载失败，切换官方源。"
+    fi
     download_policy_url_allowed "$LAUNCHER_URL" || {
         echo "$LAUNCHER_NAME 下载地址不在受控来源清单中。"
         return 1
@@ -308,6 +332,16 @@ find_installed_launcher() {
     return 1
 }
 
+installer_is_msi() {
+    local file="$1" magic
+
+    magic="$(od -An -tx1 -N4 "$file" 2>/dev/null | tr -d ' \n')"
+    case "$magic" in
+        d0cf11e0*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 
 run_launcher_installer() {
     local target="$1"
@@ -323,6 +357,10 @@ run_launcher_installer() {
 
     launcher_details "$target" || return 1
     mkdir -p "$prefix_dir" || return 1
+    if [ "$target" = "epic" ] && [ "$install_mode" = "silent" ] && ! installer_is_msi "$installer_file"; then
+        echo "检测到 EXE 安装器，跳过静默安装，直接打开安装窗口。" >&2
+        return 1
+    fi
     if [ "$install_mode" = "silent" ]; then
         echo "正在静默安装 $LAUNCHER_NAME..." >&2
     else
@@ -335,14 +373,20 @@ run_launcher_installer() {
 
     case "$target" in
         epic)
-            if [ "$install_mode" = "silent" ]; then
-                STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
-                    STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
-                    "$proton_runner" run msiexec /i "$installer_file" /qn /norestart || status=$?
+            if installer_is_msi "$installer_file"; then
+                if [ "$install_mode" = "silent" ]; then
+                    STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
+                        STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
+                        "$proton_runner" run msiexec /i "$installer_file" /qn /norestart || status=$?
+                else
+                    STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
+                        STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
+                        "$proton_runner" run msiexec /i "$installer_file" || status=$?
+                fi
             else
                 STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
                     STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
-                    "$proton_runner" run msiexec /i "$installer_file" || status=$?
+                    "$proton_runner" run "$installer_file" || status=$?
             fi
             ;;
         ubisoft|uplay)
