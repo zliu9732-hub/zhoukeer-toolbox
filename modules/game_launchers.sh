@@ -357,10 +357,6 @@ run_launcher_installer() {
 
     launcher_details "$target" || return 1
     mkdir -p "$prefix_dir" || return 1
-    if [ "$target" = "epic" ] && [ "$install_mode" = "silent" ] && ! installer_is_msi "$installer_file"; then
-        echo "检测到 EXE 安装器，跳过静默安装，直接打开安装窗口。" >&2
-        return 1
-    fi
     if [ "$install_mode" = "silent" ]; then
         echo "正在静默安装 $LAUNCHER_NAME..." >&2
     else
@@ -384,9 +380,15 @@ run_launcher_installer() {
                         "$proton_runner" run msiexec /i "$installer_file" || status=$?
                 fi
             else
-                STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
-                    STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
-                    "$proton_runner" run "$installer_file" || status=$?
+                if [ "$install_mode" = "silent" ]; then
+                    STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
+                        STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
+                        "$proton_runner" run "$installer_file" /S || status=$?
+                else
+                    STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
+                        STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
+                        "$proton_runner" run "$installer_file" || status=$?
+                fi
             fi
             ;;
         ubisoft|uplay)

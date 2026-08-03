@@ -342,9 +342,13 @@ silent_exe_result="$(
             POST_INSTALL_TIMEOUT=0
             run_launcher_installer epic "$TMP_ROOT/steam" "$INSTALLER" "$DIRECT_PREFIX" "$FAKE_PROTON" 0 silent
         '
-)" || true
-[ -z "$silent_exe_result" ] || {
-    echo "FAIL: Epic EXE 不应跳过可见安装窗口直接静默安装" >&2
+)"
+[ "$silent_exe_result" = "$DIRECT_EXE" ] || {
+    echo "FAIL: Epic EXE 静默安装没有返回主程序" >&2
+    exit 1
+}
+grep -Fq "run $EXE_INSTALLER /S" "$PROTON_LOG" || {
+    echo "FAIL: Epic EXE 静默安装参数缺失" >&2
     exit 1
 }
 
