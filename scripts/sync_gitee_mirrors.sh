@@ -48,16 +48,24 @@ write_manifest() {
 
 sync_plugin() {
     local id="$1" repo="$2" pattern="$3" name="$4"
+    local pinned_version="${5:-}" pinned_file="${6:-}" pinned_url="${7:-}" pinned_sha="${8:-}"
     local version file url sha size chunks target_dir
 
-    if ! resolve_latest_github_release "$repo" "$pattern" "$name"; then
-        echo "Skip $id: latest release lookup failed"
-        return 0
+    if [ -n "$pinned_version" ]; then
+        version="$pinned_version"
+        file="$pinned_file"
+        url="$pinned_url"
+        sha="$pinned_sha"
+    else
+        if ! resolve_latest_github_release "$repo" "$pattern" "$name"; then
+            echo "Skip $id: latest release lookup failed"
+            return 0
+        fi
+        version="$_LATEST_RELEASE_TAG"
+        file="$_LATEST_RELEASE_ASSET"
+        url="$_LATEST_RELEASE_URL"
+        sha="$_LATEST_RELEASE_SHA256"
     fi
-    version="$_LATEST_RELEASE_TAG"
-    file="$_LATEST_RELEASE_ASSET"
-    url="$_LATEST_RELEASE_URL"
-    sha="$_LATEST_RELEASE_SHA256"
     [ -n "$version" ] && [ -n "$file" ] && [ -n "$url" ] || return 1
 
     curl -fsSL --proto '=https' --proto-redir '=https' \
@@ -130,7 +138,11 @@ sync_ge_proton() {
     echo "Synced GE-Proton $version"
 }
 
-sync_plugin lsfg "xXJSONDeruloXx/decky-lsfg-vk" '^Decky[.]LSFG-VK[.]zip$' "Decky LSFG-VK"
+# 小黄鸭汉化叠加固定 v0.12.5，镜像必须与工具箱内置版本一致，否则 SHA 校验会拒绝。
+sync_plugin lsfg "xXJSONDeruloXx/decky-lsfg-vk" '^Decky[.]LSFG-VK[.]zip$' "Decky LSFG-VK" \
+    "v0.12.5" "Decky.LSFG-VK.zip" \
+    "https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip" \
+    "13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
 sync_plugin fsr4 "xXJSONDeruloXx/Decky-Framegen" '^Decky-Framegen[.]zip$' "Decky-Framegen"
 sync_plugin cheatdeck "SheffeyG/CheatDeck" '^CheatDeck[.]zip$' "CheatDeck"
 sync_plugin tomoon "YukiCoco/ToMoon" '^tomoon-v[0-9.]+[.]zip$' "ToMoon"

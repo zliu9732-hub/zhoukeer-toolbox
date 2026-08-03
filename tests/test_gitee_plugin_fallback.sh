@@ -87,7 +87,8 @@ GITHUB_RESULT=0
 install_lsfg_zh_from_gitee 0 || fail "小黄鸭没有从 Gitee 失败切换到 GitHub Release"
 install_fsr4_zh_from_gitee 0 || fail "FSR4 没有从 Gitee 失败切换到 GitHub Release"
 [ "$(grep -c '^gitee:' "$CALLS")" -eq 2 ] || fail "两个插件没有先尝试 Gitee"
-[ "$(grep -c '^github:' "$CALLS")" -eq 2 ] || fail "两个插件没有回退 GitHub Release"
+grep -Fq 'lsfg-overlay' "$CALLS" || fail "小黄鸭 Gitee 失败后没有回退原版叠加"
+[ "$(grep -c '^github:' "$CALLS")" -eq 1 ] || fail "FSR4 没有回退 GitHub Release"
 
 GITHUB_RESULT=1
 GITEE_RESULT=1

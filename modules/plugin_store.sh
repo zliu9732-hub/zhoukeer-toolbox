@@ -2132,13 +2132,6 @@ install_lsfg_zh_from_gitee() {
         echo "检测到现有小黄鸭版本 ${installed_version:-未知}，正在更新中文插件到 $LSFG_OFFICIAL_VERSION。"
     fi
 
-    if [ -z "${DECKY_LSFG_ZH_URL:-}" ] || [ -z "${DECKY_LSFG_ZH_SHA256:-}" ]; then
-        log "小黄鸭汉化包配置不完整，切换为原版叠加流程"
-        install_lsfg_bundle "$reload_after" || return 1
-        install_lsfg_chinese "$reload_after" || return 1
-        return 0
-    fi
-
     echo "正在安装小黄鸭..."
     if [ -z "${DECKY_GITEE_ARCHIVE_URL:-}" ] || [ -z "${DECKY_GITEE_ARCHIVE_SHA256:-}" ]; then
         log "小黄鸭汉化包配置不完整，切换为原版叠加流程"
@@ -2156,20 +2149,10 @@ install_lsfg_zh_from_gitee() {
     else
         cleanup_decky_tmp
         trap - EXIT INT TERM
-        log "小黄鸭 Gitee 镜像不可用，切换 GitHub Release 汉化完整包"
-        if install_decky_zip \
-            "小黄鸭（LSFG-VK）汉化完整包" \
-            "${DECKY_LSFG_ZH_URL:-}" \
-            "${DECKY_LSFG_ZH_SHA256:-}" \
-            "$LSFG_OFFICIAL_DIRECTORY" \
-            0; then
-            :
-        else
-            log "小黄鸭 GitHub Release 不可用，切换原版叠加"
-            install_lsfg_bundle "$reload_after" || return 1
-            install_lsfg_chinese "$reload_after"
-            return $?
-        fi
+        log "小黄鸭 Gitee 镜像不可用，切换原版叠加"
+        install_lsfg_bundle "$reload_after" || return 1
+        install_lsfg_chinese "$reload_after"
+        return $?
     fi
     remove_legacy_lsfg_directories "$plugin_root"
     echo "小黄鸭安装成功。"
