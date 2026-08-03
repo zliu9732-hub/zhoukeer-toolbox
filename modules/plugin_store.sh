@@ -2251,13 +2251,6 @@ install_fsr4_zh_from_gitee() {
         echo "检测到现有 FSR4 版本 ${installed_version:-未知}，正在更新中文插件到 $FSR4_OFFICIAL_VERSION。"
     fi
 
-    if [ -z "${DECKY_FSR4_ZH_URL:-}" ] || [ -z "${DECKY_FSR4_ZH_SHA256:-}" ]; then
-        log "FSR4汉化包配置不完整，切换为原版叠加流程"
-        install_configured_plugin fsr4 0 0 || return 1
-        install_fsr4_chinese "$reload_after" || return 1
-        return 0
-    fi
-
     echo "正在安装 FSR4..."
     if [ -z "${DECKY_GITEE_ARCHIVE_URL:-}" ] || [ -z "${DECKY_GITEE_ARCHIVE_SHA256:-}" ]; then
         log "FSR4汉化包配置不完整，切换为原版叠加流程"
@@ -2275,20 +2268,10 @@ install_fsr4_zh_from_gitee() {
     else
         cleanup_decky_tmp
         trap - EXIT INT TERM
-        log "FSR4 Gitee 镜像不可用，切换 GitHub Release 汉化完整包"
-        if install_decky_zip \
-            "FSR4（Decky Framegen）汉化完整包" \
-            "${DECKY_FSR4_ZH_URL:-}" \
-            "${DECKY_FSR4_ZH_SHA256:-}" \
-            "$FSR4_OFFICIAL_DIRECTORY" \
-            0; then
-            :
-        else
-            log "FSR4 GitHub Release 不可用，切换原版叠加"
-            install_configured_plugin fsr4 0 0 || return 1
-            install_fsr4_chinese "$reload_after"
-            return $?
-        fi
+        log "FSR4 Gitee 镜像不可用，切换原版叠加"
+        install_configured_plugin fsr4 0 0 || return 1
+        install_fsr4_chinese "$reload_after"
+        return $?
     fi
     echo "FSR4 安装成功。"
     echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"

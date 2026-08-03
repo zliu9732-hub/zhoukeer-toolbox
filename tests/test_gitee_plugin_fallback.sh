@@ -84,11 +84,12 @@ install_fsr4_zh_from_gitee 0 || fail "FSR4 没有优先从 Gitee 国内源安装
 GITEE_RESULT=1
 GITHUB_RESULT=0
 : > "$CALLS"
-install_lsfg_zh_from_gitee 0 || fail "小黄鸭没有从 Gitee 失败切换到 GitHub Release"
-install_fsr4_zh_from_gitee 0 || fail "FSR4 没有从 Gitee 失败切换到 GitHub Release"
+install_lsfg_zh_from_gitee 0 || fail "小黄鸭 Gitee 失败后没有继续安装"
+install_fsr4_zh_from_gitee 0 || fail "FSR4 Gitee 失败后没有继续安装"
 [ "$(grep -c '^gitee:' "$CALLS")" -eq 2 ] || fail "两个插件没有先尝试 Gitee"
 grep -Fq 'lsfg-overlay' "$CALLS" || fail "小黄鸭 Gitee 失败后没有回退原版叠加"
-[ "$(grep -c '^github:' "$CALLS")" -eq 1 ] || fail "FSR4 没有回退 GitHub Release"
+grep -Fq 'fsr4-overlay' "$CALLS" || fail "FSR4 Gitee 失败后没有回退原版叠加"
+[ "$(grep -c '^github:' "$CALLS")" -eq 0 ] || fail "镜像失败后不应再尝试失效的 GitHub 汉化完整包"
 
 GITHUB_RESULT=1
 GITEE_RESULT=1
