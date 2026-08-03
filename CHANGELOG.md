@@ -1,3 +1,8 @@
+## V1.1.5 仓库瘦身清理 — 2026-08-04
+
+- 删除仓库内已无引用的旧大文件：旧 FSR4/LSFG 汉化完整包 zip（约 92 MB）、调试用 `index.js.map`（约 16 MB）、旧版 `background.png`/`welcome.png`/`disclaimer-usage.png`（约 7 MB）。
+- 清理本地可再生缓存：`logs/`、`mirrors/`、`.mirror-cache/`、旧版本化安装包；不影响更新、下载、Decky 镜像和网站资源。
+
 ## V1.1.4 FSR4 镜像版本固定与失效备用源移除 — 2026-08-04
 
 - FSR4 Gitee 镜像固定到与工具箱汉化叠加一致的 v0.15.6，避免自动同步到官方新版后 SHA 校验拒绝导致回退。
