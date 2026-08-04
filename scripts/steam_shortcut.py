@@ -155,7 +155,7 @@ def make_shortcut(
     fields: list[list[object]] = [
         field_string("appname", name),
         field_string("exe", quote_path(exe)),
-        field_string("StartDir", quote_path(start_dir)),
+        field_string("StartDir", start_dir),
         field_string("icon", ""),
         field_string("ShortcutPath", ""),
         field_string("LaunchOptions", launch_options),
@@ -197,16 +197,16 @@ def add_shortcut(args: argparse.Namespace) -> None:
         if entry[0] == TYPE_OBJECT and entry_value(entry, b"exe") == quoted_exe:
             if entry_value(entry, b"appname") != args.name:
                 set_string(entry, "appname", args.name)
-                set_string(entry, "StartDir", quote_path(args.start_dir))
+                set_string(entry, "StartDir", args.start_dir)
                 set_string(entry, "LaunchOptions", args.launch_options)
                 save_shortcuts(args.shortcut_file, entries)
                 print("updated")
                 return
             if (
-                entry_value(entry, b"StartDir") != quote_path(args.start_dir)
+                entry_value(entry, b"StartDir") != args.start_dir
                 or entry_value(entry, b"LaunchOptions") != args.launch_options
             ):
-                set_string(entry, "StartDir", quote_path(args.start_dir))
+                set_string(entry, "StartDir", args.start_dir)
                 set_string(entry, "LaunchOptions", args.launch_options)
                 save_shortcuts(args.shortcut_file, entries)
                 print("updated")
@@ -217,7 +217,7 @@ def add_shortcut(args: argparse.Namespace) -> None:
         if entry[0] != TYPE_OBJECT or entry_value(entry, b"appname") != args.name:
             continue
         set_string(entry, "exe", quoted_exe)
-        set_string(entry, "StartDir", quote_path(args.start_dir))
+        set_string(entry, "StartDir", args.start_dir)
         set_string(entry, "LaunchOptions", args.launch_options)
         save_shortcuts(args.shortcut_file, entries)
         print("updated")
@@ -238,7 +238,7 @@ def update_shortcut(args: argparse.Namespace) -> None:
         if entry[0] != TYPE_OBJECT or entry_value(entry, b"exe") != old_exe:
             continue
         set_string(entry, "exe", quote_path(args.new_exe))
-        set_string(entry, "StartDir", quote_path(str(Path(args.new_exe).parent)))
+        set_string(entry, "StartDir", str(Path(args.new_exe).parent))
         save_shortcuts(args.shortcut_file, entries)
         print("updated")
         return

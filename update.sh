@@ -144,6 +144,64 @@ valid_release_version() {
     esac
 }
 
+version_greater() {
+    # 返回 0 表示 $1 高于 $2；数字段按数值比较，字母段按字典序。
+    local left="$1" right="$2"
+    local left_part right_part left_tail right_tail left_is_number right_is_number
+
+    while :; do
+        case "$left" in
+            *.*) left_part="${left%%.*}"; left_tail="${left#*.}" ;;
+            *) left_part="$left"; left_tail="" ;;
+        esac
+        case "$right" in
+            *.*) right_part="${right%%.*}"; right_tail="${right#*.}" ;;
+            *) right_part="$right"; right_tail="" ;;
+        esac
+
+        # 去掉前导零，避免 08/09 被当作八进制；字母段保持原样。
+        case "$left_part" in
+            ''|*[!0-9]*) ;;
+            *) left_part="${left_part#"${left_part%%[!0]*}"}"; left_part="${left_part:-0}" ;;
+        esac
+        case "$right_part" in
+            ''|*[!0-9]*) ;;
+            *) right_part="${right_part#"${right_part%%[!0]*}"}"; right_part="${right_part:-0}" ;;
+        esac
+
+        if [ "$left_part" != "$right_part" ]; then
+            case "$left_part" in
+                *[!0-9]*|'') left_is_number=0 ;;
+                *) left_is_number=1 ;;
+            esac
+            case "$right_part" in
+                *[!0-9]*|'') right_is_number=0 ;;
+                *) right_is_number=1 ;;
+            esac
+            if [ "$left_is_number" -eq 1 ] && [ "$right_is_number" -eq 1 ]; then
+                if [ "$left_part" -gt "$right_part" ] 2>/dev/null; then
+                    return 0
+                fi
+                return 1
+            fi
+            [[ "$left_part" > "$right_part" ]]
+            return $?
+        fi
+
+        if [ -z "$left_tail" ] && [ -z "$right_tail" ]; then
+            return 1
+        fi
+        if [ -z "$left_tail" ]; then
+            return 1
+        fi
+        if [ -z "$right_tail" ]; then
+            return 0
+        fi
+        left="$left_tail"
+        right="$right_tail"
+    done
+}
+
 valid_sha256() {
     local value="$1"
 
@@ -338,32 +396,53 @@ download_verified_package() {
 
 download_version_with_fallback() {
     local output="$1"
+    local candidate_file="${output}.candidate"
+    local candidate best="" source_url source_label source_name status_key
+    local code_source_reachable=0 local_version="" source
 
-    if download_version_one "$GITEE_VERSION_URL" "$output" "国内镜像"; then
-        VERSION_SOURCE="Gitee"
-        source_status_record update-gitee ok "版本检查成功" >/dev/null 2>&1 || true
-        return 0
+    for source in gitee github domain; do
+        case "$source" in
+            gitee) source_url="$GITEE_VERSION_URL"; source_label="国内镜像"; source_name="Gitee"; status_key="update-gitee" ;;
+            github) source_url="$GITHUB_VERSION_URL"; source_label="GitHub"; source_name="GitHub"; status_key="update-github" ;;
+            domain) source_url="$DOMAIN_VERSION_URL"; source_label="域名"; source_name="域名"; status_key="update-domain" ;;
+        esac
+        rm -f -- "$candidate_file"
+        if ! download_version_one "$source_url" "$candidate_file" "$source_label"; then
+            source_status_record "$status_key" fail "版本检查失败" >/dev/null 2>&1 || true
+            continue
+        fi
+        candidate="$(tr -d '\r\n' < "$candidate_file")"
+        if ! valid_release_version "$candidate"; then
+            source_status_record "$status_key" fail "版本格式无效" >/dev/null 2>&1 || true
+            continue
+        fi
+        source_status_record "$status_key" ok "版本检查成功" >/dev/null 2>&1 || true
+        [ "$source" = "domain" ] || code_source_reachable=1
+        if [ -z "$best" ] || version_greater "$candidate" "$best"; then
+            best="$candidate"
+            VERSION_SOURCE="$source_name"
+        fi
+    done
+
+    if [ -z "$best" ]; then
+        echo "版本检测失败：国内镜像、GitHub 和域名源均不可用。旧版本不会被覆盖。"
+        return 1
     fi
-    source_status_record update-gitee fail "版本检查失败" >/dev/null 2>&1 || true
 
-    echo "国内镜像版本检测失败，切换GitHub备用源。"
-    if download_version_one "$GITHUB_VERSION_URL" "$output" "GitHub"; then
-        VERSION_SOURCE="GitHub"
-        source_status_record update-github ok "版本检查成功" >/dev/null 2>&1 || true
-        return 0
+    # 域名源作为唯一可达源时不能单独裁决“已是最新”；版本高于本地时才允许更新。
+    if [ "$code_source_reachable" -eq 0 ]; then
+        if [ -r "$PROJECT_ROOT/VERSION" ]; then
+            local_version="$(tr -d '\r\n' < "$PROJECT_ROOT/VERSION")"
+        fi
+        if [ -n "$local_version" ] && valid_release_version "$local_version" && \
+            ! version_greater "$best" "$local_version"; then
+            echo "版本检测失败：域名源版本($best)未高于本地版本($local_version)，且国内镜像和GitHub均不可用。"
+            return 1
+        fi
     fi
-    source_status_record update-github fail "版本检查失败" >/dev/null 2>&1 || true
 
-    echo "GitHub版本检测失败，切换域名源。"
-    if download_version_one "$DOMAIN_VERSION_URL" "$output" "域名"; then
-        VERSION_SOURCE="域名"
-        source_status_record update-domain ok "版本检查成功" >/dev/null 2>&1 || true
-        return 0
-    fi
-    source_status_record update-domain fail "版本检查失败" >/dev/null 2>&1 || true
-
-    echo "版本检测失败：国内镜像和GitHub均不可用。旧版本不会被覆盖。"
-    return 1
+    printf '%s\n' "$best" > "$output"
+    return 0
 }
 
 SYSTEM="$(uname -s 2>/dev/null || echo unknown)"

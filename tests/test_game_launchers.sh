@@ -240,8 +240,13 @@ import sys
 data = Path(sys.argv[1]).read_bytes()
 assert sys.argv[2].encode() in data
 assert b"Battle.net-Setup.exe" not in data
-assert f'STEAM_COMPAT_DATA_PATH="{sys.argv[3]}" %command%'.encode() in data
+assert f'STEAM_COMPAT_DATA_PATH="{sys.argv[3]}" %command%'.encode() not in data
 PY
+grep -Fq 'STEAM_COMPAT_DATA_PATH="$PREFIX_DIR"' \
+    "$NATIVE_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" || {
+    echo "FAIL: 战网 Steam 条目已去掉兼容层启动项，但桌面启动包装器没有保留" >&2
+    exit 1
+}
 grep -Fq "Exec=$NATIVE_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" \
     "$FAKE_HOME/Desktop/战网启动器.desktop" || {
     echo "FAIL: Steam 原生战网流程没有创建独立桌面启动入口" >&2
@@ -791,10 +796,15 @@ import sys
 data = Path(sys.argv[1]).read_bytes()
 assert b"Battle.net Launcher.exe" in data
 assert b"Battle.net-Setup.exe" not in data
-assert b"STEAM_COMPAT_DATA_PATH=" in data
+assert b"STEAM_COMPAT_DATA_PATH=" not in data
 assert sys.argv[2].encode() not in data
 assert data.count("战网启动器".encode()) == 1
 PY
+grep -Fq 'STEAM_COMPAT_DATA_PATH="$PREFIX_DIR"' \
+    "$EXISTING_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" || {
+    echo "FAIL: 战网 Steam 条目已去掉兼容层启动项，但桌面启动包装器没有保留" >&2
+    exit 1
+}
 grep -Fq "Exec=$EXISTING_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" \
     "$FAKE_HOME/Desktop/战网启动器.desktop" || {
     echo "FAIL: 战网桌面入口没有使用独立启动包装器" >&2

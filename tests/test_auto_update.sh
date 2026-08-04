@@ -61,6 +61,17 @@ if [ "${FAKE_GITEE_PACKAGE_FAIL:-0}" = "1" ] && \
     [ "$clean_url" = "${FAKE_GITEE_RAW_BASE:?}/dist/zhoukeer-toolbox.tar.gz" ]; then
     exit 22
 fi
+if [ "${FAKE_DOMAIN_VERSION_STALE:-0}" = "1" ] && \
+    [ "$clean_url" = "${FAKE_DOMAIN_RAW_BASE:?}/VERSION" ]; then
+    printf '%s\n' '4.0.0' > "$output"
+    exit 0
+fi
+if [ "${FAKE_VERSION_SOURCES_FAIL:-0}" = "1" ] && \
+    [ "$clean_url" != "${FAKE_DOMAIN_RAW_BASE:?}/VERSION" ]; then
+    case "$clean_url" in
+        */VERSION) exit 22 ;;
+    esac
+fi
 case "$clean_url" in
     */dist/zhoukeer-toolbox.tar.gz) source="$FAKE_REMOTE_DIR/dist/zhoukeer-toolbox.tar.gz" ;;
     */dist/SHA256SUMS) source="$FAKE_REMOTE_DIR/dist/SHA256SUMS" ;;
@@ -81,6 +92,7 @@ run_update() {
     ZHOUKEER_DOMAIN_RAW_BASE="https://domain.test/repo" \
     ZHOUKEER_TEST_MODE=1 \
     FAKE_GITEE_RAW_BASE="https://test.invalid/repo" \
+    FAKE_DOMAIN_RAW_BASE="https://domain.test/repo" \
         bash "$INSTALL_DIR/update.sh" --startup
 }
 
@@ -173,6 +185,39 @@ run_update > "$STATE_DIR/latest.output"
 grep -Fq '工具箱已是最新版本' "$STATE_DIR/latest.output"
 if grep -Fq '/dist/zhoukeer-toolbox.tar.gz' "$CURL_LOG"; then
     echo "FAIL: 版本相同时仍下载了更新包"
+    exit 1
+fi
+
+# 域名源版本落后时，必须取国内镜像/GitHub 的最高版本，不能因域名旧版本误判“已是最新”。
+printf '%s\n' '4.0.0' > "$INSTALL_DIR/VERSION"
+: > "$CURL_LOG"
+FAKE_DOMAIN_VERSION_STALE=1 run_update > "$STATE_DIR/stale-domain.output"
+grep -Fq 'https://domain.test/repo/VERSION' "$CURL_LOG" || {
+    echo "FAIL: 域名源版本未被检测" >&2
+    exit 1
+}
+if [ "$(tr -d '\r\n' < "$INSTALL_DIR/VERSION")" != '4.1.0' ]; then
+    echo "FAIL: 域名源版本落后时未按最高版本更新" >&2
+    exit 1
+fi
+
+# 只有域名源可达且版本不高于本地时，不能把域名旧版本当作“已是最新”。
+: > "$CURL_LOG"
+if FAKE_VERSION_SOURCES_FAIL=1 FAKE_DOMAIN_VERSION_STALE=1 run_update \
+    > "$STATE_DIR/domain-only-stale.output" 2>&1; then
+    echo "FAIL: 只有域名源且版本未更新时仍成功退出" >&2
+    exit 1
+fi
+grep -Fq '自动更新检测暂时不可用' "$STATE_DIR/domain-only-stale.output" || {
+    echo "FAIL: 只有域名源且版本未更新时没有提示检测不可用" >&2
+    exit 1
+}
+if [ "$(tr -d '\r\n' < "$INSTALL_DIR/VERSION")" != '4.1.0' ]; then
+    echo "FAIL: 域名源旧版本误触发了更新" >&2
+    exit 1
+fi
+if grep -Fq '/dist/zhoukeer-toolbox.tar.gz' "$CURL_LOG"; then
+    echo "FAIL: 只有域名源且版本未更新时仍下载了更新包" >&2
     exit 1
 fi
 

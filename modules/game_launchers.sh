@@ -1054,7 +1054,7 @@ prepare_battlenet_steam_installer() {
 
 finish_launcher_steam_entry() {
     local target="$1" steam_root="$2" shortcut_file="$3" launcher_exe="$4" prefix_dir="$5" proton_runner="$6"
-    local launch_options app_id artwork_alt_app_id game_id icon_path wrapper
+    local app_id artwork_alt_app_id game_id icon_path wrapper
 
     launcher_details "$target" || return 1
     case "$target" in
@@ -1062,16 +1062,15 @@ finish_launcher_steam_entry() {
         heihe) icon_path="$PROJECT_ROOT/assets/game-launchers/heihe.png" ;;
         *) return 1 ;;
     esac
-    launch_options="STEAM_COMPAT_DATA_PATH=\"$prefix_dir\" %command%"
     stop_steam_for_vdf || return 1
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" add \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe" --start-dir "$(dirname "$launcher_exe")" \
-        --launch-options "$launch_options" >/dev/null || return 1
+        >/dev/null || return 1
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" set-icon \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe" --icon "$icon_path" >/dev/null || return 1
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" verify \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe" --icon "$icon_path" \
-        --launch-options "$launch_options" >/dev/null || return 1
+        >/dev/null || return 1
     if [ "$target" = "battlenet" ]; then
         remove_legacy_battlenet_steam_entries "$shortcut_file" "$launcher_exe" || return 1
     fi
