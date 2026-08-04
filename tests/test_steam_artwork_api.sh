@@ -3,6 +3,8 @@
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TMP_ROOT="$(mktemp -d)"
+trap 'rm -rf -- "$TMP_ROOT"' EXIT
 export ZHOUKEER_TEST_MODE=1
 
 FAIL() {
@@ -48,6 +50,19 @@ curl() {
 output="$(apply_steam_launcher_artwork_via_decky epic 2503252332)"
 printf '%s\n' "$output" | grep -Fq '已通过 Decky 即时应用' || \
     FAIL "Decky 封面即时应用未确认成功"
+
+SHORTCUTS="$TMP_ROOT/shortcuts.vdf"
+python3 "$PROJECT_ROOT/scripts/steam_shortcut.py" --shortcut-file "$SHORTCUTS" add \
+    --name "Epic Games 启动器" --exe "$TMP_ROOT/launch-epic.sh" \
+    --start-dir "$TMP_ROOT" >/dev/null
+expected_appid="$(python3 "$PROJECT_ROOT/scripts/steam_shortcut.py" \
+    --shortcut-file "$SHORTCUTS" appid \
+    --name "Epic Games 启动器" --exe "$TMP_ROOT/launch-epic.sh")"
+found_appid="$(python3 "$PROJECT_ROOT/scripts/steam_shortcut.py" \
+    --shortcut-file "$SHORTCUTS" find-appid --name "Epic Games 启动器")"
+[ "$found_appid" = "$expected_appid" ] || {
+    FAIL "find-appid 未返回 shortcuts.vdf 中的真实 appid"
+}
 
 if bash "$PROJECT_ROOT/scripts/apply_steam_artwork.sh" 2>/dev/null; then
     FAIL "apply_steam_artwork.sh 缺少目标时仍返回成功"

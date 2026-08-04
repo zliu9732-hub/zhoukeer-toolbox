@@ -1,3 +1,8 @@
+## V1.1.13 封面/背景重推入口支持自动找 appid — 2026-08-04
+
+- `scripts/apply_steam_artwork.sh` 不传 appid 时自动从最新 `shortcuts.vdf` 查找 Epic、战网、育碧的真实快捷方式编号，再通过 Decky API 即时重推封面/背景。
+- `steam_shortcut.py` 新增 `find-appid` 子命令，按快捷方式名称返回 Steam 实际使用的 appid。
+
 ## V1.1.12 战网内置浏览器不再依赖 Decky — 2026-08-04
 
 - 战网登录页改用 Steam 自带 `steam://openurl/` 协议在内置浏览器打开，不再需要 Decky；找不到 `steam` 命令时才回退 Decky 通道。

@@ -369,6 +369,9 @@ def main() -> None:
     appid_raw.add_argument("--name", required=True)
     appid_raw.add_argument("--exe", required=True)
 
+    find_appid = subparsers.add_parser("find-appid")
+    find_appid.add_argument("--name", required=True)
+
     gameid = subparsers.add_parser("gameid")
     gameid.add_argument("--name", required=True)
     gameid.add_argument("--exe", required=True)
@@ -408,6 +411,17 @@ def main() -> None:
         if not os.path.isabs(args.exe):
             parser.error("shortcut paths must be absolute")
         print(shortcut_app_id_without_exe_quotes(args.name, args.exe))
+    elif args.command == "find-appid":
+        for entry in load_shortcuts(args.shortcut_file):
+            if entry[0] != TYPE_OBJECT:
+                continue
+            if entry_value(entry, b"appname") != args.name:
+                continue
+            exe = (entry_value(entry, b"exe") or "").strip('"')
+            print(shortcut_app_id(args.name, exe))
+            break
+        else:
+            raise VdfError("shortcut not found")
     else:
         if not os.path.isabs(args.exe):
             parser.error("shortcut paths must be absolute")
