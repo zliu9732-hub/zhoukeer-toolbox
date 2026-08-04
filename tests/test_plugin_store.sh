@@ -139,7 +139,7 @@ grep -Fq '04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62' \
 grep -Fq '"freedeck-plugin"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'releases/download/v6.0.9/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'releases/download/v6.0.10/Decky-Framegen-FSR4-v0.17.zip' \
+grep -Fq 'releases/download/v1.2.2/Decky-Framegen-FSR4-v0.17.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_LSFG_ZH_SHA256="11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"

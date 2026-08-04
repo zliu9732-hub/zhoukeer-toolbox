@@ -77,7 +77,7 @@ DECKY_FREEDECK_VERSION="0.6"
 # 汉化完整包固定使用工具箱 GitHub Release 资产，避免原始文件下载过慢。
 DECKY_LSFG_ZH_URL="https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.9/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip"
 DECKY_LSFG_ZH_SHA256="11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"
-DECKY_FSR4_ZH_URL="https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.10/Decky-Framegen-FSR4-v0.17.zip"
+DECKY_FSR4_ZH_URL="https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v1.2.2/Decky-Framegen-FSR4-v0.17.zip"
 DECKY_FSR4_ZH_SHA256="d1ea98f0d9b81dc65a48b061db1ba45501c880693c1c15909b86137f788772cf"
 # Gitee 归档必须指向包含当前 dist 汉化包的稳定标签，避免旧归档校验失败。
 DECKY_GITEE_ARCHIVE_URL="https://gitee.com/zliu9732-hub/zhoukeer-toolbox/repository/archive/v6.0.4.zip"
