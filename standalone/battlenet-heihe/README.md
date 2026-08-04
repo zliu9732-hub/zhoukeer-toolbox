@@ -4,6 +4,16 @@
 
 ## 使用方法
 
+一行安装/更新（推荐）：
+
+`curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/standalone/battlenet-heihe/bootstrap.sh | bash`
+
+带目标直接安装：
+
+`curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/standalone/battlenet-heihe/bootstrap.sh | bash -s -- battlenet`
+
+也可以手动下载解压：
+
 1. 解压本包：
    `tar -xzf zhoukeer-battlenet-heihe-*.tar.gz -C ~/`
 2. 进入解压目录后运行：
