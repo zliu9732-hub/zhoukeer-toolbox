@@ -3,6 +3,8 @@
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+TMP_ROOT="$(mktemp -d)"
+trap 'rm -rf -- "$TMP_ROOT"' EXIT
 export ZHOUKEER_TEST_MODE=1
 
 FAIL() {
@@ -21,25 +23,16 @@ printf '%s\n' "$code" | grep -Fq 'SteamClient.Browser.OpenUrl' || \
 printf '%s\n' "$code" | grep -Fq 'https://account.battle.net/login' || \
     FAIL "Steam 内置浏览器 JS 缺少目标地址"
 
-curl() {
-    local arg
-
-    for arg in "$@"; do
-        case "$arg" in
-            *auth/token)
-                printf '%s' "test-token"
-                return 0
-                ;;
-            *execute_in_tab)
-                printf '%s' "zhoukeer-steam-browser:ok"
-                return 0
-                ;;
-        esac
-    done
-    return 1
-}
-
-output="$(open_steam_internal_browser_via_decky "https://account.battle.net/login")"
+FAKE_STEAM="$TMP_ROOT/fake-steam"
+FAKE_STEAM_LOG="$TMP_ROOT/steam-url.log"
+printf '#!/bin/bash\nprintf "%%s\\n" "$*" > "$FAKE_STEAM_LOG"\n' > "$FAKE_STEAM"
+chmod +x "$FAKE_STEAM"
+export ZHOUKEER_STEAM_BIN="$FAKE_STEAM"
+export FAKE_STEAM_LOG="$FAKE_STEAM_LOG"
+output="$(bash "$PROJECT_ROOT/scripts/open_steam_internal_browser.sh" \
+    "https://account.battle.net/login")"
+grep -Fq 'steam://openurl/https://account.battle.net/login' "$FAKE_STEAM_LOG" || \
+    FAIL "未使用 Steam 自带 openurl 协议打开内置浏览器"
 printf '%s\n' "$output" | grep -Fq '已用 Steam 内置浏览器打开' || \
     FAIL "Steam 内置浏览器打开未确认成功"
 
