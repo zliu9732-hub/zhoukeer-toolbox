@@ -137,6 +137,8 @@ build_decky_bundle_javascript() {
 call_decky_frontend() {
     local code="$1"
     local token="$2"
+    local marker="${3:-$DECKY_BUNDLE_MARKER}"
+    local max_time="${DECKY_EXECUTE_TIMEOUT:-90}"
     local tab
     local payload
     local response
@@ -147,17 +149,114 @@ call_decky_frontend() {
             --fail \
             --silent \
             --connect-timeout 5 \
-            --max-time 90 \
+            --max-time "$max_time" \
             --header "X-Decky-Auth: $token" \
             --header "Content-Type: application/json" \
             --data "$payload" \
             "$DECKY_API_BASE/methods/execute_in_tab" 2>/dev/null || true)"
-        if [[ "$response" == *"$DECKY_BUNDLE_MARKER"* ]]; then
+        if [[ "$response" == *"$marker"* ]]; then
             printf '%s\n' "$response"
             return 0
         fi
     done
     return 1
+}
+
+build_steam_artwork_javascript() {
+    local marker="$1" appids_json="$2" asset_type="$3" base64_data="$4"
+
+    printf '%s\n' \
+        "(async function(){" \
+        "const m=$(json_quote "$marker");const ids=$appids_json;const b64=$(json_quote "$base64_data");" \
+        "try{if(typeof SteamClient===\"undefined\"||!SteamClient.Apps)throw Error(\"SteamClient unavailable\");" \
+        "let ok=0;for(const appId of ids){" \
+        "if(SteamClient.Apps.ClearCustomArtworkForApp){try{await SteamClient.Apps.ClearCustomArtworkForApp(appId,$asset_type);}catch(e){}await new Promise(x=>setTimeout(x,300));}" \
+        "await SteamClient.Apps.SetCustomArtworkForApp(appId,b64,\"png\",$asset_type);" \
+        "if($asset_type===2){try{const ov=window.appStore&&window.appStore.GetAppOverviewByAppID?.(appId);if(ov&&window.appDetailsStore)await window.appDetailsStore.SaveCustomLogoPosition(ov,{pinnedPosition:\"BottomLeft\",nWidthPct:50,nHeightPct:50});}catch(e){}}" \
+        "ok++;}return m+\":ok:\"+ok;" \
+        "}catch(e){console.error(\"zkeer-artwork:\",e);return m+\":failed\";}})()"
+}
+
+apply_steam_launcher_artwork_via_decky() {
+    local target="$1"
+    shift
+    local asset_name appids_json token marker
+    local entry type file_suffix asset_type file
+    local DECKY_EXECUTE_TIMEOUT="${DECKY_ARTWORK_TIMEOUT:-12}"
+    local payload_file tab payload_response artwork_ok
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
+        echo "Decky 封面即时应用仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    [ "$#" -gt 0 ] || {
+        echo "缺少 Steam 快捷方式 appid。"
+        return 1
+    }
+    require_command curl || return 1
+    command -v python3 >/dev/null 2>&1 || {
+        echo "缺少 python3 命令。"
+        return 1
+    }
+    case "$target" in
+        epic) asset_name="epic" ;;
+        battlenet) asset_name="battlenet" ;;
+        ubisoft|uplay) asset_name="ubisoft" ;;
+        *) echo "未知启动器: $target"; return 1 ;;
+    esac
+    appids_json="[$(IFS=,; printf '%s' "$*")]"
+
+    token="$(curl \
+        --fail \
+        --silent \
+        --connect-timeout 3 \
+        --max-time 10 \
+        "$DECKY_API_BASE/auth/token" 2>/dev/null || true)"
+    if [ -z "$token" ]; then
+        echo "未检测到运行中的 Decky Loader，无法即时应用 Steam 库封面。"
+        return 1
+    fi
+
+    for entry in "header:-grid.png:3" "capsule:-portrait.png:0" "hero:-hero.png:1" "logo:.png:2"; do
+        type="${entry%%:*}"
+        rest="${entry#*:}"
+        file_suffix="${rest%%:*}"
+        asset_type="${rest##*:}"
+        file="$PROJECT_ROOT/assets/game-launchers/${asset_name}${file_suffix}"
+        [ -s "$file" ] || continue
+        marker="zhoukeer-artwork-$target-$type"
+        payload_file="$(mktemp 2>/dev/null)" || {
+            echo "无法创建 Decky 封面请求文件。"
+            return 1
+        }
+        artwork_ok=0
+        for tab in "SharedJSContext" "Steam Shared Context presented by Valve™" "Steam" "SP"; do
+            if ! python3 "$PROJECT_ROOT/scripts/build_steam_artwork_payload.py" \
+                "$marker" "$appids_json" "$asset_type" "$file" "$tab" > "$payload_file"; then
+                continue
+            fi
+            payload_response="$(curl \
+                --fail \
+                --silent \
+                --connect-timeout 5 \
+                --max-time "$DECKY_EXECUTE_TIMEOUT" \
+                --header "X-Decky-Auth: $token" \
+                --header "Content-Type: application/json" \
+                --data-binary "@$payload_file" \
+                "$DECKY_API_BASE/methods/execute_in_tab" 2>/dev/null || true)"
+            if [[ "$payload_response" == *"$marker"* ]]; then
+                artwork_ok=1
+                break
+            fi
+        done
+        rm -f -- "$payload_file"
+        if [ "$artwork_ok" -ne 1 ] || [[ "$payload_response" != *"$marker:ok"* ]]; then
+            echo "Decky 应用 $target $type 封面失败。"
+            return 1
+        fi
+    done
+    echo "$target Steam 库封面已通过 Decky 即时应用。"
 }
 
 confirm_bundle_install() {
@@ -276,6 +375,14 @@ install_single_official_plugin() {
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-install}" in
         install) install_recommended_decky_plugins ;;
+        artwork)
+            [ -n "${2:-}" ] || {
+                echo "用法: $0 artwork <epic|battlenet|ubisoft> <appid>"
+                exit 1
+            }
+            shift
+            apply_steam_launcher_artwork_via_decky "$@"
+            ;;
         plugin)
             [ -n "${2:-}" ] || {
                 echo "用法: $0 plugin 插件名称"

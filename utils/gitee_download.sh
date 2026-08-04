@@ -216,7 +216,7 @@ _gitee_mirror_download_one() {
     else
         curl_options+=(--progress-meter)
         if ! curl "${curl_options[@]}" --output "$output" "$url" \
-            2> >(download_progress_filter "镜像" >&2); then
+            2> >(download_progress_filter "${GITEE_MIRROR_LABEL:-下载}" >&2); then
             return 1
         fi
     fi
@@ -230,6 +230,7 @@ download_gitee_mirror_file() {
     local id="$1" output="$2" expected_sha256="${3:-}" name="${4:-镜像文件}"
     local manifest manifest_file base_url file_url temp_file temp_dir part_name part_file
     local actual_sha256 index actual_size
+    local GITEE_MIRROR_LABEL="$name"
 
     gitee_mirror_id_is_valid "$id" || {
         echo "$name 镜像标识无效。"
@@ -286,7 +287,7 @@ download_gitee_mirror_file() {
             return 1
         }
         GITEE_MIRROR_QUIET=1
-        echo "正在安装 $name..."
+        echo "正在下载 $name..."
         index=1
         while [ "$index" -le "$_GITEE_MIRROR_CHUNKS" ]; do
             part_name="$(printf 'part.%04d' "$index")"
@@ -343,7 +344,7 @@ download_gitee_mirror_file() {
         rm -f -- "$temp_file"
         return 1
     fi
-    echo "$name 镜像下载完成。"
+    echo "$name 下载完成。"
     if declare -F log >/dev/null 2>&1; then
         log "Gitee 镜像下载成功: $name"
     fi

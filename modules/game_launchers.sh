@@ -121,7 +121,7 @@ download_launcher_installer() {
         echo "$LAUNCHER_NAME 下载地址不在受控来源清单中。"
         return 1
     }
-    for attempt in 1 2; do
+    for attempt in 1 2 3; do
         rm -f -- "$temporary"
         echo "正在下载 $LAUNCHER_NAME 官方安装器…"
         curl_options=(
@@ -767,6 +767,21 @@ install_launcher_artwork_for_id() {
         "$grid_dir/${artwork_id}_logo.png" || return 1
 }
 
+apply_launcher_decky_artwork() {
+    local target="$1" app_id="$2"
+    local attempt
+
+    [ "${IS_STEAMOS:-0}" -eq 1 ] || return 0
+    for attempt in 1 2; do
+        if bash "$PROJECT_ROOT/scripts/apply_steam_artwork.sh" "$target" "$app_id" >/dev/null 2>&1; then
+            echo "$LAUNCHER_NAME Steam 库封面已即时应用。"
+            return 0
+        fi
+        sleep 2
+    done
+    echo "$LAUNCHER_NAME Steam 库封面已写入，Steam 重启后生效。"
+}
+
 set_steam_proton_10() {
     local steam_root="$1" app_id="$2"
     local config_file="$steam_root/config/config.vdf"
@@ -796,6 +811,7 @@ prepare_battlenet_steam_installer() {
     set_steam_proton_10 "$steam_root" "$app_id" || return 1
     install_launcher_steam_artwork battlenet "$shortcut_file" "$app_id" "$artwork_alt_app_id" "$game_id" || return 1
     start_steam
+    apply_launcher_decky_artwork battlenet "$app_id"
     echo "Steam 正在重新读取战网安装条目，请稍候。"
     echo "安装阶段不会创建桌面入口，请只在 Steam 库点击“战网启动器”完成官方安装。"
     echo "Steam 库中请点“战网启动器”右侧齿轮 → 属性 → 兼容性。"
@@ -834,6 +850,7 @@ finish_battlenet_steam_entry() {
     create_launcher_desktop_shortcut battlenet "$wrapper" || return 1
     remove_legacy_battlenet_desktop_installer || return 1
     start_steam
+    apply_launcher_decky_artwork battlenet "$app_id"
     echo "战网启动器已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
 }
 
@@ -919,6 +936,7 @@ install_launcher() {
         --name "$LAUNCHER_NAME" --exe "$wrapper")" || return 1
     install_launcher_steam_artwork "$target" "$shortcut_file" "$app_id" "$artwork_alt_app_id" "$game_id" || return 1
     start_steam
+    apply_launcher_decky_artwork "$target" "$app_id"
     echo "$LAUNCHER_NAME 已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
     if [ "$target" = "epic" ]; then
         echo "Epic 改中文：右上角头像 → Settings → Language → 中文（简体）→ Restart Now。"

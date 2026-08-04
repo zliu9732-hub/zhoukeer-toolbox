@@ -56,7 +56,12 @@ curl() {
     esac
 }
 
-download_gitee_mirror_file test "$TMP_ROOT/out.bin" "$FULL_SHA" "测试镜像" >/dev/null
+mirror_output="$(download_gitee_mirror_file test "$TMP_ROOT/out.bin" "$FULL_SHA" "测试镜像")"
+printf '%s\n' "$mirror_output" | grep -Fq '正在下载 测试镜像' || \
+    FAIL "Gitee 镜像下载提示没有使用 正在下载"
+if printf '%s\n' "$mirror_output" | grep -Fq '正在安装'; then
+    FAIL "Gitee 镜像下载仍显示 正在安装"
+fi
 cmp -s "$FIXTURE/full" "$TMP_ROOT/out.bin" || FAIL "Gitee 分块镜像重组内容不一致"
 
 if download_gitee_mirror_file test "$TMP_ROOT/bad.bin" \

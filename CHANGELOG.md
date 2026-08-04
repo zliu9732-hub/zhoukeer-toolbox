@@ -1,3 +1,10 @@
+## V1.1.10 Steam 库封面通过 Decky API 即时应用 — 2026-08-04
+
+- 启动器安装后改为通过 Decky 的 `execute_in_tab` 通道调用 `SteamClient.Apps.SetCustomArtworkForApp`，与 SteamGridDB 插件同一套机制，封面/hero/背景即时生效，不再依赖重启 Steam。
+- 新增 `scripts/apply_steam_artwork.sh`，可在已安装 Decky Loader 的机器上单独重推封面；未安装或未启动 Decky 时仍保留 `config/grid` 文件写入回退。
+- logo 同步写入 Steam 的 logo 位置文件，避免快捷方式 logo 空白。
+- 镜像下载提示统一改为“正在下载 X...”，不再出现“正在安装”“分块”等误导性文案。
+
 ## V1.1.9 Steam 库封面改用 PNG 并清理冲突残留 — 2026-08-04
 
 - 启动器 Steam 库封面（横版、竖版、hero/背景）全部改为 Steam 优先读取的 PNG 格式；写入前清理同编号残留的 jpg/jpeg/background 文件，避免 Steam 取图结果不确定。
