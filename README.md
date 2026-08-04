@@ -2,7 +2,7 @@
 
 周克儿工具箱是面向 Steam Deck 及其他 SteamOS 掌机的 Bash 工具箱，提供一键新机初始化、常用软件、远程协助、插件商城、系统维护和安全更新入口。界面会按终端宽度收紧导航栏；体检、诊断、攻略和启动器功能尽量适配 SteamOS 掌机，涉及引导、只读分区等系统功能仍会先检查环境。
 
-当前正式版：V1.1.14；版本号按语义化版本递增，不跳版。
+当前正式版：V1.1.15；版本号按语义化版本递增，不跳版。
 
 - 双系统设置：只保留互通盘挂载与只读保护、TF 卡 exFAT 初始化、NTFS/exFAT 基础修复、只读健康检查和受保护的第三方引导项清理。rEFInd、Clover、EFI/BootOrder 修改和“一键切换 Windows”均不提供入口。
 
@@ -208,7 +208,7 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 2. 确认 `config/settings.conf` 不包含私人配置。
 3. 更新 `VERSION` 与 `CHANGELOG.md`，确认 `gh auth status` 的 active 账号是 `zliu9732-hub`。
 4. 执行 `bash scripts/deploy_release.sh` 生成发布包、`.sha256` 和 `SHA256SUMS` 校验文件；发布包必须不超过 9,437,184 字节。
-5. 只显式暂存本次发布文件，提交代码并打 tag，例如 `v1.1.14`；禁止 `git add .`、force push 或改写历史。
+5. 只显式暂存本次发布文件，提交代码并打 tag，例如 `v1.1.15`；禁止 `git add .`、force push 或改写历史。
 6. 推送 `main` 与 tag 到 GitHub 和 Gitee，再在 GitHub Release 中上传版本化发布包和 `.sha256` 校验文件。
 7. 在 Release 中写明安装、更新、卸载命令。
 8. 不要在 Release 包中包含密码、Token、邮箱或个人路径；桌面的 `管理员密码.txt` 仅在用户设备本地生成。
@@ -220,6 +220,6 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 
 ## 当前版本与维护
 
-当前正式版为 V1.1.14，版本号按语义化版本递增，不跳版。后续维护继续围绕 SteamOS 实际使用更新下载链路、插件镜像、菜单与修复；rEFInd、Clover、EFI/BootOrder 和“一键切换 Windows”等高风险入口保持停用。
+当前正式版为 V1.1.15，版本号按语义化版本递增，不跳版。后续维护继续围绕 SteamOS 实际使用更新下载链路、插件镜像、菜单与修复；rEFInd、Clover、EFI/BootOrder 和“一键切换 Windows”等高风险入口保持停用。
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。

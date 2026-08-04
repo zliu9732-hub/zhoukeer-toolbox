@@ -108,6 +108,7 @@ for menu in "$touch_games" "$gui_games"; do
         assert_contains "$menu" "$item" "游戏环境缺少：$item"
     done
     assert_contains "$menu" '黑盒工坊' "战网子菜单缺少黑盒工坊"
+    assert_contains "$menu" '预装客户端' "战网子菜单缺少预装客户端提示"
     assert_contains "$gui_games" '常用插件加27款精选插件' "GUI 缺少常用加精选插件入口"
     assert_contains "$menu" '插帧神器（必装）' "小黄鸭缺少功能说明"
     assert_contains "$menu" '画质补丁（阅读桌面文档慎用）' "FSR4 缺少功能说明"

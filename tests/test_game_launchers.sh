@@ -212,7 +212,7 @@ native_output="$(
     echo "FAIL: Steam 战网安装条目没有写入 shortcuts.vdf" >&2
     exit 1
 }
-printf '%s\n' "$native_output" | grep -Fq '完成官方安装' || {
+printf '%s\n' "$native_output" | grep -Fq '完成安装' || {
     echo "FAIL: 战网安装条目没有提示从 Steam 库完成安装" >&2
     exit 1
 }
@@ -352,6 +352,135 @@ grep -Fq "run $EXE_INSTALLER /S" "$PROTON_LOG" || {
     exit 1
 }
 
+# 战网预装客户端：解压助手必须拒绝越界路径，并正确落地主程序。
+FAKE_BSDTAR_BIN="$TMP_ROOT/fake-bin"
+mkdir -p "$FAKE_BSDTAR_BIN"
+cat > "$FAKE_BSDTAR_BIN/bsdtar" <<'SCRIPT'
+#!/bin/bash
+if printf '%s\n' "$@" | grep -q -- '-tf'; then
+    cat "$FAKE_ARCHIVE_LIST"
+    exit 0
+fi
+if printf '%s\n' "$@" | grep -q -- '-xf'; then
+    prev=""
+    for arg in "$@"; do
+        if [ "$prev" = "-C" ]; then
+            target_dir="$arg"
+        fi
+        prev="$arg"
+    done
+    mkdir -p "$(dirname "$FAKE_EXTRACT_FILE")"
+    : > "$FAKE_EXTRACT_FILE"
+    exit 0
+fi
+exit 1
+SCRIPT
+chmod +x "$FAKE_BSDTAR_BIN/bsdtar"
+
+PREINSTALLED_ARCHIVE="$TMP_ROOT/Battle.net.7z"
+: > "$PREINSTALLED_ARCHIVE"
+PREINSTALLED_DRIVE_C="$TMP_ROOT/preinstalled-drive-c"
+mkdir -p "$PREINSTALLED_DRIVE_C/Program Files (x86)"
+printf 'Battle.net/Battle.net Launcher.exe\n' > "$TMP_ROOT/good-archive-list.txt"
+if ! MODULE="$MODULE" FAKE_ARCHIVE_LIST="$TMP_ROOT/good-archive-list.txt" \
+    PREINSTALLED_ARCHIVE="$PREINSTALLED_ARCHIVE" PREINSTALLED_DRIVE_C="$PREINSTALLED_DRIVE_C" \
+    FAKE_EXTRACT_FILE="$PREINSTALLED_DRIVE_C/Program Files (x86)/Battle.net/Battle.net Launcher.exe" \
+    PATH="$FAKE_BSDTAR_BIN:$PATH" bash -c '
+        source "$MODULE"
+        launcher_details battlenet
+        extract_preinstalled_launcher "$PREINSTALLED_ARCHIVE" "$PREINSTALLED_DRIVE_C"
+    '; then
+    echo "FAIL: 战网预装客户端解压失败" >&2
+    exit 1
+fi
+[ -f "$PREINSTALLED_DRIVE_C/Program Files (x86)/Battle.net/Battle.net Launcher.exe" ] || {
+    echo "FAIL: 战网预装客户端解压后主程序缺失" >&2
+    exit 1
+}
+printf '../evil\n' > "$TMP_ROOT/bad-archive-list.txt"
+if MODULE="$MODULE" FAKE_ARCHIVE_LIST="$TMP_ROOT/bad-archive-list.txt" \
+    PREINSTALLED_ARCHIVE="$PREINSTALLED_ARCHIVE" PREINSTALLED_DRIVE_C="$PREINSTALLED_DRIVE_C" \
+    FAKE_EXTRACT_FILE="$PREINSTALLED_DRIVE_C/Program Files (x86)/Battle.net/Battle.net Launcher.exe" \
+    PATH="$FAKE_BSDTAR_BIN:$PATH" bash -c '
+        source "$MODULE"
+        launcher_details battlenet
+        extract_preinstalled_launcher "$PREINSTALLED_ARCHIVE" "$PREINSTALLED_DRIVE_C"
+    '; then
+    echo "FAIL: 战网预装客户端接受了越界路径" >&2
+    exit 1
+fi
+printf 'Qingfeng/HeyboxWow/heyboxwow.exe\n' > "$TMP_ROOT/heihe-archive-list.txt"
+if ! MODULE="$MODULE" FAKE_ARCHIVE_LIST="$TMP_ROOT/heihe-archive-list.txt" \
+    PREINSTALLED_ARCHIVE="$PREINSTALLED_ARCHIVE" PREINSTALLED_DRIVE_C="$PREINSTALLED_DRIVE_C" \
+    FAKE_EXTRACT_FILE="$PREINSTALLED_DRIVE_C/Program Files (x86)/Qingfeng/HeyboxWow/heyboxwow.exe" \
+    PATH="$FAKE_BSDTAR_BIN:$PATH" bash -c '
+        source "$MODULE"
+        launcher_details heihe
+        extract_preinstalled_launcher "$PREINSTALLED_ARCHIVE" "$PREINSTALLED_DRIVE_C"
+    '; then
+    echo "FAIL: 黑盒工坊预装客户端解压失败" >&2
+    exit 1
+fi
+[ -f "$PREINSTALLED_DRIVE_C/Program Files (x86)/Qingfeng/HeyboxWow/heyboxwow.exe" ] || {
+    echo "FAIL: 黑盒工坊预装客户端解压后主程序缺失" >&2
+    exit 1
+}
+
+# 共享前缀：战网独立 drive_c 必须挂到 compatdata/pfx/drive_c。
+PREINSTALLED_APP_DIR="$TMP_ROOT/preinstalled-app"
+PREINSTALLED_PREFIX="$(
+    MODULE="$MODULE" ZHOUKEER_APP_DIR="$PREINSTALLED_APP_DIR" \
+        PREINSTALLED_DRIVE_C="$PREINSTALLED_DRIVE_C" bash -c '
+            source "$MODULE"
+            prepare_launcher_shared_prefix battlenet "$PREINSTALLED_DRIVE_C"
+        '
+)"
+[ "$PREINSTALLED_PREFIX" = "$PREINSTALLED_APP_DIR/game-launchers/battlenet/compatdata" ] || {
+    echo "FAIL: 战网预装客户端前缀路径错误" >&2
+    exit 1
+}
+[ "$(readlink "$PREINSTALLED_PREFIX/pfx/drive_c")" = "$PREINSTALLED_DRIVE_C" ] || {
+    echo "FAIL: 战网预装客户端 drive_c 软链接未指向独立目录" >&2
+    exit 1
+}
+
+# 已安装战网通过 symlink drive_c 时，仍必须能被识别为已安装。
+SYM_STEAM="$TMP_ROOT/sym-steam"
+mkdir -p "$SYM_STEAM/steamapps/compatdata/123/pfx"
+ln -s "$PREINSTALLED_DRIVE_C" "$SYM_STEAM/steamapps/compatdata/123/pfx/drive_c"
+sym_found="$(
+    MODULE="$MODULE" SYM_STEAM="$SYM_STEAM" bash -c '
+        source "$MODULE"
+        launcher_details battlenet
+        find_installed_launcher "$SYM_STEAM"
+    '
+)"
+[ "$sym_found" = "$SYM_STEAM/steamapps/compatdata/123/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe" ] || {
+    echo "FAIL: 战网 symlink drive_c 未被识别为已安装" >&2
+    exit 1
+}
+battle_drive_found="$(
+    MODULE="$MODULE" SYM_STEAM="$SYM_STEAM" ZHOUKEER_APP_DIR="$TMP_ROOT/no-app" bash -c '
+        source "$MODULE"
+        find_battle_platform_drive_c "$SYM_STEAM"
+    '
+)"
+[ "$battle_drive_found" = "$SYM_STEAM/steamapps/compatdata/123/pfx/drive_c" ] || {
+    echo "FAIL: 未从 Steam 兼容目录找到战网 drive_c" >&2
+    exit 1
+}
+mkdir -p "$PREINSTALLED_APP_DIR/game-launchers/battlenet/drive_c"
+battle_drive_owned="$(
+    MODULE="$MODULE" SYM_STEAM="$SYM_STEAM" ZHOUKEER_APP_DIR="$PREINSTALLED_APP_DIR" bash -c '
+        source "$MODULE"
+        find_battle_platform_drive_c "$SYM_STEAM"
+    '
+)"
+[ "$battle_drive_owned" = "$PREINSTALLED_APP_DIR/game-launchers/battlenet/drive_c" ] || {
+    echo "FAIL: 未优先使用工具箱独立战网 drive_c" >&2
+    exit 1
+}
+
 mkdir -p "$(dirname "$UBISOFT_PROTON")"
 cat > "$UBISOFT_PROTON" <<'SCRIPT'
 #!/bin/bash
@@ -395,14 +524,14 @@ for current_app_id in "$app_id" "$artwork_raw_app_id"; do
     fi
     for check_id in "$current_app_id" "$signed_app_id"; do
         for artwork in "$check_id.png" "${check_id}p.png" "${check_id}_hero.png" \
-            "${check_id}_logo.png" "${check_id}_icon.png"; do
+            "${check_id}_logo.png" "${check_id}_icon.png" "${check_id}_background.jpg"; do
             [ -s "$(dirname "$art_shortcuts")/grid/$artwork" ] || {
                 echo "FAIL: Steam 库美化文件缺失：$artwork" >&2
                 exit 1
             }
         done
         for stale in "$check_id.jpg" "$check_id.jpeg" "${check_id}p.jpg" \
-            "${check_id}_hero.jpg" "${check_id}_background.jpg"; do
+            "${check_id}_hero.jpg" "${check_id}_background.png"; do
             [ ! -e "$(dirname "$art_shortcuts")/grid/$stale" ] || {
                 echo "FAIL: Steam 库旧封面未清理：$stale" >&2
                 exit 1
@@ -412,13 +541,30 @@ for current_app_id in "$app_id" "$artwork_raw_app_id"; do
 done
 for check_id in "$game_id"; do
     for artwork in "$check_id.png" "${check_id}p.png" "${check_id}_hero.png" \
-        "${check_id}_logo.png" "${check_id}_icon.png"; do
+        "${check_id}_logo.png" "${check_id}_icon.png" "${check_id}_background.jpg"; do
         [ -s "$(dirname "$art_shortcuts")/grid/$artwork" ] || {
             echo "FAIL: Steam 库美化文件缺失：$artwork" >&2
             exit 1
         }
     done
 done
+
+# 黑盒工坊背景素材是 PNG，写入时不能错存成 jpg。
+HEIHE_ART_SHORTCUTS="$TMP_ROOT/heihe-art/shortcuts.vdf"
+mkdir -p "$(dirname "$HEIHE_ART_SHORTCUTS")"
+: > "$HEIHE_ART_SHORTCUTS"
+MODULE="$MODULE" HEIHE_ART_SHORTCUTS="$HEIHE_ART_SHORTCUTS" bash -c '
+    source "$MODULE"
+    install_launcher_steam_artwork heihe "$HEIHE_ART_SHORTCUTS" 12345
+'
+[ -s "$(dirname "$HEIHE_ART_SHORTCUTS")/grid/12345_background.png" ] || {
+    echo "FAIL: 黑盒工坊背景图未以 PNG 写入" >&2
+    exit 1
+}
+[ ! -e "$(dirname "$HEIHE_ART_SHORTCUTS")/grid/12345_background.jpg" ] || {
+    echo "FAIL: 黑盒工坊背景图错误保存为 jpg" >&2
+    exit 1
+}
 
 LOGIN_ROOT="$TMP_ROOT/login-steam"
 mkdir -p "$LOGIN_ROOT/steamapps" "$LOGIN_ROOT/userdata/123/config" \
@@ -703,6 +849,14 @@ grep -Fq '黑盒工坊' "$MODULE" || {
     echo "FAIL: 黑盒工坊目标缺失" >&2
     exit 1
 }
+grep -Fq 'prepare_launcher_steam_installer "$target"' "$MODULE" || {
+    echo "FAIL: 黑盒工坊未走 Steam 库安装条目流程" >&2
+    exit 1
+}
+grep -Fq 'finish_launcher_steam_entry "$target"' "$MODULE" || {
+    echo "FAIL: 黑盒工坊未走 Steam 库转正流程" >&2
+    exit 1
+}
 grep -Fq '桌面入口、封面与工具箱标识均已设置' "$MODULE"
 grep -Fq '跳过安装包下载' "$MODULE"
 grep -Fq 'find_launcher_in_prefix "$prefix" || find_installed_launcher' "$MODULE"
@@ -720,7 +874,7 @@ grep -Fq 'install_launcher_steam_artwork' "$MODULE"
 grep -Fq 'set-icon' "$MODULE"
 grep -Fq 'download_launcher_installer' "$MODULE"
 grep -Fq '点击 Install（安装）' "$MODULE"
-grep -Fq '请只在 Steam 库点击“战网启动器”完成官方安装' "$MODULE"
+grep -Fq '请只在 Steam 库点击“${LAUNCHER_NAME}”完成安装' "$MODULE"
 grep -Fq '右侧齿轮 → 属性 → 兼容性' "$MODULE"
 grep -Fq '强制使用兼容性工具' "$MODULE"
 grep -Fq 'Proton 10.0-4' "$MODULE"

@@ -19,6 +19,7 @@ github-api|api.github.com|GitHub 最新正式 Release 元数据|json|仅最新�
 decky|gitee.com,www.mhhf.com,github.com,raw.githubusercontent.com,plugins.deckbrew.xyz,cdn.tzatzikiweeb.moe|Decky Gitee镜像、国内镜像、官方国外源和官方插件|binary,service,json,zip|固定版本或 Decky 官方数据库|SHA256/Decky hash|536870912|Gitee镜像→国内镜像→Decky官方源→停止安装
 flathub|mirror.sjtu.edu.cn,mirrors.ustc.edu.cn,dl.flathub.org|Flatpak 国内缓存与官方源|flatpakrepo,repo|固定远程|Flatpak GPG；国内缓存例外需明确确认|2097152|上海交大→中科大→官方
 vendors|qq-web.cdn-go.cn,im.qq.com,qqdl.gtimg.cn,dldir1v6.qq.com,launcher-public-service-prod06.ol.epicgames.com,epicgames-download1.akamaized.net,downloader.battle.net,static3.cdn.ubi.com|官方应用安装包|json,AppImage,exe,msi|官方当前版或固定版|官方HTTPS+固定路径+类型/大小；固定版另验SHA256|536870912|停止安装
+launcher-preinstalled|gitee.com|战网预装客户端固定镜像|7z|固定版本|SHA256+分卷重组|94371840|停止安装
 steam302|www.dogfight360.com|Steamcommunity 302 固定版本|tar.gz|固定版本|MD5+SHA256+结构检查|536870912|停止安装
 todesk|github.com,dl.todesk.com|ToDesk 官方 Linux 客户端的未修改镜像与官网|deb|固定官方版本|SHA256+DEB/包内结构|268435456|Gitee镜像→GitHub镜像源→官网→停止安装
 EOF
@@ -90,6 +91,7 @@ download_policy_url_allowed() {
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/*) return 0 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/*) return 0 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-2/*) return 0 ;;
+        https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.001|https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.002|https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.003|https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.004) return 0 ;;
         https://dl.todesk.com/linux/todesk-v4.8.6.2-amd64.deb) return 0 ;;
         https://jktool.icu/VERSION|https://jktool.icu/dist/SHA256SUMS|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) return 0 ;;
         https://www.mhhf.com/Deck/decky/*|https://plugins.deckbrew.xyz/plugins|https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/*) return 0 ;;
@@ -117,6 +119,7 @@ download_policy_max_bytes() {
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/mirrors/*/part.*) printf '%s\n' 8388608 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/*/part.*) printf '%s\n' 8388608 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-2/raw/main/*/part.*) printf '%s\n' 8388608 ;;
+        https://gitee.com/easylife2025/battle/releases/download/*) printf '%s\n' 104857600 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/zhoukeer-toolbox.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/zhoukeer-toolbox.tar.gz|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) printf '%s\n' 9437184 ;;
         */VERSION|*/SHA256SUMS|*.json|*.flatpakrepo|*.service|*.txt) printf '%s\n' 2097152 ;;
         *.deb) printf '%s\n' 268435456 ;;

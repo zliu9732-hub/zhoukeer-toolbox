@@ -190,7 +190,7 @@ game_environment_gui_menu() {
             ge-proton "安装 GE 兼容层｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
             tomoon "ToMoon｜网络工具" \
-            battlenet "战网启动器｜首次需在 Steam 兼容性选择 Proton 10.0-4" \
+            battlenet "战网启动器｜自动下载预装客户端并绑定 Proton 10.0-4" \
             ubisoft "育碧｜安装育碧游戏平台并添加到 Steam" \
             decky-install "安装插件商城｜稳定版国内失败自动切换官方源｜可选测试版｜高级操作" \
             home "返回首页" \
@@ -237,8 +237,8 @@ game_environment_gui_menu() {
                 ;;
             battlenet)
                 battlenet_choice="$(gui_dialog --menu "战网安装｜请选择" \
-                    battlenet "战网启动器｜安装并添加到 Steam" \
-                    heihe "黑盒工坊｜魔兽插件管理工具" \
+                    battlenet "战网启动器｜自动下载预装客户端并添加到 Steam" \
+                    heihe "黑盒工坊｜魔兽插件管理工具，自动下载预装客户端并添加到 Steam" \
                     back "返回插件列表")" || continue
                 case "$battlenet_choice" in
                     battlenet)

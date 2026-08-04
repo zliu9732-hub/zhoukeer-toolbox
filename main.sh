@@ -556,16 +556,16 @@ battlenet_submenu() {
 
     while true; do
         draw_category_frame games "战网安装" "战网启动器与黑盒工坊" 0
-        ui_touch_button 5 '\033[1;97;48;5;24m' "战网启动器" "安装并添加到 Steam"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "黑盒工坊" "魔兽插件管理工具"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "战网启动器" "自动下载预装客户端并添加到 Steam"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "黑盒工坊" "魔兽插件管理工具；自动下载预装客户端并添加到 Steam"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回" "返回更多插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:5-6:battlenet right:7-8:heihe right:19-20:back right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
-            battlenet) confirm_and_run "安装战网启动器" "首次请在 Steam 属性→兼容性中强制选择 Proton 10.0-4" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
-            heihe) confirm_and_run "安装黑盒工坊" "魔兽插件管理工具；下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" heihe ;;
+            battlenet) confirm_and_run "安装战网启动器" "自动下载预装客户端并绑定 Proton 10.0-4，写入 Steam 库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
+            heihe) confirm_and_run "安装黑盒工坊" "自动下载预装客户端并绑定 Proton 10.0-4，写入 Steam 库；需要先安装战网启动器" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" heihe ;;
             back) NEXT_CATEGORY="games"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac

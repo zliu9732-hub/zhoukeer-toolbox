@@ -18,6 +18,7 @@ PROTON_10_APP_ID="3658110"
 PROTON_EXPERIMENTAL_APP_ID="1493710"
 PROTON_INSTALL_TIMEOUT="${ZHOUKEER_PROTON_INSTALL_TIMEOUT:-900}"
 PROTON_INSTALL_INTERVAL="${ZHOUKEER_PROTON_INSTALL_INTERVAL:-5}"
+LAUNCHER_PREINSTALLED_BASE="${ZHOUKEER_LAUNCHER_PREINSTALLED_BASE:-https://gitee.com/easylife2025/battle/releases/download/v1.0.0}"
 
 launcher_details() {
     case "$1" in
@@ -41,6 +42,17 @@ launcher_details() {
             LAUNCHER_URL="https://downloader.battle.net/download/getInstallerForGame?os=win&installer=Battle.net-Setup.exe"
             LAUNCHER_FALLBACK_URL=""
             LAUNCHER_FALLBACK_SHA256=""
+            LAUNCHER_PREINSTALLED=1
+            LAUNCHER_PREINSTALLED_FILE="Battle.net.7z"
+            LAUNCHER_PREINSTALLED_PARTS=4
+            LAUNCHER_PREINSTALLED_TARGET_RELATIVE="Battle.net/Battle.net Launcher.exe"
+            LAUNCHER_PREINSTALLED_BYTES=(94371840 94371840 94371840 32192646)
+            LAUNCHER_PREINSTALLED_SHA256=(\
+                61b8d62253f40ec599ab94c1e426c921377154c284f054e0f8854d9d0d99a12c \
+                d6fd711531f29ccc4b73a318e22602f1d6bc0dc64bc71e9283139a1ed9aab99c \
+                c7dc2e0129e345fdff6ddcce23e861e8c9826e33f1feb038213638356903b4c8 \
+                174b546aa6c00f45b02b6eeea3e14820ba6908efb2ad46e2266bc449e315aacc)
+            LAUNCHER_PREINSTALLED_ARCHIVE_SHA256="cedab076e12356eb0b61d47ad9479d66138fef3a3cec7c22d394e41a09413955"
             LAUNCHER_MIN_BYTES=1048576
             LAUNCHER_MAGIC="4d5a"
             LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Battle.net/Battle.net Launcher.exe\nProgram Files (x86)/Battle.net/Battle.net.exe'
@@ -64,9 +76,14 @@ launcher_details() {
             LAUNCHER_GITEE_MIRROR_ID="heihe"
             LAUNCHER_GITEE_MIRROR_SHA256="9e0bce560d8264eb015a020337167f57918babd755d1671c38a49f3cdb05654a"
             LAUNCHER_GITEE_MIRROR_URL="https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/heihe/1.9.51.0/wow_installer_1.9.51.0.exe"
+            LAUNCHER_PREINSTALLED=1
+            LAUNCHER_PREINSTALLED_MIRROR_ID="heihe-preinstalled"
+            LAUNCHER_PREINSTALLED_FILE="heyboxwow.7z"
+            LAUNCHER_PREINSTALLED_TARGET_RELATIVE="Qingfeng/HeyboxWow/heyboxwow.exe"
+            LAUNCHER_PREINSTALLED_ARCHIVE_SHA256="8ef819da7291a7448ca346cc0e058bcf15b7da33dcec9a237b627a08331ede70"
             LAUNCHER_MIN_BYTES=10485760
             LAUNCHER_MAGIC="4d5a"
-            LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Qingfeng/HeyboxWow/HeyboxWow.exe\nProgram Files/Qingfeng/HeyboxWow/HeyboxWow.exe\nProgram Files (x86)/HeyboxWow/HeyboxWow.exe\nProgram Files/HeyboxWow/HeyboxWow.exe\nAppData/Local/Programs/Qingfeng/HeyboxWow/HeyboxWow.exe\nAppData/Local/Programs/HeyboxWow/HeyboxWow.exe\nProgram Files (x86)/黑盒工坊/黑盒工坊.exe\nProgram Files (x86)/HeiHe/HeiHe.exe'
+            LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Qingfeng/HeyboxWow/heyboxwow.exe\nProgram Files (x86)/Qingfeng/HeyboxWow/HeyboxWow.exe\nProgram Files/Qingfeng/HeyboxWow/heyboxwow.exe\nProgram Files/Qingfeng/HeyboxWow/HeyboxWow.exe\nProgram Files (x86)/HeyboxWow/heyboxwow.exe\nProgram Files (x86)/HeyboxWow/HeyboxWow.exe\nProgram Files/HeyboxWow/heyboxwow.exe\nProgram Files/HeyboxWow/HeyboxWow.exe\nAppData/Local/Programs/Qingfeng/HeyboxWow/heyboxwow.exe\nAppData/Local/Programs/Qingfeng/HeyboxWow/HeyboxWow.exe\nAppData/Local/Programs/HeyboxWow/heyboxwow.exe\nAppData/Local/Programs/HeyboxWow/HeyboxWow.exe\nProgram Files (x86)/黑盒工坊/黑盒工坊.exe\nProgram Files (x86)/HeiHe/HeiHe.exe'
             ;;
         *)
             echo "未知启动器: $1"
@@ -182,6 +199,173 @@ download_launcher_installer() {
         rm -f -- "$temporary"
     fi
     echo "$LAUNCHER_NAME 下载响应格式或大小异常。"
+    return 1
+}
+
+download_preinstalled_launcher_parts() {
+    local workdir="$1"
+    local index part_url part_file expected_size expected_sha actual_size actual_sha magic
+    local -a curl_options
+
+    [ "$LAUNCHER_PREINSTALLED_PARTS" -gt 0 ] || {
+        echo "$LAUNCHER_NAME 客户端分卷配置无效。"
+        return 1
+    }
+    mkdir -p "$workdir" || return 1
+    echo "正在下载 $LAUNCHER_NAME 预装客户端..."
+    for index in $(seq 1 "$LAUNCHER_PREINSTALLED_PARTS"); do
+        part_url="$LAUNCHER_PREINSTALLED_BASE/$LAUNCHER_PREINSTALLED_FILE.$(printf '%03d' "$index")"
+        part_file="$workdir/$LAUNCHER_PREINSTALLED_FILE.$(printf '%03d' "$index")"
+        expected_size="${LAUNCHER_PREINSTALLED_BYTES[$((index - 1))]}"
+        expected_sha="${LAUNCHER_PREINSTALLED_SHA256[$((index - 1))]}"
+        download_policy_url_allowed "$part_url" || {
+            echo "$LAUNCHER_NAME 下载地址不在受控来源清单中。"
+            return 1
+        }
+        curl_options=(
+            --fail --location --progress-meter
+            --proto '=https' --proto-redir '=https'
+            --connect-timeout 15 --max-time "$DOWNLOAD_TIMEOUT"
+            --retry 3 --retry-delay 2 --retry-connrefused --retry-all-errors
+            --speed-limit 65536 --speed-time 60
+            --max-filesize "$(download_policy_max_bytes "$part_url")"
+        )
+        if ! curl "${curl_options[@]}" --output "$part_file" "$part_url" \
+            2> >(download_progress_filter "$LAUNCHER_NAME 预装客户端" >&2); then
+            echo "$LAUNCHER_NAME 客户端下载失败，已保留已下载分卷。"
+            return 1
+        fi
+        download_policy_response_is_safe "$part_url" "$part_file" || {
+            echo "$LAUNCHER_NAME 客户端响应异常，已保留已下载分卷。"
+            return 1
+        }
+        actual_size="$(wc -c < "$part_file" | tr -d ' ')"
+        [ "$actual_size" = "$expected_size" ] || {
+            echo "$LAUNCHER_NAME 客户端分卷大小校验失败：${LAUNCHER_PREINSTALLED_FILE}.$(printf '%03d' "$index")"
+            return 1
+        }
+        if [ "$index" -eq 1 ]; then
+            magic="$(od -An -tx1 -N6 "$part_file" | tr -d ' \n')"
+            [ "$magic" = "377abcaf271c" ] || {
+                echo "$LAUNCHER_NAME 客户端分卷格式校验失败：${LAUNCHER_PREINSTALLED_FILE}.001"
+                return 1
+            }
+        fi
+        actual_sha="$(launcher_file_sha256 "$part_file")" || {
+            echo "无法计算 $LAUNCHER_NAME 客户端分卷校验值。"
+            return 1
+        }
+        [ "$actual_sha" = "$expected_sha" ] || {
+            echo "$LAUNCHER_NAME 客户端分卷 SHA256 校验失败：${LAUNCHER_PREINSTALLED_FILE}.$(printf '%03d' "$index")"
+            return 1
+        }
+    done
+    echo "正在重组 $LAUNCHER_NAME 客户端文件..."
+    : > "$workdir/$LAUNCHER_PREINSTALLED_FILE"
+    for index in $(seq 1 "$LAUNCHER_PREINSTALLED_PARTS"); do
+        cat -- "$workdir/$LAUNCHER_PREINSTALLED_FILE.$(printf '%03d' "$index")" \
+            >> "$workdir/$LAUNCHER_PREINSTALLED_FILE" || return 1
+    done
+    [ "$(launcher_file_sha256 "$workdir/$LAUNCHER_PREINSTALLED_FILE")" = "$LAUNCHER_PREINSTALLED_ARCHIVE_SHA256" ] || {
+        echo "$LAUNCHER_NAME 客户端重组后校验失败。"
+        return 1
+    }
+    echo "$LAUNCHER_NAME 预装客户端下载完成。"
+}
+
+download_preinstalled_launcher() {
+    local workdir="$1"
+
+    mkdir -p "$workdir" || return 1
+    if [ -n "${LAUNCHER_PREINSTALLED_MIRROR_ID:-}" ]; then
+        download_gitee_mirror_file "$LAUNCHER_PREINSTALLED_MIRROR_ID" \
+            "$workdir/$LAUNCHER_PREINSTALLED_FILE" \
+            "$LAUNCHER_PREINSTALLED_ARCHIVE_SHA256" "$LAUNCHER_NAME"
+        return
+    fi
+    download_preinstalled_launcher_parts "$workdir"
+}
+
+extract_preinstalled_launcher() {
+    local archive="$1" drive_c="$2"
+    local target_dir target_exe list_file entry
+
+    require_command bsdtar || return 1
+    list_file="$(mktemp)" || return 1
+    if ! LC_ALL=C bsdtar -tf "$archive" < /dev/null > "$list_file" 2>/dev/null; then
+        rm -f -- "$list_file"
+        echo "$LAUNCHER_NAME 客户端压缩包无法读取，可能已损坏。"
+        return 1
+    fi
+    if LC_ALL=C grep -Eq '[[:cntrl:]\\]|^/|^[A-Za-z]:' "$list_file"; then
+        rm -f -- "$list_file"
+        echo "$LAUNCHER_NAME 客户端压缩包路径不安全，已停止安装。"
+        return 1
+    fi
+    while IFS= read -r entry; do
+        case "$entry" in
+            '..'|'../'*|*/'..'|*/'../'*)
+                rm -f -- "$list_file"
+                echo "$LAUNCHER_NAME 客户端压缩包路径越界，已停止安装。"
+                return 1
+                ;;
+        esac
+    done < "$list_file"
+    rm -f -- "$list_file"
+    target_dir="$drive_c/Program Files (x86)"
+    mkdir -p "$target_dir" || return 1
+    if ! bsdtar --no-same-owner --no-same-permissions --no-acls --no-xattrs \
+        --no-fflags -xf "$archive" -C "$target_dir" < /dev/null; then
+        echo "$LAUNCHER_NAME 客户端解压失败，已停止安装。"
+        return 1
+    fi
+    target_exe="$target_dir/$LAUNCHER_PREINSTALLED_TARGET_RELATIVE"
+    [ -f "$target_exe" ] && [ ! -L "$target_exe" ] || {
+        echo "解压后未找到 $LAUNCHER_NAME 主程序。"
+        return 1
+    }
+    if find "$target_dir" -type l -print -quit 2>/dev/null | grep -q .; then
+        echo "$LAUNCHER_NAME 客户端解压产物包含异常链接，已停止安装。"
+        return 1
+    fi
+    return 0
+}
+
+prepare_launcher_shared_prefix() {
+    local target="$1" drive_c="$2"
+    local prefix_dir="$APP_DIR/game-launchers/$target/compatdata"
+
+    mkdir -p "$prefix_dir/pfx" || return 1
+    if [ -L "$prefix_dir/pfx/drive_c" ]; then
+        if [ "$(readlink "$prefix_dir/pfx/drive_c")" = "$drive_c" ]; then
+            printf '%s\n' "$prefix_dir"
+            return 0
+        fi
+        rm -f -- "$prefix_dir/pfx/drive_c" || return 1
+    elif [ -e "$prefix_dir/pfx/drive_c" ]; then
+        rm -rf -- "$prefix_dir/pfx/drive_c" || return 1
+    fi
+    ln -s -- "$drive_c" "$prefix_dir/pfx/drive_c" || return 1
+    printf '%s\n' "$prefix_dir"
+}
+
+find_battle_platform_drive_c() {
+    local steam_root="$1"
+    local battle_drive_c candidate_dir
+
+    battle_drive_c="$APP_DIR/game-launchers/battlenet/drive_c"
+    if [ -d "$battle_drive_c" ] && [ ! -L "$battle_drive_c" ]; then
+        printf '%s\n' "$battle_drive_c"
+        return 0
+    fi
+    for candidate_dir in "$steam_root/steamapps/compatdata"/*/; do
+        [ -d "$candidate_dir" ] || continue
+        candidate_dir="${candidate_dir%/}"
+        if [ -f "$candidate_dir/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net Launcher.exe" ]; then
+            printf '%s\n' "$candidate_dir/pfx/drive_c"
+            return 0
+        fi
+    done
     return 1
 }
 
@@ -329,18 +513,20 @@ find_launcher_in_prefix() {
 
 find_installed_launcher() {
     local steam_root="$1"
-    local relative_path
-    local candidate
+    local relative_path candidate_dir candidate
 
     [ -d "$steam_root/steamapps/compatdata" ] || return 1
     while IFS= read -r relative_path; do
         [ -n "$relative_path" ] || continue
-        candidate="$(find "$steam_root/steamapps/compatdata" -type f \
-            -path "*/pfx/drive_c/$relative_path" -print -quit 2>/dev/null)"
-        if [ -n "$candidate" ]; then
-            printf '%s\n' "$candidate"
-            return 0
-        fi
+        for candidate_dir in "$steam_root/steamapps/compatdata"/*/; do
+            [ -d "$candidate_dir" ] || continue
+            candidate_dir="${candidate_dir%/}"
+            candidate="$candidate_dir/pfx/drive_c/$relative_path"
+            if [ -f "$candidate" ]; then
+                printf '%s\n' "$candidate"
+                return 0
+            fi
+        done
     done <<< "$LAUNCHER_TARGET_RELATIVES"
     return 1
 }
@@ -377,6 +563,7 @@ run_launcher_installer() {
     fi
     case "$target:$install_mode" in
         epic:interactive) echo "弹出 Epic 安装窗口后，点击 Install（安装）；完成后点击 Finish（完成）。" >&2 ;;
+        heihe:interactive) echo "弹出黑盒工坊安装窗口后，点击安装并等待完成即可。" >&2 ;;
         ubisoft:interactive|uplay:interactive) echo "弹出育碧安装窗口后，选择中文并依次点击接受、安装、完成。" >&2 ;;
     esac
 
@@ -404,7 +591,7 @@ run_launcher_installer() {
                 fi
             fi
             ;;
-        heihe|ubisoft|uplay)
+        battlenet|heihe|ubisoft|uplay)
             if [ "$install_mode" = "silent" ]; then
                 STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
                     STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
@@ -535,7 +722,7 @@ ensure_launcher_proton_runner() {
     local steam_root="$2"
     local runner
 
-    if [ "$target" = "battlenet" ]; then
+    if [ "$target" = "battlenet" ] || [ "$target" = "heihe" ]; then
         runner="$(find_proton_10_runner "$steam_root" || true)"
         if [ -n "$runner" ]; then
             printf '%s\n' "$runner"
@@ -780,6 +967,15 @@ install_launcher_artwork_for_id() {
         "$grid_dir/${artwork_id}_hero.png" || return 1
     install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name.png" \
         "$grid_dir/${artwork_id}_logo.png" || return 1
+    background_file="$PROJECT_ROOT/assets/game-launchers/$asset_name-background.jpg"
+    background_ext="jpg"
+    if [ ! -f "$background_file" ]; then
+        background_file="$PROJECT_ROOT/assets/game-launchers/$asset_name-background.png"
+        background_ext="png"
+    fi
+    [ -f "$background_file" ] || return 1
+    install -m 0644 -- "$background_file" \
+        "$grid_dir/${artwork_id}_background.$background_ext" || return 1
 }
 
 apply_launcher_decky_artwork() {
@@ -805,13 +1001,20 @@ set_steam_proton_10() {
         --app-id "$app_id" --tool proton_10 >/dev/null
 }
 
-prepare_battlenet_steam_installer() {
-    local steam_root="$1" installer_file="$2" shortcut_file="$3"
+prepare_launcher_steam_installer() {
+    local target="$1" steam_root="$2" installer_file="$3" shortcut_file="$4"
     local app_id artwork_alt_app_id game_id icon_path
 
-    icon_path="$PROJECT_ROOT/assets/game-launchers/battlenet.png"
+    launcher_details "$target" || return 1
+    case "$target" in
+        battlenet) icon_path="$PROJECT_ROOT/assets/game-launchers/battlenet.png" ;;
+        heihe) icon_path="$PROJECT_ROOT/assets/game-launchers/heihe.png" ;;
+        *) return 1 ;;
+    esac
     stop_steam_for_vdf || return 1
-    remove_pending_battlenet_desktop_shortcut || return 1
+    if [ "$target" = "battlenet" ]; then
+        remove_pending_battlenet_desktop_shortcut || return 1
+    fi
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" add \
         --name "$LAUNCHER_NAME" --exe "$installer_file" --start-dir "$(dirname "$installer_file")" \
         >/dev/null || return 1
@@ -824,21 +1027,30 @@ prepare_battlenet_steam_installer() {
     game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
         --name "$LAUNCHER_NAME" --exe "$installer_file")" || return 1
     set_steam_proton_10 "$steam_root" "$app_id" || return 1
-    install_launcher_steam_artwork battlenet "$shortcut_file" "$app_id" "$artwork_alt_app_id" "$game_id" || return 1
+    install_launcher_steam_artwork "$target" "$shortcut_file" "$app_id" "$artwork_alt_app_id" "$game_id" || return 1
     start_steam
-    apply_launcher_decky_artwork battlenet "$app_id"
-    echo "Steam 正在重新读取战网安装条目，请稍候。"
-    echo "安装阶段不会创建桌面入口，请只在 Steam 库点击“战网启动器”完成官方安装。"
-    echo "Steam 库中请点“战网启动器”右侧齿轮 → 属性 → 兼容性。"
+    apply_launcher_decky_artwork "$target" "$app_id"
+    echo "Steam 正在重新读取 $LAUNCHER_NAME 安装条目，请稍候。"
+    echo "安装阶段不会创建桌面入口，请只在 Steam 库点击“${LAUNCHER_NAME}”完成安装。"
+    echo "Steam 库中请点“${LAUNCHER_NAME}”右侧齿轮 → 属性 → 兼容性。"
     echo "勾选“强制使用兼容性工具”，并选择 Proton 10.0-4 后再启动安装器。"
-    echo "安装完成后，再点击一次工具箱的战网入口即可自动转为正式启动器并创建可用桌面入口。"
+    echo "安装完成后，再点击一次工具箱的 $LAUNCHER_NAME 入口即可自动转为正式启动器并创建可用桌面入口。"
 }
 
-finish_battlenet_steam_entry() {
-    local steam_root="$1" shortcut_file="$2" launcher_exe="$3" prefix_dir="$4" proton_runner="$5"
+prepare_battlenet_steam_installer() {
+    prepare_launcher_steam_installer battlenet "$@"
+}
+
+finish_launcher_steam_entry() {
+    local target="$1" steam_root="$2" shortcut_file="$3" launcher_exe="$4" prefix_dir="$5" proton_runner="$6"
     local launch_options app_id artwork_alt_app_id game_id icon_path wrapper
 
-    icon_path="$PROJECT_ROOT/assets/game-launchers/battlenet.png"
+    launcher_details "$target" || return 1
+    case "$target" in
+        battlenet) icon_path="$PROJECT_ROOT/assets/game-launchers/battlenet.png" ;;
+        heihe) icon_path="$PROJECT_ROOT/assets/game-launchers/heihe.png" ;;
+        *) return 1 ;;
+    esac
     launch_options="STEAM_COMPAT_DATA_PATH=\"$prefix_dir\" %command%"
     stop_steam_for_vdf || return 1
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" add \
@@ -849,7 +1061,9 @@ finish_battlenet_steam_entry() {
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" verify \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe" --icon "$icon_path" \
         --launch-options "$launch_options" >/dev/null || return 1
-    remove_legacy_battlenet_steam_entries "$shortcut_file" "$launcher_exe" || return 1
+    if [ "$target" = "battlenet" ]; then
+        remove_legacy_battlenet_steam_entries "$shortcut_file" "$launcher_exe" || return 1
+    fi
     app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
     artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
@@ -857,26 +1071,34 @@ finish_battlenet_steam_entry() {
     game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
     set_steam_proton_10 "$steam_root" "$app_id" || return 1
-    install_launcher_steam_artwork battlenet "$shortcut_file" "$app_id" "$artwork_alt_app_id" "$game_id" || return 1
+    install_launcher_steam_artwork "$target" "$shortcut_file" "$app_id" "$artwork_alt_app_id" "$game_id" || return 1
     # 部分 Steam 客户端会在桌面 steam://rungameid 链接启动时丢失非 Steam
     # 游戏配置，改用与 Steam 条目同一前缀的包装器，避免“游戏配置文件不可用”。
-    wrapper="$(create_launcher_wrapper battlenet "$steam_root" "$prefix_dir" "$proton_runner" \
-        "$launcher_exe" "$APP_DIR/game-launchers/battlenet" "$app_id" "$game_id")" || return 1
-    create_launcher_desktop_shortcut battlenet "$wrapper" || return 1
-    remove_legacy_battlenet_desktop_installer || return 1
-    start_steam
-    apply_launcher_decky_artwork battlenet "$app_id"
-    if bash "$PROJECT_ROOT/scripts/open_steam_internal_browser.sh" \
-        "https://account.battle.net/login" >/dev/null 2>&1; then
-        echo "已用 Steam 内置浏览器打开战网登录页，完成登录后回战网启动器继续。"
-    else
-        echo "战网登录页：https://account.battle.net/login"
+    wrapper="$(create_launcher_wrapper "$target" "$steam_root" "$prefix_dir" "$proton_runner" \
+        "$launcher_exe" "$APP_DIR/game-launchers/$target" "$app_id" "$game_id")" || return 1
+    create_launcher_desktop_shortcut "$target" "$wrapper" || return 1
+    if [ "$target" = "battlenet" ]; then
+        remove_legacy_battlenet_desktop_installer || return 1
     fi
-    echo "战网启动器已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
+    start_steam
+    apply_launcher_decky_artwork "$target" "$app_id"
+    if [ "$target" = "battlenet" ]; then
+        if bash "$PROJECT_ROOT/scripts/open_steam_internal_browser.sh" \
+            "https://account.battle.net/login" >/dev/null 2>&1; then
+            echo "已用 Steam 内置浏览器打开战网登录页，完成登录后回战网启动器继续。"
+        else
+            echo "战网登录页：https://account.battle.net/login"
+        fi
+    fi
+    echo "$LAUNCHER_NAME 已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
+}
+
+finish_battlenet_steam_entry() {
+    finish_launcher_steam_entry battlenet "$@"
 }
 
 install_launcher() {
-    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file app_id artwork_alt_app_id game_id icon_path
+    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file app_id artwork_alt_app_id game_id icon_path workdir platform_drive_c
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
         echo "游戏启动器安装仅支持真实 SteamOS 环境。"
@@ -890,21 +1112,41 @@ install_launcher() {
     launcher_exe="$(find_launcher_in_prefix "$prefix" || find_installed_launcher "$steam_root" || true)"
     runner="$(ensure_launcher_proton_runner "$target" "$steam_root")" || return 1
 
-    if [ "$target" = "battlenet" ]; then
+    if [ "$target" = "battlenet" ] || [ "$target" = "heihe" ]; then
         shortcut_file="$(find_shortcut_file "$steam_root")" || return 1
         if [ -n "$launcher_exe" ]; then
             echo "检测到已安装的 ${LAUNCHER_NAME}，跳过安装包下载。"
             case "$launcher_exe" in
                 */pfx/drive_c/*) prefix="${launcher_exe%/pfx/drive_c/*}" ;;
-                *) echo "无法确定战网安装环境，已停止写入 Steam 条目。"; return 1 ;;
+                *) echo "无法确定 $LAUNCHER_NAME 安装环境，已停止写入 Steam 条目。"; return 1 ;;
             esac
         else
-            installer_file="$app_dir/$LAUNCHER_FILE_NAME"
-            download_launcher_installer "$installer_file" || return 1
-            prepare_battlenet_steam_installer "$steam_root" "$installer_file" "$shortcut_file"
-            return
+            if [ "$target" = "heihe" ]; then
+                platform_drive_c="$(find_battle_platform_drive_c "$steam_root" || true)"
+                if [ -z "$platform_drive_c" ]; then
+                    echo "未检测到战网启动器，请先安装战网启动器再安装黑盒工坊。"
+                    return 1
+                fi
+            else
+                platform_drive_c="$app_dir/drive_c"
+            fi
+            workdir="$app_dir/.download"
+            if [ "${LAUNCHER_PREINSTALLED:-0}" = "1" ] && \
+                download_preinstalled_launcher "$workdir" && \
+                extract_preinstalled_launcher "$workdir/$LAUNCHER_PREINSTALLED_FILE" "$platform_drive_c"; then
+                rm -rf -- "$workdir"
+                prefix="$(prepare_launcher_shared_prefix "$target" "$platform_drive_c")" || return 1
+                launcher_exe="$prefix/pfx/drive_c/Program Files (x86)/$LAUNCHER_PREINSTALLED_TARGET_RELATIVE"
+            else
+                rm -rf -- "$workdir"
+                echo "$LAUNCHER_NAME 预装客户端不可用，正在回退到 Steam 库安装流程。"
+                installer_file="$app_dir/$LAUNCHER_FILE_NAME"
+                download_launcher_installer "$installer_file" || return 1
+                prepare_launcher_steam_installer "$target" "$steam_root" "$installer_file" "$shortcut_file"
+                return
+            fi
         fi
-        finish_battlenet_steam_entry "$steam_root" "$shortcut_file" "$launcher_exe" "$prefix" "$runner"
+        finish_launcher_steam_entry "$target" "$steam_root" "$shortcut_file" "$launcher_exe" "$prefix" "$runner"
         return
     fi
 
@@ -918,7 +1160,7 @@ install_launcher() {
         installer_file="$app_dir/$LAUNCHER_FILE_NAME"
         download_launcher_installer "$installer_file" || return 1
         case "$target" in
-            epic|heihe|ubisoft|uplay)
+            epic|ubisoft|uplay)
                 launcher_exe="$(run_launcher_installer "$target" "$steam_root" "$installer_file" "$prefix" "$runner" 120 silent || true)"
                 if [ -z "$launcher_exe" ]; then
                     echo "$LAUNCHER_NAME 静默安装未完成，正在回退到官方可见安装窗口。"
