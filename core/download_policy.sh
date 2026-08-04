@@ -91,6 +91,7 @@ download_policy_url_allowed() {
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/*) return 0 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/*) return 0 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-2/*) return 0 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-3/*) return 0 ;;
         https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.001|https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.002|https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.003|https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.004) return 0 ;;
         https://dl.todesk.com/linux/todesk-v4.8.6.2-amd64.deb) return 0 ;;
         https://jktool.icu/VERSION|https://jktool.icu/dist/SHA256SUMS|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) return 0 ;;
@@ -116,9 +117,11 @@ download_policy_max_bytes() {
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/mirrors/*/latest.txt) printf '%s\n' 2097152 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/*/latest.txt) printf '%s\n' 2097152 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-2/raw/main/*/latest.txt) printf '%s\n' 2097152 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-3/raw/main/*/latest.txt) printf '%s\n' 2097152 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/mirrors/*/part.*) printf '%s\n' 8388608 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/*/part.*) printf '%s\n' 8388608 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-2/raw/main/*/part.*) printf '%s\n' 8388608 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-3/raw/main/*/part.*) printf '%s\n' 8388608 ;;
         https://gitee.com/easylife2025/battle/releases/download/*) printf '%s\n' 104857600 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/zhoukeer-toolbox.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/zhoukeer-toolbox.tar.gz|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) printf '%s\n' 9437184 ;;
         */VERSION|*/SHA256SUMS|*.json|*.flatpakrepo|*.service|*.txt) printf '%s\n' 2097152 ;;

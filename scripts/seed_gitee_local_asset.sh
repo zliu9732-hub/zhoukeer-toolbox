@@ -42,6 +42,12 @@ else
     git clone -q "git@gitee.com:${OWNER}/${REPO}.git" "$TMP/mirror"
 fi
 
+# 空仓库默认分支可能是 master，统一切到发布分支再提交推送。
+if ! git -C "$TMP/mirror" rev-parse --verify "refs/heads/$BRANCH" >/dev/null 2>&1; then
+    git -C "$TMP/mirror" checkout -b "$BRANCH" 2>/dev/null || \
+        git -C "$TMP/mirror" symbolic-ref HEAD "refs/heads/$BRANCH"
+fi
+
 rm -rf -- "$TMP/mirror/$id"
 cp -R -- "$MIRROR_SOURCE" "$TMP/mirror/$id"
 git -C "$TMP/mirror" add -- "$id"

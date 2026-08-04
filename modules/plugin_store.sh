@@ -2259,16 +2259,23 @@ install_fsr4_zh_from_gitee() {
         return 0
     fi
 
+    previous_mirror_repo="${GITEE_MIRROR_REPO:-zhoukeer-toolbox-mirror}"
+    GITEE_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
+    export GITEE_MIRROR_REPO
     if install_decky_zip_from_mirror \
-        "FSR4（Decky Framegen）" \
-        "fsr4" \
-        "${DECKY_FSR4_SHA256:-}" \
+        "FSR4（Decky Framegen 汉化完整包）" \
+        "fsr4-zh" \
+        "${DECKY_FSR4_ZH_SHA256:-}" \
         "$FSR4_OFFICIAL_DIRECTORY"; then
+        GITEE_MIRROR_REPO="$previous_mirror_repo"
+        export GITEE_MIRROR_REPO
         install_fsr4_chinese "$reload_after" || return 1
     else
+        GITEE_MIRROR_REPO="$previous_mirror_repo"
+        export GITEE_MIRROR_REPO
         cleanup_decky_tmp
         trap - EXIT INT TERM
-        log "FSR4 Gitee 镜像不可用，切换原版叠加"
+        log "FSR4 Gitee 汉化完整包不可用，切换原版叠加"
         install_configured_plugin fsr4 0 0 || return 1
         install_fsr4_chinese "$reload_after"
         return $?
