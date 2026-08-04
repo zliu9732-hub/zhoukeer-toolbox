@@ -178,6 +178,7 @@ remote_menu() {
 game_environment_gui_menu() {
     local choice
     local decky_choice
+    local battlenet_choice
 
     while true; do
         choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
@@ -235,9 +236,22 @@ game_environment_gui_menu() {
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon
                 ;;
             battlenet)
-                run_gui_action "安装战网启动器并自动入库" \
-                    env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
+                battlenet_choice="$(gui_dialog --menu "战网安装｜请选择" \
+                    battlenet "战网启动器｜安装并添加到 Steam" \
+                    heihe "黑盒工坊｜魔兽插件管理工具" \
+                    back "返回插件列表")" || continue
+                case "$battlenet_choice" in
+                    battlenet)
+                        run_gui_action "安装战网启动器并自动入库" \
+                            env ZHOUKEER_AUTO_CONFIRM=1 \
+                            bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
+                        ;;
+                    heihe)
+                        run_gui_action "安装黑盒工坊并自动入库" \
+                            env ZHOUKEER_AUTO_CONFIRM=1 \
+                            bash "$PROJECT_ROOT/modules/game_launchers.sh" heihe
+                        ;;
+                esac
                 ;;
             ubisoft)
                 run_gui_action "安装育碧并自动入库" \

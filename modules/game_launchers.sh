@@ -55,6 +55,19 @@ launcher_details() {
             LAUNCHER_MAGIC="4d5a"
             LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe\nProgram Files (x86)/Ubisoft/Ubisoft Game Launcher/upc.exe'
             ;;
+        heihe)
+            LAUNCHER_NAME="黑盒工坊"
+            LAUNCHER_FILE_NAME="wow_installer_1.9.51.0.exe"
+            LAUNCHER_URL=""
+            LAUNCHER_FALLBACK_URL=""
+            LAUNCHER_FALLBACK_SHA256=""
+            LAUNCHER_GITEE_MIRROR_ID="heihe"
+            LAUNCHER_GITEE_MIRROR_SHA256="9e0bce560d8264eb015a020337167f57918babd755d1671c38a49f3cdb05654a"
+            LAUNCHER_GITEE_MIRROR_URL="https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/heihe/1.9.51.0/wow_installer_1.9.51.0.exe"
+            LAUNCHER_MIN_BYTES=10485760
+            LAUNCHER_MAGIC="4d5a"
+            LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Qingfeng/HeyboxWow/HeyboxWow.exe\nProgram Files/Qingfeng/HeyboxWow/HeyboxWow.exe\nProgram Files (x86)/HeyboxWow/HeyboxWow.exe\nProgram Files/HeyboxWow/HeyboxWow.exe\nAppData/Local/Programs/Qingfeng/HeyboxWow/HeyboxWow.exe\nAppData/Local/Programs/HeyboxWow/HeyboxWow.exe\nProgram Files (x86)/黑盒工坊/黑盒工坊.exe\nProgram Files (x86)/HeiHe/HeiHe.exe'
+            ;;
         *)
             echo "未知启动器: $1"
             return 1
@@ -391,7 +404,7 @@ run_launcher_installer() {
                 fi
             fi
             ;;
-        ubisoft|uplay)
+        heihe|ubisoft|uplay)
             if [ "$install_mode" = "silent" ]; then
                 STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
                     STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
@@ -606,6 +619,7 @@ create_launcher_desktop_shortcut() {
         epic) name="Epic Games 启动器"; icon="$PROJECT_ROOT/assets/game-launchers/epic.png" ;;
         battlenet) name="战网启动器"; icon="$PROJECT_ROOT/assets/game-launchers/battlenet.png" ;;
         ubisoft|uplay) name="育碧"; icon="$PROJECT_ROOT/assets/game-launchers/ubisoft.png" ;;
+        heihe) name="黑盒工坊"; icon="$PROJECT_ROOT/assets/game-launchers/heihe.png" ;;
         *) return 1 ;;
     esac
     mkdir -p "$HOME/Desktop" || return 1
@@ -707,6 +721,7 @@ install_launcher_steam_artwork() {
         epic) asset_name="epic" ;;
         battlenet) asset_name="battlenet" ;;
         ubisoft|uplay) asset_name="ubisoft" ;;
+        heihe) asset_name="heihe" ;;
         *) return 1 ;;
     esac
     grid_dir="$(dirname "$shortcut_file")/grid"
@@ -903,7 +918,7 @@ install_launcher() {
         installer_file="$app_dir/$LAUNCHER_FILE_NAME"
         download_launcher_installer "$installer_file" || return 1
         case "$target" in
-            epic|ubisoft|uplay)
+            epic|heihe|ubisoft|uplay)
                 launcher_exe="$(run_launcher_installer "$target" "$steam_root" "$installer_file" "$prefix" "$runner" 120 silent || true)"
                 if [ -z "$launcher_exe" ]; then
                     echo "$LAUNCHER_NAME 静默安装未完成，正在回退到官方可见安装窗口。"
@@ -925,6 +940,7 @@ install_launcher() {
         epic) icon_path="$PROJECT_ROOT/assets/game-launchers/epic.png" ;;
         battlenet) icon_path="$PROJECT_ROOT/assets/game-launchers/battlenet.png" ;;
         ubisoft|uplay) icon_path="$PROJECT_ROOT/assets/game-launchers/ubisoft.png" ;;
+        heihe) icon_path="$PROJECT_ROOT/assets/game-launchers/heihe.png" ;;
         *) return 1 ;;
     esac
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" set-icon \
@@ -952,7 +968,7 @@ install_launcher() {
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
-        epic|battlenet|ubisoft|uplay) install_launcher "$1" ;;
+        epic|battlenet|ubisoft|uplay|heihe) install_launcher "$1" ;;
         *) echo "用法: $0 {epic|battlenet|ubisoft}"; exit 1 ;;
     esac
 fi

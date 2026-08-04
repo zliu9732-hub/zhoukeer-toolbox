@@ -541,13 +541,35 @@ plugin_page_2_menu() {
             unifideck) confirm_and_run "安装 Unifideck" "入库第三方平台游戏；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
             epic) confirm_and_run "安装 Epic 游戏启动器" "安装并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
             tomoon) confirm_and_run "安装 ToMoon" "网络工具插件，下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon ;;
-            battlenet) confirm_and_run "安装战网启动器" "首次请在 Steam 属性→兼容性中强制选择 Proton 10.0-4" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
+            battlenet) NEXT_CATEGORY="battlenet_submenu"; return 0 ;;
             ubisoft) confirm_and_run "安装育碧" "自动安装育碧游戏平台、创建桌面入口并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft ;;
             ge-proton) confirm_and_run "安装 GE 兼容层" "安装第三方 GE-Proton 游戏兼容组件" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
             previous) NEXT_CATEGORY="games"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "plugin_page_2" ] || return 0
+    done
+}
+
+battlenet_submenu() {
+    local choice
+
+    while true; do
+        draw_category_frame games "战网安装" "战网启动器与黑盒工坊" 0
+        ui_touch_button 5 '\033[1;97;48;5;24m' "战网启动器" "安装并添加到 Steam"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "黑盒工坊" "魔兽插件管理工具"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回" "返回更多插件"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:5-6:battlenet right:7-8:heihe right:19-20:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            battlenet) confirm_and_run "安装战网启动器" "首次请在 Steam 属性→兼容性中强制选择 Proton 10.0-4" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
+            heihe) confirm_and_run "安装黑盒工坊" "魔兽插件管理工具；下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" heihe ;;
+            back) NEXT_CATEGORY="games"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = "battlenet_submenu" ] || return 0
     done
 }
 
@@ -1147,6 +1169,7 @@ while true; do
         games) game_environment_menu ;;
         decky_loader) decky_loader_menu ;;
         plugin_page_2) plugin_page_2_menu ;;
+        battlenet_submenu) battlenet_submenu ;;
         emulators) emulator_menu ;;
         network|support) support_menu ;;
         advanced) advanced_tools_menu ;;

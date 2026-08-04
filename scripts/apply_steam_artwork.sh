@@ -18,6 +18,7 @@ find_launcher_shortcut_appid() {
         epic) name="Epic Games 启动器" ;;
         battlenet) name="战网启动器" ;;
         ubisoft|uplay) name="育碧" ;;
+        heihe) name="黑盒工坊" ;;
     esac
     if [ -n "${ZHOUKEER_SHORTCUT_FILE:-}" ]; then
         vdf="$ZHOUKEER_SHORTCUT_FILE"
@@ -37,9 +38,9 @@ find_launcher_shortcut_appid() {
 target="${1:-}"
 shift || true
 case "$target" in
-    epic|battlenet|ubisoft|uplay) ;;
+    epic|battlenet|ubisoft|uplay|heihe) ;;
     *)
-        echo "用法: bash scripts/apply_steam_artwork.sh <epic|battlenet|ubisoft> [appid...]"
+        echo "用法: bash scripts/apply_steam_artwork.sh <epic|battlenet|ubisoft|heihe> [appid...]"
         exit 1
         ;;
 esac

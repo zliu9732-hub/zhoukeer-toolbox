@@ -691,6 +691,18 @@ grep -Fq 'https://static3.cdn.ubi.com/orbit/launcher_installer/UbisoftConnectIns
 grep -Fq 'https://downloader.battle.net/download/getInstallerForGame?os=win&installer=Battle.net-Setup.exe' "$MODULE"
 grep -Fq 'run_launcher_installer' "$MODULE"
 grep -Fq 'create_launcher_wrapper' "$MODULE"
+grep -Fq 'LAUNCHER_GITEE_MIRROR_ID="heihe"' "$MODULE" || {
+    echo "FAIL: 黑盒工坊未使用 Gitee 镜像" >&2
+    exit 1
+}
+grep -Fq '9e0bce560d8264eb015a020337167f57918babd755d1671c38a49f3cdb05654a' "$MODULE" || {
+    echo "FAIL: 黑盒工坊安装包缺少固定 SHA256" >&2
+    exit 1
+}
+grep -Fq '黑盒工坊' "$MODULE" || {
+    echo "FAIL: 黑盒工坊目标缺失" >&2
+    exit 1
+}
 grep -Fq '桌面入口、封面与工具箱标识均已设置' "$MODULE"
 grep -Fq '跳过安装包下载' "$MODULE"
 grep -Fq 'find_launcher_in_prefix "$prefix" || find_installed_launcher' "$MODULE"

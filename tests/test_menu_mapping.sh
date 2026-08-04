@@ -90,6 +90,10 @@ assert_not_contains "$official_plugin_names" 'Freedeck' "官方插件最后一�
 touch_plugin_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
 assert_contains "$touch_plugin_page_2" 'right:9-10:tomoon' "插件第二页 ToMoon 坐标错误"
 assert_contains "$touch_plugin_page_2" 'right:19-20:previous' "插件第二页缺少上一页坐标"
+touch_battlenet="$(function_source "$MAIN_FILE" battlenet_submenu)"
+assert_contains "$touch_battlenet" 'right:5-6:battlenet' "战网子菜单缺少战网动作"
+assert_contains "$touch_battlenet" 'right:7-8:heihe' "战网子菜单缺少黑盒工坊坐标"
+assert_contains "$touch_battlenet" 'modules/game_launchers.sh" heihe' "战网子菜单黑盒工坊动作错误"
 touch_emulators="$(function_source "$MAIN_FILE" emulator_menu)"
 for mapping in 'right:5-6:yuzu' 'right:7-8:cemu' 'right:9-10:duckstation' 'right:11-12:pcsx2' 'right:13-14:rpcs3' 'right:15-16:shadps4' 'right:17-18:ppsspp' 'right:19-20:mgba' 'right:21-22:azahar' 'right:23-24:home'; do
     assert_contains "$touch_emulators" "$mapping" "模拟器触控坐标错误：$mapping"
@@ -129,6 +133,7 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_contains "$source_text" 'core/detect.sh" --health' "系统健康检查动作错误：$file"
     assert_contains "$source_text" 'modules/ge_proton.sh" install' "安装 GE 兼容层动作错误：$file"
     assert_contains "$source_text" 'modules/game_launchers.sh" epic' "Epic 动作错误：$file"
+    assert_contains "$source_text" 'modules/game_launchers.sh" heihe' "黑盒工坊动作错误：$file"
     assert_contains "$source_text" 'modules/game_launchers.sh" ubisoft' "Ubisoft Connect 动作错误：$file"
     assert_contains "$source_text" 'modules/emulators.sh"' "模拟器动作错误：$file"
     assert_contains "$source_text" 'modules/plugin_store.sh" tomoon' "ToMoon GitHub Release 动作错误：$file"

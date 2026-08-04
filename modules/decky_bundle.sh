@@ -203,6 +203,7 @@ apply_steam_launcher_artwork_via_decky() {
         epic) asset_name="epic" ;;
         battlenet) asset_name="battlenet" ;;
         ubisoft|uplay) asset_name="ubisoft" ;;
+        heihe) asset_name="heihe" ;;
         *) echo "未知启动器: $target"; return 1 ;;
     esac
     appids_json="[$(IFS=,; printf '%s' "$*")]"
