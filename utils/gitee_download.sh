@@ -283,7 +283,7 @@ download_gitee_mirror_file() {
         fi
     else
         temp_dir="$(mktemp -d 2>/dev/null)" || {
-            echo "$name 无法创建分块目录。"
+            echo "$name 无法创建临时目录。"
             return 1
         }
         GITEE_MIRROR_QUIET=1
@@ -306,7 +306,7 @@ download_gitee_mirror_file() {
                 "$_GITEE_MIRROR_CHUNK_SIZE"; then
                 rm -rf -- "$temp_dir"
                 rm -f -- "$temp_file"
-                echo "$name 镜像分块 $part_name 下载失败，切换备用源。"
+                echo "$name 镜像下载失败，切换备用源。"
                 return 1
             fi
             index=$((index + 1))
@@ -327,7 +327,7 @@ download_gitee_mirror_file() {
     actual_size="$(wc -c < "$temp_file" | tr -d ' ')"
     if [ "$actual_size" != "$_GITEE_MIRROR_SIZE" ]; then
         rm -f -- "$temp_file"
-        echo "$name 镜像重组后大小不一致，切换备用源。"
+        echo "$name 镜像大小校验失败，切换备用源。"
         return 1
     fi
     actual_sha256="$(_gitee_mirror_sha256 "$temp_file")" || {
