@@ -21,7 +21,11 @@ cp "$PROJECT_ROOT/core/download_policy.sh" "$INSTALL_DIR/core/download_policy.sh
 cp "$PROJECT_ROOT/core/source_status.sh" "$INSTALL_DIR/core/source_status.sh"
 grep -Fq 'VERSION_CONNECT_TIMEOUT="${ZHOUKEER_VERSION_CONNECT_TIMEOUT:-8}"' "$INSTALL_DIR/update.sh"
 grep -Fq 'VERSION_MAX_TIME="${ZHOUKEER_VERSION_MAX_TIME:-30}"' "$INSTALL_DIR/update.sh"
-grep -Fq -- '--retry 3' "$INSTALL_DIR/update.sh"
+grep -Fq -- '--retry "$VERSION_RETRIES"' "$INSTALL_DIR/update.sh"
+grep -Fq 'VERSION_CONNECT_TIMEOUT="${ZHOUKEER_STARTUP_VERSION_CONNECT_TIMEOUT:-4}"' "$INSTALL_DIR/update.sh"
+grep -Fq 'VERSION_MAX_TIME="${ZHOUKEER_STARTUP_VERSION_MAX_TIME:-10}"' "$INSTALL_DIR/update.sh"
+grep -Fq 'VERSION_RETRIES="${ZHOUKEER_STARTUP_VERSION_RETRIES:-1}"' "$INSTALL_DIR/update.sh"
+grep -Fq 'ZHOUKEER_STARTUP_VERSION_DEADLINE:-15' "$INSTALL_DIR/update.sh"
 printf '%s\n' '4.0.0' > "$INSTALL_DIR/VERSION"
 
 cat > "$RELEASE_DIR/install.sh" <<'SCRIPT'

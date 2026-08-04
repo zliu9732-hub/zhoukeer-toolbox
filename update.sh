@@ -32,8 +32,16 @@ BRANCH="${ZHOUKEER_BRANCH:-main}"
 # Gitee 首次跳转到国内 CDN 偶尔较慢，不能因一次短暂网络波动立刻改走 GitHub。
 CONNECT_TIMEOUT="${ZHOUKEER_CONNECT_TIMEOUT:-20}"
 MAX_TIME="${ZHOUKEER_MAX_TIME:-600}"
-VERSION_CONNECT_TIMEOUT="${ZHOUKEER_VERSION_CONNECT_TIMEOUT:-8}"
-VERSION_MAX_TIME="${ZHOUKEER_VERSION_MAX_TIME:-30}"
+if [ "$STARTUP_MODE" -eq 1 ]; then
+    # 启动时版本检测只做快速确认，避免已是最新版本时长时间卡在加载界面。
+    VERSION_CONNECT_TIMEOUT="${ZHOUKEER_STARTUP_VERSION_CONNECT_TIMEOUT:-4}"
+    VERSION_MAX_TIME="${ZHOUKEER_STARTUP_VERSION_MAX_TIME:-10}"
+    VERSION_RETRIES="${ZHOUKEER_STARTUP_VERSION_RETRIES:-1}"
+else
+    VERSION_CONNECT_TIMEOUT="${ZHOUKEER_VERSION_CONNECT_TIMEOUT:-8}"
+    VERSION_MAX_TIME="${ZHOUKEER_VERSION_MAX_TIME:-30}"
+    VERSION_RETRIES="${ZHOUKEER_VERSION_RETRIES:-3}"
+fi
 CACHE_BUSTER="${ZHOUKEER_CACHE_BUSTER:-$(date '+%s')-$$}"
 
 GITEE_RAW_BASE="${ZHOUKEER_GITEE_RAW_BASE:-https://gitee.com/$GITEE_OWNER/$REPO_NAME/raw/$BRANCH}"
@@ -127,7 +135,7 @@ download_version_one() {
         --proto-redir '=https' \
         --connect-timeout "$VERSION_CONNECT_TIMEOUT" \
         --max-time "$VERSION_MAX_TIME" \
-        --retry 3 \
+        --retry "$VERSION_RETRIES" \
         --retry-delay 2 \
         --retry-all-errors \
         --max-filesize 2097152 \
@@ -398,9 +406,17 @@ download_version_with_fallback() {
     local output="$1"
     local candidate_file="${output}.candidate"
     local candidate best="" source_url source_label source_name status_key
-    local code_source_reachable=0 local_version="" source
+    local code_source_reachable=0 local_version="" source deadline=0
+
+    if [ "$STARTUP_MODE" -eq 1 ]; then
+        deadline=$((SECONDS + ${ZHOUKEER_STARTUP_VERSION_DEADLINE:-15}))
+    fi
 
     for source in gitee github domain; do
+        if [ "$deadline" -gt 0 ] && [ "$SECONDS" -ge "$deadline" ]; then
+            echo "版本检测超过启动限时，继续使用当前版本。"
+            break
+        fi
         case "$source" in
             gitee) source_url="$GITEE_VERSION_URL"; source_label="国内镜像"; source_name="Gitee"; status_key="update-gitee" ;;
             github) source_url="$GITHUB_VERSION_URL"; source_label="GitHub"; source_name="GitHub"; status_key="update-github" ;;
