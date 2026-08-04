@@ -497,6 +497,17 @@ start_steam() {
     "$steam_bin" >/dev/null 2>&1 &
 }
 
+wait_for_steam_running() {
+    local attempt
+
+    steam_command >/dev/null 2>&1 || return 1
+    for attempt in $(seq 1 30); do
+        steam_is_running && return 0
+        sleep 1
+    done
+    return 1
+}
+
 find_launcher_in_prefix() {
     local prefix_dir="$1"
     local relative_path
@@ -1070,7 +1081,6 @@ finish_launcher_steam_entry() {
         --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
     game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
-    set_steam_proton_10 "$steam_root" "$app_id" || return 1
     install_launcher_steam_artwork "$target" "$shortcut_file" "$app_id" "$artwork_alt_app_id" "$game_id" || return 1
     # 部分 Steam 客户端会在桌面 steam://rungameid 链接启动时丢失非 Steam
     # 游戏配置，改用与 Steam 条目同一前缀的包装器，避免“游戏配置文件不可用”。
@@ -1080,6 +1090,19 @@ finish_launcher_steam_entry() {
     if [ "$target" = "battlenet" ]; then
         remove_legacy_battlenet_desktop_installer || return 1
     fi
+    # 先让 Steam 导入新条目，再写入兼容层映射，避免映射被 Steam 启动时丢弃。
+    if [ "${ZHOUKEER_SKIP_STEAM_RESTART:-0}" != "1" ]; then
+        echo "正在重启 Steam 导入 $LAUNCHER_NAME 条目..."
+        start_steam
+        if wait_for_steam_running; then
+            sleep 5
+            stop_steam_for_vdf || return 1
+        else
+            echo "Steam 未能及时启动，兼容层已直接写入；若未生效请重启 Steam 后重试。"
+        fi
+    fi
+    echo "正在写入 Proton 10.0-4 兼容层..."
+    set_steam_proton_10 "$steam_root" "$app_id" || return 1
     start_steam
     apply_launcher_decky_artwork "$target" "$app_id"
     if [ "$target" = "battlenet" ]; then
