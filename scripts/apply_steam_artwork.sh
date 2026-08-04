@@ -43,7 +43,7 @@ find_launcher_shortcut_appid() {
 }
 
 verify_launcher_artwork() {
-    local target="$1" name vdf app_id signed_app_id game_id grid_dir artwork missing token
+    local target="$1" name vdf app_id signed_app_id game_id grid_dir artwork missing token decky_tab
 
     case "$target" in
         epic) name="Epic Games 启动器" ;;
@@ -87,6 +87,11 @@ verify_launcher_artwork() {
         "$DECKY_API_BASE/auth/token" 2>/dev/null || true)"
     if [ -n "$token" ]; then
         echo "Decky Loader: 运行中"
+        if decky_tab="$(find_decky_app_tab "$token" "$app_id" "$DECKY_API_BASE" 10)"; then
+            echo "Steam 库上下文: $decky_tab"
+        else
+            echo "Steam 库上下文: 未找到（请切换到游戏模式/Big Picture 后重试）"
+        fi
     else
         echo "Decky Loader: 未检测到"
     fi
@@ -96,6 +101,14 @@ verify_launcher_artwork() {
 target="${1:-}"
 shift || true
 case "$target" in
+    compat)
+        [ "$#" -gt 0 ] || {
+            echo "用法: bash scripts/apply_steam_artwork.sh compat <appid>"
+            exit 1
+        }
+        apply_steam_compat_via_decky "$1"
+        exit $?
+        ;;
     verify)
         target="${1:-}"
         shift || true
@@ -112,6 +125,8 @@ case "$target" in
     epic|battlenet|ubisoft|uplay|heihe) ;;
     *)
         echo "用法: bash scripts/apply_steam_artwork.sh <epic|battlenet|ubisoft|heihe> [appid...]"
+        echo "      bash scripts/apply_steam_artwork.sh verify <epic|battlenet|ubisoft|heihe>"
+        echo "      bash scripts/apply_steam_artwork.sh compat <appid>"
         exit 1
         ;;
 esac

@@ -86,14 +86,33 @@ def handle_connection(conn: socket.socket) -> None:
             conn.close()
             return
         message = json.loads(payload.decode("utf-8"))
+        tab = message["args"][0]
         code = message["args"][2]
-        match = re.search(r'const m="([^"]+)"', code)
-        marker = match.group(1) if match else "unknown-marker"
+        if "probe:" in code:
+            ids = [3041426322, -1253540974, 2638177698, -1656789598]
+            entries = [
+                {
+                    "id": item,
+                    "found": tab == "Steam",
+                    "name": "战网启动器" if item == 3041426322 else (
+                        "黑盒工坊" if item == 2638177698 else None
+                    ),
+                    "compat": None,
+                }
+                for item in ids
+            ]
+            result_text = "probe:" + json.dumps(entries, ensure_ascii=False)
+        elif "zhoukeer-compat" in code:
+            result_text = "zhoukeer-compat-ok"
+        else:
+            match = re.search(r'const m="([^"]+)"', code)
+            marker = match.group(1) if match else "unknown-marker"
+            result_text = marker + ":ok:1"
         reply = json.dumps(
             {
                 "type": 1,
                 "id": message["id"],
-                "result": {"success": True, "result": marker + ":ok:1"},
+                "result": {"success": True, "result": result_text},
             },
             separators=(",", ":"),
         )

@@ -45,6 +45,9 @@ def main() -> int:
         "await SteamClient.Apps.SetCustomArtworkForApp(appId,b64,\"png\","
         + str(asset_type)
         + ");"
+        "if(SteamClient.Apps.ReportLibraryAssetCacheMiss){try{SteamClient.Apps.ReportLibraryAssetCacheMiss(appId,"
+        + str(asset_type)
+        + ");}catch(e){}}"
         "if("
         + str(asset_type)
         + "===2){try{const ov=window.appStore&&window.appStore.GetAppOverviewByAppID?.(appId);if(ov&&window.appDetailsStore)await window.appDetailsStore.SaveCustomLogoPosition(ov,{pinnedPosition:\"BottomLeft\",nWidthPct:50,nHeightPct:50});}catch(e){}}"

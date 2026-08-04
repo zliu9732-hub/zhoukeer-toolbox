@@ -1039,12 +1039,10 @@ prepare_launcher_steam_installer() {
         --name "$LAUNCHER_NAME" --exe "$installer_file")" || return 1
     set_steam_proton_10 "$steam_root" "$app_id" || return 1
     install_launcher_steam_artwork "$target" "$shortcut_file" "$app_id" "$artwork_alt_app_id" "$game_id" || return 1
-    start_steam
-    apply_launcher_decky_artwork "$target" "$app_id"
-    echo "Steam 正在重新读取 $LAUNCHER_NAME 安装条目，请稍候。"
+    echo "Steam 已停止，安装条目、兼容层和封面已写入文件。"
+    echo "请手动启动 Steam（桌面模式打开 Steam，或重启进入游戏模式），再在库中点击“${LAUNCHER_NAME}”完成安装。"
     echo "安装阶段不会创建桌面入口，请只在 Steam 库点击“${LAUNCHER_NAME}”完成安装。"
-    echo "Steam 库中请点“${LAUNCHER_NAME}”右侧齿轮 → 属性 → 兼容性。"
-    echo "勾选“强制使用兼容性工具”，并选择 Proton 10.0-4 后再启动安装器。"
+    echo "如兼容层未自动勾选，请点“${LAUNCHER_NAME}”右侧齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”并选择 Proton 10.0-4。"
     echo "安装完成后，再点击一次工具箱的 $LAUNCHER_NAME 入口即可自动转为正式启动器并创建可用桌面入口。"
 }
 
@@ -1089,28 +1087,12 @@ finish_launcher_steam_entry() {
     if [ "$target" = "battlenet" ]; then
         remove_legacy_battlenet_desktop_installer || return 1
     fi
-    # 先让 Steam 导入新条目，再写入兼容层映射，避免映射被 Steam 启动时丢弃。
-    if [ "${ZHOUKEER_SKIP_STEAM_RESTART:-0}" != "1" ]; then
-        echo "正在重启 Steam 导入 $LAUNCHER_NAME 条目..."
-        start_steam
-        if wait_for_steam_running; then
-            sleep 5
-            stop_steam_for_vdf || return 1
-        else
-            echo "Steam 未能及时启动，兼容层已直接写入；若未生效请重启 Steam 后重试。"
-        fi
-    fi
     echo "正在写入 Proton 10.0-4 兼容层..."
     set_steam_proton_10 "$steam_root" "$app_id" || return 1
-    start_steam
-    apply_launcher_decky_artwork "$target" "$app_id"
+    echo "Steam 已停止，正式条目、兼容层和封面已写入文件。"
+    echo "请手动启动 Steam（桌面模式打开 Steam，或重启进入游戏模式）后确认兼容层和封面。"
     if [ "$target" = "battlenet" ]; then
-        if bash "$PROJECT_ROOT/scripts/open_steam_internal_browser.sh" \
-            "https://account.battle.net/login" >/dev/null 2>&1; then
-            echo "已用 Steam 内置浏览器打开战网登录页，完成登录后回战网启动器继续。"
-        else
-            echo "战网登录页：https://account.battle.net/login"
-        fi
+        echo "战网登录页：https://account.battle.net/login"
     fi
     echo "$LAUNCHER_NAME 已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
 }
@@ -1221,8 +1203,8 @@ install_launcher() {
     game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
         --name "$LAUNCHER_NAME" --exe "$wrapper")" || return 1
     install_launcher_steam_artwork "$target" "$shortcut_file" "$app_id" "$artwork_alt_app_id" "$game_id" || return 1
-    start_steam
-    apply_launcher_decky_artwork "$target" "$app_id"
+    echo "Steam 已停止，Steam 条目与封面已写入文件。"
+    echo "请手动启动 Steam（桌面模式打开 Steam，或重启进入游戏模式）后查看。"
     echo "$LAUNCHER_NAME 已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
     if [ "$target" = "epic" ]; then
         echo "Epic 改中文：右上角头像 → Settings → Language → 中文（简体）→ Restart Now。"

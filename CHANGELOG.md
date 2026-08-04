@@ -1,3 +1,11 @@
+## V1.2.7 封面与兼容层改为自动定位 Steam 界面上下文 — 2026-08-05
+
+- 新增 Decky tab 探测：先找到 Steam 能识别该快捷方式 appid 的界面上下文，再执行封面与兼容层操作，避免在 SharedJSContext 中空跑成功。
+- 兼容层自动启用改为优先调用 Steam 官方 `SteamClient.Apps.SpecifyCompatTool`，保留 config.vdf 写入回退。
+- 封面写入后调用 `ReportLibraryAssetCacheMiss` 刷新 Steam 库缓存。
+- `verify` 命令新增 Steam 库上下文检测，找不到可用上下文时会明确提示切换到游戏模式/Big Picture。
+- 启动器入库核心流程不再依赖 Decky/插件商城：写入 shortcuts.vdf、config.vdf 和 grid 封面后保持 Steam 停止，由用户手动启动 Steam 或重启 Deck 读取，避免 Steam 退出时覆盖配置。
+
 ## V1.2.6 修复非 Steam 启动器封面即时应用 — 2026-08-05
 
 - Decky 封面调用优先走 WebSocket `utilities/execute_in_tab`，兼容新版 Decky，同时保留旧版 HTTP 回退。

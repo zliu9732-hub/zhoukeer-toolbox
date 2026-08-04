@@ -192,6 +192,22 @@ call_decky_execute_in_tab() {
     return 1
 }
 
+find_decky_app_tab() {
+    local token="$1" appids="$2" base_url="$3" max_time="$4"
+    local tab status
+
+    while IFS=$'\t' read -r tab status _ _; do
+        [ "$status" = "true" ] || continue
+        printf '%s\n' "$tab"
+        return 0
+    done < <(python3 "$PROJECT_ROOT/scripts/decky_probe.py" \
+        --token "$token" \
+        --appids "$appids" \
+        --base-url "$base_url" \
+        --timeout "$max_time" 2>/dev/null || true)
+    return 1
+}
+
 build_steam_artwork_javascript() {
     local marker="$1" appids_json="$2" asset_type="$3" base64_data="$4"
 
@@ -202,15 +218,70 @@ build_steam_artwork_javascript() {
         "let ok=0;for(const appId of ids){" \
         "if(SteamClient.Apps.ClearCustomArtworkForApp){try{await SteamClient.Apps.ClearCustomArtworkForApp(appId,$asset_type);}catch(e){}await new Promise(x=>setTimeout(x,300));}" \
         "await SteamClient.Apps.SetCustomArtworkForApp(appId,b64,\"png\",$asset_type);" \
+        "if(SteamClient.Apps.ReportLibraryAssetCacheMiss){try{SteamClient.Apps.ReportLibraryAssetCacheMiss(appId,$asset_type);}catch(e){}}" \
         "if($asset_type===2){try{const ov=window.appStore&&window.appStore.GetAppOverviewByAppID?.(appId);if(ov&&window.appDetailsStore)await window.appDetailsStore.SaveCustomLogoPosition(ov,{pinnedPosition:\"BottomLeft\",nWidthPct:50,nHeightPct:50});}catch(e){}}" \
         "ok++;}return m+\":ok:\"+ok;" \
         "}catch(e){console.error(\"zkeer-artwork:\",e);return m+\":failed:\"+String(e&&e.message||e);}})()"
 }
 
+build_steam_compat_javascript() {
+    local app_id="$1"
+
+    printf '%s\n' \
+        "(async function(){try{SteamClient.Apps.SpecifyCompatTool($app_id,\"proton_10\");return \"zhoukeer-compat-ok\";}catch(e){return \"zhoukeer-compat-fail:\"+String(e&&e.message||e);}})()"
+}
+
+apply_steam_compat_via_decky() {
+    local app_id="$1"
+    local token decky_tab code payload_file response
+    local DECKY_EXECUTE_TIMEOUT="${DECKY_ARTWORK_TIMEOUT:-12}"
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
+        echo "Decky 兼容层设置仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    [ -n "$app_id" ] || {
+        echo "缺少 Steam 快捷方式 appid。"
+        return 1
+    }
+    require_command curl || return 1
+    command -v python3 >/dev/null 2>&1 || return 1
+    token="$(curl \
+        --fail \
+        --silent \
+        --connect-timeout 3 \
+        --max-time 10 \
+        "$DECKY_API_BASE/auth/token" 2>/dev/null || true)"
+    if [ -z "$token" ]; then
+        echo "未检测到运行中的 Decky Loader。"
+        return 1
+    fi
+    decky_tab="$(find_decky_app_tab "$token" "$app_id" "$DECKY_API_BASE" "$DECKY_EXECUTE_TIMEOUT")" || {
+        echo "未找到能识别该快捷方式的 Steam 界面上下文，请切换游戏模式后重试。"
+        return 1
+    }
+    code="$(build_steam_compat_javascript "$app_id")"
+    payload_file="$(mktemp 2>/dev/null)" || return 1
+    printf '{"tab":%s,"run_async":true,"code":%s}\n' \
+        "$(json_quote "$decky_tab")" "$(json_quote "$code")" > "$payload_file"
+    if response="$(call_decky_execute_in_tab "$token" "$payload_file" \
+        "$DECKY_API_BASE" "zhoukeer-compat" "$DECKY_EXECUTE_TIMEOUT")"; then
+        rm -f -- "$payload_file"
+        if [[ "$response" == *"zhoukeer-compat-ok"* ]]; then
+            echo "已通过 Steam 界面启用 Proton 10.0-4 兼容层。"
+            return 0
+        fi
+        return 1
+    fi
+    rm -f -- "$payload_file"
+    return 1
+}
+
 apply_steam_launcher_artwork_via_decky() {
     local target="$1"
     shift
-    local asset_name appids_json token marker
+    local asset_name appids_json appids_csv decky_tab token marker
     local entry type file_suffix asset_type file
     local DECKY_EXECUTE_TIMEOUT="${DECKY_ARTWORK_TIMEOUT:-12}"
     local payload_file tab payload_response artwork_ok failure_detail
@@ -237,6 +308,7 @@ apply_steam_launcher_artwork_via_decky() {
         *) echo "未知启动器: $target"; return 1 ;;
     esac
     appids_json="[$(IFS=,; printf '%s' "$*")]"
+    appids_csv="$(IFS=,; printf '%s' "$*")"
 
     token="$(curl \
         --fail \
@@ -248,6 +320,7 @@ apply_steam_launcher_artwork_via_decky() {
         echo "未检测到运行中的 Decky Loader，无法即时应用 Steam 库封面。"
         return 1
     fi
+    decky_tab="$(find_decky_app_tab "$token" "$appids_csv" "$DECKY_API_BASE" "$DECKY_EXECUTE_TIMEOUT")" || true
 
     for entry in "header:-grid.png:3" "capsule:-portrait.png:0" "hero:-hero.png:1" "logo:.png:2"; do
         type="${entry%%:*}"
@@ -262,7 +335,7 @@ apply_steam_launcher_artwork_via_decky() {
             return 1
         }
         artwork_ok=0
-        for tab in "SharedJSContext" "Steam Shared Context presented by Valve™" "Steam" "SP"; do
+        for tab in ${decky_tab:+"$decky_tab"} "SharedJSContext" "Steam Shared Context presented by Valve™" "Steam" "SP"; do
             if ! python3 "$PROJECT_ROOT/scripts/build_steam_artwork_payload.py" \
                 "$marker" "$appids_json" "$asset_type" "$file" "$tab" > "$payload_file"; then
                 continue

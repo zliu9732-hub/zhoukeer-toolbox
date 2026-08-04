@@ -68,6 +68,12 @@ output="$(apply_steam_launcher_artwork_via_decky epic 2503252332)"
 printf '%s\n' "$output" | grep -Fq '已通过 Decky 即时应用' || \
     FAIL "Decky 旧版 HTTP 回退未确认成功"
 
+# 兼容层走 Steam 官方接口，并在可识别该 appid 的 tab 中执行。
+DECKY_API_BASE="http://127.0.0.1:$(tr -d '\r\n' < "$WS_PORT_FILE")"
+compat_output="$(apply_steam_compat_via_decky 2503252332)"
+printf '%s\n' "$compat_output" | grep -Fq '已通过 Steam 界面启用' || \
+    FAIL "Decky 兼容层设置未确认成功"
+
 SHORTCUTS="$TMP_ROOT/shortcuts.vdf"
 python3 "$PROJECT_ROOT/scripts/steam_shortcut.py" --shortcut-file "$SHORTCUTS" add \
     --name "Epic Games 启动器" --exe "$TMP_ROOT/launch-epic.sh" \
