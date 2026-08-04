@@ -91,7 +91,7 @@ test_blank_config_migration() {
     assert_value "$config_file" DECKY_SERVICE_SHA256 \
         "64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1"
     assert_value "$config_file" DECKY_FSR4_SHA256 \
-        "236dc5aef5c908d905a848d7e448689634479ab61cd9184154ba8a725b3f2089"
+        "3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f"
     assert_value "$config_file" DECKY_CHEATDECK_SHA256 \
         "83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
     assert_value "$config_file" DECKY_TOMOON_SHA256 \
@@ -129,7 +129,7 @@ test_chinese_plugin_hashes_migrated() {
     cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
     sed -i.bak \
         -e 's/11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277/9eed12dc0bb0ca1967e57d55c230e6522c9b8c70d1b8337929d5ec0066c2a4cd/' \
-        -e 's/467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e/4b9c8939028919e8bcb76c37c75b9dfc2e84d4fd1d2534521606dc70f0789ad0/' \
+        -e 's/d1ea98f0d9b81dc65a48b061db1ba45501c880693c1c15909b86137f788772cf/4b9c8939028919e8bcb76c37c75b9dfc2e84d4fd1d2534521606dc70f0789ad0/' \
         "$config_file"
 
     run_installer "$case_root/home" "$install_dir"
@@ -137,7 +137,7 @@ test_chinese_plugin_hashes_migrated() {
     assert_value "$config_file" DECKY_LSFG_ZH_SHA256 \
         "11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"
     assert_value "$config_file" DECKY_FSR4_ZH_SHA256 \
-        "467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e"
+        "d1ea98f0d9b81dc65a48b061db1ba45501c880693c1c15909b86137f788772cf"
 }
 
 test_chinese_plugin_v504_hashes_migrated() {
@@ -149,7 +149,7 @@ test_chinese_plugin_v504_hashes_migrated() {
     cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
     sed -i.bak \
         -e 's/11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277/d1dbe2cdc83cdf846a12fb2a33e96f8a08e52fd5b05e0305c05c82c288b9c0d4/' \
-        -e 's/467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e/09148bd445abb713278151f3a9e142f5bb8227704163b8f272e41c44e0e71d50/' \
+        -e 's/d1ea98f0d9b81dc65a48b061db1ba45501c880693c1c15909b86137f788772cf/09148bd445abb713278151f3a9e142f5bb8227704163b8f272e41c44e0e71d50/' \
         "$config_file"
 
     run_installer "$case_root/home" "$install_dir"
@@ -157,7 +157,7 @@ test_chinese_plugin_v504_hashes_migrated() {
     assert_value "$config_file" DECKY_LSFG_ZH_SHA256 \
         "11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"
     assert_value "$config_file" DECKY_FSR4_ZH_SHA256 \
-        "467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e"
+        "d1ea98f0d9b81dc65a48b061db1ba45501c880693c1c15909b86137f788772cf"
 }
 
 test_retired_freedeck_url_migrated() {

@@ -482,20 +482,20 @@ copy_lsfg_chinese() {
 }
 
 copy_fsr4_chinese() {
-    local source_dir="$SOURCE_ROOT/third_party/decky-framegen-zh-v0.15.6"
+    local source_dir="$SOURCE_ROOT/third_party/decky-framegen-zh-v0.17"
     local relative_file
 
     # 只携带 Decky 运行 FSR4 中文界面所需的已构建文件、后端与默认资源。
     for relative_file in plugin.json package.json LICENSE main.py; do
         if [ -f "$source_dir/$relative_file" ]; then
             copy_file "$source_dir/$relative_file" \
-                "$STAGING_DIR/third_party/decky-framegen-zh-v0.15.6/$relative_file"
+                "$STAGING_DIR/third_party/decky-framegen-zh-v0.17/$relative_file"
         fi
     done
     copy_file "$source_dir/dist/index.js" \
-        "$STAGING_DIR/third_party/decky-framegen-zh-v0.15.6/dist/index.js"
-    copy_dir_files third_party/decky-framegen-zh-v0.15.6/dist/assets
-    copy_dir_files third_party/decky-framegen-zh-v0.15.6/defaults
+        "$STAGING_DIR/third_party/decky-framegen-zh-v0.17/dist/index.js"
+    copy_dir_files third_party/decky-framegen-zh-v0.17/dist/assets
+    copy_dir_files third_party/decky-framegen-zh-v0.17/defaults
 }
 
 remove_appledouble_files() {

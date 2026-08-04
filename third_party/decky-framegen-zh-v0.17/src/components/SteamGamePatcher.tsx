@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ButtonItem, DropdownItem, Field, PanelSectionRow } from "@decky/ui";
 import { toaster } from "@decky/api";
 import { listInstalledGames, getGameStatus, patchGame, unpatchGame } from "../api";
+import { FSR4_VARIANT_OPTIONS } from "../utils/constants";
 
 // ─── SteamClient helpers ─────────────────────────────────────────────────────
 
@@ -17,7 +18,7 @@ const getAppLaunchOptions = (appId: number): Promise<string> =>
       if (settled) return;
       settled = true;
       unregister();
-      reject(new Error("Timed out reading launch options."));
+      reject(new Error("读取启动选项超时。"));
     }, 5000);
     const registration = SteamClient.Apps.RegisterForAppDetails(
       appId,
@@ -142,6 +143,11 @@ export function SteamGamePatcher({ dllName, fsr4Variant }: SteamGamePatcherProps
     [games, selectedAppId]
   );
 
+  const selectedVariantLabel = useMemo(
+    () => FSR4_VARIANT_OPTIONS.find((option) => option.value === fsr4Variant)?.label ?? fsr4Variant,
+    [fsr4Variant]
+  );
+
   const isPatchedWithDifferentDll =
     gameStatus?.patched && gameStatus?.dll_name && gameStatus.dll_name !== dllName;
 
@@ -233,7 +239,7 @@ export function SteamGamePatcher({ dllName, fsr4Variant }: SteamGamePatcherProps
           layout="below"
           label="Steam 游戏"
           menuLabel="选择 Steam 游戏"
-          strDefaultLabel={gamesLoading ? "正在读取游戏…" : "选择游戏"}
+          strDefaultLabel={gamesLoading ? "正在读取游戏列表…" : "选择游戏"}
           disabled={gamesLoading || games.length === 0}
           selectedOption={selectedAppId}
           rgOptions={games.map((g) => ({
@@ -267,9 +273,7 @@ export function SteamGamePatcher({ dllName, fsr4Variant }: SteamGamePatcherProps
             <Field {...focusableFieldProps} label="FSR4 运行库">
               {gameStatus?.patched
                 ? (gameStatus?.fsr4_variant_label || "未知")
-                : (fsr4Variant === "rdna4-native"
-                    ? "将使用原生组件 / RDNA4 修补"
-                    : "将使用 Steam Deck / RDNA2-3 优化版修补")}
+                : `将使用 ${selectedVariantLabel} 修补`}
             </Field>
           </PanelSectionRow>
 
@@ -286,7 +290,7 @@ export function SteamGamePatcher({ dllName, fsr4Variant }: SteamGamePatcherProps
                 disabled={busyAction !== null}
                 onClick={handleUnpatch}
               >
-                {busyAction === "unpatch" ? "正在撤销修补…" : "撤销修补此游戏"}
+                {busyAction === "unpatch" ? "正在撤销…" : "撤销此游戏修补"}
               </ButtonItem>
             </PanelSectionRow>
           )}

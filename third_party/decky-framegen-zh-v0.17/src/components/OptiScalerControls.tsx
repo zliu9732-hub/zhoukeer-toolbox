@@ -100,7 +100,7 @@ export function OptiScalerControls({ pathExists, setPathExists, fgmodInfo }: Opt
       setSwitchingVariant(true);
       const result = await setDefaultFsr4Variant(nextVariant);
       if (result.status !== "success") {
-        throw new Error(result.message || result.output || "Failed to switch default FSR4 runtime.");
+        throw new Error(result.message || result.output || "切换默认 FSR4 运行库失败。");
       }
       setFsr4Variant(result.selected_default_variant || nextVariant);
       setFsr4VariantTouched(false);

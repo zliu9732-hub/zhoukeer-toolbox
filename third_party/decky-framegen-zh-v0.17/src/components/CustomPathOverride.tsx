@@ -53,9 +53,9 @@ const INITIAL_PICKER_STATE: PickerState = {
 const formatResultMessage = (result: ApiResponse | null) => {
   if (!result) return null;
   if (result.status === "success") {
-    return result.message || result.output || "Operation completed successfully.";
+    return result.message || result.output || "操作已完成。";
   }
-  return result.message || result.output || "Operation failed.";
+  return result.message || result.output || "操作失败。";
 };
 
 export const ManualPatchControls = ({ isAvailable, onManualModeChange, dllName, fsr4Variant }: ManualPatchControlsProps) => {
@@ -169,7 +169,7 @@ export const ManualPatchControls = ({ isAvailable, onManualModeChange, dllName, 
           action === "patch"
             ? await runManualPatch(selectedPath, dllName, fsr4Variant)
             : await runManualUnpatch(selectedPath);
-        setOperationResult(response ?? { status: "error", message: "No response from backend." });
+        setOperationResult(response ?? { status: "error", message: "后端无响应。" });
       } catch (err) {
         setOperationResult({
           status: "error",
@@ -231,7 +231,7 @@ export const ManualPatchControls = ({ isAvailable, onManualModeChange, dllName, 
               onClick={openDirectoryPicker}
               description="选择游戏安装目录（EXE 文件所在位置）。"
             >
-              Select directory
+              选择目录
             </ButtonItem>
           </PanelSectionRow>
 

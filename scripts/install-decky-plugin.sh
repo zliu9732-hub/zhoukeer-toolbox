@@ -23,8 +23,8 @@ case "$PLUGIN_ID" in
         ;;
     framegen)
         PLUGIN_NAME="Decky-Framegen（FSR4）"
-        PLUGIN_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip"
-        PLUGIN_SHA256="236dc5aef5c908d905a848d7e448689634479ab61cd9184154ba8a725b3f2089"
+        PLUGIN_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip"
+        PLUGIN_SHA256="3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f"
         PLUGIN_MIRROR_ID="fsr4"
         PLUGIN_DIRECTORY="Decky-Framegen"
         PLUGIN_AUTHOR="xXJSONDeruloXx"

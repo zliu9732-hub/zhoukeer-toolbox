@@ -16,7 +16,7 @@
 | Freedeck | Freedeck 插件 | https://github.com/panyiwei-home/Freedeck | BSD-3-Clause | 是 | LICENSE 文件为 BSD-3 文本 |
 | SimpleDeckyTDP | SimpleDeckyTDP 插件 | https://github.com/aarron-lee/SimpleDeckyTDP | BSD-3-Clause | 是 | |
 | 小黄鸭汉化完整包 | LSFG 汉化包 | https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/tag/v6.0.9 | 同 Decky LSFG-VK（BSD-3-Clause） | 否（既有仓库归档） | 汉化包已在 Gitee 仓库归档中，不重复分块镜像 |
-| FSR4 汉化完整包 | FSR4 汉化包 | https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/tag/v6.0.9 | 同 Decky-Framegen（BSD-3-Clause） | 否（既有仓库归档） | 汉化包已在 Gitee 仓库归档中，不重复分块镜像 |
+| FSR4 汉化完整包 | FSR4 汉化包 | https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/tag/v6.0.10 | 同 Decky-Framegen（BSD-3-Clause） | 否（既有仓库归档） | 汉化包已在 Gitee 仓库归档中，不重复分块镜像 |
 | RustDesk | RustDesk AppImage | https://github.com/rustdesk/rustdesk | AGPL-3.0 | 否（官方源） | AppImage 走作者 GitHub Release，用户可另行提供安装包 |
 | GE-Proton | Steam 兼容层 | https://github.com/GloriousEggroll/proton-ge-custom | Proton 顶层 BSD-3-Clause，组件各自许可 | 是 | 镜像包含上游 LICENSE.proton 说明 |
 | ToDesk | ToDesk 官方安装包 | https://www.todesk.com/ | 专有软件 | 是 | 维护者确认仅用于非商业装机工具，保持官方包原样并保留官网回退 |

@@ -47,12 +47,12 @@ export const STYLES = {
 
 // Proxy DLL name options for OptiScaler injection
 export const PROXY_DLL_OPTIONS = [
-  { value: "dxgi.dll", label: "dxgi.dll（默认）", hint: "适用于大多数 DX12 游戏。" },
-  { value: "winmm.dll", label: "winmm.dll", hint: "当 dxgi.dll 与游戏已有文件冲突时使用。" },
-  { value: "version.dll", label: "version.dll", hint: "常用备用项，适配许多启动器。" },
-  { value: "dbghelp.dll", label: "dbghelp.dll", hint: "用于调试辅助挂钩路径。" },
-  { value: "winhttp.dll", label: "winhttp.dll", hint: "其他 DLL 名称冲突时使用。" },
-  { value: "wininet.dll", label: "wininet.dll", hint: "其他 DLL 名称冲突时使用。" },
+  { value: "dxgi.dll",       label: "dxgi.dll（默认）", hint: "适用于大多数 DX12 游戏。" },
+  { value: "winmm.dll",      label: "winmm.dll",      hint: "当 dxgi.dll 与游戏已有文件冲突时使用。" },
+  { value: "version.dll",    label: "version.dll",    hint: "常用备用项，适配许多启动器。" },
+  { value: "dbghelp.dll",    label: "dbghelp.dll",    hint: "用于调试辅助挂钩路径。" },
+  { value: "winhttp.dll",    label: "winhttp.dll",    hint: "其他 DLL 名称冲突时使用。" },
+  { value: "wininet.dll",    label: "wininet.dll",    hint: "其他 DLL 名称冲突时使用。" },
   { value: "OptiScaler.asi", label: "OptiScaler.asi", hint: "用于 ASI 加载器；游戏需已安装 ASI 加载器。" },
 ] as const;
 
@@ -62,13 +62,23 @@ export const DEFAULT_PROXY_DLL: ProxyDllValue = "dxgi.dll";
 export const FSR4_VARIANT_OPTIONS = [
   {
     value: "rdna23-int8",
-    label: "Steam Deck / RDNA2-3 优化版",
-    hint: "使用内置 FSR4 INT8 4.0.2c，推荐 Steam Deck 与其他非 RDNA4 设备。",
+    label: "4.0.2c | RDNA2/3 兼容",
+    hint: "较旧的兼容运行库，适用于 RDNA2/3；多数情况下 RDNA2 请使用 Valve 4.1.1 线路，或使用常规 4.1.1 驱动覆盖。",
   },
   {
     value: "rdna4-native",
-    label: "原生组件 / RDNA4",
-    hint: "使用 OptiScaler 0.9.2a 组件内附的 amd_fidelityfx_upscaler_dx12.dll。",
+    label: "4.1.1 | FFX 2.3 SDK",
+    hint: "使用 OptiScaler 0.9.4 内置的 FSR4.1.1 SDK 超分器。官方 FSR4 支持 RDNA4（FP8）和 RDNA3 桌面显卡（INT8）。",
+  },
+  {
+    value: "rdna34-official-411",
+    label: "4.1.1 | 驱动覆盖",
+    hint: "使用最终内置的 FSR4.1.1 SDK 超分器，并单独附带 4.1.1 amdxcffx64.dll 驱动覆盖。",
+  },
+  {
+    value: "rdna2-valve-411-pre10",
+    label: "4.1.1 | Valve RDNA2 兼容",
+    hint: "使用最终内置的 FSR4.1.1 SDK 超分器与现有 pre10 注入器、Valve 4.1.1 amdxcffx64.dll、amdxc64.dll 以及 RDNA2 专属 INI 覆盖。",
   },
 ] as const;
 

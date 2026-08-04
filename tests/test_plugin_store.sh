@@ -91,14 +91,14 @@ if grep -Fq 'https://www.mhhf.com/Deck/install.sh' "$PROJECT_ROOT/modules/plugin
 fi
 grep -Fq 'DECKY_LSFG_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"' \
     "$PROJECT_ROOT/config/settings.example.conf"
-grep -Fq 'DECKY_FSR4_SHA256="236dc5aef5c908d905a848d7e448689634479ab61cd9184154ba8a725b3f2089"' \
+grep -Fq 'DECKY_FSR4_SHA256="3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f"' \
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"' \
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"' \
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'Decky-Framegen/releases/download/v0.15.6/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CheatDeck/releases/download/v1.2.1/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.3/DeckRecall.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -139,11 +139,11 @@ grep -Fq '04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62' \
 grep -Fq '"freedeck-plugin"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'releases/download/v6.0.9/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'releases/download/v6.0.9/Decky-Framegen-FSR4-v0.15.6.zip' \
+grep -Fq 'releases/download/v6.0.10/Decky-Framegen-FSR4-v0.17.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_LSFG_ZH_SHA256="11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'DECKY_FSR4_ZH_SHA256="467e755f97c6ce1949f44980228490636d731d6f5451dc38553d1dd8b1d5609e"' \
+grep -Fq 'DECKY_FSR4_ZH_SHA256="d1ea98f0d9b81dc65a48b061db1ba45501c880693c1c15909b86137f788772cf"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_github_file "$url" "$output" "$expected_sha256" "$name"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -222,7 +222,7 @@ grep -Fq 'decky_plugin_store_is_installed()' "$PROJECT_ROOT/modules/plugin_store
 grep -Fq '未检测到插件商城，先安装插件商城。' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_lsfg_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'FSR4_RUNTIME_ARCHIVE="Optiscaler_0.9.2a-final.20260517._Reup.7z"' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'FSR4_RUNTIME_ARCHIVE="Optiscaler_0.9.4-final.20260718._MM.7z"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'FSR4 运行核心缺失' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'cp -a -- "$official_bin_dir" "$staged_source/bin"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'cp -a -- "$official_assets_dir" "$staged_source/assets"' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -241,17 +241,17 @@ grep -Fq '中文汉化：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）'
 grep -Fq '"name": "小黄鸭"' \
     "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/plugin.json"
 grep -Fq '"name": "Decky-Framegen(FSR4)"' \
-    "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/plugin.json"
+    "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17/plugin.json"
 grep -Fq 'Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）' \
-    "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/plugin.json"
+    "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17/plugin.json"
 grep -Fq 'Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化' \
-    "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/src/components/OptiScalerControls.tsx"
-[ "$(grep -Fc 'Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化' "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/src/components/OptiScalerControls.tsx")" -ge 2 ] || {
+    "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17/src/components/OptiScalerControls.tsx"
+[ "$(grep -Fc 'Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化' "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17/src/components/OptiScalerControls.tsx")" -ge 2 ] || {
     echo "FAIL: FSR4 插件打开后缺少单独可见的汉化署名" >&2
     exit 1
 }
-fsr4_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.15.6/dist/index.js" | awk '{print $1}')"
-[ "$fsr4_actual_sha256" = "01519badd302e88a1b2f34be750bc371f7e9a76191fd4f69f9eb131761f886db" ] || {
+fsr4_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17/dist/index.js" | awk '{print $1}')"
+[ "$fsr4_actual_sha256" = "b1e2820aeb31fdb6f63a3ae622c04a49951b582e44b3225781ea2211bddb7814" ] || {
     echo "FAIL: FSR4 中文构建文件校验值不匹配" >&2
     exit 1
 }
@@ -304,12 +304,12 @@ done
 printf '{"name":"Decky LSFG-VK"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
 printf '{"version":"0.12.5"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
 printf '{ "name": "Decky-Framegen" }\n' > "$PLUGIN_ROOT/Decky-Framegen/plugin.json"
-printf '{"version":"0.15.6"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
+printf '{"version":"0.17"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
 printf '{"name": "CheatDeck"}\n' > "$PLUGIN_ROOT/CheatDeck/plugin.json"
 status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
     bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"
 printf '%s\n' "$status_output" | grep -Fq '✓ 小黄鸭（LSFG-VK）：已写入 Decky'
-printf '%s\n' "$status_output" | grep -Fq '✓ FSR4（Decky-Framegen）：已写入 Decky，官方版本 0.15.6'
+printf '%s\n' "$status_output" | grep -Fq '✓ FSR4（Decky-Framegen）：已写入 Decky，官方版本 0.17'
 printf '%s\n' "$status_output" | grep -Fq '✓ CheatDeck：已写入 Decky'
 
 printf '{"name":"小黄鸭"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
@@ -328,14 +328,14 @@ printf '%s\n' "$stale_status_output" | \
     grep -Fq '检测到版本 0.12.1，请更新到 0.12.5'
 
 printf '{"version":"0.12.5"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
-printf '{"version":"0.15.5"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
+printf '{"version":"0.16.9"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
 if stale_fsr4_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
     bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"; then
-    echo "FAIL: 旧版 FSR4 不应被识别为官方 0.15.6" >&2
+    echo "FAIL: 旧版 FSR4 不应被识别为官方 0.17" >&2
     exit 1
 fi
 printf '%s\n' "$stale_fsr4_status_output" | \
-    grep -Fq '检测到版本 0.15.5，请更新到 0.15.6'
+    grep -Fq '检测到版本 0.16.9，请更新到 0.17'
 
 # 整组安装必须把同名旧版送入更新流程，不能只凭名称和目录跳过。
 printf '{"version":"0.12.1"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
@@ -365,6 +365,6 @@ update_output="$(
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: LSFG'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: FSR4'
 printf '%s\n' "$update_output" | grep -Fq '官方版本 0.12.5'
-printf '%s\n' "$update_output" | grep -Fq '官方版本 0.15.6'
+printf '%s\n' "$update_output" | grep -Fq '官方版本 0.17'
 
 echo "PASS: Decky国内源、独立功能插件和完整清单配置检查通过"

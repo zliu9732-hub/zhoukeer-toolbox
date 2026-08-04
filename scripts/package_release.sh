@@ -12,7 +12,7 @@ VERSIONED_PACKAGE_NAME="zhoukeer-toolbox-$VERSION.tar.gz"
 VERSIONED_PACKAGE_PATH="$DIST_DIR/$VERSIONED_PACKAGE_NAME"
 SHA256SUMS_PATH="$DIST_DIR/SHA256SUMS"
 MAX_GITEE_RAW_PACKAGE_BYTES=9437184
-VERIFY_FILES="VERSION THIRD_PARTY_LICENSES.md main.sh launch.sh install.sh update.sh bootstrap.sh modules/software.sh modules/domestic_source.sh modules/new_machine.sh modules/network.sh modules/diagnostics.sh modules/preflight.sh modules/settings_backup.sh modules/steam_accelerator.sh modules/steam302_root_start.sh modules/plugin_store.sh modules/game_launchers.sh modules/emulators.sh modules/ge_proton.sh modules/todesk.sh modules/memory_tuning.sh modules/dual_system.sh modules/dual_system_tools.sh scripts/steam_shortcut.py scripts/steam_compat.py scripts/install-decky-plugin.sh scripts/apply_steam_artwork.sh scripts/build_steam_artwork_payload.py scripts/open_steam_internal_browser.sh scripts/mirror_gitee_assets.sh core/gui.sh core/platform.sh core/download_policy.sh core/source_status.sh assets/icon.png assets/icon-round.png assets/icon-toolbox-deck.png assets/background.jpg assets/welcome.jpg assets/emulators/yuzu.png assets/emulators/cemu.png assets/emulators/duckstation.png assets/emulators/pcsx2.png assets/emulators/rpcs3.png assets/emulators/shadps4.png assets/game-launchers/epic.png assets/game-launchers/epic-grid.jpg assets/game-launchers/epic-grid.png assets/game-launchers/epic-portrait.jpg assets/game-launchers/epic-portrait.png assets/game-launchers/epic-hero.jpg assets/game-launchers/epic-hero.png assets/game-launchers/epic-background.jpg assets/game-launchers/battlenet.png assets/game-launchers/battlenet-grid.jpg assets/game-launchers/battlenet-grid.png assets/game-launchers/battlenet-portrait.jpg assets/game-launchers/battlenet-portrait.png assets/game-launchers/battlenet-hero.jpg assets/game-launchers/battlenet-hero.png assets/game-launchers/battlenet-background.jpg assets/game-launchers/ubisoft.png assets/game-launchers/ubisoft-grid.jpg assets/game-launchers/ubisoft-grid.png assets/game-launchers/ubisoft-portrait.jpg assets/game-launchers/ubisoft-portrait.png assets/game-launchers/ubisoft-hero.jpg assets/game-launchers/ubisoft-hero.png assets/game-launchers/ubisoft-background.jpg assets/game-launchers/heihe.png assets/game-launchers/heihe-grid.png assets/game-launchers/heihe-portrait.png assets/game-launchers/heihe-hero.png assets/game-launchers/heihe-background.png third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js third_party/decky-framegen-zh-v0.15.6/dist/index.js utils/github_download.sh utils/gitee_download.sh"
+VERIFY_FILES="VERSION THIRD_PARTY_LICENSES.md main.sh launch.sh install.sh update.sh bootstrap.sh modules/software.sh modules/domestic_source.sh modules/new_machine.sh modules/network.sh modules/diagnostics.sh modules/preflight.sh modules/settings_backup.sh modules/steam_accelerator.sh modules/steam302_root_start.sh modules/plugin_store.sh modules/game_launchers.sh modules/emulators.sh modules/ge_proton.sh modules/todesk.sh modules/memory_tuning.sh modules/dual_system.sh modules/dual_system_tools.sh scripts/steam_shortcut.py scripts/steam_compat.py scripts/install-decky-plugin.sh scripts/apply_steam_artwork.sh scripts/build_steam_artwork_payload.py scripts/open_steam_internal_browser.sh scripts/mirror_gitee_assets.sh core/gui.sh core/platform.sh core/download_policy.sh core/source_status.sh assets/icon.png assets/icon-round.png assets/icon-toolbox-deck.png assets/background.jpg assets/welcome.jpg assets/emulators/yuzu.png assets/emulators/cemu.png assets/emulators/duckstation.png assets/emulators/pcsx2.png assets/emulators/rpcs3.png assets/emulators/shadps4.png assets/game-launchers/epic.png assets/game-launchers/epic-grid.jpg assets/game-launchers/epic-grid.png assets/game-launchers/epic-portrait.jpg assets/game-launchers/epic-portrait.png assets/game-launchers/epic-hero.jpg assets/game-launchers/epic-hero.png assets/game-launchers/epic-background.jpg assets/game-launchers/battlenet.png assets/game-launchers/battlenet-grid.jpg assets/game-launchers/battlenet-grid.png assets/game-launchers/battlenet-portrait.jpg assets/game-launchers/battlenet-portrait.png assets/game-launchers/battlenet-hero.jpg assets/game-launchers/battlenet-hero.png assets/game-launchers/battlenet-background.jpg assets/game-launchers/ubisoft.png assets/game-launchers/ubisoft-grid.jpg assets/game-launchers/ubisoft-grid.png assets/game-launchers/ubisoft-portrait.jpg assets/game-launchers/ubisoft-portrait.png assets/game-launchers/ubisoft-hero.jpg assets/game-launchers/ubisoft-hero.png assets/game-launchers/ubisoft-background.jpg assets/game-launchers/heihe.png assets/game-launchers/heihe-grid.png assets/game-launchers/heihe-portrait.png assets/game-launchers/heihe-hero.png assets/game-launchers/heihe-background.png third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js third_party/decky-framegen-zh-v0.17/dist/index.js utils/github_download.sh utils/gitee_download.sh"
 PACKAGE_SOURCES=()
 
 mkdir -p "$DIST_DIR"
@@ -27,15 +27,15 @@ while IFS= read -r -d '' source_path; do
         third_party/decky-lsfg-vk-zh-v0.12.5/dist/*.map) continue ;;
         # FSR4 的 TypeScript 源码仅用于开发；安装器只会使用下列运行文件。
         # 不把整套源码塞进自更新包，避免 Gitee 对大文件原始下载返回 403。
-        third_party/decky-framegen-zh-v0.15.6/*)
+        third_party/decky-framegen-zh-v0.17/*)
             case "$source_path" in
-                third_party/decky-framegen-zh-v0.15.6/plugin.json|\
-                third_party/decky-framegen-zh-v0.15.6/package.json|\
-                third_party/decky-framegen-zh-v0.15.6/LICENSE|\
-                third_party/decky-framegen-zh-v0.15.6/main.py|\
-                third_party/decky-framegen-zh-v0.15.6/dist/assets/*|\
-                third_party/decky-framegen-zh-v0.15.6/dist/index.js|\
-                third_party/decky-framegen-zh-v0.15.6/defaults/*) ;;
+                third_party/decky-framegen-zh-v0.17/plugin.json|\
+                third_party/decky-framegen-zh-v0.17/package.json|\
+                third_party/decky-framegen-zh-v0.17/LICENSE|\
+                third_party/decky-framegen-zh-v0.17/main.py|\
+                third_party/decky-framegen-zh-v0.17/dist/assets/*|\
+                third_party/decky-framegen-zh-v0.17/dist/index.js|\
+                third_party/decky-framegen-zh-v0.17/defaults/*) ;;
                 *) continue ;;
             esac
             ;;

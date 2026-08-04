@@ -10,15 +10,39 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 OPTISCALER_ARCHIVE_ASSET = {
-    "name": "Optiscaler_0.9.2a-final.20260517._Reup.7z",
-    "sha256": "6426a16085f6128c810e0de58947029664439afd0567b6a286c0e3ef784a92a1",
-    "version": "0.9.2a-final.20260517._Reup",
+    "name": "Optiscaler_0.9.4-final.20260718._MM.7z",
+    "sha256": "575cb4df866116093df75af607e37fd70e10f5163e0f23fd5c804142e80ef0ad",
+    "version": "0.9.4-final.20260718",
 }
 
 FSR4_INT8_ASSET = {
     "name": "amd_fidelityfx_upscaler_dx12.dll",
     "sha256": "c7720bc16bede334f59a1a32cd22edbcbbb159685ed5240e61350a5fb0bc8a94",
     "version": "4.0.2c",
+}
+
+FSR4_OFFICIAL_411_ASSET = {
+    "name": "amdxcffx64.dll",
+    "sha256": "a2b136b6affd35a49b141a936be935f7d5ddc8d8f9b8c9afbe62ff9ddb2538a0",
+    "version": "4.1.1-official",
+}
+
+FSR4_VALVE_411_ASSET = {
+    "name": "amdxcffx64_valve_2.3.0.2913.dll",
+    "sha256": "4e7dc37aebea3a90e3d3cc43e24cb2b54176b2535315f20dbe63b3b7cfc56b1e",
+    "version": "4.1.1-valve-2.3.0.2913",
+}
+
+AMDXC64_RDNA2_ASSET = {
+    "name": "amdxc64.dll",
+    "sha256": "a0a0af61d475e30a70966b3459f3793df772faf8f26ae3261d10554ff592cbd5",
+    "version": "8.18.10.0474",
+}
+
+OPTISCALER_PRE10_ASSET = {
+    "name": "OptiScaler_0.10.0-pre1.20260622_135940.dll",
+    "sha256": "b374b19081cc066365d0c6da4808d768e16469b0cbdfc478b6e95999947d5364",
+    "version": "0.10.0-pre1.20260622_135940",
 }
 
 OPTIPATCHER_ASSET = {
@@ -28,33 +52,87 @@ OPTIPATCHER_ASSET = {
 }
 
 FSR4_UPSCALER_FILENAME = "amd_fidelityfx_upscaler_dx12.dll"
+FSR4_DRIVER_OVERRIDE_FILENAME = "amdxcffx64.dll"
 INSTALL_MANIFEST_FILENAME = "install-manifest.json"
 VERSION_FILENAME = "version.txt"
 DEFAULT_FSR4_VARIANT = "rdna23-int8"
 
 FSR4_VARIANTS = {
     "rdna23-int8": {
-        "label": "Steam Deck / RDNA2-3 optimized",
+        "label": "4.0.2c / RDNA2-3 compatibility",
         "dir_name": "fsr4-rdna2-3",
         "sha256": "c7720bc16bede334f59a1a32cd22edbcbbb159685ed5240e61350a5fb0bc8a94",
         "source_asset_name": FSR4_INT8_ASSET["name"],
         "source_version": FSR4_INT8_ASSET["version"],
         "uses_archive_native": False,
+        "extra_files": [],
     },
     "rdna4-native": {
-        "label": "Native bundle / RDNA4",
+        "label": "4.1.1 SDK / RDNA3 dGPU + RDNA4",
         "dir_name": "fsr4-rdna4",
-        "sha256": "ec7ed3ca674e288240e6f04b986342aece47454c41d9b0959449e82e22bd7f6d",
+        "sha256": "d0dcccc74a43c44ba435b7a369b456e0970d8a4464e4bd683119b374f2c9fb46",
         "source_asset_name": OPTISCALER_ARCHIVE_ASSET["name"],
         "source_version": OPTISCALER_ARCHIVE_ASSET["version"],
         "uses_archive_native": True,
+        "extra_files": [],
+    },
+    "rdna34-official-411": {
+        "label": "4.1.1 driver override / RDNA3-4",
+        "dir_name": "fsr4-rdna3-4-official-411",
+        "sha256": "d0dcccc74a43c44ba435b7a369b456e0970d8a4464e4bd683119b374f2c9fb46",
+        "source_asset_name": OPTISCALER_ARCHIVE_ASSET["name"],
+        "source_version": OPTISCALER_ARCHIVE_ASSET["version"],
+        "uses_archive_native": True,
+        "extra_files": [
+            {
+                "name": FSR4_DRIVER_OVERRIDE_FILENAME,
+                "sha256": FSR4_OFFICIAL_411_ASSET["sha256"],
+                "source_asset_name": FSR4_OFFICIAL_411_ASSET["name"],
+                "source_version": FSR4_OFFICIAL_411_ASSET["version"],
+            }
+        ],
+        "config_overrides": {},
+    },
+    "rdna2-valve-411-pre10": {
+        "label": "4.1.1 Valve RDNA2 compatibility",
+        "dir_name": "fsr4-rdna2-valve-411-pre10",
+        "sha256": "d0dcccc74a43c44ba435b7a369b456e0970d8a4464e4bd683119b374f2c9fb46",
+        "source_asset_name": OPTISCALER_ARCHIVE_ASSET["name"],
+        "source_version": OPTISCALER_ARCHIVE_ASSET["version"],
+        "uses_archive_native": True,
+        "injector": {
+            "name": "OptiScaler.dll",
+            "sha256": OPTISCALER_PRE10_ASSET["sha256"],
+            "source_asset_name": OPTISCALER_PRE10_ASSET["name"],
+            "source_version": OPTISCALER_PRE10_ASSET["version"],
+        },
+        "extra_files": [
+            {
+                "name": FSR4_DRIVER_OVERRIDE_FILENAME,
+                "sha256": FSR4_VALVE_411_ASSET["sha256"],
+                "source_asset_name": FSR4_VALVE_411_ASSET["name"],
+                "source_version": FSR4_VALVE_411_ASSET["version"],
+            },
+            {
+                "name": "amdxc64.dll",
+                "sha256": AMDXC64_RDNA2_ASSET["sha256"],
+                "source_asset_name": AMDXC64_RDNA2_ASSET["name"],
+                "source_version": AMDXC64_RDNA2_ASSET["version"],
+            }
+        ],
+        "config_overrides": {
+            "FSR.Fsr4ForceModel": "2",
+            "Plugins.LoadCustomAmdxc64OnRdna2": "true",
+        },
     },
 }
-FSR4_VARIANT_BY_SHA256 = {
-    variant["sha256"].lower(): variant_id
-    for variant_id, variant in FSR4_VARIANTS.items()
-    if variant.get("sha256")
-}
+VARIANT_EXTRA_FILENAMES = sorted(
+    {
+        extra_file["name"]
+        for variant in FSR4_VARIANTS.values()
+        for extra_file in variant.get("extra_files", [])
+    }
+)
 
 PROXY_DLL_BACKUPS = [
     "dxgi.dll",
@@ -79,6 +157,7 @@ INJECTOR_FILENAMES = [
 
 PATCH_CLEANUP_FILES = [
     *INJECTOR_FILENAMES,
+    *VARIANT_EXTRA_FILENAMES,
     "nvapi64.dll",
     "nvapi64.dll.b",
     "nvngx.ini",
@@ -103,6 +182,8 @@ ORIGINAL_DLL_BACKUPS = [
     "amd_fidelityfx_dx12.dll",
     "amd_fidelityfx_framegeneration_dx12.dll",
     FSR4_UPSCALER_FILENAME,
+    FSR4_DRIVER_OVERRIDE_FILENAME,
+    "amdxc64.dll",
     "amd_fidelityfx_vk.dll",
 ]
 
@@ -332,9 +413,131 @@ class Plugin:
     def _fsr4_variant_info(self, fsr4_variant: str | None) -> dict:
         return FSR4_VARIANTS[self._normalize_fsr4_variant(fsr4_variant)]
 
-    def _fsr4_variant_path(self, fgmod_path: Path, fsr4_variant: str | None) -> Path:
+    def _fsr4_variant_dir(self, fgmod_path: Path, fsr4_variant: str | None) -> Path:
         variant_id = self._normalize_fsr4_variant(fsr4_variant)
-        return fgmod_path / FSR4_VARIANTS[variant_id]["dir_name"] / FSR4_UPSCALER_FILENAME
+        return fgmod_path / FSR4_VARIANTS[variant_id]["dir_name"]
+
+    def _fsr4_variant_path(self, fgmod_path: Path, fsr4_variant: str | None) -> Path:
+        return self._fsr4_variant_dir(fgmod_path, fsr4_variant) / FSR4_UPSCALER_FILENAME
+
+    def _fsr4_variant_extra_files(self, fsr4_variant: str | None) -> list[dict]:
+        variant = self._fsr4_variant_info(fsr4_variant)
+        return list(variant.get("extra_files") or [])
+
+    def _fsr4_variant_extra_file_path(self, fgmod_path: Path, fsr4_variant: str | None, filename: str) -> Path:
+        return self._fsr4_variant_dir(fgmod_path, fsr4_variant) / filename
+
+    def _fsr4_variant_injector_info(self, fsr4_variant: str | None) -> dict | None:
+        variant = self._fsr4_variant_info(fsr4_variant)
+        injector = variant.get("injector")
+        return injector if isinstance(injector, dict) else None
+
+    def _fsr4_variant_injector_path(self, fgmod_path: Path, fsr4_variant: str | None) -> Path | None:
+        injector = self._fsr4_variant_injector_info(fsr4_variant)
+        if not injector:
+            return None
+        return self._fsr4_variant_dir(fgmod_path, fsr4_variant) / injector.get("name", "OptiScaler.dll")
+
+    def _fsr4_variant_renamed_proxy_path(self, fgmod_path: Path, fsr4_variant: str | None, dll_name: str) -> Path | None:
+        if not self._fsr4_variant_injector_info(fsr4_variant):
+            return None
+        return self._fsr4_variant_dir(fgmod_path, fsr4_variant) / "renames" / dll_name
+
+    def _fsr4_variant_config_overrides(self, fsr4_variant: str | None) -> dict:
+        variant = self._fsr4_variant_info(fsr4_variant)
+        overrides = variant.get("config_overrides") or {}
+        return dict(overrides) if isinstance(overrides, dict) else {}
+
+    def _split_ini_override_key(self, raw_key: str) -> tuple[str | None, str]:
+        key = str(raw_key).strip()
+        if "." in key:
+            section, section_key = key.split(".", 1)
+            section = section.strip()
+            section_key = section_key.strip()
+            if section and section_key:
+                return section, section_key
+        return None, key
+
+    def _apply_optiscaler_ini_overrides(self, ini_file: Path, overrides: dict) -> bool:
+        if not overrides:
+            return True
+        try:
+            content = ini_file.read_text(encoding="utf-8", errors="replace")
+            newline = "\r\n" if "\r\n" in content else "\n"
+            lines = content.splitlines(keepends=True)
+            section_pattern = re.compile(r"^\s*\[(?P<section>[^\]]+)\]\s*$")
+
+            def ensure_trailing_newline() -> None:
+                if lines and not lines[-1].endswith(("\n", "\r")):
+                    lines[-1] += newline
+
+            def upsert(section: str | None, key: str, value: str) -> None:
+                replacement = f"{key}={value}"
+                key_pattern = re.compile(rf"^(\s*{re.escape(key)}\s*)=.*$")
+
+                if section is None:
+                    for idx, line in enumerate(lines):
+                        if key_pattern.match(line):
+                            line_ending = "\r\n" if line.endswith("\r\n") else ("\n" if line.endswith("\n") else newline)
+                            lines[idx] = f"{replacement}{line_ending}"
+                            return
+                    ensure_trailing_newline()
+                    lines.append(f"{replacement}{newline}")
+                    return
+
+                in_section = False
+                insert_at = None
+                for idx, line in enumerate(lines):
+                    match = section_pattern.match(line.strip())
+                    if match:
+                        if in_section:
+                            insert_at = idx
+                            break
+                        if match.group("section") == section:
+                            in_section = True
+                            continue
+                    if in_section and key_pattern.match(line):
+                        line_ending = "\r\n" if line.endswith("\r\n") else ("\n" if line.endswith("\n") else newline)
+                        lines[idx] = f"{replacement}{line_ending}"
+                        return
+
+                if in_section:
+                    if insert_at is None:
+                        ensure_trailing_newline()
+                        insert_at = len(lines)
+                    lines.insert(insert_at, f"{replacement}{newline}")
+                    return
+
+                ensure_trailing_newline()
+                if lines and lines[-1].strip():
+                    lines.append(newline)
+                lines.append(f"[{section}]{newline}")
+                lines.append(f"{replacement}{newline}")
+
+            for raw_key, raw_value in overrides.items():
+                section, key = self._split_ini_override_key(str(raw_key))
+                value = str(raw_value).strip()
+                if key:
+                    upsert(section, key, value)
+
+            ini_file.write_text("".join(lines), encoding="utf-8")
+            return True
+        except Exception as exc:
+            decky.logger.error(f"Failed to apply OptiScaler.ini overrides to {ini_file}: {exc}")
+            return False
+
+    def _sync_variant_root_extra_files(self, fgmod_path: Path, fsr4_variant: str | None) -> None:
+        selected_extra_files = {extra_file["name"]: extra_file for extra_file in self._fsr4_variant_extra_files(fsr4_variant)}
+        for filename in VARIANT_EXTRA_FILENAMES:
+            root_path = fgmod_path / filename
+            if filename not in selected_extra_files:
+                if root_path.exists():
+                    root_path.unlink()
+                continue
+            source_path = self._fsr4_variant_extra_file_path(fgmod_path, fsr4_variant, filename)
+            if not source_path.exists():
+                raise FileNotFoundError(f"Prepared FSR4 variant extra file missing: {source_path}")
+            shutil.copy2(source_path, root_path)
 
     def _activate_default_fsr4_variant(self, fgmod_path: Path, fsr4_variant: str | None) -> str:
         variant_id = self._normalize_fsr4_variant(fsr4_variant)
@@ -342,12 +545,34 @@ class Plugin:
         if not variant_path.exists():
             raise FileNotFoundError(f"Prepared FSR4 variant missing: {variant_path}")
         shutil.copy2(variant_path, fgmod_path / FSR4_UPSCALER_FILENAME)
+        self._sync_variant_root_extra_files(fgmod_path, variant_id)
         return variant_id
 
-    def _detect_fsr4_variant(self, upscaler_sha256: str | None) -> str | None:
+    def _detect_fsr4_variant(self, directory: Path, upscaler_sha256: str | None) -> str | None:
+        for variant_id, variant in FSR4_VARIANTS.items():
+            extra_files = list(variant.get("extra_files") or [])
+            if not extra_files:
+                continue
+            if not upscaler_sha256 or str(variant.get("sha256") or "").lower() != str(upscaler_sha256).lower():
+                continue
+            all_match = True
+            for extra_file in extra_files:
+                file_path = directory / extra_file["name"]
+                if not file_path.exists() or self._file_sha256(file_path).lower() != extra_file["sha256"].lower():
+                    all_match = False
+                    break
+            if all_match:
+                return variant_id
+
         if not upscaler_sha256:
             return None
-        return FSR4_VARIANT_BY_SHA256.get(str(upscaler_sha256).lower())
+        normalized_sha = str(upscaler_sha256).lower()
+        for variant_id, variant in FSR4_VARIANTS.items():
+            if variant.get("extra_files"):
+                continue
+            if str(variant.get("sha256") or "").lower() == normalized_sha:
+                return variant_id
+        return None
 
     def _fgmod_version(self, fgmod_path: Path) -> str | None:
         manifest = self._load_install_manifest(fgmod_path)
@@ -370,6 +595,10 @@ class Plugin:
                 candidates.append(self._fsr4_variant_path(fgmod_path, variant_id))
         else:
             candidates.append(fgmod_path / filename)
+            for variant_id in FSR4_VARIANTS:
+                for extra_file in self._fsr4_variant_extra_files(variant_id):
+                    if extra_file["name"] == filename:
+                        candidates.append(self._fsr4_variant_extra_file_path(fgmod_path, variant_id, filename))
         unique: list[Path] = []
         seen: set[str] = set()
         for candidate in candidates:
@@ -470,9 +699,6 @@ class Plugin:
                 
                 # Replace LoadAsiPlugins=auto with LoadAsiPlugins=true
                 updated_content = re.sub(r'LoadAsiPlugins\s*=\s*auto', 'LoadAsiPlugins=true', updated_content)
-                
-                # Replace Path=auto with Path=plugins
-                updated_content = re.sub(r'Path\s*=\s*auto', 'Path=plugins', updated_content)
 
                 # Disable new HQ font auto mode to avoid missing font assertions on Proton
                 updated_content = re.sub(r'UseHQFont\s*=\s*auto', 'UseHQFont=false', updated_content)
@@ -480,7 +706,7 @@ class Plugin:
                 with open(ini_file, 'w') as f:
                     f.write(updated_content)
                 
-                decky.logger.info("Modified OptiScaler.ini to set FGInput=nukems, FGOutput=nukems, Fsr4Update=true, LoadAsiPlugins=true, Path=plugins, UseHQFont=false")
+                decky.logger.info("Modified OptiScaler.ini to set FGInput=nukems, FGOutput=nukems, Fsr4Update=true, LoadAsiPlugins=true, UseHQFont=false")
                 return True
             else:
                 decky.logger.warning(f"OptiScaler.ini not found at {ini_file}")
@@ -490,7 +716,7 @@ class Plugin:
             return False
 
     async def extract_static_optiscaler(self, selected_default_variant: str = DEFAULT_FSR4_VARIANT) -> dict:
-        """Prepare the shared ~/fgmod bundle with both FSR4 runtime variants."""
+        """Prepare the shared ~/fgmod bundle with all bundled FSR4 runtime variants."""
         try:
             decky.logger.info("Starting extract_static_optiscaler method")
 
@@ -504,10 +730,18 @@ class Plugin:
 
             optiscaler_archive = bin_path / OPTISCALER_ARCHIVE_ASSET["name"]
             fsr4_int8_src = bin_path / FSR4_INT8_ASSET["name"]
+            fsr4_official_411_src = bin_path / FSR4_OFFICIAL_411_ASSET["name"]
+            fsr4_valve_411_src = bin_path / FSR4_VALVE_411_ASSET["name"]
+            amdxc64_rdna2_src = bin_path / AMDXC64_RDNA2_ASSET["name"]
+            optiscaler_pre10_src = bin_path / OPTISCALER_PRE10_ASSET["name"]
             optipatcher_src = bin_path / OPTIPATCHER_ASSET["name"]
             for required_path, asset in [
                 (optiscaler_archive, OPTISCALER_ARCHIVE_ASSET),
                 (fsr4_int8_src, FSR4_INT8_ASSET),
+                (fsr4_official_411_src, FSR4_OFFICIAL_411_ASSET),
+                (fsr4_valve_411_src, FSR4_VALVE_411_ASSET),
+                (amdxc64_rdna2_src, AMDXC64_RDNA2_ASSET),
+                (optiscaler_pre10_src, OPTISCALER_PRE10_ASSET),
                 (optipatcher_src, OPTIPATCHER_ASSET),
             ]:
                 if not required_path.exists():
@@ -561,6 +795,76 @@ class Plugin:
                 "Prepared rdna4-native FSR4 upscaler",
             )
 
+            official_411_dir = extract_path / FSR4_VARIANTS["rdna34-official-411"]["dir_name"]
+            official_411_dir.mkdir(parents=True, exist_ok=True)
+            official_411_upscaler = official_411_dir / FSR4_UPSCALER_FILENAME
+            shutil.copy2(native_upscaler_root, official_411_upscaler)
+            self._verify_bundled_asset(
+                official_411_upscaler,
+                FSR4_VARIANTS["rdna34-official-411"]["sha256"],
+                "Prepared rdna34-official-411 FSR4 upscaler",
+            )
+            self._verify_bundled_asset(
+                fsr4_official_411_src,
+                FSR4_OFFICIAL_411_ASSET["sha256"],
+                "Bundled rdna34-official-411 driver override",
+            )
+            official_411_driver = official_411_dir / FSR4_DRIVER_OVERRIDE_FILENAME
+            shutil.copy2(fsr4_official_411_src, official_411_driver)
+            self._verify_bundled_asset(
+                official_411_driver,
+                FSR4_OFFICIAL_411_ASSET["sha256"],
+                "Prepared rdna34-official-411 driver override",
+            )
+
+            rdna2_valve_dir = extract_path / FSR4_VARIANTS["rdna2-valve-411-pre10"]["dir_name"]
+            rdna2_valve_dir.mkdir(parents=True, exist_ok=True)
+            rdna2_valve_upscaler = rdna2_valve_dir / FSR4_UPSCALER_FILENAME
+            shutil.copy2(native_upscaler_root, rdna2_valve_upscaler)
+            self._verify_bundled_asset(
+                rdna2_valve_upscaler,
+                FSR4_VARIANTS["rdna2-valve-411-pre10"]["sha256"],
+                "Prepared rdna2-valve-411-pre10 FSR4 upscaler",
+            )
+            self._verify_bundled_asset(
+                fsr4_valve_411_src,
+                FSR4_VALVE_411_ASSET["sha256"],
+                "Bundled rdna2-valve-411-pre10 driver override",
+            )
+            rdna2_valve_driver = rdna2_valve_dir / FSR4_DRIVER_OVERRIDE_FILENAME
+            shutil.copy2(fsr4_valve_411_src, rdna2_valve_driver)
+            self._verify_bundled_asset(
+                rdna2_valve_driver,
+                FSR4_VALVE_411_ASSET["sha256"],
+                "Prepared rdna2-valve-411-pre10 driver override",
+            )
+            self._verify_bundled_asset(
+                amdxc64_rdna2_src,
+                AMDXC64_RDNA2_ASSET["sha256"],
+                "Bundled rdna2-valve-411-pre10 amdxc64 override",
+            )
+            rdna2_valve_amdxc64 = rdna2_valve_dir / "amdxc64.dll"
+            shutil.copy2(amdxc64_rdna2_src, rdna2_valve_amdxc64)
+            self._verify_bundled_asset(
+                rdna2_valve_amdxc64,
+                AMDXC64_RDNA2_ASSET["sha256"],
+                "Prepared rdna2-valve-411-pre10 amdxc64 override",
+            )
+            self._verify_bundled_asset(
+                optiscaler_pre10_src,
+                OPTISCALER_PRE10_ASSET["sha256"],
+                "Bundled rdna2-valve-411-pre10 OptiScaler injector",
+            )
+            rdna2_valve_injector = rdna2_valve_dir / "OptiScaler.dll"
+            shutil.copy2(optiscaler_pre10_src, rdna2_valve_injector)
+            self._verify_bundled_asset(
+                rdna2_valve_injector,
+                OPTISCALER_PRE10_ASSET["sha256"],
+                "Prepared rdna2-valve-411-pre10 OptiScaler injector",
+            )
+            if not self._create_renamed_copies(rdna2_valve_injector, rdna2_valve_dir / "renames"):
+                return {"status": "error", "message": "Failed to prepare renamed pre10 OptiScaler proxies."}
+
             rdna23_dir = extract_path / FSR4_VARIANTS["rdna23-int8"]["dir_name"]
             rdna23_dir.mkdir(parents=True, exist_ok=True)
             self._verify_bundled_asset(
@@ -605,6 +909,28 @@ class Plugin:
                         "source_asset_name": variant["source_asset_name"],
                         "source_version": variant["source_version"],
                         "uses_archive_native": bool(variant["uses_archive_native"]),
+                        "injector": (
+                            {
+                                "name": variant["injector"]["name"],
+                                "sha256": variant["injector"]["sha256"],
+                                "source_asset_name": variant["injector"]["source_asset_name"],
+                                "source_version": variant["injector"]["source_version"],
+                                "path": str((Path(variant["dir_name"]) / variant["injector"]["name"]).as_posix()),
+                            }
+                            if isinstance(variant.get("injector"), dict)
+                            else None
+                        ),
+                        "config_overrides": dict(variant.get("config_overrides") or {}),
+                        "extra_files": [
+                            {
+                                "name": extra_file["name"],
+                                "sha256": extra_file["sha256"],
+                                "source_asset_name": extra_file["source_asset_name"],
+                                "source_version": extra_file["source_version"],
+                                "path": str((Path(variant["dir_name"]) / extra_file["name"]).as_posix()),
+                            }
+                            for extra_file in variant.get("extra_files", [])
+                        ],
                     }
                     for variant_id, variant in FSR4_VARIANTS.items()
                 },
@@ -755,10 +1081,20 @@ class Plugin:
         if not plugins_dir.exists() or not (plugins_dir / "OptiPatcher.asi").exists():
             return {"exists": False}
 
-        for variant in FSR4_VARIANTS.values():
-            variant_path = path / variant["dir_name"] / FSR4_UPSCALER_FILENAME
+        for variant_id, variant in FSR4_VARIANTS.items():
+            variant_dir = path / variant["dir_name"]
+            variant_path = variant_dir / FSR4_UPSCALER_FILENAME
             if not variant_path.exists():
                 return {"exists": False}
+            injector = variant.get("injector")
+            if isinstance(injector, dict):
+                if not (variant_dir / injector.get("name", "OptiScaler.dll")).exists():
+                    return {"exists": False}
+                if not (variant_dir / "renames" / "dxgi.dll").exists():
+                    return {"exists": False}
+            for extra_file in variant.get("extra_files", []):
+                if not (variant_dir / extra_file["name"]).exists():
+                    return {"exists": False}
 
         manifest = self._load_install_manifest(path)
         selected_variant = self._selected_fsr4_variant(path)
@@ -804,8 +1140,14 @@ class Plugin:
             }
 
         preserve_ini = True
+        previous_marker_metadata = self._read_marker(directory / MARKER_FILENAME)
+        previous_variant = str(previous_marker_metadata.get("fsr4_variant") or "").strip()
         selected_variant = self._selected_fsr4_variant(fgmod_path, fsr4_variant)
         selected_variant_info = FSR4_VARIANTS[selected_variant]
+        selected_config_overrides = self._fsr4_variant_config_overrides(selected_variant)
+        if previous_variant == "rdna2-valve-411-pre10" and selected_variant != previous_variant:
+            selected_config_overrides.setdefault("FSR.Fsr4ForceModel", "auto")
+            selected_config_overrides.setdefault("Plugins.LoadCustomAmdxc64OnRdna2", "false")
         selected_upscaler_src = self._fsr4_variant_path(fgmod_path, selected_variant)
         if not selected_upscaler_src.exists():
             selected_upscaler_src = fgmod_path / FSR4_UPSCALER_FILENAME
@@ -814,6 +1156,7 @@ class Plugin:
                 "status": "error",
                 "message": f"FSR4 upscaler variant not found for {selected_variant}. Reinstall OptiScaler.",
             }
+        selected_extra_files = self._fsr4_variant_extra_files(selected_variant)
         optiscaler_version = self._fgmod_version(fgmod_path)
         selected_upscaler_sha256 = self._file_sha256(selected_upscaler_src)
 
@@ -862,9 +1205,18 @@ class Plugin:
                 else "No original game DLLs required backup"
             )
 
-            renamed = fgmod_path / "renames" / dll_name
+            variant_renamed = self._fsr4_variant_renamed_proxy_path(fgmod_path, selected_variant, dll_name)
+            variant_injector = self._fsr4_variant_injector_path(fgmod_path, selected_variant)
+            root_renamed = fgmod_path / "renames" / dll_name
             destination_dll = directory / dll_name
-            source_for_copy = renamed if renamed.exists() else optiscaler_dll
+            if variant_renamed and variant_renamed.exists():
+                source_for_copy = variant_renamed
+            elif variant_injector and variant_injector.exists():
+                source_for_copy = variant_injector
+            elif root_renamed.exists():
+                source_for_copy = root_renamed
+            else:
+                source_for_copy = optiscaler_dll
             shutil.copy2(source_for_copy, destination_dll)
             decky.logger.info(f"Copied injector DLL from {source_for_copy} to {destination_dll}")
 
@@ -881,6 +1233,7 @@ class Plugin:
             if target_ini.exists():
                 self._migrate_optiscaler_ini(target_ini)
                 self._disable_hq_font_auto(target_ini)
+                self._apply_optiscaler_ini_overrides(target_ini, selected_config_overrides)
 
             plugins_src = fgmod_path / "plugins"
             plugins_dest = directory / "plugins"
@@ -912,6 +1265,15 @@ class Plugin:
             upscaler_dest = directory / FSR4_UPSCALER_FILENAME
             shutil.copy2(selected_upscaler_src, upscaler_dest)
             copied_support.append(FSR4_UPSCALER_FILENAME)
+
+            for extra_file in selected_extra_files:
+                source = self._fsr4_variant_extra_file_path(fgmod_path, selected_variant, extra_file["name"])
+                dest = directory / extra_file["name"]
+                if source.exists():
+                    shutil.copy2(source, dest)
+                    copied_support.append(extra_file["name"])
+                else:
+                    missing_support.append(extra_file["name"])
 
             if copied_support:
                 decky.logger.info(f"Copied support files: {copied_support}")
@@ -949,7 +1311,7 @@ class Plugin:
             decky.logger.info(f"Manual unpatch started for {directory}")
 
             removed_files = []
-            for filename in set(INJECTOR_FILENAMES + SUPPORT_FILES + [FSR4_UPSCALER_FILENAME]):
+            for filename in set(INJECTOR_FILENAMES + SUPPORT_FILES + VARIANT_EXTRA_FILENAMES + [FSR4_UPSCALER_FILENAME]):
                 path = directory / filename
                 if path.exists():
                     path.unlink()
@@ -1382,7 +1744,7 @@ class Plugin:
             dll_present = (target_dir / dll_name).exists()
             upscaler_path = target_dir / FSR4_UPSCALER_FILENAME
             upscaler_sha256 = self._file_sha256(upscaler_path) if upscaler_path.exists() else None
-            detected_variant = self._detect_fsr4_variant(upscaler_sha256)
+            detected_variant = self._detect_fsr4_variant(target_dir, upscaler_sha256)
             stored_variant = str(metadata.get("fsr4_variant") or "").strip() or None
             effective_variant = detected_variant or (stored_variant if stored_variant in FSR4_VARIANTS else None)
             effective_label = FSR4_VARIANTS[effective_variant]["label"] if effective_variant else None
