@@ -851,6 +851,12 @@ finish_battlenet_steam_entry() {
     remove_legacy_battlenet_desktop_installer || return 1
     start_steam
     apply_launcher_decky_artwork battlenet "$app_id"
+    if bash "$PROJECT_ROOT/scripts/open_steam_internal_browser.sh" \
+        "https://account.battle.net/login" >/dev/null 2>&1; then
+        echo "已用 Steam 内置浏览器打开战网登录页，完成登录后回战网启动器继续。"
+    else
+        echo "战网登录页：https://account.battle.net/login"
+    fi
     echo "战网启动器已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
 }
 

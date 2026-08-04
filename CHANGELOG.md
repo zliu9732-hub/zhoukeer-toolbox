@@ -1,3 +1,8 @@
+## V1.1.11 战网登录使用 Steam 内置浏览器 — 2026-08-04
+
+- 战网安装完成入库后，自动尝试用 Steam 内置浏览器打开战网登录页；Decky 未运行时回退为提示登录地址。
+- 新增 `scripts/open_steam_internal_browser.sh`，可随时通过 Decky 的 `SteamClient.Browser.OpenUrl` 在 Steam 内置浏览器打开任意 https 地址。
+
 ## V1.1.10 Steam 库封面通过 Decky API 即时应用 — 2026-08-04
 
 - 启动器安装后改为通过 Decky 的 `execute_in_tab` 通道调用 `SteamClient.Apps.SetCustomArtworkForApp`，与 SteamGridDB 插件同一套机制，封面/hero/背景即时生效，不再依赖重启 Steam。

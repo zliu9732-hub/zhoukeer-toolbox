@@ -259,6 +259,56 @@ apply_steam_launcher_artwork_via_decky() {
     echo "$target Steam 库封面已通过 Decky 即时应用。"
 }
 
+build_steam_browser_javascript() {
+    local marker="$1" url="$2"
+
+    printf '%s' \
+        "(function(){const m=$(json_quote "$marker");" \
+        "try{if(typeof SteamClient===\"undefined\"||!SteamClient.Browser||!SteamClient.Browser.OpenUrl)throw Error(\"Browser API unavailable\");" \
+        "SteamClient.Browser.OpenUrl($(json_quote "$url"));return m+\":ok\";" \
+        "}catch(e){return m+\":failed\";}})()"
+}
+
+open_steam_internal_browser_via_decky() {
+    local url="$1"
+    local marker="zhoukeer-steam-browser"
+    local code token response
+    local DECKY_EXECUTE_TIMEOUT="${DECKY_BROWSER_TIMEOUT:-10}"
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
+        echo "Steam 内置浏览器仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    case "$url" in
+        https://*) ;;
+        *) echo "仅支持 https 地址。"; return 1 ;;
+    esac
+    require_command curl || return 1
+
+    token="$(curl \
+        --fail \
+        --silent \
+        --connect-timeout 3 \
+        --max-time 10 \
+        "$DECKY_API_BASE/auth/token" 2>/dev/null || true)"
+    if [ -z "$token" ]; then
+        echo "未检测到运行中的 Decky Loader，无法打开 Steam 内置浏览器。"
+        return 1
+    fi
+
+    code="$(build_steam_browser_javascript "$marker" "$url")" || return 1
+    response="$(call_decky_frontend "$code" "$token" "$marker")" || {
+        echo "Decky 未确认浏览器窗口已打开。"
+        return 1
+    }
+    [[ "$response" == *"$marker:ok"* ]] || {
+        echo "Steam 内置浏览器打开失败。"
+        return 1
+    }
+    echo "已用 Steam 内置浏览器打开：$url"
+}
+
 confirm_bundle_install() {
     local plugin_count="${1:-23}"
     local include_custom="${2:-1}"
