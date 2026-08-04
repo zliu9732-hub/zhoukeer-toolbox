@@ -49,7 +49,7 @@ def main() -> int:
         + str(asset_type)
         + "===2){try{const ov=window.appStore&&window.appStore.GetAppOverviewByAppID?.(appId);if(ov&&window.appDetailsStore)await window.appDetailsStore.SaveCustomLogoPosition(ov,{pinnedPosition:\"BottomLeft\",nWidthPct:50,nHeightPct:50});}catch(e){}}"
         "ok++;}return m+\":ok:\"+ok;"
-        "}catch(e){console.error(\"zkeer-artwork:\",e);return m+\":failed\";}})()"
+        "}catch(e){console.error(\"zkeer-artwork:\",e);return m+\":failed:\"+String(e&&e.message||e);}})()"
     )
 
     print(json.dumps({"tab": tab, "run_async": True, "code": js}))

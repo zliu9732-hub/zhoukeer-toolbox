@@ -1,3 +1,9 @@
+## V1.2.6 修复非 Steam 启动器封面即时应用 — 2026-08-05
+
+- Decky 封面调用优先走 WebSocket `utilities/execute_in_tab`，兼容新版 Decky，同时保留旧版 HTTP 回退。
+- 新增 `scripts/apply_steam_artwork.sh verify` 诊断命令，可核对 shortcuts.vdf、appid 与 grid 封面文件是否齐全。
+- 封面接口失败时保留具体错误信息，设置 `ZHOUKEER_ARTWORK_DEBUG=1` 可查看 Decky 返回的报错。
+
 ## V1.2.5 启动自动更新提速 — 2026-08-04
 
 - 启动时自动更新改为快速检测：短连接超时、单次重试、整体限时，已是最新版本时不再长时间卡在加载界面。

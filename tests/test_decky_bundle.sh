@@ -24,6 +24,9 @@ assert_contains() {
 # shellcheck disable=SC1090
 source "$MODULE"
 
+# 本测试只模拟旧版 HTTP 通道，避免 WebSocket 优先调用碰到真实 Decky。
+DECKY_API_BASE="http://127.0.0.1:9"
+
 
 for plugin in \
     "CSS Loader" \
@@ -107,9 +110,12 @@ curl() {
 
     while [ "$#" -gt 0 ]; do
         case "$1" in
-            --data)
+            --data|--data-binary)
                 shift
-                data="${1:-}"
+                case "${1:-}" in
+                    @*) data="$(< "${1#@}")" ;;
+                    *) data="${1:-}" ;;
+                esac
                 ;;
             http://*|https://*) target="$1" ;;
         esac

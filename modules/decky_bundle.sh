@@ -140,25 +140,55 @@ call_decky_frontend() {
     local marker="${3:-$DECKY_BUNDLE_MARKER}"
     local max_time="${DECKY_EXECUTE_TIMEOUT:-90}"
     local tab
-    local payload
+    local payload_file
     local response
 
     for tab in "SharedJSContext" "Steam Shared Context presented by Valve™" "Steam" "SP"; do
-        payload="{\"tab\":$(json_quote "$tab"),\"run_async\":true,\"code\":$(json_quote "$code")}"
-        response="$(curl \
-            --fail \
-            --silent \
-            --connect-timeout 5 \
-            --max-time "$max_time" \
-            --header "X-Decky-Auth: $token" \
-            --header "Content-Type: application/json" \
-            --data "$payload" \
-            "$DECKY_API_BASE/methods/execute_in_tab" 2>/dev/null || true)"
-        if [[ "$response" == *"$marker"* ]]; then
+        payload_file="$(mktemp 2>/dev/null)" || return 1
+        printf '{"tab":%s,"run_async":true,"code":%s}\n' \
+            "$(json_quote "$tab")" "$(json_quote "$code")" > "$payload_file"
+        if response="$(call_decky_execute_in_tab "$token" "$payload_file" \
+            "$DECKY_API_BASE" "$marker" "$max_time")"; then
+            rm -f -- "$payload_file"
             printf '%s\n' "$response"
             return 0
         fi
+        rm -f -- "$payload_file"
     done
+    return 1
+}
+
+call_decky_execute_in_tab() {
+    local token="$1"
+    local payload_file="$2"
+    local base_url="$3"
+    local marker="$4"
+    local max_time="$5"
+    local response
+
+    # Decky v3 只通过 WebSocket 提供 execute_in_tab；v2 仍保留旧 HTTP 接口，继续作为回退。
+    response="$(python3 "$PROJECT_ROOT/scripts/decky_ws_call.py" \
+        --token "$token" \
+        --payload-file "$payload_file" \
+        --base-url "$base_url" \
+        --timeout "$max_time" 2>/dev/null || true)"
+    if [[ "$response" == *"$marker"* ]]; then
+        printf '%s\n' "$response"
+        return 0
+    fi
+    response="$(curl \
+        --fail \
+        --silent \
+        --connect-timeout 5 \
+        --max-time "$max_time" \
+        --header "X-Decky-Auth: $token" \
+        --header "Content-Type: application/json" \
+        --data-binary "@$payload_file" \
+        "$base_url/methods/execute_in_tab" 2>/dev/null || true)"
+    if [[ "$response" == *"$marker"* ]]; then
+        printf '%s\n' "$response"
+        return 0
+    fi
     return 1
 }
 
@@ -174,7 +204,7 @@ build_steam_artwork_javascript() {
         "await SteamClient.Apps.SetCustomArtworkForApp(appId,b64,\"png\",$asset_type);" \
         "if($asset_type===2){try{const ov=window.appStore&&window.appStore.GetAppOverviewByAppID?.(appId);if(ov&&window.appDetailsStore)await window.appDetailsStore.SaveCustomLogoPosition(ov,{pinnedPosition:\"BottomLeft\",nWidthPct:50,nHeightPct:50});}catch(e){}}" \
         "ok++;}return m+\":ok:\"+ok;" \
-        "}catch(e){console.error(\"zkeer-artwork:\",e);return m+\":failed\";}})()"
+        "}catch(e){console.error(\"zkeer-artwork:\",e);return m+\":failed:\"+String(e&&e.message||e);}})()"
 }
 
 apply_steam_launcher_artwork_via_decky() {
@@ -183,7 +213,7 @@ apply_steam_launcher_artwork_via_decky() {
     local asset_name appids_json token marker
     local entry type file_suffix asset_type file
     local DECKY_EXECUTE_TIMEOUT="${DECKY_ARTWORK_TIMEOUT:-12}"
-    local payload_file tab payload_response artwork_ok
+    local payload_file tab payload_response artwork_ok failure_detail
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ] && [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
@@ -237,22 +267,22 @@ apply_steam_launcher_artwork_via_decky() {
                 "$marker" "$appids_json" "$asset_type" "$file" "$tab" > "$payload_file"; then
                 continue
             fi
-            payload_response="$(curl \
-                --fail \
-                --silent \
-                --connect-timeout 5 \
-                --max-time "$DECKY_EXECUTE_TIMEOUT" \
-                --header "X-Decky-Auth: $token" \
-                --header "Content-Type: application/json" \
-                --data-binary "@$payload_file" \
-                "$DECKY_API_BASE/methods/execute_in_tab" 2>/dev/null || true)"
-            if [[ "$payload_response" == *"$marker"* ]]; then
-                artwork_ok=1
-                break
+            if payload_response="$(call_decky_execute_in_tab "$token" "$payload_file" \
+                "$DECKY_API_BASE" "$marker" "$DECKY_EXECUTE_TIMEOUT")"; then
+                if [[ "$payload_response" == *"$marker:ok"* ]]; then
+                    artwork_ok=1
+                    break
+                fi
             fi
         done
         rm -f -- "$payload_file"
         if [ "$artwork_ok" -ne 1 ] || [[ "$payload_response" != *"$marker:ok"* ]]; then
+            if [ "${ZHOUKEER_ARTWORK_DEBUG:-0}" = "1" ] && \
+                [[ "$payload_response" == *"$marker:failed:"* ]]; then
+                failure_detail="${payload_response##*"$marker:failed:"}"
+                failure_detail="${failure_detail%%\"*}"
+                echo "Decky $target $type 封面接口错误：$failure_detail" >&2
+            fi
             echo "Decky 应用 $target $type 封面失败。"
             return 1
         fi
