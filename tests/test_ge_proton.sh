@@ -36,7 +36,21 @@ done
 printf '%s\n' "$url" >> "$FAKE_CURL_LOG"
 cp "$FAKE_GE_ARCHIVE" "$output"
 SCRIPT
-chmod +x "$BIN_DIR/curl"
+
+cat > "$BIN_DIR/steam" <<'SCRIPT'
+#!/bin/sh
+printf 'steam %s\n' "$*" >> "${FAKE_STEAM_LOG:?}"
+exit 0
+SCRIPT
+
+cat > "$BIN_DIR/pgrep" <<'SCRIPT'
+#!/bin/sh
+[ "${1:-}" = "-x" ] || exit 1
+[ -f "${FAKE_STEAM_RUNNING:-/nonexistent}" ] || exit 1
+printf '12345\n'
+exit 0
+SCRIPT
+chmod +x "$BIN_DIR"/*
 
 mkdir -p "$TARGET_ROOT/GE-Proton8-1"
 printf '%s\n' 'compatibility tool' > "$TARGET_ROOT/GE-Proton8-1/compatibilitytool.vdf"
@@ -51,6 +65,8 @@ run_install() {
     PATH="$BIN_DIR:/usr/bin:/bin" \
     FAKE_CURL_LOG="$CURL_LOG" \
     FAKE_GE_ARCHIVE="$ARCHIVE" \
+    FAKE_STEAM_LOG="$TMP_ROOT/steam.log" \
+    FAKE_STEAM_RUNNING="${FAKE_STEAM_RUNNING:-$TMP_ROOT/steam-running}" \
     ZHOUKEER_GE_PROTON_URL="https://download.example/GE-Proton9-99.tar.gz" \
     ZHOUKEER_GE_PROTON_VERSION="GE-Proton9-99" \
     ZHOUKEER_GE_PROTON_SHA256="$1" \
@@ -58,12 +74,19 @@ run_install() {
         bash "$MODULE" install
 }
 
+printf 'running\n' > "$TMP_ROOT/steam-running"
 run_install "$ARCHIVE_SHA" > "$TMP_ROOT/install.output"
 test -x "$TARGET_ROOT/GE-Proton9-99/proton" || {
     echo "FAIL: GE-Proton没有安装到Steam compatibilitytools.d目录"
     exit 1
 }
-grep -Fq '请完全退出并重新启动Steam' "$TMP_ROOT/install.output"
+grep -Fq '正在重启 Steam' "$TMP_ROOT/install.output"
+grep -Fq 'Steam 已重新启动' "$TMP_ROOT/install.output"
+grep -Fq 'steam -shutdown' "$TMP_ROOT/steam.log"
+if grep -Fq '请完全退出并重新启动Steam' "$TMP_ROOT/install.output"; then
+    echo "FAIL: 安装后仍要求用户手动重启 Steam" >&2
+    exit 1
+fi
 grep -Fq 'https://download.example/GE-Proton9-99.tar.gz' "$CURL_LOG"
 test -d "$TARGET_ROOT/GE-Proton8-1" || {
     echo "FAIL: 安装最新版本后旧版 GE-Proton 被删除"
@@ -108,6 +131,7 @@ fi
 
 printf '%s\n' 'old-install' > "$TARGET_ROOT/GE-Proton9-99/old-version.txt"
 curl_calls_before="$(wc -l < "$CURL_LOG" | tr -d '[:space:]')"
+steam_calls_before="$(wc -l < "$TMP_ROOT/steam.log" | tr -d '[:space:]')"
 second_output="$(run_install "$ARCHIVE_SHA")"
 curl_calls_after="$(wc -l < "$CURL_LOG" | tr -d '[:space:]')"
 printf '%s\n' "$second_output" | grep -Fq '[已安装]' || {
@@ -120,6 +144,10 @@ test -e "$TARGET_ROOT/GE-Proton9-99/old-version.txt" || {
 }
 [ "$curl_calls_before" = "$curl_calls_after" ] || {
     echo "FAIL: 已安装 GE-Proton 仍被重复下载"
+    exit 1
+}
+[ "$steam_calls_before" = "$(wc -l < "$TMP_ROOT/steam.log" | tr -d '[:space:]')" ] || {
+    echo "FAIL: 已安装 GE-Proton 时仍重启 Steam"
     exit 1
 }
 
@@ -150,13 +178,21 @@ for version in GE-Proton7-55 GE-Proton8-25 GE-Proton9-27 GE-Proton10-29; do
     chmod +x "$TARGET_ROOT/$version/proton"
 done
 : > "$CURL_LOG"
+rm -f "$TMP_ROOT/steam-running"
+: > "$TMP_ROOT/steam.log"
 trainer_output="$(
     HOME="$HOME_DIR" PATH="$BIN_DIR:/usr/bin:/bin" \
     FAKE_CURL_LOG="$CURL_LOG" FAKE_GE_ARCHIVE="$ARCHIVE" \
+    FAKE_STEAM_LOG="$TMP_ROOT/steam.log" \
+    FAKE_STEAM_RUNNING="$TMP_ROOT/steam-running" \
         bash "$MODULE" install-trainer
 )"
 [ ! -s "$CURL_LOG" ] || {
     echo "FAIL: 修改器常用兼容层已安装时仍触发下载"
+    exit 1
+}
+[ ! -s "$TMP_ROOT/steam.log" ] || {
+    echo "FAIL: 修改器常用兼容层已安装时仍重启 Steam"
     exit 1
 }
 printf '%s\n' "$trainer_output" | grep -Fq '修改器所需常用兼容层安装完成' || {

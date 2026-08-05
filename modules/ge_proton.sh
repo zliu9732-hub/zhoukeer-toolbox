@@ -286,7 +286,33 @@ install_ge_proton_package() {
 
     log "$GE_PROTON_VERSION 已安装到 $GE_PROTON_TARGET_DIR"
     echo "$GE_PROTON_VERSION 安装完成。"
-    echo "请完全退出并重新启动Steam，然后在游戏属性的兼容性页面选择该版本。"
+}
+
+restart_steam_after_ge_proton() {
+    local steam_bin
+    local attempt
+
+    if command -v steam >/dev/null 2>&1; then
+        steam_bin="$(command -v steam)"
+    elif [ -x "$HOME/.steam/steam/steam.sh" ]; then
+        steam_bin="$HOME/.steam/steam/steam.sh"
+    else
+        echo "未找到 Steam 启动命令，请手动启动 Steam 后生效。"
+        return 0
+    fi
+
+    if pgrep -x steam >/dev/null 2>&1; then
+        echo "正在重启 Steam，使兼容层生效..."
+        "$steam_bin" -shutdown >/dev/null 2>&1 || true
+        for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            pgrep -x steam >/dev/null 2>&1 || break
+            sleep 1
+        done
+    else
+        echo "正在启动 Steam，使兼容层生效..."
+    fi
+    nohup "$steam_bin" >/dev/null 2>&1 &
+    echo "Steam 已重新启动。"
 }
 
 install_ge_proton() {
@@ -300,7 +326,8 @@ install_ge_proton() {
         return 0
     fi
     install_ge_proton_package "ge-proton" "zhoukeer-toolbox-mirror" \
-        "fallback" "$compatibility_dir"
+        "fallback" "$compatibility_dir" || return 1
+    restart_steam_after_ge_proton
 }
 
 install_trainer_ge_proton() {
@@ -310,6 +337,7 @@ install_trainer_ge_proton() {
     local mirror_repo
     local version
     local sha256
+    local installed_any=0
 
     echo "正在安装修改器所需常用兼容层。"
     echo "包含 GE-Proton 7-55、8-25、9-27、10-29，合计约 1.72GB；下载较慢为正常现象，请耐心等待。"
@@ -325,10 +353,14 @@ install_trainer_ge_proton() {
             continue
         fi
         echo "正在安装 $version..."
+        installed_any=1
         install_ge_proton_package "$mirror_id" "$mirror_repo" \
             "mirror" "$compatibility_dir" || return 1
     done
 
+    if [ "$installed_any" -eq 1 ]; then
+        restart_steam_after_ge_proton
+    fi
     echo "修改器所需常用兼容层安装完成。"
 }
 
