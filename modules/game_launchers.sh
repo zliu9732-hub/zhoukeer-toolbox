@@ -1012,6 +1012,14 @@ set_steam_proton_10() {
         --app-id "$app_id" --tool proton_10 >/dev/null
 }
 
+print_launcher_proton_hint() {
+    echo ""
+    echo "============================================================"
+    echo "重要：请启动 Steam 后，在库中点击“${LAUNCHER_NAME}”右侧的齿轮"
+    echo "→ 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。"
+    echo "============================================================"
+}
+
 prepare_launcher_steam_installer() {
     local target="$1" steam_root="$2" installer_file="$3" shortcut_file="$4"
     local app_id artwork_alt_app_id game_id icon_path
@@ -1042,7 +1050,7 @@ prepare_launcher_steam_installer() {
     echo "Steam 已停止，安装条目、兼容层和封面已写入文件。"
     echo "请手动启动 Steam（桌面模式打开 Steam，或重启进入游戏模式），再在库中点击“${LAUNCHER_NAME}”完成安装。"
     echo "安装阶段不会创建桌面入口，请只在 Steam 库点击“${LAUNCHER_NAME}”完成安装。"
-    echo "如兼容层未自动勾选，请点“${LAUNCHER_NAME}”右侧齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”并选择 Proton 10.0-4。"
+    print_launcher_proton_hint
     echo "安装完成后，再点击一次工具箱的 $LAUNCHER_NAME 入口即可自动转为正式启动器并创建可用桌面入口。"
 }
 
@@ -1091,6 +1099,7 @@ finish_launcher_steam_entry() {
     set_steam_proton_10 "$steam_root" "$app_id" || return 1
     echo "Steam 已停止，正式条目、兼容层和封面已写入文件。"
     echo "请手动启动 Steam（桌面模式打开 Steam，或重启进入游戏模式）后确认兼容层和封面。"
+    print_launcher_proton_hint
     if [ "$target" = "battlenet" ]; then
         echo "战网登录页：https://account.battle.net/login"
     fi

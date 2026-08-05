@@ -10,6 +10,14 @@ grep -Fq 'source "$PROJECT_ROOT/core/platform.sh"' "$MODULE" || {
     echo "FAIL: 启动器模块未加载 require_command 定义" >&2
     exit 1
 }
+grep -Fq 'print_launcher_proton_hint' "$MODULE" || {
+    echo "FAIL: 启动器模块缺少醒目的 Proton 兼容层提示" >&2
+    exit 1
+}
+grep -Fq '强制使用兼容性工具' "$MODULE" || {
+    echo "FAIL: 启动器模块缺少强制使用兼容层文案" >&2
+    exit 1
+}
 TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf "$TMP_ROOT"' EXIT
 
@@ -885,7 +893,7 @@ grep -Fq 'set-icon' "$MODULE"
 grep -Fq 'download_launcher_installer' "$MODULE"
 grep -Fq '点击 Install（安装）' "$MODULE"
 grep -Fq '请只在 Steam 库点击“${LAUNCHER_NAME}”完成安装' "$MODULE"
-grep -Fq '右侧齿轮 → 属性 → 兼容性' "$MODULE"
+grep -Fq '右侧的齿轮' "$MODULE"
 grep -Fq '强制使用兼容性工具' "$MODULE"
 grep -Fq 'Proton 10.0-4' "$MODULE"
 grep -Fq '选择中文并依次点击接受、安装、完成' "$MODULE"

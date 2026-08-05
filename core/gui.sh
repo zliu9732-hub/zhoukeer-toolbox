@@ -271,14 +271,18 @@ game_environment_gui_menu() {
                     back "返回插件列表")" || continue
                 case "$battlenet_choice" in
                     battlenet)
-                        run_gui_action "安装战网启动器并自动入库" \
+                        if run_gui_action "安装战网启动器并自动入库" \
                             env ZHOUKEER_AUTO_CONFIRM=1 \
-                            bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
+                            bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet; then
+                            gui_notice "重要：请在 Steam 库中点击“战网启动器”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。"
+                        fi
                         ;;
                     heihe)
-                        run_gui_action "安装黑盒工坊并自动入库" \
+                        if run_gui_action "安装黑盒工坊并自动入库" \
                             env ZHOUKEER_AUTO_CONFIRM=1 \
-                            bash "$PROJECT_ROOT/modules/game_launchers.sh" heihe
+                            bash "$PROJECT_ROOT/modules/game_launchers.sh" heihe; then
+                            gui_notice "重要：请在 Steam 库中点击“黑盒工坊”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。"
+                        fi
                         ;;
                 esac
                 ;;
