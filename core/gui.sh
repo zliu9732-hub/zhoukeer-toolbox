@@ -431,6 +431,7 @@ steam_accelerator_gui_menu() {
         choice="$(gui_dialog --menu "Steamcommunity 302｜加速 Steam 和 GitHub" \
             install "安装或更新 Steamcommunity 302" \
             start "一键开启 Steam + GitHub 加速" \
+            reset "重置加速服务" \
             status "查看运行状态" \
             uninstall "安全卸载" \
             back "返回系统设置" \
@@ -444,8 +445,13 @@ steam_accelerator_gui_menu() {
                 ;;
             start)
                 gui_confirm "开启加速会修改网络设置并需要管理员权限。是否继续？" && \
-                    run_gui_action "开启 Steamcommunity 302 加速" env ZHOUKEER_AUTO_CONFIRM=1 ZHOUKEER_START_STEAM_AFTER_302=1 \
+                    run_gui_action "开启 Steamcommunity 302 加速" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/steam_accelerator.sh" enable
+                ;;
+            reset)
+                gui_confirm "将停止并重新启动 Steam + GitHub 后台加速。是否继续？" && \
+                    run_gui_action "重置 Steamcommunity 302 加速" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/steam_accelerator.sh" reset
                 ;;
             status)
                 run_gui_action "Steamcommunity 302状态" \

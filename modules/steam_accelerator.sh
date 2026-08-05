@@ -10,7 +10,6 @@ source "$PROJECT_ROOT/core/logger.sh"
 source "$PROJECT_ROOT/core/auth.sh"
 
 STEAM302_VERSION="14.0.02"
-STEAM302_ARCHIVE_URL="https://www.dogfight360.com/blog/wp-content/uploads/2026/02/steamcommunity_302_Linux_AMD64_V14.0.02.tar.gz"
 STEAM302_ARCHIVE_MD5="4b9994102b2256ca5fdf2e806a2c7035"
 STEAM302_ARCHIVE_SHA256="5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f"
 STEAM302_INSTALL_DIR="$APP_DIR/steamcommunity302"
@@ -25,9 +24,6 @@ STEAM302_PID_FILE="$STEAM302_INSTALL_DIR/.zhoukeer-cli.pid"
 STEAM302_LOG_FILE="$APP_DIR/steamcommunity302.log"
 STEAM302_ROOT_STARTER="$PROJECT_ROOT/modules/steam302_root_start.sh"
 STEAM302_ENABLED_RULES="Steam_store,Steam_store_unlock,Steam_community,Steam_API,Steam_API_unlock,Steam_community_unlock,steamchat,steamchat_unlock,Steam_cloud_google,steam_update,Steam_broadcast_redir,Steam_broadcast_redir_unlock,imgfix,imgfix_fastly,github"
-STEAM302_CONNECT_TIMEOUT=15
-STEAM302_MAX_TIME=1200
-STEAM302_RETRIES=3
 STEAM302_LAYOUT_VALIDATION_REVISION="ascii-files-v2"
 STEAM302_PROCESS_CHECK_REVISION="proc-root-v1"
 
@@ -271,6 +267,15 @@ start_steam302_service() {
         return 0
     }
 
+    # 优先按参考逻辑走工具箱托管的 systemd 后台服务；不可用时回退内置 CLI。
+    if steam302_setup_autostart; then
+        if steam302_service_is_active; then
+            print_steam302_ready_notice
+            return 0
+        fi
+        echo "后台服务已启动但未保持运行，改用内置 CLI 重试。"
+    fi
+
     [ -x "$STEAM302_ROOT_STARTER" ] || {
         echo "内置加速启动器不存在或不可执行。"
         return 1
@@ -323,25 +328,6 @@ stop_steam302_cli() {
     rm -f "$STEAM302_PID_FILE"
 }
 
-start_steam_client() {
-    local steam_bin
-
-    if command -v steam >/dev/null 2>&1; then
-        steam_bin="$(command -v steam)"
-    elif [ -x "$HOME/.steam/steam/steam.sh" ]; then
-        steam_bin="$HOME/.steam/steam/steam.sh"
-    else
-        echo "未找到 Steam 启动命令，请手动启动 Steam。"
-        return 1
-    fi
-    if pgrep -x steam >/dev/null 2>&1; then
-        echo "Steam 已在运行。"
-        return 0
-    fi
-    "$steam_bin" >/dev/null 2>&1 &
-    echo "已启动 Steam。"
-}
-
 enable_steam302() {
     if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
         ! bash "$PROJECT_ROOT/modules/preflight.sh" steam302; then
@@ -353,10 +339,6 @@ enable_steam302() {
     fi
     if ! start_steam302_service; then
         return 1
-    fi
-    if [ "${ZHOUKEER_START_STEAM_AFTER_302:-0}" = "1" ] && \
-        steam302_download_acceleration_is_ready; then
-        start_steam_client || true
     fi
 }
 
@@ -479,38 +461,42 @@ stop_steam302_service() {
     fi
 }
 
+reset_steam302() {
+    steam302_is_installed || {
+        echo "Steamcommunity 302 尚未安装。"
+        return 1
+    }
+    echo "正在重置 Steam + GitHub 加速..."
+    if steam302_service_is_toolbox_managed; then
+        stop_steam302_cli || true
+        toolbox_sudo systemctl restart "$STEAM302_SERVICE_NAME" >/dev/null 2>&1 || {
+            echo "后台服务重置失败。"
+            return 1
+        }
+        sleep 1
+        if steam302_service_is_active; then
+            echo "Steam + GitHub 加速已重置。"
+            return 0
+        fi
+        echo "后台服务重置后未运行。"
+        return 1
+    fi
+    stop_steam302_cli || {
+        echo "内置加速停止失败。"
+        return 1
+    }
+    start_steam302_service || return 1
+    echo "Steam + GitHub 加速已重置。"
+}
+
 download_steam302_archive() {
     local destination="$1"
 
-    download_policy_url_allowed "$STEAM302_ARCHIVE_URL" || {
-        echo "Steamcommunity 302 下载地址不在受控来源清单中。"
-        return 1
-    }
-    echo "正在下载 Steamcommunity 302 V$STEAM302_VERSION..."
-    if download_gitee_mirror_file \
+    echo "正在从自有 Gitee 镜像下载 Steamcommunity 302 V$STEAM302_VERSION..."
+    if ! download_gitee_mirror_file \
         "steam302" "$destination" "$STEAM302_ARCHIVE_SHA256" \
         "Steamcommunity 302"; then
-        return 0
-    fi
-    curl \
-        --fail \
-        --location \
-        --progress-meter \
-        --proto '=https' \
-        --proto-redir '=https' \
-        --connect-timeout "$STEAM302_CONNECT_TIMEOUT" \
-        --max-time "$STEAM302_MAX_TIME" \
-        --retry "$STEAM302_RETRIES" \
-        --retry-delay 2 \
-        --retry-all-errors \
-        --max-filesize "$(download_policy_max_bytes "$STEAM302_ARCHIVE_URL")" \
-        --output "$destination" \
-        "$STEAM302_ARCHIVE_URL" \
-        2> >(download_progress_filter "Steamcommunity 302" >&2) || return 1
-    if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
-        ! download_policy_response_is_safe "$STEAM302_ARCHIVE_URL" "$destination"; then
-        rm -f -- "$destination"
-        echo "Steamcommunity 302 下载响应格式或大小异常。"
+        echo "Steamcommunity 302 镜像下载失败；不会连接其他来源。"
         return 1
     fi
 }
@@ -937,10 +923,11 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         install) install_steam302 ;;
         launch) launch_steam302 ;;
         start|enable) enable_steam302 ;;
+        reset|restart) reset_steam302 ;;
         stop) stop_steam302_service ;;
         status) show_steam302_status ;;
         ensure) ensure_steam302_for_download ;;
         uninstall) uninstall_steam302 ;;
-        *) echo "用法: $0 {install|launch|start|stop|status|ensure|uninstall}"; exit 1 ;;
+        *) echo "用法: $0 {install|launch|start|reset|stop|status|ensure|uninstall}"; exit 1 ;;
     esac
 fi

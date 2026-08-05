@@ -30,7 +30,8 @@ assert_no_staging_leftovers() {
 
 mkdir -p "$BIN_DIR" "$HOME_DIR" "$APP_ROOT" "$STATE_DIR"
 mkdir -p "$STATE_DIR/systemd"
-printf 'offline steamcommunity302 archive fixture\n' > "$FIXTURE"
+printf '\037\213\010 offline steamcommunity302 archive fixture\n' > "$FIXTURE"
+FIXTURE_SIZE="$(wc -c < "$FIXTURE" | tr -d ' ')"
 
 cat > "$BIN_DIR/uname" <<'EOF'
 #!/bin/sh
@@ -40,19 +41,36 @@ case "${1:-}" in
 esac
 EOF
 
-cat > "$BIN_DIR/curl" <<'EOF'
+cat > "$BIN_DIR/curl" <<EOF
 #!/bin/sh
 output=""
-printf '%s\n' "$*" >> "${STEAM302_TEST_STATE:?}/curl.calls"
-while [ "$#" -gt 0 ]; do
-    if [ "$1" = "--output" ]; then
-        shift
-        output="${1:-}"
-    fi
+url=""
+printf '%s\n' "\$*" >> "\${STEAM302_TEST_STATE:?}/curl.calls"
+while [ "\$#" -gt 0 ]; do
+    case "\$1" in
+        --output) shift; output="\${1:-}" ;;
+        *) url="\$1" ;;
+    esac
     shift
 done
-[ -n "$output" ] || exit 91
-cp "${STEAM302_TEST_ARCHIVE_SOURCE:?}" "$output"
+[ -n "\$output" ] || exit 91
+case "\$url" in
+    */steam302/latest.txt)
+        cat > "\$output" <<'MANIFEST'
+id=steam302
+name=Steamcommunity 302
+version=14.0.02
+file=steamcommunity_302_Linux_AMD64_V14.0.02.tar.gz
+sha256=5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f
+size=$FIXTURE_SIZE
+chunks=0
+chunk_size=0
+MANIFEST
+        ;;
+    *)
+        cp "\${STEAM302_TEST_ARCHIVE_SOURCE:?}" "\$output"
+        ;;
+esac
 EOF
 
 cat > "$BIN_DIR/md5sum" <<'EOF'
@@ -174,6 +192,11 @@ case "${1:-}" in
         [ -f "$STEAM302_TEST_SYSTEMD_DIR/steamcommunity302.service" ] || exit 96
         touch "$STEAM302_TEST_STATE/service-active"
         ;;
+    restart)
+        rm -f "$STEAM302_TEST_STATE/service-active"
+        [ -f "$STEAM302_TEST_SYSTEMD_DIR/steamcommunity302.service" ] || exit 96
+        touch "$STEAM302_TEST_STATE/service-active"
+        ;;
     stop)
         rm -f "$STEAM302_TEST_STATE/service-active"
         ;;
@@ -212,6 +235,7 @@ run_module() {
                 install) install_steam302 ;;
                 launch) launch_steam302 ;;
                 start|enable) enable_steam302 ;;
+                reset) reset_steam302 ;;
                 stop) stop_steam302_service ;;
                 status) show_steam302_status ;;
                 ensure) ensure_steam302_for_download ;;
@@ -234,7 +258,11 @@ run_start_service() {
 
 bash -n "$MODULE" || fail "模块语法检查失败"
 grep -Fq 'core/logger.sh' "$MODULE" || fail "独立加速模块没有加载日志函数"
-grep -Fq 'V14.0.02.tar.gz' "$MODULE" || fail "缺少固定官方版本地址"
+grep -Fq 'STEAM302_VERSION="14.0.02"' "$MODULE" || fail "缺少固定版本"
+grep -Fq 'download_gitee_mirror_file' "$MODULE" || fail "未使用自有 Gitee 镜像下载"
+if grep -Fq 'dogfight360' "$MODULE"; then
+    fail "模块仍引用其他下载来源"
+fi
 grep -Fq '4b9994102b2256ca5fdf2e806a2c7035' "$MODULE" || fail "缺少官方 MD5"
 grep -Fq '5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f' \
     "$MODULE" || fail "缺少固定 SHA256"
@@ -261,22 +289,13 @@ ready_output="$(MODULE="$MODULE" bash -c '
 ')" || fail "加速状态检测不应阻断下载"
 [ -z "$ready_output" ] || fail "已开启加速时仍显示多余提示"
 
-steam_start_output="$(MODULE="$MODULE" bash -c '
-    source "$MODULE"
-    ZHOUKEER_TEST_MODE=1
-    steam302_download_acceleration_is_ready() { return 0; }
-    steam302_service_is_active() { return 0; }
-    steam302_cli_is_running() { return 0; }
-    steam302_is_installed() { return 0; }
-    install_steam302() { return 0; }
-    start_steam302_service() { return 0; }
-    start_steam_client() { echo "steam-client-started"; }
-    ZHOUKEER_START_STEAM_AFTER_302=1 enable_steam302
-' 2>&1)" || fail "开启加速后启动 Steam 失败"
-printf '%s\n' "$steam_start_output" | grep -Fq 'steam-client-started' || \
-    fail "开启加速后没有自动启动 Steam"
-
-steam_no_start_output="$(MODULE="$MODULE" bash -c '
+if grep -Fq 'ZHOUKEER_START_STEAM_AFTER_302' "$MODULE"; then
+    fail "模块仍保留自动启动 Steam 开关"
+fi
+if grep -Fq 'start_steam_client' "$MODULE"; then
+    fail "模块仍包含自动启动 Steam 逻辑"
+fi
+steam_enable_output="$(MODULE="$MODULE" bash -c '
     source "$MODULE"
     ZHOUKEER_TEST_MODE=1
     steam302_download_acceleration_is_ready() { return 0; }
@@ -287,9 +306,10 @@ steam_no_start_output="$(MODULE="$MODULE" bash -c '
     start_steam302_service() { return 0; }
     start_steam_client() { echo "unexpected-steam-start"; }
     enable_steam302
-' 2>&1)" || fail "未要求时开启加速不应失败"
-printf '%s\n' "$steam_no_start_output" | grep -Fq 'unexpected-steam-start' && \
-    fail "未要求时不应自动启动 Steam"
+' 2>&1)" || fail "开启 302 加速不应失败"
+if printf '%s\n' "$steam_enable_output" | grep -Fq 'unexpected-steam-start'; then
+    fail "开启加速后仍自动启动 Steam"
+fi
 
 launch_function="$(sed -n '/^launch_steam302()/,/^}/p' "$MODULE")"
 printf '%s\n' "$launch_function" | grep -Fq 'toolbox_sudo /usr/bin/env -i' || \
@@ -368,17 +388,21 @@ if env PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" HOME="$HOME_DIR" \
 fi
 rm -f "$TARGET/.zhoukeer-cli.pid"
 
-grep -Fq -- '--connect-timeout 15' "$STATE_DIR/curl.calls" || \
+grep -Fq -- '--connect-timeout 10' "$STATE_DIR/curl.calls" || \
     fail "curl 缺少连接超时"
 grep -Fq -- '--max-time 1200' "$STATE_DIR/curl.calls" || \
     fail "curl 缺少总超时"
-grep -Fq -- '--retry 3' "$STATE_DIR/curl.calls" || fail "curl 缺少重试"
+grep -Fq -- '--retry 2' "$STATE_DIR/curl.calls" || fail "curl 缺少重试"
 grep -Fq -- '--retry-all-errors' "$STATE_DIR/curl.calls" || \
     fail "curl 未覆盖瞬时网络错误重试"
-grep -Fq 'https://www.dogfight360.com/blog/wp-content/uploads/2026/02/steamcommunity_302_Linux_AMD64_V14.0.02.tar.gz' \
-    "$STATE_DIR/curl.calls" || fail "未使用固定官方 URL"
+grep -Fq 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/steam302/latest.txt' \
+    "$STATE_DIR/curl.calls" || fail "未使用自有 Gitee 镜像清单"
+if grep -Fq 'dogfight360.com' "$STATE_DIR/curl.calls"; then
+    fail "Steamcommunity 302 仍连接其他来源"
+fi
 [ "$(grep -c '^md5$' "$STATE_DIR/hash.calls")" -eq 1 ] || fail "没有执行 MD5 校验"
-[ "$(grep -c '^sha256$' "$STATE_DIR/hash.calls")" -eq 1 ] || fail "没有执行 SHA256 校验"
+[ "$(grep -c '^sha256$' "$STATE_DIR/hash.calls")" -ge 2 ] || \
+    fail "没有执行镜像与安装包 SHA256 校验"
 grep -Fq 'enable steamcommunity302.service' "$STATE_DIR/systemctl.calls" || \
     fail "安装过程没有启用后台服务"
 grep -Fq 'start steamcommunity302.service' "$STATE_DIR/systemctl.calls" || \
@@ -407,6 +431,42 @@ stop_output="$(
 printf '%s\n' "$stop_output" | grep -Fq '后台服务已停止' || fail "停止后台服务没有报告成功"
 [ ! -f "$STATE_DIR/service-active" ] || fail "停止后后台服务仍在运行"
 [ ! -f "$TARGET/.zhoukeer-cli.pid" ] || fail "停止后仍残留 CLI PID"
+
+# 重置：工具箱托管的 systemd 服务通过 restart 重新拉起。
+reset_output="$(
+    env PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" HOME="$HOME_DIR" \
+        ZHOUKEER_APP_DIR="$APP_ROOT" STEAM302_TEST_STATE="$STATE_DIR" \
+        STEAM302_TEST_SYSTEMD_DIR="$STATE_DIR/systemd" \
+        ZHOUKEER_SYSTEMD_DIR="$STATE_DIR/systemd" \
+        MODULE="$MODULE" bash -c 'source "$MODULE"; toolbox_sudo() { "$@"; }; reset_steam302'
+)" || fail "重置后台加速失败"
+printf '%s\n' "$reset_output" | grep -Fq 'Steam + GitHub 加速已重置' || \
+    fail "重置后台服务没有报告成功"
+grep -Fq 'restart steamcommunity302.service' "$STATE_DIR/systemctl.calls" || \
+    fail "重置没有重启后台服务"
+[ -f "$STATE_DIR/service-active" ] || fail "重置后后台服务没有恢复运行"
+
+# 无 systemd 托管时，重置回退为停止并重新启动内置 CLI。
+reset_cli_output="$(MODULE="$MODULE" bash -c '
+    source "$MODULE"
+    steam302_is_installed() { return 0; }
+    steam302_service_is_toolbox_managed() { return 1; }
+    stop_steam302_cli() { echo "cli-stopped"; }
+    start_steam302_service() { echo "cli-started"; }
+    reset_steam302
+' 2>&1)" || fail "内置 CLI 重置失败"
+printf '%s\n' "$reset_cli_output" | grep -Fq 'cli-stopped' || fail "重置没有停止内置 CLI"
+printf '%s\n' "$reset_cli_output" | grep -Fq 'cli-started' || fail "重置没有重新启动内置 CLI"
+printf '%s\n' "$reset_cli_output" | grep -Fq 'Steam + GitHub 加速已重置' || \
+    fail "内置 CLI 重置缺少成功提示"
+
+if MODULE="$MODULE" bash -c '
+    source "$MODULE"
+    steam302_is_installed() { return 1; }
+    reset_steam302
+' >/dev/null 2>&1; then
+    fail "未安装时重置不应成功"
+fi
 
 # SHA256 失败时，下载和 staging 都不能破坏已有版本。
 printf '13.0.00\n' > "$TARGET/.zhoukeer-version"

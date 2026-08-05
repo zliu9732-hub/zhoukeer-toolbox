@@ -952,21 +952,25 @@ steam_accelerator_touch_menu() {
 
     while true; do
         draw_category_frame advanced "Steamcommunity 302" "加速 Steam 和 GitHub"
-        ui_touch_button 6 '\033[1;97;48;5;24m' "安装或更新" "安装 Steamcommunity 302"
-        ui_touch_button 9 '\033[1;97;48;5;30m' "一键开启加速" "自动准备并启动 Steam + GitHub 后台加速"
-        ui_touch_button 12 '\033[1;97;48;5;24m' "查看运行状态" "检查加速是否开启"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "安全卸载" "先停止工具箱进程，再删除程序文件"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "安装或更新" "安装 Steamcommunity 302"
+        ui_touch_button 7 '\033[1;97;48;5;30m' "一键开启加速" "自动准备并启动 Steam + GitHub 后台加速"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "重置加速" "停止并重新启动后台加速服务"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "查看运行状态" "检查加速是否开启"
+        ui_touch_button 13 '\033[1;97;48;5;160m' "安全卸载" "先停止工具箱进程，再删除程序文件"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:6-7:install right:9-10:start right:12-13:status right:15-16:uninstall right:18-19:advanced right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:install right:7-8:start right:9-10:reset right:11-12:status right:13-14:uninstall right:19-20:advanced right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             install)
                 confirm_and_run "Steamcommunity 302" "安装后开启加速会修改网络设置并需要管理员权限" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" install
                 ;;
             start)
-                confirm_and_run "开启 Steamcommunity 302" "会修改网络设置并需要管理员权限，开启后自动启动 Steam" env ZHOUKEER_START_STEAM_AFTER_302=1 bash "$PROJECT_ROOT/modules/steam_accelerator.sh" enable
+                confirm_and_run "开启 Steamcommunity 302" "会修改网络设置并需要管理员权限" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" enable
+                ;;
+            reset)
+                confirm_and_run "重置 Steamcommunity 302 加速" "会停止并重新启动后台加速服务" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" reset
                 ;;
             status) run_action "Steamcommunity 302 状态" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" status ;;
             uninstall)

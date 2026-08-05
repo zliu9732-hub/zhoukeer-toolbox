@@ -21,7 +21,7 @@
 | GE-Proton | Steam 兼容层 | https://github.com/GloriousEggroll/proton-ge-custom | Proton 顶层 BSD-3-Clause，组件各自许可 | 是 | 镜像包含上游 LICENSE.proton 说明 |
 | ToDesk | ToDesk 官方安装包 | https://www.todesk.com/ | 专有软件 | 是 | 维护者确认仅用于非商业装机工具，保持官方包原样并保留官网回退 |
 | Epic Games 启动器 | Epic 官方 Windows 安装器 | https://www.epicgames.com/ | 专有软件 | 是 | 维护者要求镜像以解决官方下载失败，保持官方包原样并保留官方源回退 |
-| Steamcommunity 302 | Steam/GitHub 加速 | https://www.dogfight360.com/blog/ | 作者公开免费发布，仓库未附带 LICENSE | 是 | 维护者确认可镜像，保留官方站回退 |
+| Steamcommunity 302 | Steam/GitHub 加速 | https://www.dogfight360.com/blog/ | 作者公开免费发布，仓库未附带 LICENSE | 是 | 工具箱只从自有 Gitee 镜像下载，镜像由维护者从官方源更新 |
 | Yuzu | Switch 模拟器 | https://github.com/yuzu-emu/yuzu | 上游仓库已下线 | 否 | 不镜像，仅保留现有 GitHub Release 回退 |
 | Cemu | Wii U 模拟器 | https://github.com/cemu-project/Cemu | MPL-2.0 | 否（官方源） | AppImage 走既有 GitHub Release 回退 |
 | DuckStation | PS1 模拟器 | https://github.com/stenzek/duckstation | CC BY-NC-ND 4.0 | 否 | 非商业且禁止演绎，不进入公开镜像 |

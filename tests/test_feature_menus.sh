@@ -241,6 +241,13 @@ for gui_menu_name in software_menu game_environment_gui_menu emulator_gui_menu s
     assert_contains "$gui_menu" 'nav-exit "退出工具箱"' "GUI 页面缺少退出工具箱：$gui_menu_name"
 done
 
+touch_accelerator="$(function_source "$MAIN_FILE" steam_accelerator_touch_menu)"
+gui_accelerator="$(function_source "$GUI_FILE" steam_accelerator_gui_menu)"
+for menu in "$touch_accelerator" "$gui_accelerator"; do
+    assert_contains "$menu" '重置加速' "Steamcommunity 302 菜单缺少重置入口"
+    assert_not_contains "$menu" '自动启动 Steam' "Steamcommunity 302 菜单仍提示自动启动 Steam"
+done
+
 touch_source="$(function_source "$MAIN_FILE" domestic_source_preflight)"
 gui_source="$(function_source "$GUI_FILE" domestic_source_gui_preflight)"
 for menu in "$touch_source" "$gui_source"; do
