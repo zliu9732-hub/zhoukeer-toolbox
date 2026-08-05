@@ -323,6 +323,25 @@ stop_steam302_cli() {
     rm -f "$STEAM302_PID_FILE"
 }
 
+start_steam_client() {
+    local steam_bin
+
+    if command -v steam >/dev/null 2>&1; then
+        steam_bin="$(command -v steam)"
+    elif [ -x "$HOME/.steam/steam/steam.sh" ]; then
+        steam_bin="$HOME/.steam/steam/steam.sh"
+    else
+        echo "未找到 Steam 启动命令，请手动启动 Steam。"
+        return 1
+    fi
+    if pgrep -x steam >/dev/null 2>&1; then
+        echo "Steam 已在运行。"
+        return 0
+    fi
+    "$steam_bin" >/dev/null 2>&1 &
+    echo "已启动 Steam。"
+}
+
 enable_steam302() {
     if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
         ! bash "$PROJECT_ROOT/modules/preflight.sh" steam302; then
@@ -332,7 +351,13 @@ enable_steam302() {
     if ! steam302_is_installed; then
         install_steam302 || return 1
     fi
-    start_steam302_service
+    if ! start_steam302_service; then
+        return 1
+    fi
+    if [ "${ZHOUKEER_START_STEAM_AFTER_302:-0}" = "1" ] && \
+        steam302_download_acceleration_is_ready; then
+        start_steam_client || true
+    fi
 }
 
 steam302_download_acceleration_is_ready() {

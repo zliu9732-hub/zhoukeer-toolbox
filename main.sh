@@ -966,7 +966,7 @@ steam_accelerator_touch_menu() {
                 confirm_and_run "Steamcommunity 302" "安装后开启加速会修改网络设置并需要管理员权限" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" install
                 ;;
             start)
-                confirm_and_run "开启 Steamcommunity 302" "会修改网络设置并需要管理员权限" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" enable
+                confirm_and_run "开启 Steamcommunity 302" "会修改网络设置并需要管理员权限，开启后自动启动 Steam" env ZHOUKEER_START_STEAM_AFTER_302=1 bash "$PROJECT_ROOT/modules/steam_accelerator.sh" enable
                 ;;
             status) run_action "Steamcommunity 302 状态" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" status ;;
             uninstall)

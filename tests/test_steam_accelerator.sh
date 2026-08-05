@@ -261,6 +261,36 @@ ready_output="$(MODULE="$MODULE" bash -c '
 ')" || fail "加速状态检测不应阻断下载"
 [ -z "$ready_output" ] || fail "已开启加速时仍显示多余提示"
 
+steam_start_output="$(MODULE="$MODULE" bash -c '
+    source "$MODULE"
+    ZHOUKEER_TEST_MODE=1
+    steam302_download_acceleration_is_ready() { return 0; }
+    steam302_service_is_active() { return 0; }
+    steam302_cli_is_running() { return 0; }
+    steam302_is_installed() { return 0; }
+    install_steam302() { return 0; }
+    start_steam302_service() { return 0; }
+    start_steam_client() { echo "steam-client-started"; }
+    ZHOUKEER_START_STEAM_AFTER_302=1 enable_steam302
+' 2>&1)" || fail "开启加速后启动 Steam 失败"
+printf '%s\n' "$steam_start_output" | grep -Fq 'steam-client-started' || \
+    fail "开启加速后没有自动启动 Steam"
+
+steam_no_start_output="$(MODULE="$MODULE" bash -c '
+    source "$MODULE"
+    ZHOUKEER_TEST_MODE=1
+    steam302_download_acceleration_is_ready() { return 0; }
+    steam302_service_is_active() { return 0; }
+    steam302_cli_is_running() { return 0; }
+    steam302_is_installed() { return 0; }
+    install_steam302() { return 0; }
+    start_steam302_service() { return 0; }
+    start_steam_client() { echo "unexpected-steam-start"; }
+    enable_steam302
+' 2>&1)" || fail "未要求时开启加速不应失败"
+printf '%s\n' "$steam_no_start_output" | grep -Fq 'unexpected-steam-start' && \
+    fail "未要求时不应自动启动 Steam"
+
 launch_function="$(sed -n '/^launch_steam302()/,/^}/p' "$MODULE")"
 printf '%s\n' "$launch_function" | grep -Fq 'toolbox_sudo /usr/bin/env -i' || \
     fail "Steamcommunity 302 root进程没有使用最小化环境"
