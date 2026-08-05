@@ -292,10 +292,11 @@ common_software_more_menu() {
         ui_touch_button 10 '\033[1;97;48;5;24m' "百度网盘" "Flathub 安装百度网盘 Linux 版"
         ui_touch_button 12 '\033[1;97;48;5;24m' "PeaZip 压缩工具" "解压与压缩常用格式"
         ui_touch_button 14 '\033[1;97;48;5;24m' "WiliWili" "Flathub 安装 WiliWili（B站客户端）"
+        ui_touch_button 16 '\033[1;97;48;5;24m' "中文输入法" "Flathub 安装 Fcitx5 及中文输入插件"
         ui_touch_button 18 '\033[1;97;48;5;238m' "返回常用软件" "查看常用软件第一页"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:2-3:libreoffice right:4-5:vlc right:6-7:obs right:8-9:localsend right:10-11:baidunetdisk right:12-13:peazip right:14-15:willwill right:18-19:back right:22-23:home)"
+        choice="$(read_touch_menu right:2-3:libreoffice right:4-5:vlc right:6-7:obs right:8-9:localsend right:10-11:baidunetdisk right:12-13:peazip right:14-15:willwill right:16-17:fcitx5 right:18-19:back right:22-23:home)"
         case "$choice" in
             libreoffice) confirm_and_run "安装 LibreOffice 办公套件" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" libreoffice ;;
             vlc) confirm_and_run "安装 VLC 播放器" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" vlc ;;
@@ -304,6 +305,7 @@ common_software_more_menu() {
             baidunetdisk) confirm_and_run "安装百度网盘" "Flathub 安装百度网盘 Linux 版，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" baidunetdisk ;;
             peazip) confirm_and_run "安装 PeaZip 压缩工具" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" peazip ;;
             willwill) confirm_and_run "安装 WiliWili" "Flathub 安装 WiliWili（B站客户端），通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" willwill ;;
+            fcitx5) confirm_and_run "安装中文输入法" "通过 Flathub 国内缓存安装 Fcitx5 及中文输入插件" bash "$PROJECT_ROOT/modules/software.sh" fcitx5 ;;
             back) return 0 ;;
             home) NEXT_CATEGORY="home"; return 1 ;;
         esac
@@ -543,8 +545,34 @@ plugin_page_2_menu() {
             tomoon) confirm_and_run "安装 ToMoon" "网络工具插件，下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon ;;
             battlenet) NEXT_CATEGORY="battlenet_submenu"; return 0 ;;
             ubisoft) confirm_and_run "安装育碧" "自动安装育碧游戏平台、创建桌面入口并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft ;;
-            ge-proton) confirm_and_run "安装 GE 兼容层" "安装第三方 GE-Proton 游戏兼容组件" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
+            ge-proton) ge_proton_menu ;;
             previous) NEXT_CATEGORY="games"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = "plugin_page_2" ] || return 0
+    done
+}
+
+ge_proton_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame games "GE 兼容层" "安装最新版或修改器常用兼容层" 0
+        ui_touch_button 5 '\033[1;97;48;5;24m' "安装最新 GE 兼容层" "自动检测最新版本，不再删除旧版"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "安装修改器所需常用兼容层" "四个版本约1.72GB，下载较慢为正常现象"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "查看其他游戏组件"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:5-6:latest right:9-10:trainer right:19-20:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            latest)
+                confirm_and_run "安装最新 GE 兼容层" "自动检测最新版本，不再删除旧版兼容层" bash "$PROJECT_ROOT/modules/ge_proton.sh" install
+                ;;
+            trainer)
+                confirm_and_run "安装修改器所需常用兼容层" "安装 GE-Proton 7-55、8-25、9-27、10-29；约1.72GB，下载较慢为正常现象" bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer
+                ;;
+            back) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "plugin_page_2" ] || return 0
@@ -954,13 +982,14 @@ steam_accelerator_touch_menu() {
         draw_category_frame advanced "Steamcommunity 302" "加速 Steam 和 GitHub"
         ui_touch_button 5 '\033[1;97;48;5;24m' "安装或更新" "安装 Steamcommunity 302"
         ui_touch_button 7 '\033[1;97;48;5;30m' "一键开启加速" "自动准备并启动 Steam + GitHub 后台加速"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "重置加速" "停止并重新启动后台加速服务"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "查看运行状态" "检查加速是否开启"
-        ui_touch_button 13 '\033[1;97;48;5;160m' "安全卸载" "先停止工具箱进程，再删除程序文件"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "打开官方配置界面" "官方配置窗口"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "重置加速" "停止并重新启动后台加速服务"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "查看运行状态" "检查加速是否开启"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "安全卸载" "先停止工具箱进程，再删除程序文件"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:install right:7-8:start right:9-10:reset right:11-12:status right:13-14:uninstall right:19-20:advanced right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:install right:7-8:start right:9-10:launch right:11-12:reset right:13-14:status right:15-16:uninstall right:19-20:advanced right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             install)
@@ -968,6 +997,9 @@ steam_accelerator_touch_menu() {
                 ;;
             start)
                 confirm_and_run "开启 Steamcommunity 302" "会修改网络设置并需要管理员权限" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" enable
+                ;;
+            launch)
+                confirm_and_run "打开 Steamcommunity 302 配置界面" "会启动官方配置窗口" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" launch
                 ;;
             reset)
                 confirm_and_run "重置 Steamcommunity 302 加速" "会停止并重新启动后台加速服务" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" reset

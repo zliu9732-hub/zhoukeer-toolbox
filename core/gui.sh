@@ -104,6 +104,7 @@ software_menu() {
             localsend "LocalSend 局域网传文件｜手机与电脑免登录互传" \
             peazip "PeaZip 压缩工具｜解压与压缩常用格式" \
             willwill "WiliWili｜Flathub 安装 WiliWili（B站客户端）" \
+            fcitx5 "中文输入法｜Fcitx5 与中文输入插件" \
             protontricks "游戏兼容设置｜安装 Protontricks" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -143,6 +144,7 @@ software_menu() {
             localsend) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 LocalSend。是否继续？" && run_gui_action "安装 LocalSend 局域网传文件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" localsend ;;
             peazip) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 PeaZip。是否继续？" && run_gui_action "安装 PeaZip 压缩工具" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" peazip ;;
             willwill) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 WiliWili（B站客户端）。是否继续？" && run_gui_action "安装 WiliWili" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" willwill ;;
+            fcitx5) gui_confirm "将通过 Flathub 国内缓存安装 Fcitx5 中文输入法及中文输入插件。是否继续？" && run_gui_action "安装中文输入法" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" fcitx5 ;;
             protontricks) gui_confirm "将通过 Flatpak 安装 Protontricks。是否继续？" && run_gui_action "安装 Protontricks" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
             bottles) gui_confirm "将通过 Flatpak 安装 Bottles。是否继续？" && run_gui_action "安装 Bottles" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
             home) GUI_NAV_HOME=1; return 0 ;;
@@ -171,6 +173,34 @@ remote_menu() {
                     bash "$PROJECT_ROOT/modules/todesk.sh" --install
                 ;;
             back) return 0 ;;
+        esac
+    done
+}
+
+ge_proton_gui_menu() {
+    local choice
+
+    while true; do
+        choice="$(gui_dialog --menu "GE 兼容层｜安装最新版或修改器常用兼容层" \
+            latest "安装最新 GE 兼容层｜自动检测最新版本，不再删除旧版" \
+            trainer "安装修改器所需常用兼容层｜四个版本约1.72GB，下载较慢为正常现象" \
+            back "返回游戏与插件" \
+            home "返回首页" \
+            nav-exit "退出工具箱")" || return 0
+        case "$choice" in
+            latest)
+                gui_confirm "将自动检测并安装最新 GE-Proton，不会删除已安装的旧版兼容层。是否继续？" && \
+                    run_gui_action "安装最新 GE 兼容层" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/ge_proton.sh" install
+                ;;
+            trainer)
+                gui_confirm "将安装 GE-Proton 7-55、8-25、9-27、10-29 四个修改器常用兼容层；合计约1.72GB，下载较慢为正常现象。是否继续？" && \
+                    run_gui_action "安装修改器所需常用兼容层" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer
+                ;;
+            back) return 0 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
         esac
     done
 }
@@ -221,9 +251,8 @@ game_environment_gui_menu() {
                 [ "$GUI_NAV_HOME" -eq 0 ] || return 0
                 ;;
             ge-proton)
-                gui_confirm "将安装第三方 GE-Proton 游戏兼容组件。是否继续？" && \
-                    run_gui_action "安装 GE 兼容层" \
-                    bash "$PROJECT_ROOT/modules/ge_proton.sh" install
+                ge_proton_gui_menu
+                [ "$GUI_NAV_HOME" -eq 0 ] || return 0
                 ;;
             epic)
                 run_gui_action "安装 Epic 游戏启动器并自动入库" \
@@ -431,6 +460,7 @@ steam_accelerator_gui_menu() {
         choice="$(gui_dialog --menu "Steamcommunity 302｜加速 Steam 和 GitHub" \
             install "安装或更新 Steamcommunity 302" \
             start "一键开启 Steam + GitHub 加速" \
+            launch "打开官方配置界面" \
             reset "重置加速服务" \
             status "查看运行状态" \
             uninstall "安全卸载" \
@@ -447,6 +477,10 @@ steam_accelerator_gui_menu() {
                 gui_confirm "开启加速会修改网络设置并需要管理员权限。是否继续？" && \
                     run_gui_action "开启 Steamcommunity 302 加速" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/steam_accelerator.sh" enable
+                ;;
+            launch)
+                run_gui_action "打开 Steamcommunity 302 配置界面" \
+                    bash "$PROJECT_ROOT/modules/steam_accelerator.sh" launch
                 ;;
             reset)
                 gui_confirm "将停止并重新启动 Steam + GitHub 后台加速。是否继续？" && \

@@ -65,8 +65,8 @@ test -x "$TARGET_ROOT/GE-Proton9-99/proton" || {
 }
 grep -Fq '请完全退出并重新启动Steam' "$TMP_ROOT/install.output"
 grep -Fq 'https://download.example/GE-Proton9-99.tar.gz' "$CURL_LOG"
-test ! -e "$TARGET_ROOT/GE-Proton8-1" || {
-    echo "FAIL: 安装新版本后未删除完整的旧版 GE-Proton"
+test -d "$TARGET_ROOT/GE-Proton8-1" || {
+    echo "FAIL: 安装最新版本后旧版 GE-Proton 被删除"
     exit 1
 }
 test -f "$TARGET_ROOT/GE-Proton10-1/marker.txt" || {
@@ -77,7 +77,34 @@ test -f "$TARGET_ROOT/GE-Proton-custom/marker.txt" || {
     echo "FAIL: 安装 GE-Proton 时误删了自定义兼容层"
     exit 1
 }
-grep -Fq '已清理 1 个旧版 GE-Proton' "$TMP_ROOT/install.output"
+if grep -Fq '已清理' "$TMP_ROOT/install.output"; then
+    echo "FAIL: 安装最新版本仍会清理旧版 GE-Proton"
+    exit 1
+fi
+
+# 修改器常用兼容层：固定四个版本、自有镜像和校验值必须写死在模块中。
+grep -Fq 'install-trainer' "$MODULE" || {
+    echo "FAIL: ge_proton.sh 缺少 install-trainer 子命令"
+    exit 1
+}
+grep -Fq 'GE_PROTON_TRAINER_ITEMS' "$MODULE" || {
+    echo "FAIL: 模块缺少修改器常用兼容层清单"
+    exit 1
+}
+for sha in \
+    'ffbd03b40a5c8dafba53e45bd6551c132512ad6fcba9120e25f0d510d0cd0485' \
+    'b37160b27ab36e0068f73ab09ac0c936323cf934c6f36edb171cd642bd7ce18a' \
+    'bbd3108ba8dcf173dd2a60ef4eb1b8d07e0fb3c9a1061b5b9310c5355c151937' \
+    '29a42ff004e9e5c79e22fa9a0595490284167d4a2e7cabbe570b1f9c2f3295c0'; do
+    grep -Fq "$sha" "$MODULE" || {
+        echo "FAIL: 修改器常用兼容层缺少校验值 $sha"
+        exit 1
+    }
+done
+if grep -Fq 'cleanup_older_ge_proton_versions' "$MODULE"; then
+    echo "FAIL: 模块仍包含删除旧版 GE-Proton 的逻辑"
+    exit 1
+fi
 
 printf '%s\n' 'old-install' > "$TARGET_ROOT/GE-Proton9-99/old-version.txt"
 curl_calls_before="$(wc -l < "$CURL_LOG" | tr -d '[:space:]')"
@@ -114,4 +141,27 @@ if find "$TARGET_ROOT" -maxdepth 1 -name '.GE-Proton9-99.*' | grep -q .; then
     exit 1
 fi
 
-echo "PASS: GE-Proton目录解析、校验、原子安装和旧版安全清理测试通过"
+# 修改器常用兼容层全部已安装时，只跳过并提示，不重新下载。
+for version in GE-Proton7-55 GE-Proton8-25 GE-Proton9-27 GE-Proton10-29; do
+    mkdir -p "$TARGET_ROOT/$version"
+    printf '%s\n' 'compatibility tool' > "$TARGET_ROOT/$version/compatibilitytool.vdf"
+    printf '%s\n' '#!/bin/bash' > "$TARGET_ROOT/$version/proton"
+    printf '%s\n' 'manifest' > "$TARGET_ROOT/$version/toolmanifest.vdf"
+    chmod +x "$TARGET_ROOT/$version/proton"
+done
+: > "$CURL_LOG"
+trainer_output="$(
+    HOME="$HOME_DIR" PATH="$BIN_DIR:/usr/bin:/bin" \
+    FAKE_CURL_LOG="$CURL_LOG" FAKE_GE_ARCHIVE="$ARCHIVE" \
+        bash "$MODULE" install-trainer
+)"
+[ ! -s "$CURL_LOG" ] || {
+    echo "FAIL: 修改器常用兼容层已安装时仍触发下载"
+    exit 1
+}
+printf '%s\n' "$trainer_output" | grep -Fq '修改器所需常用兼容层安装完成' || {
+    echo "FAIL: 修改器常用兼容层缺少完成提示"
+    exit 1
+}
+
+echo "PASS: GE-Proton目录解析、校验、原子安装、多版本共存和修改器兼容层测试通过"

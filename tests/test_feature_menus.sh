@@ -65,7 +65,7 @@ for menu in "$touch_software" "$gui_software"; do
 done
 
 for menu in "$touch_software_more" "$gui_software"; do
-    for item in 'LibreOffice 办公套件' 'VLC 播放器' 'OBS Studio' 'LocalSend 局域网传文件' 'PeaZip 压缩工具' 'WiliWili'; do
+    for item in 'LibreOffice 办公套件' 'VLC 播放器' 'OBS Studio' 'LocalSend 局域网传文件' 'PeaZip 压缩工具' 'WiliWili' '中文输入法'; do
         assert_contains "$menu" "$item" "更多常用软件缺少：$item"
     done
 done
@@ -245,7 +245,16 @@ touch_accelerator="$(function_source "$MAIN_FILE" steam_accelerator_touch_menu)"
 gui_accelerator="$(function_source "$GUI_FILE" steam_accelerator_gui_menu)"
 for menu in "$touch_accelerator" "$gui_accelerator"; do
     assert_contains "$menu" '重置加速' "Steamcommunity 302 菜单缺少重置入口"
+    assert_contains "$menu" '打开官方配置界面' "Steamcommunity 302 菜单缺少配置界面入口"
     assert_not_contains "$menu" '自动启动 Steam' "Steamcommunity 302 菜单仍提示自动启动 Steam"
+done
+
+touch_ge_proton="$(function_source "$MAIN_FILE" ge_proton_menu)"
+gui_ge_proton="$(function_source "$GUI_FILE" ge_proton_gui_menu)"
+for menu in "$touch_ge_proton" "$gui_ge_proton"; do
+    assert_contains "$menu" '安装最新 GE 兼容层' "GE 兼容层子菜单缺少最新版入口"
+    assert_contains "$menu" '安装修改器所需常用兼容层' "GE 兼容层子菜单缺少修改器常用入口"
+    assert_contains "$menu" '1.72GB' "GE 兼容层子菜单缺少下载体积提示"
 done
 
 touch_source="$(function_source "$MAIN_FILE" domestic_source_preflight)"

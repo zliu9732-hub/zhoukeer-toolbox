@@ -27,6 +27,11 @@ download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mir
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/latest.txt' || fail "Decky Gitee 镜像清单地址被拒绝"
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/PluginLoader-pre.part.00' || fail "Decky Gitee 镜像分块地址被拒绝"
 [ "$(download_policy_max_bytes 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/latest.txt')" -le 2097152 ] || fail "Decky Gitee 镜像清单大小限制过大"
+for mirror_id in 4 5 6 7; do
+    download_policy_url_allowed "https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-${mirror_id}/raw/main/ge-proton-trainer-7-55/latest.txt" || fail "修改器兼容层镜像仓库 mirror-${mirror_id} 未列入白名单"
+    download_policy_url_allowed "https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-${mirror_id}/raw/main/ge-proton-trainer-7-55/GE-Proton7-55.tar.gz" || fail "修改器兼容层文件地址被拒绝：mirror-${mirror_id}"
+    [ "$(download_policy_max_bytes "https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-${mirror_id}/raw/main/ge-proton-trainer-7-55/part.0001")" -le 8388608 ] || fail "修改器兼容层分块大小限制异常：mirror-${mirror_id}"
+done
 if download_policy_url_allowed 'https://evil.example/payload.sh'; then fail "任意域名被白名单接受"; fi
 download_policy_github_mirror_allowed 'https://ghfast.top/' || fail "GitHub Release 加速源被拒绝"
 for mirror in \

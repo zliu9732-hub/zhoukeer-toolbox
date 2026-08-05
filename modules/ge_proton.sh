@@ -19,6 +19,14 @@ GE_PROTON_TARGET_DIR=""
 GE_PROTON_SWAP_STARTED=0
 GE_PROTON_SWAP_FINISHED=0
 
+# 修改器常用兼容层：固定四个 GE-Proton 版本，从自有 Gitee 镜像下载。
+GE_PROTON_TRAINER_ITEMS=(
+    "ge-proton-trainer-7-55|zhoukeer-toolbox-mirror-4|GE-Proton7-55|ffbd03b40a5c8dafba53e45bd6551c132512ad6fcba9120e25f0d510d0cd0485"
+    "ge-proton-trainer-8-25|zhoukeer-toolbox-mirror-5|GE-Proton8-25|b37160b27ab36e0068f73ab09ac0c936323cf934c6f36edb171cd642bd7ce18a"
+    "ge-proton-trainer-9-27|zhoukeer-toolbox-mirror-6|GE-Proton9-27|bbd3108ba8dcf173dd2a60ef4eb1b8d07e0fb3c9a1061b5b9310c5355c151937"
+    "ge-proton-trainer-10-29|zhoukeer-toolbox-mirror-7|GE-Proton10-29|29a42ff004e9e5c79e22fa9a0595490284167d4a2e7cabbe570b1f9c2f3295c0"
+)
+
 calculate_ge_proton_sha256() {
     local file="$1"
 
@@ -179,54 +187,6 @@ ge_proton_is_installed() {
         validate_extracted_tool "$target_dir" >/dev/null 2>&1
 }
 
-cleanup_older_ge_proton_versions() {
-    local compatibility_dir="$1"
-    local current_name="$2"
-    local current_numbers current_major current_build
-    local candidate candidate_name candidate_numbers candidate_major candidate_build
-    local removed=0
-
-    current_numbers="${current_name#GE-Proton}"
-    current_major="${current_numbers%%-*}"
-    current_build="${current_numbers#*-}"
-    case "$current_major:$current_build" in
-        *[!0-9:]*) return 1 ;;
-    esac
-
-    for candidate in "$compatibility_dir"/GE-Proton*; do
-        [ -e "$candidate" ] || [ -L "$candidate" ] || continue
-        candidate_name="${candidate##*/}"
-        [ "$candidate_name" != "$current_name" ] || continue
-        case "$candidate_name" in
-            GE-Proton[0-9]*-[0-9]*) ;;
-            *) continue ;;
-        esac
-        candidate_numbers="${candidate_name#GE-Proton}"
-        candidate_major="${candidate_numbers%%-*}"
-        candidate_build="${candidate_numbers#*-}"
-        case "$candidate_major:$candidate_build" in
-            *[!0-9:]*) continue ;;
-        esac
-        if [ "$candidate_major" -gt "$current_major" ] || \
-           { [ "$candidate_major" -eq "$current_major" ] && \
-             [ "$candidate_build" -ge "$current_build" ]; }; then
-            continue
-        fi
-        if [ ! -d "$candidate" ] || [ -L "$candidate" ] || \
-           ! validate_extracted_tool "$candidate" >/dev/null 2>&1; then
-            log "跳过类型异常或不完整的旧版 GE-Proton：$candidate"
-            continue
-        fi
-        rm -rf -- "$candidate" || return 1
-        removed=$((removed + 1))
-        log "已删除旧版 GE-Proton：$candidate_name"
-    done
-
-    if [ "$removed" -gt 0 ]; then
-        echo "已清理 $removed 个旧版 GE-Proton。"
-    fi
-}
-
 cleanup_ge_proton() {
     if [ "$GE_PROTON_SWAP_STARTED" -eq 1 ] && \
         [ "$GE_PROTON_SWAP_FINISHED" -eq 0 ] && \
@@ -240,25 +200,17 @@ cleanup_ge_proton() {
     [ -z "$GE_PROTON_TMP_DIR" ] || rm -rf -- "$GE_PROTON_TMP_DIR"
 }
 
-install_ge_proton() {
-    local compatibility_dir
+install_ge_proton_package() {
+    local mirror_id="$1"
+    local mirror_repo="$2"
+    local download_mode="$3"
+    local compatibility_dir="$4"
     local archive
     local extract_dir
     local source_dir
     local actual_sha256
     local command_name
 
-    resolve_ge_proton_latest
-    validate_ge_proton_config || return 1
-    compatibility_dir="$(resolve_compatibilitytools_dir)" || return 1
-    if ge_proton_is_installed "$compatibility_dir"; then
-        cleanup_older_ge_proton_versions "$compatibility_dir" "$GE_PROTON_VERSION" || {
-            echo "旧版 GE-Proton 清理失败。"
-            return 1
-        }
-        echo "[已安装] $GE_PROTON_VERSION 已存在且文件完整，无需重复安装。"
-        return 0
-    fi
     for command_name in curl tar find; do
         command -v "$command_name" >/dev/null 2>&1 || {
             echo "缺少安装GE-Proton所需命令：$command_name"
@@ -281,22 +233,32 @@ install_ge_proton() {
     extract_dir="$GE_PROTON_TMP_DIR/extracted"
     mkdir -p "$extract_dir" || return 1
 
-    if ! GITHUB_MAX_TIME=1800 GITHUB_RETRIES=3 \
-        download_with_gitee_mirror_fallback \
-        "ge-proton" "$GE_PROTON_URL" "$GE_PROTON_SHA256" \
-        "$archive" "$GE_PROTON_VERSION"; then
-        echo "GE-Proton下载失败。"
-        return 1
+    if [ "$download_mode" = "mirror" ]; then
+        if ! GITEE_MIRROR_REPO="$mirror_repo" \
+            download_gitee_mirror_file \
+            "$mirror_id" "$archive" "$GE_PROTON_SHA256" \
+            "$GE_PROTON_VERSION"; then
+            echo "$GE_PROTON_VERSION 下载失败。"
+            return 1
+        fi
+    else
+        if ! GITHUB_MAX_TIME=1800 GITHUB_RETRIES=3 \
+            download_with_gitee_mirror_fallback \
+            "$mirror_id" "$GE_PROTON_URL" "$GE_PROTON_SHA256" \
+            "$archive" "$GE_PROTON_VERSION"; then
+            echo "$GE_PROTON_VERSION 下载失败。"
+            return 1
+        fi
     fi
 
     actual_sha256="$(calculate_ge_proton_sha256 "$archive")" || return 1
     if [ "$actual_sha256" != "$(printf '%s' "$GE_PROTON_SHA256" | tr '[:upper:]' '[:lower:]')" ]; then
-        echo "GE-Proton SHA256校验失败，已有兼容层保持不变。"
+        echo "$GE_PROTON_VERSION SHA256校验失败，已有兼容层保持不变。"
         return 1
     fi
     validate_archive_members "$archive" || return 1
     if ! tar --no-same-owner --no-same-permissions -xzf "$archive" -C "$extract_dir"; then
-        echo "GE-Proton解压失败。"
+        echo "$GE_PROTON_VERSION 解压失败。"
         return 1
     fi
 
@@ -314,7 +276,7 @@ install_ge_proton() {
         mv -- "$GE_PROTON_TARGET_DIR" "$GE_PROTON_BACKUP_DIR" || return 1
     fi
     if ! mv -- "$GE_PROTON_STAGE_DIR" "$GE_PROTON_TARGET_DIR"; then
-        echo "无法启用GE-Proton，正在恢复原版本。"
+        echo "无法启用$GE_PROTON_VERSION，正在恢复原版本。"
         return 1
     fi
     GE_PROTON_STAGE_DIR=""
@@ -322,13 +284,52 @@ install_ge_proton() {
     rm -rf -- "$GE_PROTON_BACKUP_DIR"
     GE_PROTON_BACKUP_DIR=""
 
-    cleanup_older_ge_proton_versions "$compatibility_dir" "$GE_PROTON_VERSION" || {
-        echo "$GE_PROTON_VERSION 已安装，但旧版 GE-Proton 清理失败。"
-        return 1
-    }
     log "$GE_PROTON_VERSION 已安装到 $GE_PROTON_TARGET_DIR"
     echo "$GE_PROTON_VERSION 安装完成。"
     echo "请完全退出并重新启动Steam，然后在游戏属性的兼容性页面选择该版本。"
+}
+
+install_ge_proton() {
+    local compatibility_dir
+
+    resolve_ge_proton_latest
+    validate_ge_proton_config || return 1
+    compatibility_dir="$(resolve_compatibilitytools_dir)" || return 1
+    if ge_proton_is_installed "$compatibility_dir"; then
+        echo "[已安装] $GE_PROTON_VERSION 已存在且文件完整，无需重复安装。"
+        return 0
+    fi
+    install_ge_proton_package "ge-proton" "zhoukeer-toolbox-mirror" \
+        "fallback" "$compatibility_dir"
+}
+
+install_trainer_ge_proton() {
+    local compatibility_dir
+    local item
+    local mirror_id
+    local mirror_repo
+    local version
+    local sha256
+
+    echo "正在安装修改器所需常用兼容层。"
+    echo "包含 GE-Proton 7-55、8-25、9-27、10-29，合计约 1.72GB；下载较慢为正常现象，请耐心等待。"
+    compatibility_dir="$(resolve_compatibilitytools_dir)" || return 1
+    mkdir -p "$compatibility_dir" || return 1
+
+    for item in "${GE_PROTON_TRAINER_ITEMS[@]}"; do
+        IFS='|' read -r mirror_id mirror_repo version sha256 <<< "$item"
+        GE_PROTON_VERSION="$version"
+        GE_PROTON_SHA256="$sha256"
+        if ge_proton_is_installed "$compatibility_dir"; then
+            echo "[已安装] $version 已存在且文件完整，跳过。"
+            continue
+        fi
+        echo "正在安装 $version..."
+        install_ge_proton_package "$mirror_id" "$mirror_repo" \
+            "mirror" "$compatibility_dir" || return 1
+    done
+
+    echo "修改器所需常用兼容层安装完成。"
 }
 
 uninstall_ge_proton() {
@@ -361,7 +362,8 @@ trap cleanup_ge_proton EXIT
 trap 'exit 130' INT TERM
 
 case "${1:-}" in
-        install) install_ge_proton ;;
-        uninstall) uninstall_ge_proton ;;
-    *) echo "用法：bash ge_proton.sh install"; exit 1 ;;
+    install) install_ge_proton ;;
+    install-trainer) install_trainer_ge_proton ;;
+    uninstall) uninstall_ge_proton ;;
+    *) echo "用法：bash ge_proton.sh {install|install-trainer|uninstall}"; exit 1 ;;
 esac

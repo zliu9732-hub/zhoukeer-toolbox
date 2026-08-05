@@ -25,7 +25,7 @@ esac
 }
 cd -- "$install_dir" || exit 1
 rm -f -- "$install_dir/S302.exit" "$pid_file"
-nohup ./steamcommunity_302.cli >>"$log_file" 2>&1 </dev/null &
+nohup ./steamcommunity_302.cli Service >>"$log_file" 2>&1 </dev/null &
 pid=$!
 case "$pid" in
     ''|*[!0-9]*) exit 1 ;;

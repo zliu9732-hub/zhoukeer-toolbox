@@ -2617,6 +2617,7 @@ install_configured_plugin() {
             fi
             ;;
         cheatdeck)
+            echo "提示：强烈建议进入 游戏与插件，安装修改器所需兼容层。"
             resolve_plugin_latest cheatdeck
             install_decky_zip \
                 "CheatDeck" \
@@ -2817,6 +2818,7 @@ install_feature_plugins() {
                 ;;
             cheatdeck)
                 echo "========== CheatDeck =========="
+                echo "提示：强烈建议进入 游戏与插件，安装修改器所需兼容层。"
                 if feature_plugin_is_present "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "CheatDeck" "CheatDeck"; then
                     echo "[已安装] CheatDeck 已安装，跳过。"
                     continue

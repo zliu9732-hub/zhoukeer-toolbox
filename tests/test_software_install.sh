@@ -425,4 +425,22 @@ printf '%s\n' "$failure_output" | grep -Fq '检测到下载源不可用，正在
 ! grep -Fq ' flathub com.qq.QQ' "$STATE_DIR/commands"
 ! grep -Fq 'https://dl.flathub.org/repo/summary.idx' "$STATE_DIR/curl-urls"
 
+# Fcitx5 中文输入法必须同时安装主程序与中文输入插件。
+rm -f "$STATE_DIR/commands"
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+MODULE="$PROJECT_ROOT/modules/software.sh" \
+bash -c '
+    source "$MODULE"
+    software_details fcitx5
+    run_flatpak_install "flathub-cn"
+'
+grep -Fq 'install --user --noninteractive -y flathub-cn org.fcitx.Fcitx5 org.fcitx.Fcitx5.Addon.ChineseAddons' \
+    "$STATE_DIR/commands" || {
+    echo "FAIL: Fcitx5 安装没有同时带上中文输入插件" >&2
+    exit 1
+}
+
 echo "PASS: 微信、QQ、Firefox国内Flatpak双缓存和桌面快捷方式测试通过"

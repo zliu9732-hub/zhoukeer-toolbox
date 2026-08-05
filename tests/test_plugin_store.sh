@@ -45,6 +45,11 @@ grep -Fq 'ensure_steam302_for_download' "$PROJECT_ROOT/modules/plugin_store.sh" 
     echo "FAIL: Decky 测试版下载缺少 Steam302 加速重试" >&2
     exit 1
 }
+grep -Fq '强烈建议进入 游戏与插件，安装修改器所需兼容层' \
+    "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: CheatDeck 下载缺少修改器兼容层提示" >&2
+    exit 1
+}
 grep -Fq 'systemctl --user disable --now "$DECKY_SERVICE_NAME"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_decky_component' "$PROJECT_ROOT/modules/plugin_store.sh"

@@ -42,6 +42,7 @@ RUSTDESK_MIN_BYTES="${ZHOUKEER_RUSTDESK_MIN_BYTES:-10485760}"
 
 software_details() {
     SOFTWARE_INSTALL_MODE="flatpak"
+    SOFTWARE_EXTRA_APP_IDS=""
     case "$1" in
         wechat)
             SOFTWARE_NAME="微信"
@@ -117,6 +118,13 @@ software_details() {
             SOFTWARE_DESKTOP_NAME="WiliWili"
             SOFTWARE_APP_ID="cn.xfangfang.wiliwili"
             SOFTWARE_CATEGORIES="AudioVideo;Player;"
+            ;;
+        fcitx5)
+            SOFTWARE_NAME="Fcitx5 中文输入法"
+            SOFTWARE_DESKTOP_NAME="Fcitx5"
+            SOFTWARE_APP_ID="org.fcitx.Fcitx5"
+            SOFTWARE_EXTRA_APP_IDS="org.fcitx.Fcitx5.Addon.ChineseAddons"
+            SOFTWARE_CATEGORIES="Utility;InputMethods;"
             ;;
         *)
             echo "未知软件: $1"
@@ -307,7 +315,8 @@ run_flatpak_install() {
     while [ "$attempt" -le "$FLATPAK_INSTALL_RETRIES" ]; do
         if LC_ALL="$locale_name" LANG="$locale_name" \
             timeout --foreground "$FLATPAK_INSTALL_TIMEOUT" \
-            flatpak install --user --noninteractive -y "$remote" "$SOFTWARE_APP_ID"; then
+            flatpak install --user --noninteractive -y "$remote" "$SOFTWARE_APP_ID" \
+            ${SOFTWARE_EXTRA_APP_IDS:-}; then
             return 0
         fi
         attempt=$((attempt + 1))
@@ -952,7 +961,7 @@ show_software_status() {
     local installed_count=0
 
     echo "常用软件与远程协助安装状态："
-    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend peazip willwill; do
+    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend peazip willwill fcitx5; do
         software_details "$target" || return 1
         if software_is_installed; then
             echo "✓ $SOFTWARE_NAME：已安装"
@@ -961,14 +970,14 @@ show_software_status() {
             echo "- $SOFTWARE_NAME：未安装"
         fi
     done
-    echo "已安装：$installed_count / 12"
+    echo "已安装：$installed_count / 13"
 }
 
 repair_software_shortcuts() {
     local target
     local repaired=0
 
-    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend peazip willwill; do
+    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend peazip willwill fcitx5; do
         software_details "$target" || return 1
         if software_is_installed; then
             create_software_shortcut || return 1
@@ -1250,13 +1259,14 @@ uninstall_software() {
         localsend) uninstall_flatpak_software "org.localsend.localsend_app" "LocalSend" "org.localsend.localsend_app.desktop" ;;
         peazip) uninstall_flatpak_software "io.github.peazip.PeaZip" "PeaZip 压缩工具" "PeaZip.desktop" "io.github.peazip.PeaZip.desktop" ;;
         willwill) uninstall_flatpak_software "cn.xfangfang.wiliwili" "WiliWili" "WiliWili.desktop" "cn.xfangfang.wiliwili.desktop" ;;
+        fcitx5) uninstall_flatpak_software "org.fcitx.Fcitx5" "Fcitx5 中文输入法" "Fcitx5.desktop" "org.fcitx.Fcitx5.desktop" ;;
         *) echo "未知卸载目标：$1"; return 1 ;;
     esac
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
-        wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill) install_software "$1" ;;
+        wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5) install_software "$1" ;;
         firefox-pacman|firefox-sjtu|system-setup)
             echo "该旧版系统级功能已停用，请使用当前 Flatpak 菜单功能。"
             exit 1

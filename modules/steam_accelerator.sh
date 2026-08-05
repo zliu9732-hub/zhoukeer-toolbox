@@ -137,28 +137,23 @@ steam302_cli_is_running() {
 }
 
 steam302_config_has_download_targets() {
-    local enabled_rules
-
     [ -r "$STEAM302_CONFIG_FILE" ] || return 1
-    enabled_rules="$(awk '
-        BEGIN { in_rules = 0 }
-        /^\[Rules\][[:space:]]*$/ { in_rules = 1; next }
-        /^\[/ { in_rules = 0 }
-        in_rules && /^[[:space:]]*enabled[[:space:]]*=/ {
-            sub(/^[^=]*=[[:space:]]*/, "")
-            print
-            exit
+    awk '
+        BEGIN { in_setting = 0; store = 0; github = 0 }
+        /^\[Setting\][[:space:]]*$/ { in_setting = 1; next }
+        /^\[/ { in_setting = 0 }
+        in_setting && /^[[:space:]]*Steam_store[[:space:]]*=/ {
+            value = $0
+            sub(/^[^=]*=[[:space:]]*/, "", value)
+            if (value == "1") store = 1
         }
-    ' "$STEAM302_CONFIG_FILE")"
-    enabled_rules="${enabled_rules//[[:space:]]/}"
-    case ",$enabled_rules," in
-        *,Steam_store,*) ;;
-        *) return 1 ;;
-    esac
-    case ",$enabled_rules," in
-        *,github,*) return 0 ;;
-        *) return 1 ;;
-    esac
+        in_setting && /^[[:space:]]*github[[:space:]]*=/ {
+            value = $0
+            sub(/^[^=]*=[[:space:]]*/, "", value)
+            if (value == "1") github = 1
+        }
+        END { exit !(store && github) }
+    ' "$STEAM302_CONFIG_FILE"
 }
 
 ensure_steam302_config() {
@@ -172,21 +167,17 @@ ensure_steam302_config() {
 
     temporary_config="$(mktemp "$STEAM302_INSTALL_DIR/.S302.ini.XXXXXX")" || return 1
     if ! awk -v enabled="$STEAM302_ENABLED_RULES" '
-        BEGIN { in_rules = 0; replaced = 0 }
-        /^\[Rules\][[:space:]]*$/ { in_rules = 1 }
-        /^\[/ && $0 !~ /^\[Rules\][[:space:]]*$/ { in_rules = 0 }
-        in_rules && /^[[:space:]]*enabled[[:space:]]*=/ {
-            if (!replaced) {
-                print "enabled = " enabled
-                replaced = 1
-            }
-            next
+        BEGIN {
+            count = split(enabled, rules, ",")
+            print "[Setting]"
+            for (i = 1; i <= count; i++) printf "%s = 1\n", rules[i]
+            print ""
+            print "[Rules]"
+            print "enabled = " enabled
         }
-        { print }
-        END { if (!replaced) exit 1 }
-    ' "$STEAM302_RULES_FILE" > "$temporary_config"; then
+    ' /dev/null > "$temporary_config"; then
         rm -f "$temporary_config"
-        echo "官方规则文件中没有找到 [Rules] enabled 配置项。"
+        echo "无法生成 Steamcommunity 302 配置。"
         return 1
     fi
     chmod 644 "$temporary_config" || {
@@ -222,8 +213,7 @@ steam302_service_exists() {
 
 steam302_service_is_toolbox_managed() {
     [ -f "$STEAM302_SERVICE_FILE" ] && [ ! -L "$STEAM302_SERVICE_FILE" ] || return 1
-    grep -Fqx '# Managed by Zhoukeer Toolbox' "$STEAM302_SERVICE_FILE" &&
-        grep -Fqx "ExecStart=$STEAM302_CLI" "$STEAM302_SERVICE_FILE"
+    grep -Fqx '# Managed by Zhoukeer Toolbox' "$STEAM302_SERVICE_FILE"
 }
 
 confirm_steam302_service_start() {
@@ -370,17 +360,10 @@ ensure_steam302_for_download() {
 
 steam302_setup_autostart() {
     local service_file="$STEAM302_SERVICE_FILE"
+    local tmp_service
 
-    if steam302_service_is_toolbox_managed; then
-        :
-    elif [ -e "$service_file" ] || [ -L "$service_file" ] || steam302_service_exists; then
-        echo "检测到非工具箱创建的同名系统服务，拒绝覆盖：$STEAM302_SERVICE_NAME"
-        echo "请先在原程序中停用该服务，再由工具箱配置后台加速。"
-        return 1
-    else
-        local tmp_service
-        tmp_service="$(mktemp)" || return 1
-        cat > "$tmp_service" << SERVICE_EOF
+    tmp_service="$(mktemp)" || return 1
+    cat > "$tmp_service" << SERVICE_EOF
 # Managed by Zhoukeer Toolbox
 [Unit]
 Description=Steamcommunity 302 (Steam + GitHub Acceleration)
@@ -389,16 +372,30 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=$STEAM302_CLI
+ExecStart=$STEAM302_CLI Service
 WorkingDirectory=$STEAM302_INSTALL_DIR
-Restart=on-failure
+Restart=always
 RestartSec=10
 User=root
-Group=root
 
 [Install]
 WantedBy=multi-user.target
 SERVICE_EOF
+
+    if steam302_service_is_toolbox_managed; then
+        if ! toolbox_sudo install -m 0644 "$tmp_service" "$service_file"; then
+            rm -f "$tmp_service"
+            echo "后台服务配置更新失败。"
+            return 1
+        fi
+        rm -f "$tmp_service"
+        toolbox_sudo systemctl daemon-reload >/dev/null 2>&1 || true
+    elif [ -e "$service_file" ] || [ -L "$service_file" ] || steam302_service_exists; then
+        rm -f "$tmp_service"
+        echo "检测到非工具箱创建的同名系统服务，拒绝覆盖：$STEAM302_SERVICE_NAME"
+        echo "请先在原程序中停用该服务，再由工具箱配置后台加速。"
+        return 1
+    else
         toolbox_sudo install -d -m 0755 -- "$STEAM302_SYSTEMD_DIR" || {
             rm -f "$tmp_service"
             return 1

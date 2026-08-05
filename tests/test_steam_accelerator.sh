@@ -111,6 +111,7 @@ case "$operation" in
 ./Steamcommunity_302/steamcommunity_302.cli
 ./Steamcommunity_302/steamcommunity_302.caddy
 ./Steamcommunity_302/S302_rules.ini
+./Steamcommunity_302/S302.ini
 ./Steamcommunity_302/run_\350\277\220\350\241\214.sh
 ./Steamcommunity_302/.launcher/
 ./Steamcommunity_302/.launcher/launcher_\345\220\257\345\212\250\345\231\250.sh
@@ -125,6 +126,7 @@ drwxr-xr-x user/group 0 Jan 1 00:00 ./Steamcommunity_302/
 -rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/steamcommunity_302.cli
 -rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/steamcommunity_302.caddy
 -rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/S302_rules.ini
+-rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/S302.ini
 -rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/run_运行.sh
 drwxr-xr-x user/group 0 Jan 1 00:00 ./Steamcommunity_302/.launcher/
 -rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/.launcher/launcher_启动器.sh
@@ -151,11 +153,17 @@ SCRIPT
 while [ ! -f S302.exit ]; do sleep 0.1; done
 SCRIPT
         printf 'caddy\n' > "$package/steamcommunity_302.caddy"
-        cat > "$package/S302_rules.ini" <<'INI'
+cat > "$package/S302_rules.ini" <<'INI'
 [Rules]
 enabled = all
 
 [github]
+INI
+        cat > "$package/S302.ini" <<'INI'
+[Setting]
+Steam_store=1
+Steam_community=1
+github=1
 INI
         cat > "$package/.launcher/launcher_启动器.sh" <<'SCRIPT'
 #!/bin/sh
@@ -266,6 +274,11 @@ fi
 grep -Fq '4b9994102b2256ca5fdf2e806a2c7035' "$MODULE" || fail "缺少官方 MD5"
 grep -Fq '5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f' \
     "$MODULE" || fail "缺少固定 SHA256"
+grep -Fq 'steamcommunity_302.cli Service' "$PROJECT_ROOT/modules/steam302_root_start.sh" || \
+    fail "内置启动器没有使用 Service 参数"
+grep -Fq 'ExecStart=$STEAM302_CLI Service' "$MODULE" || \
+    fail "后台服务没有使用 Service 参数"
+grep -Fq 'Restart=always' "$MODULE" || fail "后台服务没有按官方逻辑常驻重启"
 grep -Fq 'ensure_steam302_for_download()' "$MODULE" || fail "缺少 Steamcommunity 302 工具函数"
 grep -Fq '下载较慢，正在启用加速，请耐心等待' "$MODULE" || fail "缺少简洁的自动加速提示"
 grep -Fq '加速已开启，正在重试下载' "$MODULE" || fail "缺少自动加速完成提示"
@@ -362,9 +375,22 @@ if printf '%s\n' "$install_output" | grep -Eq '内置加速规则|校验均通�
     fail "安装成功仍显示面向实现的冗余细节"
 fi
 [ -f "$TARGET/S302.ini" ] || fail "没有生成内置配置"
-grep -Fq 'enabled = Steam_store,Steam_store_unlock' "$TARGET/S302.ini" || \
-    fail "内置配置没有启用 Steam 规则"
-grep -Fq ',github' "$TARGET/S302.ini" || fail "内置配置没有启用 GitHub 规则"
+grep -Fq '[Setting]' "$TARGET/S302.ini" || fail "内置配置缺少 Setting 开关"
+grep -Eq '^Steam_store=1' "$TARGET/S302.ini" || fail "内置配置没有启用 Steam 规则"
+grep -Eq '^github=1' "$TARGET/S302.ini" || fail "内置配置没有启用 GitHub 规则"
+
+# 官方 S302.ini 缺失时，仍要生成可用的 [Setting] 配置，不能覆盖成只有规则列表。
+rm -f "$TARGET/S302.ini"
+env PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" HOME="$HOME_DIR" \
+    ZHOUKEER_APP_DIR="$APP_ROOT" MODULE="$MODULE" \
+    bash -c 'source "$MODULE"; ensure_steam302_config' || \
+    fail "缺少 S302.ini 时无法生成配置"
+[ -f "$TARGET/S302.ini" ] || fail "缺少 S302.ini 时没有生成配置"
+grep -Fq '[Setting]' "$TARGET/S302.ini" || fail "生成配置缺少 Setting 开关"
+grep -Eq '^Steam_store[[:space:]]*=[[:space:]]*1' "$TARGET/S302.ini" || \
+    fail "生成配置没有启用 Steam 规则"
+grep -Eq '^github[[:space:]]*=[[:space:]]*1' "$TARGET/S302.ini" || \
+    fail "生成配置没有启用 GitHub 规则"
 [ -f "$STATE_DIR/systemd/steamcommunity302.service" ] || fail "没有创建后台自启服务"
 grep -Fqx '# Managed by Zhoukeer Toolbox' "$STATE_DIR/systemd/steamcommunity302.service" || \
     fail "后台服务缺少工具箱管理标记"
