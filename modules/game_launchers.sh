@@ -422,8 +422,13 @@ migrate_launcher_drive_to_visible() {
         *) return 0 ;;
     esac
     if [ -e "$new_drive" ] || [ -L "$new_drive" ]; then
-        echo "$LAUNCHER_NAME 目标虚拟目录已存在，未迁移：$new_drive"
-        return 1
+        if [ -d "$new_drive" ] && [ ! -L "$new_drive" ] && \
+            [ -z "$(ls -A "$new_drive" 2>/dev/null)" ]; then
+            rmdir "$new_drive" || return 1
+        else
+            echo "$LAUNCHER_NAME 目标虚拟目录已存在，未迁移：$new_drive"
+            return 1
+        fi
     fi
     new_parent="$(dirname "$new_drive")"
     mkdir -p "$new_parent" || return 1
@@ -1219,7 +1224,7 @@ finish_battlenet_steam_entry() {
 }
 
 install_launcher() {
-    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file app_id artwork_alt_app_id game_id icon_path workdir platform_drive_c grid_dir grid_icon
+    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file app_id artwork_alt_app_id game_id icon_path workdir platform_drive_c grid_dir grid_icon visible_exe
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
         echo "游戏启动器安装仅支持真实 SteamOS 环境。"
@@ -1247,6 +1252,12 @@ install_launcher() {
                 echo "$LAUNCHER_NAME 虚拟目录迁移后未找到主程序。"
                 return 1
             }
+            if [ "$target" = "battlenet" ]; then
+                visible_exe="$(launcher_drive_c battlenet)/Program Files (x86)/$LAUNCHER_PREINSTALLED_TARGET_RELATIVE"
+                if [ -f "$visible_exe" ] && [ ! -L "$visible_exe" ]; then
+                    launcher_exe="$visible_exe"
+                fi
+            fi
         else
             if [ "$target" = "heihe" ]; then
                 platform_drive_c="$(find_battle_platform_drive_c "$steam_root" || true)"
@@ -1264,7 +1275,11 @@ install_launcher() {
                 extract_preinstalled_launcher "$workdir/$LAUNCHER_PREINSTALLED_FILE" "$platform_drive_c"; then
                 rm -rf -- "$workdir"
                 prefix="$(prepare_launcher_shared_prefix "$target" "$platform_drive_c")" || return 1
-                launcher_exe="$prefix/pfx/drive_c/Program Files (x86)/$LAUNCHER_PREINSTALLED_TARGET_RELATIVE"
+                launcher_exe="$platform_drive_c/Program Files (x86)/$LAUNCHER_PREINSTALLED_TARGET_RELATIVE"
+                [ -f "$launcher_exe" ] && [ ! -L "$launcher_exe" ] || {
+                    echo "解压后未找到 $LAUNCHER_NAME 主程序。"
+                    return 1
+                }
             else
                 rm -rf -- "$workdir"
                 echo "$LAUNCHER_NAME 预装客户端不可用，正在回退到 Steam 库安装流程。"

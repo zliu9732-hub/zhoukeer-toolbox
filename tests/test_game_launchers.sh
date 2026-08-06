@@ -473,6 +473,7 @@ MIGRATE_EXE="$MIGRATE_OLD/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/Ubis
 mkdir -p "$MIGRATE_PREFIX/pfx" "$(dirname "$MIGRATE_EXE")"
 : > "$MIGRATE_EXE"
 ln -s "$MIGRATE_OLD" "$MIGRATE_PREFIX/pfx/drive_c"
+mkdir -p "$ZHOUKEER_LAUNCHER_BASE/ubisoft/drive_c"
 MODULE="$MODULE" MIGRATE_APP_DIR="$MIGRATE_APP_DIR" \
     ZHOUKEER_APP_DIR="$MIGRATE_APP_DIR" bash -c '
     source "$MODULE"
@@ -982,6 +983,51 @@ ubi_grid="$UBI_STEAM/userdata/123/config/grid"
 python3 "$HELPER" --shortcut-file "$UBI_SHORTCUTS" verify \
     --name "育碧" --exe "$UBI_EXE" --icon "$ubi_grid/${ubi_app_id}_icon.png" | grep -Fxq verified || {
     echo "FAIL: 育碧 Steam 条目没有使用 grid 图标" >&2
+    exit 1
+}
+
+# 战网全新安装时 Steam 条目必须直接使用用户可见目录，不能再写旧隐藏前缀路径。
+BATTLE_STEAM="$TMP_ROOT/battle-visible-steam"
+BATTLE_SHORTCUTS="$BATTLE_STEAM/userdata/123/config/shortcuts.vdf"
+BATTLE_APP_DIR="$TMP_ROOT/battle-visible-apps"
+BATTLE_HOME="$TMP_ROOT/battle-visible-home"
+BATTLE_DRIVE="$ZHOUKEER_LAUNCHER_BASE/battlenet/drive_c"
+BATTLE_EXE="$BATTLE_DRIVE/Program Files (x86)/Battle.net/Battle.net Launcher.exe"
+BATTLE_P10="$BATTLE_STEAM/steamapps/common/Proton 10.0-4/proton"
+mkdir -p "$(dirname "$BATTLE_SHORTCUTS")" "$BATTLE_STEAM/config" \
+    "$BATTLE_HOME/Desktop" "$(dirname "$BATTLE_P10")" "$(dirname "$BATTLE_EXE")"
+printf '%s\n' '"InstallConfigStore"' '{' '    "Software"' '    {' \
+    '        "Valve"' '        {' '            "Steam"' '            {' \
+    '            }' '        }' '    }' '}' > "$BATTLE_STEAM/config/config.vdf"
+printf '#!/bin/bash\nexit 0\n' > "$BATTLE_P10"
+chmod +x "$BATTLE_P10"
+: > "$BATTLE_EXE"
+battle_visible_output="$(
+    MODULE="$MODULE" ZHOUKEER_STEAM_ROOT="$BATTLE_STEAM" \
+        ZHOUKEER_SHORTCUT_FILE="$BATTLE_SHORTCUTS" \
+        ZHOUKEER_APP_DIR="$BATTLE_APP_DIR" HOME="$BATTLE_HOME" \
+        ZHOUKEER_SKIP_STEAM_RESTART=1 bash -c '
+            source "$MODULE"
+            detect_platform() { IS_STEAMOS=1; }
+            download_preinstalled_launcher() { return 0; }
+            extract_preinstalled_launcher() { return 0; }
+            install_launcher battlenet
+        '
+)"
+printf '%s\n' "$battle_visible_output" | grep -Fq '已添加到 Steam 库' || {
+    echo "FAIL: 战网可见目录安装流程没有完成入库" >&2
+    exit 1
+}
+python3 - "$BATTLE_SHORTCUTS" "$BATTLE_EXE" <<'PY'
+from pathlib import Path
+import sys
+
+data = Path(sys.argv[1]).read_bytes()
+assert sys.argv[2].encode() in data, "Steam 条目没有使用可见战网路径"
+assert b"compatdata/pfx/drive_c" not in data, "Steam 条目仍指向旧隐藏前缀路径"
+PY
+grep -Fq '"proton_10"' "$BATTLE_STEAM/config/config.vdf" || {
+    echo "FAIL: 战网可见路径入库时没有绑定 Proton 10" >&2
     exit 1
 }
 

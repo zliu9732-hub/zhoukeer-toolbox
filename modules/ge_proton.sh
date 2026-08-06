@@ -179,6 +179,35 @@ validate_extracted_tool() {
     done < <(find "$source_dir" -type l -print)
 }
 
+cleanup_stale_ge_proton_temp() {
+    local compatibility_dir="$1"
+    local tmp_base="${ZHOUKEER_GE_PROTON_TMP_BASE:-/tmp}"
+    local removed=0
+    local entry
+
+    [ -d "$tmp_base" ] || tmp_base="/tmp"
+    while IFS= read -r -d '' entry; do
+        if [ -f "$entry/ge-proton.tar.gz" ]; then
+            rm -rf -- "$entry"
+            removed=$((removed + 1))
+        fi
+    done < <(find "$tmp_base" -mindepth 1 -maxdepth 1 -type d -name 'tmp.*' -print0 2>/dev/null)
+
+    while IFS= read -r -d '' entry; do
+        case "${entry##*/}" in
+            .ge-proton-tmp.*|.GE-Proton*.new.*|.GE-Proton*.backup.*)
+                rm -rf -- "$entry"
+                removed=$((removed + 1))
+                ;;
+        esac
+    done < <(find "$compatibility_dir" -mindepth 1 -maxdepth 1 -type d -name '.*' -print0 2>/dev/null)
+
+    if [ "$removed" -gt 0 ]; then
+        echo "已清理 $removed 个旧 GE-Proton 临时/缓存目录。"
+        log "GE-Proton 旧临时缓存已清理: $removed 个"
+    fi
+}
+
 ge_proton_is_installed() {
     local compatibility_dir="$1"
     local target_dir="$compatibility_dir/$GE_PROTON_VERSION"
@@ -228,8 +257,9 @@ install_ge_proton_package() {
         echo "无法创建Steam兼容层目录：$compatibility_dir"
         return 1
     }
+    cleanup_stale_ge_proton_temp "$compatibility_dir"
 
-    GE_PROTON_TMP_DIR="$(mktemp -d)" || return 1
+    GE_PROTON_TMP_DIR="$(mktemp -d "${compatibility_dir}/.ge-proton-tmp.XXXXXX")" || return 1
     archive="$GE_PROTON_TMP_DIR/ge-proton.tar.gz"
     extract_dir="$GE_PROTON_TMP_DIR/extracted"
     mkdir -p "$extract_dir" || return 1
@@ -405,9 +435,11 @@ uninstall_ge_proton() {
 trap cleanup_ge_proton EXIT
 trap 'exit 130' INT TERM
 
-case "${1:-}" in
-    install) install_ge_proton ;;
-    install-trainer) install_trainer_ge_proton ;;
-    uninstall) uninstall_ge_proton ;;
-    *) echo "用法：bash ge_proton.sh {install|install-trainer|uninstall}"; exit 1 ;;
-esac
+if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    case "${1:-}" in
+        install) install_ge_proton ;;
+        install-trainer) install_trainer_ge_proton ;;
+        uninstall) uninstall_ge_proton ;;
+        *) echo "用法：bash ge_proton.sh {install|install-trainer|uninstall}"; exit 1 ;;
+    esac
+fi

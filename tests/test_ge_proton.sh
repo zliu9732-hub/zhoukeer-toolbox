@@ -110,6 +110,10 @@ grep -Fq 'install-trainer' "$MODULE" || {
     echo "FAIL: ge_proton.sh 缺少 install-trainer 子命令"
     exit 1
 }
+grep -Fq 'mktemp -d "${compatibility_dir}/.ge-proton-tmp.XXXXXX"' "$MODULE" || {
+    echo "FAIL: GE-Proton 临时目录没有放在兼容层所在磁盘" >&2
+    exit 1
+}
 grep -Fq 'GE_PROTON_TRAINER_ITEMS' "$MODULE" || {
     echo "FAIL: 模块缺少修改器常用兼容层清单"
     exit 1
@@ -197,6 +201,35 @@ trainer_output="$(
 }
 printf '%s\n' "$trainer_output" | grep -Fq '修改器所需常用兼容层安装完成' || {
     echo "FAIL: 修改器常用兼容层缺少完成提示"
+    exit 1
+}
+
+# 安装前必须清理 /tmp 与兼容层目录里的旧 GE-Proton 缓存。
+TMP_BASE="$TMP_ROOT/tmp-base"
+mkdir -p "$TMP_BASE/tmp.ge-old" \
+    "$TARGET_ROOT/.GE-Proton9-99.new.123" \
+    "$TARGET_ROOT/.GE-Proton9-99.backup.123" \
+    "$TARGET_ROOT/.ge-proton-tmp.abc"
+: > "$TMP_BASE/tmp.ge-old/ge-proton.tar.gz"
+MODULE="$MODULE" TARGET_ROOT="$TARGET_ROOT" \
+    ZHOUKEER_GE_PROTON_TMP_BASE="$TMP_BASE" bash -c '
+    source "$MODULE"
+    cleanup_stale_ge_proton_temp "$TARGET_ROOT"
+'
+[ ! -e "$TMP_BASE/tmp.ge-old" ] || {
+    echo "FAIL: /tmp 里的旧 GE-Proton 缓存没有被清理" >&2
+    exit 1
+}
+[ ! -e "$TARGET_ROOT/.GE-Proton9-99.new.123" ] || {
+    echo "FAIL: GE-Proton 新版本暂存目录没有被清理" >&2
+    exit 1
+}
+[ ! -e "$TARGET_ROOT/.GE-Proton9-99.backup.123" ] || {
+    echo "FAIL: GE-Proton 备份目录没有被清理" >&2
+    exit 1
+}
+[ ! -e "$TARGET_ROOT/.ge-proton-tmp.abc" ] || {
+    echo "FAIL: GE-Proton 临时解压目录没有被清理" >&2
     exit 1
 }
 
