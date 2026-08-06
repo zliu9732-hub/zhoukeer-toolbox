@@ -261,7 +261,7 @@ grep -Fq "Exec=$NATIVE_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" \
     echo "FAIL: Steam 原生战网流程没有创建独立桌面启动入口" >&2
     exit 1
 }
-[ "$(grep -c '"proton_10"' "$NATIVE_STEAM/config/config.vdf")" -eq 2 ] || {
+[ "$(grep -c '"proton_10"' "$NATIVE_STEAM/config/config.vdf")" -ge 2 ] || {
     echo "FAIL: 战网安装条目和正式条目没有分别绑定 Proton 10" >&2
     exit 1
 }

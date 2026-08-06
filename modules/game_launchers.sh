@@ -1192,6 +1192,7 @@ finish_launcher_steam_entry() {
     game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
     link_steam_compatdata_drive "$steam_root" "$app_id" "$prefix_dir" || return 1
+    link_steam_compatdata_drive "$steam_root" "$artwork_alt_app_id" "$prefix_dir" || true
     install_launcher_steam_artwork "$target" "$shortcut_file" "$app_id" "$artwork_alt_app_id" "$game_id" || return 1
     grid_dir="$(dirname "$shortcut_file")/grid"
     grid_icon="$(set_launcher_grid_icon "$shortcut_file" "$LAUNCHER_NAME" "$launcher_exe" \
@@ -1212,12 +1213,14 @@ finish_launcher_steam_entry() {
     fi
     echo "正在写入 Proton 10.0-4 兼容层..."
     set_steam_proton_10 "$steam_root" "$app_id" || return 1
+    set_steam_proton_10 "$steam_root" "$artwork_alt_app_id" || true
     echo "正式条目、兼容层和封面已写入文件。"
     echo "正在启动 Steam..."
     start_steam
     if [ "${ZHOUKEER_SKIP_STEAM_RESTART:-0}" != "1" ]; then
         wait_for_steam_running || true
         apply_launcher_decky_artwork "$target" "$app_id" || true
+        apply_launcher_decky_artwork "$target" "$artwork_alt_app_id" || true
     fi
     echo "Steam 已启动，请确认库中的兼容层和封面。"
     print_launcher_proton_hint
@@ -1361,7 +1364,9 @@ install_launcher() {
         return 1
     }
     set_steam_proton_10 "$steam_root" "$app_id" || return 1
+    set_steam_proton_10 "$steam_root" "$artwork_alt_app_id" || true
     link_steam_compatdata_drive "$steam_root" "$app_id" "$prefix" || return 1
+    link_steam_compatdata_drive "$steam_root" "$artwork_alt_app_id" "$prefix" || true
     install_launcher_steam_artwork "$target" "$shortcut_file" "$app_id" "$artwork_alt_app_id" "$game_id" || return 1
     grid_dir="$(dirname "$shortcut_file")/grid"
     grid_icon="$(set_launcher_grid_icon "$shortcut_file" "$LAUNCHER_NAME" "$launcher_exe" \
@@ -1378,6 +1383,7 @@ install_launcher() {
     if [ "${ZHOUKEER_SKIP_STEAM_RESTART:-0}" != "1" ]; then
         wait_for_steam_running || true
         apply_launcher_decky_artwork "$target" "$app_id" || true
+        apply_launcher_decky_artwork "$target" "$artwork_alt_app_id" || true
     fi
     echo "$LAUNCHER_NAME 已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
     if [ "$target" = "epic" ]; then

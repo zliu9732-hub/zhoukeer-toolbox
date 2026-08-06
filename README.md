@@ -2,7 +2,7 @@
 
 周克儿工具箱是面向 Steam Deck 及其他 SteamOS 掌机的 Bash 工具箱，提供一键新机初始化、常用软件、远程协助、插件商城、系统维护和安全更新入口。界面会按终端宽度收紧导航栏；体检、诊断、攻略和启动器功能尽量适配 SteamOS 掌机，涉及引导、只读分区等系统功能仍会先检查环境。
 
-当前正式版：V1.3.8；版本号按语义化版本递增，不跳版。
+当前正式版：V1.3.9；版本号按语义化版本递增，不跳版。
 
 - 双系统设置：只保留互通盘挂载与只读保护、TF 卡 exFAT 初始化、NTFS/exFAT 基础修复、只读健康检查和受保护的第三方引导项清理。rEFInd、Clover、EFI/BootOrder 修改和“一键切换 Windows”均不提供入口。
 
@@ -205,6 +205,6 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 
 ## 当前版本与维护
 
-当前正式版为 V1.3.8，版本号按语义化版本递增，不跳版。后续维护继续围绕 SteamOS 实际使用更新下载链路、插件镜像、菜单与修复；rEFInd、Clover、EFI/BootOrder 和“一键切换 Windows”等高风险入口保持停用。
+当前正式版为 V1.3.9，版本号按语义化版本递增，不跳版。后续维护继续围绕 SteamOS 实际使用更新下载链路、插件镜像、菜单与修复；rEFInd、Clover、EFI/BootOrder 和“一键切换 Windows”等高风险入口保持停用。
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。
