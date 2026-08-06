@@ -21,6 +21,8 @@ grep -Fq 'v3.2.8-pre1/dist/plugin_loader-prerelease.service' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'store-test) show_plugin_download_speed_tip; install_plugin_store prerelease' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'store-auto) show_plugin_download_speed_tip; install_plugin_store_auto' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_decky_gitee_loader' "$PROJECT_ROOT/modules/plugin_store.sh" || {
     echo "FAIL: Decky 测试版未接入 Gitee 国内镜像加载流程" >&2
     exit 1

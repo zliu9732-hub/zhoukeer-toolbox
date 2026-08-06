@@ -50,6 +50,19 @@ id() {
 }
 require_command() { return 0; }
 
+printf '%s\n' \
+    'PRETTY_NAME="SteamOS (holo)"' \
+    'VERSION_ID="3.6.20"' \
+    'VERSION_CODENAME=holo' > "$TMP_ROOT/os-release-stable"
+printf '%s\n' \
+    'PRETTY_NAME="SteamOS (holo_preview)"' \
+    'VERSION_ID="3.6.19"' \
+    'VERSION_CODENAME=holo_preview' > "$TMP_ROOT/os-release-preview"
+detected_channel="$(ZHOUKEER_OS_RELEASE_FILE="$TMP_ROOT/os-release-stable" detect_steamos_channel)"
+[ "$detected_channel" = "stable" ] || fail "正式版系统未检测为稳定通道"
+detected_channel="$(ZHOUKEER_OS_RELEASE_FILE="$TMP_ROOT/os-release-preview" detect_steamos_channel)"
+[ "$detected_channel" = "prerelease" ] || fail "预览版系统未检测为测试通道"
+
 mock_systemctl() {
     local scope="$1"
     shift

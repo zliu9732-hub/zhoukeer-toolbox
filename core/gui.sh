@@ -345,8 +345,14 @@ game_environment_gui_menu() {
                 decky_choice="$(gui_dialog --menu "安装插件商城｜请选择与 SteamOS 系统通道匹配的版本" \
                     stable "安装稳定版｜适合 SteamOS 正式系统" \
                     test "安装测试版｜仅适合 SteamOS 测试或预览系统｜国内源优先" \
+                    auto "根据系统版本安装｜自动检测稳定版或测试版" \
                     back "返回插件列表")" || continue
                 case "$decky_choice" in
+                    auto)
+                        gui_confirm "会自动检测 SteamOS 正式或测试通道并安装对应版本；会先停用旧服务再安装，已有插件和设置保留。是否继续？" && \
+                            run_gui_action "按系统版本自动安装插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
+                            bash "$PROJECT_ROOT/modules/plugin_store.sh" store-auto
+                        ;;
                     stable)
                         gui_confirm "适合 SteamOS 正式系统。优先使用国内线路，失败自动切换 Decky 官方 Release；会停用旧版用户服务并切换到稳定通道，已有插件和设置保留。是否继续？" && \
                             run_gui_action "安装稳定版插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \

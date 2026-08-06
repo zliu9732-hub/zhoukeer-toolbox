@@ -122,6 +122,8 @@ for menu in "$touch_games" "$gui_games"; do
     assert_not_contains "$menu" '25 个精选插件' "plugin_store all 仍被错误描述为 25 个精选插件"
     assert_not_contains "$menu" '兼容层管理' "不存在的兼容层管理仍可见"
 done
+assert_contains "$touch_games" '根据系统版本安装' "Decky Loader 子菜单缺少自动安装入口"
+assert_contains "$gui_games" '根据系统版本安装' "GUI 插件商城缺少自动安装入口"
 
 touch_maintenance="$(function_source "$MAIN_FILE" maintenance_menu)"
 gui_maintenance="$(function_source "$GUI_FILE" maintenance_gui_menu)"

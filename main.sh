@@ -550,16 +550,21 @@ decky_loader_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "安装插件商城｜Decky Loader" "稳定版适合正式系统 · 测试版只适合测试或预览系统" 0
+        draw_category_frame games "安装插件商城｜Decky Loader" "稳定版适合正式系统 · 测试版只适合测试或预览系统 · 也可根据系统版本自动选择" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "安装稳定版插件商城" "国内失败自动切换 Decky 官方 Release"
-        ui_touch_button 9 '\033[1;97;48;5;160m' "安装测试版插件商城" "仅用于 SteamOS 测试或预览通道 · 国内源优先"
+        ui_touch_button 7 '\033[1;97;48;5;160m' "安装测试版插件商城" "仅用于 SteamOS 测试或预览通道 · 国内源优先"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "根据系统版本安装" "自动检测正式或测试通道并安装对应版本"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "不进行安装"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:stable right:9-10:test right:19-20:back right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:stable right:7-8:test right:9-10:auto right:19-20:back right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
+            auto)
+                confirm_and_run "按系统版本自动安装插件商城" "自动检测 SteamOS 正式或测试通道并安装对应版本；会先停用旧服务再安装，已有插件和设置保留" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store-auto
+                ;;
             stable)
                 confirm_and_run "安装稳定版插件商城" "适合 SteamOS 正式系统；优先使用国内线路，失败自动切换 Decky 官方 Release；会停用旧版用户服务并切换到稳定通道，已有插件和设置保留" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store

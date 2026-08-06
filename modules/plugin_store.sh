@@ -439,6 +439,30 @@ confirm_decky_install() {
     esac
 }
 
+detect_steamos_channel() {
+    local os_release="${ZHOUKEER_OS_RELEASE_FILE:-/etc/os-release}"
+    local key raw value
+
+    [ -r "$os_release" ] && [ ! -L "$os_release" ] || { printf '%s\n' stable; return 0; }
+    while IFS='=' read -r key raw; do
+        [ -n "$key" ] || continue
+        value="${raw#\"}"
+        value="${value%\"}"
+        case "$value" in
+            *[Pp]review*|*[Bb]eta*|*[Pp]re[.-]*) printf '%s\n' prerelease; return 0 ;;
+        esac
+    done < "$os_release"
+    printf '%s\n' stable
+}
+
+install_plugin_store_auto() {
+    local channel
+
+    channel="$(detect_steamos_channel)"
+    echo "检测到 SteamOS 系统通道：$channel"
+    install_plugin_store "$channel"
+}
+
 prepare_decky_loader_channel_settings() {
     local input="$1"
     local output="$2"
@@ -2927,6 +2951,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-store}" in
         store) show_plugin_download_speed_tip; install_plugin_store stable ;;
         store-test) show_plugin_download_speed_tip; install_plugin_store prerelease ;;
+        store-auto) show_plugin_download_speed_tip; install_plugin_store_auto ;;
         store-uninstall) uninstall_plugin_store ;;
         lsfg) show_plugin_download_speed_tip; install_configured_plugin lsfg ;;
         lsfg-zh) install_lsfg_chinese && refresh_feature_usage_guides ;;
