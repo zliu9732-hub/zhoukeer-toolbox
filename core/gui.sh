@@ -466,11 +466,13 @@ dual_system_menu() {
         choice="$(gui_dialog --menu "双系统与互通盘｜磁盘和开机菜单设置｜高级操作" \
             health "双系统健康检查｜识别 Clover、rEFInd、GRUB、OpenCore 等｜只读" \
             mount "挂载双系统互通盘｜自动排除 Windows 系统分区｜高级操作" \
-            tf-format "初始化并挂载 TF 卡｜清空并格式化为 exFAT｜高风险" \
+            tf-format "初始化并挂载 TF 卡｜清空并格式化为 NTFS｜高风险" \
             repair-drive "修复磁盘写入错误｜NTFS/exFAT 基础修复｜高级操作" \
             protect "双系统互通盘保护｜防止 SteamOS 误写入｜高级操作" \
             unprotect "恢复互通盘写入｜重新以可写方式挂载｜高级操作" \
             cleanup-boot "清理第三方引导项｜保护 SteamOS / Windows｜保留 EFI 文件" \
+            repair-boot "修复双系统引导｜补齐缺失的 SteamOS / Windows / Clover 引导项｜高级操作" \
+            switch-to-windows "一键切换至 Windows｜设置 BootNext 后立即重启｜高风险" \
             back "返回系统设置" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -482,7 +484,7 @@ dual_system_menu() {
                     bash "$PROJECT_ROOT/modules/dual_system.sh" mount
                 ;;
             tf-format)
-                gui_confirm "将永久清空自动识别出的唯一 TF 卡并格式化为 exFAT；随后仍需输入完整设备名确认。是否继续？" && \
+                gui_confirm "将永久清空自动识别出的唯一 TF 卡并格式化为 NTFS；随后仍需输入完整设备名确认。是否继续？" && \
                     run_gui_action "初始化并挂载 TF 卡" \
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" tf-format-mount
                 ;;
@@ -505,6 +507,16 @@ dual_system_menu() {
                 gui_confirm "SteamOS、Windows 和 systemd-boot 受保护；其他第三方项仍需输入 Boot 编号和完整删除口令。是否继续？" && \
                     run_gui_action "清理第三方引导项" \
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" cleanup-boot
+                ;;
+            repair-boot)
+                gui_confirm "将按设备配置安装并修复 Clover 开机菜单、恢复 BootOrder，并启用开机修复服务；会修改 EFI/NVRAM。是否继续？" && \
+                    run_gui_action "修复双系统引导" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/clover_boot.sh" install
+                ;;
+            switch-to-windows)
+                gui_confirm "将设置 BootNext 到 Windows 并立即重启进入 Windows；请先保存所有工作。是否继续？" && \
+                    run_gui_action "一键切换至 Windows" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" switch-to-windows
                 ;;
             back) return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;

@@ -12,13 +12,19 @@ source "$PROJECT_ROOT/core/auth.sh"
 load_config
 
 CLOVER_VERSION="5173"
-CLOVER_REPOSITORY="CloverHackyColor/CloverBootloader"
-CLOVER_ARCHIVE="CloverV2-${CLOVER_VERSION}.zip"
-CLOVER_ARCHIVE_SHA256="f92b0a6abff6290a4cd2f3f269369428edcddd90f5ea7b25d8dc5f35160ad03a"
+CLOVER_ARCHIVE="Clover.tar.gz"
+CLOVER_MIRROR_ID="clover"
+CLOVER_MIRROR_VERSION="v1.0.0"
+CLOVER_MIRROR_SHA256="10782cebdf1e4130c9b759435c520b4e9452b03a9b10d5f3fff7d2125e99837d"
 CLOVER_BOOT_LABEL="Zhoukeer Clover"
 CLOVER_LOADER_PATH='\EFI\CLOVER\CLOVERX64.efi'
 CLOVER_THEME_SOURCE="$PROJECT_ROOT/assets/clover/zhoukeer-phantom"
 CLOVER_CONFIG_SOURCE="$PROJECT_ROOT/assets/clover/config.plist"
+CLOVER_DEVICE_DIR="$PROJECT_ROOT/assets/clover/devices"
+CLOVER_DRIVER_DIR="$PROJECT_ROOT/assets/clover/drivers"
+CLOVER_BOOTMANAGER_DIR="$PROJECT_ROOT/assets/clover/bootmanager"
+CLOVER_BOOTMANAGER_SYSTEM_DIR="${ZHOUKEER_CLOVER_SYSTEM_DIR:-/etc/systemd/system}"
+CLOVER_BOOTMANAGER_WHITELIST_DIR="${ZHOUKEER_CLOVER_WHITELIST_DIR:-/etc/atomic-update.conf.d}"
 CLOVER_ESP=""
 CLOVER_ESP_SOURCE=""
 CLOVER_DISK=""
@@ -26,6 +32,10 @@ CLOVER_PARTITION=""
 CLOVER_ESP_FOUND=""
 CLOVER_ESP_MOUNTED_BY_TOOLBOX=0
 CLOVER_ESP_MOUNT_DEVICE=""
+CLOVER_DEVICE_PREFIX=""
+CLOVER_DEVICE_NAME=""
+CLOVER_EFI_DRIVER=""
+CLOVER_DEVICE_CONFIG=""
 
 clover_nvram_partuuid() {
     local entries needle value
@@ -241,6 +251,137 @@ clover_boot_number_from_input() {
     '
 }
 
+clover_detect_device() {
+    local board_name product_name
+
+    board_name="$(cat /sys/class/dmi/id/board_name 2>/dev/null || true)"
+    product_name="$(cat /sys/class/dmi/id/product_name 2>/dev/null || true)"
+    CLOVER_DEVICE_PREFIX=""
+    CLOVER_DEVICE_NAME=""
+    CLOVER_EFI_DRIVER=""
+
+    case "$board_name:$product_name" in
+        Jupiter:*|Galileo:*)
+            CLOVER_DEVICE_PREFIX="SD"
+            CLOVER_DEVICE_NAME="Steam Deck ${product_name}"
+            ;;
+        *:83N6|*:83L3|*:83Q2|*:83Q3)
+            CLOVER_DEVICE_PREFIX="Legion-Go"
+            CLOVER_DEVICE_NAME="Legion GO S ${product_name}"
+            ;;
+        *:83E1)
+            CLOVER_DEVICE_PREFIX="Legion-Go"
+            CLOVER_DEVICE_NAME="Legion GO ${product_name}"
+            ;;
+        RC71L:*)
+            CLOVER_DEVICE_PREFIX="ROG-Ally"
+            CLOVER_DEVICE_NAME="Asus ROG Ally ${board_name}"
+            CLOVER_EFI_DRIVER="asusrogally.efi"
+            ;;
+        RC72LA:*)
+            CLOVER_DEVICE_PREFIX="ROG-Ally"
+            CLOVER_DEVICE_NAME="Asus ROG Ally X ${board_name}"
+            CLOVER_EFI_DRIVER="asusrogallyx.efi"
+            ;;
+        RC73XA:*)
+            CLOVER_DEVICE_PREFIX="ROG-Xbox-Ally"
+            CLOVER_DEVICE_NAME="Asus ROG XBOX Ally X ${board_name}"
+            CLOVER_EFI_DRIVER="asusrogallyx.efi"
+            ;;
+        *)
+            echo "不支持当前设备，无法安装 Clover 双系统引导。"
+            return 1
+            ;;
+    esac
+}
+
+clover_choose_default_os() {
+    local answer default="${ZHOUKEER_CLOVER_DEFAULT_OS:-}"
+
+    case "$default" in
+        SteamOS|Windows) printf '%s\n' "$default"; return 0 ;;
+    esac
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        printf '%s\n' "SteamOS"
+        return 0
+    fi
+    read -r -p "Clover 默认启动项（SteamOS/Windows）：" answer
+    case "$answer" in
+        Windows|windows) printf '%s\n' "Windows" ;;
+        *) printf '%s\n' "SteamOS" ;;
+    esac
+}
+
+clover_disable_windows_direct_boot() {
+    local boot_dir microsoft_dir old_efi backup_efi moved_efi
+
+    boot_dir="$CLOVER_ESP/EFI/Microsoft/Boot"
+    microsoft_dir="$CLOVER_ESP/EFI/Microsoft"
+    old_efi="$boot_dir/bootmgfw.efi"
+    backup_efi="$boot_dir/bootmgfw.efi.zhoukeer-orig"
+    moved_efi="$microsoft_dir/bootmgfw.efi"
+
+    [ -f "$old_efi" ] || {
+        [ -f "$moved_efi" ] && return 0
+        echo "未找到 Windows 启动文件，无法禁用 Windows 直启。"
+        return 1
+    }
+    toolbox_sudo mkdir -p -- "$microsoft_dir" || return 1
+    if [ -f "$backup_efi" ]; then
+        toolbox_sudo mv -- "$old_efi" "$moved_efi" || return 1
+    else
+        toolbox_sudo cp -- "$old_efi" "$backup_efi" || return 1
+        if ! toolbox_sudo mv -- "$old_efi" "$moved_efi"; then
+            toolbox_sudo rm -f -- "$backup_efi" || true
+            return 1
+        fi
+    fi
+    echo "Windows 直启已禁用，Clover 开机菜单接管 Windows 入口。"
+}
+
+clover_restore_windows_direct_boot() {
+    local boot_dir microsoft_dir old_efi backup_efi moved_efi
+
+    boot_dir="$CLOVER_ESP/EFI/Microsoft/Boot"
+    microsoft_dir="$CLOVER_ESP/EFI/Microsoft"
+    old_efi="$boot_dir/bootmgfw.efi"
+    backup_efi="$boot_dir/bootmgfw.efi.zhoukeer-orig"
+    moved_efi="$microsoft_dir/bootmgfw.efi"
+
+    [ -f "$backup_efi" ] || return 0
+    [ -f "$moved_efi" ] && toolbox_sudo rm -f -- "$moved_efi"
+    toolbox_sudo mv -- "$backup_efi" "$old_efi" || return 1
+    echo "Windows 直启已恢复。"
+}
+
+clover_install_bootmanager() {
+    local source_dir="$CLOVER_BOOTMANAGER_DIR"
+
+    [ -f "$source_dir/clover-bootmanager.sh" ] && \
+        [ -f "$source_dir/clover-bootmanager.service" ] && \
+        [ -f "$source_dir/clover-whitelist.conf" ] || {
+        echo "工具箱缺少 Clover 开机修复服务文件。"
+        return 1
+    }
+    toolbox_sudo install -d -m 0755 -- \
+        "$CLOVER_BOOTMANAGER_SYSTEM_DIR" "$CLOVER_BOOTMANAGER_WHITELIST_DIR" || return 1
+    toolbox_sudo install -m 0755 -- \
+        "$source_dir/clover-bootmanager.sh" \
+        "$CLOVER_BOOTMANAGER_SYSTEM_DIR/clover-bootmanager.sh" || return 1
+    toolbox_sudo install -m 0644 -- \
+        "$source_dir/clover-bootmanager.service" \
+        "$CLOVER_BOOTMANAGER_SYSTEM_DIR/clover-bootmanager.service" || return 1
+    toolbox_sudo install -m 0644 -- \
+        "$source_dir/clover-whitelist.conf" \
+        "$CLOVER_BOOTMANAGER_WHITELIST_DIR/clover-whitelist.conf" || return 1
+    toolbox_sudo systemctl daemon-reload || return 1
+    toolbox_sudo systemctl enable --now clover-bootmanager.service || return 1
+    if [ "${ZHOUKEER_CLOVER_SKIP_BOOTMANAGER_RUN:-0}" != "1" ]; then
+        toolbox_sudo "$CLOVER_BOOTMANAGER_SYSTEM_DIR/clover-bootmanager.sh" || return 1
+    fi
+    echo "Clover 开机修复服务已启用。"
+}
+
 clover_boot_order() {
     efibootmgr 2>/dev/null | sed -n 's/^BootOrder:[[:space:]]*//p' | head -n 1
 }
@@ -313,7 +454,7 @@ clover_archive_is_safe() {
     local count=0
     local listing
 
-    listing="$(unzip -Z1 "$archive")" || return 1
+    listing="$(tar -tzf "$archive")" || return 1
     while IFS= read -r entry; do
         count=$((count + 1))
         case "$entry" in
@@ -327,16 +468,16 @@ clover_archive_is_safe() {
         echo "Clover 压缩包文件数量异常：$count"
         return 1
     }
-    if zipinfo -l "$archive" | awk '$1 ~ /^l/ { found=1 } END { exit found ? 0 : 1 }'; then
+    if tar -tvzf "$archive" | awk '$1 ~ /^l/ { found=1 } END { exit found ? 0 : 1 }'; then
         echo "Clover 压缩包包含符号链接，已拒绝解压。"
         return 1
     fi
-    grep -Fx 'CloverV2/EFI/CLOVER/CLOVERX64.efi' <<< "$listing" >/dev/null || {
+    grep -Fx 'Clover/clover/cloverx64.efi' <<< "$listing" >/dev/null || {
         echo "Clover 压缩包缺少 CLOVERX64.efi。"
         return 1
     }
-    grep -Fx 'CloverV2/themespkg/Glass/theme.plist' <<< "$listing" >/dev/null || {
-        echo "Clover 压缩包缺少基础主题资源。"
+    grep -Eq '^Clover/custom/[A-Za-z0-9-]+-config\.plist$' <<< "$listing" >/dev/null || {
+        echo "Clover 压缩包缺少设备配置文件。"
         return 1
     }
 }
@@ -346,20 +487,18 @@ clover_prepare_staging() {
     local work_dir="$2"
     local extracted="$work_dir/extracted"
     local staged="$work_dir/CLOVER"
+    local source_clover="$extracted/Clover/clover"
 
     clover_archive_is_safe "$archive" || return 1
     mkdir -p "$extracted" "$staged/themes" || return 1
-    unzip -q "$archive" \
-        'CloverV2/EFI/CLOVER/CLOVERX64.efi' \
-        'CloverV2/themespkg/Glass/*' \
-        -d "$extracted" || return 1
+    tar -xzf "$archive" -C "$extracted" || return 1
 
-    [ -s "$extracted/CloverV2/EFI/CLOVER/CLOVERX64.efi" ] || {
+    [ -s "$source_clover/cloverx64.efi" ] || {
         echo "解压后缺少可用的 CLOVERX64.efi。" >&2
         return 1
     }
-    [ -f "$CLOVER_CONFIG_SOURCE" ] || {
-        echo "工具箱缺少 Clover 配置文件：$CLOVER_CONFIG_SOURCE" >&2
+    [ -f "${CLOVER_DEVICE_CONFIG:-$CLOVER_CONFIG_SOURCE}" ] || {
+        echo "工具箱缺少 Clover 配置文件：${CLOVER_DEVICE_CONFIG:-$CLOVER_CONFIG_SOURCE}" >&2
         return 1
     }
     [ -f "$CLOVER_THEME_SOURCE/background.png" ] || {
@@ -371,13 +510,24 @@ clover_prepare_staging() {
         return 1
     }
 
-    cp -- "$extracted/CloverV2/EFI/CLOVER/CLOVERX64.efi" "$staged/CLOVERX64.efi" || return 1
-    cp -- "$CLOVER_CONFIG_SOURCE" "$staged/config.plist" || return 1
-    cp -R -- "$extracted/CloverV2/themespkg/Glass" "$staged/themes/zhoukeer-phantom" || return 1
-    cp -- "$CLOVER_THEME_SOURCE/background.png" \
-        "$staged/themes/zhoukeer-phantom/background.png" || return 1
-    cp -- "$CLOVER_THEME_SOURCE/theme.plist" \
-        "$staged/themes/zhoukeer-phantom/theme.plist" || return 1
+    cp -R -- "$source_clover/." "$staged/" || return 1
+    [ -f "$staged/cloverx64.efi" ] || {
+        echo "解压后缺少 cloverx64.efi。" >&2
+        return 1
+    }
+    [ -f "$staged/CLOVERX64.efi" ] || cp -- "$staged/cloverx64.efi" "$staged/CLOVERX64.efi" || return 1
+    cp -- "${CLOVER_DEVICE_CONFIG:-$CLOVER_CONFIG_SOURCE}" "$staged/config.plist" || return 1
+    mkdir -p "$staged/themes/zhoukeer-phantom" || return 1
+    cp -R -- "$CLOVER_THEME_SOURCE/." "$staged/themes/zhoukeer-phantom/" || return 1
+    if [ -n "$CLOVER_EFI_DRIVER" ]; then
+        [ -f "$CLOVER_DRIVER_DIR/$CLOVER_EFI_DRIVER" ] || {
+            echo "工具箱缺少设备 Clover 驱动：$CLOVER_EFI_DRIVER" >&2
+            return 1
+        }
+        mkdir -p "$staged/drivers/uefi" || return 1
+        cp -- "$CLOVER_DRIVER_DIR/$CLOVER_EFI_DRIVER" \
+            "$staged/drivers/uefi/$CLOVER_EFI_DRIVER" || return 1
+    fi
     find "$staged" -type d -exec chmod 0755 {} + || return 1
     find "$staged" -type f -exec chmod 0644 {} + || return 1
     printf '%s\n' "$staged"
@@ -407,13 +557,15 @@ clover_show_install_risk() {
     echo "================================================"
     echo " Clover 开机选择菜单"
     echo "================================================"
-    echo "版本：Clover ${CLOVER_VERSION}（官方 GitHub Release）"
-    echo "主题：自定义怪盗与 Steam Deck，分辨率 1280×800"
+    echo "版本：Clover ${CLOVER_VERSION}（Gitee 分块镜像）"
+    echo "设备：${CLOVER_DEVICE_NAME:-Steam Deck/掌机}"
+    echo "主题：自定义怪盗，分辨率 1280×800"
     echo "EFI 分区：$CLOVER_ESP ($CLOVER_ESP_SOURCE)"
     echo "目标：$CLOVER_ESP/EFI/CLOVER"
     echo "NVRAM：新增 ${CLOVER_BOOT_LABEL}，并放到现有 BootOrder 首位"
     echo ""
-    echo "不会覆盖 EFI/BOOT/BOOTX64.EFI，不会修改 Windows bootmgfw.efi。"
+    echo "不会覆盖 EFI/BOOT/BOOTX64.EFI；会备份并禁用 Windows 直启文件。"
+    echo "安装完成后会启用 Clover 开机修复服务。"
     echo "已有 CLOVER 目录和原 BootOrder 会先备份；恢复入口可撤销本次安装。"
     echo "若掌机按键在 Clover 中不可用，请连接 USB 键盘；8 秒后默认进入 SteamOS。"
 }
@@ -457,7 +609,8 @@ clover_install() {
 
     echo "正在检查 Clover 安装环境…"
     require_steamos || return 1
-    for command_name in curl unzip zipinfo findmnt lsblk efibootmgr awk sed df; do
+    clover_detect_device || return 1
+    for command_name in curl tar findmnt lsblk efibootmgr awk sed df; do
         require_command "$command_name" || return 1
     done
     [ -f "$CLOVER_THEME_SOURCE/background.png" ] || {
@@ -480,6 +633,16 @@ clover_install() {
         echo "EFI 系统分区剩余空间不足 20 MB，已停止安装 Clover。"
         return 1
     }
+    default_os="$(clover_choose_default_os)" || return 1
+    if [ "$default_os" = "Windows" ]; then
+        CLOVER_DEVICE_CONFIG="$CLOVER_DEVICE_DIR/${CLOVER_DEVICE_PREFIX}-win-config.plist"
+    else
+        CLOVER_DEVICE_CONFIG="$CLOVER_DEVICE_DIR/${CLOVER_DEVICE_PREFIX}-config.plist"
+    fi
+    [ -f "$CLOVER_DEVICE_CONFIG" ] || {
+        echo "工具箱缺少设备 Clover 配置文件：$CLOVER_DEVICE_CONFIG"
+        return 1
+    }
     clover_confirm_install || {
         echo "已取消 Clover 安装，EFI 和开机顺序未修改。"
         return 0
@@ -494,8 +657,8 @@ clover_install() {
         return 1
     }
     archive="$work_dir/$CLOVER_ARCHIVE"
-    if ! download_github_release "$CLOVER_REPOSITORY" "$CLOVER_VERSION" \
-        "$CLOVER_ARCHIVE" "$archive" "$CLOVER_ARCHIVE_SHA256" "Clover $CLOVER_VERSION"; then
+    if ! download_gitee_mirror_file "$CLOVER_MIRROR_ID" "$archive" \
+        "$CLOVER_MIRROR_SHA256" "Clover 资源"; then
         rm -rf -- "$work_dir"
         return 1
     fi
@@ -609,9 +772,20 @@ clover_install() {
         return 1
     fi
 
+    if ! clover_disable_windows_direct_boot; then
+        echo "Clover 已安装，但 Windows 直启禁用失败，请重新运行修复。"
+        rm -rf -- "$work_dir"
+        return 1
+    fi
+    if ! clover_install_bootmanager; then
+        echo "Clover 已安装，但开机修复服务安装失败，请重新运行修复。"
+        rm -rf -- "$work_dir"
+        return 1
+    fi
+
     rm -rf -- "$work_dir"
     echo "Clover $CLOVER_VERSION 已安装，自定义怪盗开机主题已启用。"
-    echo "开机将显示 SteamOS 和 Windows；8 秒无操作时默认进入 SteamOS。"
+    echo "默认启动项：${default_os}；开机将显示 SteamOS 和 Windows。"
     echo "原 BootOrder：${original_order:-未读取到}"
     echo "当前 BootOrder：$new_order"
     [ -z "$original_backup" ] || echo "原 Clover 备份：$original_backup"
@@ -685,6 +859,9 @@ clover_restore() {
     else
         echo "工具箱安装的 Clover 已移出启动目录，备份保存在：$removed_path"
     fi
+    clover_restore_windows_direct_boot || {
+        echo "警告：Windows 直启文件恢复失败，请检查 EFI/Microsoft 目录。"
+    }
     echo "原开机顺序已恢复：${original_order:-由固件自动整理}"
     log "Clover已恢复: esp=$CLOVER_ESP"
 }

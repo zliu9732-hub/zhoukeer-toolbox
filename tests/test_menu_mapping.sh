@@ -181,9 +181,10 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_contains "$source_text" 'modules/settings_backup.sh" backup' "设置备份动作错误：$file"
     assert_contains "$source_text" 'modules/settings_backup.sh" restore' "设置恢复动作错误：$file"
     assert_contains "$source_text" 'modules/network.sh" --details' "详细网络状态动作错误：$file"
-    assert_not_contains "$source_text" 'modules/clover_boot.sh" install' "已移除的 Clover 安装动作仍可执行：$file"
-    assert_not_contains "$source_text" 'modules/clover_boot.sh" delete' "已移除的 Clover 删除动作仍可执行：$file"
+    assert_contains "$source_text" 'modules/clover_boot.sh" install' "Clover 安装/修复动作错误：$file"
+    assert_not_contains "$source_text" 'modules/clover_boot.sh" delete' "Clover 删除动作不应直接暴露：$file"
     assert_contains "$source_text" 'modules/dual_system_tools.sh" health' "双系统健康检查动作错误：$file"
+    assert_contains "$source_text" 'modules/dual_system_tools.sh" switch-to-windows' "Windows 一键切换动作错误：$file"
     assert_not_contains "$source_text" 'modules/dual_system_tools.sh" windows-shortcut' "已移除的 Windows 一键切换仍可从菜单执行：$file"
     assert_not_contains "$source_text" 'modules/dual_system_tools.sh" windows-next' "已移除的 Windows 立即切换仍可从菜单执行：$file"
 done

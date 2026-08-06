@@ -15,7 +15,12 @@ fail() {
     exit 1
 }
 
-mkdir -p "$MOUNT_PATH" "$STATE" "$TMP_ROOT/home/Desktop" "$TMP_ROOT/logs" "$TMP_ROOT/esp/EFI/CLOVER"
+mkdir -p "$MOUNT_PATH" "$STATE" "$TMP_ROOT/home/Desktop" "$TMP_ROOT/logs" \
+    "$TMP_ROOT/esp/EFI/CLOVER" "$TMP_ROOT/esp/EFI/Microsoft/Boot" "$TMP_ROOT/esp/EFI/steamos"
+printf 'windows\n' > "$TMP_ROOT/esp/EFI/Microsoft/Boot/bootmgfw.efi"
+printf 'steamos\n' > "$TMP_ROOT/esp/EFI/steamos/steamcl.efi"
+printf 'clover\n' > "$TMP_ROOT/esp/EFI/CLOVER/CLOVERX64.efi"
+printf '0000,0001\n' > "$STATE/bootorder"
 
 # shellcheck disable=SC1090
 source "$MODULE"
@@ -43,6 +48,8 @@ lsblk() {
         *' -dnro SIZE /dev/testtf '*) printf '512G\n' ;;
         *' -dnro MODEL /dev/testtf '*) printf 'Test TF Card\n' ;;
         *' PKNAME /dev/systemp1 '*) printf 'system\n' ;;
+        *' PKNAME /dev/fakep1 '*) printf '/dev/fake\n' ;;
+        *' PARTN /dev/fakep1 '*) printf '1\n' ;;
         *' NAME,TYPE /dev/testtf '*)
             printf '/dev/testtf disk\n'
             [ ! -f "$STATE/partitioned" ] || printf '/dev/testtf1 part\n'
@@ -56,6 +63,7 @@ lsblk() {
 findmnt() {
     case " $* " in
         *' -o SOURCE / '*) printf '/dev/systemp1\n' ;;
+        *" -T $TMP_ROOT/esp "*) printf '/dev/fakep1\n' ;;
         *' -S /dev/testshare '*) printf '%s\n' "$MOUNT_PATH" ;;
         *) return 1 ;;
     esac
@@ -74,30 +82,78 @@ wipefs() { printf 'wipefs %s\n' "$*" >> "$CALLS"; }
 parted() { printf 'parted %s\n' "$*" >> "$CALLS"; : > "$STATE/partitioned"; }
 partprobe() { printf 'partprobe %s\n' "$*" >> "$CALLS"; }
 udevadm() { printf 'udevadm %s\n' "$*" >> "$CALLS"; }
-mkfs.exfat() { printf 'mkfs.exfat %s\n' "$*" >> "$CALLS"; }
+mkfs.ntfs() { printf 'mkfs.ntfs %s\n' "$*" >> "$CALLS"; }
 ntfsfix() { printf 'ntfsfix %s\n' "$*" >> "$CALLS"; }
 
 efibootmgr() {
+    local order next omit label loader count boot_num
+    order="$(cat "$STATE/bootorder" 2>/dev/null || printf '0000,0001\n')"
+    next="$(cat "$STATE/bootnext" 2>/dev/null || true)"
+    omit="$(cat "$STATE/omit" 2>/dev/null || true)"
     case "${1:-}" in
         --delete-bootnum) printf 'delete %s\n' "$3" >> "$CALLS" ;;
+        --bootnext)
+            printf '%s\n' "$2" > "$STATE/bootnext"
+            printf 'bootnext %s\n' "$2" >> "$CALLS"
+            ;;
+        --bootorder)
+            printf '%s\n' "$2" > "$STATE/bootorder"
+            printf 'bootorder %s\n' "$2" >> "$CALLS"
+            ;;
+        --create)
+            label=""
+            loader=""
+            while [ "$#" -gt 0 ]; do
+                case "$1" in
+                    --label) label="$2"; shift 2 ;;
+                    --loader) loader="$2"; shift 2 ;;
+                    *) shift ;;
+                esac
+            done
+            count="$(wc -l < "$STATE/created-entries" 2>/dev/null || printf '0\n')"
+            count="$(printf '%s' "$count" | tr -d ' ')"
+            boot_num=$((7 + count))
+            printf 'Boot%04X* %s HD(1,GPT,AAA)/File(%s)\n' \
+                "$boot_num" "$label" "$loader" >> "$STATE/created-entries"
+            printf 'create %s\n' "$label" >> "$CALLS"
+            cat "$STATE/created-entries"
+            ;;
         *)
-            cat <<'EOF'
-Boot0000* SteamOS HD(1,GPT,AAA)/File(\EFI\steamos\steamcl.efi)
-Boot0001* Windows Boot Manager HD(1,GPT,AAA)/File(\EFI\Microsoft\Boot\bootmgfw.efi)
-Boot0002* Zhoukeer Clover HD(1,GPT,AAA)/File(\EFI\CLOVER\CLOVERX64.efi)
-Boot0003* rEFInd Boot Manager HD(1,GPT,AAA)/File(\EFI\refind\refind_x64.efi)
-Boot0004* OpenCore HD(1,GPT,AAA)/File(\EFI\OC\OpenCore.efi)
-Boot0005* GRUB HD(1,GPT,AAA)/File(\EFI\ubuntu\grubx64.efi)
-Boot0006* Linux Boot Manager HD(1,GPT,AAA)/File(\EFI\systemd\systemd-bootx64.efi)
-EOF
+            [ -z "$next" ] || printf 'BootNext: %s\n' "$next"
+            printf 'BootOrder: %s\n' "$order"
+            if [ -n "$omit" ]; then
+                {
+                    printf 'Boot0000* SteamOS HD(1,GPT,AAA)/File(\\EFI\\steamos\\steamcl.efi)\n'
+                    printf 'Boot0001* Windows Boot Manager HD(1,GPT,AAA)/File(\\EFI\\Microsoft\\Boot\\bootmgfw.efi)\n'
+                    printf 'Boot0002* Zhoukeer Clover HD(1,GPT,AAA)/File(\\EFI\\CLOVER\\CLOVERX64.efi)\n'
+                    printf 'Boot0003* rEFInd Boot Manager HD(1,GPT,AAA)/File(\\EFI\\refind\\refind_x64.efi)\n'
+                    printf 'Boot0004* OpenCore HD(1,GPT,AAA)/File(\\EFI\\OC\\OpenCore.efi)\n'
+                    printf 'Boot0005* GRUB HD(1,GPT,AAA)/File(\\EFI\\ubuntu\\grubx64.efi)\n'
+                    printf 'Boot0006* Linux Boot Manager HD(1,GPT,AAA)/File(\\EFI\\systemd\\systemd-bootx64.efi)\n'
+                } | grep -Ev -- "$omit"
+            else
+                printf 'Boot0000* SteamOS HD(1,GPT,AAA)/File(\\EFI\\steamos\\steamcl.efi)\n'
+                printf 'Boot0001* Windows Boot Manager HD(1,GPT,AAA)/File(\\EFI\\Microsoft\\Boot\\bootmgfw.efi)\n'
+                printf 'Boot0002* Zhoukeer Clover HD(1,GPT,AAA)/File(\\EFI\\CLOVER\\CLOVERX64.efi)\n'
+                printf 'Boot0003* rEFInd Boot Manager HD(1,GPT,AAA)/File(\\EFI\\refind\\refind_x64.efi)\n'
+                printf 'Boot0004* OpenCore HD(1,GPT,AAA)/File(\\EFI\\OC\\OpenCore.efi)\n'
+                printf 'Boot0005* GRUB HD(1,GPT,AAA)/File(\\EFI\\ubuntu\\grubx64.efi)\n'
+                printf 'Boot0006* Linux Boot Manager HD(1,GPT,AAA)/File(\\EFI\\systemd\\systemd-bootx64.efi)\n'
+            fi
+            [ ! -f "$STATE/created-entries" ] || cat "$STATE/created-entries"
             ;;
     esac
 }
 
 format_and_mount_tf_card >/dev/null || fail "TF 卡初始化模拟失败"
 grep -Fq 'wipefs --all --force /dev/testtf' "$CALLS" || fail "TF 卡未清理旧分区签名"
-grep -Fq 'mkfs.exfat -n ZHOUKEER_TF /dev/testtf1' "$CALLS" || fail "TF 卡未格式化为 exFAT"
+grep -Fq 'mkfs.ntfs -f -L TFcard /dev/testtf1' "$CALLS" || fail "TF 卡未格式化为 NTFS"
 [ -L "$TF_CARD_LINK" ] || fail "TF 卡未创建快捷入口"
+
+repair_boot_confirm() { return 0; }
+switch_windows_confirm() { return 0; }
+systemctl() { printf 'systemctl %s\n' "$*" >> "$CALLS"; }
+reboot() { printf 'reboot %s\n' "$*" >> "$CALLS"; }
 
 find_shared_drive_device() { printf '/dev/testshare\n'; }
 shared_drive_mountpoint() { printf '%s\n' "$MOUNT_PATH"; }
@@ -138,4 +194,25 @@ if cleanup_third_party_boot_entry </dev/null >/dev/null 2>&1; then
     fail "Windows Boot Manager 未受到删除保护"
 fi
 
-echo "PASS: TF 卡、磁盘修复、旧 Windows 入口清理、健康检查和第三方引导清理模拟通过"
+printf 'Windows Boot Manager|Zhoukeer Clover\n' > "$STATE/omit"
+rm -f "$STATE/created-entries" "$STATE/bootnext"
+printf '0000,0001\n' > "$STATE/bootorder"
+repair_dual_boot >/dev/null || fail "双系统引导修复模拟失败"
+grep -Fq 'create Windows Boot Manager' "$CALLS" || fail "未创建 Windows 引导项"
+grep -Fq 'create Zhoukeer Clover' "$CALLS" || fail "未创建 Clover 引导项"
+grep -Eq 'bootorder 0007,0000,0001|bootorder 0008,0000,0001' "$CALLS" || \
+    fail "Clover 未放回 BootOrder 首位"
+
+printf '0000,0001\n' > "$STATE/bootorder"
+rm -f "$STATE/omit" "$STATE/created-entries" "$STATE/bootnext"
+switch_to_windows >/dev/null || fail "Windows 一键切换模拟失败"
+grep -Fq 'bootnext 0001' "$CALLS" || fail "未设置 BootNext"
+grep -Fq 'systemctl reboot' "$CALLS" || fail "未触发系统重启"
+
+printf 'Windows Boot Manager\n' > "$STATE/omit"
+rm -f "$STATE/created-entries" "$STATE/bootnext"
+if switch_to_windows >/dev/null 2>&1; then
+    fail "缺少 Windows Boot Manager 时仍允许一键切换"
+fi
+
+echo "PASS: TF 卡、磁盘修复、引导修复、Windows 切换、健康检查和第三方引导清理模拟通过"

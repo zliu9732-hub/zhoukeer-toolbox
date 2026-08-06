@@ -21,6 +21,7 @@ flathub|mirror.sjtu.edu.cn,mirrors.ustc.edu.cn,dl.flathub.org|Flatpak 国内缓�
 vendors|qq-web.cdn-go.cn,im.qq.com,qqdl.gtimg.cn,dldir1v6.qq.com,launcher-public-service-prod06.ol.epicgames.com,epicgames-download1.akamaized.net,downloader.battle.net,static3.cdn.ubi.com|官方应用安装包|json,AppImage,exe,msi|官方当前版或固定版|官方HTTPS+固定路径+类型/大小；固定版另验SHA256|536870912|停止安装
 launcher-preinstalled|gitee.com|战网预装客户端固定镜像|7z|固定版本|SHA256+分卷重组|94371840|停止安装
 steam302|gitee.com|Steamcommunity 302 固定版本（自有 Gitee 镜像）|tar.gz|固定版本|MD5+SHA256+结构检查|536870912|停止安装
+clover|gitee.com|Clover 双系统引导固定资源（Gitee 来源）|tar.gz|固定版本|SHA256+分块重组|1073741824|自有 Gitee 镜像
 todesk|github.com,dl.todesk.com|ToDesk 官方 Linux 客户端的未修改镜像与官网|deb|固定官方版本|SHA256+DEB/包内结构|268435456|Gitee镜像→GitHub镜像源→官网→停止安装
 EOF
 }
@@ -98,6 +99,7 @@ download_policy_url_allowed() {
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-6/*) return 0 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-7/*) return 0 ;;
         https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.001|https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.002|https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.003|https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.004) return 0 ;;
+        https://gitee.com/easylife2025/emu/releases/download/v1.0.0/Clover.tar.gz) return 0 ;;
         https://dl.todesk.com/linux/todesk-v4.8.6.2-amd64.deb) return 0 ;;
         https://jktool.icu/VERSION|https://jktool.icu/dist/SHA256SUMS|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) return 0 ;;
         https://www.mhhf.com/Deck/decky/*|https://plugins.deckbrew.xyz/plugins|https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/*) return 0 ;;

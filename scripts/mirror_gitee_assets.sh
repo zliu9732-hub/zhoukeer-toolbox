@@ -434,6 +434,7 @@ freedeck|Freedeck|0.6|freedeck.v.0.6.zip|https://github.com/panyiwei-home/Freede
 simpledeckytdp|SimpleDeckyTDP|v1.0.5|SimpleDeckyTDP.zip|https://github.com/aarron-lee/SimpleDeckyTDP/releases/download/v1.0.5/SimpleDeckyTDP.zip|ebf1c68147b6300ee17c2d7ea00a9cfe9ac1c78af78d364d9d306ac64a2cc057|
 todesk|ToDesk 官方安装包|v6.0.25|todesk-v4.8.6.2-amd64.deb|https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.25/todesk-v4.8.6.2-amd64.deb|b3f2af7fc120948903df3aa455955cb5823fb5c1f5ec7dca17ac8a4cba53c808|
 steam302|Steamcommunity 302|14.0.02|steamcommunity_302_Linux_AMD64_V14.0.02.tar.gz|https://www.dogfight360.com/blog/wp-content/uploads/2026/02/steamcommunity_302_Linux_AMD64_V14.0.02.tar.gz|5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f|4b9994102b2256ca5fdf2e806a2c7035|
+clover|Clover 双系统引导资源|v1.0.0|Clover.tar.gz|https://gitee.com/easylife2025/emu/releases/download/v1.0.0/Clover.tar.gz|10782cebdf1e4130c9b759435c520b4e9452b03a9b10d5f3fff7d2125e99837d|
 ge-proton|GE-Proton|GE-Proton11-3|GE-Proton11-3.tar.gz|https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-3/GE-Proton11-3.tar.gz|861c2edc8d40d051fb1e7a692deb953be52bd339c46d90f2b7dde50ddad91266|
 EOF
 }

@@ -822,7 +822,7 @@ dual_system_menu() {
         if [ "$page" -eq 0 ]; then
             draw_category_frame advanced "双系统常用工具" "磁盘与互通盘 · 第 1/2 页"
             ui_touch_button 5 '\033[1;97;48;5;24m' "挂载双系统互通盘" "自动排除 Windows 系统分区"
-            ui_touch_button 7 '\033[1;97;48;5;160m' "初始化并挂载 TF 卡" "会清空目标卡并格式化为 exFAT"
+            ui_touch_button 7 '\033[1;97;48;5;160m' "初始化并挂载 TF 卡" "会清空目标卡并格式化为 NTFS"
             ui_touch_button 9 '\033[1;97;48;5;160m' "修复磁盘写入错误" "NTFS/exFAT 基础修复 · 会卸载磁盘"
             ui_touch_button 11 '\033[1;97;48;5;30m' "双系统互通盘保护" "重新挂载为只读，防止升级后掉盘"
             ui_touch_button 19 '\033[1;97;48;5;24m' "更多双系统工具" "状态、删除与第三方引导清理"
@@ -835,11 +835,13 @@ dual_system_menu() {
             ui_touch_button 5 '\033[1;97;48;5;24m' "双系统健康检查" "识别 Clover、rEFInd、GRUB、OpenCore 等"
             ui_touch_button 7 '\033[1;97;48;5;24m' "恢复互通盘写入" "退出只读保护并重新挂载"
             ui_touch_button 9 '\033[1;97;48;5;160m' "清理第三方引导项" "仅删选定 NVRAM，保留 EFI 文件"
+            ui_touch_button 11 '\033[1;97;48;5;24m' "修复双系统引导" "补齐缺失引导项并恢复启动顺序"
+            ui_touch_button 13 '\033[1;97;48;5;160m' "一键切换至 Windows" "设置下次启动进入 Windows 并立即重启"
             ui_touch_button 19 '\033[1;97;48;5;24m' "返回常用工具" "回到双系统常用功能"
             ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
             ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
             ui_prompt
-            choice="$(read_touch_menu right:5-6:health right:7-8:unprotect right:9-10:cleanup-boot right:19-20:previous right:21-22:advanced right:23-24:home)"
+            choice="$(read_touch_menu right:5-6:health right:7-8:unprotect right:9-10:cleanup-boot right:11-12:repair-boot right:13-14:switch-to-windows right:19-20:previous right:21-22:advanced right:23-24:home)"
         fi
         if apply_navigation "$choice"; then return 0; fi
 
@@ -849,7 +851,7 @@ dual_system_menu() {
                     bash "$PROJECT_ROOT/modules/dual_system.sh" mount
                 ;;
             tf-format)
-                confirm_and_run "初始化并挂载 TF 卡" "会永久清空自动识别出的唯一 TF 卡，并格式化为 exFAT；随后仍需输入完整设备名确认" \
+                confirm_and_run "初始化并挂载 TF 卡" "会永久清空自动识别出的唯一 TF 卡，并格式化为 NTFS；随后仍需输入完整设备名确认" \
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" tf-format-mount
                 ;;
             repair-drive)
@@ -868,6 +870,14 @@ dual_system_menu() {
             cleanup-boot)
                 confirm_and_run "清理第三方引导项" "SteamOS、Windows 和 systemd-boot 受保护；其他项还需输入 Boot 编号和完整删除口令" \
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" cleanup-boot
+                ;;
+            repair-boot)
+                confirm_and_run "修复双系统引导" "将按设备安装/修复 Clover 开机菜单，并启用开机修复服务；会修改 EFI/NVRAM" \
+                    bash "$PROJECT_ROOT/modules/clover_boot.sh" install
+                ;;
+            switch-to-windows)
+                confirm_and_run "一键切换至 Windows" "会设置 BootNext 并立即重启进入 Windows；请先保存工作" \
+                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" switch-to-windows
                 ;;
             next) page=1; continue ;;
             previous) page=0; continue ;;
