@@ -1118,7 +1118,7 @@ set_steam_proton_10() {
 print_launcher_proton_hint() {
     echo ""
     echo "============================================================"
-    echo "重要：请启动 Steam 后，在库中点击“${LAUNCHER_NAME}”右侧的齿轮"
+    echo "重要：Steam 会自动启动，请在库中点击“${LAUNCHER_NAME}”右侧的齿轮"
     echo "→ 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。"
     echo "============================================================"
 }
@@ -1151,7 +1151,9 @@ prepare_launcher_steam_installer() {
     set_steam_proton_10 "$steam_root" "$app_id" || return 1
     install_launcher_steam_artwork "$target" "$shortcut_file" "$app_id" "$artwork_alt_app_id" "$game_id" || return 1
     echo "Steam 已停止，安装条目、兼容层和封面已写入文件。"
-    echo "请手动启动 Steam（桌面模式打开 Steam，或重启进入游戏模式），再在库中点击“${LAUNCHER_NAME}”完成安装。"
+    echo "正在启动 Steam..."
+    start_steam
+    echo "Steam 已启动，请在 Steam 库中点击“${LAUNCHER_NAME}”完成安装。"
     echo "安装阶段不会创建桌面入口，请只在 Steam 库点击“${LAUNCHER_NAME}”完成安装。"
     print_launcher_proton_hint
     echo "安装完成后，再点击一次工具箱的 $LAUNCHER_NAME 入口即可自动转为正式启动器并创建可用桌面入口。"
@@ -1210,8 +1212,14 @@ finish_launcher_steam_entry() {
     fi
     echo "正在写入 Proton 10.0-4 兼容层..."
     set_steam_proton_10 "$steam_root" "$app_id" || return 1
-    echo "Steam 已停止，正式条目、兼容层和封面已写入文件。"
-    echo "请手动启动 Steam（桌面模式打开 Steam，或重启进入游戏模式）后确认兼容层和封面。"
+    echo "正式条目、兼容层和封面已写入文件。"
+    echo "正在启动 Steam..."
+    start_steam
+    if [ "${ZHOUKEER_SKIP_STEAM_RESTART:-0}" != "1" ]; then
+        wait_for_steam_running || true
+        apply_launcher_decky_artwork "$target" "$app_id" || true
+    fi
+    echo "Steam 已启动，请确认库中的兼容层和封面。"
     print_launcher_proton_hint
     if [ "$target" = "battlenet" ]; then
         echo "战网登录页：https://account.battle.net/login"
@@ -1364,8 +1372,13 @@ install_launcher() {
             --name "$LAUNCHER_NAME" --exe "$launcher_exe" --icon "$icon_path" \
             >/dev/null || return 1
     fi
-    echo "Steam 已停止，Steam 条目与封面已写入文件。"
-    echo "请手动启动 Steam（桌面模式打开 Steam，或重启进入游戏模式）后查看。"
+    echo "Steam 条目与封面已写入文件。"
+    echo "正在启动 Steam..."
+    start_steam
+    if [ "${ZHOUKEER_SKIP_STEAM_RESTART:-0}" != "1" ]; then
+        wait_for_steam_running || true
+        apply_launcher_decky_artwork "$target" "$app_id" || true
+    fi
     echo "$LAUNCHER_NAME 已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
     if [ "$target" = "epic" ]; then
         echo "Epic 改中文：右上角头像 → Settings → Language → 中文（简体）→ Restart Now。"
