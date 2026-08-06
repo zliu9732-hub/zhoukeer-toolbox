@@ -58,6 +58,7 @@ DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/downlo
 DECKY_FSR4_SHA256="3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f"
 DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.2.1/CheatDeck.zip"
 DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
+DECKY_CHEATDECK_VERSION="1.2.1"
 DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip"
 DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
 DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.3/DeckRecall.zip"
@@ -132,6 +133,7 @@ resolve_plugin_latest() {
                 '^CheatDeck[.]zip$' "CheatDeck"; then
                 DECKY_CHEATDECK_URL="$_LATEST_RELEASE_URL"
                 DECKY_CHEATDECK_SHA256="$_LATEST_RELEASE_SHA256"
+                DECKY_CHEATDECK_VERSION="${_LATEST_RELEASE_TAG#v}"
             fi
             ;;
         tomoon)
@@ -1097,6 +1099,8 @@ uninstall_plugin_store() {
        [ ! -e "$saved_systemd_dir/plugin_loader.service" ] && \
        [ ! -e "$saved_systemd_dir/plugin_loader-release.service" ] && \
        [ ! -e "$saved_systemd_dir/plugin_loader-prerelease.service" ]; then
+        rmdir "$saved_systemd_dir" 2>/dev/null || true
+        rmdir "$DECKY_HOMEBREW_DIR/services" 2>/dev/null || true
         echo "Decky Loader 插件商城未安装。"
         return 0
     fi
@@ -1146,6 +1150,9 @@ uninstall_plugin_store() {
         "$saved_systemd_dir/plugin_loader-prerelease.service" || return 1
     toolbox_sudo systemctl daemon-reload >/dev/null 2>&1 || return 1
     systemctl --user daemon-reload >/dev/null 2>&1 || return 1
+    toolbox_sudo rmdir "$saved_systemd_dir" 2>/dev/null || true
+    toolbox_sudo rmdir "$DECKY_HOMEBREW_DIR/services" 2>/dev/null || true
+    toolbox_sudo rmdir "$DECKY_HOMEBREW_DIR" 2>/dev/null || true
     echo "Decky Loader 稳定版和测试版残留已卸载；$DECKY_HOMEBREW_DIR/plugins 中的插件文件与设置已保留。"
     log "Decky Loader 稳定版和测试版残留已卸载并保留插件与设置"
 }
@@ -2619,11 +2626,22 @@ install_configured_plugin() {
         cheatdeck)
             echo "提示：强烈建议进入 游戏与插件，安装修改器所需兼容层。"
             resolve_plugin_latest cheatdeck
-            install_decky_zip \
-                "CheatDeck" \
-                "${DECKY_CHEATDECK_URL:-}" \
-                "${DECKY_CHEATDECK_SHA256:-}" \
-                "CheatDeck"
+            if feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
+                "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then
+                echo "[已安装] CheatDeck v$DECKY_CHEATDECK_VERSION 已存在且文件完整，无需重复安装。"
+                PLUGIN_INSTALL_CHANGED=0
+            else
+                installed_version="$(decky_plugin_version \
+                    "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/CheatDeck" || true)"
+                [ -z "$installed_version" ] || \
+                    echo "检测到 CheatDeck 旧版本 $installed_version，将更新到 $DECKY_CHEATDECK_VERSION。"
+                install_decky_zip \
+                    "CheatDeck" \
+                    "${DECKY_CHEATDECK_URL:-}" \
+                    "${DECKY_CHEATDECK_SHA256:-}" \
+                    "CheatDeck" \
+                    0
+            fi
             ;;
         tomoon)
             resolve_plugin_latest tomoon
@@ -2726,7 +2744,7 @@ feature_plugin_is_present() {
 print_feature_plugin_status() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local missing=0
-    local lsfg_version fsr4_version
+    local lsfg_version fsr4_version cheatdeck_version
 
     echo ""
     echo "========== 常用功能插件状态 =========="
@@ -2756,7 +2774,13 @@ print_feature_plugin_status() {
         missing=1
     fi
     if feature_plugin_is_present "$plugin_root" "CheatDeck" "CheatDeck"; then
-        echo "✓ CheatDeck：已写入 Decky"
+        cheatdeck_version="$(decky_plugin_version "$plugin_root/CheatDeck" || true)"
+        if [ "$cheatdeck_version" = "$DECKY_CHEATDECK_VERSION" ]; then
+            echo "✓ CheatDeck：已写入 Decky，官方版本 $cheatdeck_version"
+        else
+            echo "✗ CheatDeck：检测到版本 ${cheatdeck_version:-未知}，请更新到 $DECKY_CHEATDECK_VERSION"
+            missing=1
+        fi
     else
         echo "✗ CheatDeck：未找到完整插件文件"
         missing=1
@@ -2785,7 +2809,8 @@ install_feature_plugins() {
     local _all_installed=1
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "$LSFG_OFFICIAL_VERSION" "Decky LSFG-VK" "小黄鸭"; then _all_installed=0; fi
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$FSR4_OFFICIAL_DIRECTORY" "$FSR4_OFFICIAL_VERSION" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then _all_installed=0; fi
-    if ! feature_plugin_is_present "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "CheatDeck" "CheatDeck"; then _all_installed=0; fi
+    if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
+        "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then _all_installed=0; fi
     if [ "$_all_installed" = "1" ]; then
         echo "三款常用功能插件已全部安装，无需重复安装。"
         write_flingtrainer_desktop_note || \
@@ -2819,8 +2844,9 @@ install_feature_plugins() {
             cheatdeck)
                 echo "========== CheatDeck =========="
                 echo "提示：强烈建议进入 游戏与插件，安装修改器所需兼容层。"
-                if feature_plugin_is_present "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "CheatDeck" "CheatDeck"; then
-                    echo "[已安装] CheatDeck 已安装，跳过。"
+                if feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
+                    "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then
+                    echo "[已安装] CheatDeck v$DECKY_CHEATDECK_VERSION 已安装，跳过。"
                     continue
                 fi
                 install_configured_plugin cheatdeck 0 0 || {

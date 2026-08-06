@@ -587,10 +587,11 @@ plugin_page_2_menu() {
         ui_touch_button 13 '\033[1;97;48;5;24m' "安装 GE 兼容层" "提高 Windows 游戏兼容性"
         ui_touch_button 15 '\033[1;97;48;5;24m' "战网启动器" "安装并添加到 Steam"
         ui_touch_button 17 '\033[1;97;48;5;24m' "育碧" "安装育碧游戏平台并添加到 Steam"
-        ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
-        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "重新应用启动器封面" "重写 Steam 库封面，不依赖 Decky"
+        ui_touch_button 21 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
+        ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:simpledeckytdp right:7-8:unifideck right:9-10:tomoon right:11-12:epic right:13-14:ge-proton right:15-16:battlenet right:17-18:ubisoft right:19-20:previous right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:simpledeckytdp right:7-8:unifideck right:9-10:tomoon right:11-12:epic right:13-14:ge-proton right:15-16:battlenet right:17-18:ubisoft right:19-20:repair right:21-22:previous right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -601,6 +602,7 @@ plugin_page_2_menu() {
             battlenet) NEXT_CATEGORY="battlenet_submenu"; return 0 ;;
             ubisoft) confirm_and_run "安装育碧" "自动安装育碧游戏平台、创建桌面入口并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft ;;
             ge-proton) ge_proton_menu ;;
+            repair) NEXT_CATEGORY="launcher_repair"; return 0 ;;
             previous) NEXT_CATEGORY="games"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -653,6 +655,32 @@ battlenet_submenu() {
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "battlenet_submenu" ] || return 0
+    done
+}
+
+launcher_repair_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame games "重新应用启动器封面" "重写 Steam 库封面并重启 Steam" 0
+        ui_touch_button 5 '\033[1;97;48;5;24m' "Epic 游戏启动器" "重写 Epic 封面"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "战网启动器" "重写战网封面"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "育碧" "重写育碧封面"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "黑盒工坊" "重写黑盒工坊封面"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回" "返回更多插件"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:5-6:epic right:7-8:battlenet right:9-10:ubisoft right:11-12:heihe right:19-20:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            epic) confirm_and_run "重新应用 Epic 封面" "重写 Steam 库封面并重启 Steam，不依赖 Decky" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" apply-artwork epic ;;
+            battlenet) confirm_and_run "重新应用战网封面" "重写 Steam 库封面并重启 Steam，不依赖 Decky" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" apply-artwork battlenet ;;
+            ubisoft) confirm_and_run "重新应用育碧封面" "重写 Steam 库封面并重启 Steam，不依赖 Decky" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" apply-artwork ubisoft ;;
+            heihe) confirm_and_run "重新应用黑盒工坊封面" "重写 Steam 库封面并重启 Steam，不依赖 Decky" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" apply-artwork heihe ;;
+            back) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = "launcher_repair" ] || return 0
     done
 }
 
@@ -1323,6 +1351,7 @@ while true; do
         decky_loader) decky_loader_menu ;;
         plugin_page_2) plugin_page_2_menu ;;
         battlenet_submenu) battlenet_submenu ;;
+        launcher_repair) launcher_repair_menu ;;
         emulators) emulator_menu ;;
         network|support) support_menu ;;
         advanced) advanced_tools_menu ;;

@@ -354,6 +354,8 @@ for removed in \
     "$SERVICES_DIR/.systemd/plugin_loader-prerelease.service"; do
     [ ! -e "$removed" ] || fail "卸载后仍残留：$removed"
 done
+[ ! -e "$SERVICES_DIR/.systemd" ] || fail "卸载后仍残留 .systemd 目录"
+[ ! -e "$SERVICES_DIR" ] || fail "卸载后仍残留 services 目录"
 [ -f "$PLUGIN_DIR/KeepMe/data" ] || fail "卸载 Decky Loader 删除了插件"
 [ -f "$SETTINGS_DIR/loader.json" ] || fail "卸载 Decky Loader 删除了设置"
 

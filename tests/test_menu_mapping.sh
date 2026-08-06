@@ -98,7 +98,12 @@ official_plugin_names="$(sed -n '/^DECKY_OFFICIAL_PLUGIN_NAMES=(/,/^)/p' "$MAIN_
 assert_not_contains "$official_plugin_names" 'Freedeck' "官方插件最后一页仍显示 Freedeck"
 touch_plugin_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
 assert_contains "$touch_plugin_page_2" 'right:9-10:tomoon' "插件第二页 ToMoon 坐标错误"
-assert_contains "$touch_plugin_page_2" 'right:19-20:previous' "插件第二页缺少上一页坐标"
+assert_contains "$touch_plugin_page_2" 'right:19-20:repair' "插件第二页缺少修复封面坐标"
+assert_contains "$touch_plugin_page_2" 'right:21-22:previous' "插件第二页缺少上一页坐标"
+touch_repair="$(function_source "$MAIN_FILE" launcher_repair_menu)"
+for mapping in 'right:5-6:epic' 'right:7-8:battlenet' 'right:9-10:ubisoft' 'right:11-12:heihe' 'right:19-20:back' 'right:22-23:home'; do
+    assert_contains "$touch_repair" "$mapping" "修复封面菜单坐标错误：$mapping"
+done
 touch_battlenet="$(function_source "$MAIN_FILE" battlenet_submenu)"
 assert_contains "$touch_battlenet" 'right:5-6:battlenet' "战网子菜单缺少战网动作"
 assert_contains "$touch_battlenet" 'right:7-8:heihe' "战网子菜单缺少黑盒工坊坐标"
@@ -158,6 +163,7 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_contains "$source_text" 'modules/game_launchers.sh" epic' "Epic 动作错误：$file"
     assert_contains "$source_text" 'modules/game_launchers.sh" heihe' "黑盒工坊动作错误：$file"
     assert_contains "$source_text" 'modules/game_launchers.sh" ubisoft' "Ubisoft Connect 动作错误：$file"
+    assert_contains "$source_text" 'modules/game_launchers.sh" apply-artwork' "启动器封面修复动作错误：$file"
     assert_contains "$source_text" 'modules/game_launchers.sh" uninstall' "启动器卸载动作错误：$file"
     assert_contains "$source_text" 'modules/emulators.sh" uninstall' "模拟器卸载动作错误：$file"
     assert_contains "$source_text" 'modules/emulators.sh"' "模拟器动作错误：$file"

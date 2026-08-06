@@ -311,11 +311,12 @@ printf '{"version":"0.12.5"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
 printf '{ "name": "Decky-Framegen" }\n' > "$PLUGIN_ROOT/Decky-Framegen/plugin.json"
 printf '{"version":"0.17.0"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
 printf '{"name": "CheatDeck"}\n' > "$PLUGIN_ROOT/CheatDeck/plugin.json"
+printf '{"version":"1.2.1"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
 status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
     bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"
 printf '%s\n' "$status_output" | grep -Fq '✓ 小黄鸭（LSFG-VK）：已写入 Decky'
 printf '%s\n' "$status_output" | grep -Fq '✓ FSR4（Decky-Framegen）：已写入 Decky，官方版本 0.17.0'
-printf '%s\n' "$status_output" | grep -Fq '✓ CheatDeck：已写入 Decky'
+printf '%s\n' "$status_output" | grep -Fq '✓ CheatDeck：已写入 Decky，官方版本 1.2.1'
 
 printf '{"name":"小黄鸭"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
 legacy_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
@@ -342,8 +343,18 @@ fi
 printf '%s\n' "$stale_fsr4_status_output" | \
     grep -Fq '检测到版本 0.16.9，请更新到 0.17.0'
 
+printf '{"version":"1.2.0"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
+if stale_cheatdeck_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
+    bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"; then
+    echo "FAIL: 旧版 CheatDeck 不应被识别为官方 1.2.1" >&2
+    exit 1
+fi
+printf '%s\n' "$stale_cheatdeck_status_output" | \
+    grep -Fq '检测到版本 1.2.0，请更新到 1.2.1'
+
 # 整组安装必须把同名旧版送入更新流程，不能只凭名称和目录跳过。
 printf '{"version":"0.12.1"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
+printf '{"version":"1.2.0"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
 update_output="$(
     DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
         source "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -359,6 +370,15 @@ update_output="$(
                 "$DECKY_PLUGIN_DIR/$FSR4_OFFICIAL_DIRECTORY/package.json"
             echo "TEST_UPDATE: FSR4"
         }
+        install_configured_plugin() {
+            if [ "$1" = "cheatdeck" ]; then
+                printf '\''{"version":"%s"}\n'\'' "$DECKY_CHEATDECK_VERSION" > \
+                    "$DECKY_PLUGIN_DIR/CheatDeck/package.json"
+                echo "TEST_UPDATE: CheatDeck"
+                return 0
+            fi
+            return 1
+        }
         refresh_feature_usage_guides() { return 0; }
         reload_decky_plugins() { return 0; }
         check_lossless_scaling_installation() { return 0; }
@@ -369,6 +389,7 @@ update_output="$(
 )"
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: LSFG'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: FSR4'
+printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: CheatDeck'
 printf '%s\n' "$update_output" | grep -Fq '官方版本 0.12.5'
 printf '%s\n' "$update_output" | grep -Fq '官方版本 0.17.0'
 

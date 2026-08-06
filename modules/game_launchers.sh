@@ -1343,11 +1343,8 @@ finish_launcher_steam_entry() {
     echo "正式条目、兼容层和封面已写入文件。"
     echo "正在启动 Steam..."
     start_steam
-    if [ "${ZHOUKEER_SKIP_STEAM_RESTART:-0}" != "1" ]; then
-        wait_for_steam_running || true
-        apply_launcher_decky_artwork "$target" "$app_id" "$artwork_alt_app_id" "$game_id" || true
-    fi
-    echo "Steam 已启动，请确认库中的兼容层和封面。"
+    echo "Steam 已启动；兼容层和封面已写入文件，Steam 读取后生效。"
+    echo "若库中封面仍是旧图，请在游戏模式运行“修复启动器封面”。"
     print_launcher_proton_hint
     if [ "$target" = "battlenet" ]; then
         echo "战网登录页：https://account.battle.net/login"
@@ -1517,10 +1514,8 @@ install_launcher() {
     echo "Steam 条目与封面已写入文件。"
     echo "正在启动 Steam..."
     start_steam
-    if [ "${ZHOUKEER_SKIP_STEAM_RESTART:-0}" != "1" ]; then
-        wait_for_steam_running || true
-        apply_launcher_decky_artwork "$target" "$app_id" "$artwork_alt_app_id" "$game_id" || true
-    fi
+    echo "Steam 已启动；封面已写入文件，Steam 读取后生效。"
+    echo "若库中封面仍是旧图，请在游戏模式运行“修复启动器封面”。"
     echo "$LAUNCHER_NAME 已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
     if [ "$target" = "epic" ]; then
         echo "Epic 改中文：右上角头像 → Settings → Language → 中文（简体）→ Restart Now。"
@@ -1610,6 +1605,50 @@ uninstall_launcher() {
     log "$LAUNCHER_NAME 已卸载"
 }
 
+repair_launcher_artwork() {
+    local target="$1"
+    local steam_root shortcut_file launcher_exe drive_c app_id artwork_alt_app_id game_id
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "封面修复仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    [ "$target" = "uplay" ] && target="ubisoft"
+    launcher_details "$target" || return 1
+    steam_root="$(find_steam_root)" || return 1
+    shortcut_file="$(find_shortcut_file "$steam_root")" || return 1
+    if [ "$target" = "heihe" ]; then
+        drive_c="$(find_battle_platform_drive_c "$steam_root" || true)"
+    else
+        drive_c="$(launcher_drive_c "$target")"
+    fi
+    launcher_exe="$(find_launcher_in_drive "$drive_c" 2>/dev/null || \
+        find_installed_launcher "$steam_root" || true)"
+    [ -n "$launcher_exe" ] || {
+        echo "未找到 $LAUNCHER_NAME 主程序，无法修复封面。"
+        return 1
+    }
+    app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" find-appid \
+        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
+    artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
+        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
+    game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
+        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
+
+    echo "正在重写 $LAUNCHER_NAME 的 Steam 库封面..."
+    stop_steam_for_vdf || {
+        echo "Steam 未能安全退出，请关闭游戏后重试。"
+        return 1
+    }
+    install_launcher_steam_artwork "$target" "$shortcut_file" \
+        "$app_id" "$artwork_alt_app_id" "$game_id" || return 1
+    start_steam || true
+    echo "$LAUNCHER_NAME 封面已重新写入，Steam 重启后生效。"
+    echo "修复不依赖 Decky；若仍显示旧封面，请完全退出 Steam 后再进入游戏模式。"
+    log "$LAUNCHER_NAME 封面已重新写入"
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         epic|battlenet|ubisoft|uplay|heihe) install_launcher "$1" ;;
@@ -1617,6 +1656,10 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
             [ -n "${2:-}" ] || { echo "用法: $0 uninstall 目标"; exit 1; }
             uninstall_launcher "$2"
             ;;
-        *) echo "用法: $0 {epic|battlenet|ubisoft|heihe|uninstall 目标}"; exit 1 ;;
+        apply-artwork)
+            [ -n "${2:-}" ] || { echo "用法: $0 apply-artwork 目标"; exit 1; }
+            repair_launcher_artwork "$2"
+            ;;
+        *) echo "用法: $0 {epic|battlenet|ubisoft|heihe|uninstall 目标|apply-artwork 目标}"; exit 1 ;;
     esac
 fi

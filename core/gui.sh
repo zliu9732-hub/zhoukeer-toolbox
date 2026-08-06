@@ -239,6 +239,7 @@ game_environment_gui_menu() {
     local choice
     local decky_choice
     local battlenet_choice
+    local repair_choice
 
     while true; do
         choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
@@ -252,6 +253,7 @@ game_environment_gui_menu() {
             tomoon "ToMoon｜网络工具" \
             battlenet "战网启动器｜自动下载预装客户端并绑定 Proton 10.0-4" \
             ubisoft "育碧｜安装育碧游戏平台并添加到 Steam" \
+            repair "修复启动器封面｜重写 Steam 库封面并重启 Steam" \
             decky-install "安装插件商城｜稳定版国内失败自动切换官方源｜可选测试版｜高级操作" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -324,6 +326,20 @@ game_environment_gui_menu() {
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft; then
                     gui_notice "重要：请在 Steam 库中点击“育碧”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。若点击开始游戏没反应，请点启动器右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，选择 Proton Experimental 或 Proton 10.0.1 后重试。"
                 fi
+                ;;
+            repair)
+                repair_choice="$(gui_dialog --menu "修复启动器封面｜选择启动器" \
+                    epic "Epic 游戏启动器" \
+                    battlenet "战网启动器" \
+                    ubisoft "育碧" \
+                    heihe "黑盒工坊" \
+                    back "返回游戏与插件")" || continue
+                case "$repair_choice" in
+                    epic|battlenet|ubisoft|heihe)
+                        run_gui_action "重新应用封面" env ZHOUKEER_AUTO_CONFIRM=1 \
+                            bash "$PROJECT_ROOT/modules/game_launchers.sh" apply-artwork "$repair_choice"
+                        ;;
+                esac
                 ;;
             decky-install)
                 decky_choice="$(gui_dialog --menu "安装插件商城｜请选择与 SteamOS 系统通道匹配的版本" \
