@@ -796,19 +796,29 @@ create_launcher_wrapper() {
     mkdir -p "$destination_dir" || return 1
     cat > "$wrapper" <<EOF
 #!/bin/bash
-PREFIX_DIR=$(printf '%q' "$prefix_dir")
-PROTON_RUNNER=$(printf '%q' "$proton_runner")
-LAUNCHER_EXE=$(printf '%q' "$launcher_exe")
-STEAM_ROOT=$(printf '%q' "$steam_root")
+PREFIX_DIR=$(shell_quote "$prefix_dir")
+PROTON_RUNNER=$(shell_quote "$proton_runner")
+LAUNCHER_EXE=$(shell_quote "$launcher_exe")
+STEAM_ROOT=$(shell_quote "$steam_root")
 export STEAM_COMPAT_DATA_PATH="\$PREFIX_DIR"
 export STEAM_COMPAT_CLIENT_INSTALL_PATH="\$STEAM_ROOT"
-export STEAM_COMPAT_APP_ID=$(printf '%q' "$steam_app_id")
-export SteamAppId=$(printf '%q' "$steam_app_id")
-export SteamGameId=$(printf '%q' "$steam_game_id")
+export STEAM_COMPAT_APP_ID=$(shell_quote "$steam_app_id")
+export SteamAppId=$(shell_quote "$steam_app_id")
+export SteamGameId=$(shell_quote "$steam_game_id")
 exec "\$PROTON_RUNNER" run "\$LAUNCHER_EXE"
 EOF
     chmod +x "$wrapper" || return 1
     printf '%s\n' "$wrapper"
+}
+
+shell_quote() {
+    local value="$1" escaped
+
+    escaped="${value//\\/\\\\}"
+    escaped="${escaped//\"/\\\"}"
+    escaped="${escaped//\$/\\\$}"
+    escaped="${escaped//\`/\\\`}"
+    printf '"%s"' "$escaped"
 }
 
 create_launcher_desktop_shortcut() {

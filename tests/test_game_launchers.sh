@@ -622,6 +622,41 @@ grep -Fq 'STEAM_COMPAT_DATA_PATH="$PREFIX_DIR"' "$generated_wrapper" || {
     exit 1
 }
 
+# 启动包装器必须正确处理带空格的 Proton 与主程序路径，否则点击入口会直接打不开。
+SPACE_RUNNER="$TMP_ROOT/Proton - Experimental/proton"
+SPACE_EXE="$TMP_ROOT/space-prefix/compatdata/pfx/drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe"
+SPACE_LOG="$TMP_ROOT/space-proton.log"
+mkdir -p "$(dirname "$SPACE_RUNNER")" "$(dirname "$SPACE_EXE")"
+cat > "$SPACE_RUNNER" <<'SCRIPT'
+#!/bin/bash
+{
+    printf 'arg=<%s>\n' "$@"
+    printf 'data=<%s>\n' "$STEAM_COMPAT_DATA_PATH"
+} > "${SPACE_LOG:?}"
+SCRIPT
+chmod +x "$SPACE_RUNNER"
+: > "$SPACE_EXE"
+space_wrapper="$(
+    MODULE="$MODULE" TMP_ROOT="$TMP_ROOT" SPACE_RUNNER="$SPACE_RUNNER" SPACE_EXE="$SPACE_EXE" bash -c '
+        source "$MODULE"
+        create_launcher_wrapper ubisoft "$TMP_ROOT/steam" "$TMP_ROOT/space-prefix/compatdata" \
+            "$SPACE_RUNNER" "$SPACE_EXE" "$TMP_ROOT/space-wrapper"
+    '
+)"
+SPACE_LOG="$SPACE_LOG" "$space_wrapper"
+grep -Fxq "arg=<run>" "$SPACE_LOG" || {
+    echo "FAIL: 带空格路径的启动包装器没有执行 Proton run" >&2
+    exit 1
+}
+grep -Fxq "arg=<$SPACE_EXE>" "$SPACE_LOG" || {
+    echo "FAIL: 带空格的主程序路径在启动包装器中被拆坏" >&2
+    exit 1
+}
+grep -Fxq "data=<$TMP_ROOT/space-prefix/compatdata>" "$SPACE_LOG" || {
+    echo "FAIL: 启动包装器没有复用带空格的安装前缀" >&2
+    exit 1
+}
+
 cat > "$FAKE_STEAM" <<'SCRIPT'
 #!/bin/bash
 printf '%s\n' "$*" > "${STEAM_INSTALL_LOG:?}"
@@ -830,12 +865,12 @@ existing_app_id="$(python3 "$HELPER" --shortcut-file "$EXISTING_SHORTCUTS" appid
     --name "战网启动器" --exe "$EXISTING_BATTLENET")"
 existing_game_id="$(python3 "$HELPER" --shortcut-file "$EXISTING_SHORTCUTS" gameid \
     --name "战网启动器" --exe "$EXISTING_BATTLENET")"
-grep -Fxq "export STEAM_COMPAT_APP_ID=$existing_app_id" \
+grep -Fxq "export STEAM_COMPAT_APP_ID=\"$existing_app_id\"" \
     "$EXISTING_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" || {
     echo "FAIL: 战网桌面启动包装器没有写入 Steam AppID" >&2
     exit 1
 }
-grep -Fxq "export SteamGameId=$existing_game_id" \
+grep -Fxq "export SteamGameId=\"$existing_game_id\"" \
     "$EXISTING_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" || {
     echo "FAIL: 战网桌面启动包装器没有写入 Steam GameID" >&2
     exit 1
