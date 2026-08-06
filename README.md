@@ -2,7 +2,7 @@
 
 周克儿工具箱是面向 Steam Deck 及其他 SteamOS 掌机的 Bash 工具箱，提供一键新机初始化、常用软件、远程协助、插件商城、系统维护和安全更新入口。界面会按终端宽度收紧导航栏；体检、诊断、攻略和启动器功能尽量适配 SteamOS 掌机，涉及引导、只读分区等系统功能仍会先检查环境。
 
-当前正式版：V1.4.0；版本号按语义化版本递增，不跳版。
+当前正式版：V1.5.0；版本号按语义化版本递增，不跳版。
 
 - 双系统设置：只保留互通盘挂载与只读保护、TF 卡 exFAT 初始化、NTFS/exFAT 基础修复、只读健康检查和受保护的第三方引导项清理。rEFInd、Clover、EFI/BootOrder 修改和“一键切换 Windows”均不提供入口。
 
@@ -22,7 +22,7 @@
 - 插件商城：包含小黄鸭、FSR4、CheatDeck 三款独立功能插件和 Decky 官方精选插件，支持全部一键安装、商店插件分页浏览、单项安装和三件套文件状态检查。Decky-Framegen 即 FSR4，CheatDeck 安装完成后也可在 Decky 右侧栏显示。安装或检测到三款功能插件后会在桌面补充风灵月影、小黄鸭和 FSR4 小白教程；检测到 FSR4 时另建支持游戏名单，两个文件均提醒 FSR/FSR4 不适合所有游戏。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
 
 使用小黄鸭前，安装完成后请在 Steam 正版页面打开游戏右侧齿轮，进入“属性 → 测试版”，选择名称以 Linux 开头的可用版本；随后进入游戏模式，按 Steam Deck 机身右下角的“三个点（…）”按钮，在打开的菜单中依次点击插头图标 → 小黄鸭 → 安装 LSFG。
-- 常用软件与远程协助：微信使用腾讯官网官方 AppImage；QQ、Chrome、Edge、AnyDesk、百度网盘、LibreOffice、VLC、OBS Studio、LocalSend、PeaZip、WiliWili、Protontricks、Bottles 通过上海交大和中科大 Flathub 国内缓存安装；Firefox 使用官方 Flathub 的 `org.mozilla.firefox`；RustDesk 使用作者 GitHub Release 提供的 AppImage。安装成功后会创建桌面快捷方式，不修改 SteamOS 只读分区。
+- 常用软件与远程协助：微信使用腾讯官网官方 AppImage；QQ、Chrome、Edge、AnyDesk、百度网盘、LibreOffice、VLC、OBS Studio、LocalSend、PeaZip、WiliWili、Protontricks、Bottles 通过上海交大和中科大 Flathub 国内缓存安装；Xbox 云游戏通过 Flathub 安装 Greenlight，云游戏需 Xbox 账号；Firefox 使用官方 Flathub 的 `org.mozilla.firefox`；RustDesk 使用作者 GitHub Release 提供的 AppImage。安装成功后会创建桌面快捷方式，不修改 SteamOS 只读分区。
 - 安装与卸载：软件、兼容层和插件会先检测现有完整安装，已安装时不重复下载；独立的四页卸载菜单可逐项移除，系统组件和全部插件仍需风险确认。
 - GE-Proton兼容层：安装入口提供“最新 GE 兼容层”和“修改器所需常用兼容层”（GE-Proton 7-55/8-25/9-27/10-29）两个选项；最新版安装不再删除旧版。下载后校验 SHA256，安装到 Steam 用户的 `compatibilitytools.d` 目录，不需要管理员权限；安装完成后自动重启 Steam 使其生效。
 - ToDesk：使用固定的第三方SteamOS适配包并校验SHA256，安装完成后恢复只读保护。
@@ -205,6 +205,6 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 
 ## 当前版本与维护
 
-当前正式版为 V1.4.0，版本号按语义化版本递增，不跳版。后续维护继续围绕 SteamOS 实际使用更新下载链路、插件镜像、菜单与修复；rEFInd、Clover、EFI/BootOrder 和“一键切换 Windows”等高风险入口保持停用。
+当前正式版为 V1.5.0，版本号按语义化版本递增，不跳版。后续维护继续围绕 SteamOS 实际使用更新下载链路、插件镜像、菜单与修复；rEFInd、Clover、EFI/BootOrder 和“一键切换 Windows”等高风险入口保持停用。
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。

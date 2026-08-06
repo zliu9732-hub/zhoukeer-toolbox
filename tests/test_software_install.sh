@@ -353,6 +353,37 @@ grep -Fq 'Exec=flatpak run cn.xfangfang.wiliwili' "$WILIWILI_SHORTCUT"
 grep -Fq 'install --user --noninteractive -y flathub-cn cn.xfangfang.wiliwili' "$STATE_DIR/commands"
 [ -f "$STATE_DIR/installed.cn.xfangfang.wiliwili" ]
 
+# Xbox 云游戏通过 Flathub 安装 Greenlight，并创建名称明确的桌面入口。
+rm -f "$STATE_DIR/installed.io.github.unknownskl.greenlight"
+mkdir -p "$HOME_DIR/.local/share/Steam/steamapps" \
+    "$HOME_DIR/.local/share/Steam/userdata/123/config"
+: > "$HOME_DIR/.local/share/Steam/userdata/123/config/shortcuts.vdf"
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_APP_DIR="$STATE_DIR/apps" \
+ZHOUKEER_SKIP_STEAM_RESTART=1 \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" xbox-cloud >/dev/null
+XBOX_SHORTCUT="$HOME_DIR/Desktop/Xbox 云游戏.desktop"
+[ -x "$XBOX_SHORTCUT" ]
+grep -Fq 'Exec=flatpak run io.github.unknownskl.greenlight' "$XBOX_SHORTCUT"
+grep -Fq 'install --user --noninteractive -y flathub-cn io.github.unknownskl.greenlight' "$STATE_DIR/commands"
+[ -f "$STATE_DIR/installed.io.github.unknownskl.greenlight" ]
+XBOX_WRAPPER="$STATE_DIR/apps/game-launchers/xbox-cloud/launch-xbox-cloud.sh"
+[ -x "$XBOX_WRAPPER" ] || {
+    echo "FAIL: Xbox 云游戏启动包装器未创建" >&2
+    exit 1
+}
+python3 - "$HOME_DIR/.local/share/Steam/userdata/123/config/shortcuts.vdf" <<'PY'
+from pathlib import Path
+import sys
+
+data = Path(sys.argv[1]).read_bytes()
+assert "Xbox 云游戏".encode() in data
+assert b"launch-xbox-cloud.sh" in data
+PY
+
 # Flatpak 安装彻底失败时，必须提示先初始化国内源，而不是只报任务失败。
 rm -f "$STATE_DIR/installed.com.baidu.NetDisk"
 set +e

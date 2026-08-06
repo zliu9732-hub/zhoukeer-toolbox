@@ -126,6 +126,12 @@ software_details() {
             SOFTWARE_EXTRA_APP_IDS="org.fcitx.Fcitx5.Addon.ChineseAddons"
             SOFTWARE_CATEGORIES="Utility;InputMethods;"
             ;;
+        xbox-cloud)
+            SOFTWARE_NAME="Xbox 云游戏"
+            SOFTWARE_DESKTOP_NAME="Xbox 云游戏"
+            SOFTWARE_APP_ID="io.github.unknownskl.greenlight"
+            SOFTWARE_CATEGORIES="Game;"
+            ;;
         *)
             echo "未知软件: $1"
             return 1
@@ -857,6 +863,133 @@ EOF
     log "$SOFTWARE_NAME 桌面快捷方式已创建: $desktop_file"
 }
 
+find_software_steam_root() {
+    local candidate
+
+    for candidate in "$HOME/.local/share/Steam" "$HOME/.steam/steam"; do
+        if [ -d "$candidate/steamapps" ] && [ -d "$candidate/userdata" ]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
+find_software_steam_shortcut_file() {
+    local steam_root="$1"
+    local candidate newest="" newest_time=0 modified
+
+    while IFS= read -r -d '' candidate; do
+        modified="$(stat -c '%Y' "$candidate" 2>/dev/null || printf '0')"
+        if [ "$modified" -ge "$newest_time" ]; then
+            newest="$candidate"
+            newest_time="$modified"
+        fi
+    done < <(find "$steam_root/userdata" -mindepth 3 -maxdepth 3 \
+        -type f -name shortcuts.vdf -print0 2>/dev/null)
+    if [ -n "$newest" ]; then
+        printf '%s\n' "$newest"
+        return 0
+    fi
+    return 1
+}
+
+software_stop_steam_for_vdf() {
+    local steam_bin attempt
+
+    command -v pgrep >/dev/null 2>&1 || return 0
+    pgrep -x steam >/dev/null 2>&1 || return 0
+    steam_bin="$(command -v steam 2>/dev/null || true)"
+    if [ -z "$steam_bin" ] && [ -x "$HOME/.steam/steam/steam.sh" ]; then
+        steam_bin="$HOME/.steam/steam/steam.sh"
+    fi
+    [ -n "$steam_bin" ] || return 0
+    "$steam_bin" -shutdown >/dev/null 2>&1 || true
+    for attempt in 1 2 3 4 5 6 7 8 9 10; do
+        pgrep -x steam >/dev/null 2>&1 || return 0
+        sleep 1
+    done
+    return 1
+}
+
+software_start_steam() {
+    local steam_bin
+
+    [ "${ZHOUKEER_SKIP_STEAM_RESTART:-0}" = "1" ] && return 0
+    steam_bin="$(command -v steam 2>/dev/null || true)"
+    if [ -z "$steam_bin" ] && [ -x "$HOME/.steam/steam/steam.sh" ]; then
+        steam_bin="$HOME/.steam/steam/steam.sh"
+    fi
+    [ -n "$steam_bin" ] || return 0
+    "$steam_bin" >/dev/null 2>&1 &
+}
+
+find_xbox_greenlight_icon() {
+    find "$HOME/.local/share/flatpak/exports/share/icons" \
+        /var/lib/flatpak/exports/share/icons \
+        -type f \( -iname '*greenlight*.png' -o -iname '*greenlight*.svg' \) \
+        -print 2>/dev/null | head -n 1
+}
+
+install_xbox_steam_entry() {
+    local steam_root shortcut_file wrapper icon
+
+    steam_root="$(find_software_steam_root)" || {
+        echo "未找到 Steam 库，请先登录 Steam 后再添加 Xbox 云游戏。"
+        return 0
+    }
+    shortcut_file="$(find_software_steam_shortcut_file "$steam_root")" || {
+        echo "未找到 Steam 快捷方式文件，请先登录 Steam 后再添加 Xbox 云游戏。"
+        return 0
+    }
+    wrapper="$APP_DIR/game-launchers/xbox-cloud/launch-xbox-cloud.sh"
+    mkdir -p "$(dirname "$wrapper")" || return 1
+    cat > "$wrapper" <<'EOF'
+#!/bin/bash
+exec flatpak run io.github.unknownskl.greenlight
+EOF
+    chmod +x "$wrapper" || return 1
+    software_stop_steam_for_vdf || {
+        echo "Steam 未能在 10 秒内退出，已停止写入 Steam 库。"
+        return 1
+    }
+    python3 "$PROJECT_ROOT/scripts/steam_shortcut.py" \
+        --shortcut-file "$shortcut_file" add \
+        --name "Xbox 云游戏" --exe "$wrapper" \
+        --start-dir "$(dirname "$wrapper")" >/dev/null || return 1
+    icon="$(find_xbox_greenlight_icon)"
+    if [ -n "$icon" ]; then
+        python3 "$PROJECT_ROOT/scripts/steam_shortcut.py" \
+            --shortcut-file "$shortcut_file" set-icon \
+            --name "Xbox 云游戏" --exe "$wrapper" --icon "$icon" >/dev/null || true
+    fi
+    echo "Xbox 云游戏已添加到 Steam 库。"
+    log "Xbox 云游戏已添加到 Steam 库"
+    software_start_steam
+}
+
+uninstall_xbox_steam_entry() {
+    local steam_root shortcut_file wrapper
+
+    wrapper="$APP_DIR/game-launchers/xbox-cloud/launch-xbox-cloud.sh"
+    steam_root="$(find_software_steam_root 2>/dev/null || true)"
+    if [ -n "$steam_root" ]; then
+        shortcut_file="$(find_software_steam_shortcut_file "$steam_root" 2>/dev/null || true)"
+        if [ -n "$shortcut_file" ]; then
+            python3 "$PROJECT_ROOT/scripts/steam_shortcut.py" \
+                --shortcut-file "$shortcut_file" remove \
+                --exe-basename "launch-xbox-cloud.sh" >/dev/null || true
+        fi
+    fi
+    rm -f -- "$wrapper"
+}
+
+uninstall_xbox_cloud_software() {
+    uninstall_xbox_steam_entry
+    uninstall_flatpak_software "io.github.unknownskl.greenlight" "Xbox 云游戏" \
+        "Xbox 云游戏.desktop" "io.github.unknownskl.greenlight.desktop"
+}
+
 install_software() {
     local target="$1"
 
@@ -869,6 +1002,9 @@ install_software() {
     if software_is_installed; then
         echo "[已安装] $SOFTWARE_NAME"
         create_software_shortcut
+        if [ "$target" = "xbox-cloud" ]; then
+            install_xbox_steam_entry
+        fi
         return $?
     fi
 
@@ -954,6 +1090,9 @@ install_software() {
     echo "$SOFTWARE_NAME 安装完成。"
     log "$SOFTWARE_NAME Flatpak安装完成"
     create_software_shortcut
+    if [ "$target" = "xbox-cloud" ]; then
+        install_xbox_steam_entry
+    fi
 }
 
 show_software_status() {
@@ -961,7 +1100,7 @@ show_software_status() {
     local installed_count=0
 
     echo "常用软件与远程协助安装状态："
-    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend peazip willwill fcitx5; do
+    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend peazip willwill fcitx5 xbox-cloud; do
         software_details "$target" || return 1
         if software_is_installed; then
             echo "✓ $SOFTWARE_NAME：已安装"
@@ -970,14 +1109,14 @@ show_software_status() {
             echo "- $SOFTWARE_NAME：未安装"
         fi
     done
-    echo "已安装：$installed_count / 13"
+    echo "已安装：$installed_count / 14"
 }
 
 repair_software_shortcuts() {
     local target
     local repaired=0
 
-    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend peazip willwill fcitx5; do
+    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend peazip willwill fcitx5 xbox-cloud; do
         software_details "$target" || return 1
         if software_is_installed; then
             create_software_shortcut || return 1
@@ -1260,13 +1399,14 @@ uninstall_software() {
         peazip) uninstall_flatpak_software "io.github.peazip.PeaZip" "PeaZip 压缩工具" "PeaZip.desktop" "io.github.peazip.PeaZip.desktop" ;;
         willwill) uninstall_flatpak_software "cn.xfangfang.wiliwili" "WiliWili" "WiliWili.desktop" "cn.xfangfang.wiliwili.desktop" ;;
         fcitx5) uninstall_flatpak_software "org.fcitx.Fcitx5" "Fcitx5 中文输入法" "Fcitx5.desktop" "org.fcitx.Fcitx5.desktop" ;;
+        xbox-cloud) uninstall_xbox_cloud_software ;;
         *) echo "未知卸载目标：$1"; return 1 ;;
     esac
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
-        wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5) install_software "$1" ;;
+        wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5|xbox-cloud) install_software "$1" ;;
         firefox-pacman|firefox-sjtu|system-setup)
             echo "该旧版系统级功能已停用，请使用当前 Flatpak 菜单功能。"
             exit 1
@@ -1281,6 +1421,6 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
             ;;
         status) require_command od && show_software_status ;;
         repair-shortcuts) require_command od && repair_software_shortcuts ;;
-        *) echo "用法: $0 {wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|chrome|edge|protontricks|bottles|status|repair-shortcuts}"; exit 1 ;;
+        *) echo "用法: $0 {wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5|xbox-cloud|chrome|edge|protontricks|bottles|status|repair-shortcuts}"; exit 1 ;;
     esac
 fi

@@ -79,6 +79,8 @@ assert_contains "$touch_software" 'right:14-15:todesk' "常用软件 ToDesk 坐�
 assert_contains "$touch_software" 'right:20-21:anydesk' "常用软件 AnyDesk 坐标错误"
 assert_contains "$touch_software" 'right:22-23:more' "常用软件更多页坐标错误"
 assert_contains "$touch_software_more" 'right:16-17:fcitx5' "更多常用软件缺少中文输入法坐标"
+assert_contains "$touch_software_more" 'right:18-19:xbox-cloud' "更多常用软件缺少 Xbox 云游戏坐标"
+assert_contains "$touch_software_more" 'right:20-21:back' "更多常用软件缺少返回坐标"
 assert_contains "$touch_games" 'right:23-24:home' "游戏环境缺少返回首页"
 assert_contains "$touch_decky_loader" 'right:5-6:stable' "Decky Loader 子菜单缺少稳定版动作"
 assert_contains "$touch_decky_loader" 'right:9-10:test' "Decky Loader 子菜单缺少测试版动作"

@@ -105,6 +105,7 @@ software_menu() {
             peazip "PeaZip 压缩工具｜解压与压缩常用格式" \
             willwill "WiliWili｜Flathub 安装 WiliWili（B站客户端）" \
             fcitx5 "中文输入法｜Fcitx5 与中文输入插件" \
+            xbox-cloud "Xbox 云游戏｜Flathub 安装 Greenlight，云游戏需 Xbox 账号" \
             protontricks "游戏兼容设置｜安装 Protontricks" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -145,6 +146,7 @@ software_menu() {
             peazip) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 PeaZip。是否继续？" && run_gui_action "安装 PeaZip 压缩工具" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" peazip ;;
             willwill) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 WiliWili（B站客户端）。是否继续？" && run_gui_action "安装 WiliWili" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" willwill ;;
             fcitx5) gui_confirm "将通过 Flathub 国内缓存安装 Fcitx5 中文输入法及中文输入插件。是否继续？" && run_gui_action "安装中文输入法" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" fcitx5 ;;
+            xbox-cloud) gui_confirm "将通过 Flathub 安装 Greenlight（Xbox 云游戏客户端），云游戏需要 Xbox 账号。是否继续？" && run_gui_action "安装 Xbox 云游戏" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" xbox-cloud ;;
             protontricks) gui_confirm "将通过 Flatpak 安装 Protontricks。是否继续？" && run_gui_action "安装 Protontricks" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
             bottles) gui_confirm "将通过 Flatpak 安装 Bottles。是否继续？" && run_gui_action "安装 Bottles" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
             home) GUI_NAV_HOME=1; return 0 ;;
@@ -792,6 +794,7 @@ uninstall_software_gui_menu() {
                     todesk "卸载 ToDesk｜停止服务并卸载软件包｜高级操作" \
                     baidunetdisk "卸载百度网盘｜Flatpak" \
                     willwill "卸载 WiliWili｜Flatpak" \
+                    xbox-cloud "卸载 Xbox 云游戏｜Greenlight Flatpak" \
                     previous "上一页" next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
                 ;;
             2)
@@ -815,7 +818,7 @@ uninstall_software_gui_menu() {
                 ;;
         esac
         case "$choice" in
-            wechat|qq|browser|chrome|edge|rustdesk|anydesk|baidunetdisk|willwill|libreoffice|vlc|obs|localsend|peazip|protontricks|bottles)
+            wechat|qq|browser|chrome|edge|rustdesk|anydesk|baidunetdisk|willwill|xbox-cloud|libreoffice|vlc|obs|localsend|peazip|protontricks|bottles)
                 target="$choice"
                 gui_confirm "只卸载所选软件及工具箱创建的快捷方式，确认继续？" && \
                     run_gui_action "卸载软件" env ZHOUKEER_AUTO_CONFIRM=1 \
