@@ -143,7 +143,7 @@ run_network_diagnostics() {
         network_probe flathub-cn "应用下载国内线路一" "https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo"
         network_probe flathub-ustc "应用下载国内线路二" "https://mirrors.ustc.edu.cn/flathub/flathub.flatpakrepo"
         network_probe flathub-official "应用下载官方线路" "https://dl.flathub.org/repo/flathub.flatpakrepo"
-        network_probe update-gitee "工具箱更新国内线路" "https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/VERSION"
+        network_probe update-gitee "工具箱更新国内线路" "https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/VERSION"
         network_probe update-github "工具箱更新备用线路" "https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/VERSION"
         network_probe update-domain "工具箱更新域名线路" "https://jktool.icu/VERSION"
         wait

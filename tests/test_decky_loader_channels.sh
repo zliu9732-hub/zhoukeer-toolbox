@@ -256,9 +256,9 @@ grep -Fq '"keep": "yes"' "$SETTINGS_DIR/loader.json" || \
 [ -f "$PLUGIN_DIR/KeepMe/data" ] || fail "稳定版安装删除了现有插件"
 grep -Fq 'user disable --now plugin_loader.service' "$CALLS" || \
     fail "稳定版安装未停用旧测试版用户服务"
-grep -Fq 'github Decky PluginLoader分块00|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/PluginLoader.part.00|' \
+grep -Fq 'github Decky PluginLoader分块00|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn/PluginLoader.part.00|' \
     "$CALLS" || fail "稳定版未优先使用 Gitee 国内镜像"
-grep -Fq 'github Decky systemd服务模板|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/plugin_loader-release.service|' \
+grep -Fq 'github Decky systemd服务模板|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn/plugin_loader-release.service|' \
     "$CALLS" || fail "稳定版服务模板未使用 Gitee 镜像"
 if grep -Fq "download Decky PluginLoader|$DECKY_LOADER_URL|$DECKY_LOADER_OFFICIAL_URL" "$CALLS"; then
     fail "Gitee 镜像成功时稳定版仍回退到国内/官方线路"
@@ -298,9 +298,9 @@ grep -Fxq 'v3.2.8-pre1' "$SERVICES_DIR/.loader.version" || \
     fail "测试版安装未更新版本标记"
 grep -Eq '"branch"[[:space:]]*:[[:space:]]*1' "$SETTINGS_DIR/loader.json" || \
     fail "测试版安装未切换到预发布分支"
-grep -Fq 'github Decky PluginLoader分块00|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/PluginLoader-pre.part.00|' \
+grep -Fq 'github Decky PluginLoader分块00|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn/PluginLoader-pre.part.00|' \
     "$CALLS" || fail "测试版未优先使用 Gitee 国内镜像"
-grep -Fq 'github Decky systemd服务模板|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/plugin_loader-prerelease.service|' \
+grep -Fq 'github Decky systemd服务模板|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn/plugin_loader-prerelease.service|' \
     "$CALLS" || fail "测试版服务模板未使用 Gitee 镜像"
 if grep -Fq "$DECKY_PRERELEASE_LOADER_URL" "$CALLS"; then
     fail "Gitee 镜像成功时测试版仍回退到官方 GitHub"

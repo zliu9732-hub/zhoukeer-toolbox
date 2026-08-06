@@ -2,9 +2,9 @@
 
 set -u
 
-GITEE_URL="${ZHOUKEER_GITEE_BOOTSTRAP_URL:-https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/bootstrap.sh}"
-GITHUB_URL="${ZHOUKEER_GITHUB_BOOTSTRAP_URL:-https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/bootstrap.sh}"
-DOMAIN_URL="${ZHOUKEER_DOMAIN_BOOTSTRAP_URL:-https://jktool.icu/bootstrap.sh}"
+GITEE_URL="${ZHOUKEER_GITEE_BOOTSTRAP_URL:-https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/bootstrap.sh}"
+GITHUB_URL="${ZHOUKEER_GITHUB_BOOTSTRAP_URL:-}"
+DOMAIN_URL="${ZHOUKEER_DOMAIN_BOOTSTRAP_URL:-}"
 TMP_FILE="$(mktemp)" || exit 1
 trap 'rm -f -- "$TMP_FILE"' EXIT INT TERM
 
@@ -24,9 +24,9 @@ download_bootstrap() {
 
 if download_bootstrap "$GITEE_URL"; then
     :
-elif download_bootstrap "$GITHUB_URL"; then
+elif [ -n "$GITHUB_URL" ] && download_bootstrap "$GITHUB_URL"; then
     :
-elif download_bootstrap "$DOMAIN_URL"; then
+elif [ -n "$DOMAIN_URL" ] && download_bootstrap "$DOMAIN_URL"; then
     :
 else
     echo "工具箱安装入口下载失败，请检查网络。"

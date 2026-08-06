@@ -30,7 +30,7 @@ DECKY_PRERELEASE_LOADER_SHA256="9df160a81df3fc49c96e5665a1d1b3ba5c79de5bf271adc2
 DECKY_PRERELEASE_SERVICE_URL="https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.8-pre1/dist/plugin_loader-prerelease.service"
 DECKY_PRERELEASE_SERVICE_SHA256="f6fd73f68dca18a64e4cffa2962ae697b247aaf5f3fd9cd8526597f0291fb63e"
 # Decky 安装文件镜像托管在本仓库 decky-installer-cn 目录；latest.txt 由发布时同步更新。
-DECKY_GITEE_MIRROR_BASE="https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn"
+DECKY_GITEE_MIRROR_BASE="https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn"
 DECKY_GITEE_MIRROR_META="$DECKY_GITEE_MIRROR_BASE/latest.txt"
 DECKY_HOMEBREW_DIR="${ZHOUKEER_DECKY_HOMEBREW_DIR:-$HOME/homebrew}"
 DECKY_UNIT_PATH="${ZHOUKEER_DECKY_UNIT_PATH:-/etc/systemd/system/plugin_loader.service}"

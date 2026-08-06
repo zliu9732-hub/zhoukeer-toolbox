@@ -2,12 +2,12 @@
 
 # 战网 + 黑盒工坊独立工具一行安装/更新引导
 # 用法:
-#   curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/standalone/battlenet-heihe/bootstrap.sh | bash
+#   curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/standalone/battlenet-heihe/bootstrap.sh | bash
 #   带目标: ... | bash -s -- battlenet
 
 set -u
 
-BASE="${ZHOUKEER_STANDALONE_BASE:-https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main}"
+BASE="${ZHOUKEER_STANDALONE_BASE:-https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main}"
 TARGET_DIR="${ZHOUKEER_STANDALONE_DIR:-$HOME/zhoukeer-battlenet-heihe}"
 TMP_DIR="$(mktemp -d)" || exit 1
 trap 'rm -rf -- "$TMP_DIR"' EXIT

@@ -16,8 +16,8 @@ for arg in "$@"; do
 done
 
 GITEE_OWNER="${ZHOUKEER_GITEE_OWNER:-zliu9732-hub}"
-GITHUB_OWNER="${ZHOUKEER_GITHUB_OWNER:-zliu9732-hub}"
-REPO_NAME="${ZHOUKEER_REPO_NAME:-zhoukeer-toolbox}"
+GITHUB_OWNER="${ZHOUKEER_GITHUB_OWNER:-}"
+REPO_NAME="${ZHOUKEER_REPO_NAME:-zhoukeer-toolbox-v2}"
 BRANCH="${ZHOUKEER_BRANCH:-main}"
 INSTALL_DIR="${ZHOUKEER_INSTALL_DIR:-$HOME/.local/share/zhoukeer-toolbox}"
 
@@ -26,8 +26,11 @@ CONNECT_TIMEOUT="${ZHOUKEER_CONNECT_TIMEOUT:-20}"
 MAX_TIME="${ZHOUKEER_MAX_TIME:-600}"
 
 GITEE_RAW_BASE="${ZHOUKEER_GITEE_RAW_BASE:-https://gitee.com/$GITEE_OWNER/$REPO_NAME/raw/$BRANCH}"
-GITHUB_RAW_BASE="${ZHOUKEER_GITHUB_RAW_BASE:-https://raw.githubusercontent.com/$GITHUB_OWNER/$REPO_NAME/$BRANCH}"
-DOMAIN_RAW_BASE="${ZHOUKEER_DOMAIN_RAW_BASE:-https://jktool.icu}"
+GITHUB_RAW_BASE="${ZHOUKEER_GITHUB_RAW_BASE:-}"
+if [ -z "$GITHUB_RAW_BASE" ] && [ -n "$GITHUB_OWNER" ]; then
+    GITHUB_RAW_BASE="https://raw.githubusercontent.com/$GITHUB_OWNER/$REPO_NAME/$BRANCH"
+fi
+DOMAIN_RAW_BASE="${ZHOUKEER_DOMAIN_RAW_BASE:-}"
 PACKAGE_NAME="${ZHOUKEER_PACKAGE_NAME:-zhoukeer-toolbox.tar.gz}"
 GITEE_PACKAGE_URL="${ZHOUKEER_GITEE_PACKAGE_URL:-$GITEE_RAW_BASE/dist/$PACKAGE_NAME}"
 GITHUB_PACKAGE_URL="${ZHOUKEER_GITHUB_PACKAGE_URL:-$GITHUB_RAW_BASE/dist/$PACKAGE_NAME}"
@@ -50,7 +53,7 @@ need_command() {
 # 最小自包含副本；安装完成后的全部下载统一使用 core/download_policy.sh。
 bootstrap_url_allowed() {
     case "$1" in
-        https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/VERSION|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/SHA256SUMS|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/zhoukeer-toolbox.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/VERSION|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/SHA256SUMS|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/zhoukeer-toolbox.tar.gz|https://jktool.icu/VERSION|https://jktool.icu/dist/SHA256SUMS|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) return 0 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/VERSION|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/SHA256SUMS|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/zhoukeer-toolbox.tar.gz|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/VERSION|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/SHA256SUMS|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/zhoukeer-toolbox.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/VERSION|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/SHA256SUMS|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/zhoukeer-toolbox.tar.gz|https://jktool.icu/VERSION|https://jktool.icu/dist/SHA256SUMS|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) return 0 ;;
         https://*) [ "${ZHOUKEER_TEST_MODE:-0}" = "1" ] ;;
         *) return 1 ;;
     esac

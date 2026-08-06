@@ -24,7 +24,7 @@ sudo -u $SUDO_USER touch "${USER_DIR}/.steam/steam/.cef-enable-remote-debugging"
 
 # Mirrored release on Gitee (large binary is split into 8MB chunks)
 VERSION="v3.2.6"
-MIRROR_BASE="https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn"
+MIRROR_BASE="https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn"
 DOWNLOAD_PARTS=4
 EXPECTED_SHA256="30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e"
 

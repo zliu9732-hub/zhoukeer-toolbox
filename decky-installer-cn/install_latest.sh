@@ -12,7 +12,7 @@ if [ "${DECKY_INSTALLER_TEST_MODE:-0}" != "1" ]; then
 fi
 
 CHANNEL="${1:-release}"
-MIRROR_BASE="https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn"
+MIRROR_BASE="https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn"
 META_URL="${MIRROR_BASE}/latest.txt"
 
 case "$CHANNEL" in

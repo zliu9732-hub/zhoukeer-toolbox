@@ -89,6 +89,7 @@ download_policy_url_allowed() {
         https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service) return 0 ;;
         https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.8-pre1/dist/plugin_loader-prerelease.service) return 0 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/*) return 0 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/*) return 0 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/*) return 0 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-2/*) return 0 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-3/*) return 0 ;;
@@ -135,7 +136,7 @@ download_policy_max_bytes() {
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-6/raw/main/*/part.*) printf '%s\n' 8388608 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-7/raw/main/*/part.*) printf '%s\n' 8388608 ;;
         https://gitee.com/easylife2025/battle/releases/download/*) printf '%s\n' 104857600 ;;
-        https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/zhoukeer-toolbox.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/zhoukeer-toolbox.tar.gz|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) printf '%s\n' 9437184 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/zhoukeer-toolbox.tar.gz|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/zhoukeer-toolbox.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/zhoukeer-toolbox.tar.gz|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) printf '%s\n' 9437184 ;;
         */VERSION|*/SHA256SUMS|*.json|*.flatpakrepo|*.service|*.txt) printf '%s\n' 2097152 ;;
         *.deb) printf '%s\n' 268435456 ;;
         *.AppImage|*.exe|*.msi|*.zip) printf '%s\n' 536870912 ;;
