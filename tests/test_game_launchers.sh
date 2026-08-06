@@ -465,6 +465,34 @@ PREINSTALLED_PREFIX="$(
     exit 1
 }
 
+# 旧版隐藏目录中的启动器文件必须自动迁移到用户可见根目录，插件才能找到。
+MIGRATE_APP_DIR="$TMP_ROOT/migrate-apps"
+MIGRATE_PREFIX="$MIGRATE_APP_DIR/game-launchers/ubisoft/compatdata"
+MIGRATE_OLD="$MIGRATE_APP_DIR/game-launchers/ubisoft/drive_c"
+MIGRATE_EXE="$MIGRATE_OLD/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe"
+mkdir -p "$MIGRATE_PREFIX/pfx" "$(dirname "$MIGRATE_EXE")"
+: > "$MIGRATE_EXE"
+ln -s "$MIGRATE_OLD" "$MIGRATE_PREFIX/pfx/drive_c"
+MODULE="$MODULE" MIGRATE_APP_DIR="$MIGRATE_APP_DIR" \
+    ZHOUKEER_APP_DIR="$MIGRATE_APP_DIR" bash -c '
+    source "$MODULE"
+    launcher_details ubisoft
+    migrate_launcher_drive_to_visible ubisoft \
+        "$MIGRATE_APP_DIR/game-launchers/ubisoft/compatdata"
+' >/dev/null
+[ -f "$ZHOUKEER_LAUNCHER_BASE/ubisoft/drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe" ] || {
+    echo "FAIL: 旧版隐藏虚拟目录没有迁移到用户可见根目录" >&2
+    exit 1
+}
+[ ! -e "$MIGRATE_OLD" ] || {
+    echo "FAIL: 迁移后旧隐藏虚拟目录仍存在" >&2
+    exit 1
+}
+[ "$(readlink "$MIGRATE_PREFIX/pfx/drive_c")" = "$ZHOUKEER_LAUNCHER_BASE/ubisoft/drive_c" ] || {
+    echo "FAIL: 迁移后共享前缀 drive_c 没有指向新位置" >&2
+    exit 1
+}
+
 # 已安装战网通过 symlink drive_c 时，仍必须能被识别为已安装。
 SYM_STEAM="$TMP_ROOT/sym-steam"
 mkdir -p "$SYM_STEAM/steamapps/compatdata/123/pfx"
@@ -894,14 +922,17 @@ UBI_STEAM="$TMP_ROOT/ubi-steam"
 UBI_SHORTCUTS="$UBI_STEAM/userdata/123/config/shortcuts.vdf"
 UBI_APP_DIR="$TMP_ROOT/ubi-apps"
 UBI_HOME="$TMP_ROOT/ubi-home"
-UBI_DRIVE="$ZHOUKEER_LAUNCHER_BASE/ubisoft/drive_c"
+UBI_BASE="$TMP_ROOT/launcher-root-ubi"
+UBI_DRIVE="$UBI_BASE/ubisoft/drive_c"
 UBI_PREFIX="$UBI_APP_DIR/game-launchers/ubisoft/compatdata"
 UBI_EXE="$UBI_PREFIX/pfx/drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe"
 UBI_PE="$UBI_STEAM/steamapps/common/Proton - Experimental/proton"
-mkdir -p "$(dirname "$UBI_SHORTCUTS")" "$(dirname "$UBI_EXE")" \
+mkdir -p "$(dirname "$UBI_SHORTCUTS")" \
     "$UBI_STEAM/config" "$UBI_HOME/Desktop" "$UBI_PREFIX/pfx"
-: > "$UBI_EXE"
+mkdir -p "$UBI_DRIVE"
 ln -s "$UBI_DRIVE" "$UBI_PREFIX/pfx/drive_c"
+mkdir -p "$(dirname "$UBI_EXE")"
+: > "$UBI_EXE"
 printf '%s\n' '"InstallConfigStore"' '{' '    "Software"' '    {' \
     '        "Valve"' '        {' '            "Steam"' '            {' \
     '            }' '        }' '    }' '}' > "$UBI_STEAM/config/config.vdf"
@@ -912,7 +943,7 @@ ubi_output="$(
     MODULE="$MODULE" ZHOUKEER_STEAM_ROOT="$UBI_STEAM" \
         ZHOUKEER_SHORTCUT_FILE="$UBI_SHORTCUTS" \
         ZHOUKEER_APP_DIR="$UBI_APP_DIR" HOME="$UBI_HOME" \
-        ZHOUKEER_SKIP_STEAM_RESTART=1 bash -c '
+        ZHOUKEER_SKIP_STEAM_RESTART=1 ZHOUKEER_LAUNCHER_BASE="$UBI_BASE" bash -c '
             source "$MODULE"
             detect_platform() { IS_STEAMOS=1; }
             install_launcher ubisoft

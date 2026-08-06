@@ -210,6 +210,7 @@ install_ge_proton_package() {
     local source_dir
     local actual_sha256
     local command_name
+    local attempt
 
     for command_name in curl tar find; do
         command -v "$command_name" >/dev/null 2>&1 || {
@@ -234,10 +235,21 @@ install_ge_proton_package() {
     mkdir -p "$extract_dir" || return 1
 
     if [ "$download_mode" = "mirror" ]; then
-        if ! GITEE_MIRROR_REPO="$mirror_repo" \
-            download_gitee_mirror_file \
-            "$mirror_id" "$archive" "$GE_PROTON_SHA256" \
-            "$GE_PROTON_VERSION"; then
+        attempt=0
+        while [ "$attempt" -lt 3 ]; do
+            attempt=$((attempt + 1))
+            if GITEE_MIRROR_REPO="$mirror_repo" \
+                download_gitee_mirror_file \
+                "$mirror_id" "$archive" "$GE_PROTON_SHA256" \
+                "$GE_PROTON_VERSION"; then
+                break
+            fi
+            if [ "$attempt" -lt 3 ]; then
+                echo "$GE_PROTON_VERSION 镜像下载第 $attempt 次失败，正在自动重试..."
+                sleep 2
+            fi
+        done
+        if [ "$attempt" -ge 3 ]; then
             echo "$GE_PROTON_VERSION 下载失败。"
             return 1
         fi

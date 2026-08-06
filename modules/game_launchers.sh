@@ -403,6 +403,35 @@ set_launcher_grid_icon() {
     printf '%s\n' "$icon"
 }
 
+migrate_launcher_drive_to_visible() {
+    local target="$1" prefix_dir="$2"
+    local drive_c real_drive new_drive new_parent
+
+    drive_c="$prefix_dir/pfx/drive_c"
+    if [ -L "$drive_c" ]; then
+        real_drive="$(readlink "$drive_c")"
+    elif [ -d "$drive_c" ]; then
+        real_drive="$drive_c"
+    else
+        return 0
+    fi
+    new_drive="$(launcher_drive_c "$target")"
+    [ "$real_drive" = "$new_drive" ] && return 0
+    case "$real_drive" in
+        "$APP_DIR"/*) ;;
+        *) return 0 ;;
+    esac
+    if [ -e "$new_drive" ] || [ -L "$new_drive" ]; then
+        echo "$LAUNCHER_NAME 目标虚拟目录已存在，未迁移：$new_drive"
+        return 1
+    fi
+    new_parent="$(dirname "$new_drive")"
+    mkdir -p "$new_parent" || return 1
+    mv -- "$real_drive" "$new_drive" || return 1
+    prepare_launcher_shared_prefix "$target" "$new_drive" >/dev/null || return 1
+    echo "已将 $LAUNCHER_NAME 虚拟目录迁移到 ${new_drive}。"
+}
+
 find_battle_platform_drive_c() {
     local steam_root="$1"
     local battle_drive_c candidate_dir
@@ -1212,6 +1241,12 @@ install_launcher() {
                 */pfx/drive_c/*) prefix="${launcher_exe%/pfx/drive_c/*}" ;;
                 *) echo "无法确定 $LAUNCHER_NAME 安装环境，已停止写入 Steam 条目。"; return 1 ;;
             esac
+            migrate_launcher_drive_to_visible "$target" "$prefix" || return 1
+            launcher_exe="$(find_launcher_in_prefix "$prefix" || find_installed_launcher "$steam_root" || true)"
+            [ -n "$launcher_exe" ] || {
+                echo "$LAUNCHER_NAME 虚拟目录迁移后未找到主程序。"
+                return 1
+            }
         else
             if [ "$target" = "heihe" ]; then
                 platform_drive_c="$(find_battle_platform_drive_c "$steam_root" || true)"
@@ -1249,6 +1284,12 @@ install_launcher() {
             "$prefix"/pfx/drive_c/*) ;;
             *) prefix="${launcher_exe%/pfx/drive_c/*}" ;;
         esac
+        migrate_launcher_drive_to_visible "$target" "$prefix" || return 1
+        launcher_exe="$(find_launcher_in_prefix "$prefix" || find_installed_launcher "$steam_root" || true)"
+        [ -n "$launcher_exe" ] || {
+            echo "$LAUNCHER_NAME 虚拟目录迁移后未找到主程序。"
+            return 1
+        }
     else
         platform_drive_c="$(launcher_drive_c "$target")"
         mkdir -p "$platform_drive_c" || return 1
