@@ -288,7 +288,7 @@ game_environment_gui_menu() {
                 if run_gui_action "安装 Epic 游戏启动器并自动入库" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" epic; then
-                    gui_notice "重要：请在 Steam 库中点击“Epic Games 启动器”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。"
+                    gui_notice "重要：请在 Steam 库中点击“Epic Games 启动器”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。若点击开始游戏没反应，请点启动器右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，选择 Proton Experimental 或 Proton 10.0.1 后重试。"
                 fi
                 ;;
             tomoon)
@@ -306,14 +306,14 @@ game_environment_gui_menu() {
                         if run_gui_action "安装战网启动器并自动入库" \
                             env ZHOUKEER_AUTO_CONFIRM=1 \
                             bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet; then
-                            gui_notice "重要：请在 Steam 库中点击“战网启动器”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。"
+                            gui_notice "重要：请在 Steam 库中点击“战网启动器”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。若点击开始游戏没反应，请点启动器右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，选择 Proton Experimental 或 Proton 10.0.1 后重试。"
                         fi
                         ;;
                     heihe)
                         if run_gui_action "安装黑盒工坊并自动入库" \
                             env ZHOUKEER_AUTO_CONFIRM=1 \
                             bash "$PROJECT_ROOT/modules/game_launchers.sh" heihe; then
-                            gui_notice "重要：请在 Steam 库中点击“黑盒工坊”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。"
+                            gui_notice "重要：请在 Steam 库中点击“黑盒工坊”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。若点击开始游戏没反应，请点启动器右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，选择 Proton Experimental 或 Proton 10.0.1 后重试。"
                         fi
                         ;;
                 esac
@@ -322,7 +322,7 @@ game_environment_gui_menu() {
                 if run_gui_action "安装育碧并自动入库" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft; then
-                    gui_notice "重要：请在 Steam 库中点击“育碧”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。"
+                    gui_notice "重要：请在 Steam 库中点击“育碧”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。若点击开始游戏没反应，请点启动器右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，选择 Proton Experimental 或 Proton 10.0.1 后重试。"
                 fi
                 ;;
             decky-install)
