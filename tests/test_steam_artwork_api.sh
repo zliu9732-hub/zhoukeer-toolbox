@@ -95,7 +95,7 @@ fi
 expected_game_id="$(python3 -c 'import sys; print((int(sys.argv[1]) << 32) | 0x02000000)' "$expected_appid")"
 mkdir -p "$(dirname "$SHORTCUTS")/grid"
 for check_id in "$expected_appid" "$expected_signed_app_id" "$expected_game_id"; do
-    for artwork in "$check_id.png" "${check_id}p.png" "${check_id}_hero.png" \
+    for artwork in "$check_id.jpg" "${check_id}p.jpg" "${check_id}_hero.jpg" \
         "${check_id}_logo.png" "${check_id}_icon.png" "${check_id}_background.jpg"; do
         : > "$(dirname "$SHORTCUTS")/grid/$artwork"
     done
@@ -103,7 +103,7 @@ done
 verify_output="$(bash "$PROJECT_ROOT/scripts/apply_steam_artwork.sh" verify epic)"
 printf '%s\n' "$verify_output" | grep -Fq "appid: $expected_appid" || \
     FAIL "verify 未输出 shortcuts.vdf 中的 appid"
-printf '%s\n' "$verify_output" | grep -Fq "$expected_appid.png 存在" || \
+printf '%s\n' "$verify_output" | grep -Fq "$expected_appid.jpg 存在" || \
     FAIL "verify 未确认封面文件已写入"
 unset ZHOUKEER_SHORTCUT_FILE
 

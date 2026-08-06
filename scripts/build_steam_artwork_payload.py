@@ -4,6 +4,7 @@
 
 import base64
 import json
+import os
 import sys
 
 
@@ -31,18 +32,21 @@ def main() -> int:
 
     with open(image_path, "rb") as handle:
         image_b64 = base64.b64encode(handle.read()).decode("ascii")
+    image_ext = os.path.splitext(image_path)[1].lower()
+    image_mime = "jpeg" if image_ext in (".jpg", ".jpeg") else "png"
 
     js = (
         "(async function(){"
         "const m=" + json.dumps(marker) + ";"
         "const ids=" + json.dumps(appids) + ";"
         "const b64=" + json.dumps(image_b64) + ";"
+        "const mt=" + json.dumps(image_mime) + ";"
         "try{if(typeof SteamClient===\"undefined\"||!SteamClient.Apps)throw Error(\"SteamClient unavailable\");"
         "let ok=0;for(const appId of ids){"
         "if(SteamClient.Apps.ClearCustomArtworkForApp){try{await SteamClient.Apps.ClearCustomArtworkForApp(appId,"
         + str(asset_type)
         + ");}catch(e){}await new Promise(x=>setTimeout(x,300));}"
-        "await SteamClient.Apps.SetCustomArtworkForApp(appId,b64,\"png\","
+        "await SteamClient.Apps.SetCustomArtworkForApp(appId,b64,mt,"
         + str(asset_type)
         + ");"
         "if(SteamClient.Apps.ReportLibraryAssetCacheMiss){try{SteamClient.Apps.ReportLibraryAssetCacheMiss(appId,"

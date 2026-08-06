@@ -224,7 +224,7 @@ decky_recognized_appids() {
 }
 
 build_steam_artwork_javascript() {
-    local marker="$1" appids_json="$2" asset_type="$3" base64_data="$4"
+    local marker="$1" appids_json="$2" asset_type="$3" base64_data="$4" mime="${5:-png}"
 
     printf '%s\n' \
         "(async function(){" \
@@ -232,7 +232,7 @@ build_steam_artwork_javascript() {
         "try{if(typeof SteamClient===\"undefined\"||!SteamClient.Apps)throw Error(\"SteamClient unavailable\");" \
         "let ok=0;for(const appId of ids){" \
         "if(SteamClient.Apps.ClearCustomArtworkForApp){try{await SteamClient.Apps.ClearCustomArtworkForApp(appId,$asset_type);}catch(e){}await new Promise(x=>setTimeout(x,300));}" \
-        "await SteamClient.Apps.SetCustomArtworkForApp(appId,b64,\"png\",$asset_type);" \
+        "await SteamClient.Apps.SetCustomArtworkForApp(appId,b64,$(json_quote "$mime"),$asset_type);" \
         "if(SteamClient.Apps.ReportLibraryAssetCacheMiss){try{SteamClient.Apps.ReportLibraryAssetCacheMiss(appId,$asset_type);}catch(e){}}" \
         "if($asset_type===2){try{const ov=window.appStore&&window.appStore.GetAppOverviewByAppID?.(appId);if(ov&&window.appDetailsStore)await window.appDetailsStore.SaveCustomLogoPosition(ov,{pinnedPosition:\"BottomLeft\",nWidthPct:50,nHeightPct:50});}catch(e){}}" \
         "ok++;}return m+\":ok:\"+ok;" \
@@ -356,7 +356,7 @@ apply_steam_launcher_artwork_via_decky() {
     fi
     decky_tab="$(find_decky_app_tab "$token" "$appids_csv" "$DECKY_API_BASE" "$DECKY_EXECUTE_TIMEOUT")" || true
 
-    for entry in "header:-grid.png:3" "capsule:-portrait.png:0" "hero:-hero.png:1" "logo:.png:2"; do
+    for entry in "header:-grid.jpg:3" "capsule:-portrait.jpg:0" "hero:-hero.jpg:1" "logo:.png:2"; do
         type="${entry%%:*}"
         rest="${entry#*:}"
         file_suffix="${rest%%:*}"

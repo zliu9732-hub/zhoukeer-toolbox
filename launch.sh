@@ -8,6 +8,7 @@ PROFILE_FILE="$MAIN_PROFILE_FILE"
 STARTUP_VIEW="main-with-disclaimer"
 WINDOW_SIZE="1280x740"
 FONT_SIZE="12"
+WINDOW_FULLSCREEN="${ZHOUKEER_WINDOW_FULLSCREEN:-1}"
 STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 LAUNCH_LOG="${ZHOUKEER_LAUNCH_LOG:-$STATE_HOME/zhoukeer-toolbox/launcher.log}"
 
@@ -306,11 +307,15 @@ try_konsole_levels() {
     konsole_bin="$(find_toolbox_konsole)" || return 1
     KONSOLE_HELP="$("$konsole_bin" --help 2>/dev/null || true)"
 
-    # 固定窗口尺寸保证 32 行画布完整，同时保留可关闭的标题栏。
-    # 不支持 --geometry 时直接使用主题默认窗口，由程序内画布请求调整尺寸。
+    # 优先自动全屏，字号与兜底窗口尺寸仍按检测到的屏幕分辨率适配。
+    # 不支持 --fullscreen 时退回固定窗口尺寸，保证 32 行画布完整。
+    if [ "$WINDOW_FULLSCREEN" = "1" ] && supports_konsole_option '--fullscreen'; then
+        optional_args+=(--fullscreen)
+        window_mode="全屏（字号按分辨率适配）"
+    fi
     if supports_konsole_option '--geometry'; then
         optional_args+=(--geometry "$WINDOW_SIZE")
-        window_mode="窗口 $WINDOW_SIZE"
+        [ "$window_mode" = "默认尺寸" ] && window_mode="窗口 $WINDOW_SIZE"
     fi
     if supports_konsole_option '--workdir'; then
         optional_args+=(--workdir "$PROJECT_ROOT")

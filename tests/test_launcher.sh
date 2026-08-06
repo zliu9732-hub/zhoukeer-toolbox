@@ -93,6 +93,21 @@ PATH="$BIN_DIR:/usr/bin:/bin" \
 ZHOUKEER_LAUNCH_LOG="$LAUNCH_LOG" \
 FAKE_TERMINAL_CALL_LOG="$CALL_LOG" \
 FAKE_DIALOG_LOG="$DIALOG_LOG" \
+FAKE_KONSOLE_HELP=$'--profile\n--workdir\n--geometry\n--fullscreen' \
+FAKE_XTERM_STATUS=0 \
+    bash "$PROJECT_ROOT/launch.sh"
+grep -Fq -- '--fullscreen' "$CALL_LOG" || {
+    echo "FAIL: 支持全屏时没有自动全屏" >&2
+    exit 1
+}
+grep -Fq -- '--geometry 1280x740' "$CALL_LOG"
+
+: > "$CALL_LOG"
+HOME="$HOME_DIR" \
+PATH="$BIN_DIR:/usr/bin:/bin" \
+ZHOUKEER_LAUNCH_LOG="$LAUNCH_LOG" \
+FAKE_TERMINAL_CALL_LOG="$CALL_LOG" \
+FAKE_DIALOG_LOG="$DIALOG_LOG" \
 FAKE_KONSOLE_HELP=$'--profile\n--workdir\n--geometry' \
 FAKE_XTERM_STATUS=0 \
 ZHOUKEER_SCREEN_SIZE=1920x1080 \
@@ -121,10 +136,10 @@ grep -Fq '已隐藏英文错误提示' "$LAUNCH_LOG"
 
 : > "$CALL_LOG"
 run_launcher $'--profile\n--workdir\n--fullscreen'
-if grep -Fq -- '--fullscreen' "$CALL_LOG"; then
-    echo "FAIL: 不支持固定窗口尺寸时仍使用全屏" >&2
+grep -Fq -- '--fullscreen' "$CALL_LOG" || {
+    echo "FAIL: 支持全屏时没有自动全屏" >&2
     exit 1
-fi
+}
 if grep -Fq -- '--geometry' "$CALL_LOG"; then
     echo "FAIL: 不支持 --geometry 时仍传入尺寸参数" >&2
     exit 1
@@ -133,10 +148,22 @@ fi
 : > "$CALL_LOG"
 run_launcher $'--profile\n--workdir\n--fullscreen\n--geometry'
 grep -Fq -- '--geometry 1280x740' "$CALL_LOG"
+grep -Fq -- '--fullscreen' "$CALL_LOG"
+
+: > "$CALL_LOG"
+HOME="$HOME_DIR" \
+PATH="$BIN_DIR:/usr/bin:/bin" \
+ZHOUKEER_LAUNCH_LOG="$LAUNCH_LOG" \
+FAKE_TERMINAL_CALL_LOG="$CALL_LOG" \
+FAKE_DIALOG_LOG="$DIALOG_LOG" \
+FAKE_KONSOLE_HELP=$'--profile\n--workdir\n--fullscreen\n--geometry' \
+ZHOUKEER_WINDOW_FULLSCREEN=0 \
+    bash "$PROJECT_ROOT/launch.sh"
 if grep -Fq -- '--fullscreen' "$CALL_LOG"; then
-    echo "FAIL: 支持固定窗口尺寸时不应默认全屏"
+    echo "FAIL: 关闭全屏开关后仍自动全屏" >&2
     exit 1
 fi
+grep -Fq -- '--geometry 1280x740' "$CALL_LOG"
 
 : > "$CALL_LOG"
 HOME="$HOME_DIR" \

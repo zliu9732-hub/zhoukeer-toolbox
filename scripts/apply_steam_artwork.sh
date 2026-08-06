@@ -66,7 +66,7 @@ verify_launcher_artwork() {
     echo "appid: $app_id"
     echo "grid: $grid_dir"
     for check_id in "$app_id" "$signed_app_id" "$game_id"; do
-        for artwork in "$check_id.png" "${check_id}p.png" "${check_id}_hero.png" \
+        for artwork in "$check_id.jpg" "${check_id}p.jpg" "${check_id}_hero.jpg" \
             "${check_id}_logo.png" "${check_id}_icon.png"; do
             if [ -f "$grid_dir/$artwork" ]; then
                 echo "  $artwork 存在"

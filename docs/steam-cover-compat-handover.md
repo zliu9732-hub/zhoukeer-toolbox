@@ -21,9 +21,10 @@ Epic、战网、育碧、黑盒工坊四个启动器通过工具箱写入 Steam 
    - 旧主封面源图是 920x430 横图，Steam 主封面槽是 600x900 竖版，写入后变形或显示异常。
    - 修复：写入前校验 600x900，误用横图时自动改用竖版图；新四套封面均为 600x900。
 
-5. 封面素材不再打进发布包
-   - 新封面体积超过发布包 9MiB 上限，改为安装启动器时按需下载并缓存到 `$APP_DIR/game-launchers/covers/<目标>/`。
-   - 下载源顺序：GitHub raw → 旧 Gitee raw；本地开发目录有图时直接使用本地文件。
+5. 封面素材从 Gitee 分块镜像静默下载
+   - 新封面体积较大，不放进工具箱发布包，改为从 Gitee 镜像仓库按 `latest.txt` 分块下载整个封面包，校验 SHA256 后解压缓存到 `$APP_DIR/game-launchers/covers/<目标>/`。
+   - 下载过程不向用户输出进度；本地开发目录有图时直接使用本地文件，不触发下载。
+   - 封面主图、竖版图、横幅、背景统一使用 JPG，徽标与图标保留 PNG。
 
 ## 设备端排查步骤
 
@@ -38,13 +39,13 @@ Epic、战网、育碧、黑盒工坊四个启动器通过工具箱写入 Steam 
    bash scripts/apply_steam_artwork.sh verify heihe
    ```
    - 确认输出的 appid 与 `shortcuts.vdf` 条目一致。
-   - 确认 grid 目录下 `{appid}.png`、`{appid}p.png`、`{appid}_hero.png`、`{appid}_logo.png`、`{appid}_icon.png`、`{appid}_background.*` 都存在。
+   - 确认 grid 目录下 `{appid}.jpg`、`{appid}p.jpg`、`{appid}_hero.jpg`、`{appid}_logo.png`、`{appid}_icon.png`、`{appid}_background.jpg` 都存在。
    - 确认 Decky Loader 状态：只有在游戏模式且 Decky 运行时才会即时刷新封面。
 5. 检查 `~/.local/share/Steam/config/config.vdf`：
    - `CompatToolMapping` 下应存在对应 appid 的 `proton_10` 映射。
    - 若 Steam 实际使用的兼容层工具名不是 `proton_10`（例如 Proton Experimental 或 Proton 10.0.1），映射不会生效，需在库中手动选择。
 6. 若 grid 目录本身是符号链接，工具箱会拒绝写入封面，需要先解除软链接。
-7. 若安装时出现“下载封面素材失败”，说明网络无法访问 raw 地址，需要检查网络或代理。
+7. 封面写入失败不会中断安装，Steam 条目和兼容层会继续完成；安装结束仍会重新启动 Steam，可稍后运行“修复启动器封面”重试。
 
 ## 用户提示
 

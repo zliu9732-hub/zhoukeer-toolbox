@@ -573,15 +573,17 @@ for current_app_id in "$app_id" "$artwork_raw_app_id"; do
         signed_app_id=$((current_app_id - 4294967296))
     fi
     for check_id in "$current_app_id" "$signed_app_id"; do
-        for artwork in "$check_id.png" "${check_id}p.png" "${check_id}_hero.png" \
+        for artwork in "$check_id.jpg" "${check_id}p.jpg" "${check_id}_hero.jpg" \
             "${check_id}_logo.png" "${check_id}_icon.png" "${check_id}_background.jpg"; do
             [ -s "$(dirname "$art_shortcuts")/grid/$artwork" ] || {
                 echo "FAIL: Steam 库美化文件缺失：$artwork" >&2
                 exit 1
             }
         done
-        for stale in "$check_id.jpg" "$check_id.jpeg" "${check_id}p.jpg" \
-            "${check_id}_hero.jpg" "${check_id}_background.png"; do
+        for stale in "$check_id.png" "$check_id.jpeg" "${check_id}p.png" \
+            "${check_id}p.jpeg" "${check_id}_hero.png" "${check_id}_hero.jpeg" \
+            "${check_id}_logo.jpg" "${check_id}_logo.jpeg" "${check_id}_icon.jpg" \
+            "${check_id}_icon.jpeg" "${check_id}_background.png"; do
             [ ! -e "$(dirname "$art_shortcuts")/grid/$stale" ] || {
                 echo "FAIL: Steam 库旧封面未清理：$stale" >&2
                 exit 1
@@ -590,7 +592,7 @@ for current_app_id in "$app_id" "$artwork_raw_app_id"; do
     done
 done
 for check_id in "$game_id"; do
-    for artwork in "$check_id.png" "${check_id}p.png" "${check_id}_hero.png" \
+    for artwork in "$check_id.jpg" "${check_id}p.jpg" "${check_id}_hero.jpg" \
         "${check_id}_logo.png" "${check_id}_icon.png" "${check_id}_background.jpg"; do
         [ -s "$(dirname "$art_shortcuts")/grid/$artwork" ] || {
             echo "FAIL: Steam 库美化文件缺失：$artwork" >&2
@@ -599,7 +601,7 @@ for check_id in "$game_id"; do
     done
 done
 
-# 黑盒工坊背景素材是 PNG，写入时不能错存成 jpg。
+# 黑盒工坊背景素材现在是 JPG，写入时不能错存成 png。
 HEIHE_ART_SHORTCUTS="$TMP_ROOT/heihe-art/shortcuts.vdf"
 mkdir -p "$(dirname "$HEIHE_ART_SHORTCUTS")"
 : > "$HEIHE_ART_SHORTCUTS"
@@ -607,12 +609,12 @@ MODULE="$MODULE" HEIHE_ART_SHORTCUTS="$HEIHE_ART_SHORTCUTS" bash -c '
     source "$MODULE"
     install_launcher_steam_artwork heihe "$HEIHE_ART_SHORTCUTS" 12345
 '
-[ -s "$(dirname "$HEIHE_ART_SHORTCUTS")/grid/12345_background.png" ] || {
-    echo "FAIL: 黑盒工坊背景图未以 PNG 写入" >&2
+[ -s "$(dirname "$HEIHE_ART_SHORTCUTS")/grid/12345_background.jpg" ] || {
+    echo "FAIL: 黑盒工坊背景图未以 JPG 写入" >&2
     exit 1
 }
-[ ! -e "$(dirname "$HEIHE_ART_SHORTCUTS")/grid/12345_background.jpg" ] || {
-    echo "FAIL: 黑盒工坊背景图错误保存为 jpg" >&2
+[ ! -e "$(dirname "$HEIHE_ART_SHORTCUTS")/grid/12345_background.png" ] || {
+    echo "FAIL: 黑盒工坊背景图错误保存为 png" >&2
     exit 1
 }
 
