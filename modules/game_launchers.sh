@@ -615,6 +615,20 @@ find_launcher_in_prefix() {
     return 1
 }
 
+find_launcher_in_drive() {
+    local drive_c="$1"
+    local relative_path
+
+    while IFS= read -r relative_path; do
+        [ -n "$relative_path" ] || continue
+        if [ -f "$drive_c/$relative_path" ]; then
+            printf '%s\n' "$drive_c/$relative_path"
+            return 0
+        fi
+    done <<< "$LAUNCHER_TARGET_RELATIVES"
+    return 1
+}
+
 find_installed_launcher() {
     local steam_root="$1"
     local relative_path candidate_dir candidate
@@ -1265,9 +1279,11 @@ install_launcher() {
             }
             if [ "$target" = "battlenet" ]; then
                 visible_exe="$(launcher_drive_c battlenet)/Program Files (x86)/$LAUNCHER_PREINSTALLED_TARGET_RELATIVE"
-                if [ -f "$visible_exe" ] && [ ! -L "$visible_exe" ]; then
-                    launcher_exe="$visible_exe"
-                fi
+            elif [ "$target" = "heihe" ]; then
+                visible_exe="$(find_battle_platform_drive_c "$steam_root" 2>/dev/null || true)/Program Files (x86)/$LAUNCHER_PREINSTALLED_TARGET_RELATIVE"
+            fi
+            if [ -n "${visible_exe:-}" ] && [ -f "$visible_exe" ] && [ ! -L "$visible_exe" ]; then
+                launcher_exe="$visible_exe"
             fi
         else
             if [ "$target" = "heihe" ]; then
@@ -1316,6 +1332,10 @@ install_launcher() {
             echo "$LAUNCHER_NAME 虚拟目录迁移后未找到主程序。"
             return 1
         }
+        if visible_exe="$(find_launcher_in_drive "$(launcher_drive_c "$target")")" && \
+            [ -n "$visible_exe" ]; then
+            launcher_exe="$visible_exe"
+        fi
     else
         platform_drive_c="$(launcher_drive_c "$target")"
         mkdir -p "$platform_drive_c" || return 1
@@ -1334,6 +1354,11 @@ install_launcher() {
                 launcher_exe="$(run_launcher_installer "$target" "$steam_root" "$installer_file" "$prefix" "$runner")" || return 1
                 ;;
         esac
+        launcher_exe="$(find_launcher_in_drive "$platform_drive_c" || true)"
+        [ -n "$launcher_exe" ] || {
+            echo "$LAUNCHER_NAME 安装后未找到主程序。"
+            return 1
+        }
     fi
     case "$target" in
         epic) icon_path="$PROJECT_ROOT/assets/game-launchers/epic.png" ;;

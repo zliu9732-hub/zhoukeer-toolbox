@@ -926,7 +926,7 @@ UBI_HOME="$TMP_ROOT/ubi-home"
 UBI_BASE="$TMP_ROOT/launcher-root-ubi"
 UBI_DRIVE="$UBI_BASE/ubisoft/drive_c"
 UBI_PREFIX="$UBI_APP_DIR/game-launchers/ubisoft/compatdata"
-UBI_EXE="$UBI_PREFIX/pfx/drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe"
+UBI_EXE="$UBI_DRIVE/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe"
 UBI_PE="$UBI_STEAM/steamapps/common/Proton - Experimental/proton"
 mkdir -p "$(dirname "$UBI_SHORTCUTS")" \
     "$UBI_STEAM/config" "$UBI_HOME/Desktop" "$UBI_PREFIX/pfx"
@@ -961,7 +961,7 @@ import sys
 data = Path(sys.argv[1]).read_bytes()
 assert sys.argv[2].encode() in data, "Steam 条目没有指向真实育碧 EXE"
 assert b"launch-ubisoft.sh" not in data, "Steam 条目仍指向桌面包装器"
-assert sys.argv[3].encode() in data
+assert sys.argv[3].encode() not in data, "Steam 条目仍引用工具箱隐藏目录"
 PY
 grep -Fq '"proton_10"' "$UBI_STEAM/config/config.vdf" || {
     echo "FAIL: 育碧入库时没有绑定 Proton 10" >&2
