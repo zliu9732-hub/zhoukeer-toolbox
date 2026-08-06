@@ -20,6 +20,7 @@ grep -Fq '强制使用兼容性工具' "$MODULE" || {
 }
 TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf "$TMP_ROOT"' EXIT
+export ZHOUKEER_LAUNCHER_BASE="$TMP_ROOT/launcher-root"
 
 SHORTCUTS="$TMP_ROOT/shortcuts.vdf"
 INSTALLER="$TMP_ROOT/EpicGamesLauncherInstaller.msi"
@@ -262,6 +263,13 @@ grep -Fq "Exec=$NATIVE_APP_DIR/game-launchers/battlenet/launch-battlenet.sh" \
 }
 [ "$(grep -c '"proton_10"' "$NATIVE_STEAM/config/config.vdf")" -eq 2 ] || {
     echo "FAIL: 战网安装条目和正式条目没有分别绑定 Proton 10" >&2
+    exit 1
+}
+native_final_app_id="$(python3 "$HELPER" --shortcut-file "$NATIVE_SHORTCUTS" appid \
+    --name "战网启动器" --exe "$NATIVE_EXE")"
+[ "$(readlink "$NATIVE_STEAM/steamapps/compatdata/$native_final_app_id/pfx/drive_c")" = \
+    "$NATIVE_PREFIX/pfx/drive_c" ] || {
+    echo "FAIL: 战网正式条目没有把 Steam compatdata drive_c 链接到共享前缀" >&2
     exit 1
 }
 
@@ -877,6 +885,72 @@ grep -Fxq "export SteamGameId=\"$existing_game_id\"" \
 }
 grep -Fq '"proton_10"' "$EXISTING_STEAM/config/config.vdf" || {
     echo "FAIL: 已安装战网入库时没有绑定 Proton 10" >&2
+    exit 1
+}
+
+# 育碧等启动器必须像战网一样直接把真实 EXE 写入 Steam 库，并让 Steam
+# compatdata 的 drive_c 指向用户可见根目录，封面与黑盒工坊等插件才能找到文件。
+UBI_STEAM="$TMP_ROOT/ubi-steam"
+UBI_SHORTCUTS="$UBI_STEAM/userdata/123/config/shortcuts.vdf"
+UBI_APP_DIR="$TMP_ROOT/ubi-apps"
+UBI_HOME="$TMP_ROOT/ubi-home"
+UBI_DRIVE="$ZHOUKEER_LAUNCHER_BASE/ubisoft/drive_c"
+UBI_PREFIX="$UBI_APP_DIR/game-launchers/ubisoft/compatdata"
+UBI_EXE="$UBI_PREFIX/pfx/drive_c/Program Files (x86)/Ubisoft/Ubisoft Game Launcher/UbisoftConnect.exe"
+UBI_PE="$UBI_STEAM/steamapps/common/Proton - Experimental/proton"
+mkdir -p "$(dirname "$UBI_SHORTCUTS")" "$(dirname "$UBI_EXE")" \
+    "$UBI_STEAM/config" "$UBI_HOME/Desktop" "$UBI_PREFIX/pfx"
+: > "$UBI_EXE"
+ln -s "$UBI_DRIVE" "$UBI_PREFIX/pfx/drive_c"
+printf '%s\n' '"InstallConfigStore"' '{' '    "Software"' '    {' \
+    '        "Valve"' '        {' '            "Steam"' '            {' \
+    '            }' '        }' '    }' '}' > "$UBI_STEAM/config/config.vdf"
+mkdir -p "$(dirname "$UBI_PE")"
+printf '#!/bin/bash\nexit 0\n' > "$UBI_PE"
+chmod +x "$UBI_PE"
+ubi_output="$(
+    MODULE="$MODULE" ZHOUKEER_STEAM_ROOT="$UBI_STEAM" \
+        ZHOUKEER_SHORTCUT_FILE="$UBI_SHORTCUTS" \
+        ZHOUKEER_APP_DIR="$UBI_APP_DIR" HOME="$UBI_HOME" \
+        ZHOUKEER_SKIP_STEAM_RESTART=1 bash -c '
+            source "$MODULE"
+            detect_platform() { IS_STEAMOS=1; }
+            install_launcher ubisoft
+        '
+)"
+printf '%s\n' "$ubi_output" | grep -Fq '跳过安装包下载' || {
+    echo "FAIL: 已安装育碧没有跳过安装包下载" >&2
+    exit 1
+}
+python3 - "$UBI_SHORTCUTS" "$UBI_EXE" "$UBI_APP_DIR" <<'PY'
+from pathlib import Path
+import sys
+
+data = Path(sys.argv[1]).read_bytes()
+assert sys.argv[2].encode() in data, "Steam 条目没有指向真实育碧 EXE"
+assert b"launch-ubisoft.sh" not in data, "Steam 条目仍指向桌面包装器"
+assert sys.argv[3].encode() in data
+PY
+grep -Fq '"proton_10"' "$UBI_STEAM/config/config.vdf" || {
+    echo "FAIL: 育碧入库时没有绑定 Proton 10" >&2
+    exit 1
+}
+ubi_app_id="$(python3 "$HELPER" --shortcut-file "$UBI_SHORTCUTS" appid \
+    --name "育碧" --exe "$UBI_EXE")"
+[ "$(readlink "$UBI_STEAM/steamapps/compatdata/$ubi_app_id/pfx/drive_c")" = \
+    "$UBI_PREFIX/pfx/drive_c" ] || {
+    echo "FAIL: 育碧 Steam compatdata drive_c 没有链接到共享前缀" >&2
+    exit 1
+}
+grep -Fq "Exec=$UBI_APP_DIR/game-launchers/ubisoft/launch-ubisoft.sh" \
+    "$UBI_HOME/Desktop/育碧.desktop" || {
+    echo "FAIL: 育碧桌面入口没有使用独立启动包装器" >&2
+    exit 1
+}
+ubi_grid="$UBI_STEAM/userdata/123/config/grid"
+python3 "$HELPER" --shortcut-file "$UBI_SHORTCUTS" verify \
+    --name "育碧" --exe "$UBI_EXE" --icon "$ubi_grid/${ubi_app_id}_icon.png" | grep -Fxq verified || {
+    echo "FAIL: 育碧 Steam 条目没有使用 grid 图标" >&2
     exit 1
 }
 

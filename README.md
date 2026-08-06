@@ -2,7 +2,7 @@
 
 周克儿工具箱是面向 Steam Deck 及其他 SteamOS 掌机的 Bash 工具箱，提供一键新机初始化、常用软件、远程协助、插件商城、系统维护和安全更新入口。界面会按终端宽度收紧导航栏；体检、诊断、攻略和启动器功能尽量适配 SteamOS 掌机，涉及引导、只读分区等系统功能仍会先检查环境。
 
-当前正式版：V1.3.3；版本号按语义化版本递增，不跳版。
+当前正式版：V1.3.4；版本号按语义化版本递增，不跳版。
 
 - 双系统设置：只保留互通盘挂载与只读保护、TF 卡 exFAT 初始化、NTFS/exFAT 基础修复、只读健康检查和受保护的第三方引导项清理。rEFInd、Clover、EFI/BootOrder 修改和“一键切换 Windows”均不提供入口。
 
@@ -38,7 +38,7 @@
 - 一键修复模式：执行网络检测、Steam 下载缓存清理建议和 DNS 处理提示。
 - 一键体检：检查 SteamOS、剩余空间、网络与 Steam 域名解析、Decky、Flatpak 软件源和常用软件状态；不修改系统，并把报告保存到桌面。
 - 游戏启动诊断：检查 Steam 游戏库、可用空间、Steam 运行状态、兼容数据、自定义 Proton / GE 和日志目录；不删除游戏、兼容数据或缓存。
-- 游戏与掌机助手：一键下载 Epic、战网和育碧官方 Windows 安装包，自动创建带工具箱标识的桌面入口，并写入当前 Steam 账号的非 Steam 游戏库及完整封面。Epic 安装包先走 Gitee 分块镜像，失败后回退官方源与官方 CDN 固定版；小黄鸭和 FSR4 使用 Gitee 国内归档优先、GitHub Release 回退的双源下载，Gitee 失败后自动切换 GitHub。战网由 Steam 原生条目配合 Proton Experimental 完成安装并复用同一兼容环境；Epic 与育碧继续由工具箱自动准备兼容层，缺少时通过 Steam 补齐官方 Proton。
+- 游戏与掌机助手：一键下载 Epic、战网和育碧官方 Windows 安装包，自动创建带工具箱标识的桌面入口，并写入当前 Steam 账号的非 Steam 游戏库及完整封面。Windows 虚拟目录默认放在用户可见的 `~/游戏启动器`，Steam 条目直接绑定真实 EXE 与 Proton 10.0-4，并把 Steam compatdata 的 drive_c 链接到同一份目录，便于黑盒工坊等插件定位游戏文件。Epic 安装包先走 Gitee 分块镜像，失败后回退官方源与官方 CDN 固定版；小黄鸭和 FSR4 使用 Gitee 国内归档优先、GitHub Release 回退的双源下载，Gitee 失败后自动切换 GitHub。战网由 Steam 原生条目配合 Proton Experimental 完成安装并复用同一兼容环境；Epic 与育碧继续由工具箱自动准备兼容层，缺少时通过 Steam 补齐官方 Proton。
 - 实用指南：独立提供启动器、Proton、手柄、反作弊和性能空间的中文兼容攻略；可查看常用快捷键、外接设备状态、高风险操作说明，并将最近 80 条工具箱操作记录导出到桌面。
 - 更新日志：可在工具箱内用触屏查看当前版本的主要改动。
 - 自动更新工具箱：每次启动会快速检测版本，发现新版本后自动下载并校验更新；优先使用Gitee，失败后切换GitHub，断网或更新失败时继续启动现有版本。
@@ -220,6 +220,6 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 
 ## 当前版本与维护
 
-当前正式版为 V1.3.3，版本号按语义化版本递增，不跳版。后续维护继续围绕 SteamOS 实际使用更新下载链路、插件镜像、菜单与修复；rEFInd、Clover、EFI/BootOrder 和“一键切换 Windows”等高风险入口保持停用。
+当前正式版为 V1.3.4，版本号按语义化版本递增，不跳版。后续维护继续围绕 SteamOS 实际使用更新下载链路、插件镜像、菜单与修复；rEFInd、Clover、EFI/BootOrder 和“一键切换 Windows”等高风险入口保持停用。
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。

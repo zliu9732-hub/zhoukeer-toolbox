@@ -19,6 +19,8 @@ PROTON_EXPERIMENTAL_APP_ID="1493710"
 PROTON_INSTALL_TIMEOUT="${ZHOUKEER_PROTON_INSTALL_TIMEOUT:-900}"
 PROTON_INSTALL_INTERVAL="${ZHOUKEER_PROTON_INSTALL_INTERVAL:-5}"
 LAUNCHER_PREINSTALLED_BASE="${ZHOUKEER_LAUNCHER_PREINSTALLED_BASE:-https://gitee.com/easylife2025/battle/releases/download/v1.0.0}"
+# Windows 虚拟 C 盘放在用户可见目录，避免隐藏目录导致战网插件、黑盒工坊等找不到游戏文件。
+LAUNCHER_BASE="${ZHOUKEER_LAUNCHER_BASE:-$HOME/游戏启动器}"
 
 launcher_details() {
     case "$1" in
@@ -349,10 +351,67 @@ prepare_launcher_shared_prefix() {
     printf '%s\n' "$prefix_dir"
 }
 
+launcher_drive_c() {
+    local target="$1"
+
+    printf '%s/%s/drive_c\n' "$LAUNCHER_BASE" "$target"
+}
+
+link_steam_compatdata_drive() {
+    local steam_root="$1" app_id="$2" prefix_dir="$3"
+    local drive_c compat_pfx backup
+
+    case "$app_id" in
+        ''|*[!0-9]*) echo "Steam 兼容层编号无效。"; return 1 ;;
+    esac
+    drive_c="$prefix_dir/pfx/drive_c"
+    [ -d "$drive_c" ] || return 0
+    compat_pfx="$steam_root/steamapps/compatdata/$app_id/pfx"
+    mkdir -p "$compat_pfx" || return 1
+    if [ -L "$compat_pfx/drive_c" ]; then
+        [ "$(readlink "$compat_pfx/drive_c")" = "$drive_c" ] || {
+            echo "Steam 兼容层已有其他 drive_c 链接，已停止覆盖。"
+            return 1
+        }
+        return 0
+    fi
+    if [ -e "$compat_pfx/drive_c" ]; then
+        backup="$compat_pfx/.zhoukeer-drive-c-backup"
+        [ ! -e "$backup" ] || {
+            echo "Steam 兼容层已有旧目录备份，请先检查后重试。"
+            return 1
+        }
+        mv -- "$compat_pfx/drive_c" "$backup" || return 1
+    fi
+    ln -s -- "$drive_c" "$compat_pfx/drive_c" || return 1
+}
+
+set_launcher_grid_icon() {
+    local shortcut_file="$1" name="$2" exe="$3" grid_dir="$4"
+    shift 4
+    local candidate icon=""
+
+    for candidate in "$@"; do
+        if [ -f "$grid_dir/${candidate}_icon.png" ]; then
+            icon="$grid_dir/${candidate}_icon.png"
+            break
+        fi
+    done
+    [ -n "$icon" ] || return 0
+    python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" set-icon \
+        --name "$name" --exe "$exe" --icon "$icon" >/dev/null || return 1
+    printf '%s\n' "$icon"
+}
+
 find_battle_platform_drive_c() {
     local steam_root="$1"
     local battle_drive_c candidate_dir
 
+    battle_drive_c="$(launcher_drive_c battlenet)"
+    if [ -d "$battle_drive_c" ] && [ ! -L "$battle_drive_c" ]; then
+        printf '%s\n' "$battle_drive_c"
+        return 0
+    fi
     battle_drive_c="$APP_DIR/game-launchers/battlenet/drive_c"
     if [ -d "$battle_drive_c" ] && [ ! -L "$battle_drive_c" ]; then
         printf '%s\n' "$battle_drive_c"
@@ -1070,7 +1129,7 @@ prepare_battlenet_steam_installer() {
 
 finish_launcher_steam_entry() {
     local target="$1" steam_root="$2" shortcut_file="$3" launcher_exe="$4" prefix_dir="$5" proton_runner="$6"
-    local app_id artwork_alt_app_id game_id icon_path wrapper
+    local app_id artwork_alt_app_id game_id icon_path wrapper grid_dir grid_icon
 
     launcher_details "$target" || return 1
     case "$target" in
@@ -1096,7 +1155,17 @@ finish_launcher_steam_entry() {
         --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
     game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
+    link_steam_compatdata_drive "$steam_root" "$app_id" "$prefix_dir" || return 1
     install_launcher_steam_artwork "$target" "$shortcut_file" "$app_id" "$artwork_alt_app_id" "$game_id" || return 1
+    grid_dir="$(dirname "$shortcut_file")/grid"
+    grid_icon="$(set_launcher_grid_icon "$shortcut_file" "$LAUNCHER_NAME" "$launcher_exe" \
+        "$grid_dir" "$app_id" "$artwork_alt_app_id" "$game_id" || true)"
+    if [ -n "$grid_icon" ]; then
+        icon_path="$grid_icon"
+        python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" verify \
+            --name "$LAUNCHER_NAME" --exe "$launcher_exe" --icon "$icon_path" \
+            >/dev/null || return 1
+    fi
     # 部分 Steam 客户端会在桌面 steam://rungameid 链接启动时丢失非 Steam
     # 游戏配置，改用与 Steam 条目同一前缀的包装器，避免“游戏配置文件不可用”。
     wrapper="$(create_launcher_wrapper "$target" "$steam_root" "$prefix_dir" "$proton_runner" \
@@ -1121,7 +1190,7 @@ finish_battlenet_steam_entry() {
 }
 
 install_launcher() {
-    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file app_id artwork_alt_app_id game_id icon_path workdir platform_drive_c
+    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file app_id artwork_alt_app_id game_id icon_path workdir platform_drive_c grid_dir grid_icon
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
         echo "游戏启动器安装仅支持真实 SteamOS 环境。"
@@ -1151,7 +1220,8 @@ install_launcher() {
                     return 1
                 fi
             else
-                platform_drive_c="$app_dir/drive_c"
+                platform_drive_c="$(launcher_drive_c battlenet)"
+                mkdir -p "$platform_drive_c" || return 1
             fi
             workdir="$app_dir/.download"
             if [ "${LAUNCHER_PREINSTALLED:-0}" = "1" ] && \
@@ -1180,6 +1250,9 @@ install_launcher() {
             *) prefix="${launcher_exe%/pfx/drive_c/*}" ;;
         esac
     else
+        platform_drive_c="$(launcher_drive_c "$target")"
+        mkdir -p "$platform_drive_c" || return 1
+        prefix="$(prepare_launcher_shared_prefix "$target" "$platform_drive_c")" || return 1
         installer_file="$app_dir/$LAUNCHER_FILE_NAME"
         download_launcher_installer "$installer_file" || return 1
         case "$target" in
@@ -1195,12 +1268,6 @@ install_launcher() {
                 ;;
         esac
     fi
-    wrapper="$(create_launcher_wrapper "$target" "$steam_root" "$prefix" "$runner" "$launcher_exe" "$app_dir")" || return 1
-    create_launcher_desktop_shortcut "$target" "$wrapper" || return 1
-    shortcut_file="$(find_shortcut_file "$steam_root")" || return 1
-    stop_steam_for_vdf || return 1
-    python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" add \
-        --name "$LAUNCHER_NAME" --exe "$wrapper" --start-dir "$app_dir" >/dev/null || return 1
     case "$target" in
         epic) icon_path="$PROJECT_ROOT/assets/game-launchers/epic.png" ;;
         battlenet) icon_path="$PROJECT_ROOT/assets/game-launchers/battlenet.png" ;;
@@ -1208,20 +1275,39 @@ install_launcher() {
         heihe) icon_path="$PROJECT_ROOT/assets/game-launchers/heihe.png" ;;
         *) return 1 ;;
     esac
+    shortcut_file="$(find_shortcut_file "$steam_root")" || return 1
+    app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid \
+        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
+    artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
+        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
+    game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
+        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
+    wrapper="$(create_launcher_wrapper "$target" "$steam_root" "$prefix" "$runner" "$launcher_exe" \
+        "$app_dir" "$app_id" "$game_id")" || return 1
+    create_launcher_desktop_shortcut "$target" "$wrapper" || return 1
+    stop_steam_for_vdf || return 1
+    python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" add \
+        --name "$LAUNCHER_NAME" --exe "$launcher_exe" --start-dir "$(dirname "$launcher_exe")" \
+        >/dev/null || return 1
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" set-icon \
-        --name "$LAUNCHER_NAME" --exe "$wrapper" --icon "$icon_path" >/dev/null || return 1
+        --name "$LAUNCHER_NAME" --exe "$launcher_exe" --icon "$icon_path" >/dev/null || return 1
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" verify \
-        --name "$LAUNCHER_NAME" --exe "$wrapper" --icon "$icon_path" >/dev/null || {
+        --name "$LAUNCHER_NAME" --exe "$launcher_exe" --icon "$icon_path" >/dev/null || {
         echo "$LAUNCHER_NAME 的 Steam 条目写入后校验失败，桌面图标仍可使用。"
         return 1
     }
-    app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid \
-        --name "$LAUNCHER_NAME" --exe "$wrapper")" || return 1
-    artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
-        --name "$LAUNCHER_NAME" --exe "$wrapper")" || return 1
-    game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
-        --name "$LAUNCHER_NAME" --exe "$wrapper")" || return 1
+    set_steam_proton_10 "$steam_root" "$app_id" || return 1
+    link_steam_compatdata_drive "$steam_root" "$app_id" "$prefix" || return 1
     install_launcher_steam_artwork "$target" "$shortcut_file" "$app_id" "$artwork_alt_app_id" "$game_id" || return 1
+    grid_dir="$(dirname "$shortcut_file")/grid"
+    grid_icon="$(set_launcher_grid_icon "$shortcut_file" "$LAUNCHER_NAME" "$launcher_exe" \
+        "$grid_dir" "$app_id" "$artwork_alt_app_id" "$game_id" || true)"
+    if [ -n "$grid_icon" ]; then
+        icon_path="$grid_icon"
+        python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" verify \
+            --name "$LAUNCHER_NAME" --exe "$launcher_exe" --icon "$icon_path" \
+            >/dev/null || return 1
+    fi
     echo "Steam 已停止，Steam 条目与封面已写入文件。"
     echo "请手动启动 Steam（桌面模式打开 Steam，或重启进入游戏模式）后查看。"
     echo "$LAUNCHER_NAME 已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
