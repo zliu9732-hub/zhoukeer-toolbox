@@ -1,6 +1,6 @@
 ## V1.3.9 启动器封面与兼容层同时写入新旧两种 AppID — 2026-08-06
 
-- 参考封面/兼容层方案：除常规 Steam AppID 外，同时写入无引号路径版本的备用 AppID，兼容 Steam 不同版本对非 Steam 游戏 AppID 的计算差异。
+- 除常规 Steam AppID 外，同时写入无引号路径版本的备用 AppID，兼容 Steam 不同版本对非 Steam 游戏 AppID 的计算差异。
 - 两个 AppID 都会写入 Proton 10.0-4 映射、compatdata drive_c 链接，并在 Steam 启动后尝试刷新封面。
 - 解决部分设备“封面和兼容层写入成功但 Steam 库没生效”的问题。
 
