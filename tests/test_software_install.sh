@@ -340,11 +340,16 @@ grep -Fq 'Exec=flatpak run io.github.peazip.PeaZip' "$PEAZIP_SHORTCUT"
 grep -Fq 'install --user --noninteractive -y flathub-cn io.github.peazip.PeaZip' "$STATE_DIR/commands"
 [ -f "$STATE_DIR/installed.io.github.peazip.PeaZip" ]
 
-# WiliWili 复用常用软件的用户级 Flatpak 国内缓存、安装验证和桌面入口。
+# WiliWili 复用常用软件的用户级 Flatpak 国内缓存，并加入 Steam 库。
+mkdir -p "$HOME_DIR/.local/share/Steam/steamapps" \
+    "$HOME_DIR/.local/share/Steam/userdata/123/config"
+: > "$HOME_DIR/.local/share/Steam/userdata/123/config/shortcuts.vdf"
 rm -f "$STATE_DIR/installed.cn.xfangfang.wiliwili"
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \
 FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_APP_DIR="$STATE_DIR/apps" \
+ZHOUKEER_SKIP_STEAM_RESTART=1 \
 ZHOUKEER_AUTO_CONFIRM=1 \
 bash "$PROJECT_ROOT/modules/software.sh" willwill >/dev/null
 WILIWILI_SHORTCUT="$HOME_DIR/Desktop/WiliWili.desktop"
@@ -352,6 +357,20 @@ WILIWILI_SHORTCUT="$HOME_DIR/Desktop/WiliWili.desktop"
 grep -Fq 'Exec=flatpak run cn.xfangfang.wiliwili' "$WILIWILI_SHORTCUT"
 grep -Fq 'install --user --noninteractive -y flathub-cn cn.xfangfang.wiliwili' "$STATE_DIR/commands"
 [ -f "$STATE_DIR/installed.cn.xfangfang.wiliwili" ]
+WILIWILI_WRAPPER="$STATE_DIR/apps/game-launchers/willwill/launch-willwill.sh"
+[ -x "$WILIWILI_WRAPPER" ] || {
+    echo "FAIL: WiliWili 启动包装器未创建" >&2
+    exit 1
+}
+grep -Fq 'exec flatpak run cn.xfangfang.wiliwili' "$WILIWILI_WRAPPER"
+python3 - "$HOME_DIR/.local/share/Steam/userdata/123/config/shortcuts.vdf" <<'PY'
+from pathlib import Path
+import sys
+
+data = Path(sys.argv[1]).read_bytes()
+assert "WiliWili".encode() in data
+assert b"launch-willwill.sh" in data
+PY
 
 # Xbox 云游戏通过 Flathub 安装 Greenlight，并创建名称明确的桌面入口。
 rm -f "$STATE_DIR/installed.io.github.unknownskl.greenlight"
@@ -383,6 +402,77 @@ data = Path(sys.argv[1]).read_bytes()
 assert "Xbox 云游戏".encode() in data
 assert b"launch-xbox-cloud.sh" in data
 PY
+
+# Heroic 等游戏/串流应用复用通用 Steam 入库，安装后创建包装器并写入 Steam 库。
+rm -f "$STATE_DIR/installed.com.heroicgameslauncher.hgl"
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_APP_DIR="$STATE_DIR/apps" \
+ZHOUKEER_SKIP_STEAM_RESTART=1 \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" heroic >/dev/null
+HEROIC_SHORTCUT="$HOME_DIR/Desktop/Heroic.desktop"
+[ -x "$HEROIC_SHORTCUT" ]
+grep -Fq 'Exec=flatpak run com.heroicgameslauncher.hgl' "$HEROIC_SHORTCUT"
+grep -Fq 'install --user --noninteractive -y flathub-cn com.heroicgameslauncher.hgl' "$STATE_DIR/commands"
+[ -f "$STATE_DIR/installed.com.heroicgameslauncher.hgl" ]
+HEROIC_WRAPPER="$STATE_DIR/apps/game-launchers/heroic/launch-heroic.sh"
+[ -x "$HEROIC_WRAPPER" ] || {
+    echo "FAIL: Heroic 启动包装器未创建" >&2
+    exit 1
+}
+grep -Fq 'exec flatpak run com.heroicgameslauncher.hgl' "$HEROIC_WRAPPER"
+python3 - "$HOME_DIR/.local/share/Steam/userdata/123/config/shortcuts.vdf" <<'PY'
+from pathlib import Path
+import sys
+
+data = Path(sys.argv[1]).read_bytes()
+assert "Heroic 游戏启动器".encode() in data
+assert b"launch-heroic.sh" in data
+assert "Xbox 云游戏".encode() in data
+PY
+
+# 新音乐应用走同一套 Flatpak 国内缓存安装流程。
+rm -f "$STATE_DIR/installed.com.qq.QQmusic"
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" qqmusic >/dev/null
+QQMUSIC_SHORTCUT="$HOME_DIR/Desktop/QQ音乐.desktop"
+[ -x "$QQMUSIC_SHORTCUT" ]
+grep -Fq 'Exec=flatpak run com.qq.QQmusic' "$QQMUSIC_SHORTCUT"
+grep -Fq 'install --user --noninteractive -y flathub-cn com.qq.QQmusic' "$STATE_DIR/commands"
+[ -f "$STATE_DIR/installed.com.qq.QQmusic" ]
+
+# 通用卸载会移除 Steam 条目、包装器与桌面图标，不影响其他 Steam 条目。
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_APP_DIR="$STATE_DIR/apps" \
+ZHOUKEER_SKIP_STEAM_RESTART=1 \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" uninstall heroic >/dev/null
+[ ! -e "$STATE_DIR/installed.com.heroicgameslauncher.hgl" ]
+[ ! -e "$HEROIC_WRAPPER" ]
+[ ! -e "$HEROIC_SHORTCUT" ]
+python3 - "$HOME_DIR/.local/share/Steam/userdata/123/config/shortcuts.vdf" <<'PY'
+from pathlib import Path
+import sys
+
+data = Path(sys.argv[1]).read_bytes()
+assert "Heroic 游戏启动器".encode() not in data
+assert "Xbox 云游戏".encode() in data
+PY
+
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" uninstall qqmusic >/dev/null
+[ ! -e "$STATE_DIR/installed.com.qq.QQmusic" ]
+[ ! -e "$QQMUSIC_SHORTCUT" ]
 
 # Flatpak 安装彻底失败时，必须提示先初始化国内源，而不是只报任务失败。
 rm -f "$STATE_DIR/installed.com.baidu.NetDisk"

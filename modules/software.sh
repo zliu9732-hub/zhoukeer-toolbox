@@ -43,6 +43,7 @@ RUSTDESK_MIN_BYTES="${ZHOUKEER_RUSTDESK_MIN_BYTES:-10485760}"
 software_details() {
     SOFTWARE_INSTALL_MODE="flatpak"
     SOFTWARE_EXTRA_APP_IDS=""
+    SOFTWARE_STEAM_ENTRY=0
     case "$1" in
         wechat)
             SOFTWARE_NAME="微信"
@@ -118,6 +119,7 @@ software_details() {
             SOFTWARE_DESKTOP_NAME="WiliWili"
             SOFTWARE_APP_ID="cn.xfangfang.wiliwili"
             SOFTWARE_CATEGORIES="AudioVideo;Player;"
+            SOFTWARE_STEAM_ENTRY=1
             ;;
         fcitx5)
             SOFTWARE_NAME="Fcitx5 中文输入法"
@@ -131,12 +133,112 @@ software_details() {
             SOFTWARE_DESKTOP_NAME="Xbox 云游戏"
             SOFTWARE_APP_ID="io.github.unknownskl.greenlight"
             SOFTWARE_CATEGORIES="Game;"
+            SOFTWARE_STEAM_ENTRY=1
+            ;;
+        qqmusic)
+            SOFTWARE_NAME="QQ音乐"
+            SOFTWARE_DESKTOP_NAME="QQ音乐"
+            SOFTWARE_APP_ID="com.qq.QQmusic"
+            SOFTWARE_CATEGORIES="AudioVideo;Player;"
+            ;;
+        netease-music)
+            SOFTWARE_NAME="网易云音乐"
+            SOFTWARE_DESKTOP_NAME="网易云音乐"
+            SOFTWARE_APP_ID="com.github.gmg137.netease-cloud-music-gtk"
+            SOFTWARE_CATEGORIES="AudioVideo;Player;"
+            ;;
+        yesplaymusic)
+            SOFTWARE_NAME="YesPlayMusic"
+            SOFTWARE_DESKTOP_NAME="YesPlayMusic"
+            SOFTWARE_APP_ID="io.github.qier222.YesPlayMusic"
+            SOFTWARE_CATEGORIES="AudioVideo;Player;"
+            ;;
+        qbittorrent)
+            SOFTWARE_NAME="qBittorrent"
+            SOFTWARE_DESKTOP_NAME="qBittorrent"
+            SOFTWARE_APP_ID="org.qbittorrent.qBittorrent"
+            SOFTWARE_CATEGORIES="Network;FileTransfer;"
+            ;;
+        motrix)
+            SOFTWARE_NAME="Motrix 下载器"
+            SOFTWARE_DESKTOP_NAME="Motrix"
+            SOFTWARE_APP_ID="net.agalwood.Motrix"
+            SOFTWARE_CATEGORIES="Network;FileTransfer;"
+            ;;
+        freedownloadmanager)
+            SOFTWARE_NAME="Free Download Manager"
+            SOFTWARE_DESKTOP_NAME="Free Download Manager"
+            SOFTWARE_APP_ID="org.freedownloadmanager.Manager"
+            SOFTWARE_CATEGORIES="Network;FileTransfer;"
+            ;;
+        media-downloader)
+            SOFTWARE_NAME="Media Downloader"
+            SOFTWARE_DESKTOP_NAME="Media Downloader"
+            SOFTWARE_APP_ID="io.github.mhogomchungu.media-downloader"
+            SOFTWARE_CATEGORIES="Network;FileTransfer;"
+            ;;
+        flameshot)
+            SOFTWARE_NAME="Flameshot 截图"
+            SOFTWARE_DESKTOP_NAME="Flameshot"
+            SOFTWARE_APP_ID="org.flameshot.Flameshot"
+            SOFTWARE_CATEGORIES="Graphics;"
+            ;;
+        onlyoffice)
+            SOFTWARE_NAME="OnlyOffice 办公套件"
+            SOFTWARE_DESKTOP_NAME="OnlyOffice"
+            SOFTWARE_APP_ID="org.onlyoffice.desktopeditors"
+            SOFTWARE_CATEGORIES="Office;"
+            ;;
+        joplin)
+            SOFTWARE_NAME="Joplin 笔记"
+            SOFTWARE_DESKTOP_NAME="Joplin"
+            SOFTWARE_APP_ID="net.cozic.joplin_desktop"
+            SOFTWARE_CATEGORIES="Utility;"
+            ;;
+        heroic)
+            SOFTWARE_NAME="Heroic 游戏启动器"
+            SOFTWARE_DESKTOP_NAME="Heroic"
+            SOFTWARE_APP_ID="com.heroicgameslauncher.hgl"
+            SOFTWARE_CATEGORIES="Game;"
+            SOFTWARE_STEAM_ENTRY=1
+            ;;
+        lutris)
+            SOFTWARE_NAME="Lutris"
+            SOFTWARE_DESKTOP_NAME="Lutris"
+            SOFTWARE_APP_ID="net.lutris.Lutris"
+            SOFTWARE_CATEGORIES="Game;"
+            SOFTWARE_STEAM_ENTRY=1
+            ;;
+        chiaki4deck)
+            SOFTWARE_NAME="Chiaki4Deck（PS5串流）"
+            SOFTWARE_DESKTOP_NAME="Chiaki4Deck"
+            SOFTWARE_APP_ID="io.github.streetpea.Chiaki4deck"
+            SOFTWARE_CATEGORIES="Game;"
+            SOFTWARE_STEAM_ENTRY=1
+            ;;
+        parsec)
+            SOFTWARE_NAME="Parsec"
+            SOFTWARE_DESKTOP_NAME="Parsec"
+            SOFTWARE_APP_ID="com.parsecgaming.parsec"
+            SOFTWARE_CATEGORIES="Game;"
+            SOFTWARE_STEAM_ENTRY=1
             ;;
         *)
             echo "未知软件: $1"
             return 1
             ;;
     esac
+}
+
+SOFTWARE_TARGETS=(
+    wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs
+    localsend peazip willwill fcitx5 xbox-cloud
+    qqmusic netease-music yesplaymusic qbittorrent motrix freedownloadmanager
+    media-downloader flameshot onlyoffice joplin heroic lutris chiaki4deck parsec
+)
+
+software_print_domestic_source_hint() {
+    echo "提示：请先在工具箱【初始化国内源并检测系统组件】中初始化国内源后重试。"
 }
 
 confirm_software_install() {
@@ -924,29 +1026,34 @@ software_start_steam() {
     "$steam_bin" >/dev/null 2>&1 &
 }
 
-find_xbox_greenlight_icon() {
+find_software_flatpak_icon() {
+    local stem
+
+    stem="${SOFTWARE_APP_ID##*.}"
     find "$HOME/.local/share/flatpak/exports/share/icons" \
         /var/lib/flatpak/exports/share/icons \
-        -type f \( -iname '*greenlight*.png' -o -iname '*greenlight*.svg' \) \
-        -print 2>/dev/null | head -n 1
+        -type f \( \
+            -name "$SOFTWARE_APP_ID.png" -o -name "$SOFTWARE_APP_ID.svg" \
+            -o -name "*${stem}.png" -o -name "*${stem}.svg" \
+        \) -print 2>/dev/null | head -n 1
 }
 
-install_xbox_steam_entry() {
-    local steam_root shortcut_file wrapper icon
+install_software_steam_entry() {
+    local target="$1" steam_root shortcut_file wrapper icon
 
     steam_root="$(find_software_steam_root)" || {
-        echo "未找到 Steam 库，请先登录 Steam 后再添加 Xbox 云游戏。"
+        echo "未找到 Steam 库，请先登录 Steam 后再添加 $SOFTWARE_NAME。"
         return 0
     }
     shortcut_file="$(find_software_steam_shortcut_file "$steam_root")" || {
-        echo "未找到 Steam 快捷方式文件，请先登录 Steam 后再添加 Xbox 云游戏。"
+        echo "未找到 Steam 快捷方式文件，请先登录 Steam 后再添加 $SOFTWARE_NAME。"
         return 0
     }
-    wrapper="$APP_DIR/game-launchers/xbox-cloud/launch-xbox-cloud.sh"
+    wrapper="$APP_DIR/game-launchers/$target/launch-$target.sh"
     mkdir -p "$(dirname "$wrapper")" || return 1
-    cat > "$wrapper" <<'EOF'
+    cat > "$wrapper" <<EOF
 #!/bin/bash
-exec flatpak run io.github.unknownskl.greenlight
+exec flatpak run $SOFTWARE_APP_ID
 EOF
     chmod +x "$wrapper" || return 1
     software_stop_steam_for_vdf || {
@@ -955,39 +1062,45 @@ EOF
     }
     python3 "$PROJECT_ROOT/scripts/steam_shortcut.py" \
         --shortcut-file "$shortcut_file" add \
-        --name "Xbox 云游戏" --exe "$wrapper" \
+        --name "$SOFTWARE_NAME" --exe "$wrapper" \
         --start-dir "$(dirname "$wrapper")" >/dev/null || return 1
-    icon="$(find_xbox_greenlight_icon)"
+    icon="$(find_software_flatpak_icon)"
     if [ -n "$icon" ]; then
         python3 "$PROJECT_ROOT/scripts/steam_shortcut.py" \
             --shortcut-file "$shortcut_file" set-icon \
-            --name "Xbox 云游戏" --exe "$wrapper" --icon "$icon" >/dev/null || true
+            --name "$SOFTWARE_NAME" --exe "$wrapper" --icon "$icon" >/dev/null || true
     fi
-    echo "Xbox 云游戏已添加到 Steam 库。"
-    log "Xbox 云游戏已添加到 Steam 库"
+    echo "$SOFTWARE_NAME 已添加到 Steam 库。"
+    log "$SOFTWARE_NAME 已添加到 Steam 库"
     software_start_steam
 }
 
-uninstall_xbox_steam_entry() {
-    local steam_root shortcut_file wrapper
+uninstall_software_steam_entry() {
+    local target="$1" steam_root shortcut_file wrapper
 
-    wrapper="$APP_DIR/game-launchers/xbox-cloud/launch-xbox-cloud.sh"
+    wrapper="$APP_DIR/game-launchers/$target/launch-$target.sh"
     steam_root="$(find_software_steam_root 2>/dev/null || true)"
     if [ -n "$steam_root" ]; then
         shortcut_file="$(find_software_steam_shortcut_file "$steam_root" 2>/dev/null || true)"
         if [ -n "$shortcut_file" ]; then
             python3 "$PROJECT_ROOT/scripts/steam_shortcut.py" \
                 --shortcut-file "$shortcut_file" remove \
-                --exe-basename "launch-xbox-cloud.sh" >/dev/null || true
+                --exe-basename "launch-$target.sh" >/dev/null || true
         fi
     fi
     rm -f -- "$wrapper"
+    rmdir "$APP_DIR/game-launchers/$target" 2>/dev/null || true
 }
 
-uninstall_xbox_cloud_software() {
-    uninstall_xbox_steam_entry
-    uninstall_flatpak_software "io.github.unknownskl.greenlight" "Xbox 云游戏" \
-        "Xbox 云游戏.desktop" "io.github.unknownskl.greenlight.desktop"
+uninstall_steam_entry_flatpak_software() {
+    local target="$1"
+
+    software_details "$target" || return 1
+    if [ "$SOFTWARE_STEAM_ENTRY" = "1" ]; then
+        uninstall_software_steam_entry "$target"
+    fi
+    uninstall_flatpak_software "$SOFTWARE_APP_ID" "$SOFTWARE_NAME" \
+        "$SOFTWARE_DESKTOP_NAME.desktop" "$SOFTWARE_APP_ID.desktop"
 }
 
 install_software() {
@@ -1002,8 +1115,8 @@ install_software() {
     if software_is_installed; then
         echo "[已安装] $SOFTWARE_NAME"
         create_software_shortcut
-        if [ "$target" = "xbox-cloud" ]; then
-            install_xbox_steam_entry
+        if [ "$SOFTWARE_STEAM_ENTRY" = "1" ]; then
+            install_software_steam_entry "$target"
         fi
         return $?
     fi
@@ -1032,15 +1145,20 @@ install_software() {
         return $?
     fi
 
-    require_command flatpak || return 1
+    require_command flatpak || {
+        software_print_domestic_source_hint
+        return 1
+    }
     require_command timeout || {
         echo "系统缺少限时运行组件，为避免安装无限卡住，已停止。"
+        software_print_domestic_source_hint
         return 1
     }
     if [ "$SOFTWARE_INSTALL_MODE" = "flatpak_official" ]; then
         install_official_firefox_flatpak || return 1
         if ! software_is_installed; then
             echo "$SOFTWARE_NAME 安装命令结束，但未检测到已安装应用。"
+            software_print_domestic_source_hint
             return 1
         fi
         echo "$SOFTWARE_NAME 安装完成。"
@@ -1083,6 +1201,7 @@ install_software() {
 
     if ! software_is_installed; then
         echo "$SOFTWARE_NAME 安装命令结束，但未检测到已安装应用。"
+        software_print_domestic_source_hint
         log "$SOFTWARE_NAME Flatpak安装结果验证失败"
         return 1
     fi
@@ -1090,8 +1209,8 @@ install_software() {
     echo "$SOFTWARE_NAME 安装完成。"
     log "$SOFTWARE_NAME Flatpak安装完成"
     create_software_shortcut
-    if [ "$target" = "xbox-cloud" ]; then
-        install_xbox_steam_entry
+    if [ "$SOFTWARE_STEAM_ENTRY" = "1" ]; then
+        install_software_steam_entry "$target"
     fi
 }
 
@@ -1100,7 +1219,7 @@ show_software_status() {
     local installed_count=0
 
     echo "常用软件与远程协助安装状态："
-    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend peazip willwill fcitx5 xbox-cloud; do
+    for target in "${SOFTWARE_TARGETS[@]}"; do
         software_details "$target" || return 1
         if software_is_installed; then
             echo "✓ $SOFTWARE_NAME：已安装"
@@ -1109,14 +1228,14 @@ show_software_status() {
             echo "- $SOFTWARE_NAME：未安装"
         fi
     done
-    echo "已安装：$installed_count / 14"
+    echo "已安装：$installed_count / ${#SOFTWARE_TARGETS[@]}"
 }
 
 repair_software_shortcuts() {
     local target
     local repaired=0
 
-    for target in wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs localsend peazip willwill fcitx5 xbox-cloud; do
+    for target in "${SOFTWARE_TARGETS[@]}"; do
         software_details "$target" || return 1
         if software_is_installed; then
             create_software_shortcut || return 1
@@ -1397,16 +1516,16 @@ uninstall_software() {
         obs) uninstall_flatpak_software "com.obsproject.Studio" "OBS Studio" "com.obsproject.Studio.desktop" ;;
         localsend) uninstall_flatpak_software "org.localsend.localsend_app" "LocalSend" "org.localsend.localsend_app.desktop" ;;
         peazip) uninstall_flatpak_software "io.github.peazip.PeaZip" "PeaZip 压缩工具" "PeaZip.desktop" "io.github.peazip.PeaZip.desktop" ;;
-        willwill) uninstall_flatpak_software "cn.xfangfang.wiliwili" "WiliWili" "WiliWili.desktop" "cn.xfangfang.wiliwili.desktop" ;;
+        willwill) uninstall_steam_entry_flatpak_software "willwill" ;;
         fcitx5) uninstall_flatpak_software "org.fcitx.Fcitx5" "Fcitx5 中文输入法" "Fcitx5.desktop" "org.fcitx.Fcitx5.desktop" ;;
-        xbox-cloud) uninstall_xbox_cloud_software ;;
+        xbox-cloud|qqmusic|netease-music|yesplaymusic|qbittorrent|motrix|freedownloadmanager|media-downloader|flameshot|onlyoffice|joplin|heroic|lutris|chiaki4deck|parsec) uninstall_steam_entry_flatpak_software "$1" ;;
         *) echo "未知卸载目标：$1"; return 1 ;;
     esac
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
-        wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5|xbox-cloud) install_software "$1" ;;
+        wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5|xbox-cloud|qqmusic|netease-music|yesplaymusic|qbittorrent|motrix|freedownloadmanager|media-downloader|flameshot|onlyoffice|joplin|heroic|lutris|chiaki4deck|parsec) install_software "$1" ;;
         firefox-pacman|firefox-sjtu|system-setup)
             echo "该旧版系统级功能已停用，请使用当前 Flatpak 菜单功能。"
             exit 1
@@ -1421,6 +1540,6 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
             ;;
         status) require_command od && show_software_status ;;
         repair-shortcuts) require_command od && repair_software_shortcuts ;;
-        *) echo "用法: $0 {wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5|xbox-cloud|chrome|edge|protontricks|bottles|status|repair-shortcuts}"; exit 1 ;;
+        *) echo "用法: $0 {wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5|xbox-cloud|qqmusic|netease-music|yesplaymusic|qbittorrent|motrix|freedownloadmanager|media-downloader|flameshot|onlyoffice|joplin|heroic|lutris|chiaki4deck|parsec|chrome|edge|protontricks|bottles|status|repair-shortcuts}"; exit 1 ;;
     esac
 fi

@@ -331,11 +331,91 @@ install_emulator() {
     echo "$EMULATOR_NAME 已安装，桌面图标和 Steam 库条目已创建。"
 }
 
+confirm_emulator_uninstall() {
+    local name="$1" answer
+
+    echo "将卸载：$name"
+    echo "模拟器游戏存档和配置会保留，只删除程序本体与工具箱创建的入口。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        return 0
+    fi
+    read -r -p "确认卸载请输入 UNINSTALL：" answer
+    [ "$answer" = "UNINSTALL" ]
+}
+
+emulator_steam_exe_basename() {
+    case "$1" in
+        yuzu) printf '%s\n' "Yuzu.AppImage" ;;
+        cemu) printf '%s\n' "Cemu.AppImage" ;;
+        duckstation) printf '%s\n' "DuckStation.AppImage" ;;
+        pcsx2) printf '%s\n' "PCSX2.AppImage" ;;
+        rpcs3) printf '%s\n' "RPCS3.AppImage" ;;
+        shadps4) printf '%s\n' "ShadPS4.AppImage" ;;
+        azahar) printf '%s\n' "Azahar.AppImage" ;;
+        ppsspp|mgba) printf '%s\n' "flatpak" ;;
+    esac
+}
+
+uninstall_emulator() {
+    local target="$1" steam_root shortcut_file
+    local launch_options=""
+
+    require_steamos || return 1
+    emulator_details "$target" || return 1
+    confirm_emulator_uninstall "$EMULATOR_NAME" || { echo "已取消卸载。"; return 0; }
+
+    steam_root="$(find_steam_root 2>/dev/null || true)"
+    if [ -n "$steam_root" ]; then
+        shortcut_file="$(find_shortcut_file "$steam_root" 2>/dev/null || true)"
+        if [ -n "$shortcut_file" ]; then
+            stop_steam_for_vdf || true
+            if [ "$target" = "ppsspp" ] || [ "$target" = "mgba" ]; then
+                launch_options="run $EMULATOR_FLATPAK_ID"
+                python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" remove \
+                    --exe-basename "$(emulator_steam_exe_basename "$target")" \
+                    --launch-options "$launch_options" >/dev/null || true
+            else
+                python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" remove \
+                    --exe-basename "$(emulator_steam_exe_basename "$target")" >/dev/null || true
+            fi
+            start_steam || true
+        fi
+    fi
+
+    rm -f -- "$HOME/Desktop/$EMULATOR_NAME.desktop"
+    if [ -n "${EMULATOR_FILE:-}" ]; then
+        rm -f -- "$HOME/.local/share/applications/$EMULATOR_FILE.desktop"
+    fi
+
+    case "$target" in
+        ppsspp|mgba)
+            if ! declare -F uninstall_flatpak_software >/dev/null 2>&1; then
+                # shellcheck disable=SC1091
+                source "$PROJECT_ROOT/modules/software.sh"
+            fi
+            uninstall_flatpak_software "$EMULATOR_FLATPAK_ID" "$EMULATOR_NAME" \
+                "$EMULATOR_FLATPAK_ID.desktop" || return 1
+            ;;
+        azahar)
+            echo "Azahar.AppImage 由你自行放入，已保留；桌面图标和 Steam 条目已移除。"
+            ;;
+        *)
+            rm -f -- "$EMULATOR_ROOT/$EMULATOR_FILE" || return 1
+            echo "$EMULATOR_NAME 已卸载。"
+            ;;
+    esac
+    log "模拟器卸载完成：$EMULATOR_NAME"
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         yuzu|cemu|duckstation|pcsx2|rpcs3|shadps4|ppsspp|mgba|azahar) install_emulator "$1" ;;
         yuzu-keys) import_yuzu_keys ;;
         yuzu-keys-status) show_yuzu_key_status ;;
-        *) echo "用法: $0 {yuzu|cemu|duckstation|pcsx2|rpcs3|shadps4|ppsspp|mgba|azahar|yuzu-keys|yuzu-keys-status}"; exit 1 ;;
+        uninstall)
+            [ -n "${2:-}" ] || { echo "用法: $0 uninstall 目标"; exit 1; }
+            uninstall_emulator "$2"
+            ;;
+        *) echo "用法: $0 {yuzu|cemu|duckstation|pcsx2|rpcs3|shadps4|ppsspp|mgba|azahar|yuzu-keys|yuzu-keys-status|uninstall 目标}"; exit 1 ;;
     esac
 fi

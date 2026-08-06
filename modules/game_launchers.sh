@@ -1417,9 +1417,95 @@ install_launcher() {
     fi
 }
 
+confirm_launcher_uninstall() {
+    local name="$1" answer
+
+    echo "将卸载：$name"
+    echo "会移除 Steam 库条目、桌面入口和工具箱包装器。"
+    echo "$name 的账号、游戏与下载文件会保留，不会被删除。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        return 0
+    fi
+    read -r -p "确认卸载请输入 UNINSTALL：" answer
+    [ "$answer" = "UNINSTALL" ]
+}
+
+launcher_steam_exe_basenames() {
+    case "$1" in
+        epic) printf '%s\n' "EpicGamesLauncherInstaller.msi" "EpicGamesLauncher.exe" "launch-epic.sh" ;;
+        battlenet) printf '%s\n' "Battle.net-Setup.exe" "Battle.net Launcher.exe" "Battle.net.exe" "launch-battlenet.sh" ;;
+        ubisoft|uplay) printf '%s\n' "UbisoftConnectInstaller.exe" "UbisoftConnect.exe" "upc.exe" "launch-ubisoft.sh" "launch-uplay.sh" ;;
+        heihe) printf '%s\n' "wow_installer_1.9.51.0.exe" "heyboxwow.exe" "HeyboxWow.exe" "黑盒工坊.exe" "HeiHe.exe" "launch-heihe.sh" ;;
+    esac
+}
+
+remove_launcher_desktop_file() {
+    local file="$1"
+
+    [ -f "$file" ] && [ ! -L "$file" ] || return 0
+    grep -Fqx 'X-Zhoukeer-Managed=true' "$file" || return 0
+    rm -f -- "$file" || return 1
+}
+
+uninstall_launcher() {
+    local target="$1" steam_root shortcut_file desktop_name
+    local display_target="$target"
+    local -a remove_args=()
+    local basename
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "游戏启动器卸载仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    launcher_details "$target" || return 1
+    confirm_launcher_uninstall "$LAUNCHER_NAME" || { echo "已取消卸载。"; return 0; }
+
+    steam_root="$(find_steam_root 2>/dev/null || true)"
+    if [ -n "$steam_root" ]; then
+        shortcut_file="$(find_shortcut_file "$steam_root" 2>/dev/null || true)"
+        if [ -n "$shortcut_file" ]; then
+            stop_steam_for_vdf || true
+            while IFS= read -r basename; do
+                remove_args+=(--exe-basename "$basename")
+            done < <(launcher_steam_exe_basenames "$target")
+            python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" remove \
+                "${remove_args[@]}" >/dev/null || true
+            start_steam || true
+        fi
+    fi
+
+    case "$target" in
+        epic) desktop_name="Epic Games 启动器" ;;
+        battlenet) desktop_name="战网启动器" ;;
+        ubisoft|uplay) desktop_name="育碧" ;;
+        heihe) desktop_name="黑盒工坊" ;;
+    esac
+    remove_launcher_desktop_file "$HOME/Desktop/$desktop_name.desktop" || return 1
+    case "$target" in
+        ubisoft|uplay)
+            remove_launcher_desktop_file "$HOME/Desktop/Ubisoft Connect（Uplay）.desktop" || return 1
+            remove_launcher_desktop_file "$HOME/Desktop/育碧服务.desktop" || return 1
+            ;;
+        battlenet)
+            remove_legacy_battlenet_desktop_installer || true
+            ;;
+    esac
+    rm -rf -- "$APP_DIR/game-launchers/$target" || return 1
+
+    echo "$LAUNCHER_NAME 已从 Steam 库和桌面移除。"
+    [ "$display_target" = "uplay" ] && display_target="ubisoft"
+    echo "游戏、账号与下载文件保留在 $LAUNCHER_BASE/$display_target/drive_c。"
+    log "$LAUNCHER_NAME 已卸载"
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         epic|battlenet|ubisoft|uplay|heihe) install_launcher "$1" ;;
-        *) echo "用法: $0 {epic|battlenet|ubisoft}"; exit 1 ;;
+        uninstall)
+            [ -n "${2:-}" ] || { echo "用法: $0 uninstall 目标"; exit 1; }
+            uninstall_launcher "$2"
+            ;;
+        *) echo "用法: $0 {epic|battlenet|ubisoft|heihe|uninstall 目标}"; exit 1 ;;
     esac
 fi

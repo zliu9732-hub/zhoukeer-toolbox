@@ -103,9 +103,23 @@ software_menu() {
             obs "OBS Studio｜录屏、直播与视频采集" \
             localsend "LocalSend 局域网传文件｜手机与电脑免登录互传" \
             peazip "PeaZip 压缩工具｜解压与压缩常用格式" \
-            willwill "WiliWili｜Flathub 安装 WiliWili（B站客户端）" \
+            willwill "WiliWili｜Flathub 安装，完成后加入 Steam 库" \
             fcitx5 "中文输入法｜Fcitx5 与中文输入插件" \
             xbox-cloud "Xbox 云游戏｜Flathub 安装 Greenlight，云游戏需 Xbox 账号" \
+            qqmusic "QQ音乐｜Flathub 安装" \
+            netease-music "网易云音乐｜Flathub 安装" \
+            yesplaymusic "YesPlayMusic｜Flathub 安装第三方网易云音乐客户端" \
+            qbittorrent "qBittorrent｜BT 种子与磁力下载" \
+            motrix "Motrix 下载器｜多协议下载管理" \
+            freedownloadmanager "Free Download Manager｜下载管理工具" \
+            media-downloader "Media Downloader｜视频与媒体下载" \
+            flameshot "Flameshot 截图｜截图与标注" \
+            onlyoffice "OnlyOffice 办公套件｜兼容 Office 文档" \
+            joplin "Joplin 笔记｜笔记与待办管理" \
+            heroic "Heroic 游戏启动器｜Epic 与 GOG 游戏库" \
+            lutris "Lutris｜多平台游戏管理" \
+            chiaki4deck "Chiaki4Deck（PS5串流）｜PS5 远程串流" \
+            parsec "Parsec｜远程串流与协作" \
             protontricks "游戏兼容设置｜安装 Protontricks" \
             home "返回首页" \
             nav-exit "退出工具箱")" || return 0
@@ -144,9 +158,23 @@ software_menu() {
             obs) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 OBS Studio。是否继续？" && run_gui_action "安装 OBS Studio" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" obs ;;
             localsend) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 LocalSend。是否继续？" && run_gui_action "安装 LocalSend 局域网传文件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" localsend ;;
             peazip) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 PeaZip。是否继续？" && run_gui_action "安装 PeaZip 压缩工具" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" peazip ;;
-            willwill) gui_confirm "将通过上海交大与中科大 Flathub 国内缓存安装 WiliWili（B站客户端）。是否继续？" && run_gui_action "安装 WiliWili" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" willwill ;;
+            willwill) gui_confirm "将通过 Flathub 国内缓存安装 WiliWili（B站客户端），完成后加入 Steam 库。是否继续？" && run_gui_action "安装 WiliWili" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" willwill ;;
             fcitx5) gui_confirm "将通过 Flathub 国内缓存安装 Fcitx5 中文输入法及中文输入插件。是否继续？" && run_gui_action "安装中文输入法" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" fcitx5 ;;
             xbox-cloud) gui_confirm "将通过 Flathub 安装 Greenlight（Xbox 云游戏客户端），云游戏需要 Xbox 账号。是否继续？" && run_gui_action "安装 Xbox 云游戏" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" xbox-cloud ;;
+            qqmusic) gui_confirm "将通过 Flathub 国内缓存安装 QQ音乐，并自动创建桌面图标。是否继续？" && run_gui_action "安装 QQ音乐" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" qqmusic ;;
+            netease-music) gui_confirm "将通过 Flathub 国内缓存安装网易云音乐，并自动创建桌面图标。是否继续？" && run_gui_action "安装网易云音乐" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" netease-music ;;
+            yesplaymusic) gui_confirm "将通过 Flathub 国内缓存安装 YesPlayMusic，并自动创建桌面图标。是否继续？" && run_gui_action "安装 YesPlayMusic" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" yesplaymusic ;;
+            qbittorrent) gui_confirm "将通过 Flathub 国内缓存安装 qBittorrent，并自动创建桌面图标。是否继续？" && run_gui_action "安装 qBittorrent" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" qbittorrent ;;
+            motrix) gui_confirm "将通过 Flathub 国内缓存安装 Motrix 下载器，并自动创建桌面图标。是否继续？" && run_gui_action "安装 Motrix 下载器" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" motrix ;;
+            freedownloadmanager) gui_confirm "将通过 Flathub 国内缓存安装 Free Download Manager，并自动创建桌面图标。是否继续？" && run_gui_action "安装 Free Download Manager" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" freedownloadmanager ;;
+            media-downloader) gui_confirm "将通过 Flathub 国内缓存安装 Media Downloader，并自动创建桌面图标。是否继续？" && run_gui_action "安装 Media Downloader" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" media-downloader ;;
+            flameshot) gui_confirm "将通过 Flathub 国内缓存安装 Flameshot 截图，并自动创建桌面图标。是否继续？" && run_gui_action "安装 Flameshot 截图" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" flameshot ;;
+            onlyoffice) gui_confirm "将通过 Flathub 国内缓存安装 OnlyOffice 办公套件，并自动创建桌面图标。是否继续？" && run_gui_action "安装 OnlyOffice 办公套件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" onlyoffice ;;
+            joplin) gui_confirm "将通过 Flathub 国内缓存安装 Joplin 笔记，并自动创建桌面图标。是否继续？" && run_gui_action "安装 Joplin 笔记" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" joplin ;;
+            heroic) gui_confirm "将通过 Flathub 国内缓存安装 Heroic 游戏启动器，并自动加入 Steam 库。是否继续？" && run_gui_action "安装 Heroic 游戏启动器" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" heroic ;;
+            lutris) gui_confirm "将通过 Flathub 国内缓存安装 Lutris，并自动加入 Steam 库。是否继续？" && run_gui_action "安装 Lutris" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" lutris ;;
+            chiaki4deck) gui_confirm "将通过 Flathub 国内缓存安装 Chiaki4Deck（PS5串流），并自动加入 Steam 库。是否继续？" && run_gui_action "安装 Chiaki4Deck（PS5串流）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" chiaki4deck ;;
+            parsec) gui_confirm "将通过 Flathub 国内缓存安装 Parsec，并自动加入 Steam 库。是否继续？" && run_gui_action "安装 Parsec" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" parsec ;;
             protontricks) gui_confirm "将通过 Flatpak 安装 Protontricks。是否继续？" && run_gui_action "安装 Protontricks" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
             bottles) gui_confirm "将通过 Flatpak 安装 Bottles。是否继续？" && run_gui_action "安装 Bottles" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
             home) GUI_NAV_HOME=1; return 0 ;;
@@ -779,50 +807,102 @@ uninstall_software_gui_menu() {
     while true; do
         case "$page" in
             0)
-                choice="$(gui_dialog --menu "卸载已安装｜常用应用｜第 1/4 页" \
+                choice="$(gui_dialog --menu "卸载已安装｜聊天、浏览器与远程工具｜第 1/7 页" \
                     wechat "卸载微信｜AppImage 和快捷方式" \
                     qq "卸载 QQ｜Flatpak" \
                     browser "卸载 Firefox｜Flatpak" \
                     chrome "卸载 Chrome｜Google Chrome Flatpak" \
                     edge "卸载 Edge｜Microsoft Edge Flatpak" \
+                    rustdesk "卸载 RustDesk｜保留用户配置" \
+                    todesk "卸载 ToDesk｜停止服务并卸载软件包｜高级操作" \
+                    baidunetdisk "卸载百度网盘｜Flatpak" \
                     next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
                 ;;
             1)
-                choice="$(gui_dialog --menu "卸载已安装｜远程与网盘｜第 2/4 页" \
-                    rustdesk "卸载 RustDesk｜保留用户配置" \
+                choice="$(gui_dialog --menu "卸载已安装｜办公与创作｜第 2/7 页" \
                     anydesk "卸载 AnyDesk｜Flatpak" \
-                    todesk "卸载 ToDesk｜停止服务并卸载软件包｜高级操作" \
-                    baidunetdisk "卸载百度网盘｜Flatpak" \
-                    willwill "卸载 WiliWili｜Flatpak" \
+                    willwill "卸载 WiliWili｜Flatpak 与 Steam 条目" \
                     xbox-cloud "卸载 Xbox 云游戏｜Greenlight Flatpak" \
-                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
-                ;;
-            2)
-                choice="$(gui_dialog --menu "卸载已安装｜办公与工具｜第 3/4 页" \
                     libreoffice "卸载 LibreOffice｜Flatpak" \
                     vlc "卸载 VLC｜Flatpak" \
                     obs "卸载 OBS Studio｜Flatpak" \
                     localsend "卸载 LocalSend｜Flatpak" \
                     peazip "卸载 PeaZip｜Flatpak" \
+                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
+                ;;
+            2)
+                choice="$(gui_dialog --menu "卸载已安装｜兼容、音乐与下载｜第 3/7 页" \
+                    fcitx5 "卸载中文输入法｜Fcitx5 与中文输入插件" \
                     protontricks "卸载 Protontricks｜Flatpak" \
                     bottles "卸载 Bottles｜Flatpak" \
+                    qqmusic "卸载 QQ音乐｜Flatpak" \
+                    netease-music "卸载网易云音乐｜Flatpak" \
+                    yesplaymusic "卸载 YesPlayMusic｜Flatpak" \
+                    qbittorrent "卸载 qBittorrent｜Flatpak" \
+                    motrix "卸载 Motrix 下载器｜Flatpak" \
+                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
+                ;;
+            3)
+                choice="$(gui_dialog --menu "卸载已安装｜下载、办公、笔记与串流｜第 4/7 页" \
+                    freedownloadmanager "卸载 Free Download Manager｜Flatpak" \
+                    media-downloader "卸载 Media Downloader｜Flatpak" \
+                    flameshot "卸载 Flameshot 截图｜Flatpak" \
+                    onlyoffice "卸载 OnlyOffice｜Flatpak" \
+                    joplin "卸载 Joplin 笔记｜Flatpak" \
+                    heroic "卸载 Heroic｜移除 Steam 库条目" \
+                    lutris "卸载 Lutris｜移除 Steam 库条目" \
+                    chiaki4deck "卸载 Chiaki4Deck｜移除 Steam 库条目" \
+                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
+                ;;
+            4)
+                choice="$(gui_dialog --menu "卸载已安装｜游戏启动器与模拟器｜第 5/7 页" \
+                    parsec "卸载 Parsec｜移除 Steam 库条目" \
+                    battlenet "卸载战网启动器｜保留游戏与下载文件" \
+                    epic "卸载 Epic｜保留游戏与下载文件" \
+                    ubisoft "卸载育碧｜保留游戏与下载文件" \
+                    heihe "卸载黑盒工坊｜保留插件与游戏文件" \
+                    yuzu "卸载 Yuzu｜保留存档与配置" \
+                    cemu "卸载 Cemu｜保留存档与配置" \
+                    duckstation "卸载 DuckStation｜保留存档与配置" \
+                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
+                ;;
+            5)
+                choice="$(gui_dialog --menu "卸载已安装｜模拟器与系统组件｜第 6/7 页" \
+                    pcsx2 "卸载 PCSX2｜保留存档与配置" \
+                    rpcs3 "卸载 RPCS3｜保留存档与配置" \
+                    shadps4 "卸载 ShadPS4｜保留存档与配置" \
+                    ppsspp "卸载 PPSSPP｜保留存档与配置" \
+                    mgba "卸载 mGBA｜保留存档与配置" \
+                    azahar "卸载 Azahar｜保留 3DS 存档与密钥" \
+                    steam302 "卸载 Steam302｜停止后台加速和自启｜高级操作" \
+                    ge-proton "卸载 GE-Proton｜只删工具箱当前版本" \
                     previous "上一页" next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
                 ;;
             *)
-                choice="$(gui_dialog --menu "卸载已安装｜系统组件与插件｜第 4/4 页" \
-                    steam302 "卸载 Steam302｜停止后台加速和自启｜高级操作" \
-                    ge-proton "卸载 GE-Proton｜只删工具箱当前版本" \
+                choice="$(gui_dialog --menu "卸载已安装｜Decky 组件｜第 7/7 页" \
                     decky-loader "卸载 Decky Loader｜保留插件文件" \
                     decky-plugins "清空全部 Decky 插件｜删除插件与设置｜高风险" \
                     previous "上一页" home "返回首页" nav-exit "退出工具箱")" || return 0
                 ;;
         esac
         case "$choice" in
-            wechat|qq|browser|chrome|edge|rustdesk|anydesk|baidunetdisk|willwill|xbox-cloud|libreoffice|vlc|obs|localsend|peazip|protontricks|bottles)
+            wechat|qq|browser|chrome|edge|rustdesk|anydesk|baidunetdisk|willwill|xbox-cloud|libreoffice|vlc|obs|localsend|peazip|fcitx5|protontricks|bottles|qqmusic|netease-music|yesplaymusic|qbittorrent|motrix|freedownloadmanager|media-downloader|flameshot|onlyoffice|joplin|heroic|lutris|chiaki4deck|parsec)
                 target="$choice"
                 gui_confirm "只卸载所选软件及工具箱创建的快捷方式，确认继续？" && \
                     run_gui_action "卸载软件" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" uninstall "$target"
+                ;;
+            battlenet|epic|ubisoft|heihe)
+                target="$choice"
+                gui_confirm "会移除 Steam 库条目和桌面入口，保留游戏与下载文件。确认继续？" && \
+                    run_gui_action "卸载游戏启动器" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/game_launchers.sh" uninstall "$target"
+                ;;
+            yuzu|cemu|duckstation|pcsx2|rpcs3|shadps4|ppsspp|mgba|azahar)
+                target="$choice"
+                gui_confirm "会移除 Steam 库条目和桌面入口，保留存档与配置。确认继续？" && \
+                    run_gui_action "卸载模拟器" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/emulators.sh" uninstall "$target"
                 ;;
             todesk)
                 gui_confirm "会停止 ToDesk 服务并临时关闭 SteamOS 只读保护，完成后自动恢复。确认继续？" && \
@@ -849,7 +929,7 @@ uninstall_software_gui_menu() {
                     run_gui_action "清空全部 Decky 插件" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" uninstall
                 ;;
-            next) page=$((page + 1)); [ "$page" -le 2 ] || page=2 ;;
+            next) page=$((page + 1)); [ "$page" -le 6 ] || page=6 ;;
             previous) page=$((page - 1)); [ "$page" -ge 0 ] || page=0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;

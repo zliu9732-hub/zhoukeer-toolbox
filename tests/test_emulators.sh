@@ -84,4 +84,104 @@ for forbidden in EmuDeck Pegasus 'ES-DE'; do
     assert_not_contains "$module_text" "$forbidden" "不应纳入的模拟器或前端：$forbidden"
 done
 
+# 模拟器卸载会移除 Steam 条目、桌面入口和程序本体，保留存档与配置。
+UNINSTALL_ROOT="$(mktemp -d)"
+trap 'rm -rf -- "$KEY_TEST_ROOT" "$UNINSTALL_ROOT"' EXIT
+UNINSTALL_HOME="$UNINSTALL_ROOT/home"
+UNINSTALL_EMULATORS="$UNINSTALL_ROOT/emulators"
+UNINSTALL_BIN="$UNINSTALL_ROOT/bin"
+mkdir -p "$UNINSTALL_HOME/Desktop" "$UNINSTALL_HOME/.local/share/applications" \
+    "$UNINSTALL_EMULATORS" "$UNINSTALL_ROOT/steam/steamapps" "$UNINSTALL_BIN"
+
+cat > "$UNINSTALL_BIN/flatpak" <<'EOF'
+#!/bin/sh
+state="${FLATPAK_TEST_STATE:?}"
+command="$1"
+shift
+case "$command" in
+    info)
+        case "${1:-}" in --user|--system) shift ;; esac
+        [ -f "$state/installed.$1" ]
+        ;;
+    uninstall)
+        printf 'uninstall %s\n' "$*" >> "$state/commands"
+        app_id=""
+        for arg in "$@"; do
+            case "$arg" in --*) ;; *) app_id="$arg" ;; esac
+        done
+        rm -f "$state/installed.$app_id"
+        ;;
+    *)
+        echo "unexpected flatpak command: $command" >&2
+        exit 1
+        ;;
+esac
+EOF
+chmod +x "$UNINSTALL_BIN/flatpak"
+: > "$UNINSTALL_ROOT/installed.org.ppsspp.PPSSPP"
+: > "$UNINSTALL_ROOT/commands"
+
+printf '\177ELFtest-yuzu\n' > "$UNINSTALL_EMULATORS/Yuzu.AppImage"
+chmod +x "$UNINSTALL_EMULATORS/Yuzu.AppImage"
+cat > "$UNINSTALL_HOME/Desktop/Yuzu（Switch 模拟器）.desktop" <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Yuzu（Switch 模拟器）
+Exec=/fake/Yuzu.AppImage
+Icon=/fake/yuzu.png
+Categories=Game;Emulator;
+X-Zhoukeer-Managed=true
+EOF
+
+UNINSTALL_SHORTCUTS="$UNINSTALL_ROOT/shortcuts.vdf"
+python3 "$PROJECT_ROOT/scripts/steam_shortcut.py" --shortcut-file "$UNINSTALL_SHORTCUTS" add \
+    --name "Yuzu（Switch 模拟器）" --exe "$UNINSTALL_EMULATORS/Yuzu.AppImage" \
+    --start-dir "$UNINSTALL_EMULATORS" >/dev/null
+python3 "$PROJECT_ROOT/scripts/steam_shortcut.py" --shortcut-file "$UNINSTALL_SHORTCUTS" add \
+    --name "PPSSPP（PSP 模拟器）" --exe "/usr/bin/flatpak" --start-dir "$UNINSTALL_HOME" \
+    --launch-options "run org.ppsspp.PPSSPP" >/dev/null
+python3 "$PROJECT_ROOT/scripts/steam_shortcut.py" --shortcut-file "$UNINSTALL_SHORTCUTS" add \
+    --name "mGBA（GBA 模拟器）" --exe "/usr/bin/flatpak" --start-dir "$UNINSTALL_HOME" \
+    --launch-options "run io.mgba.mGBA" >/dev/null
+
+(
+    export ZHOUKEER_EMULATOR_DIR="$UNINSTALL_EMULATORS"
+    source "$MODULE"
+    require_steamos() { return 0; }
+    HOME="$UNINSTALL_HOME" \
+    ZHOUKEER_STEAM_ROOT="$UNINSTALL_ROOT/steam" \
+    ZHOUKEER_SHORTCUT_FILE="$UNINSTALL_SHORTCUTS" \
+    ZHOUKEER_SKIP_STEAM_RESTART=1 \
+    ZHOUKEER_AUTO_CONFIRM=1 \
+    uninstall_emulator yuzu >/dev/null
+)
+(
+    export ZHOUKEER_EMULATOR_DIR="$UNINSTALL_EMULATORS"
+    source "$MODULE"
+    require_steamos() { return 0; }
+    HOME="$UNINSTALL_HOME" \
+    ZHOUKEER_STEAM_ROOT="$UNINSTALL_ROOT/steam" \
+    ZHOUKEER_SHORTCUT_FILE="$UNINSTALL_SHORTCUTS" \
+    ZHOUKEER_SKIP_STEAM_RESTART=1 \
+    ZHOUKEER_AUTO_CONFIRM=1 \
+    FLATPAK_TEST_STATE="$UNINSTALL_ROOT" \
+    PATH="$UNINSTALL_BIN:$PATH" \
+    uninstall_emulator ppsspp >/dev/null
+)
+
+[ ! -e "$UNINSTALL_EMULATORS/Yuzu.AppImage" ] || fail "Yuzu 程序本体未移除"
+[ ! -e "$UNINSTALL_HOME/Desktop/Yuzu（Switch 模拟器）.desktop" ] || fail "Yuzu 桌面入口未移除"
+[ ! -e "$UNINSTALL_ROOT/installed.org.ppsspp.PPSSPP" ] || fail "PPSSPP Flatpak 未卸载"
+assert_contains "$(cat "$UNINSTALL_ROOT/commands")" \
+    'uninstall --user --noninteractive -y org.ppsspp.PPSSPP' "PPSSPP 卸载命令缺失"
+python3 - "$UNINSTALL_SHORTCUTS" <<'PY'
+from pathlib import Path
+import sys
+
+data = Path(sys.argv[1]).read_bytes()
+assert "Yuzu（Switch 模拟器）".encode() not in data
+assert "PPSSPP（PSP 模拟器）".encode() not in data
+assert "mGBA（GBA 模拟器）".encode() in data
+PY
+
 echo "PASS: 模拟器下载、桌面入口与 Steam 入库逻辑完整"

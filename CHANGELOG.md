@@ -1,3 +1,11 @@
+## V1.6.0 扩充常用软件并统一 Steam 入库与卸载 — 2026-08-06
+
+- “更多常用软件”扩充为三页，新增音乐、下载、截图、办公、笔记和游戏串流应用：QQ音乐、网易云音乐、YesPlayMusic、qBittorrent、Motrix、Free Download Manager、Media Downloader、Flameshot、OnlyOffice、Joplin、Heroic、Lutris、Chiaki4Deck、Parsec。
+- 所有新增应用都会创建桌面快捷方式；Heroic、Lutris、Chiaki4Deck、Parsec、Xbox 云游戏和 WiliWili 安装后自动加入 Steam 库。
+- Steam 入库改为通用逻辑，安装、重复安装修复和卸载都会同步处理启动包装器与 Steam 条目。
+- “卸载已安装”扩展为七页，补齐 AnyDesk、中文输入法、全部新增软件、四个游戏启动器和全部可安装模拟器；启动器卸载保留游戏与下载文件，模拟器卸载保留存档与配置。
+- Flatpak 安装失败时统一提示先初始化国内源，并补齐缺少组件、安装结果验证失败等场景的提示。
+
 ## V1.5.0 新增 Xbox 云游戏入口 — 2026-08-06
 
 - 常用软件“更多常用软件”新增“Xbox 云游戏”，通过 Flathub 安装 Greenlight 客户端，名称和说明明确标注云游戏。

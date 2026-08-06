@@ -1129,4 +1129,62 @@ grep -Fq '1513d6cc2afda0367c8375b6f25f490c162da5607ce4b4adbb41906a2d742236' "$MO
     exit 1
 }
 
+# 启动器卸载会移除 Steam 条目与桌面入口，但保留游戏与下载文件。
+UNINSTALL_ROOT="$(mktemp -d)"
+UNINSTALL_HOME="$UNINSTALL_ROOT/home"
+UNINSTALL_APP="$UNINSTALL_ROOT/apps"
+UNINSTALL_BASE="$UNINSTALL_ROOT/launcher-root"
+mkdir -p "$UNINSTALL_HOME/Desktop" \
+    "$UNINSTALL_APP/game-launchers/epic" \
+    "$UNINSTALL_ROOT/steam/steamapps" \
+    "$UNINSTALL_BASE/epic/drive_c/Program Files (x86)/Epic Games"
+printf '#!/bin/sh\nexit 0\n' > "$UNINSTALL_APP/game-launchers/epic/launch-epic.sh"
+chmod +x "$UNINSTALL_APP/game-launchers/epic/launch-epic.sh"
+cat > "$UNINSTALL_HOME/Desktop/Epic Games 启动器.desktop" <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Epic Games 启动器
+Exec=/fake/launch-epic.sh
+Icon=/fake/epic.png
+Categories=Game;
+X-Zhoukeer-Managed=true
+EOF
+printf 'game-data\n' > "$UNINSTALL_BASE/epic/drive_c/Program Files (x86)/Epic Games/keep.txt"
+UNINSTALL_SHORTCUTS="$UNINSTALL_ROOT/shortcuts.vdf"
+python3 "$HELPER" --shortcut-file "$UNINSTALL_SHORTCUTS" add \
+    --name "Epic Games 启动器" --exe "$UNINSTALL_APP/game-launchers/epic/launch-epic.sh" \
+    --start-dir "$UNINSTALL_ROOT" >/dev/null
+(
+    export ZHOUKEER_APP_DIR="$UNINSTALL_APP"
+    source "$MODULE"
+    detect_platform() { IS_STEAMOS=1; }
+    HOME="$UNINSTALL_HOME" \
+    ZHOUKEER_LAUNCHER_BASE="$UNINSTALL_BASE" \
+    ZHOUKEER_STEAM_ROOT="$UNINSTALL_ROOT/steam" \
+    ZHOUKEER_SHORTCUT_FILE="$UNINSTALL_SHORTCUTS" \
+    ZHOUKEER_SKIP_STEAM_RESTART=1 \
+    ZHOUKEER_AUTO_CONFIRM=1 \
+    uninstall_launcher epic >/dev/null
+)
+[ ! -e "$UNINSTALL_HOME/Desktop/Epic Games 启动器.desktop" ] || {
+    echo "FAIL: Epic 桌面入口未移除" >&2
+    exit 1
+}
+[ ! -e "$UNINSTALL_APP/game-launchers/epic" ] || {
+    echo "FAIL: Epic 工具箱目录未移除" >&2
+    exit 1
+}
+[ -e "$UNINSTALL_BASE/epic/drive_c/Program Files (x86)/Epic Games/keep.txt" ] || {
+    echo "FAIL: Epic 游戏数据被误删" >&2
+    exit 1
+}
+python3 - "$UNINSTALL_SHORTCUTS" <<'PY'
+from pathlib import Path
+import sys
+
+data = Path(sys.argv[1]).read_bytes()
+assert "Epic Games 启动器".encode() not in data
+PY
+rm -rf -- "$UNINSTALL_ROOT"
+
 echo "PASS: Steam条目写入、启动器安装和战网分步Steam流程测试通过"

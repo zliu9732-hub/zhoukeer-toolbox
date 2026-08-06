@@ -250,6 +250,7 @@ def remove_shortcuts(args: argparse.Namespace) -> None:
     basenames = {name.casefold() for name in args.exe_basename}
     keep_exe = quote_path(args.keep_exe) if args.keep_exe else None
     keep_name = args.keep_name
+    launch_options = args.launch_options
     kept = []
     removed = 0
 
@@ -267,6 +268,12 @@ def remove_shortcuts(args: argparse.Namespace) -> None:
                         and (keep_name is None or entry_value(entry, b"appname") == keep_name)
                     )
                     if not is_keep:
+                        if (
+                            launch_options is not None
+                            and entry_value(entry, b"LaunchOptions") != launch_options
+                        ):
+                            kept.append(entry)
+                            continue
                         removed += 1
                         continue
         kept.append(entry)
@@ -349,6 +356,7 @@ def main() -> None:
     remove.add_argument("--exe-basename", action="append", required=True)
     remove.add_argument("--keep-exe")
     remove.add_argument("--keep-name")
+    remove.add_argument("--launch-options")
 
     verify = subparsers.add_parser("verify")
     verify.add_argument("--name", required=True)

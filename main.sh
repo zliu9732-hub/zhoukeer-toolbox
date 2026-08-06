@@ -281,23 +281,60 @@ common_software_menu() {
 }
 
 common_software_more_menu() {
-    local choice
+    local choice page=0
 
     while true; do
-        draw_category_frame software "更多常用软件" "返回后可继续安装聊天、浏览器与远程工具"
-        ui_touch_button 2 '\033[1;97;48;5;24m' "LibreOffice 办公套件" "文档、表格与演示文稿"
-        ui_touch_button 4 '\033[1;97;48;5;24m' "VLC 播放器" "本地视频与音频播放"
-        ui_touch_button 6 '\033[1;97;48;5;24m' "OBS Studio" "录屏、直播与视频采集"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "LocalSend 局域网传文件" "手机与电脑免登录互传"
-        ui_touch_button 10 '\033[1;97;48;5;24m' "百度网盘" "Flathub 安装百度网盘 Linux 版"
-        ui_touch_button 12 '\033[1;97;48;5;24m' "PeaZip 压缩工具" "解压与压缩常用格式"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "WiliWili" "Flathub 安装 WiliWili（B站客户端）"
-        ui_touch_button 16 '\033[1;97;48;5;24m' "中文输入法" "Flathub 安装 Fcitx5 及中文输入插件"
-        ui_touch_button 18 '\033[1;97;48;5;24m' "Xbox 云游戏" "Flathub 安装 Greenlight，云游戏需 Xbox 账号"
-        ui_touch_button 20 '\033[1;97;48;5;238m' "返回常用软件" "查看常用软件第一页"
-        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
-        ui_prompt
-        choice="$(read_touch_menu right:2-3:libreoffice right:4-5:vlc right:6-7:obs right:8-9:localsend right:10-11:baidunetdisk right:12-13:peazip right:14-15:willwill right:16-17:fcitx5 right:18-19:xbox-cloud right:20-21:back right:22-23:home)"
+        case "$page" in
+            0)
+                draw_category_frame software "更多常用软件" "办公与工具 · 第 1/3 页"
+                ui_touch_button 2 '\033[1;97;48;5;24m' "LibreOffice 办公套件" "文档、表格与演示文稿"
+                ui_touch_button 4 '\033[1;97;48;5;24m' "VLC 播放器" "本地视频与音频播放"
+                ui_touch_button 6 '\033[1;97;48;5;24m' "OBS Studio" "录屏、直播与视频采集"
+                ui_touch_button 8 '\033[1;97;48;5;24m' "LocalSend 局域网传文件" "手机与电脑免登录互传"
+                ui_touch_button 10 '\033[1;97;48;5;24m' "百度网盘" "Flathub 安装百度网盘 Linux 版"
+                ui_touch_button 12 '\033[1;97;48;5;24m' "PeaZip 压缩工具" "解压与压缩常用格式"
+                ui_touch_button 14 '\033[1;97;48;5;24m' "WiliWili" "Flathub 安装 WiliWili（B站客户端）"
+                ui_touch_button 16 '\033[1;97;48;5;24m' "中文输入法" "Flathub 安装 Fcitx5 及中文输入插件"
+                ui_touch_button 18 '\033[1;97;48;5;24m' "下一页" "音乐、下载与游戏串流"
+                ui_touch_button 20 '\033[1;97;48;5;238m' "返回常用软件" "查看常用软件第一页"
+                ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+                ui_prompt
+                choice="$(read_touch_menu right:2-3:libreoffice right:4-5:vlc right:6-7:obs right:8-9:localsend right:10-11:baidunetdisk right:12-13:peazip right:14-15:willwill right:16-17:fcitx5 right:18-19:next right:20-21:back right:22-23:home)"
+                ;;
+            1)
+                draw_category_frame software "更多常用软件" "音乐、下载与云游戏 · 第 2/3 页"
+                ui_touch_button 2 '\033[1;97;48;5;24m' "Xbox 云游戏" "Flathub 安装 Greenlight，云游戏需 Xbox 账号"
+                ui_touch_button 4 '\033[1;97;48;5;24m' "QQ音乐" "Flathub 安装 QQ音乐"
+                ui_touch_button 6 '\033[1;97;48;5;24m' "网易云音乐" "Flathub 安装网易云音乐"
+                ui_touch_button 8 '\033[1;97;48;5;24m' "YesPlayMusic" "Flathub 安装第三方网易云音乐客户端"
+                ui_touch_button 10 '\033[1;97;48;5;24m' "qBittorrent" "BT 种子与磁力下载"
+                ui_touch_button 12 '\033[1;97;48;5;24m' "Motrix 下载器" "多协议下载管理"
+                ui_touch_button 14 '\033[1;97;48;5;24m' "Free Download Manager" "下载管理工具"
+                ui_touch_button 16 '\033[1;97;48;5;24m' "Media Downloader" "视频与媒体下载"
+                ui_touch_button 18 '\033[1;97;48;5;24m' "上一页" "办公与常用工具"
+                ui_touch_button 20 '\033[1;97;48;5;24m' "下一页" "截图、笔记与游戏串流"
+                ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+                ui_prompt
+                choice="$(read_touch_menu right:2-3:xbox-cloud right:4-5:qqmusic right:6-7:netease-music right:8-9:yesplaymusic right:10-11:qbittorrent right:12-13:motrix right:14-15:freedownloadmanager right:16-17:media-downloader right:18-19:previous right:20-21:next right:22-23:home)"
+                ;;
+            *)
+                draw_category_frame software "更多常用软件" "截图、办公、笔记与游戏串流 · 第 3/3 页"
+                ui_touch_button 2 '\033[1;97;48;5;24m' "Flameshot 截图" "截图与标注"
+                ui_touch_button 4 '\033[1;97;48;5;24m' "OnlyOffice 办公套件" "兼容 Office 文档"
+                ui_touch_button 6 '\033[1;97;48;5;24m' "Joplin 笔记" "笔记与待办管理"
+                ui_touch_button 8 '\033[1;97;48;5;24m' "Heroic 游戏启动器" "Epic 与 GOG 游戏库"
+                ui_touch_button 10 '\033[1;97;48;5;24m' "Lutris" "多平台游戏管理"
+                ui_touch_button 12 '\033[1;97;48;5;24m' "Chiaki4Deck（PS5串流）" "PS5 远程串流"
+                ui_touch_button 14 '\033[1;97;48;5;24m' "Parsec" "远程串流与协作"
+                ui_touch_button 18 '\033[1;97;48;5;24m' "上一页" "音乐与下载工具"
+                ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+                ui_prompt
+                choice="$(read_touch_menu right:2-3:flameshot right:4-5:onlyoffice right:6-7:joplin right:8-9:heroic right:10-11:lutris right:12-13:chiaki4deck right:14-15:parsec right:18-19:previous right:22-23:home)"
+                ;;
+        esac
+        case "$choice" in
+            nav-*) apply_navigation "$choice"; return 0 ;;
+        esac
         case "$choice" in
             libreoffice) confirm_and_run "安装 LibreOffice 办公套件" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" libreoffice ;;
             vlc) confirm_and_run "安装 VLC 播放器" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" vlc ;;
@@ -305,9 +342,25 @@ common_software_more_menu() {
             localsend) confirm_and_run "安装 LocalSend 局域网传文件" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" localsend ;;
             baidunetdisk) confirm_and_run "安装百度网盘" "Flathub 安装百度网盘 Linux 版，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" baidunetdisk ;;
             peazip) confirm_and_run "安装 PeaZip 压缩工具" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" peazip ;;
-            willwill) confirm_and_run "安装 WiliWili" "Flathub 安装 WiliWili（B站客户端），通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" willwill ;;
+            willwill) confirm_and_run "安装 WiliWili" "Flathub 安装 WiliWili（B站客户端），完成后加入 Steam 库" bash "$PROJECT_ROOT/modules/software.sh" willwill ;;
             fcitx5) confirm_and_run "安装中文输入法" "通过 Flathub 国内缓存安装 Fcitx5 及中文输入插件" bash "$PROJECT_ROOT/modules/software.sh" fcitx5 ;;
             xbox-cloud) confirm_and_run "安装 Xbox 云游戏" "通过 Flathub 安装 Greenlight，云游戏需 Xbox 账号" bash "$PROJECT_ROOT/modules/software.sh" xbox-cloud ;;
+            qqmusic) confirm_and_run "安装 QQ音乐" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" qqmusic ;;
+            netease-music) confirm_and_run "安装网易云音乐" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" netease-music ;;
+            yesplaymusic) confirm_and_run "安装 YesPlayMusic" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" yesplaymusic ;;
+            qbittorrent) confirm_and_run "安装 qBittorrent" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" qbittorrent ;;
+            motrix) confirm_and_run "安装 Motrix 下载器" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" motrix ;;
+            freedownloadmanager) confirm_and_run "安装 Free Download Manager" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" freedownloadmanager ;;
+            media-downloader) confirm_and_run "安装 Media Downloader" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" media-downloader ;;
+            flameshot) confirm_and_run "安装 Flameshot 截图" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" flameshot ;;
+            onlyoffice) confirm_and_run "安装 OnlyOffice 办公套件" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" onlyoffice ;;
+            joplin) confirm_and_run "安装 Joplin 笔记" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" joplin ;;
+            heroic) confirm_and_run "安装 Heroic 游戏启动器" "通过 Flathub 国内缓存安装，完成后加入 Steam 库" bash "$PROJECT_ROOT/modules/software.sh" heroic ;;
+            lutris) confirm_and_run "安装 Lutris" "通过 Flathub 国内缓存安装，完成后加入 Steam 库" bash "$PROJECT_ROOT/modules/software.sh" lutris ;;
+            chiaki4deck) confirm_and_run "安装 Chiaki4Deck（PS5串流）" "通过 Flathub 国内缓存安装，完成后加入 Steam 库" bash "$PROJECT_ROOT/modules/software.sh" chiaki4deck ;;
+            parsec) confirm_and_run "安装 Parsec" "通过 Flathub 国内缓存安装，完成后加入 Steam 库" bash "$PROJECT_ROOT/modules/software.sh" parsec ;;
+            next) page=$((page + 1)); [ "$page" -le 2 ] || page=2 ;;
+            previous) page=$((page - 1)); [ "$page" -ge 0 ] || page=0 ;;
             back) return 0 ;;
             home) NEXT_CATEGORY="home"; return 1 ;;
         esac
@@ -894,62 +947,123 @@ uninstall_software_menu() {
     while true; do
         case "$page" in
             0)
-                draw_category_frame uninstall "卸载已安装" "常用应用 · 第 1/4 页"
-                ui_touch_button 5 '\033[1;97;48;5;160m' "卸载微信" "只删除微信 AppImage 和快捷方式"
-                ui_touch_button 7 '\033[1;97;48;5;160m' "卸载 QQ" "卸载 QQ Flatpak"
-                ui_touch_button 9 '\033[1;97;48;5;160m' "卸载 Firefox" "卸载 Firefox Flatpak"
-                ui_touch_button 11 '\033[1;97;48;5;160m' "卸载 Chrome" "卸载 Google Chrome Flatpak"
-                ui_touch_button 13 '\033[1;97;48;5;160m' "卸载 Edge" "卸载 Microsoft Edge Flatpak"
-                ui_touch_button 19 '\033[1;97;48;5;24m' "下一页" "远程工具与辅助软件"
-                ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
+                draw_category_frame uninstall "卸载已安装" "聊天、浏览器与远程工具 · 第 1/7 页"
+                ui_touch_button 2 '\033[1;97;48;5;160m' "卸载微信" "只删除微信 AppImage 和快捷方式"
+                ui_touch_button 4 '\033[1;97;48;5;160m' "卸载 QQ" "卸载 QQ Flatpak"
+                ui_touch_button 6 '\033[1;97;48;5;160m' "卸载 Firefox" "卸载 Firefox Flatpak"
+                ui_touch_button 8 '\033[1;97;48;5;160m' "卸载 Chrome" "卸载 Google Chrome Flatpak"
+                ui_touch_button 10 '\033[1;97;48;5;160m' "卸载 Edge" "卸载 Microsoft Edge Flatpak"
+                ui_touch_button 12 '\033[1;97;48;5;160m' "卸载 RustDesk" "保留用户自行配置的数据"
+                ui_touch_button 14 '\033[1;97;48;5;160m' "卸载 ToDesk" "停止服务并卸载系统软件包"
+                ui_touch_button 16 '\033[1;97;48;5;160m' "卸载百度网盘" "卸载百度网盘 Flatpak"
+                ui_touch_button 18 '\033[1;97;48;5;24m' "下一页" "办公与创作工具"
+                ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
                 ui_prompt
-                choice="$(read_touch_menu right:5-6:wechat right:7-8:qq right:9-10:browser right:11-12:chrome right:13-14:edge right:19-20:next right:23-24:home)"
+                choice="$(read_touch_menu right:2-3:wechat right:4-5:qq right:6-7:browser right:8-9:chrome right:10-11:edge right:12-13:rustdesk right:14-15:todesk right:16-17:baidunetdisk right:18-19:next right:20-21:home)"
                 ;;
             1)
-                draw_category_frame uninstall "卸载已安装" "远程与网盘 · 第 2/4 页"
-                ui_touch_button 5 '\033[1;97;48;5;160m' "卸载 RustDesk" "保留用户自行配置的数据"
-                ui_touch_button 7 '\033[1;97;48;5;160m' "卸载 ToDesk" "停止服务并卸载系统软件包"
-                ui_touch_button 9 '\033[1;97;48;5;160m' "卸载百度网盘" "卸载百度网盘 Flatpak"
-                ui_touch_button 11 '\033[1;97;48;5;160m' "卸载 WiliWili" "卸载 WiliWili Flatpak"
-                ui_touch_button 13 '\033[1;97;48;5;160m' "卸载 Xbox 云游戏" "卸载 Greenlight Flatpak"
-                ui_touch_button 19 '\033[1;97;48;5;24m' "上一页" "返回常用应用"
-                ui_touch_button 21 '\033[1;97;48;5;24m' "下一页" "办公、创作与兼容工具"
-                ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
+                draw_category_frame uninstall "卸载已安装" "办公与创作 · 第 2/7 页"
+                ui_touch_button 2 '\033[1;97;48;5;160m' "卸载 AnyDesk" "卸载 AnyDesk Flatpak"
+                ui_touch_button 4 '\033[1;97;48;5;160m' "卸载 WiliWili" "卸载 WiliWili Flatpak 与 Steam 条目"
+                ui_touch_button 6 '\033[1;97;48;5;160m' "卸载 Xbox 云游戏" "卸载 Greenlight Flatpak"
+                ui_touch_button 8 '\033[1;97;48;5;160m' "卸载 LibreOffice" "卸载 LibreOffice Flatpak"
+                ui_touch_button 10 '\033[1;97;48;5;160m' "卸载 VLC" "卸载 VLC Flatpak"
+                ui_touch_button 12 '\033[1;97;48;5;160m' "卸载 OBS Studio" "卸载 OBS Studio Flatpak"
+                ui_touch_button 14 '\033[1;97;48;5;160m' "卸载 LocalSend" "卸载 LocalSend Flatpak"
+                ui_touch_button 16 '\033[1;97;48;5;160m' "卸载 PeaZip" "卸载 PeaZip Flatpak"
+                ui_touch_button 18 '\033[1;97;48;5;24m' "上一页" "返回常用应用"
+                ui_touch_button 20 '\033[1;97;48;5;24m' "下一页" "兼容、音乐与下载工具"
+                ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
                 ui_prompt
-                choice="$(read_touch_menu right:5-6:rustdesk right:7-8:todesk right:9-10:baidunetdisk right:11-12:willwill right:13-14:xbox-cloud right:19-20:previous right:21-22:next right:23-24:home)"
+                choice="$(read_touch_menu right:2-3:anydesk right:4-5:willwill right:6-7:xbox-cloud right:8-9:libreoffice right:10-11:vlc right:12-13:obs right:14-15:localsend right:16-17:peazip right:18-19:previous right:20-21:next right:22-23:home)"
                 ;;
             2)
-                draw_category_frame uninstall "卸载已安装" "办公与工具 · 第 3/4 页"
-                ui_touch_button 5 '\033[1;97;48;5;160m' "卸载 LibreOffice" "卸载 LibreOffice Flatpak"
-                ui_touch_button 7 '\033[1;97;48;5;160m' "卸载 VLC" "卸载 VLC Flatpak"
-                ui_touch_button 9 '\033[1;97;48;5;160m' "卸载 OBS Studio" "卸载 OBS Studio Flatpak"
-                ui_touch_button 11 '\033[1;97;48;5;160m' "卸载 LocalSend" "卸载 LocalSend Flatpak"
-                ui_touch_button 13 '\033[1;97;48;5;160m' "卸载 Protontricks" "卸载 Protontricks Flatpak"
-                ui_touch_button 15 '\033[1;97;48;5;160m' "卸载 Bottles" "卸载 Bottles Flatpak"
-                ui_touch_button 17 '\033[1;97;48;5;160m' "卸载 PeaZip" "卸载 PeaZip Flatpak"
-                ui_touch_button 19 '\033[1;97;48;5;24m' "上一页" "返回远程与网盘"
-                ui_touch_button 21 '\033[1;97;48;5;24m' "下一页" "系统组件与插件"
-                ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
+                draw_category_frame uninstall "卸载已安装" "兼容、音乐与下载 · 第 3/7 页"
+                ui_touch_button 2 '\033[1;97;48;5;160m' "卸载中文输入法" "卸载 Fcitx5 及中文输入插件"
+                ui_touch_button 4 '\033[1;97;48;5;160m' "卸载 Protontricks" "卸载 Protontricks Flatpak"
+                ui_touch_button 6 '\033[1;97;48;5;160m' "卸载 Bottles" "卸载 Bottles Flatpak"
+                ui_touch_button 8 '\033[1;97;48;5;160m' "卸载 QQ音乐" "卸载 QQ音乐 Flatpak"
+                ui_touch_button 10 '\033[1;97;48;5;160m' "卸载网易云音乐" "卸载网易云音乐 Flatpak"
+                ui_touch_button 12 '\033[1;97;48;5;160m' "卸载 YesPlayMusic" "卸载 YesPlayMusic Flatpak"
+                ui_touch_button 14 '\033[1;97;48;5;160m' "卸载 qBittorrent" "卸载 qBittorrent Flatpak"
+                ui_touch_button 16 '\033[1;97;48;5;160m' "卸载 Motrix" "卸载 Motrix 下载器 Flatpak"
+                ui_touch_button 18 '\033[1;97;48;5;24m' "上一页" "返回办公与创作"
+                ui_touch_button 20 '\033[1;97;48;5;24m' "下一页" "下载、笔记与游戏串流"
+                ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
                 ui_prompt
-                choice="$(read_touch_menu right:5-6:libreoffice right:7-8:vlc right:9-10:obs right:11-12:localsend right:13-14:protontricks right:15-16:bottles right:17-18:peazip right:19-20:previous right:21-22:next right:23-24:home)"
+                choice="$(read_touch_menu right:2-3:fcitx5 right:4-5:protontricks right:6-7:bottles right:8-9:qqmusic right:10-11:netease-music right:12-13:yesplaymusic right:14-15:qbittorrent right:16-17:motrix right:18-19:previous right:20-21:next right:22-23:home)"
+                ;;
+            3)
+                draw_category_frame uninstall "卸载已安装" "下载、办公、笔记与串流 · 第 4/7 页"
+                ui_touch_button 2 '\033[1;97;48;5;160m' "卸载 Free Download Manager" "卸载 Free Download Manager Flatpak"
+                ui_touch_button 4 '\033[1;97;48;5;160m' "卸载 Media Downloader" "卸载 Media Downloader Flatpak"
+                ui_touch_button 6 '\033[1;97;48;5;160m' "卸载 Flameshot 截图" "卸载 Flameshot Flatpak"
+                ui_touch_button 8 '\033[1;97;48;5;160m' "卸载 OnlyOffice" "卸载 OnlyOffice Flatpak"
+                ui_touch_button 10 '\033[1;97;48;5;160m' "卸载 Joplin 笔记" "卸载 Joplin Flatpak"
+                ui_touch_button 12 '\033[1;97;48;5;160m' "卸载 Heroic" "移除 Heroic 及 Steam 库条目"
+                ui_touch_button 14 '\033[1;97;48;5;160m' "卸载 Lutris" "移除 Lutris 及 Steam 库条目"
+                ui_touch_button 16 '\033[1;97;48;5;160m' "卸载 Chiaki4Deck" "移除 Chiaki4Deck 及 Steam 库条目"
+                ui_touch_button 18 '\033[1;97;48;5;24m' "上一页" "返回兼容、音乐与下载"
+                ui_touch_button 20 '\033[1;97;48;5;24m' "下一页" "游戏启动器与模拟器"
+                ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
+                ui_prompt
+                choice="$(read_touch_menu right:2-3:freedownloadmanager right:4-5:media-downloader right:6-7:flameshot right:8-9:onlyoffice right:10-11:joplin right:12-13:heroic right:14-15:lutris right:16-17:chiaki4deck right:18-19:previous right:20-21:next right:22-23:home)"
+                ;;
+            4)
+                draw_category_frame uninstall "卸载已安装" "游戏启动器与模拟器 · 第 5/7 页"
+                ui_touch_button 2 '\033[1;97;48;5;160m' "卸载 Parsec" "移除 Parsec 及 Steam 库条目"
+                ui_touch_button 4 '\033[1;97;48;5;160m' "卸载战网启动器" "保留战网游戏与下载文件"
+                ui_touch_button 6 '\033[1;97;48;5;160m' "卸载 Epic" "保留 Epic 游戏与下载文件"
+                ui_touch_button 8 '\033[1;97;48;5;160m' "卸载育碧" "保留育碧游戏与下载文件"
+                ui_touch_button 10 '\033[1;97;48;5;160m' "卸载黑盒工坊" "保留插件与游戏文件"
+                ui_touch_button 12 '\033[1;97;48;5;160m' "卸载 Yuzu" "保留游戏存档与配置"
+                ui_touch_button 14 '\033[1;97;48;5;160m' "卸载 Cemu" "保留游戏存档与配置"
+                ui_touch_button 16 '\033[1;97;48;5;160m' "卸载 DuckStation" "保留游戏存档与配置"
+                ui_touch_button 18 '\033[1;97;48;5;24m' "上一页" "返回下载、笔记与串流"
+                ui_touch_button 20 '\033[1;97;48;5;24m' "下一页" "更多模拟器与系统组件"
+                ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
+                ui_prompt
+                choice="$(read_touch_menu right:2-3:parsec right:4-5:battlenet right:6-7:epic right:8-9:ubisoft right:10-11:heihe right:12-13:yuzu right:14-15:cemu right:16-17:duckstation right:18-19:previous right:20-21:next right:22-23:home)"
+                ;;
+            5)
+                draw_category_frame uninstall "卸载已安装" "模拟器与系统组件 · 第 6/7 页"
+                ui_touch_button 2 '\033[1;97;48;5;160m' "卸载 PCSX2" "保留游戏存档与配置"
+                ui_touch_button 4 '\033[1;97;48;5;160m' "卸载 RPCS3" "保留游戏存档与配置"
+                ui_touch_button 6 '\033[1;97;48;5;160m' "卸载 ShadPS4" "保留游戏存档与配置"
+                ui_touch_button 8 '\033[1;97;48;5;160m' "卸载 PPSSPP" "保留游戏存档与配置"
+                ui_touch_button 10 '\033[1;97;48;5;160m' "卸载 mGBA" "保留游戏存档与配置"
+                ui_touch_button 12 '\033[1;97;48;5;160m' "卸载 Azahar" "保留 3DS 存档与密钥"
+                ui_touch_button 14 '\033[1;97;48;5;160m' "卸载 Steam302" "停止后台加速并移除开机自启"
+                ui_touch_button 16 '\033[1;97;48;5;160m' "卸载 GE-Proton" "只删除工具箱当前版本"
+                ui_touch_button 18 '\033[1;97;48;5;24m' "上一页" "返回游戏启动器与模拟器"
+                ui_touch_button 20 '\033[1;97;48;5;24m' "下一页" "Decky 组件"
+                ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
+                ui_prompt
+                choice="$(read_touch_menu right:2-3:pcsx2 right:4-5:rpcs3 right:6-7:shadps4 right:8-9:ppsspp right:10-11:mgba right:12-13:azahar right:14-15:steam302 right:16-17:ge-proton right:18-19:previous right:20-21:next right:22-23:home)"
                 ;;
             *)
-                draw_category_frame uninstall "卸载已安装" "系统组件与插件 · 第 4/4 页"
-                ui_touch_button 5 '\033[1;97;48;5;160m' "卸载 Steam302" "停止后台加速并移除开机自启"
-                ui_touch_button 8 '\033[1;97;48;5;160m' "卸载 GE-Proton" "只删除工具箱当前版本"
-                ui_touch_button 11 '\033[1;97;48;5;160m' "卸载 Decky Loader" "保留全部插件文件与设置"
-                ui_touch_button 14 '\033[1;97;48;5;160m' "清空全部 Decky 插件" "删除插件与插件设置 · 高风险"
-                ui_touch_button 20 '\033[1;97;48;5;24m' "上一页" "返回远程与工具"
+                draw_category_frame uninstall "卸载已安装" "Decky 组件 · 第 7/7 页"
+                ui_touch_button 5 '\033[1;97;48;5;160m' "卸载 Decky Loader" "保留全部插件文件与设置"
+                ui_touch_button 8 '\033[1;97;48;5;160m' "清空全部 Decky 插件" "删除插件与插件设置 · 高风险"
+                ui_touch_button 20 '\033[1;97;48;5;24m' "上一页" "返回模拟器与系统组件"
                 ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
                 ui_prompt
-                choice="$(read_touch_menu right:5-6:steam302 right:8-9:ge-proton right:11-12:decky-loader right:14-15:decky-plugins right:20-21:previous right:23-24:home)"
+                choice="$(read_touch_menu right:5-6:decky-loader right:8-9:decky-plugins right:20-21:previous right:23-24:home)"
                 ;;
         esac
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
-            wechat|qq|browser|chrome|edge|rustdesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|protontricks|bottles|xbox-cloud)
+            wechat|qq|browser|chrome|edge|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5|protontricks|bottles|xbox-cloud|qqmusic|netease-music|yesplaymusic|qbittorrent|motrix|freedownloadmanager|media-downloader|flameshot|onlyoffice|joplin|heroic|lutris|chiaki4deck|parsec)
                 confirm_and_run "卸载软件" "只卸载所选软件及工具箱创建的快捷方式" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" uninstall "$choice"
+                ;;
+            battlenet|epic|ubisoft|heihe)
+                confirm_and_run "卸载游戏启动器" "会移除 Steam 库条目和桌面入口，保留游戏与下载文件" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/game_launchers.sh" uninstall "$choice"
+                ;;
+            yuzu|cemu|duckstation|pcsx2|rpcs3|shadps4|ppsspp|mgba|azahar)
+                confirm_and_run "卸载模拟器" "会移除 Steam 库条目和桌面入口，保留存档与配置" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/emulators.sh" uninstall "$choice"
                 ;;
             todesk)
                 confirm_and_run "卸载 ToDesk" "会停止服务并临时关闭 SteamOS 只读保护，完成后自动恢复" env ZHOUKEER_AUTO_CONFIRM=1 \
@@ -971,7 +1085,7 @@ uninstall_software_menu() {
                 confirm_and_run "清空全部 Decky 插件" "会删除全部插件文件和插件设置，但保留 Decky Loader" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" uninstall
                 ;;
-            next) page=$((page + 1)); [ "$page" -le 3 ] || page=3 ;;
+            next) page=$((page + 1)); [ "$page" -le 6 ] || page=6 ;;
             previous) page=$((page - 1)); [ "$page" -ge 0 ] || page=0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac

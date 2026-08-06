@@ -59,13 +59,14 @@ for menu in "$touch_software" "$gui_software"; do
     for item in '微信' 'QQ' 'Firefox 浏览器' 'Chrome 浏览器' 'Edge 浏览器' 'RustDesk 远程协助' 'AnyDesk 远程协助' 'ToDesk 远程协助' 'Windows 软件工具' '游戏兼容设置'; do
         assert_contains "$menu" "$item" "常用软件缺少：$item"
     done
-    for hidden in '网易云音乐' '战网'; do
-        assert_not_contains "$menu" "$hidden" "常用软件不应显示：$hidden"
-    done
+done
+assert_not_contains "$touch_software" '网易云音乐' "常用软件第一页不应显示：网易云音乐"
+for menu in "$touch_software" "$gui_software"; do
+    assert_not_contains "$menu" '战网' "常用软件不应显示：战网"
 done
 
 for menu in "$touch_software_more" "$gui_software"; do
-    for item in 'LibreOffice 办公套件' 'VLC 播放器' 'OBS Studio' 'LocalSend 局域网传文件' 'PeaZip 压缩工具' 'WiliWili' '中文输入法' 'Xbox 云游戏'; do
+    for item in 'LibreOffice 办公套件' 'VLC 播放器' 'OBS Studio' 'LocalSend 局域网传文件' 'PeaZip 压缩工具' 'WiliWili' '中文输入法' 'Xbox 云游戏' 'QQ音乐' '网易云音乐' 'YesPlayMusic' 'qBittorrent' 'Motrix 下载器' 'Free Download Manager' 'Media Downloader' 'Flameshot 截图' 'OnlyOffice 办公套件' 'Joplin 笔记' 'Heroic 游戏启动器' 'Lutris' 'Chiaki4Deck（PS5串流）' 'Parsec'; do
         assert_contains "$menu" "$item" "更多常用软件缺少：$item"
     done
 done
@@ -183,13 +184,12 @@ done
 touch_uninstall="$(function_source "$MAIN_FILE" uninstall_software_menu)"
 gui_uninstall="$(function_source "$GUI_FILE" uninstall_software_gui_menu)"
 for menu in "$touch_uninstall" "$gui_uninstall"; do
-    for item in '卸载微信' '卸载 QQ' '卸载 Firefox' '卸载 Chrome' '卸载 Edge' '卸载 RustDesk' '卸载 ToDesk' '卸载百度网盘' '卸载 WiliWili' '卸载 Xbox 云游戏' '卸载 LibreOffice' '卸载 VLC' '卸载 OBS Studio' '卸载 LocalSend' '卸载 PeaZip' '卸载 Protontricks' '卸载 Bottles' '卸载 Steam302' '卸载 GE-Proton' '卸载 Decky Loader' '清空全部 Decky 插件'; do
+    for item in '卸载微信' '卸载 QQ' '卸载 Firefox' '卸载 Chrome' '卸载 Edge' '卸载 RustDesk' '卸载 ToDesk' '卸载百度网盘' '卸载 AnyDesk' '卸载 WiliWili' '卸载 Xbox 云游戏' '卸载 LibreOffice' '卸载 VLC' '卸载 OBS Studio' '卸载 LocalSend' '卸载 PeaZip' '卸载中文输入法' '卸载 Protontricks' '卸载 Bottles' '卸载 QQ音乐' '卸载网易云音乐' '卸载 YesPlayMusic' '卸载 qBittorrent' '卸载 Motrix' '卸载 Free Download Manager' '卸载 Media Downloader' '卸载 Flameshot 截图' '卸载 OnlyOffice' '卸载 Joplin 笔记' '卸载 Heroic' '卸载 Lutris' '卸载 Chiaki4Deck' '卸载 Parsec' '卸载战网启动器' '卸载 Epic' '卸载育碧' '卸载黑盒工坊' '卸载 Yuzu' '卸载 Cemu' '卸载 DuckStation' '卸载 PCSX2' '卸载 RPCS3' '卸载 ShadPS4' '卸载 PPSSPP' '卸载 mGBA' '卸载 Azahar' '卸载 Steam302' '卸载 GE-Proton' '卸载 Decky Loader' '清空全部 Decky 插件'; do
         assert_contains "$menu" "$item" "卸载已安装缺少：$item"
     done
-    assert_contains "$menu" '第 1/4 页' "卸载菜单缺少第一页"
-    assert_contains "$menu" '第 2/4 页' "卸载菜单缺少第二页"
-    assert_contains "$menu" '第 3/4 页' "卸载菜单缺少第三页"
-    assert_contains "$menu" '第 4/4 页' "卸载菜单缺少第四页"
+    for page in 1 2 3 4 5 6 7; do
+        assert_contains "$menu" "第 $page/7 页" "卸载菜单缺少第 $page 页"
+    done
 done
 
 touch_games_page_1="$(function_source "$MAIN_FILE" game_environment_menu)"
