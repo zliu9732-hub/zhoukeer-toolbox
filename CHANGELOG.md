@@ -1,3 +1,11 @@
+## V1.6.1 修复非 Steam 游戏 AppID 失配并更换启动器封面 — 2026-08-06
+
+- shortcuts.vdf 现在写入 Steam 认可的 `appid` 字段，条目换路径或换名称时同步重算，封面和兼容层不再按旧 ID 写入。
+- Decky 应用封面和兼容层前先探测 Steam 实际识别的 AppID，找不到时仍覆盖全部候选 ID。
+- 主封面图增加 600x900 校验，误用横图时自动改用竖版图，避免 Steam 库封面变形。
+- 更换 Epic、战网、育碧、黑盒工坊四套封面、横幅、徽标和背景图。
+- 启动器兼容层设置提示改为醒目横幅，图形界面安装完成后追加弹窗提醒。
+
 ## V1.6.0 扩充常用软件并统一 Steam 入库与卸载 — 2026-08-06
 
 - “更多常用软件”扩充为三页，新增音乐、下载、截图、办公、笔记和游戏串流应用：QQ音乐、网易云音乐、YesPlayMusic、qBittorrent、Motrix、Free Download Manager、Media Downloader、Flameshot、OnlyOffice、Joplin、Heroic、Lutris、Chiaki4Deck、Parsec。

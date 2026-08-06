@@ -28,21 +28,8 @@ FILES_TO_COPY=(
     scripts/open_steam_internal_browser.sh
 )
 
-ASSET_FILES=(
-    battlenet.png
-    battlenet-grid.png
-    battlenet-portrait.png
-    battlenet-hero.png
-    battlenet-background.jpg
-    heihe.png
-    heihe-grid.png
-    heihe-portrait.png
-    heihe-hero.png
-    heihe-background.png
-)
-
 mkdir -p "$OUTPUT_DIR" "$STAGE_DIR/modules" "$STAGE_DIR/core" \
-    "$STAGE_DIR/utils" "$STAGE_DIR/scripts" "$STAGE_DIR/assets/game-launchers" || exit 1
+    "$STAGE_DIR/utils" "$STAGE_DIR/scripts" || exit 1
 
 cp "$PROJECT_ROOT/standalone/battlenet-heihe/install.sh" "$STAGE_DIR/install.sh" || exit 1
 cp "$PROJECT_ROOT/standalone/battlenet-heihe/README.md" "$STAGE_DIR/README.md" || exit 1
@@ -51,10 +38,6 @@ cp "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" "$STAGE_DIR/THIRD_PARTY_LICENSES.md" 
 
 for file in "${FILES_TO_COPY[@]}"; do
     cp "$PROJECT_ROOT/$file" "$STAGE_DIR/$file" || exit 1
-done
-
-for file in "${ASSET_FILES[@]}"; do
-    cp "$PROJECT_ROOT/assets/game-launchers/$file" "$STAGE_DIR/assets/game-launchers/$file" || exit 1
 done
 
 chmod 0755 "$STAGE_DIR/install.sh" || exit 1
@@ -67,11 +50,6 @@ cmp -s "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" "$STAGE_DIR/THIRD_PARTY_LICENSES.
 for file in "${FILES_TO_COPY[@]}"; do
     cmp -s "$PROJECT_ROOT/$file" "$STAGE_DIR/$file" || exit 1
 done
-for file in "${ASSET_FILES[@]}"; do
-    cmp -s "$PROJECT_ROOT/assets/game-launchers/$file" \
-        "$STAGE_DIR/assets/game-launchers/$file" || exit 1
-done
-
 bash -n "$STAGE_DIR/install.sh" || exit 1
 bash -n "$STAGE_DIR/modules/game_launchers.sh" || exit 1
 for file in "$STAGE_DIR/core/"*.sh "$STAGE_DIR/utils/"*.sh "$STAGE_DIR/scripts/"*.sh; do

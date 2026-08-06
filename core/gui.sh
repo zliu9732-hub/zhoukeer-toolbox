@@ -285,9 +285,11 @@ game_environment_gui_menu() {
                 [ "$GUI_NAV_HOME" -eq 0 ] || return 0
                 ;;
             epic)
-                run_gui_action "安装 Epic 游戏启动器并自动入库" \
+                if run_gui_action "安装 Epic 游戏启动器并自动入库" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
+                    bash "$PROJECT_ROOT/modules/game_launchers.sh" epic; then
+                    gui_notice "重要：请在 Steam 库中点击“Epic Games 启动器”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。"
+                fi
                 ;;
             tomoon)
                 gui_confirm "将下载 ToMoon 网络工具插件并校验 SHA256，随后安装到 Decky。是否继续？" && \
@@ -317,9 +319,11 @@ game_environment_gui_menu() {
                 esac
                 ;;
             ubisoft)
-                run_gui_action "安装育碧并自动入库" \
+                if run_gui_action "安装育碧并自动入库" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft
+                    bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft; then
+                    gui_notice "重要：请在 Steam 库中点击“育碧”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。"
+                fi
                 ;;
             decky-install)
                 decky_choice="$(gui_dialog --menu "安装插件商城｜请选择与 SteamOS 系统通道匹配的版本" \

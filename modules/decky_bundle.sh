@@ -208,6 +208,21 @@ find_decky_app_tab() {
     return 1
 }
 
+decky_recognized_appids() {
+    local token="$1" appids="$2" base_url="$3" max_time="$4"
+    local tab status id
+
+    while IFS=$'\t' read -r tab status id _; do
+        [ "$status" = "true" ] || continue
+        [ -n "$id" ] || continue
+        printf '%s\n' "$id"
+    done < <(python3 "$PROJECT_ROOT/scripts/decky_probe.py" \
+        --token "$token" \
+        --appids "$appids" \
+        --base-url "$base_url" \
+        --timeout "$max_time" 2>/dev/null || true)
+}
+
 build_steam_artwork_javascript() {
     local marker="$1" appids_json="$2" asset_type="$3" base64_data="$4"
 
@@ -232,8 +247,9 @@ build_steam_compat_javascript() {
 }
 
 apply_steam_compat_via_decky() {
-    local app_id="$1"
-    local token decky_tab code payload_file response
+    local app_ids="$*"
+    local app_id token decky_tab code payload_file response
+    local appids_csv recognized_ids
     local DECKY_EXECUTE_TIMEOUT="${DECKY_ARTWORK_TIMEOUT:-12}"
 
     detect_platform
@@ -241,7 +257,7 @@ apply_steam_compat_via_decky() {
         echo "Decky 兼容层设置仅支持真实 SteamOS 环境。"
         return 1
     fi
-    [ -n "$app_id" ] || {
+    [ -n "$app_ids" ] || {
         echo "缺少 Steam 快捷方式 appid。"
         return 1
     }
@@ -257,31 +273,41 @@ apply_steam_compat_via_decky() {
         echo "未检测到运行中的 Decky Loader。"
         return 1
     fi
-    decky_tab="$(find_decky_app_tab "$token" "$app_id" "$DECKY_API_BASE" "$DECKY_EXECUTE_TIMEOUT")" || {
+    appids_csv="$(printf '%s' "$app_ids" | tr ' ' ',')"
+    recognized_ids="$(decky_recognized_appids "$token" "$appids_csv" \
+        "$DECKY_API_BASE" "$DECKY_EXECUTE_TIMEOUT" | sort -u | paste -sd' ' -)"
+    if [ -n "$recognized_ids" ]; then
+        echo "检测到 Steam 实际使用的 AppID：$recognized_ids"
+        app_ids="$recognized_ids"
+    fi
+    decky_tab="$(find_decky_app_tab "$token" "$(printf '%s' "$app_ids" | tr ' ' ',')" \
+        "$DECKY_API_BASE" "$DECKY_EXECUTE_TIMEOUT")" || {
         echo "未找到能识别该快捷方式的 Steam 界面上下文，请切换游戏模式后重试。"
         return 1
     }
-    code="$(build_steam_compat_javascript "$app_id")"
-    payload_file="$(mktemp 2>/dev/null)" || return 1
-    printf '{"tab":%s,"run_async":true,"code":%s}\n' \
-        "$(json_quote "$decky_tab")" "$(json_quote "$code")" > "$payload_file"
-    if response="$(call_decky_execute_in_tab "$token" "$payload_file" \
-        "$DECKY_API_BASE" "zhoukeer-compat" "$DECKY_EXECUTE_TIMEOUT")"; then
-        rm -f -- "$payload_file"
-        if [[ "$response" == *"zhoukeer-compat-ok"* ]]; then
-            echo "已通过 Steam 界面启用 Proton 10.0-4 兼容层。"
-            return 0
+    for app_id in $app_ids; do
+        code="$(build_steam_compat_javascript "$app_id")"
+        payload_file="$(mktemp 2>/dev/null)" || return 1
+        printf '{"tab":%s,"run_async":true,"code":%s}\n' \
+            "$(json_quote "$decky_tab")" "$(json_quote "$code")" > "$payload_file"
+        if response="$(call_decky_execute_in_tab "$token" "$payload_file" \
+            "$DECKY_API_BASE" "zhoukeer-compat" "$DECKY_EXECUTE_TIMEOUT")"; then
+            rm -f -- "$payload_file"
+            if [[ "$response" == *"zhoukeer-compat-ok"* ]]; then
+                echo "已通过 Steam 界面启用 Proton 10.0-4 兼容层 (AppID $app_id)。"
+                return 0
+            fi
+        else
+            rm -f -- "$payload_file"
         fi
-        return 1
-    fi
-    rm -f -- "$payload_file"
+    done
     return 1
 }
 
 apply_steam_launcher_artwork_via_decky() {
     local target="$1"
     shift
-    local asset_name appids_json appids_csv decky_tab token marker
+    local asset_name appids_json appids_csv decky_tab token marker recognized_ids
     local entry type file_suffix asset_type file
     local DECKY_EXECUTE_TIMEOUT="${DECKY_ARTWORK_TIMEOUT:-12}"
     local payload_file tab payload_response artwork_ok failure_detail
@@ -319,6 +345,14 @@ apply_steam_launcher_artwork_via_decky() {
     if [ -z "$token" ]; then
         echo "未检测到运行中的 Decky Loader，无法即时应用 Steam 库封面。"
         return 1
+    fi
+    recognized_ids="$(decky_recognized_appids "$token" "$appids_csv" \
+        "$DECKY_API_BASE" "$DECKY_EXECUTE_TIMEOUT" | sort -u | paste -sd, -)"
+    if [ -n "$recognized_ids" ]; then
+        appids_csv="$recognized_ids"
+        appids_json="$(printf '%s' "$recognized_ids" | \
+            awk -F, '{printf "["; for (i=1;i<=NF;i++) { if (i>1) printf ","; printf "%s", $i } print "]"}')"
+        echo "检测到 Steam 实际使用的 AppID：$recognized_ids"
     fi
     decky_tab="$(find_decky_app_tab "$token" "$appids_csv" "$DECKY_API_BASE" "$DECKY_EXECUTE_TIMEOUT")" || true
 

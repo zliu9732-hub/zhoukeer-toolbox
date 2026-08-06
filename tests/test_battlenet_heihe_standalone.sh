@@ -29,9 +29,7 @@ for entry in \
     ./utils/gitee_download.sh \
     ./scripts/steam_shortcut.py \
     ./scripts/steam_compat.py \
-    ./scripts/open_steam_internal_browser.sh \
-    ./assets/game-launchers/battlenet.png \
-    ./assets/game-launchers/heihe.png; do
+    ./scripts/open_steam_internal_browser.sh; do
     tar -tzf "$PACKAGE" | grep -Fqx "$entry" || {
         echo "FAIL: 独立工具包缺少 $entry" >&2
         exit 1

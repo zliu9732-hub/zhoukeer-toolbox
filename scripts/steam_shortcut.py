@@ -153,6 +153,7 @@ def make_shortcut(
     index: int, name: str, exe: str, start_dir: str, launch_options: str = ""
 ) -> list[object]:
     fields: list[list[object]] = [
+        field_string("appid", str(shortcut_app_id(name, exe))),
         field_string("appname", name),
         field_string("exe", quote_path(exe)),
         field_string("StartDir", start_dir),
@@ -195,23 +196,24 @@ def add_shortcut(args: argparse.Namespace) -> None:
     quoted_exe = quote_path(args.exe)
     for entry in entries:
         if entry[0] == TYPE_OBJECT and entry_value(entry, b"exe") == quoted_exe:
+            changed = False
             if entry_value(entry, b"appname") != args.name:
                 set_string(entry, "appname", args.name)
+                changed = True
+            if entry_value(entry, b"StartDir") != args.start_dir:
                 set_string(entry, "StartDir", args.start_dir)
+                changed = True
+            if entry_value(entry, b"LaunchOptions") != args.launch_options:
                 set_string(entry, "LaunchOptions", args.launch_options)
+                changed = True
+            if entry_value(entry, b"appid") != str(shortcut_app_id(args.name, args.exe)):
+                set_string(entry, "appid", str(shortcut_app_id(args.name, args.exe)))
+                changed = True
+            if changed:
                 save_shortcuts(args.shortcut_file, entries)
                 print("updated")
-                return
-            if (
-                entry_value(entry, b"StartDir") != args.start_dir
-                or entry_value(entry, b"LaunchOptions") != args.launch_options
-            ):
-                set_string(entry, "StartDir", args.start_dir)
-                set_string(entry, "LaunchOptions", args.launch_options)
-                save_shortcuts(args.shortcut_file, entries)
-                print("updated")
-                return
-            print("existing")
+            else:
+                print("existing")
             return
     for entry in entries:
         if entry[0] != TYPE_OBJECT or entry_value(entry, b"appname") != args.name:
@@ -219,6 +221,7 @@ def add_shortcut(args: argparse.Namespace) -> None:
         set_string(entry, "exe", quoted_exe)
         set_string(entry, "StartDir", args.start_dir)
         set_string(entry, "LaunchOptions", args.launch_options)
+        set_string(entry, "appid", str(shortcut_app_id(args.name, args.exe)))
         save_shortcuts(args.shortcut_file, entries)
         print("updated")
         return
@@ -237,8 +240,10 @@ def update_shortcut(args: argparse.Namespace) -> None:
     for entry in entries:
         if entry[0] != TYPE_OBJECT or entry_value(entry, b"exe") != old_exe:
             continue
+        app_name = entry_value(entry, b"appname") or ""
         set_string(entry, "exe", quote_path(args.new_exe))
         set_string(entry, "StartDir", str(Path(args.new_exe).parent))
+        set_string(entry, "appid", str(shortcut_app_id(app_name, args.new_exe)))
         save_shortcuts(args.shortcut_file, entries)
         print("updated")
         return
@@ -379,6 +384,7 @@ def main() -> None:
 
     find_appid = subparsers.add_parser("find-appid")
     find_appid.add_argument("--name", required=True)
+    find_appid.add_argument("--exe")
 
     gameid = subparsers.add_parser("gameid")
     gameid.add_argument("--name", required=True)
@@ -425,8 +431,14 @@ def main() -> None:
                 continue
             if entry_value(entry, b"appname") != args.name:
                 continue
+            if args.exe and entry_value(entry, b"exe") != quote_path(args.exe):
+                continue
+            stored_app_id = entry_value(entry, b"appid")
             exe = (entry_value(entry, b"exe") or "").strip('"')
-            print(shortcut_app_id(args.name, exe))
+            if stored_app_id and stored_app_id.isdigit():
+                print(stored_app_id)
+            else:
+                print(shortcut_app_id(args.name, exe))
             break
         else:
             raise VdfError("shortcut not found")

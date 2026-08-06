@@ -931,12 +931,13 @@ shell_quote() {
 create_launcher_desktop_shortcut() {
     local target="$1" wrapper="$2" name icon
     case "$target" in
-        epic) name="Epic Games 启动器"; icon="$PROJECT_ROOT/assets/game-launchers/epic.png" ;;
-        battlenet) name="战网启动器"; icon="$PROJECT_ROOT/assets/game-launchers/battlenet.png" ;;
-        ubisoft|uplay) name="育碧"; icon="$PROJECT_ROOT/assets/game-launchers/ubisoft.png" ;;
-        heihe) name="黑盒工坊"; icon="$PROJECT_ROOT/assets/game-launchers/heihe.png" ;;
+        epic) name="Epic Games 启动器"; icon="$(launcher_cover_file "$target" "epic.png" || true)" ;;
+        battlenet) name="战网启动器"; icon="$(launcher_cover_file "$target" "battlenet.png" || true)" ;;
+        ubisoft|uplay) name="育碧"; icon="$(launcher_cover_file "$target" "ubisoft.png" || true)" ;;
+        heihe) name="黑盒工坊"; icon="$(launcher_cover_file "$target" "heihe.png" || true)" ;;
         *) return 1 ;;
     esac
+    [ -s "$icon" ] || icon="$PROJECT_ROOT/assets/icon-toolbox-deck.png"
     mkdir -p "$HOME/Desktop" || return 1
     if [ "$target" = "ubisoft" ] || [ "$target" = "uplay" ]; then
         local old_shortcut="$HOME/Desktop/Ubisoft Connect（Uplay）.desktop"
@@ -966,9 +967,10 @@ EOF
 create_steam_desktop_shortcut() {
     local target="$1" game_id="$2" name icon
     case "$target" in
-        battlenet) name="战网启动器"; icon="$PROJECT_ROOT/assets/game-launchers/battlenet.png" ;;
+        battlenet) name="战网启动器"; icon="$(launcher_cover_file "$target" "battlenet.png" || true)" ;;
         *) return 1 ;;
     esac
+    [ -s "$icon" ] || icon="$PROJECT_ROOT/assets/icon-toolbox-deck.png"
     case "$game_id" in
         ''|*[!0-9]*) echo "Steam 游戏编号无效，未创建桌面入口。"; return 1 ;;
     esac
@@ -1062,8 +1064,83 @@ install_launcher_steam_artwork() {
     done
 }
 
+launcher_cover_magic_ok() {
+    local file="$1" magic
+
+    magic="$(od -An -tx1 -N8 "$file" 2>/dev/null | tr -d ' \n')"
+    case "$magic" in
+        89504e47*) return 0 ;;
+        ffd8ff*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+launcher_cover_file() {
+    local target="$1" filename="$2"
+    local local_file="$PROJECT_ROOT/assets/game-launchers/$filename"
+    local cache_dir="${ZHOUKEER_LAUNCHER_COVER_CACHE_DIR:-$APP_DIR/game-launchers/covers}/$target"
+    local cached_file="$cache_dir/$filename"
+    local url temporary
+
+    if [ -s "$local_file" ] && [ ! -L "$local_file" ]; then
+        printf '%s\n' "$local_file"
+        return 0
+    fi
+    if [ -s "$cached_file" ] && [ ! -L "$cached_file" ] && launcher_cover_magic_ok "$cached_file"; then
+        printf '%s\n' "$cached_file"
+        return 0
+    fi
+    require_command curl || return 1
+    require_command od || return 1
+    mkdir -p "$cache_dir" || return 1
+    for url in \
+        "https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/assets/game-launchers/$filename" \
+        "https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/assets/game-launchers/$filename"; do
+        download_policy_url_allowed "$url" || continue
+        temporary="$cached_file.new.$$"
+        echo "正在下载 ${LAUNCHER_NAME:-工具箱} 封面素材：$filename"
+        if curl \
+            --fail \
+            --location \
+            --silent \
+            --proto '=https' \
+            --proto-redir '=https' \
+            --connect-timeout 10 \
+            --max-time 60 \
+            --retry 2 \
+            --max-filesize "$(download_policy_max_bytes "$url")" \
+            --output "$temporary" "$url" && \
+            download_policy_response_is_safe "$url" "$temporary" && \
+            launcher_cover_magic_ok "$temporary"; then
+            mv -f -- "$temporary" "$cached_file" || return 1
+            printf '%s\n' "$cached_file"
+            return 0
+        fi
+        rm -f -- "$temporary"
+    done
+    echo "下载封面素材失败：$filename" >&2
+    return 1
+}
+
+launcher_png_is_600x900() {
+    local file="$1"
+
+    python3 - "$file" <<'PY'
+import struct
+import sys
+
+with open(sys.argv[1], "rb") as handle:
+    head = handle.read(24)
+if len(head) < 24 or head[:8] != b"\x89PNG\r\n\x1a\n":
+    sys.exit(1)
+width, height = struct.unpack(">II", head[16:24])
+sys.exit(0 if (width, height) == (600, 900) else 1)
+PY
+}
+
 install_launcher_artwork_for_id() {
     local asset_name="$1" grid_dir="$2" artwork_id="$3"
+    local grid_source
 
     # Steam 自己的 SetCustomArtworkForApp 写入 PNG；同 stem 残留的 jpg/jpeg
     # 会让取图结果不确定，必须先清理再写入。
@@ -1085,34 +1162,56 @@ install_launcher_artwork_for_id() {
         "$grid_dir/${artwork_id}_icon.png" \
         "$grid_dir/${artwork_id}_background.jpg" \
         "$grid_dir/${artwork_id}_background.png"
-    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name.png" \
+    icon_source="$(launcher_cover_file "$asset_name" "$asset_name.png" || true)"
+    [ -s "$icon_source" ] || return 1
+    install -m 0644 -- "$icon_source" \
         "$grid_dir/${artwork_id}_icon.png" || return 1
-    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-grid.png" \
+    grid_source="$(launcher_cover_file "$asset_name" "$asset_name-grid.png" || true)"
+    if [ -s "$grid_source" ] && ! launcher_png_is_600x900 "$grid_source"; then
+        echo "主封面图不是 600x900 竖版，已改用竖版图写入 Steam 库封面：$asset_name"
+        grid_source="$(launcher_cover_file "$asset_name" "$asset_name-portrait.png" || true)"
+    fi
+    [ -s "$grid_source" ] || return 1
+    install -m 0644 -- "$grid_source" \
         "$grid_dir/${artwork_id}.png" || return 1
-    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-portrait.png" \
+    portrait_source="$(launcher_cover_file "$asset_name" "$asset_name-portrait.png" || true)"
+    [ -s "$portrait_source" ] || return 1
+    install -m 0644 -- "$portrait_source" \
         "$grid_dir/${artwork_id}p.png" || return 1
-    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name-hero.png" \
+    hero_source="$(launcher_cover_file "$asset_name" "$asset_name-hero.png" || true)"
+    [ -s "$hero_source" ] || return 1
+    install -m 0644 -- "$hero_source" \
         "$grid_dir/${artwork_id}_hero.png" || return 1
-    install -m 0644 -- "$PROJECT_ROOT/assets/game-launchers/$asset_name.png" \
+    install -m 0644 -- "$icon_source" \
         "$grid_dir/${artwork_id}_logo.png" || return 1
-    background_file="$PROJECT_ROOT/assets/game-launchers/$asset_name-background.jpg"
-    background_ext="jpg"
-    if [ ! -f "$background_file" ]; then
+    if [ -s "$PROJECT_ROOT/assets/game-launchers/$asset_name-background.jpg" ]; then
+        background_file="$PROJECT_ROOT/assets/game-launchers/$asset_name-background.jpg"
+        background_ext="jpg"
+    elif [ -s "$PROJECT_ROOT/assets/game-launchers/$asset_name-background.png" ]; then
         background_file="$PROJECT_ROOT/assets/game-launchers/$asset_name-background.png"
         background_ext="png"
+    else
+        background_file="$(launcher_cover_file "$asset_name" "$asset_name-background.jpg" || true)"
+        background_ext="jpg"
+        if [ ! -s "$background_file" ]; then
+            background_file="$(launcher_cover_file "$asset_name" "$asset_name-background.png" || true)"
+            background_ext="png"
+        fi
     fi
-    [ -f "$background_file" ] || return 1
+    [ -s "$background_file" ] || return 1
     install -m 0644 -- "$background_file" \
         "$grid_dir/${artwork_id}_background.$background_ext" || return 1
+    chmod 0755 -R -- "$grid_dir" 2>/dev/null || true
 }
 
 apply_launcher_decky_artwork() {
-    local target="$1" app_id="$2"
+    local target="$1"
     local attempt
+    shift
 
     [ "${IS_STEAMOS:-0}" -eq 1 ] || return 0
     for attempt in 1 2; do
-        if bash "$PROJECT_ROOT/scripts/apply_steam_artwork.sh" "$target" "$app_id" >/dev/null 2>&1; then
+        if bash "$PROJECT_ROOT/scripts/apply_steam_artwork.sh" "$target" "$@" >/dev/null 2>&1; then
             echo "$LAUNCHER_NAME Steam 库封面已即时应用。"
             return 0
         fi
@@ -1131,10 +1230,18 @@ set_steam_proton_10() {
 
 print_launcher_proton_hint() {
     echo ""
-    echo "============================================================"
-    echo "重要：Steam 会自动启动，请在库中点击“${LAUNCHER_NAME}”右侧的齿轮"
-    echo "→ 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。"
-    echo "============================================================"
+    echo "****************************************************************"
+    echo "*                        重 要 提 示                          *"
+    echo "****************************************************************"
+    echo "* 请务必进入 Steam 库，对“${LAUNCHER_NAME}”执行：              *"
+    echo "*                                                              *"
+    echo "* 1. 在游戏库中找到 ${LAUNCHER_NAME}                            *"
+    echo "* 2. 点击右侧的齿轮 → 属性 → 兼容性                            *"
+    echo "* 3. 勾选“强制使用兼容性工具”                                  *"
+    echo "* 4. 下拉选择 Proton 10.0-4                                    *"
+    echo "*                                                              *"
+    echo "* 未设置兼容层前请勿直接启动，否则启动器可能无法正常运行。      *"
+    echo "****************************************************************"
 }
 
 prepare_launcher_steam_installer() {
@@ -1143,10 +1250,11 @@ prepare_launcher_steam_installer() {
 
     launcher_details "$target" || return 1
     case "$target" in
-        battlenet) icon_path="$PROJECT_ROOT/assets/game-launchers/battlenet.png" ;;
-        heihe) icon_path="$PROJECT_ROOT/assets/game-launchers/heihe.png" ;;
+        battlenet) icon_path="$(launcher_cover_file "$target" "battlenet.png" || true)" ;;
+        heihe) icon_path="$(launcher_cover_file "$target" "heihe.png" || true)" ;;
         *) return 1 ;;
     esac
+    [ -s "$icon_path" ] || icon_path="$PROJECT_ROOT/assets/icon-toolbox-deck.png"
     stop_steam_for_vdf || return 1
     if [ "$target" = "battlenet" ]; then
         remove_pending_battlenet_desktop_shortcut || return 1
@@ -1156,7 +1264,7 @@ prepare_launcher_steam_installer() {
         >/dev/null || return 1
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" set-icon \
         --name "$LAUNCHER_NAME" --exe "$installer_file" --icon "$icon_path" >/dev/null || return 1
-    app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid \
+    app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" find-appid \
         --name "$LAUNCHER_NAME" --exe "$installer_file")" || return 1
     artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
         --name "$LAUNCHER_NAME" --exe "$installer_file")" || return 1
@@ -1183,10 +1291,11 @@ finish_launcher_steam_entry() {
 
     launcher_details "$target" || return 1
     case "$target" in
-        battlenet) icon_path="$PROJECT_ROOT/assets/game-launchers/battlenet.png" ;;
-        heihe) icon_path="$PROJECT_ROOT/assets/game-launchers/heihe.png" ;;
+        battlenet) icon_path="$(launcher_cover_file "$target" "battlenet.png" || true)" ;;
+        heihe) icon_path="$(launcher_cover_file "$target" "heihe.png" || true)" ;;
         *) return 1 ;;
     esac
+    [ -s "$icon_path" ] || icon_path="$PROJECT_ROOT/assets/icon-toolbox-deck.png"
     stop_steam_for_vdf || return 1
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" add \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe" --start-dir "$(dirname "$launcher_exe")" \
@@ -1199,7 +1308,7 @@ finish_launcher_steam_entry() {
     if [ "$target" = "battlenet" ]; then
         remove_legacy_battlenet_steam_entries "$shortcut_file" "$launcher_exe" || return 1
     fi
-    app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid \
+    app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" find-appid \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
     artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
@@ -1233,8 +1342,7 @@ finish_launcher_steam_entry() {
     start_steam
     if [ "${ZHOUKEER_SKIP_STEAM_RESTART:-0}" != "1" ]; then
         wait_for_steam_running || true
-        apply_launcher_decky_artwork "$target" "$app_id" || true
-        apply_launcher_decky_artwork "$target" "$artwork_alt_app_id" || true
+        apply_launcher_decky_artwork "$target" "$app_id" "$artwork_alt_app_id" "$game_id" || true
     fi
     echo "Steam 已启动，请确认库中的兼容层和封面。"
     print_launcher_proton_hint
@@ -1361,22 +1469,14 @@ install_launcher() {
         }
     fi
     case "$target" in
-        epic) icon_path="$PROJECT_ROOT/assets/game-launchers/epic.png" ;;
-        battlenet) icon_path="$PROJECT_ROOT/assets/game-launchers/battlenet.png" ;;
-        ubisoft|uplay) icon_path="$PROJECT_ROOT/assets/game-launchers/ubisoft.png" ;;
-        heihe) icon_path="$PROJECT_ROOT/assets/game-launchers/heihe.png" ;;
+        epic) icon_path="$(launcher_cover_file "$target" "epic.png" || true)" ;;
+        battlenet) icon_path="$(launcher_cover_file "$target" "battlenet.png" || true)" ;;
+        ubisoft|uplay) icon_path="$(launcher_cover_file "$target" "ubisoft.png" || true)" ;;
+        heihe) icon_path="$(launcher_cover_file "$target" "heihe.png" || true)" ;;
         *) return 1 ;;
     esac
+    [ -s "$icon_path" ] || icon_path="$PROJECT_ROOT/assets/icon-toolbox-deck.png"
     shortcut_file="$(find_shortcut_file "$steam_root")" || return 1
-    app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid \
-        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
-    artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
-        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
-    game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
-        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
-    wrapper="$(create_launcher_wrapper "$target" "$steam_root" "$prefix" "$runner" "$launcher_exe" \
-        "$app_dir" "$app_id" "$game_id")" || return 1
-    create_launcher_desktop_shortcut "$target" "$wrapper" || return 1
     stop_steam_for_vdf || return 1
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" add \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe" --start-dir "$(dirname "$launcher_exe")" \
@@ -1388,6 +1488,15 @@ install_launcher() {
         echo "$LAUNCHER_NAME 的 Steam 条目写入后校验失败，桌面图标仍可使用。"
         return 1
     }
+    app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" find-appid \
+        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
+    artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
+        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
+    game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
+        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
+    wrapper="$(create_launcher_wrapper "$target" "$steam_root" "$prefix" "$runner" "$launcher_exe" \
+        "$app_dir" "$app_id" "$game_id")" || return 1
+    create_launcher_desktop_shortcut "$target" "$wrapper" || return 1
     set_steam_proton_10 "$steam_root" "$app_id" || return 1
     set_steam_proton_10 "$steam_root" "$artwork_alt_app_id" || true
     link_steam_compatdata_drive "$steam_root" "$app_id" "$prefix" || return 1
@@ -1407,8 +1516,7 @@ install_launcher() {
     start_steam
     if [ "${ZHOUKEER_SKIP_STEAM_RESTART:-0}" != "1" ]; then
         wait_for_steam_running || true
-        apply_launcher_decky_artwork "$target" "$app_id" || true
-        apply_launcher_decky_artwork "$target" "$artwork_alt_app_id" || true
+        apply_launcher_decky_artwork "$target" "$app_id" "$artwork_alt_app_id" "$game_id" || true
     fi
     echo "$LAUNCHER_NAME 已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
     if [ "$target" = "epic" ]; then
