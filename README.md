@@ -195,7 +195,7 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 3. 更新 `VERSION` 与 `CHANGELOG.md`，确认本机 SSH 可以推送 Gitee。
 4. 执行 `bash scripts/deploy_release.sh` 生成发布包、`.sha256` 和 `SHA256SUMS` 校验文件；发布包必须不超过 9,437,184 字节。
 5. 只显式暂存本次发布文件，提交代码并打 tag，例如 `v1.2.0`；禁止 `git add .`、force push 或改写历史。
-6. 推送 `main` 与 tag 到 Gitee，再在 Gitee Release 中上传版本化发布包和 `.sha256` 校验文件。
+6. 只推送 `main` 与当前版本 tag（例如 `v1.6.1`），禁止使用 `git push --tags`；避免把已清理的旧标签带回仓库。再在 Gitee Release 中上传版本化发布包和 `.sha256` 校验文件。
 7. 在 Release 中写明安装、更新、卸载命令。
 8. 不要在 Release 包中包含密码、Token、邮箱或个人路径；桌面的 `管理员密码.txt` 仅在用户设备本地生成。
 
