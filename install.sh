@@ -499,6 +499,23 @@ copy_fsr4_chinese() {
     copy_dir_files third_party/decky-framegen-zh-v0.17/defaults
 }
 
+copy_simpledeckytdp_chinese() {
+    local source_dir="$SOURCE_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5"
+    local relative_file
+
+    # 只携带 Decky 运行 SimpleDeckyTDP 中文界面所需的已构建文件、后端与词库。
+    for relative_file in plugin.json package.json LICENSE main.py; do
+        if [ -f "$source_dir/$relative_file" ]; then
+            copy_file "$source_dir/$relative_file" \
+                "$STAGING_DIR/third_party/decky-simpledeckytdp-zh-v1.0.5/$relative_file"
+        fi
+    done
+    copy_file "$source_dir/dist/index.js" \
+        "$STAGING_DIR/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js"
+    copy_dir_files third_party/decky-simpledeckytdp-zh-v1.0.5/py_modules
+    copy_dir_files third_party/decky-simpledeckytdp-zh-v1.0.5/i18n
+}
+
 remove_appledouble_files() {
     local root="$1"
 
@@ -520,6 +537,7 @@ copy_dir_files assets
 copy_dir_files scripts
 copy_lsfg_chinese
 copy_fsr4_chinese
+copy_simpledeckytdp_chinese
 
 # 标记由安装器管理的目录，启动器只在这类目录中执行自动更新。
 printf '%s\n' "zhoukeer-toolbox" > "$STAGING_DIR/.zhoukeer-installed"

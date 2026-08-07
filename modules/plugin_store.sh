@@ -50,6 +50,10 @@ FSR4_ZH_INDEX_SHA256="b1e2820aeb31fdb6f63a3ae622c04a49951b582e44b3225781ea2211bd
 FSR4_RUNTIME_ARCHIVE="Optiscaler_0.9.4-final.20260718._MM.7z"
 FSR4_RUNTIME_UPSCALER="amd_fidelityfx_upscaler_dx12.dll"
 FSR4_RUNTIME_PATCHER="OptiPatcher_rolling.asi"
+SIMPLEDECKYTDP_OFFICIAL_DIRECTORY="SimpleDeckyTDP"
+SIMPLEDECKYTDP_OFFICIAL_VERSION="1.0.5"
+SIMPLEDECKYTDP_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5"
+SIMPLEDECKYTDP_ZH_INDEX_SHA256="068deb73671f7f296114ff4f349de58d172ee95b049ca9c7576002829afeb5e8"
 
 # 五款独立插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
@@ -2319,6 +2323,122 @@ install_fsr4_zh_from_gitee() {
     log "FSR4 v$FSR4_OFFICIAL_VERSION 汉化完整包安装完成"
 }
 
+install_simpledeckytdp_chinese() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local actual_sha256
+    local bundled_version
+    local reload_after="${1:-1}"
+    local official_bin_dir
+    local work_dir
+    local staged_source
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "SimpleDeckyTDP 中文界面仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    if feature_plugin_is_current "$plugin_root" "$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" \
+        "$SIMPLEDECKYTDP_OFFICIAL_VERSION" \
+        "SimpleDeckyTDP（TDP 性能控制）"; then
+        echo "[已安装] SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
+        return 0
+    fi
+    if [ -L "$SIMPLEDECKYTDP_ZH_SOURCE_DIR" ] || \
+       [ ! -f "$SIMPLEDECKYTDP_ZH_SOURCE_DIR/plugin.json" ] || \
+       [ ! -f "$SIMPLEDECKYTDP_ZH_SOURCE_DIR/package.json" ] || \
+       [ ! -s "$SIMPLEDECKYTDP_ZH_SOURCE_DIR/dist/index.js" ] || \
+       [ ! -f "$SIMPLEDECKYTDP_ZH_SOURCE_DIR/LICENSE" ]; then
+        echo "SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文组件不完整，请更新Renkit后再试。"
+        return 1
+    fi
+    bundled_version="$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+        "$SIMPLEDECKYTDP_ZH_SOURCE_DIR/package.json" | head -n 1)"
+    if [ "$bundled_version" != "$SIMPLEDECKYTDP_OFFICIAL_VERSION" ]; then
+        echo "SimpleDeckyTDP 中文组件版本 $bundled_version 与目标 v$SIMPLEDECKYTDP_OFFICIAL_VERSION 不一致，已停止覆盖。"
+        return 1
+    fi
+    actual_sha256="$(calculate_decky_sha256 "$SIMPLEDECKYTDP_ZH_SOURCE_DIR/dist/index.js")" || return 1
+    if [ "$actual_sha256" != "$SIMPLEDECKYTDP_ZH_INDEX_SHA256" ]; then
+        echo "SimpleDeckyTDP 中文组件校验失败，已停止覆盖。"
+        return 1
+    fi
+    official_bin_dir="$plugin_root/$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY/bin"
+    if [ ! -s "$official_bin_dir/ryzenadj" ] || \
+       [ ! -s "$official_bin_dir/libryzenadj.so" ] || \
+       [ ! -f "$official_bin_dir/LICENSE-ryzenadj" ]; then
+        echo "SimpleDeckyTDP 运行核心缺失，请先安装官方插件再覆盖中文界面。"
+        return 1
+    fi
+    prepare_plugin_root "$plugin_root" || return 1
+    work_dir="$(mktemp -d)" || return 1
+    staged_source="$work_dir/$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY"
+    if ! cp -a -- "$SIMPLEDECKYTDP_ZH_SOURCE_DIR" "$staged_source" || \
+       ! cp -a -- "$official_bin_dir" "$staged_source/bin"; then
+        rm -rf -- "$work_dir"
+        echo "SimpleDeckyTDP 中文组件准备失败，原版未改动。"
+        return 1
+    fi
+    install_tree_atomically "$staged_source" "$plugin_root" "$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" || {
+        rm -rf -- "$work_dir"
+        echo "SimpleDeckyTDP 中文界面安装失败，已尽量保留原版。"
+        return 1
+    }
+    rm -rf -- "$work_dir"
+    echo "SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文界面已安装（Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化）。"
+    echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
+    echo "原作者：Aarron Lee；许可证：BSD 3-Clause。"
+    if [ "$reload_after" = "1" ]; then
+        reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 SimpleDeckyTDP 即可看到中文界面。"
+    fi
+    log "SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文界面安装完成"
+}
+
+# 优先使用 Gitee 国内源，失败后回退 GitHub Release，最后回退原版叠加。
+install_simpledeckytdp_zh_from_gitee() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local reload_after="${1:-1}"
+    local installed_version
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "SimpleDeckyTDP 中文版仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    if feature_plugin_is_current "$plugin_root" "$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" \
+        "$SIMPLEDECKYTDP_OFFICIAL_VERSION" \
+        "SimpleDeckyTDP（TDP 性能控制）"; then
+        echo "[已安装] SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
+        return 0
+    fi
+    if feature_plugin_is_present "$plugin_root" "$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" \
+        "SimpleDeckyTDP（TDP 性能控制）" "SimpleDeckyTDP"; then
+        installed_version="$(decky_plugin_version "$plugin_root/$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" || true)"
+        echo "检测到现有 SimpleDeckyTDP 版本 ${installed_version:-未知}，正在更新中文插件到 $SIMPLEDECKYTDP_OFFICIAL_VERSION。"
+    fi
+
+    echo "正在安装 SimpleDeckyTDP 中文版..."
+    if install_decky_zip_from_mirror \
+        "SimpleDeckyTDP" \
+        "simpledeckytdp" \
+        "${DECKY_SIMPLE_TDP_SHA256:-}" \
+        "$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY"; then
+        install_simpledeckytdp_chinese "$reload_after" || return 1
+    else
+        cleanup_decky_tmp
+        trap - EXIT INT TERM
+        log "SimpleDeckyTDP Gitee 镜像不可用，切换 GitHub Release"
+        install_configured_plugin simpledeckytdp 0 0 || return 1
+        install_simpledeckytdp_chinese "$reload_after"
+        return $?
+    fi
+    echo "SimpleDeckyTDP 安装成功。"
+    echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
+    if [ "$reload_after" = "1" ]; then
+        reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 SimpleDeckyTDP 即可看到中文界面。"
+    fi
+    log "SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文版安装完成"
+}
+
 restore_lsfg_official() {
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
@@ -2958,6 +3078,8 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         lsfg-zh-gitee) install_lsfg_zh_from_gitee && refresh_feature_usage_guides ;;
         fsr4-zh) install_fsr4_chinese && refresh_feature_usage_guides ;;
         fsr4-zh-gitee) install_fsr4_zh_from_gitee && refresh_feature_usage_guides ;;
+        simpledeckytdp-zh) install_simpledeckytdp_chinese ;;
+        simpledeckytdp-zh-gitee) install_simpledeckytdp_zh_from_gitee ;;
         lsfg-restore) show_plugin_download_speed_tip; restore_lsfg_official ;;
         lsfg-store) open_lossless_store ;;
         lsfg-import-select) select_and_import_lossless_backup ;;

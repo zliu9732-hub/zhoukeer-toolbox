@@ -262,6 +262,26 @@ fsr4_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-framegen-zh
     echo "FAIL: FSR4 中文构建文件校验值不匹配" >&2
     exit 1
 }
+grep -Fq '"name": "SimpleDeckyTDP（TDP 性能控制）"' \
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/plugin.json"
+grep -Fq '"version": "1.0.5"' \
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/package.json"
+[ "$(grep -Fc 'Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化' "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js")" -ge 1 ] || {
+    echo "FAIL: SimpleDeckyTDP 插件打开后缺少可见汉化署名" >&2
+    exit 1
+}
+simpledeckytdp_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js" | awk '{print $1}')"
+[ "$simpledeckytdp_actual_sha256" = "068deb73671f7f296114ff4f349de58d172ee95b049ca9c7576002829afeb5e8" ] || {
+    echo "FAIL: SimpleDeckyTDP 中文构建文件校验值不匹配" >&2
+    exit 1
+}
+grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="068deb73671f7f296114ff4f349de58d172ee95b049ca9c7576002829afeb5e8"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'install_simpledeckytdp_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'simpledeckytdp-zh-gitee) install_simpledeckytdp_zh_from_gitee' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'cp -a -- "$official_bin_dir" "$staged_source/bin"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '"version": "0.12.5"' \
     "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/package.json"
 zh_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js" | awk '{print $1}')"
@@ -300,6 +320,9 @@ fi
 
 output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg || true)"
 printf '%s\n' "$output" | grep -Fq '仅支持真实 SteamOS 环境'
+
+simpledeckytdp_output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee || true)"
+printf '%s\n' "$simpledeckytdp_output" | grep -Fq '仅支持真实 SteamOS 环境'
 
 # 小黄鸭官方 v0.12.5 使用 Decky LSFG-VK，旧汉化包使用“小黄鸭”；
 # 状态检查必须同时兼容官方名和旧中文名。

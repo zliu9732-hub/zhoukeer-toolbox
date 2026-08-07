@@ -1,3 +1,8 @@
+## Renkit 1.0.3 SimpleDeckyTDP 完整汉化 — 2026-08-08
+
+- SimpleDeckyTDP 插件完整汉化：修复 Steam 中文语言码未命中导致瓦数、滑块等界面回退英文的问题，补齐 GPU 模式、EPP/调频选项、TDP 范围等界面中文。
+- 汉化组件内置并带 Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）署名，安装复用 Gitee 镜像优先、GitHub Release 回退并校验 SHA256。
+
 ## Renkit 1.0.2 修复虚拟内存撤销与启动器封面 — 2026-08-08
 
 - 新增“掌机适配 → 飞行家 F1 屏幕方向修复”，通过用户级 gamescope wrapper 与 systemd override 修复 ONEXPLAYER F1 游戏模式画面倒置，不使用 sudo、不修改只读系统。
