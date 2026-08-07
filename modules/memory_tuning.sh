@@ -67,11 +67,10 @@ memory_clear_immutable_attribute() {
     local attributes
 
     MEMORY_SWAPFILE_WAS_IMMUTABLE=0
-    command -v lsattr >/dev/null 2>&1 && command -v chattr >/dev/null 2>&1 || return 0
     attributes="$(toolbox_sudo lsattr -d -- "$path" 2>/dev/null | awk 'NR == 1 { print $1 }')"
     case "$attributes" in
         *i*)
-            toolbox_sudo chattr -i -- "$path" || {
+            toolbox_sudo chattr -i -- "$path" 2>/dev/null || {
                 echo "现有 swap 带不可变保护且无法临时解除，未做替换。"
                 return 1
             }
@@ -96,7 +95,6 @@ memory_move_swapfile_after_forced_immutable_clear() {
     local source_path="$1"
     local backup_path="$2"
 
-    command -v chattr >/dev/null 2>&1 || return 1
     echo "现有 swap 首次移动失败，正在再次解除不可变保护后重试..."
     toolbox_sudo chattr -i -- "$source_path" || return 1
     toolbox_sudo mv -- "$source_path" "$backup_path" || return 1
@@ -405,12 +403,32 @@ memory_remove_managed_fallback_swap() {
             return 1
         }
         if ! toolbox_sudo rm -f -- "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
-            memory_restore_immutable_attribute "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
-            [ "$fallback_was_active" -eq 0 ] || \
-                toolbox_sudo swapon --priority 10 "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
-            memory_restore_managed_unit_enablement "$unit_name" || true
-            echo "Renkit独立 swap 删除失败，已尝试恢复原状态。"
-            return 1
+            parent_attributes="$(toolbox_sudo lsattr -d -- \
+                "$(dirname "$MEMORY_FALLBACK_SWAPFILE_PATH")" 2>/dev/null | \
+                awk 'NR == 1 { print $1 }')"
+            case "$parent_attributes" in
+                *i*|*a*)
+                    memory_restore_immutable_attribute "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
+                    [ "$fallback_was_active" -eq 0 ] || \
+                        toolbox_sudo swapon --priority 10 "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
+                    memory_restore_managed_unit_enablement "$unit_name" || true
+                    echo "Renkit独立 swap 所在目录受保护，未自动解除：$(dirname "$MEMORY_FALLBACK_SWAPFILE_PATH")"
+                    return 1
+                    ;;
+            esac
+            # lsattr 读取失败或命令不可用时，也直接尝试解除文件自身的
+            # immutable 保护后再删除一次，避免撤销被 SteamOS 保护卡住。
+            if toolbox_sudo chattr -i -- "$MEMORY_FALLBACK_SWAPFILE_PATH" >/dev/null 2>&1 && \
+               toolbox_sudo rm -f -- "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
+                :
+            else
+                memory_restore_immutable_attribute "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
+                [ "$fallback_was_active" -eq 0 ] || \
+                    toolbox_sudo swapon --priority 10 "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
+                memory_restore_managed_unit_enablement "$unit_name" || true
+                echo "Renkit独立 swap 删除失败，已尝试恢复原状态。"
+                return 1
+            fi
         fi
     fi
     toolbox_sudo rm -f -- "$unit_path" || {

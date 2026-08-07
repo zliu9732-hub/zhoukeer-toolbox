@@ -164,13 +164,13 @@ touch_advanced="$(function_source "$MAIN_FILE" advanced_tools_menu)"
 gui_advanced="$(function_source "$GUI_FILE" advanced_tools_gui_menu)"
 for menu in "$touch_advanced" "$gui_advanced"; do
     assert_contains "$menu" '国内下载、网络加速、内存、密码与双系统' "更多设置缺少功能概览"
-    for item in '国内软件源' 'Steamcommunity 302' '虚拟内存' '修改管理员密码' '双系统与互通盘'; do
+    for item in '国内软件源' 'Steamcommunity 302' '虚拟内存' '修改管理员密码' '双系统与互通盘' '掌机适配'; do
         assert_contains "$menu" "$item" "系统设置缺少：$item"
     done
     for removed in '设置管理员密码' '安装插件商城' '安装 ToDesk'; do
         assert_not_contains "$menu" "$removed" "系统设置仍显示重复入口：$removed"
     done
-    for risk_text in 'Flatpak 软件源' '修改 DNS' 'zram' '管理密码' '管理磁盘和开机菜单'; do
+    for risk_text in 'Flatpak 软件源' '修改 DNS' 'zram' '管理密码' '管理磁盘和开机菜单' '不使用 sudo'; do
         assert_contains "$menu" "$risk_text" "系统设置缺少风险说明：$risk_text"
     done
 done
@@ -182,6 +182,16 @@ for menu in "$touch_memory" "$gui_memory"; do
         assert_contains "$menu" "$item" "虚拟内存子菜单缺少：$item"
     done
     assert_contains "$menu" 'modules/memory_tuning.sh" restore' "虚拟内存子菜单未调用安全撤销动作"
+done
+
+touch_f1="$(function_source "$MAIN_FILE" f1_handheld_menu)"
+gui_f1="$(function_source "$GUI_FILE" f1_screen_fix_gui_menu)"
+for menu in "$touch_f1" "$gui_f1"; do
+    for item in '安装修复' '检查状态' '卸载修复' '立即重启 SteamOS' 'ONEXPLAYER F1' '不使用 sudo'; do
+        assert_contains "$menu" "$item" "飞行家 F1 子菜单缺少：$item"
+    done
+    assert_contains "$touch_f1" 'right:7-8:install' "飞行家 F1 安装坐标错误"
+    assert_contains "$touch_f1" 'right:13-14:reboot' "飞行家 F1 重启坐标错误"
 done
 
 touch_uninstall="$(function_source "$MAIN_FILE" uninstall_software_menu)"
@@ -236,7 +246,7 @@ for menu in "$touch_dual" "$gui_dual"; do
     assert_not_contains "$menu" 'modules/dual_system.sh" remove' "双系统菜单仍可执行旧 systemd-boot 隐藏动作"
 done
 
-for gui_menu_name in software_menu game_environment_gui_menu emulator_gui_menu support_gui_menu plugin_official_gui_pages dual_system_menu steam_accelerator_gui_menu maintenance_gui_menu help_gui_menu new_machine_gui_menu advanced_tools_gui_menu memory_gui_menu; do
+for gui_menu_name in software_menu game_environment_gui_menu emulator_gui_menu support_gui_menu plugin_official_gui_pages dual_system_menu steam_accelerator_gui_menu maintenance_gui_menu help_gui_menu new_machine_gui_menu advanced_tools_gui_menu memory_gui_menu f1_screen_fix_gui_menu; do
     gui_menu="$(function_source "$GUI_FILE" "$gui_menu_name")"
     assert_contains "$gui_menu" 'home "返回首页"' "GUI 页面缺少返回首页：$gui_menu_name"
     assert_contains "$gui_menu" 'nav-exit "退出Renkit"' "GUI 页面缺少退出Renkit：$gui_menu_name"

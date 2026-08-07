@@ -585,7 +585,7 @@ plugin_page_2_menu() {
 
     while true; do
         draw_category_frame games "插件安装｜更多" "更多独立插件和启动器" 0
-        ui_touch_button 5 '\033[1;97;48;5;24m' "SimpleDeckyTDP" "TDP/功耗性能控制"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "SimpleDeckyTDP" "TDP/功耗性能控制·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
         ui_touch_button 7 '\033[1;97;48;5;24m' "Unifideck" "入库第三方平台游戏"
         ui_touch_button 9 '\033[1;97;48;5;24m' "ToMoon" "网络工具"
         ui_touch_button 11 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
@@ -600,7 +600,7 @@ plugin_page_2_menu() {
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            simpledeckytdp) confirm_and_run "安装 SimpleDeckyTDP" "TDP/功耗性能控制插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp ;;
+            simpledeckytdp) confirm_and_run "安装 SimpleDeckyTDP 中文版" "TDP/功耗性能控制·国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee ;;
             unifideck) confirm_and_run "安装 Unifideck" "入库第三方平台游戏；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
             epic) confirm_and_run "安装 Epic 游戏启动器" "安装并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
             tomoon) confirm_and_run "安装 ToMoon" "网络工具插件，下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon ;;
@@ -958,6 +958,46 @@ memory_touch_menu() {
     done
 }
 
+f1_handheld_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame advanced "掌机适配" "飞行家 F1 屏幕方向修复 · 不使用 sudo"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "安装修复" "仅适用于 ONEXPLAYER F1"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "检查状态" "查看修复文件和 systemd override"
+        ui_touch_button 11 '\033[1;97;48;5;160m' "卸载修复" "删除用户级修复并恢复原始启动方式"
+        ui_touch_button 13 '\033[1;97;48;5;160m' "立即重启 SteamOS" "重启后生效 · 请先保存工作"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回更多设置" "查看其他系统功能"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:7-8:install right:9-10:status right:11-12:uninstall right:13-14:reboot right:19-20:advanced right:22-23:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            install)
+                confirm_and_run "安装飞行家 F1 屏幕方向修复" "仅适用于 ONEXPLAYER F1；使用用户级 systemd override，不使用 sudo" \
+                    bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" install
+                return 0
+                ;;
+            status)
+                run_action "飞行家 F1 屏幕方向修复状态" bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" status
+                return 0
+                ;;
+            uninstall)
+                confirm_and_run "卸载飞行家 F1 屏幕方向修复" "将删除用户级修复文件并刷新 systemd，不使用 sudo" \
+                    bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" uninstall
+                return 0
+                ;;
+            reboot)
+                confirm_and_run "立即重启 SteamOS" "将立即重启；请先保存所有工作" \
+                    bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" reboot
+                return 0
+                ;;
+            advanced) return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+    done
+}
+
 advanced_tools_menu() {
     local choice
 
@@ -968,9 +1008,10 @@ advanced_tools_menu() {
         ui_touch_button 11 '\033[1;97;48;5;160m' "虚拟内存" "设置 zram、swap 或撤销 · 高级操作"
         ui_touch_button 13 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
         ui_touch_button 15 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单 · 高级操作"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "掌机适配" "飞行家 F1 屏幕方向修复 · 不使用 sudo"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:memory right:13-14:change-password right:15-16:dual right:22-23:home)"
+        choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:memory right:13-14:change-password right:15-16:dual right:17-18:handheld right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             domestic-source) domestic_source_preflight ;;
@@ -978,6 +1019,7 @@ advanced_tools_menu() {
             memory) memory_touch_menu ;;
             change-password) confirm_and_run "修改管理员密码" "将读取旧记录并明文保存新密码；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;
             dual) dual_system_menu ;;
+            handheld) f1_handheld_menu ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "advanced" ] || return 0

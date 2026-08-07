@@ -25,9 +25,11 @@ source "$MODULE"
 
 SYSTEMCTL_LOG="$TMP_ROOT/systemctl.log"
 SWAP_LOG="$TMP_ROOT/swap.log"
+CHATTR_LOG="$TMP_ROOT/chattr.log"
 FALLBACK_ACTIVE=1
 SWAPOFF_FAIL=0
 SYSTEMCTL_DISABLE_FAIL=0
+RM_FAIL_ONCE=0
 FALLBACK_UNIT_STATE=enabled
 MAIN_UNIT_STATE=enabled
 
@@ -48,6 +50,21 @@ toolbox_sudo() {
     case "${1:-}" in
         true) return 0 ;;
         blkid) printf 'swap\n' ;;
+        lsattr) return 1 ;;
+        chattr)
+            printf '%s\n' "$*" >> "$CHATTR_LOG"
+            return 0
+            ;;
+        rm)
+            if [ "$RM_FAIL_ONCE" -eq 1 ] && [ "${3:-}" = "--" ] && \
+                [ "${4:-}" = "$MEMORY_FALLBACK_SWAPFILE_PATH" ]; then
+                RM_FAIL_ONCE=0
+                echo "rm: cannot remove '$MEMORY_FALLBACK_SWAPFILE_PATH': Operation not permitted" >&2
+                return 1
+            fi
+            shift
+            command rm "$@"
+            ;;
         systemctl)
             printf '%s\n' "$*" >> "$SYSTEMCTL_LOG"
             case "${2:-}" in
@@ -175,5 +192,19 @@ fi
 [ -f "$ZHOUKEER_SYSTEMD_DIR/fallback.swap" ] || fail "停用单元失败后删除了独立 swap 单元"
 grep -Fq '无法停用Renkit swap 开机配置' "$TMP_ROOT/disable-fail.output" || \
     fail "开机单元停用失败仍没有明确提示"
+
+# rm 首次被文件保护拒绝时，应尝试解除 immutable 并重试删除。
+RM_FAIL_ONCE=1
+SYSTEMCTL_DISABLE_FAIL=0
+SWAPOFF_FAIL=0
+prepare_managed_files
+FALLBACK_ACTIVE=1
+: > "$CHATTR_LOG"
+memory_restore_toolbox > "$TMP_ROOT/protected-rm.output" || \
+    fail "解除只读保护后仍未能删除Renkit独立 swap"
+[ ! -e "$MEMORY_FALLBACK_SWAPFILE_PATH" ] || fail "解除保护后Renkit独立 swap 仍未删除"
+[ -f "$MEMORY_SWAPFILE_PATH" ] || fail "只读保护重试场景删除了系统原 swap"
+grep -Fq -- '-i --' "$CHATTR_LOG" || fail "删除失败后没有尝试解除不可变保护"
+grep -Fq '系统原 swap 已保留' "$TMP_ROOT/protected-rm.output" || fail "重试成功缺少完成提示"
 
 echo "PASS: Renkit虚拟内存撤销、原 swap 保留、幂等与失败回滚模拟通过"

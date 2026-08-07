@@ -1097,7 +1097,7 @@ ensure_launcher_covers_cached() {
         rm -f -- "$bundle"
         return 1
     }
-    if ! tar -xzf "$bundle" -C "$tmp_dir"; then
+    if ! tar --no-xattrs --warning=no-unknown-keyword -xzf "$bundle" -C "$tmp_dir"; then
         rm -f -- "$bundle"
         return 1
     fi
@@ -1250,25 +1250,6 @@ set_steam_proton_10() {
         --app-id "$app_id" --tool proton_10 >/dev/null
 }
 
-print_launcher_proton_hint() {
-    echo ""
-    echo "****************************************************************"
-    echo "*                        重 要 提 示                          *"
-    echo "****************************************************************"
-    echo "* 请务必进入 Steam 库，对“${LAUNCHER_NAME}”执行：              *"
-    echo "*                                                              *"
-    echo "* 1. 在游戏库中找到 ${LAUNCHER_NAME}                            *"
-    echo "* 2. 点击右侧的齿轮 → 属性 → 兼容性                            *"
-    echo "* 3. 勾选“强制使用兼容性工具”                                  *"
-    echo "* 4. 下拉选择 Proton 10.0-4                                    *"
-    echo "*                                                              *"
-    echo "* 未设置兼容层前请勿直接启动，否则启动器可能无法正常运行。      *"
-    echo "* 若点击开始游戏没反应，请点启动器右侧齿轮 → 属性 → 兼容性，   *"
-    echo "* 勾选“强制使用兼容性工具”，选择 Proton Experimental 或        *"
-    echo "* Proton 10.0.1 后重试。                                       *"
-    echo "****************************************************************"
-}
-
 prepare_launcher_steam_installer() {
     local target="$1" steam_root="$2" installer_file="$3" shortcut_file="$4"
     local app_id artwork_alt_app_id game_id icon_path
@@ -1307,7 +1288,6 @@ prepare_launcher_steam_installer() {
     ZHOUKEER_STEAM_STOPPED=0
     echo "Steam 已启动，请在 Steam 库中点击“${LAUNCHER_NAME}”完成安装。"
     echo "安装阶段不会创建桌面入口，请只在 Steam 库点击“${LAUNCHER_NAME}”完成安装。"
-    print_launcher_proton_hint
     echo "安装完成后，再点击一次Renkit的 $LAUNCHER_NAME 入口即可自动转为正式启动器并创建可用桌面入口。"
 }
 
@@ -1377,7 +1357,6 @@ finish_launcher_steam_entry() {
     ZHOUKEER_STEAM_STOPPED=0
     echo "Steam 已启动；兼容层和封面已写入文件，Steam 读取后生效。"
     echo "若库中封面仍是旧图，请在游戏模式运行“修复启动器封面”。"
-    print_launcher_proton_hint
     if [ "$target" = "battlenet" ]; then
         echo "战网登录页：https://account.battle.net/login"
     fi

@@ -247,6 +247,7 @@ game_environment_gui_menu() {
             all "常用插件加27款精选插件｜优先安装三件套，已装则跳过；再补27款精选" \
             lsfg "小黄鸭｜插帧神器（必装）" \
             fsr4 "FSR4｜画质补丁（阅读桌面文档慎用）" \
+            simpledeckytdp "SimpleDeckyTDP｜TDP/功耗性能控制" \
             browse "浏览官方插件｜逐个查看插件作用" \
             ge-proton "安装 GE 兼容层｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
@@ -278,6 +279,11 @@ game_environment_gui_menu() {
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee
                 ;;
+            simpledeckytdp)
+                run_gui_action "安装 SimpleDeckyTDP（TDP 性能控制）" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee
+                ;;
             browse)
                 plugin_official_gui_pages
                 [ "$GUI_NAV_HOME" -eq 0 ] || return 0
@@ -287,11 +293,9 @@ game_environment_gui_menu() {
                 [ "$GUI_NAV_HOME" -eq 0 ] || return 0
                 ;;
             epic)
-                if run_gui_action "安装 Epic 游戏启动器并自动入库" \
+                run_gui_action "安装 Epic 游戏启动器并自动入库" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/game_launchers.sh" epic; then
-                    gui_notice "重要：请在 Steam 库中点击“Epic Games 启动器”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。若点击开始游戏没反应，请点启动器右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，选择 Proton Experimental 或 Proton 10.0.1 后重试。"
-                fi
+                    bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
                 ;;
             tomoon)
                 gui_confirm "将下载 ToMoon 网络工具插件并校验 SHA256，随后安装到 Decky。是否继续？" && \
@@ -305,27 +309,21 @@ game_environment_gui_menu() {
                     back "返回插件列表")" || continue
                 case "$battlenet_choice" in
                     battlenet)
-                        if run_gui_action "安装战网启动器并自动入库" \
+                        run_gui_action "安装战网启动器并自动入库" \
                             env ZHOUKEER_AUTO_CONFIRM=1 \
-                            bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet; then
-                            gui_notice "重要：请在 Steam 库中点击“战网启动器”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。若点击开始游戏没反应，请点启动器右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，选择 Proton Experimental 或 Proton 10.0.1 后重试。"
-                        fi
+                            bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet
                         ;;
                     heihe)
-                        if run_gui_action "安装黑盒工坊并自动入库" \
+                        run_gui_action "安装黑盒工坊并自动入库" \
                             env ZHOUKEER_AUTO_CONFIRM=1 \
-                            bash "$PROJECT_ROOT/modules/game_launchers.sh" heihe; then
-                            gui_notice "重要：请在 Steam 库中点击“黑盒工坊”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。若点击开始游戏没反应，请点启动器右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，选择 Proton Experimental 或 Proton 10.0.1 后重试。"
-                        fi
+                            bash "$PROJECT_ROOT/modules/game_launchers.sh" heihe
                         ;;
                 esac
                 ;;
             ubisoft)
-                if run_gui_action "安装育碧并自动入库" \
+                run_gui_action "安装育碧并自动入库" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft; then
-                    gui_notice "重要：请在 Steam 库中点击“育碧”右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，并选择 Proton 10.0-4。若点击开始游戏没反应，请点启动器右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，选择 Proton Experimental 或 Proton 10.0.1 后重试。"
-                fi
+                    bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft
                 ;;
             repair)
                 repair_choice="$(gui_dialog --menu "修复启动器封面｜选择启动器" \
@@ -812,6 +810,45 @@ memory_gui_menu() {
     done
 }
 
+f1_screen_fix_gui_menu() {
+    local choice
+
+    while true; do
+        choice="$(gui_dialog --menu "掌机适配｜飞行家 F1 屏幕方向修复" \
+            install "安装修复｜仅适用于 ONEXPLAYER F1｜不使用 sudo" \
+            status "检查状态｜查看修复文件和 systemd override" \
+            uninstall "卸载修复｜删除用户级修复并恢复原始启动方式" \
+            reboot "立即重启 SteamOS｜重启后生效｜请先保存工作" \
+            back "返回更多设置" \
+            home "返回首页" \
+            nav-exit "退出Renkit")" || return 0
+        case "$choice" in
+            install)
+                gui_confirm "仅适用于 ONEXPLAYER F1；将创建用户级 gamescope wrapper 和 systemd override，不使用 sudo。确认继续？" && \
+                    run_gui_action "安装飞行家 F1 屏幕方向修复" bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" install
+                return 0
+                ;;
+            status)
+                run_gui_action "飞行家 F1 屏幕方向修复状态" bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" status
+                return 0
+                ;;
+            uninstall)
+                gui_confirm "将删除用户级修复文件并刷新 systemd，不使用 sudo；重启后恢复原始启动方式。确认继续？" && \
+                    run_gui_action "卸载飞行家 F1 屏幕方向修复" bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" uninstall
+                return 0
+                ;;
+            reboot)
+                gui_confirm "将立即重启 SteamOS；请先保存所有工作。确认继续？" && \
+                    run_gui_action "立即重启 SteamOS" bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" reboot
+                return 0
+                ;;
+            back) return 0 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
+        esac
+    done
+}
+
 advanced_tools_gui_menu() {
     local choice
 
@@ -822,6 +859,7 @@ advanced_tools_gui_menu() {
             memory "虚拟内存｜设置 zram、swap 或撤销｜高级操作" \
             change-password "修改管理员密码｜会更换 SteamOS 管理密码｜高级操作" \
             dual "双系统与互通盘｜管理磁盘和开机菜单｜高级操作" \
+            handheld "掌机适配｜飞行家 F1 屏幕方向修复｜不使用 sudo" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
         case "$choice" in
@@ -833,6 +871,7 @@ advanced_tools_gui_menu() {
                     run_gui_action "修改管理员密码" bash "$PROJECT_ROOT/modules/password.sh" change
                 ;;
             dual) dual_system_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
+            handheld) f1_screen_fix_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
         esac
