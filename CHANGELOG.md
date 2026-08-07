@@ -1,3 +1,10 @@
+## Renkit 1.0.2 修复虚拟内存撤销与启动器封面 — 2026-08-08
+
+- 新增“掌机适配 → 飞行家 F1 屏幕方向修复”，通过用户级 gamescope wrapper 与 systemd override 修复 ONEXPLAYER F1 游戏模式画面倒置，不使用 sudo、不修改只读系统。
+- 虚拟内存撤销时自动处理独立 swap 的只读保护，避免 `rm` 因“不允许的操作”中断。
+- 启动器封面素材解压忽略 macOS Apple 扩展属性警告，SteamOS 不再显示 `LIBARCHIVE.xattr.com.apple.provenance`。
+- 更新 Epic、战网、育碧、黑盒工坊的封面、背景和桌面徽标素材。
+
 ## Renkit 1.0.1 清理旧版桌面入口并默认窗口启动 — 2026-08-07
 
 - 安装或升级时自动移除旧版“周克儿工具箱”桌面与应用菜单入口，避免桌面出现重复图标。
