@@ -66,8 +66,8 @@ curl -L todesk.lanbai.top | sh
 
 ![登录 ToDesk 并查看设备代码](website/assets/todesk/08-login.png)
 
-## 备用方法：周克儿工具箱
+## 备用方法：Renkit
 
-如果上面的命令无法下载或安装器无法运行，可以打开周克儿工具箱，进入“常用软件 → 远程协助 → ToDesk”重新安装。
+如果上面的命令无法下载或安装器无法运行，可以打开Renkit，进入“常用软件 → 远程协助 → ToDesk”重新安装。
 
 ToDesk 不是 SteamOS 原生软件，SteamOS 大版本更新后可能需要重新安装。

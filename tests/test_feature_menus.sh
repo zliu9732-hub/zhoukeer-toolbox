@@ -139,10 +139,10 @@ done
 touch_help="$(function_source "$MAIN_FILE" help_menu)"
 gui_help="$(function_source "$GUI_FILE" help_gui_menu)"
 for menu in "$touch_help" "$gui_help"; do
-    for item in '查看系统信息' '生成诊断包' '备份工具箱设置' '恢复工具箱设置' '查看详细网络信息' '导出旧版文字报告' '新手使用指南' '游戏兼容指南' '掌机常用快捷键' '外接设备检查' '操作记录' '更新日志' '检查并更新工具箱'; do
+    for item in '查看系统信息' '生成诊断包' '备份Renkit设置' '恢复Renkit设置' '查看详细网络信息' '导出旧版文字报告' '新手使用指南' '游戏兼容指南' '掌机常用快捷键' '外接设备检查' '操作记录' '更新日志' '检查并更新Renkit'; do
         assert_contains "$menu" "$item" "检测与帮助缺少：$item"
     done
-    assert_contains "$menu" '会联网并更新' "工具箱更新缺少联网更新说明"
+    assert_contains "$menu" '会联网并更新' "Renkit更新缺少联网更新说明"
 done
 
 touch_support="$(function_source "$MAIN_FILE" support_menu)"
@@ -178,7 +178,7 @@ done
 touch_memory="$(function_source "$MAIN_FILE" memory_touch_menu)"
 gui_memory="$(function_source "$GUI_FILE" memory_gui_menu)"
 for menu in "$touch_memory" "$gui_memory"; do
-    for item in '一键优化' '查看状态' '撤销工具箱优化' '系统原 swap'; do
+    for item in '一键优化' '查看状态' '撤销Renkit优化' '系统原 swap'; do
         assert_contains "$menu" "$item" "虚拟内存子菜单缺少：$item"
     done
     assert_contains "$menu" 'modules/memory_tuning.sh" restore' "虚拟内存子菜单未调用安全撤销动作"
@@ -239,7 +239,7 @@ done
 for gui_menu_name in software_menu game_environment_gui_menu emulator_gui_menu support_gui_menu plugin_official_gui_pages dual_system_menu steam_accelerator_gui_menu maintenance_gui_menu help_gui_menu new_machine_gui_menu advanced_tools_gui_menu memory_gui_menu; do
     gui_menu="$(function_source "$GUI_FILE" "$gui_menu_name")"
     assert_contains "$gui_menu" 'home "返回首页"' "GUI 页面缺少返回首页：$gui_menu_name"
-    assert_contains "$gui_menu" 'nav-exit "退出工具箱"' "GUI 页面缺少退出工具箱：$gui_menu_name"
+    assert_contains "$gui_menu" 'nav-exit "退出Renkit"' "GUI 页面缺少退出Renkit：$gui_menu_name"
 done
 
 touch_accelerator="$(function_source "$MAIN_FILE" steam_accelerator_touch_menu)"

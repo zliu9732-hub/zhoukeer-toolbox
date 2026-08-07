@@ -69,7 +69,7 @@ settings_backup_shortcuts() {
             [ -f "$file" ] && [ ! -L "$file" ] || continue
             name="${file##*/}"
             if grep -Fqx 'X-Zhoukeer-Managed=true' "$file" 2>/dev/null || \
-               [ "$name" = "周克儿工具箱.desktop" ] || [ "$name" = "zhoukeer-toolbox.desktop" ]; then
+               [ "$name" = "Renkit.desktop" ] || [ "$name" = "zhoukeer-toolbox.desktop" ]; then
                 mkdir -p -- "$destination/$(basename "$base")" || return 1
                 cp -- "$file" "$destination/$(basename "$base")/$name" || return 1
             fi
@@ -132,20 +132,20 @@ create_settings_backup() {
     find "$root" -type f -exec chmod 0600 {} + || return 1
     stamp="$(date '+%Y%m%d-%H%M%S')"
     if [ "$quiet" = "1" ]; then
-        archive="$SETTINGS_BACKUP_OUTPUT_DIR/周克儿工具箱设置备份-$stamp-恢复前-$$.tar.gz"
+        archive="$SETTINGS_BACKUP_OUTPUT_DIR/Renkit设置备份-$stamp-恢复前-$$.tar.gz"
     else
-        archive="$SETTINGS_BACKUP_OUTPUT_DIR/周克儿工具箱设置备份-$stamp.tar.gz"
+        archive="$SETTINGS_BACKUP_OUTPUT_DIR/Renkit设置备份-$stamp.tar.gz"
     fi
     tar -czf "$archive" -C "$SETTINGS_BACKUP_TMP_DIR" zhoukeer-settings || return 1
     chmod 0600 "$archive" || { rm -f -- "$archive"; return 1; }
     settings_sha256 "$archive" > "$archive.sha256" || { rm -f -- "$archive"; return 1; }
     chmod 0600 "$archive.sha256" || return 1
     [ "$quiet" = "1" ] || {
-        echo "工具箱设置已备份。"
+        echo "Renkit设置已备份。"
         echo "备份文件：$archive"
-        echo "只包含工具箱明确管理的设置，不包含游戏、存档、Steam 账号数据或整个 HOME。"
+        echo "只包含Renkit明确管理的设置，不包含游戏、存档、Steam 账号数据或整个 HOME。"
     }
-    log "已创建工具箱设置备份"
+    log "已创建Renkit设置备份"
     printf '%s\n' "$archive"
     settings_backup_cleanup
     trap - EXIT INT TERM
@@ -193,7 +193,7 @@ settings_restore_shortcuts() {
         for file in "$source_root/$sub"/*.desktop; do
             [ -f "$file" ] && [ ! -L "$file" ] || continue
             if ! grep -Fqx 'X-Zhoukeer-Managed=true' "$file" 2>/dev/null; then
-                case "${file##*/}" in 周克儿工具箱.desktop|zhoukeer-toolbox.desktop) ;; *) return 1 ;; esac
+                case "${file##*/}" in Renkit.desktop|zhoukeer-toolbox.desktop) ;; *) return 1 ;; esac
             fi
             tmp="$(mktemp "$target_dir/.zhoukeer-shortcut.XXXXXX")" || return 1
             sed "s#${ZHOUKEER_BACKUP_OLD_HOME:-$HOME}#$HOME#g" "$file" > "$tmp" || { rm -f -- "$tmp"; return 1; }
@@ -313,9 +313,9 @@ settings_restore_steam302() {
 restore_settings_backup() {
     local archive="${1:-}" expected_archive extracted root answer rollback restore_tmp
     [ -n "$archive" ] || {
-        archive="$(find "$SETTINGS_BACKUP_OUTPUT_DIR" -maxdepth 1 -type f -name '周克儿工具箱设置备份-*.tar.gz' -print 2>/dev/null | sort | tail -n 1)"
+        archive="$(find "$SETTINGS_BACKUP_OUTPUT_DIR" -maxdepth 1 -type f -name 'Renkit设置备份-*.tar.gz' -print 2>/dev/null | sort | tail -n 1)"
     }
-    [ -n "$archive" ] || { echo "未找到工具箱设置备份。"; return 1; }
+    [ -n "$archive" ] || { echo "未找到Renkit设置备份。"; return 1; }
     settings_verify_archive "$archive" || { echo "备份文件校验失败或结构不安全，已拒绝恢复。"; return 1; }
     SETTINGS_BACKUP_TMP_DIR="$(mktemp -d)" || return 1
     trap settings_backup_cleanup EXIT INT TERM
@@ -325,15 +325,15 @@ restore_settings_backup() {
     root="$extracted/zhoukeer-settings"
     grep -Fxq "format=$SETTINGS_BACKUP_FORMAT" "$root/manifest" || { echo "备份格式不受支持。"; return 1; }
 
-    echo "将恢复以下工具箱管理内容："
-    [ ! -s "$root/config/settings.conf" ] || echo "- 工具箱配置（不含代理认证）"
-    [ ! -s "$root/sources/managed.state" ] || echo "- 工具箱管理的国内源状态；Flatpak 国内缓存会关闭 GPG 验证"
-    [ ! -s "$root/steam302/rules.state" ] || echo "- Steam302 的工具箱规则"
-    [ ! -d "$root/memory" ] || echo "- 工具箱管理的内存参数（不包含 swap 文件本体）"
-    [ ! -d "$root/shortcuts" ] || echo "- 工具箱创建的快捷方式"
+    echo "将恢复以下Renkit管理内容："
+    [ ! -s "$root/config/settings.conf" ] || echo "- Renkit配置（不含代理认证）"
+    [ ! -s "$root/sources/managed.state" ] || echo "- Renkit管理的国内源状态；Flatpak 国内缓存会关闭 GPG 验证"
+    [ ! -s "$root/steam302/rules.state" ] || echo "- Steam302 的Renkit规则"
+    [ ! -d "$root/memory" ] || echo "- Renkit管理的内存参数（不包含 swap 文件本体）"
+    [ ! -d "$root/shortcuts" ] || echo "- Renkit创建的快捷方式"
     echo "远程名称：flathub-cn｜https://mirror.sjtu.edu.cn/flathub"
     echo "备用名称：flathub-ustc｜https://mirrors.ustc.edu.cn/flathub"
-    echo "不会覆盖游戏、存档、Steam 账号数据、整个 HOME 或非工具箱管理的系统配置。"
+    echo "不会覆盖游戏、存档、Steam 账号数据、整个 HOME 或非Renkit管理的系统配置。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
         read -r -p "确认恢复请输入 RESTORE：" answer
         [ "$answer" = "RESTORE" ] || { echo "已取消恢复，没有修改设置。"; return 0; }
@@ -360,11 +360,11 @@ restore_settings_backup() {
                 echo "恢复未完成，无法自动回滚。恢复前备份：${rollback:-不可用}"
                 echo "建议生成诊断包发给维护人员。"
             fi
-            log "工具箱设置恢复失败，已保留恢复前备份"
+            log "Renkit设置恢复失败，已保留恢复前备份"
             return 1
         }
-    echo "工具箱设置恢复完成。恢复前备份：$rollback"
-    log "工具箱设置恢复完成"
+    echo "Renkit设置恢复完成。恢复前备份：$rollback"
+    log "Renkit设置恢复完成"
     settings_backup_cleanup
     trap - EXIT INT TERM
 }

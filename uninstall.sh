@@ -38,16 +38,16 @@ confirm_action() {
 }
 
 echo "================================"
-echo " 周克儿工具箱 V4 卸载程序"
+echo " Renkit 1.0 卸载程序"
 echo "================================"
 echo "当前目录: $PROJECT_ROOT"
 echo "模式: $([ "$DRY_RUN" -eq 1 ] && echo dry-run || echo uninstall)"
 echo ""
 
 if [ "$DRY_RUN" -eq 1 ]; then
-    echo "[dry-run] 将删除桌面快捷方式: $HOME/Desktop/周克儿工具箱.desktop"
+    echo "[dry-run] 将删除桌面快捷方式: $HOME/Desktop/Renkit.desktop"
     echo "[dry-run] 将删除应用菜单入口: $HOME/.local/share/applications/zhoukeer-toolbox.desktop"
-    echo "[dry-run] 将删除工具箱专用 Konsole 主题"
+    echo "[dry-run] 将删除Renkit专用 Konsole 主题"
     echo "[dry-run] 默认安装目录匹配时将删除: $DEFAULT_INSTALL_DIR"
     echo "[dry-run] 可选择备份配置到: $CONFIG_BACKUP_DIR/settings.conf"
     echo "[dry-run] 可选择备份日志到: $LOG_BACKUP_DIR/logs"
@@ -56,7 +56,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
     exit 0
 fi
 
-if ! confirm_action "确认卸载周克儿工具箱？"; then
+if ! confirm_action "确认卸载Renkit？"; then
     exit 0
 fi
 
@@ -80,7 +80,7 @@ if [ -e "$PASSWORD_RECORD" ] || [ -L "$PASSWORD_RECORD" ]; then
     fi
 fi
 
-rm -f "$HOME/Desktop/周克儿工具箱.desktop"
+rm -f "$HOME/Desktop/Renkit.desktop"
 rm -f "$HOME/.local/share/applications/zhoukeer-toolbox.desktop"
 rm -f "$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
 rm -f "$HOME/.local/share/konsole/ZhoukeerToolbox.colorscheme"
@@ -90,7 +90,7 @@ echo "已删除快捷方式"
 
 if [ "$DELETE_PASSWORD_RECORD" -eq 1 ]; then
     if [ -d "$PASSWORD_RECORD" ] && [ ! -L "$PASSWORD_RECORD" ]; then
-        echo "警告：密码记录路径是目录，工具箱不会自动删除: $PASSWORD_RECORD"
+        echo "警告：密码记录路径是目录，Renkit不会自动删除: $PASSWORD_RECORD"
     else
         rm -f -- "$PASSWORD_RECORD"
         echo "已删除桌面密码记录"

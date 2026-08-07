@@ -15,7 +15,7 @@ case "${1:-}" in
 esac
 
 if [ "$REPORT_MODE" -eq 1 ]; then
-    REPORT_FILE="$HOME/Desktop/周克儿工具箱诊断报告.txt"
+    REPORT_FILE="$HOME/Desktop/Renkit诊断报告.txt"
     mkdir -p "$HOME/Desktop" || exit 1
     exec > >(tee "$REPORT_FILE") 2>&1
 fi
@@ -89,7 +89,7 @@ fi
 if [ -d "$HOME/homebrew/plugins" ] || [ -d "$HOME/.local/share/decky-loader" ]; then
     health_pass "已检测到 Decky Loader"
 else
-    health_warn "未检测到 Decky Loader；如需插件商城可在工具箱内安装"
+    health_warn "未检测到 Decky Loader；如需插件商城可在Renkit内安装"
 fi
 
 if command -v flatpak >/dev/null 2>&1; then

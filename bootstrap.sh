@@ -31,7 +31,7 @@ if [ -z "$GITHUB_RAW_BASE" ] && [ -n "$GITHUB_OWNER" ]; then
     GITHUB_RAW_BASE="https://raw.githubusercontent.com/$GITHUB_OWNER/$REPO_NAME/$BRANCH"
 fi
 DOMAIN_RAW_BASE="${ZHOUKEER_DOMAIN_RAW_BASE:-}"
-PACKAGE_NAME="${ZHOUKEER_PACKAGE_NAME:-zhoukeer-toolbox.tar.gz}"
+PACKAGE_NAME="${ZHOUKEER_PACKAGE_NAME:-renkit.tar.gz}"
 GITEE_PACKAGE_URL="${ZHOUKEER_GITEE_PACKAGE_URL:-$GITEE_RAW_BASE/dist/$PACKAGE_NAME}"
 GITHUB_PACKAGE_URL="${ZHOUKEER_GITHUB_PACKAGE_URL:-$GITHUB_RAW_BASE/dist/$PACKAGE_NAME}"
 GITEE_VERSION_URL="${ZHOUKEER_GITEE_VERSION_URL:-$GITEE_RAW_BASE/VERSION}"
@@ -49,11 +49,11 @@ need_command() {
     fi
 }
 
-# bootstrap.sh 必须能在工具箱尚未安装时独立运行，因此这里保留受控清单的
+# bootstrap.sh 必须能在Renkit尚未安装时独立运行，因此这里保留受控清单的
 # 最小自包含副本；安装完成后的全部下载统一使用 core/download_policy.sh。
 bootstrap_url_allowed() {
     case "$1" in
-        https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/VERSION|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/SHA256SUMS|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/zhoukeer-toolbox.tar.gz|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/VERSION|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/SHA256SUMS|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/zhoukeer-toolbox.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/VERSION|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/SHA256SUMS|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/zhoukeer-toolbox.tar.gz|https://jktool.icu/VERSION|https://jktool.icu/dist/SHA256SUMS|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) return 0 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/VERSION|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/SHA256SUMS|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/renkit.tar.gz|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/VERSION|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/SHA256SUMS|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/renkit.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/VERSION|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/SHA256SUMS|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/renkit.tar.gz|https://jktool.icu/VERSION|https://jktool.icu/dist/SHA256SUMS|https://jktool.icu/dist/renkit.tar.gz|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/zhoukeer-toolbox.tar.gz|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/zhoukeer-toolbox.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/zhoukeer-toolbox.tar.gz|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) return 0 ;;
         https://*) [ "${ZHOUKEER_TEST_MODE:-0}" = "1" ] ;;
         *) return 1 ;;
     esac
@@ -350,7 +350,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
 fi
 
 TMP_DIR="$(mktemp -d)"
-PACKAGE_FILE="$TMP_DIR/zhoukeer-toolbox.tar.gz"
+PACKAGE_FILE="$TMP_DIR/renkit.tar.gz"
 VERSION_FILE="$TMP_DIR/VERSION"
 CHECKSUM_FILE="$TMP_DIR/SHA256SUMS"
 
@@ -364,7 +364,7 @@ if download_with_fallback "$VERSION_FILE" "版本信息" "$DOMAIN_VERSION_URL" "
 else
     VERSION="unknown"
 fi
-echo "正在安装工具箱..."
+echo "正在安装Renkit..."
 download_verified_package "$PACKAGE_FILE" "$CHECKSUM_FILE" || exit 1
 
 validate_tar_archive "$PACKAGE_FILE" "$TMP_DIR/archive.list" "$TMP_DIR/archive.verbose" || exit 1
@@ -392,8 +392,8 @@ if ! find "$PACKAGE_DIR" -type f -name '*.sh' ! -name '._*' -exec bash -n {} \;;
 fi
 
 if ! ZHOUKEER_INSTALL_DIR="$INSTALL_DIR" bash "$INSTALLER_PATH" >"$TMP_DIR/install.log" 2>&1; then
-    echo "工具箱安装未完成，以下是最后的错误提示："
+    echo "Renkit安装未完成，以下是最后的错误提示："
     tail -n 20 "$TMP_DIR/install.log"
     exit 1
 fi
-echo "✓ 工具箱安装完成"
+echo "✓ Renkit安装完成"

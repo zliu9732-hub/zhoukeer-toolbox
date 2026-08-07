@@ -352,7 +352,7 @@ EOF
     printf '%s\n' "$failure_output" | grep -Fq '将继续配置 Flatpak 国内缓存' || \
         fail "archlinuxcn 安装失败时未说明继续配置 Flatpak"
     ! grep -Fq '[archlinuxcn]' "$SYSTEM_DIR/pacman.conf" || \
-        fail "archlinuxcn 安装失败后仍保留工具箱仓库配置"
+        fail "archlinuxcn 安装失败后仍保留Renkit仓库配置"
     unset DOMESTIC_SOURCE_FAIL_PACMAN_INSTALL
 
     configure_chinese_locales "$SYSTEM_DIR/locale.gen"
@@ -364,7 +364,7 @@ EOF
 
     remove_managed_archlinuxcn_repo "$SYSTEM_DIR/pacman.conf"
     ! grep -Fq '[archlinuxcn]' "$SYSTEM_DIR/pacman.conf" || \
-        fail "恢复后仍保留工具箱管理的 archlinuxcn"
+        fail "恢复后仍保留Renkit管理的 archlinuxcn"
 )
 
 # 完整初始化流程：密钥环初始化/填充 → 完整 pacman -Syyu → 重装两个
@@ -484,7 +484,7 @@ printf '%s\n' "$status_output" | grep -Fq 'flathub-cn' || fail "状态输出缺�
 printf '%s\n' "$status_output" | grep -Fq 'flathub-ustc' || fail "状态输出缺少国内备用源"
 
 restore_output="$(run_restore)"
-printf '%s\n' "$restore_output" | grep -Fq '已恢复 Flathub 官方源并启用 GPG 验证，同时移除工具箱管理的 archlinuxcn 配置' || \
+printf '%s\n' "$restore_output" | grep -Fq '已恢复 Flathub 官方源并启用 GPG 验证，同时移除Renkit管理的 archlinuxcn 配置' || \
     fail "恢复官方源缺少成功提示"
 grep -Fxq 'flathub' "$STATE_DIR/remotes" || fail "恢复时未添加官方 Flathub"
 if grep -Eq '^flathub-(cn|ustc)$' "$STATE_DIR/remotes"; then

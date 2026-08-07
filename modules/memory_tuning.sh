@@ -116,7 +116,7 @@ memory_activate_fallback_swapfile() {
     if toolbox_sudo test -e "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
         if ! toolbox_sudo test -f "$MEMORY_FALLBACK_SWAPFILE_PATH" || \
             toolbox_sudo test -L "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
-            echo "工具箱备用 swap 路径不是安全的普通文件，已保留原内容。"
+            echo "Renkit备用 swap 路径不是安全的普通文件，已保留原内容。"
             return 1
         fi
         if memory_swap_is_active "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
@@ -150,7 +150,7 @@ memory_activate_fallback_swapfile() {
     fi
     toolbox_sudo rm -f -- "$backup_file" || true
     MEMORY_SWAPFILE_PATH="$MEMORY_FALLBACK_SWAPFILE_PATH"
-    echo "旧 swap 受系统保护无法移动，已保留原文件并启用工具箱独立 swap：$MEMORY_SWAPFILE_PATH"
+    echo "旧 swap 受系统保护无法移动，已保留原文件并启用Renkit独立 swap：$MEMORY_SWAPFILE_PATH"
     return 0
 }
 
@@ -188,7 +188,7 @@ memory_validate_paths() {
         return 1
     }
     [ "$MEMORY_SWAPFILE_PATH" != "$MEMORY_FALLBACK_SWAPFILE_PATH" ] || {
-        echo "主 swap 与工具箱备用 swap 路径不能相同。"
+        echo "主 swap 与Renkit备用 swap 路径不能相同。"
         return 1
     }
 }
@@ -233,7 +233,7 @@ memory_confirm_optimize() {
 memory_confirm_restore() {
     local answer
 
-    echo "将删除工具箱创建的 zram、swappiness 和独立 swap；系统原 swap 会保留。"
+    echo "将删除Renkit创建的 zram、swappiness 和独立 swap；系统原 swap 会保留。"
     echo "撤销将在重启后完全生效。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
@@ -252,7 +252,7 @@ memory_write_config() {
     fi
     if toolbox_sudo test -f "$target" && \
        ! toolbox_sudo grep -Fq '# Managed by Zhoukeer Toolbox' "$target"; then
-        echo "发现非工具箱管理的配置，未覆盖：$target"
+        echo "发现非Renkit管理的配置，未覆盖：$target"
         return 1
     fi
     toolbox_sudo install -d -m 0755 -- "$(dirname "$target")" || return 1
@@ -268,7 +268,7 @@ memory_config_target_is_safe() {
     fi
     if toolbox_sudo test -f "$target" && \
        ! toolbox_sudo grep -Fq '# Managed by Zhoukeer Toolbox' "$target"; then
-        echo "发现非工具箱管理的配置，未覆盖：$target"
+        echo "发现非Renkit管理的配置，未覆盖：$target"
         return 1
     fi
 }
@@ -296,11 +296,11 @@ memory_remove_managed_config() {
         return 0
     fi
     if ! memory_file_is_toolbox_managed "$path"; then
-        echo "发现非工具箱配置，已保留：$path"
+        echo "发现非Renkit配置，已保留：$path"
         return 0
     fi
     toolbox_sudo rm -f -- "$path" || {
-        echo "工具箱配置删除失败：$path"
+        echo "Renkit配置删除失败：$path"
         return 1
     }
 }
@@ -326,7 +326,7 @@ memory_disable_managed_unit() {
     case "$unit_state" in
         disabled|static|indirect|masked|not-found) return 0 ;;
     esac
-    echo "无法停用工具箱 swap 开机配置，未继续删除：$unit_name"
+    echo "无法停用Renkit swap 开机配置，未继续删除：$unit_name"
     log "虚拟内存撤销失败: systemd单元无法停用 unit=$unit_name state=${unit_state:-unknown}"
     return 1
 }
@@ -349,13 +349,13 @@ memory_remove_managed_main_unit() {
         return 0
     fi
     if ! memory_swap_unit_is_toolbox_managed "$unit_path" "$MEMORY_SWAPFILE_PATH"; then
-        echo "发现非工具箱 swap 配置，已保留：$unit_path"
+        echo "发现非Renkit swap 配置，已保留：$unit_path"
         return 0
     fi
     memory_disable_managed_unit "$unit_name" || return 1
     if ! toolbox_sudo rm -f -- "$unit_path"; then
         memory_restore_managed_unit_enablement "$unit_name" || true
-        echo "工具箱 swap 开机配置删除失败：$unit_path"
+        echo "Renkit swap 开机配置删除失败：$unit_path"
         return 1
     fi
 }
@@ -370,20 +370,20 @@ memory_remove_managed_fallback_swap() {
         return 0
     fi
     if ! memory_swap_unit_is_toolbox_managed "$unit_path" "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
-        echo "发现非工具箱 swap 配置，已保留：$unit_path"
+        echo "发现非Renkit swap 配置，已保留：$unit_path"
         return 0
     fi
     if toolbox_sudo test -e "$MEMORY_FALLBACK_SWAPFILE_PATH" || \
        toolbox_sudo test -L "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
         if ! toolbox_sudo test -f "$MEMORY_FALLBACK_SWAPFILE_PATH" || \
            toolbox_sudo test -L "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
-            echo "工具箱独立 swap 路径异常，已保留。"
+            echo "Renkit独立 swap 路径异常，已保留。"
             return 1
         fi
         swap_type="$(toolbox_sudo blkid -p -s TYPE -o value \
             "$MEMORY_FALLBACK_SWAPFILE_PATH" 2>/dev/null || true)"
         if [ "$swap_type" != "swap" ]; then
-            echo "工具箱独立 swap 内容异常，已保留。"
+            echo "Renkit独立 swap 内容异常，已保留。"
             return 1
         fi
     fi
@@ -392,7 +392,7 @@ memory_remove_managed_fallback_swap() {
         fallback_was_active=1
         if ! toolbox_sudo swapoff "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
             memory_restore_managed_unit_enablement "$unit_name" || true
-            echo "工具箱独立 swap 正在使用，无法安全停用。"
+            echo "Renkit独立 swap 正在使用，无法安全停用。"
             return 1
         fi
     fi
@@ -401,7 +401,7 @@ memory_remove_managed_fallback_swap() {
             [ "$fallback_was_active" -eq 0 ] || \
                 toolbox_sudo swapon --priority 10 "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
             memory_restore_managed_unit_enablement "$unit_name" || true
-            echo "工具箱独立 swap 的文件保护无法解除，未删除。"
+            echo "Renkit独立 swap 的文件保护无法解除，未删除。"
             return 1
         }
         if ! toolbox_sudo rm -f -- "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
@@ -409,12 +409,12 @@ memory_remove_managed_fallback_swap() {
             [ "$fallback_was_active" -eq 0 ] || \
                 toolbox_sudo swapon --priority 10 "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
             memory_restore_managed_unit_enablement "$unit_name" || true
-            echo "工具箱独立 swap 删除失败，已尝试恢复原状态。"
+            echo "Renkit独立 swap 删除失败，已尝试恢复原状态。"
             return 1
         fi
     fi
     toolbox_sudo rm -f -- "$unit_path" || {
-        echo "工具箱 swap 开机配置删除失败：$unit_path"
+        echo "Renkit swap 开机配置删除失败：$unit_path"
         return 1
     }
 }
@@ -517,7 +517,7 @@ memory_optimize() {
         return 1
     fi
     [ "$(id -u)" -ne 0 ] || {
-        echo "请使用 Steam Deck 桌面用户运行工具箱，不要直接以 root 运行。"
+        echo "请使用 Steam Deck 桌面用户运行Renkit，不要直接以 root 运行。"
         return 1
     }
     if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
@@ -546,14 +546,14 @@ memory_optimize() {
     if ! memory_swapfile_is_complete "$MEMORY_SWAPFILE_PATH" "$target_gib" && \
        memory_swapfile_is_complete "$MEMORY_FALLBACK_SWAPFILE_PATH" "$target_gib"; then
         MEMORY_SWAPFILE_PATH="$MEMORY_FALLBACK_SWAPFILE_PATH"
-        echo "检测到工具箱独立 swap，继续使用：$MEMORY_SWAPFILE_PATH"
+        echo "检测到Renkit独立 swap，继续使用：$MEMORY_SWAPFILE_PATH"
     fi
     unit_name="$(memory_swap_unit_name)" || {
         echo "无法生成磁盘 swap 的开机配置名称，当前 swap 文件保持不变。"
         return 1
     }
     fallback_unit_name="$(memory_swap_unit_name_for_path "$MEMORY_FALLBACK_SWAPFILE_PATH")" || {
-        echo "无法生成工具箱独立 swap 的开机配置名称，未修改现有配置。"
+        echo "无法生成Renkit独立 swap 的开机配置名称，未修改现有配置。"
         return 1
     }
     memory_config_target_is_safe "$MEMORY_ZRAM_CONFIG" || return 1
@@ -566,7 +566,7 @@ memory_optimize() {
     else
         memory_create_swapfile "$target_gib" || return 1
     fi
-    # 受保护的系统 swap 无法移动时，创建函数会切换到工具箱独立路径。
+    # 受保护的系统 swap 无法移动时，创建函数会切换到Renkit独立路径。
     # systemd 单元名必须按最终路径重新计算，不能继续使用原 swap 的名称。
     unit_name="$(memory_swap_unit_name)" || return 1
 
@@ -648,7 +648,7 @@ memory_restore_toolbox() {
         return 1
     fi
     [ "$(id -u)" -ne 0 ] || {
-        echo "请使用桌面用户运行工具箱，不要直接以 root 运行。"
+        echo "请使用桌面用户运行Renkit，不要直接以 root 运行。"
         return 1
     }
     if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
@@ -675,7 +675,7 @@ memory_restore_toolbox() {
     }
     fallback_unit_name="$(memory_swap_unit_name_for_path \
         "$MEMORY_FALLBACK_SWAPFILE_PATH")" || {
-        echo "无法识别工具箱独立 swap 的开机配置名称。"
+        echo "无法识别Renkit独立 swap 的开机配置名称。"
         return 1
     }
     memory_remove_managed_fallback_swap "$fallback_unit_name" || return 1
@@ -689,8 +689,8 @@ memory_restore_toolbox() {
         return 1
     }
 
-    echo "工具箱虚拟内存优化已撤销；系统原 swap 已保留，请重启。"
-    log "工具箱虚拟内存优化已撤销，系统原 swap 已保留"
+    echo "Renkit虚拟内存优化已撤销；系统原 swap 已保留，请重启。"
+    log "Renkit虚拟内存优化已撤销，系统原 swap 已保留"
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then

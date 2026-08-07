@@ -437,7 +437,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         protect) mount_shared_drive_with_protection ;;
         unprotect) restore_shared_drive_write ;;
         add|remove)
-            echo "旧 systemd-boot 菜单开关已停用，请使用工具箱中的 Clover 开机菜单。"
+            echo "旧 systemd-boot 菜单开关已停用，请使用Renkit中的 Clover 开机菜单。"
             exit 1
             ;;
         refind-install|refind-hide|refind-show|refind-remove)

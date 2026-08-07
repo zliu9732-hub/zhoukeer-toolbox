@@ -38,7 +38,7 @@ if grep -Fq '怪物猎人：荒野' "$FSR4_GUIDE"; then
     exit 1
 fi
 
-# 重复检测应更新工具箱管理的文件；同名用户文件和符号链接不得被覆盖。
+# 重复检测应更新Renkit管理的文件；同名用户文件和符号链接不得被覆盖。
 HOME="$HOME_DIR" DECKY_PLUGIN_DIR="$PLUGIN_ROOT" ZHOUKEER_DESKTOP_DIR="$DESKTOP_DIR" \
     bash -c 'source "$1"; refresh_feature_usage_guides' _ "$MODULE" >/dev/null
 rm -f -- "$COMMON_GUIDE"

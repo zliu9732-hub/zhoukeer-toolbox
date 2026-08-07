@@ -179,7 +179,7 @@ grep -Fq '"Language"        "schinese"' "$COMPAT_CONFIG" || {
     exit 1
 }
 
-# 战网先由 Steam 库中的安装条目启动，安装完成后再次运行工具箱才切换为正式条目。
+# 战网先由 Steam 库中的安装条目启动，安装完成后再次运行Renkit才切换为正式条目。
 NATIVE_STEAM="$TMP_ROOT/native-steam"
 NATIVE_SHORTCUTS="$NATIVE_STEAM/userdata/123/config/shortcuts.vdf"
 NATIVE_INSTALLER="$TMP_ROOT/native-app/Battle.net-Setup.exe"
@@ -527,7 +527,7 @@ battle_drive_owned="$(
     '
 )"
 [ "$battle_drive_owned" = "$PREINSTALLED_APP_DIR/game-launchers/battlenet/drive_c" ] || {
-    echo "FAIL: 未优先使用工具箱独立战网 drive_c" >&2
+    echo "FAIL: 未优先使用Renkit独立战网 drive_c" >&2
     exit 1
 }
 
@@ -832,7 +832,7 @@ EXISTING_P10_RUNNER="$EXISTING_STEAM/steamapps/common/Proton 10.0-4/proton"
 mkdir -p "$(dirname "$EXISTING_P10_RUNNER")"
 printf '#!/bin/bash\nexit 0\n' > "$EXISTING_P10_RUNNER"
 chmod +x "$EXISTING_P10_RUNNER"
-# 旧版工具箱可能留下指向不同路径的“Battle.net”条目和桌面安装包，正式入库后必须只保留“战网启动器”。
+# 旧版Renkit可能留下指向不同路径的“Battle.net”条目和桌面安装包，正式入库后必须只保留“战网启动器”。
 LEGACY_OLD_BATTLENET="$EXISTING_STEAM/steamapps/compatdata/old/pfx/drive_c/Program Files (x86)/Battle.net/Battle.net.exe"
 python3 "$HELPER" --shortcut-file "$EXISTING_SHORTCUTS" add \
     --name "Battle.net" --exe "$LEGACY_OLD_BATTLENET" --start-dir "$(dirname "$LEGACY_OLD_BATTLENET")" >/dev/null
@@ -868,7 +868,7 @@ printf '%s\n' "$existing_output" | grep -Fq '已清理旧版战网 Steam 条目'
 }
 grep -Fq "Icon=$PROJECT_ROOT/assets/game-launchers/battlenet.png" \
     "$FAKE_HOME/Desktop/战网启动器.desktop" || {
-    echo "FAIL: 战网桌面入口没有使用带工具箱标识的图标" >&2
+    echo "FAIL: 战网桌面入口没有使用带Renkit标识的图标" >&2
     exit 1
 }
 python3 - "$EXISTING_SHORTCUTS" "$LEGACY_OLD_BATTLENET" <<'PY'
@@ -963,7 +963,7 @@ import sys
 data = Path(sys.argv[1]).read_bytes()
 assert sys.argv[2].encode() in data, "Steam 条目没有指向真实育碧 EXE"
 assert b"launch-ubisoft.sh" not in data, "Steam 条目仍指向桌面包装器"
-assert sys.argv[3].encode() not in data, "Steam 条目仍引用工具箱隐藏目录"
+assert sys.argv[3].encode() not in data, "Steam 条目仍引用Renkit隐藏目录"
 PY
 grep -Fq '"proton_10"' "$UBI_STEAM/config/config.vdf" || {
     echo "FAIL: 育碧入库时没有绑定 Proton 10" >&2
@@ -1063,7 +1063,7 @@ grep -Fq 'finish_launcher_steam_entry "$target"' "$MODULE" || {
     echo "FAIL: 黑盒工坊未走 Steam 库转正流程" >&2
     exit 1
 }
-grep -Fq '桌面入口、封面与工具箱标识均已设置' "$MODULE"
+grep -Fq '桌面入口、封面与Renkit标识均已设置' "$MODULE"
 grep -Fq '跳过安装包下载' "$MODULE"
 grep -Fq 'find_launcher_in_prefix "$prefix" || find_installed_launcher' "$MODULE"
 grep -Fq 'steam_shortcut.py' "$MODULE"
@@ -1173,7 +1173,7 @@ python3 "$HELPER" --shortcut-file "$UNINSTALL_SHORTCUTS" add \
     exit 1
 }
 [ ! -e "$UNINSTALL_APP/game-launchers/epic" ] || {
-    echo "FAIL: Epic 工具箱目录未移除" >&2
+    echo "FAIL: Epic Renkit目录未移除" >&2
     exit 1
 }
 [ -e "$UNINSTALL_BASE/epic/drive_c/Program Files (x86)/Epic Games/keep.txt" ] || {

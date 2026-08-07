@@ -1,6 +1,6 @@
 # 战网 + 黑盒工坊 独立安装工具
 
-在 Steam Deck 桌面模式下使用，不依赖整个周克儿工具箱。
+在 Steam Deck 桌面模式下使用，不依赖整个Renkit。
 
 ## 使用方法
 
@@ -33,7 +33,7 @@
 
 ## 数据目录
 
-默认优先使用工具箱数据目录 `~/.local/share/zhoukeer-toolbox/apps`，便于复用已安装的战网环境；没有工具箱时使用 `~/.local/share/zhoukeer-battlenet-heihe`。可通过环境变量覆盖：
+默认优先使用Renkit数据目录 `~/.local/share/zhoukeer-toolbox/apps`，便于复用已安装的战网环境；没有Renkit时使用 `~/.local/share/zhoukeer-battlenet-heihe`。可通过环境变量覆盖：
 
 `ZHOUKEER_APP_DIR=/自定义路径 bash install.sh`
 

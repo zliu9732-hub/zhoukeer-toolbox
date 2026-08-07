@@ -37,9 +37,9 @@ SCRIPT
 chmod +x "$RELEASE_DIR/install.sh"
 printf '%s\n' '4.1.0' > "$RELEASE_DIR/VERSION"
 printf 'AppleDouble metadata\n' > "$RELEASE_DIR/._install.sh"
-tar -czf "$REMOTE_DIR/dist/zhoukeer-toolbox.tar.gz" -C "$RELEASE_DIR" .
-PACKAGE_SHA="$(shasum -a 256 "$REMOTE_DIR/dist/zhoukeer-toolbox.tar.gz" | awk '{print $1}')"
-printf '%s  %s\n' "$PACKAGE_SHA" 'zhoukeer-toolbox.tar.gz' > "$REMOTE_DIR/dist/SHA256SUMS"
+tar -czf "$REMOTE_DIR/dist/renkit.tar.gz" -C "$RELEASE_DIR" .
+PACKAGE_SHA="$(shasum -a 256 "$REMOTE_DIR/dist/renkit.tar.gz" | awk '{print $1}')"
+printf '%s  %s\n' "$PACKAGE_SHA" 'renkit.tar.gz' > "$REMOTE_DIR/dist/SHA256SUMS"
 printf '%s\n' '4.1.0' > "$REMOTE_DIR/VERSION"
 
 cat > "$BIN_DIR/uname" <<'SCRIPT'
@@ -62,7 +62,7 @@ done
 printf '%s\n' "$url" >> "$FAKE_CURL_LOG"
 clean_url="${url%%\?*}"
 if [ "${FAKE_GITEE_PACKAGE_FAIL:-0}" = "1" ] && \
-    [ "$clean_url" = "${FAKE_GITEE_RAW_BASE:?}/dist/zhoukeer-toolbox.tar.gz" ]; then
+    [ "$clean_url" = "${FAKE_GITEE_RAW_BASE:?}/dist/renkit.tar.gz" ]; then
     exit 22
 fi
 if [ "${FAKE_DOMAIN_VERSION_STALE:-0}" = "1" ] && \
@@ -77,7 +77,7 @@ if [ "${FAKE_VERSION_SOURCES_FAIL:-0}" = "1" ] && \
     esac
 fi
 case "$clean_url" in
-    */dist/zhoukeer-toolbox.tar.gz) source="$FAKE_REMOTE_DIR/dist/zhoukeer-toolbox.tar.gz" ;;
+    */dist/renkit.tar.gz) source="$FAKE_REMOTE_DIR/dist/renkit.tar.gz" ;;
     */dist/SHA256SUMS) source="$FAKE_REMOTE_DIR/dist/SHA256SUMS" ;;
     */VERSION) source="$FAKE_REMOTE_DIR/VERSION" ;;
     *) exit 22 ;;
@@ -106,7 +106,7 @@ if [ "$(tr -d '\r\n' < "$INSTALL_DIR/VERSION")" != '4.1.0' ]; then
     echo "FAIL: 启动检测发现新版本后没有自动更新"
     exit 1
 fi
-grep -Fq '/dist/zhoukeer-toolbox.tar.gz' "$CURL_LOG"
+grep -Fq '/dist/renkit.tar.gz' "$CURL_LOG"
 grep -Fq '/dist/SHA256SUMS' "$CURL_LOG"
 grep -Fq 'zhoukeer_cb=' "$CURL_LOG"
 
@@ -119,18 +119,18 @@ if [ "$(tr -d '\r\n' < "$INSTALL_DIR/VERSION")" != '4.1.0' ]; then
     echo "FAIL: Gitee更新包失败后没有通过域名源完成更新"
     exit 1
 fi
-grep -Fq 'https://domain.test/repo/dist/zhoukeer-toolbox.tar.gz' "$CURL_LOG" || {
+grep -Fq 'https://domain.test/repo/dist/renkit.tar.gz' "$CURL_LOG" || {
     echo "FAIL: Gitee更新包失败后没有尝试域名源"
     exit 1
 }
 
 run_update > "$STATE_DIR/progress.output"
-grep -Fq '工具箱已是最新版本' "$STATE_DIR/progress.output"
+grep -Fq 'Renkit已是最新版本' "$STATE_DIR/progress.output"
 if grep -Eq '\[[0-9]+/[0-9]+\]' "$STATE_DIR/progress.output"; then
     echo "FAIL: 自动更新仍显示拆分的下载和安装步骤" >&2
     exit 1
 fi
-grep -Fq '正在更新工具箱...' "$PROJECT_ROOT/update.sh" || {
+grep -Fq '正在更新Renkit...' "$PROJECT_ROOT/update.sh" || {
     echo "FAIL: 自动更新没有使用合并进度提示" >&2
     exit 1
 }
@@ -139,7 +139,7 @@ if grep -Fq '[1/2]' "$PROJECT_ROOT/update.sh" || grep -Fq '[2/2]' "$PROJECT_ROOT
     exit 1
 fi
 if grep -Fq 'SHA256校验通过' "$PROJECT_ROOT/update.sh" || grep -Fq 'SHA256校验通过' "$PROJECT_ROOT/bootstrap.sh"; then
-    echo "FAIL: 工具箱更新或安装仍回显正常校验细节" >&2
+    echo "FAIL: Renkit更新或安装仍回显正常校验细节" >&2
     exit 1
 fi
 grep -Fq 'for attempt in 1 2' "$PROJECT_ROOT/update.sh" || {
@@ -168,26 +168,26 @@ if printf '%s\n' "$startup_update_source" | grep -Fq 'tee -a "$LAUNCH_LOG"'; the
     exit 1
 fi
 run_main_source="$(sed -n '/^run_main()/,/^}/p' "$PROJECT_ROOT/launch.sh")"
-printf '%s\n' "$run_main_source" | grep -Fq '工具箱启动中，请耐心等待' || {
-    echo "FAIL: 启动更新前没有显示工具箱启动提示" >&2
+printf '%s\n' "$run_main_source" | grep -Fq 'Renkit启动中，请耐心等待' || {
+    echo "FAIL: 启动更新前没有显示Renkit启动提示" >&2
     exit 1
 }
-printf '%s\n' "$run_main_source" | grep -Fq '若启动较慢，工具箱可能正在更新，请耐心等待' || {
+printf '%s\n' "$run_main_source" | grep -Fq '若启动较慢，Renkit可能正在更新，请耐心等待' || {
     echo "FAIL: 启动更新前没有说明启动缓慢可能正在更新" >&2
     exit 1
 }
-startup_prompt_line="$(printf '%s\n' "$run_main_source" | grep -n '工具箱启动中，请耐心等待' | head -n 1 | cut -d: -f1)"
+startup_prompt_line="$(printf '%s\n' "$run_main_source" | grep -n 'Renkit启动中，请耐心等待' | head -n 1 | cut -d: -f1)"
 startup_update_line="$(printf '%s\n' "$run_main_source" | grep -n 'run_startup_update' | head -n 1 | cut -d: -f1)"
 if [ -z "$startup_prompt_line" ] || [ -z "$startup_update_line" ] || \
     [ "$startup_prompt_line" -ge "$startup_update_line" ]; then
-    echo "FAIL: 工具箱启动提示没有在自动更新前显示" >&2
+    echo "FAIL: Renkit启动提示没有在自动更新前显示" >&2
     exit 1
 fi
 
 : > "$CURL_LOG"
 run_update > "$STATE_DIR/latest.output"
-grep -Fq '工具箱已是最新版本' "$STATE_DIR/latest.output"
-if grep -Fq '/dist/zhoukeer-toolbox.tar.gz' "$CURL_LOG"; then
+grep -Fq 'Renkit已是最新版本' "$STATE_DIR/latest.output"
+if grep -Fq '/dist/renkit.tar.gz' "$CURL_LOG"; then
     echo "FAIL: 版本相同时仍下载了更新包"
     exit 1
 fi
@@ -220,10 +220,39 @@ if [ "$(tr -d '\r\n' < "$INSTALL_DIR/VERSION")" != '4.1.0' ]; then
     echo "FAIL: 域名源旧版本误触发了更新" >&2
     exit 1
 fi
-if grep -Fq '/dist/zhoukeer-toolbox.tar.gz' "$CURL_LOG"; then
+if grep -Fq '/dist/renkit.tar.gz' "$CURL_LOG"; then
     echo "FAIL: 只有域名源且版本未更新时仍下载了更新包" >&2
     exit 1
 fi
+
+# 旧版周克儿工具箱只有域名源可达时，也要允许升级到 Renkit 1.0。
+printf '%s\n' '1.6.4' > "$INSTALL_DIR/VERSION"
+printf '%s\n' '周克儿工具箱' > "$INSTALL_DIR/core/env.sh"
+printf '%s\n' '1.0' > "$RELEASE_DIR/VERSION"
+printf '%s\n' '1.0' > "$REMOTE_DIR/VERSION"
+tar -czf "$REMOTE_DIR/dist/renkit.tar.gz" -C "$RELEASE_DIR" .
+PACKAGE_SHA="$(shasum -a 256 "$REMOTE_DIR/dist/renkit.tar.gz" | awk '{print $1}')"
+printf '%s  %s\n' "$PACKAGE_SHA" 'renkit.tar.gz' > "$REMOTE_DIR/dist/SHA256SUMS"
+: > "$CURL_LOG"
+FAKE_VERSION_SOURCES_FAIL=1 run_update > "$STATE_DIR/migration.output" 2>&1 || {
+    echo "FAIL: 旧版工具箱域名源未允许升级到 Renkit 1.0" >&2
+    exit 1
+}
+grep -Fq 'Renkit已是最新版本' "$STATE_DIR/migration.output" && {
+    echo "FAIL: 旧版工具箱被误判为已是最新版本" >&2
+    exit 1
+}
+if [ "$(tr -d '\r\n' < "$INSTALL_DIR/VERSION")" != '1.0' ]; then
+    echo "FAIL: 旧版工具箱没有升级到 Renkit 1.0" >&2
+    exit 1
+fi
+grep -Fq '/dist/renkit.tar.gz' "$CURL_LOG" || {
+    echo "FAIL: 旧版工具箱迁移没有下载 Renkit 1.0 更新包" >&2
+    exit 1
+}
+printf '%s\n' '4.1.0' > "$INSTALL_DIR/VERSION"
+printf '%s\n' '4.1.0' > "$REMOTE_DIR/VERSION"
+rm -f -- "$INSTALL_DIR/core/env.sh"
 
 LOCK_DIR="$TMP_ROOT/xdg-state/zhoukeer-toolbox/auto-update.lock"
 mkdir -p "$LOCK_DIR"
@@ -252,9 +281,9 @@ printf '%s\n' '4.1.0' > "$REMOTE_DIR/VERSION"
 # 校验和正确也不能解压包含路径逃逸链接的更新包。
 printf '%s\n' '4.2.0' > "$RELEASE_DIR/VERSION"
 ln -s ../../outside "$RELEASE_DIR/unsafe-link"
-tar -czf "$REMOTE_DIR/dist/zhoukeer-toolbox.tar.gz" -C "$RELEASE_DIR" .
-PACKAGE_SHA="$(shasum -a 256 "$REMOTE_DIR/dist/zhoukeer-toolbox.tar.gz" | awk '{print $1}')"
-printf '%s  %s\n' "$PACKAGE_SHA" 'zhoukeer-toolbox.tar.gz' > "$REMOTE_DIR/dist/SHA256SUMS"
+tar -czf "$REMOTE_DIR/dist/renkit.tar.gz" -C "$RELEASE_DIR" .
+PACKAGE_SHA="$(shasum -a 256 "$REMOTE_DIR/dist/renkit.tar.gz" | awk '{print $1}')"
+printf '%s  %s\n' "$PACKAGE_SHA" 'renkit.tar.gz' > "$REMOTE_DIR/dist/SHA256SUMS"
 printf '%s\n' '4.2.0' > "$REMOTE_DIR/VERSION"
 if run_update > "$STATE_DIR/unsafe-archive.output" 2>&1; then
     echo "FAIL: 包含路径逃逸链接的更新包仍被执行"

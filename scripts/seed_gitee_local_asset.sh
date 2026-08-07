@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 把本地已核验的安装包分块推送到 Gitee 独立镜像仓库，供工具箱分块下载。
+# 把本地已核验的安装包分块推送到 Gitee 独立镜像仓库，供Renkit分块下载。
 # 用法:
 #   GITEE_TOKEN=xxx bash scripts/seed_gitee_local_asset.sh <id> <name> <version> <file> <source_url> <local_file>
 # 未设置 GITEE_TOKEN 时，使用当前机器已配置的 Gitee SSH 认证。

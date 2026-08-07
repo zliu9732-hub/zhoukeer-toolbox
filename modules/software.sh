@@ -238,7 +238,7 @@ SOFTWARE_TARGETS=(
 )
 
 software_print_domestic_source_hint() {
-    echo "提示：请先在工具箱【初始化国内源并检测系统组件】中初始化国内源后重试。"
+    echo "提示：请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。"
 }
 
 confirm_software_install() {
@@ -335,7 +335,7 @@ confirm_domestic_flatpak_risk() {
     echo "- $FLATHUB_CN_REMOTE: $FLATHUB_CN_URL"
     echo "- $FLATHUB_CN_FALLBACK_REMOTE: $FLATHUB_CN_FALLBACK_URL"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
-        echo "已通过工具箱界面确认，正在继续配置。"
+        echo "已通过Renkit界面确认，正在继续配置。"
         return 0
     fi
     read -r -p "确认信任以上镜像并关闭签名验证，请输入 DOMESTIC：" answer
@@ -347,9 +347,9 @@ confirm_official_flatpak_restore() {
 
     echo "将恢复官方 Flathub：https://dl.flathub.org/repo/"
     echo "将重新启用 GPG 验证，并移除 $FLATHUB_CN_REMOTE 和 $FLATHUB_CN_FALLBACK_REMOTE。"
-    echo "同时会移除由工具箱写入的 archlinuxcn 配置；用户原有配置不会被删除。"
+    echo "同时会移除由Renkit写入的 archlinuxcn 配置；用户原有配置不会被删除。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
-        echo "已通过工具箱界面确认，正在恢复官方源。"
+        echo "已通过Renkit界面确认，正在恢复官方源。"
         return 0
     fi
     read -r -p "确认恢复官方源请输入 RESTORE：" answer
@@ -954,7 +954,7 @@ create_software_shortcut() {
 [Desktop Entry]
 Type=Application
 Name=$SOFTWARE_NAME
-Comment=由周克儿工具箱安装
+Comment=由Renkit安装
 Exec=$exec_line
 Icon=$icon_name
 Terminal=false
@@ -1168,7 +1168,7 @@ install_software() {
     fi
     if ! ensure_flatpak_remotes; then
         echo "国内Flathub缓存源配置失败，已停止，不会转连官方源。"
-        echo "提示：请先在工具箱【初始化国内源并检测系统组件】中初始化国内源后重试。"
+        echo "提示：请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。"
         return 1
     fi
 
@@ -1193,7 +1193,7 @@ install_software() {
             _fr_retry=1
         else
             echo "两个国内缓存均失败或超时，已停止。"
-            echo "提示：请先在工具箱【初始化国内源并检测系统组件】中初始化国内源后重试。"
+            echo "提示：请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。"
             log "$SOFTWARE_NAME Flatpak安装失败"
             return 1
         fi
@@ -1386,7 +1386,7 @@ install_flatpak_app() {
         return 0
     fi
 
-    echo "提示：如遇下载缓慢，请在工具箱【系统设置 → 国内源】中初始化国内 Flathub 源。"
+    echo "提示：如遇下载缓慢，请在Renkit【系统设置 → 国内源】中初始化国内 Flathub 源。"
     echo "正在安装 $app_name..."
     for _fp_src in Sjtu Ustc flathub; do
         if flatpak remote-list --user 2>/dev/null | grep -q "$_fp_src"; then
@@ -1434,7 +1434,7 @@ confirm_software_uninstall() {
     local answer
 
     echo "将卸载：$name"
-    echo "只删除该软件和工具箱创建的桌面快捷方式，不删除其他应用。"
+    echo "只删除该软件和Renkit创建的桌面快捷方式，不删除其他应用。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi

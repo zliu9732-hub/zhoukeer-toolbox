@@ -178,7 +178,7 @@ write_captured_toolbox_password() {
     umask 077
     tmp_file="$(mktemp "$record_dir/.zhoukeer-password.XXXXXX")" || return 1
     if ! cat > "$tmp_file" <<EOF
-周克儿工具箱 - Steam Deck 密码记录
+Renkit - Steam Deck 密码记录
 
 用户：$username
 操作：录入现有管理员密码
@@ -186,9 +186,9 @@ write_captured_toolbox_password() {
 
 密码：$password
 
-用途：仅供周克儿工具箱在本机自动完成管理员验证。
+用途：仅供Renkit在本机自动完成管理员验证。
 警告：这是明文密码；所有以当前用户身份运行的软件都可能读取本文件。
-说明：工具箱不会把密码写入日志、命令参数或上传到网络。
+说明：Renkit不会把密码写入日志、命令参数或上传到网络。
 EOF
     then
         rm -f "$tmp_file"
@@ -215,7 +215,7 @@ capture_existing_admin_password() {
     [ -r /dev/tty ] && [ -w /dev/tty ] || return 1
     printf '%s\n' "桌面尚未创建管理员密码.txt。" > /dev/tty
     printf '%s\n' "请输入一次当前管理员密码；验证成功后会自动保存到桌面，后续操作无需重复输入。" > /dev/tty
-    printf '%s\n' "注意：密码将按你的设置以明文保存，仅限本机工具箱使用。" > /dev/tty
+    printf '%s\n' "注意：密码将按你的设置以明文保存，仅限本机Renkit使用。" > /dev/tty
     printf '当前管理员密码（输入时不会显示）：' > /dev/tty
     exec 3</dev/tty
     IFS= read -r -s -u 3 captured_password || { exec 3<&-; return 1; }
@@ -284,7 +284,7 @@ toolbox_sudo() {
     if ! load_toolbox_password; then
         echo "桌面密码记录不可用：${PASSWORD_RECORD_ERROR:-未知原因}"
         echo "记录位置：$PASSWORD_RECORD"
-        echo "请先在工具箱中使用“设置系统密码”，本操作不会弹出重复密码输入。"
+        echo "请先在Renkit中使用“设置系统密码”，本操作不会弹出重复密码输入。"
         return 1
     fi
 
@@ -299,7 +299,7 @@ toolbox_sudo() {
     unset TOOLBOX_PASSWORD
     if [ "$result" -ne 0 ]; then
         sudo -k >/dev/null 2>&1 || true
-        echo "管理员密码.txt中的密码未通过验证，请在工具箱中更新密码记录。"
+        echo "管理员密码.txt中的密码未通过验证，请在Renkit中更新密码记录。"
         return "$result"
     fi
 

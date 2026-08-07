@@ -31,4 +31,4 @@ grep -Fq '__zhoukeerLocalizerEngine' "$DIST"
 grep -Fq 'multi-tab-v1' "$DIST"
 grep -Fq 'export { index as default };' "$DIST"
 
-echo "PASS: 周克儿汉化全局文案扫描、兼容重扫和构建产物检查通过"
+echo "PASS: Renkit汉化全局文案扫描、兼容重扫和构建产物检查通过"

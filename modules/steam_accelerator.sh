@@ -86,8 +86,8 @@ confirm_steam302_install() {
 confirm_steam302_uninstall() {
     local answer
 
-    echo "将删除 Steamcommunity 302 程序目录和工具箱创建的桌面快捷方式。"
-    echo "会先停止工具箱启动的官方 CLI；不会代替官方程序恢复 hosts、移除证书或修改 systemd。"
+    echo "将删除 Steamcommunity 302 程序目录和Renkit创建的桌面快捷方式。"
+    echo "会先停止Renkit启动的官方 CLI；不会代替官方程序恢复 hosts、移除证书或修改 systemd。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi
@@ -257,7 +257,7 @@ start_steam302_service() {
         return 0
     }
 
-    # 优先按参考逻辑走工具箱托管的 systemd 后台服务；不可用时回退内置 CLI。
+    # 优先按参考逻辑走Renkit托管的 systemd 后台服务；不可用时回退内置 CLI。
     if steam302_setup_autostart; then
         if steam302_service_is_active; then
             print_steam302_ready_notice
@@ -392,8 +392,8 @@ SERVICE_EOF
         toolbox_sudo systemctl daemon-reload >/dev/null 2>&1 || true
     elif [ -e "$service_file" ] || [ -L "$service_file" ] || steam302_service_exists; then
         rm -f "$tmp_service"
-        echo "检测到非工具箱创建的同名系统服务，拒绝覆盖：$STEAM302_SERVICE_NAME"
-        echo "请先在原程序中停用该服务，再由工具箱配置后台加速。"
+        echo "检测到非Renkit创建的同名系统服务，拒绝覆盖：$STEAM302_SERVICE_NAME"
+        echo "请先在原程序中停用该服务，再由Renkit配置后台加速。"
         return 1
     else
         toolbox_sudo install -d -m 0755 -- "$STEAM302_SYSTEMD_DIR" || {
@@ -437,7 +437,7 @@ steam302_remove_autostart() {
         toolbox_sudo systemctl daemon-reload >/dev/null 2>&1 || true
         echo "已移除开机自启服务。"
     elif steam302_service_exists || [ -e "$STEAM302_SERVICE_FILE" ] || [ -L "$STEAM302_SERVICE_FILE" ]; then
-        echo "检测到非工具箱创建的同名服务，已保留且不会修改。"
+        echo "检测到非Renkit创建的同名服务，已保留且不会修改。"
     fi
 }
 
@@ -636,9 +636,9 @@ launch_steam302() {
         return 1
     }
 
-    # 优先使用工具箱桌面密码记录无感验证；记录缺失或失效时，退回官方
+    # 优先使用Renkit桌面密码记录无感验证；记录缺失或失效时，退回官方
     # launcher 的图形密码框，避免从无终端的桌面入口直接卡住。
-    # 不保留调用者的完整环境，避免把工具箱配置或其他敏感变量带入 root 进程。
+    # 不保留调用者的完整环境，避免把Renkit配置或其他敏感变量带入 root 进程。
     if ZHOUKEER_SUDO_INTERACTIVE_FALLBACK=0 toolbox_sudo /usr/bin/env -i \
         PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
         HOME="/root" \
@@ -851,7 +851,7 @@ show_steam302_status() {
         echo "Steamcommunity 302：已安装"
         echo "版本：$version"
         echo "目录：$STEAM302_INSTALL_DIR"
-        echo "桌面图标：不创建（由工具箱后台管理）"
+        echo "桌面图标：不创建（由Renkit后台管理）"
     else
         echo "Steamcommunity 302：未安装"
     fi
@@ -912,7 +912,7 @@ uninstall_steam302() {
     }
 
     echo "Steamcommunity 302 程序文件已删除。"
-    echo "工具箱托管的开机自启服务已移除；如仍有 hosts 或证书配置，请按官方程序说明恢复。"
+    echo "Renkit托管的开机自启服务已移除；如仍有 hosts 或证书配置，请按官方程序说明恢复。"
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then

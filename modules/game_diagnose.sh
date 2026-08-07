@@ -7,7 +7,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../core/env.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/logger.sh"
 
-REPORT_FILE="$HOME/Desktop/周克儿游戏启动诊断报告.txt"
+REPORT_FILE="$HOME/Desktop/Renkit游戏启动诊断报告.txt"
 STEAM_ROOT=""
 PASS_COUNT=0
 WARN_COUNT=0
@@ -55,7 +55,7 @@ check_compatibility_tools() {
     if [ "$tool_count" -gt 0 ]; then
         pass "检测到 $tool_count 个自定义 Proton / GE 兼容层"
     else
-        warn "未检测到自定义兼容层；个别游戏可在工具箱安装 GE-Proton 后重试"
+        warn "未检测到自定义兼容层；个别游戏可在Renkit安装 GE-Proton 后重试"
     fi
 }
 
@@ -63,7 +63,7 @@ run_diagnosis() {
     mkdir -p "$HOME/Desktop" || exit 1
     exec > >(tee "$REPORT_FILE") 2>&1
 
-    echo "======周克儿游戏启动诊断======"
+    echo "======Renkit游戏启动诊断======"
     echo "时间：$(date '+%Y-%m-%d %H:%M:%S')"
     echo "说明：本诊断不会删除游戏、兼容数据或缓存。"
 

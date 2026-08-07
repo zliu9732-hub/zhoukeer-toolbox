@@ -181,7 +181,7 @@ done
 
 find_boot_esp_for_health() { printf '%s\n' "$TMP_ROOT/esp"; }
 health_output="$(dual_boot_health_check)" || fail "双系统健康检查失败"
-for expected in 'Windows（受保护）' 'SteamOS（受保护）' '工具箱 Clover' 'rEFInd' 'OpenCore' 'GRUB' 'systemd-boot（仅检查）'; do
+for expected in 'Windows（受保护）' 'SteamOS（受保护）' 'Renkit Clover' 'rEFInd' 'OpenCore' 'GRUB' 'systemd-boot（仅检查）'; do
     printf '%s\n' "$health_output" | grep -Fq "$expected" || fail "健康检查缺少：$expected"
 done
 

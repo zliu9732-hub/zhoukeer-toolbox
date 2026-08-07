@@ -33,7 +33,7 @@ output="$(HOME="$TMP_ROOT/home" PATH="$BIN_DIR:/usr/bin:/bin" \
     XDG_STATE_HOME="$TMP_ROOT/state" NETWORK_CURL_LOG="$TMP_ROOT/curl.log" \
     ZHOUKEER_NETWORK_CONNECT_TIMEOUT=1 ZHOUKEER_NETWORK_MAX_TIME=2 \
     bash "$PROJECT_ROOT/modules/network.sh")"
-printf '%s\n' "$output" | grep -Fq '下载连接有问题，工具箱会自动尝试可用线路' || fail "部分失败时没有给出自动回退建议"
+printf '%s\n' "$output" | grep -Fq '下载连接有问题，Renkit会自动尝试可用线路' || fail "部分失败时没有给出自动回退建议"
 grep -Fq -- '--connect-timeout 1' "$TMP_ROOT/curl.log" || fail "网络检测缺少连接超时"
 grep -Fq -- '--max-time 2' "$TMP_ROOT/curl.log" || fail "网络检测缺少总超时"
 grep -Fq $'update-github\tfail' "$TMP_ROOT/state/zhoukeer-toolbox/source-status.tsv" || fail "未记录 GitHub 最近失败原因"

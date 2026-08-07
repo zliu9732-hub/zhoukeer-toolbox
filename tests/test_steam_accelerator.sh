@@ -393,7 +393,7 @@ grep -Eq '^github[[:space:]]*=[[:space:]]*1' "$TARGET/S302.ini" || \
     fail "生成配置没有启用 GitHub 规则"
 [ -f "$STATE_DIR/systemd/steamcommunity302.service" ] || fail "没有创建后台自启服务"
 grep -Fqx '# Managed by Zhoukeer Toolbox' "$STATE_DIR/systemd/steamcommunity302.service" || \
-    fail "后台服务缺少工具箱管理标记"
+    fail "后台服务缺少Renkit管理标记"
 [ -f "$STATE_DIR/service-enabled" ] || fail "后台服务没有设置开机自启"
 [ -f "$STATE_DIR/service-active" ] || fail "安装后后台服务没有立即启动"
 
@@ -458,7 +458,7 @@ printf '%s\n' "$stop_output" | grep -Fq '后台服务已停止' || fail "停止�
 [ ! -f "$STATE_DIR/service-active" ] || fail "停止后后台服务仍在运行"
 [ ! -f "$TARGET/.zhoukeer-cli.pid" ] || fail "停止后仍残留 CLI PID"
 
-# 重置：工具箱托管的 systemd 服务通过 restart 重新拉起。
+# 重置：Renkit托管的 systemd 服务通过 restart 重新拉起。
 reset_output="$(
     env PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" HOME="$HOME_DIR" \
         ZHOUKEER_APP_DIR="$APP_ROOT" STEAM302_TEST_STATE="$STATE_DIR" \
@@ -546,12 +546,12 @@ fi
 [ -d "$TARGET" ] || fail "未确认卸载时删除了程序"
 grep -Fq '已取消' "$STATE_DIR/cancel-uninstall.output" || fail "取消卸载提示缺失"
 
-# 卸载会停止并移除工具箱托管的运行中系统服务。
+# 卸载会停止并移除Renkit托管的运行中系统服务。
 touch "$STATE_DIR/service-active"
 run_module uninstall > "$STATE_DIR/uninstall.output" || fail "安全卸载失败"
 [ ! -e "$TARGET" ] || fail "卸载后程序目录仍存在"
 [ ! -e "$SHORTCUT" ] || fail "卸载后桌面快捷方式仍存在"
-[ ! -e "$STATE_DIR/systemd/steamcommunity302.service" ] || fail "卸载后仍残留工具箱后台服务"
+[ ! -e "$STATE_DIR/systemd/steamcommunity302.service" ] || fail "卸载后仍残留Renkit后台服务"
 [ ! -e "$STATE_DIR/forbidden.calls" ] || fail "卸载过程调用了禁止的系统命令"
 
 if run_module status > "$STATE_DIR/not-installed.output" 2>&1; then

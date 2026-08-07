@@ -1032,7 +1032,7 @@ remove_legacy_battlenet_desktop_installer() {
     [ "$size" -ge "${LAUNCHER_MIN_BYTES:-1048576}" ] || return 0
     [ "$magic" = "4d5a" ] || return 0
     rm -f -- "$old_installer" || return 1
-    echo "已移除旧版工具箱下载到桌面的战网安装包。"
+    echo "已移除旧版Renkit下载到桌面的战网安装包。"
 }
 
 install_launcher_steam_artwork() {
@@ -1308,7 +1308,7 @@ prepare_launcher_steam_installer() {
     echo "Steam 已启动，请在 Steam 库中点击“${LAUNCHER_NAME}”完成安装。"
     echo "安装阶段不会创建桌面入口，请只在 Steam 库点击“${LAUNCHER_NAME}”完成安装。"
     print_launcher_proton_hint
-    echo "安装完成后，再点击一次工具箱的 $LAUNCHER_NAME 入口即可自动转为正式启动器并创建可用桌面入口。"
+    echo "安装完成后，再点击一次Renkit的 $LAUNCHER_NAME 入口即可自动转为正式启动器并创建可用桌面入口。"
 }
 
 prepare_battlenet_steam_installer() {
@@ -1381,7 +1381,7 @@ finish_launcher_steam_entry() {
     if [ "$target" = "battlenet" ]; then
         echo "战网登录页：https://account.battle.net/login"
     fi
-    echo "$LAUNCHER_NAME 已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
+    echo "$LAUNCHER_NAME 已添加到 Steam 库，桌面入口、封面与Renkit标识均已设置。"
 }
 
 finish_battlenet_steam_entry() {
@@ -1553,7 +1553,7 @@ install_launcher() {
     ZHOUKEER_STEAM_STOPPED=0
     echo "Steam 已启动；封面已写入文件，Steam 读取后生效。"
     echo "若库中封面仍是旧图，请在游戏模式运行“修复启动器封面”。"
-    echo "$LAUNCHER_NAME 已添加到 Steam 库，桌面入口、封面与工具箱标识均已设置。"
+    echo "$LAUNCHER_NAME 已添加到 Steam 库，桌面入口、封面与Renkit标识均已设置。"
     if [ "$target" = "epic" ]; then
         echo "Epic 改中文：右上角头像 → Settings → Language → 中文（简体）→ Restart Now。"
         echo "若下载管理器仍显示英文，请选择不带 System Default 的中文（简体）后重启。"
@@ -1564,7 +1564,7 @@ confirm_launcher_uninstall() {
     local name="$1" answer
 
     echo "将卸载：$name"
-    echo "会移除 Steam 库条目、桌面入口和工具箱包装器。"
+    echo "会移除 Steam 库条目、桌面入口和Renkit包装器。"
     echo "$name 的账号、游戏与下载文件会保留，不会被删除。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0

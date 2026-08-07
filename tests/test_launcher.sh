@@ -211,7 +211,7 @@ if run_launcher '' none 1; then
     echo "FAIL: 没有可用终端时启动器错误返回成功"
     exit 1
 fi
-grep -Fq '周克儿工具箱启动失败' "$DIALOG_LOG"
+grep -Fq 'Renkit启动失败' "$DIALOG_LOG"
 grep -Fq "$LAUNCH_LOG" "$DIALOG_LOG"
 
 FAIL_APP="$TMP_ROOT/failing-app"

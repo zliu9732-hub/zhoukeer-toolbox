@@ -489,7 +489,7 @@ set -e
     echo "FAIL: 模拟百度网盘安装失败仍返回成功" >&2
     exit 1
 }
-printf '%s\n' "$failed_output" | grep -Fq '请先在工具箱【初始化国内源并检测系统组件】中初始化国内源后重试。' || {
+printf '%s\n' "$failed_output" | grep -Fq '请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。' || {
     echo "FAIL: 百度网盘安装失败时未提示初始化国内源" >&2
     exit 1
 }

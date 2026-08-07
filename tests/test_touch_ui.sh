@@ -36,7 +36,7 @@ run_choice_test '\033[<0;80;19M' "agree" "any:1-999:agree"
 
 grep -Fq 'UI_LAST_ROW=24' "$PROJECT_ROOT/core/ui.sh" || fail "触控画布行数异常"
 grep -Fq 'TOOLBOX_VERSION' "$PROJECT_ROOT/core/ui.sh" || fail "触控标题没有使用真实版本号"
-if grep -Fq '周克儿工具箱  ·  V5' "$PROJECT_ROOT/core/ui.sh"; then
+if grep -Fq 'Renkit  ·  V5' "$PROJECT_ROOT/core/ui.sh"; then
     fail "触控标题仍硬编码 V5"
 fi
 logo_source="$(sed -n '/^logo()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
@@ -44,25 +44,25 @@ printf '%s\n' "$logo_source" | grep -Fq 'v${TOOLBOX_VERSION}' || fail "logo 没�
 if printf '%s\n' "$logo_source" | grep -Fq 'cat <<'; then
     fail "logo 仍使用不会展开变量的 heredoc"
 fi
-grep -Fq 'GUI_TITLE="周克儿工具箱 V$(' "$PROJECT_ROOT/core/gui.sh" || fail "图形窗口标题没有使用真实版本号"
+grep -Fq 'GUI_TITLE="Renkit V$(' "$PROJECT_ROOT/core/gui.sh" || fail "图形窗口标题没有使用真实版本号"
 grep -Fq 'Font=Noto Sans Mono CJK SC,12' "$PROJECT_ROOT/install.sh" || fail "中文字体大小没有恢复为默认可读尺寸"
 grep -Fq 'TerminalColumns=120' "$PROJECT_ROOT/install.sh" || fail "终端列数不是紧凑布局"
 grep -Fq 'TerminalRows=32' "$PROJECT_ROOT/install.sh" || fail "终端行数不是紧凑布局"
-grep -Fq 'WINDOW_SIZE="1280x740"' "$PROJECT_ROOT/launch.sh" || fail "工具箱窗口尺寸未同步"
+grep -Fq 'WINDOW_SIZE="1280x740"' "$PROJECT_ROOT/launch.sh" || fail "Renkit窗口尺寸未同步"
 grep -Fq 'ZHOUKEER_FONT_SIZE' "$PROJECT_ROOT/launch.sh" || fail "启动器没有按分辨率设置字号"
 grep -Fq 'ui_apply_screen_font' "$PROJECT_ROOT/core/ui.sh" || fail "界面缺少分辨率字号适配"
 grep -Fq 'ui_apply_screen_font' "$PROJECT_ROOT/main.sh" || fail "启动流程没有应用分辨率字号"
 grep -Fq "printf '\\033[0m\\033[r\\033[3J\\033[2J\\033[H'" "$PROJECT_ROOT/launch.sh" || fail "首次进入前未清理更新输出"
 
 layout_wait="$(sed -n '/^ui_wait_for_minimum_canvas()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
-printf '%s\n' "$layout_wait" | grep -Fq 'ui_request_preferred_canvas' || fail "窗口过矮时没有请求恢复工具箱画布"
+printf '%s\n' "$layout_wait" | grep -Fq 'ui_request_preferred_canvas' || fail "窗口过矮时没有请求恢复Renkit画布"
 printf '%s\n' "$layout_wait" | grep -Fq 'UI_LAST_ROW' || fail "窗口画布没有按触控底部行检查"
 canvas_request="$(sed -n '/^ui_request_preferred_canvas()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
 printf '%s\n' "$canvas_request" | grep -Fq '\033[8;%s;%st' || fail "没有请求 Konsole 恢复标准行列尺寸"
 grep -Fq 'ui_wait_for_minimum_canvas || true' "$PROJECT_ROOT/main.sh" || fail "主程序首次绘制前没有等待窗口尺寸就绪"
 startup_loading="$(sed -n '/^show_startup_loading()/,/^}/p' "$PROJECT_ROOT/main.sh")"
-printf '%s\n' "$startup_loading" | grep -Fq '工具箱启动中，请耐心等待' || fail "启动等待阶段缺少明确提示"
-printf '%s\n' "$startup_loading" | grep -Fq '若启动较慢，工具箱可能正在更新，请耐心等待' || fail "启动等待阶段缺少更新说明"
+printf '%s\n' "$startup_loading" | grep -Fq 'Renkit启动中，请耐心等待' || fail "启动等待阶段缺少明确提示"
+printf '%s\n' "$startup_loading" | grep -Fq '若启动较慢，Renkit可能正在更新，请耐心等待' || fail "启动等待阶段缺少更新说明"
 main_prefix="$(sed -n '1,/^# V5 默认就是纯触控界面/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$main_prefix" | grep -Fq 'show_startup_loading' || fail "启动提示没有在触控界面初始化前显示"
 
@@ -78,12 +78,12 @@ printf '%s\n' "$main_disclaimer" | grep -Fq '关闭窗口即可退出' || fail "
 if printf '%s\n' "$main_disclaimer" | grep -Fq 'launch.sh" --open-main'; then
     fail "启动免责声明仍使用独立图片主题"
 fi
-grep -Fq 'ZHOUKEER_SKIP_DISCLAIMER' "$PROJECT_ROOT/main.sh" || fail "常规工具箱没有跳过重复免责声明"
+grep -Fq 'ZHOUKEER_SKIP_DISCLAIMER' "$PROJECT_ROOT/main.sh" || fail "常规Renkit没有跳过重复免责声明"
 if grep -Fq 'ColorScheme=ZhoukeerToolboxSplash' "$PROJECT_ROOT/install.sh"; then
     fail "安装程序仍在生成免责声明图片主题"
 fi
 [ ! -e "$PROJECT_ROOT/assets/disclaimer-usage.jpg" ] || fail "免责声明大图仍保留在项目资源中"
-grep -Fq 'assets/icon-toolbox-deck.png' "$PROJECT_ROOT/install.sh" || fail "安装程序没有使用新的工具箱桌面图标"
+grep -Fq 'assets/icon-toolbox-deck.png' "$PROJECT_ROOT/install.sh" || fail "安装程序没有使用新的Renkit桌面图标"
 
 touch_button="$(sed -n '/^ui_touch_button()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
 printf '%s\n' "$touch_button" | grep -Fq 'if [ -n "$hint" ]' || fail "空说明按钮仍会显示分隔符"
@@ -137,7 +137,7 @@ for entry in \
     'ui_sidebar_item 12 advanced "! 更多设置"' \
     'ui_sidebar_item 14 uninstall "- 卸载已安装"' \
     'ui_sidebar_item 16 notice "▧ 免责声明与须知"' \
-    'ui_sidebar_item 18 exit "× 退出工具箱"'; do
+    'ui_sidebar_item 18 exit "× 退出Renkit"'; do
     printf '%s\n' "$frame" | grep -Fq -- "$entry" || fail "侧栏缺少：$entry"
 done
 

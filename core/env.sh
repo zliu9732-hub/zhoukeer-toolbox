@@ -10,8 +10,8 @@ SCRIPT_PATH="${BASH_SOURCE[0]}"
 CORE_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 PROJECT_ROOT="$(cd "$CORE_DIR/.." && pwd)"
 
-TOOLBOX_VERSION="V1.0.2"
-TOOLBOX_NAME="周克儿工具箱"
+TOOLBOX_VERSION="1.0"
+TOOLBOX_NAME="Renkit"
 
 CONFIG_FILE="$PROJECT_ROOT/config/settings.conf"
 CONFIG_EXAMPLE_FILE="$PROJECT_ROOT/config/settings.example.conf"

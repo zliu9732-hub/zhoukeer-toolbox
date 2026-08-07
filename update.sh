@@ -50,7 +50,7 @@ if [ -z "$GITHUB_RAW_BASE" ] && [ -n "$GITHUB_OWNER" ]; then
     GITHUB_RAW_BASE="https://raw.githubusercontent.com/$GITHUB_OWNER/$REPO_NAME/$BRANCH"
 fi
 DOMAIN_RAW_BASE="${ZHOUKEER_DOMAIN_RAW_BASE:-}"
-PACKAGE_NAME="${ZHOUKEER_PACKAGE_NAME:-zhoukeer-toolbox.tar.gz}"
+PACKAGE_NAME="${ZHOUKEER_PACKAGE_NAME:-renkit.tar.gz}"
 GITEE_PACKAGE_URL="${ZHOUKEER_GITEE_PACKAGE_URL:-$GITEE_RAW_BASE/dist/$PACKAGE_NAME}"
 GITHUB_PACKAGE_URL="${ZHOUKEER_GITHUB_PACKAGE_URL:-$GITHUB_RAW_BASE/dist/$PACKAGE_NAME}"
 GITEE_VERSION_URL="${ZHOUKEER_GITEE_VERSION_URL:-$GITEE_RAW_BASE/VERSION}"
@@ -211,6 +211,15 @@ version_greater() {
         left="$left_tail"
         right="$right_tail"
     done
+}
+
+renkit_migration_allowed() {
+    local remote="$1" local_version="$2"
+
+    [ "$remote" = "1.0" ] || return 1
+    [ "$local_version" != "1.0" ] || return 1
+    grep -Fq '周克儿工具箱' "$PROJECT_ROOT/core/env.sh" 2>/dev/null || return 1
+    return 0
 }
 
 valid_sha256() {
@@ -454,7 +463,8 @@ download_version_with_fallback() {
             local_version="$(tr -d '\r\n' < "$PROJECT_ROOT/VERSION")"
         fi
         if [ -n "$local_version" ] && valid_release_version "$local_version" && \
-            ! version_greater "$best" "$local_version"; then
+            ! version_greater "$best" "$local_version" && \
+            ! renkit_migration_allowed "$best" "$local_version"; then
             echo "版本检测失败：域名源版本($best)未高于本地版本($local_version)，且国内镜像和GitHub均不可用。"
             return 1
         fi
@@ -466,7 +476,7 @@ download_version_with_fallback() {
 
 SYSTEM="$(uname -s 2>/dev/null || echo unknown)"
 
-echo "正在检查工具箱更新..."
+echo "正在检查Renkit更新..."
 
 if [ "$SYSTEM" = "Darwin" ]; then
     echo "检测到 macOS。仅允许语法测试，不执行 SteamOS 自更新。"
@@ -525,7 +535,7 @@ if [ "$STARTUP_MODE" -eq 1 ]; then
 fi
 
 TMP_DIR="$(mktemp -d)"
-PACKAGE_FILE="$TMP_DIR/zhoukeer-toolbox.tar.gz"
+PACKAGE_FILE="$TMP_DIR/renkit.tar.gz"
 VERSION_FILE="$TMP_DIR/VERSION"
 CHECKSUM_FILE="$TMP_DIR/SHA256SUMS"
 EXTRACT_DIR="$TMP_DIR/extracted"
@@ -557,11 +567,11 @@ if [ -r "$PROJECT_ROOT/VERSION" ]; then
     LOCAL_VERSION="$(tr -d '\r\n' < "$PROJECT_ROOT/VERSION")"
 fi
 if [ "$REMOTE_VERSION" != "unknown" ] && [ "$LOCAL_VERSION" = "$REMOTE_VERSION" ]; then
-    echo "✓ 工具箱已是最新版本"
+    echo "✓ Renkit已是最新版本"
     exit 0
 fi
 
-echo "正在更新工具箱..."
+echo "正在更新Renkit..."
 if [ "$REMOTE_VERSION" != "unknown" ]; then
     echo "当前版本 V${LOCAL_VERSION}，正在更新到 V${REMOTE_VERSION}..."
 fi
@@ -613,7 +623,7 @@ fi
 cd "$PROJECT_ROOT" 2>/dev/null || cd "$HOME" || exit 1
 
 if [ "$REMOTE_VERSION" != "unknown" ]; then
-    echo "✓ 工具箱更新完成，当前版本 V${PACKAGE_VERSION:-$REMOTE_VERSION}"
+    echo "✓ Renkit更新完成，当前版本 V${PACKAGE_VERSION:-$REMOTE_VERSION}"
 else
-    echo "✓ 工具箱更新完成"
+    echo "✓ Renkit更新完成"
 fi

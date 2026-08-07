@@ -18,7 +18,7 @@ load_non_root_identity() {
 
     case "$CURRENT_TOOLBOX_UID" in ''|*[!0-9]*) return 1 ;; esac
     [ "$CURRENT_TOOLBOX_UID" != "0" ] || {
-        echo "拒绝以 root 身份设置密码；请使用 Steam Deck 的普通桌面用户运行工具箱。"
+        echo "拒绝以 root 身份设置密码；请使用 Steam Deck 的普通桌面用户运行Renkit。"
         return 1
     }
     case "$CURRENT_TOOLBOX_USERNAME" in ''|*:*|*$'\n'*) return 1 ;; esac
@@ -27,7 +27,7 @@ load_non_root_identity() {
 show_plaintext_password_warning() {
     echo "重要提示：新密码会以明文写入桌面“管理员密码.txt”。"
     echo "文件权限固定为 600，但所有以当前用户身份运行的软件都可能读取它。"
-    echo "工具箱只在需要管理员权限时读取，不会上传或写入日志。"
+    echo "Renkit只在需要管理员权限时读取，不会上传或写入日志。"
 }
 
 password_record_target_is_safe_for_replace() {
@@ -79,7 +79,7 @@ write_password_record() {
     umask 077
     tmp_file="$(mktemp "$record_dir/.zhoukeer-password.XXXXXX")" || return 1
     if ! cat > "$tmp_file" <<EOF
-周克儿工具箱 - Steam Deck 密码记录
+Renkit - Steam Deck 密码记录
 
 用户：$CURRENT_TOOLBOX_USERNAME
 操作：$action_label
@@ -87,9 +87,9 @@ write_password_record() {
 
 密码：$password
 
-用途：仅供周克儿工具箱在本机自动完成管理员验证。
+用途：仅供Renkit在本机自动完成管理员验证。
 警告：这是明文密码；所有以当前用户身份运行的软件都可能读取本文件。
-说明：工具箱不会把密码写入日志、命令参数或上传到网络。
+说明：Renkit不会把密码写入日志、命令参数或上传到网络。
 EOF
     then
         rm -f -- "$tmp_file"

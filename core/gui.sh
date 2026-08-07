@@ -11,7 +11,7 @@ source "$PROJECT_ROOT/core/logger.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/auth.sh"
 
-GUI_TITLE="周克儿工具箱 V$(tr -d '\r\n' < "$PROJECT_ROOT/VERSION" 2>/dev/null || printf '?')"
+GUI_TITLE="Renkit V$(tr -d '\r\n' < "$PROJECT_ROOT/VERSION" 2>/dev/null || printf '?')"
 GUI_ICON="$PROJECT_ROOT/assets/icon-round.png"
 GUI_NAV_HOME=0
 
@@ -122,7 +122,7 @@ software_menu() {
             parsec "Parsec｜远程串流与协作" \
             protontricks "游戏兼容设置｜安装 Protontricks" \
             home "返回首页" \
-            nav-exit "退出工具箱")" || return 0
+            nav-exit "退出Renkit")" || return 0
         case "$choice" in
             wechat)
                 gui_confirm "将从微信Linux版官网下载官方x86_64 AppImage，并自动创建桌面图标。是否继续？" && \
@@ -216,7 +216,7 @@ ge_proton_gui_menu() {
             trainer "安装修改器所需常用兼容层｜四个版本约1.72GB，下载较慢为正常现象" \
             back "返回游戏与插件" \
             home "返回首页" \
-            nav-exit "退出工具箱")" || return 0
+            nav-exit "退出Renkit")" || return 0
         case "$choice" in
             latest)
                 gui_confirm "将自动检测并安装最新 GE-Proton，不会删除已安装的旧版兼容层。是否继续？" && \
@@ -256,7 +256,7 @@ game_environment_gui_menu() {
             repair "修复启动器封面｜重写 Steam 库封面并重启 Steam" \
             decky-install "安装插件商城｜稳定版国内失败自动切换官方源｜可选测试版｜高级操作" \
             home "返回首页" \
-            nav-exit "退出工具箱")" || return 0
+            nav-exit "退出Renkit")" || return 0
         case "$choice" in
             features)
                 gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。未安装插件商城时会先安装插件商城，再继续安装三款插件；会使用管理员权限。是否继续？" && \
@@ -386,7 +386,7 @@ emulator_gui_menu() {
             mgba "mGBA｜GBA 模拟器" \
             azahar "Azahar｜3DS 模拟器" \
             home "返回首页" \
-            nav-exit "退出工具箱")" || return 0
+            nav-exit "退出Renkit")" || return 0
         case "$choice" in
             yuzu)
                 choice="$(gui_dialog --menu "Yuzu｜仅导入本人合法备份的密钥" \
@@ -396,7 +396,7 @@ emulator_gui_menu() {
                     back "返回模拟器列表")" || continue
                 case "$choice" in
                     install) gui_confirm "只安装模拟器本体；不包含游戏、BIOS、固件或密钥。是否继续？" && run_gui_action "安装 Yuzu" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/emulators.sh" yuzu ;;
-                    keys) gui_confirm "仅可导入本人合法备份的 prod.keys / title.keys；工具箱不会下载、显示或分享密钥。是否继续？" && run_gui_action "导入 Yuzu 密钥" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/emulators.sh" yuzu-keys ;;
+                    keys) gui_confirm "仅可导入本人合法备份的 prod.keys / title.keys；Renkit不会下载、显示或分享密钥。是否继续？" && run_gui_action "导入 Yuzu 密钥" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/emulators.sh" yuzu-keys ;;
                     status) run_gui_action "Yuzu 密钥状态" bash "$PROJECT_ROOT/modules/emulators.sh" yuzu-keys-status ;;
                 esac
                 ;;
@@ -440,7 +440,7 @@ plugin_official_gui_pages() {
         else
             menu_args+=(back-last "返回游戏与插件")
         fi
-        menu_args+=(home "返回首页" nav-exit "退出工具箱")
+        menu_args+=(home "返回首页" nav-exit "退出Renkit")
 
         choice="$(gui_dialog "${menu_args[@]}")" || return 0
         case "$choice" in
@@ -475,7 +475,7 @@ dual_system_menu() {
             switch-to-windows "一键切换至 Windows｜设置 BootNext 后立即重启｜高风险" \
             back "返回系统设置" \
             home "返回首页" \
-            nav-exit "退出工具箱")" || return 0
+            nav-exit "退出Renkit")" || return 0
         case "$choice" in
             health) run_gui_action "双系统健康检查" bash "$PROJECT_ROOT/modules/dual_system_tools.sh" health ;;
             mount)
@@ -538,7 +538,7 @@ steam_accelerator_gui_menu() {
             uninstall "安全卸载" \
             back "返回系统设置" \
             home "返回首页" \
-            nav-exit "退出工具箱")" || return 0
+            nav-exit "退出Renkit")" || return 0
         case "$choice" in
             install)
                 gui_confirm "安装后开启加速会修改网络设置并需要管理员权限。是否继续？" && \
@@ -564,7 +564,7 @@ steam_accelerator_gui_menu() {
                     bash "$PROJECT_ROOT/modules/steam_accelerator.sh" status
                 ;;
             uninstall)
-                gui_confirm "会停止工具箱启动的进程；官方 systemd、hosts、DNS 和证书需按官方程序另行处理。确认继续？" && \
+                gui_confirm "会停止Renkit启动的进程；官方 systemd、hosts、DNS 和证书需按官方程序另行处理。确认继续？" && \
                     run_gui_action "卸载Steamcommunity 302" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
                 ;;
@@ -631,7 +631,7 @@ maintenance_gui_menu() {
             performance "查看性能建议｜查看推荐性能设置" \
             fix "常见问题处理｜检测网络并清理下载残留｜会删除缓存" \
             home "返回首页" \
-            nav-exit "退出工具箱")" || return 0
+            nav-exit "退出Renkit")" || return 0
         case "$choice" in
             health) run_gui_action "系统健康检查" bash "$PROJECT_ROOT/core/detect.sh" --health ;;
             diagnose) run_gui_action "游戏启动检查" bash "$PROJECT_ROOT/modules/game_diagnose.sh" diagnose ;;
@@ -663,21 +663,21 @@ help_gui_menu() {
             game-guide "游戏兼容指南｜查看游戏运行建议" \
             shortcuts "掌机常用快捷键｜查看常用按键方法" \
             peripherals "外接设备检查｜检查显示器和蓝牙" \
-            backup-settings "备份工具箱设置｜只备份工具箱管理的内容" \
-            restore-settings "恢复工具箱设置｜先列出内容并备份当前状态" \
+            backup-settings "备份Renkit设置｜只备份Renkit管理的内容" \
+            restore-settings "恢复Renkit设置｜先列出内容并备份当前状态" \
             network-details "查看详细网络信息｜查看各条连接的技术详情" \
             report "导出旧版文字报告｜兼容旧排查流程" \
-            records "操作记录｜导出最近工具箱记录" \
+            records "操作记录｜导出最近Renkit记录" \
             changelog "更新日志｜查看版本改动内容" \
-            update "检查并更新工具箱｜下载并安装最新版本｜会联网并更新" \
+            update "检查并更新Renkit｜下载并安装最新版本｜会联网并更新" \
             home "返回首页" \
-            nav-exit "退出工具箱")" || return 0
+            nav-exit "退出Renkit")" || return 0
         case "$choice" in
             system-info) run_gui_action "查看系统信息" bash "$PROJECT_ROOT/core/detect.sh" ;;
             diagnostic-bundle) run_gui_action "生成诊断包" bash "$PROJECT_ROOT/modules/diagnostics.sh" bundle ;;
             report) run_gui_action "导出诊断报告" bash "$PROJECT_ROOT/core/detect.sh" --report ;;
-            backup-settings) run_gui_action "备份工具箱设置" bash "$PROJECT_ROOT/modules/settings_backup.sh" backup ;;
-            restore-settings) run_gui_action "恢复工具箱设置" bash "$PROJECT_ROOT/modules/settings_backup.sh" restore ;;
+            backup-settings) run_gui_action "备份Renkit设置" bash "$PROJECT_ROOT/modules/settings_backup.sh" backup ;;
+            restore-settings) run_gui_action "恢复Renkit设置" bash "$PROJECT_ROOT/modules/settings_backup.sh" restore ;;
             network-details) run_gui_action "详细网络信息" bash "$PROJECT_ROOT/modules/network.sh" --details ;;
             new-guide) run_gui_action "新手使用指南" bash "$PROJECT_ROOT/modules/safety_center.sh" guide ;;
             game-guide) run_gui_action "游戏兼容指南" bash "$PROJECT_ROOT/modules/game_guides.sh" show ;;
@@ -686,8 +686,8 @@ help_gui_menu() {
             records) run_gui_action "操作记录" bash "$PROJECT_ROOT/modules/safety_center.sh" records ;;
             changelog) gui_dialog --textbox "$PROJECT_ROOT/CHANGELOG.md" 900 650 ;;
             update)
-                gui_confirm "将联网下载经过校验的新版本并替换当前工具箱，是否继续？" && \
-                    run_gui_action "检查并更新工具箱" bash "$PROJECT_ROOT/update.sh"
+                gui_confirm "将联网下载经过校验的新版本并替换当前Renkit，是否继续？" && \
+                    run_gui_action "检查并更新Renkit" bash "$PROJECT_ROOT/update.sh"
                 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
@@ -703,7 +703,7 @@ new_machine_gui_menu() {
             recommended "推荐软件安装｜选择需要的常用软件" \
             advanced-init "新机初始化｜连续安装并配置新机器" \
             home "返回首页" \
-            nav-exit "退出工具箱")" || return 0
+            nav-exit "退出Renkit")" || return 0
         case "$choice" in
             recommended) software_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             advanced-init)
@@ -726,10 +726,10 @@ support_gui_menu() {
             maintenance "检查常见问题｜检查系统、游戏和可安全清理的内容" \
             source-status "查看下载状态｜查看最近成功时间和失败原因" \
             diagnostic-bundle "发给维护人员｜生成诊断包，不包含密码和隐私信息" \
-            help "使用帮助与设置｜查看指南、备份设置和工具箱更新" \
+            help "使用帮助与设置｜查看指南、备份设置和Renkit更新" \
             manage-advanced "更多设置｜管理国内下载和加速功能" \
             home "返回首页" \
-            nav-exit "退出工具箱")" || return 0
+            nav-exit "退出Renkit")" || return 0
         case "$choice" in
             network-status) run_gui_action "一键检查网络" bash "$PROJECT_ROOT/modules/network.sh" ;;
             maintenance) maintenance_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
@@ -748,7 +748,7 @@ domestic_source_gui_preflight() {
 
     choice="$(gui_dialog --menu "初始化国内源并检测系统组件｜Flatpak 缓存关闭 GPG；archlinuxcn 保持 GPG 验证" \
         configure "初始化国内源并检测系统组件｜完整更新系统组件，配置 locale 与国内缓存" \
-        restore "恢复官方软件源｜恢复 Flathub 并移除工具箱 archlinuxcn" \
+        restore "恢复官方软件源｜恢复 Flathub 并移除Renkit archlinuxcn" \
         back "返回系统设置")" || return 0
     case "$choice" in
         configure)
@@ -770,7 +770,7 @@ pacman 仓库：archlinuxcn
                 bash "$PROJECT_ROOT/modules/domestic_source.sh" init
             ;;
         restore)
-            gui_confirm "将恢复 https://dl.flathub.org/repo/，重新启用 GPG 验证，移除两个 Flatpak 国内缓存，并移除工具箱管理的 archlinuxcn 配置。用户原有 archlinuxcn 配置不会删除。确认继续？" && \
+            gui_confirm "将恢复 https://dl.flathub.org/repo/，重新启用 GPG 验证，移除两个 Flatpak 国内缓存，并移除Renkit管理的 archlinuxcn 配置。用户原有 archlinuxcn 配置不会删除。确认继续？" && \
                 run_gui_action "恢复官方软件源" env ZHOUKEER_AUTO_CONFIRM=1 \
                 bash "$PROJECT_ROOT/modules/domestic_source.sh" restore
             ;;
@@ -781,13 +781,13 @@ memory_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "虚拟内存｜优化、查看或撤销工具箱设置" \
+        choice="$(gui_dialog --menu "虚拟内存｜优化、查看或撤销Renkit设置" \
             optimize "一键优化｜设置 zram 与磁盘 swap" \
             status "查看状态" \
-            restore "撤销工具箱优化｜保留系统原 swap" \
+            restore "撤销Renkit优化｜保留系统原 swap" \
             back "返回更多设置" \
             home "返回首页" \
-            nav-exit "退出工具箱")" || return 0
+            nav-exit "退出Renkit")" || return 0
         case "$choice" in
             optimize)
                 gui_confirm "将设置 zram、磁盘 swap 和 swappiness；失败时自动恢复。确认继续？" && \
@@ -800,8 +800,8 @@ memory_gui_menu() {
                 return 0
                 ;;
             restore)
-                gui_confirm "只删除工具箱创建的配置和独立 swap；系统原 swap 会保留。确认撤销？" && \
-                    run_gui_action "撤销工具箱虚拟内存优化" env ZHOUKEER_AUTO_CONFIRM=1 \
+                gui_confirm "只删除Renkit创建的配置和独立 swap；系统原 swap 会保留。确认撤销？" && \
+                    run_gui_action "撤销Renkit虚拟内存优化" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/memory_tuning.sh" restore
                 return 0
                 ;;
@@ -823,7 +823,7 @@ advanced_tools_gui_menu() {
             change-password "修改管理员密码｜会更换 SteamOS 管理密码｜高级操作" \
             dual "双系统与互通盘｜管理磁盘和开机菜单｜高级操作" \
             home "返回首页" \
-            nav-exit "退出工具箱")" || return 0
+            nav-exit "退出Renkit")" || return 0
         case "$choice" in
             domestic-source) domestic_source_gui_preflight ;;
             accelerator) steam_accelerator_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
@@ -854,7 +854,7 @@ uninstall_software_gui_menu() {
                     rustdesk "卸载 RustDesk｜保留用户配置" \
                     todesk "卸载 ToDesk｜停止服务并卸载软件包｜高级操作" \
                     baidunetdisk "卸载百度网盘｜Flatpak" \
-                    next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
+                    next "下一页" home "返回首页" nav-exit "退出Renkit")" || return 0
                 ;;
             1)
                 choice="$(gui_dialog --menu "卸载已安装｜办公与创作｜第 2/7 页" \
@@ -866,7 +866,7 @@ uninstall_software_gui_menu() {
                     obs "卸载 OBS Studio｜Flatpak" \
                     localsend "卸载 LocalSend｜Flatpak" \
                     peazip "卸载 PeaZip｜Flatpak" \
-                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
+                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出Renkit")" || return 0
                 ;;
             2)
                 choice="$(gui_dialog --menu "卸载已安装｜兼容、音乐与下载｜第 3/7 页" \
@@ -878,7 +878,7 @@ uninstall_software_gui_menu() {
                     yesplaymusic "卸载 YesPlayMusic｜Flatpak" \
                     qbittorrent "卸载 qBittorrent｜Flatpak" \
                     motrix "卸载 Motrix 下载器｜Flatpak" \
-                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
+                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出Renkit")" || return 0
                 ;;
             3)
                 choice="$(gui_dialog --menu "卸载已安装｜下载、办公、笔记与串流｜第 4/7 页" \
@@ -890,7 +890,7 @@ uninstall_software_gui_menu() {
                     heroic "卸载 Heroic｜移除 Steam 库条目" \
                     lutris "卸载 Lutris｜移除 Steam 库条目" \
                     chiaki4deck "卸载 Chiaki4Deck｜移除 Steam 库条目" \
-                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
+                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出Renkit")" || return 0
                 ;;
             4)
                 choice="$(gui_dialog --menu "卸载已安装｜游戏启动器与模拟器｜第 5/7 页" \
@@ -902,7 +902,7 @@ uninstall_software_gui_menu() {
                     yuzu "卸载 Yuzu｜保留存档与配置" \
                     cemu "卸载 Cemu｜保留存档与配置" \
                     duckstation "卸载 DuckStation｜保留存档与配置" \
-                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
+                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出Renkit")" || return 0
                 ;;
             5)
                 choice="$(gui_dialog --menu "卸载已安装｜模拟器与系统组件｜第 6/7 页" \
@@ -913,20 +913,20 @@ uninstall_software_gui_menu() {
                     mgba "卸载 mGBA｜保留存档与配置" \
                     azahar "卸载 Azahar｜保留 3DS 存档与密钥" \
                     steam302 "卸载 Steam302｜停止后台加速和自启｜高级操作" \
-                    ge-proton "卸载 GE-Proton｜只删工具箱当前版本" \
-                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出工具箱")" || return 0
+                    ge-proton "卸载 GE-Proton｜只删Renkit当前版本" \
+                    previous "上一页" next "下一页" home "返回首页" nav-exit "退出Renkit")" || return 0
                 ;;
             *)
                 choice="$(gui_dialog --menu "卸载已安装｜Decky 组件｜第 7/7 页" \
                     decky-loader "卸载 Decky Loader｜保留插件文件" \
                     decky-plugins "清空全部 Decky 插件｜删除插件与设置｜高风险" \
-                    previous "上一页" home "返回首页" nav-exit "退出工具箱")" || return 0
+                    previous "上一页" home "返回首页" nav-exit "退出Renkit")" || return 0
                 ;;
         esac
         case "$choice" in
             wechat|qq|browser|chrome|edge|rustdesk|anydesk|baidunetdisk|willwill|xbox-cloud|libreoffice|vlc|obs|localsend|peazip|fcitx5|protontricks|bottles|qqmusic|netease-music|yesplaymusic|qbittorrent|motrix|freedownloadmanager|media-downloader|flameshot|onlyoffice|joplin|heroic|lutris|chiaki4deck|parsec)
                 target="$choice"
-                gui_confirm "只卸载所选软件及工具箱创建的快捷方式，确认继续？" && \
+                gui_confirm "只卸载所选软件及Renkit创建的快捷方式，确认继续？" && \
                     run_gui_action "卸载软件" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" uninstall "$target"
                 ;;
@@ -953,7 +953,7 @@ uninstall_software_gui_menu() {
                     bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
                 ;;
             ge-proton)
-                gui_confirm "只删除工具箱当前 GE-Proton 版本，确认继续？" && \
+                gui_confirm "只删除Renkit当前 GE-Proton 版本，确认继续？" && \
                     run_gui_action "卸载 GE-Proton" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/ge_proton.sh" uninstall
                 ;;
@@ -989,7 +989,7 @@ main_gui_menu() {
             nav-advanced "更多设置｜国内下载、内存、密码和双系统" \
             nav-uninstall "卸载已安装｜逐项安全移除软件和系统组件" \
             nav-notice "免责声明与使用须知｜查看完整图文说明" \
-            nav-exit "退出工具箱")" || exit 0
+            nav-exit "退出Renkit")" || exit 0
 
         case "$choice" in
             nav-init) new_machine_gui_menu ;;
@@ -1000,7 +1000,7 @@ main_gui_menu() {
             nav-advanced) advanced_tools_gui_menu ;;
             nav-uninstall) uninstall_software_gui_menu ;;
             nav-notice)
-                gui_dialog --yesno "请确认已阅读首次启动页的免责声明。\n\n工具箱不包含付费软件、破解、ROM、BIOS 或密钥；涉及下载、安装、权限或磁盘的操作都会另行提示并确认。\n\n点击“我已阅读并知悉”会关闭本页并返回首页。" \
+                gui_dialog --yesno "请确认已阅读首次启动页的免责声明。\n\nRenkit不包含付费软件、破解、ROM、BIOS 或密钥；涉及下载、安装、权限或磁盘的操作都会另行提示并确认。\n\n点击“我已阅读并知悉”会关闭本页并返回首页。" \
                     --yes-label "我已阅读并知悉" --no-label "返回首页"
                 ;;
             nav-exit) exit 0 ;;
@@ -1021,7 +1021,7 @@ ensure_gui_password_ready() {
         choice="$(gui_dialog --menu "首次使用必须先准备管理员密码记录，但不会强制修改已有密码。" \
             import "我已有管理员密码｜输入一次并保存到桌面" \
             set "我还没有管理员密码｜按系统提示设置新密码" \
-            exit "退出工具箱")" || exit 0
+            exit "退出Renkit")" || exit 0
         case "$choice" in
             import) run_gui_action "录入现有管理员密码" bash "$PROJECT_ROOT/modules/password.sh" import ;;
             set) run_gui_action "设置管理员密码" bash "$PROJECT_ROOT/modules/password.sh" set ;;

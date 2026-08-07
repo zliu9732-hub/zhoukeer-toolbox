@@ -70,7 +70,7 @@ remove_managed_archlinuxcn_repo() {
 
     [ -f "$pacman_conf" ] && [ ! -L "$pacman_conf" ] || return 1
     if ! grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" "$pacman_conf"; then
-        echo "未发现工具箱管理的 archlinuxcn 配置，无需移除。"
+        echo "未发现Renkit管理的 archlinuxcn 配置，无需移除。"
         return 0
     fi
 
@@ -87,7 +87,7 @@ remove_managed_archlinuxcn_repo() {
         return 1
     fi
     rm -f -- "$tmp_file"
-    echo "已移除工具箱管理的 archlinuxcn 配置。"
+    echo "已移除Renkit管理的 archlinuxcn 配置。"
 }
 
 configure_chinese_locales() {
@@ -184,7 +184,7 @@ configure_archlinuxcn_with_fallback() {
         if ! toolbox_sudo pacman -Sy --needed --noconfirm archlinuxcn-keyring; then
             if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" "$pacman_conf" 2>/dev/null && \
                 ! remove_managed_archlinuxcn_repo "$pacman_conf"; then
-                echo "archlinuxcn 密钥环安装失败，且工具箱配置移除失败。"
+                echo "archlinuxcn 密钥环安装失败，且Renkit配置移除失败。"
                 return 1
             fi
             echo "- archlinuxcn 密钥环本次未启用，已撤销并跳过；将继续配置 Flatpak 国内缓存。"
@@ -201,7 +201,7 @@ configure_archlinuxcn_with_fallback() {
 
     if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" "$pacman_conf" 2>/dev/null && \
         ! remove_managed_archlinuxcn_repo "$pacman_conf"; then
-        echo "archlinuxcn 密钥导入失败，且工具箱配置移除失败。"
+        echo "archlinuxcn 密钥导入失败，且Renkit配置移除失败。"
         return 1
     fi
     echo "- archlinuxcn 密钥本次未启用，已撤销并跳过；将继续配置 Flatpak 国内缓存。"
@@ -283,8 +283,8 @@ restore_official_flatpak() {
         fi
     fi
 
-    echo "已恢复 Flathub 官方源并启用 GPG 验证，同时移除工具箱管理的 archlinuxcn 配置。"
-    log "已恢复Flathub官方源并移除国内缓存源和工具箱管理的archlinuxcn配置"
+    echo "已恢复 Flathub 官方源并启用 GPG 验证，同时移除Renkit管理的 archlinuxcn 配置。"
+    log "已恢复Flathub官方源并移除国内缓存源和Renkit管理的archlinuxcn配置"
 }
 
 prepare_system_packages() (
@@ -415,7 +415,7 @@ initialize_software_sources() {
     configure_domestic_flatpak || return 1
 
     echo ""
-    echo "国内源与系统组件初始化完成。现在可以继续使用工具箱安装软件。"
+    echo "国内源与系统组件初始化完成。现在可以继续使用Renkit安装软件。"
     if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" /etc/pacman.conf 2>/dev/null; then
         echo "Arch Linux CN：上海交大 → 中科大 → 官方源（GPG 密钥环已启用）"
     else
@@ -433,9 +433,9 @@ initialize_software_sources() {
 show_software_source_status() {
     require_command flatpak || return 1
     if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" /etc/pacman.conf 2>/dev/null; then
-        echo "pacman 国内仓库：archlinuxcn｜$ARCHLINUXCN_REPO_URL（工具箱管理）"
+        echo "pacman 国内仓库：archlinuxcn｜$ARCHLINUXCN_REPO_URL（Renkit管理）"
     elif pacman_conf_has_archlinuxcn /etc/pacman.conf 2>/dev/null; then
-        echo "pacman 国内仓库：检测到用户已有 archlinuxcn 配置（工具箱不覆盖）"
+        echo "pacman 国内仓库：检测到用户已有 archlinuxcn 配置（Renkit不覆盖）"
     else
         echo "pacman 国内仓库：未配置 archlinuxcn"
     fi

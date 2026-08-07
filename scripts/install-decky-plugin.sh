@@ -131,7 +131,7 @@ remove_legacy_lsfg_directories() {
     local removed=0
 
     [ "$PLUGIN_ID" = "lsfg" ] || return 0
-    # 旧工具箱的中文目录会被 Decky 当作另一款插件加载，只删除清单也确认
+    # 旧Renkit的中文目录会被 Decky 当作另一款插件加载，只删除清单也确认
     # 为 LSFG 的固定旧目录，避免影响用户的其他插件。
     for legacy_name in "小黄鸭" "LSFG-VK" "decky-lsfg-vk" "Decky.LSFG-VK"; do
         legacy_dir="$PLUGIN_ROOT/$legacy_name"
@@ -168,7 +168,7 @@ BACKUP_DIR="$PLUGIN_ROOT/.${PLUGIN_DIRECTORY}.backup.$$"
 TARGET_DIR="$PLUGIN_ROOT/$PLUGIN_DIRECTORY"
 
 echo "正在准备下载 $PLUGIN_NAME..."
-# 与工具箱内插件菜单共用 Gitee/GitHub 双源下载器：Gitee 分块镜像优先，
+# 与Renkit内插件菜单共用 Gitee/GitHub 双源下载器：Gitee 分块镜像优先，
 # 失败后对 Release 文件测速选择 ghfast、已配置镜像或官方源，逐源回退，
 # 并在写入前完成 SHA256 校验。
 download_with_gitee_mirror_fallback \

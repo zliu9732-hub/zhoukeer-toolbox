@@ -109,18 +109,18 @@ EOF
 }
 
 prepare_managed_files
-memory_restore_toolbox > "$TMP_ROOT/restore.output" || fail "撤销工具箱虚拟内存优化失败"
+memory_restore_toolbox > "$TMP_ROOT/restore.output" || fail "撤销Renkit虚拟内存优化失败"
 [ -f "$MEMORY_SWAPFILE_PATH" ] || fail "系统原 swap 被删除"
 [ "$(cat "$MEMORY_SWAPFILE_PATH")" = 'system original' ] || fail "系统原 swap 被修改"
-[ ! -e "$MEMORY_FALLBACK_SWAPFILE_PATH" ] || fail "工具箱独立 swap 未删除"
-[ ! -e "$ZHOUKEER_SYSTEMD_DIR/main.swap" ] || fail "主 swap 工具箱单元未删除"
-[ ! -e "$ZHOUKEER_SYSTEMD_DIR/fallback.swap" ] || fail "独立 swap 工具箱单元未删除"
-[ ! -e "$ZHOUKEER_ZRAM_CONFIG" ] || fail "工具箱 zram 配置未删除"
-[ ! -e "$ZHOUKEER_MEMORY_SYSCTL_CONFIG" ] || fail "工具箱 swappiness 配置未删除"
-grep -Fq 'swapoff' "$SWAP_LOG" || fail "运行中的工具箱独立 swap 未停用"
+[ ! -e "$MEMORY_FALLBACK_SWAPFILE_PATH" ] || fail "Renkit独立 swap 未删除"
+[ ! -e "$ZHOUKEER_SYSTEMD_DIR/main.swap" ] || fail "主 swap Renkit单元未删除"
+[ ! -e "$ZHOUKEER_SYSTEMD_DIR/fallback.swap" ] || fail "独立 swap Renkit单元未删除"
+[ ! -e "$ZHOUKEER_ZRAM_CONFIG" ] || fail "Renkit zram 配置未删除"
+[ ! -e "$ZHOUKEER_MEMORY_SYSCTL_CONFIG" ] || fail "Renkit swappiness 配置未删除"
+grep -Fq 'swapoff' "$SWAP_LOG" || fail "运行中的Renkit独立 swap 未停用"
 ! grep -Fq "$MEMORY_SWAPFILE_PATH" "$SWAP_LOG" || fail "系统原 swap 被停用"
 grep -Fq 'disable fallback.swap' "$SYSTEMCTL_LOG" || fail "独立 swap 单元未禁用"
-grep -Fq 'disable main.swap' "$SYSTEMCTL_LOG" || fail "主 swap 工具箱单元未禁用"
+grep -Fq 'disable main.swap' "$SYSTEMCTL_LOG" || fail "主 swap Renkit单元未禁用"
 grep -Fq 'daemon-reload' "$SYSTEMCTL_LOG" || fail "删除单元后未刷新 systemd"
 grep -Fq '系统原 swap 已保留' "$TMP_ROOT/restore.output" || fail "撤销成功提示不明确"
 
@@ -129,16 +129,16 @@ FALLBACK_ACTIVE=0
 memory_restore_toolbox > "$TMP_ROOT/restore-again.output" || fail "重复撤销未保持幂等"
 [ -f "$MEMORY_SWAPFILE_PATH" ] || fail "重复撤销删除了系统原 swap"
 
-# 没有工具箱标记时必须保留同名配置和文件。
+# 没有Renkit标记时必须保留同名配置和文件。
 printf 'user fallback\n' > "$MEMORY_FALLBACK_SWAPFILE_PATH"
 cat > "$ZHOUKEER_SYSTEMD_DIR/fallback.swap" <<EOF
 [Swap]
 What=$MEMORY_FALLBACK_SWAPFILE_PATH
 EOF
-memory_restore_toolbox > "$TMP_ROOT/non-managed.output" || fail "保留非工具箱配置时不应失败"
-[ -f "$MEMORY_FALLBACK_SWAPFILE_PATH" ] || fail "非工具箱独立 swap 被删除"
-[ -f "$ZHOUKEER_SYSTEMD_DIR/fallback.swap" ] || fail "非工具箱 swap 单元被删除"
-grep -Fq '已保留' "$TMP_ROOT/non-managed.output" || fail "非工具箱配置缺少保留提示"
+memory_restore_toolbox > "$TMP_ROOT/non-managed.output" || fail "保留非Renkit配置时不应失败"
+[ -f "$MEMORY_FALLBACK_SWAPFILE_PATH" ] || fail "非Renkit独立 swap 被删除"
+[ -f "$ZHOUKEER_SYSTEMD_DIR/fallback.swap" ] || fail "非Renkit swap 单元被删除"
+grep -Fq '已保留' "$TMP_ROOT/non-managed.output" || fail "非Renkit配置缺少保留提示"
 
 # swapoff 失败时必须保留文件和单元，并恢复开机启用状态。
 rm -f "$MEMORY_FALLBACK_SWAPFILE_PATH" "$ZHOUKEER_SYSTEMD_DIR/fallback.swap"
@@ -152,7 +152,7 @@ fi
 [ -f "$ZHOUKEER_SYSTEMD_DIR/fallback.swap" ] || fail "停用失败后删除了独立 swap 单元"
 grep -Fq 'enable fallback.swap' "$SYSTEMCTL_LOG" || fail "停用失败后未恢复单元启用状态"
 
-# 已经 disabled 的工具箱单元无需重复 disable，仍应完成安全撤销。
+# 已经 disabled 的Renkit单元无需重复 disable，仍应完成安全撤销。
 SWAPOFF_FAIL=0
 SYSTEMCTL_DISABLE_FAIL=1
 prepare_managed_files
@@ -160,8 +160,8 @@ FALLBACK_UNIT_STATE=disabled
 MAIN_UNIT_STATE=disabled
 FALLBACK_ACTIVE=1
 memory_restore_toolbox > "$TMP_ROOT/already-disabled.output" || \
-    fail "已停用的工具箱单元导致撤销失败"
-[ ! -e "$MEMORY_FALLBACK_SWAPFILE_PATH" ] || fail "已停用场景未删除工具箱独立 swap"
+    fail "已停用的Renkit单元导致撤销失败"
+[ ! -e "$MEMORY_FALLBACK_SWAPFILE_PATH" ] || fail "已停用场景未删除Renkit独立 swap"
 [ -f "$MEMORY_SWAPFILE_PATH" ] || fail "已停用场景删除了系统原 swap"
 
 # 单元仍启用且 systemctl disable 真正失败时，必须显示原因并保留全部文件。
@@ -173,7 +173,7 @@ if memory_restore_toolbox > "$TMP_ROOT/disable-fail.output" 2>&1; then
 fi
 [ -f "$MEMORY_FALLBACK_SWAPFILE_PATH" ] || fail "停用单元失败后删除了独立 swap"
 [ -f "$ZHOUKEER_SYSTEMD_DIR/fallback.swap" ] || fail "停用单元失败后删除了独立 swap 单元"
-grep -Fq '无法停用工具箱 swap 开机配置' "$TMP_ROOT/disable-fail.output" || \
+grep -Fq '无法停用Renkit swap 开机配置' "$TMP_ROOT/disable-fail.output" || \
     fail "开机单元停用失败仍没有明确提示"
 
-echo "PASS: 工具箱虚拟内存撤销、原 swap 保留、幂等与失败回滚模拟通过"
+echo "PASS: Renkit虚拟内存撤销、原 swap 保留、幂等与失败回滚模拟通过"

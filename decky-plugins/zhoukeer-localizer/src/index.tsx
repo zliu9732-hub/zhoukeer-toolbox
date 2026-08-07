@@ -243,7 +243,7 @@ const engine = new TranslationEngine();
 
 function showEngineError(error: unknown): void {
   toaster.toast({
-    title: "周克儿汉化",
+    title: "Renkit汉化",
     body: error instanceof Error ? error.message : "无法连接 Steam 主界面。"
   });
 }
@@ -257,7 +257,7 @@ function Content() {
     try {
       await engine.refresh(next);
       toaster.toast({
-        title: "周克儿汉化",
+        title: "Renkit汉化",
         body: next ? "汉化层已注入 Steam 主界面。" : "汉化层已暂停。"
       });
     } catch (error) {
@@ -269,7 +269,7 @@ function Content() {
     try {
       const translatedCount = await engine.scan();
       toaster.toast({
-        title: "周克儿汉化",
+        title: "Renkit汉化",
         body: translatedCount > 0
           ? `本次已处理 ${translatedCount} 处文字。`
           : "当前可见页面没有新的已知英文文案。"
@@ -280,7 +280,7 @@ function Content() {
   };
 
   return (
-    <PanelSection title="周克儿汉化">
+    <PanelSection title="Renkit汉化">
       <PanelSectionRow>
         <ButtonItem layout="below" onClick={toggle}>
           {enabled ? "已启用，点击暂停" : "已暂停，点击启用"}
@@ -306,8 +306,8 @@ export default definePlugin(() => {
   void engine.start().catch(showEngineError);
 
   return {
-    name: "周克儿汉化",
-    titleView: <div className={staticClasses.Title}>周克儿汉化</div>,
+    name: "Renkit汉化",
+    titleView: <div className={staticClasses.Title}>Renkit汉化</div>,
     content: <Content />,
     icon: <FaLanguage />,
     onDismount() {

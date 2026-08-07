@@ -21,7 +21,7 @@ show_initialization_plan() {
     echo "✓ QQ"
     echo "✓ ToDesk"
     echo "✓ Firefox 浏览器"
-    echo "✓ 工具箱快捷方式检查"
+    echo "✓ Renkit快捷方式检查"
     echo "✓ 初始化国内源并检测系统组件：完整系统更新、archlinuxcn 镜像回退与密钥环、中英文 locale、Flatpak 国内缓存"
     echo "  注意：国内 Flatpak 镜像将关闭软件包签名验证，仅在确认信任镜像时继续。"
     echo ""
@@ -77,15 +77,15 @@ basic_steamdeck_check() {
 }
 
 check_toolbox_shortcuts() {
-    local desktop_file="$HOME/Desktop/周克儿工具箱.desktop"
+    local desktop_file="$HOME/Desktop/Renkit.desktop"
     local application_file="$HOME/.local/share/applications/zhoukeer-toolbox.desktop"
 
     if [ ! -f "$desktop_file" ] || [ ! -f "$application_file" ]; then
-        echo "工具箱快捷方式缺失，请重新运行安装命令。"
+        echo "Renkit快捷方式缺失，请重新运行安装命令。"
         return 1
     fi
     chmod +x "$desktop_file" "$application_file"
-    echo "工具箱桌面和应用菜单快捷方式正常。"
+    echo "Renkit桌面和应用菜单快捷方式正常。"
 }
 
 check_network() {

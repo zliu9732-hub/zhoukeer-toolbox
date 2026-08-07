@@ -143,9 +143,9 @@ run_network_diagnostics() {
         network_probe flathub-cn "应用下载国内线路一" "https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo"
         network_probe flathub-ustc "应用下载国内线路二" "https://mirrors.ustc.edu.cn/flathub/flathub.flatpakrepo"
         network_probe flathub-official "应用下载官方线路" "https://dl.flathub.org/repo/flathub.flatpakrepo"
-        network_probe update-gitee "工具箱更新国内线路" "https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/VERSION"
-        network_probe update-github "工具箱更新备用线路" "https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/VERSION"
-        network_probe update-domain "工具箱更新域名线路" "https://jktool.icu/VERSION"
+        network_probe update-gitee "Renkit更新国内线路" "https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/VERSION"
+        network_probe update-github "Renkit更新备用线路" "https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/VERSION"
+        network_probe update-domain "Renkit更新域名线路" "https://jktool.icu/VERSION"
         wait
         for result in "$NETWORK_TMP_DIR"/*; do
             [ -f "$result" ] || continue
@@ -156,7 +156,7 @@ run_network_diagnostics() {
         if [ "$NETWORK_FAIL" -eq 0 ]; then
             network_result https ok "安全下载连接" "至少一条常用线路可正常使用"
         else
-            network_result https skip "安全下载连接" "部分线路不可用，工具箱会自动尝试已有备用线路"
+            network_result https skip "安全下载连接" "部分线路不可用，Renkit会自动尝试已有备用线路"
         fi
     else
         network_result https fail "安全下载连接" "缺少网络检查组件"
@@ -166,7 +166,7 @@ run_network_diagnostics() {
     if [ "$NETWORK_FAIL" -eq 0 ]; then
         echo "网络正常。"
     elif [ "$NETWORK_OK" -gt 2 ]; then
-        echo "下载连接有问题，工具箱会自动尝试可用线路。"
+        echo "下载连接有问题，Renkit会自动尝试可用线路。"
         echo "如果操作仍失败，建议生成诊断包发给维护人员。"
     else
         echo "当前网络不可用或很不稳定。请先检查 Wi-Fi 和系统时间。"

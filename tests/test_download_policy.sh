@@ -22,14 +22,14 @@ download_policy_url_allowed 'https://gitee.com/easylife2025/battle/releases/down
 download_policy_url_allowed 'https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.004' || fail "战网预装客户端分卷 4 被拒绝"
 [ "$(download_policy_max_bytes 'https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.001')" -le 104857600 ] || fail "战网预装客户端分卷大小限制过大"
 if download_policy_url_allowed 'https://gitee.com/mclanbai/archtodesk.git'; then fail "旧 ToDesk 第三方仓库仍在白名单"; fi
-download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/VERSION' || fail "工具箱 Gitee 地址被拒绝"
-download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/VERSION' || fail "工具箱新 Gitee 地址被拒绝"
+download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/VERSION' || fail "Renkit Gitee 地址被拒绝"
+download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/VERSION' || fail "Renkit新 Gitee 地址被拒绝"
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/lsfg/latest.txt' || fail "独立镜像仓库地址被拒绝"
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/latest.txt' || fail "Decky Gitee 镜像清单地址被拒绝"
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/PluginLoader-pre.part.00' || fail "Decky Gitee 镜像分块地址被拒绝"
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn/PluginLoader-pre.part.00' || fail "Decky 新 Gitee 镜像分块地址被拒绝"
 [ "$(download_policy_max_bytes 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/latest.txt')" -le 2097152 ] || fail "Decky Gitee 镜像清单大小限制过大"
-[ "$(download_policy_max_bytes 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/zhoukeer-toolbox.tar.gz')" -le 9437184 ] || fail "工具箱新 Gitee 发布包大小限制过大"
+[ "$(download_policy_max_bytes 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/renkit.tar.gz')" -le 9437184 ] || fail "Renkit新 Gitee 发布包大小限制过大"
 for mirror_id in 4 5 6 7; do
     download_policy_url_allowed "https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-${mirror_id}/raw/main/ge-proton-trainer-7-55/latest.txt" || fail "修改器兼容层镜像仓库 mirror-${mirror_id} 未列入白名单"
     download_policy_url_allowed "https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-${mirror_id}/raw/main/ge-proton-trainer-7-55/GE-Proton7-55.tar.gz" || fail "修改器兼容层文件地址被拒绝：mirror-${mirror_id}"

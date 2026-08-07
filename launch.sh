@@ -83,7 +83,7 @@ run_startup_update() {
     # 提前移到稳定目录，更新后再进入新版本，避免父进程保留已删除的 cwd。
     cd "$HOME" 2>/dev/null || cd / || true
     # 自动更新只写入启动日志。正常启动不回显下载、校验或安装器的底层输出，
-    # 避免终端在进入工具箱前残留二进制/归档等技术信息。
+    # 避免终端在进入Renkit前残留二进制/归档等技术信息。
     bash "$PROJECT_ROOT/update.sh" --startup >> "$LAUNCH_LOG" 2>&1
     status=$?
     cd "$PROJECT_ROOT" 2>/dev/null || cd "$HOME" 2>/dev/null || cd / || true
@@ -129,8 +129,8 @@ run_main() {
     local message
 
     # 启动更新可能受网络或镜像响应影响。先显示明确状态，避免 Konsole 在
-    # 更新检查尚未结束时只留下空白背景而被误认为工具箱已经卡死。
-    printf '\033[0m\033[r\033[3J\033[2J\033[H\n\n  工具箱启动中，请耐心等待…\n  若启动较慢，工具箱可能正在更新，请耐心等待。\n'
+    # 更新检查尚未结束时只留下空白背景而被误认为Renkit已经卡死。
+    printf '\033[0m\033[r\033[3J\033[2J\033[H\n\n  Renkit启动中，请耐心等待…\n  若启动较慢，Renkit可能正在更新，请耐心等待。\n'
     run_startup_update
     # 自动更新与主界面复用同一个终端；进入触控 UI 前清除更新输出和滚动残影。
     printf '\033[0m\033[r\033[3J\033[2J\033[H'
@@ -140,7 +140,7 @@ run_main() {
 $PROJECT_ROOT/main.sh
 
 启动日志：$LAUNCH_LOG"
-        show_launch_error "周克儿工具箱启动失败" "$message" || true
+        show_launch_error "Renkit启动失败" "$message" || true
         return 1
     fi
 
@@ -161,7 +161,7 @@ $PROJECT_ROOT/main.sh
     message="主程序异常退出（状态码：${status}）。
 请把启动日志发给维护者排查：
 $LAUNCH_LOG"
-    if ! show_launch_error "周克儿工具箱运行失败" "$message"; then
+    if ! show_launch_error "Renkit运行失败" "$message"; then
         if [ -r /dev/tty ] && [ -w /dev/tty ]; then
             printf '按回车键关闭窗口...' > /dev/tty
             read -r _ < /dev/tty || true
@@ -185,7 +185,7 @@ case "${1:-}" in
         launcher_log "免责声明使用终端文字版"
         ;;
     *)
-        show_launch_error "周克儿工具箱启动失败" \
+        show_launch_error "Renkit启动失败" \
             "启动器收到未知参数：$1
 启动日志：$LAUNCH_LOG" || true
         exit 2
@@ -245,7 +245,7 @@ adapt_window_size() {
 adapt_window_size
 
 if [ ! -r "$PROJECT_ROOT/main.sh" ]; then
-    show_launch_error "周克儿工具箱启动失败" \
+    show_launch_error "Renkit启动失败" \
         "安装可能不完整，未找到主程序：
 $PROJECT_ROOT/main.sh
 
@@ -385,7 +385,7 @@ if [ -t 0 ] && [ -t 1 ]; then
     exit $?
 fi
 
-show_launch_error "周克儿工具箱启动失败" \
+show_launch_error "Renkit启动失败" \
     "未能启动 Konsole 或其他兼容终端。
 请检查终端程序是否完整，或在 Konsole 中运行：
 bash \"$PROJECT_ROOT/main.sh\"

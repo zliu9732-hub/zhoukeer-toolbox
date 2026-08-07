@@ -13,16 +13,16 @@ show_safety_guide() {
     echo "黄色：软件、插件和兼容层安装会写入当前用户目录，可在对应软件内卸载。"
     echo "红色：系统密码、ToDesk、Steam 加速器和双系统设置会改动系统或启动配置。"
     echo "红色操作都会保留确认页面；看不懂时直接返回，不要连续点击。"
-    echo "工具箱不会在后台自动清理游戏、兼容数据或系统文件。"
+    echo "Renkit不会在后台自动清理游戏、兼容数据或系统文件。"
     log "已查看新手安全说明"
 }
 
 export_records() {
-    local report_file="$HOME/Desktop/周克儿工具箱操作记录.txt"
+    local report_file="$HOME/Desktop/Renkit操作记录.txt"
 
     mkdir -p "$HOME/Desktop" || return 1
     {
-        echo "======周克儿工具箱操作记录======"
+        echo "======Renkit操作记录======"
         echo "导出时间：$(date '+%Y-%m-%d %H:%M:%S')"
         echo "说明：记录用于排查，不会包含系统密码。"
         echo ""

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 下载供应链策略由工具箱代码维护，不能从用户配置扩展域名。
+# 下载供应链策略由Renkit代码维护，不能从用户配置扩展域名。
 # 调用方仍须校验固定版本的 SHA256/签名；白名单只决定是否允许发起请求。
 
 if [ -n "${ZHOUKEER_DOWNLOAD_POLICY_LOADED:-}" ]; then
@@ -11,9 +11,9 @@ ZHOUKEER_DOWNLOAD_POLICY_LOADED=1
 download_policy_source_catalog() {
     cat <<'EOF'
 ID|域名|用途|允许文件类型|版本策略|校验方式|大小上限（字节）|回退规则
-toolbox-gitee|gitee.com|工具箱版本、校验文件、固定归档与分块镜像|text,sha256,tar.gz,zip,deb,AppImage|固定 main 或固定标签|SHA256+分块重组+包内版本|1073741824|域名源→GitHub
-toolbox-github|raw.githubusercontent.com,github.com|工具箱更新与固定 Release|text,sha256,tar.gz,zip,AppImage|固定仓库、版本或标签|SHA256+结构检查|1073741824|Gitee/域名源
-toolbox-domain|jktool.icu|工具箱更新备用|text,sha256,tar.gz|固定 main 发布内容|SHA256+包内版本|9437184|GitHub→Gitee
+toolbox-gitee|gitee.com|Renkit版本、校验文件、固定归档与分块镜像|text,sha256,tar.gz,zip,deb,AppImage|固定 main 或固定标签|SHA256+分块重组+包内版本|1073741824|域名源→GitHub
+toolbox-github|raw.githubusercontent.com,github.com|Renkit更新与固定 Release|text,sha256,tar.gz,zip,AppImage|固定仓库、版本或标签|SHA256+结构检查|1073741824|Gitee/域名源
+toolbox-domain|jktool.icu|Renkit更新备用|text,sha256,tar.gz|固定 main 发布内容|SHA256+包内版本|9437184|GitHub→Gitee
 github-proxy|ghproxy.net,gh.api.99988866.xyz,github.moeyy.xyz,gh.llkk.cc,mirror.ghproxy.com,gh.ddlc.com,gh-proxy.lanqier.me,ghfast.top|固定 GitHub 文件加速|同原始文件|只转发白名单 GitHub URL|调用方固定 SHA256|1073741824|GitHub 官方源
 github-api|api.github.com|GitHub 最新正式 Release 元数据|json|仅最新正式 Release|GitHub SHA256 digest|2097152|固定版本回退
 decky|gitee.com,www.mhhf.com,github.com,raw.githubusercontent.com,plugins.deckbrew.xyz,cdn.tzatzikiweeb.moe|Decky Gitee镜像、国内镜像、官方国外源和官方插件|binary,service,json,zip|固定版本或 Decky 官方数据库|SHA256/Decky hash|536870912|Gitee镜像→国内镜像→Decky官方源→停止安装
@@ -101,7 +101,7 @@ download_policy_url_allowed() {
         https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.001|https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.002|https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.003|https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.004) return 0 ;;
         https://gitee.com/easylife2025/emu/releases/download/v1.0.0/Clover.tar.gz) return 0 ;;
         https://dl.todesk.com/linux/todesk-v4.8.6.2-amd64.deb) return 0 ;;
-        https://jktool.icu/VERSION|https://jktool.icu/dist/SHA256SUMS|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) return 0 ;;
+        https://jktool.icu/VERSION|https://jktool.icu/dist/SHA256SUMS|https://jktool.icu/dist/renkit.tar.gz|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) return 0 ;;
         https://www.mhhf.com/Deck/decky/*|https://plugins.deckbrew.xyz/plugins|https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/*) return 0 ;;
         https://mirror.sjtu.edu.cn/flathub*|https://mirrors.ustc.edu.cn/flathub*|https://mirrors.ustc.edu.cn/archlinuxcn/*|https://dl.flathub.org/repo/*) return 0 ;;
         https://qq-web.cdn-go.cn/im.qq.com_new/latest/rainbow/pcConfig.json|https://im.qq.com/proxy/domain/qq-web.cdn-go.cn/im.qq.com_new/latest/rainbow/pcConfig.json|https://qqdl.gtimg.cn/qqfile/*.AppImage|https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_x86_64.AppImage) return 0 ;;
@@ -138,7 +138,7 @@ download_policy_max_bytes() {
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-6/raw/main/*/part.*) printf '%s\n' 8388608 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-7/raw/main/*/part.*) printf '%s\n' 8388608 ;;
         https://gitee.com/easylife2025/battle/releases/download/*) printf '%s\n' 104857600 ;;
-        https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/zhoukeer-toolbox.tar.gz|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/zhoukeer-toolbox.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/zhoukeer-toolbox.tar.gz|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) printf '%s\n' 9437184 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/renkit.tar.gz|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/renkit.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/renkit.tar.gz|https://jktool.icu/dist/renkit.tar.gz|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/zhoukeer-toolbox.tar.gz|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/zhoukeer-toolbox.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/zhoukeer-toolbox.tar.gz|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) printf '%s\n' 9437184 ;;
         */VERSION|*/SHA256SUMS|*.json|*.flatpakrepo|*.service|*.txt) printf '%s\n' 2097152 ;;
         *.deb) printf '%s\n' 268435456 ;;
         *.AppImage|*.exe|*.msi|*.zip) printf '%s\n' 536870912 ;;

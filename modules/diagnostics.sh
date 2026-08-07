@@ -58,7 +58,7 @@ diagnostic_recent_errors() {
     if [ -s "$LOG_FILE" ] && [ ! -L "$LOG_FILE" ]; then
         tail -n 200 "$LOG_FILE" | grep -Ei '失败|错误|异常|warning|warn|error|fail|timeout|超时' | tail -n 60 || true
     else
-        echo "暂无工具箱错误记录。"
+        echo "暂无Renkit错误记录。"
     fi
     local launcher_log="${XDG_STATE_HOME:-$HOME/.local/state}/zhoukeer-toolbox/launcher.log"
     if [ -s "$launcher_log" ] && [ ! -L "$launcher_log" ]; then
@@ -71,12 +71,12 @@ diagnostic_system_summary() {
     [ ! -r "$PROJECT_ROOT/VERSION" ] || version="$(tr -d '\r\n' < "$PROJECT_ROOT/VERSION")"
     available="$(df -h "${HOME:-/}" 2>/dev/null | awk 'NR > 1 { value=$4 } END { print value }')"
     printf '%s\n' \
-        "工具箱版本：V$version" \
+        "Renkit版本：V$version" \
         "生成时间：$(date '+%Y-%m-%d %H:%M:%S')" \
         "系统：$(diagnostic_os_name)" \
         "内核：$(uname -srm 2>/dev/null || echo 未知)" \
         "可用空间：${available:-未知}" \
-        "说明：本诊断包由工具箱在本地生成，不会上传或自动发送。"
+        "说明：本诊断包由Renkit在本地生成，不会上传或自动发送。"
 }
 
 diagnostic_source_summary() {
@@ -90,9 +90,9 @@ diagnostic_source_summary() {
         echo "未安装 Flatpak。"
     fi
     if grep -Fqx '# BEGIN ZHOUKEER ARCHLINUXCN' /etc/pacman.conf 2>/dev/null; then
-        echo "工具箱管理的 archlinuxcn：已配置（GPG 验证保持启用）"
+        echo "Renkit管理的 archlinuxcn：已配置（GPG 验证保持启用）"
     else
-        echo "工具箱管理的 archlinuxcn：未配置"
+        echo "Renkit管理的 archlinuxcn：未配置"
     fi
 }
 
@@ -129,7 +129,7 @@ generate_diagnostic_bundle() {
     stamp="$(date '+%Y%m%d-%H%M%S')"
     DIAGNOSTIC_TMP_DIR="$(mktemp -d)" || return 1
     trap diagnostic_cleanup EXIT INT TERM
-    bundle_dir="$DIAGNOSTIC_TMP_DIR/周克儿工具箱诊断包"
+    bundle_dir="$DIAGNOSTIC_TMP_DIR/Renkit诊断包"
     mkdir -m 0700 -- "$bundle_dir" || return 1
 
     raw_file="$DIAGNOSTIC_TMP_DIR/system.raw"
@@ -149,14 +149,14 @@ generate_diagnostic_bundle() {
     diagnostic_redact_file "$raw_file" "$bundle_dir/最近错误摘要.txt"
 
     printf '%s\n' \
-        "内容：工具箱版本、SteamOS 基础信息、网络检查、下载与更新状态、最近错误安全摘要。" \
+        "内容：Renkit版本、SteamOS 基础信息、网络检查、下载与更新状态、最近错误安全摘要。" \
         "隐私：用户名、HOME、IP、MAC、局域网地址、密码、Token、Cookie、代理认证和远程协助凭据会被隐藏。" \
         "排除：不读取、不复制管理员密码便利模式文件，不包含游戏、存档、账号数据或完整日志。" \
-        "发送：工具箱不会上传或自动发送，请由你自行决定是否发给维护人员。" > "$bundle_dir/请先阅读.txt"
+        "发送：Renkit不会上传或自动发送，请由你自行决定是否发给维护人员。" > "$bundle_dir/请先阅读.txt"
 
     chmod 0600 "$bundle_dir"/*.txt || return 1
-    archive="$DIAGNOSTIC_DESKTOP/周克儿工具箱诊断包-$stamp.tar.gz"
-    tar -czf "$archive" -C "$DIAGNOSTIC_TMP_DIR" "周克儿工具箱诊断包" || return 1
+    archive="$DIAGNOSTIC_DESKTOP/Renkit诊断包-$stamp.tar.gz"
+    tar -czf "$archive" -C "$DIAGNOSTIC_TMP_DIR" "Renkit诊断包" || return 1
     diagnostic_archive_is_safe "$archive" || {
         rm -f -- "$archive"
         echo "诊断包安全检查未通过，已删除未完成文件。"
@@ -165,7 +165,7 @@ generate_diagnostic_bundle() {
     chmod 0600 "$archive" || { rm -f -- "$archive"; return 1; }
     echo "诊断包已生成，可直接发给维护人员，不包含密码和隐私信息。"
     echo "保存位置：$archive"
-    echo "工具箱没有上传或发送任何内容。"
+    echo "Renkit没有上传或发送任何内容。"
     log "已生成本地安全诊断包"
     diagnostic_cleanup
     trap - EXIT INT TERM

@@ -64,7 +64,7 @@ resolve_compatibilitytools_dir() {
 validate_ge_proton_config() {
     if [ -z "$GE_PROTON_URL" ] || [ -z "$GE_PROTON_VERSION" ] || \
         [ -z "$GE_PROTON_SHA256" ]; then
-        echo "GE-Proton下载配置尚未补齐，请先更新工具箱。"
+        echo "GE-Proton下载配置尚未补齐，请先更新Renkit。"
         return 1
     fi
 
@@ -422,7 +422,7 @@ uninstall_ge_proton() {
         echo "GE-Proton 目录不完整或类型异常，拒绝自动删除：$target_dir"
         return 1
     }
-    echo "只会删除当前工具箱版本：$target_dir"
+    echo "只会删除当前Renkit版本：$target_dir"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
         read -r -p "确认卸载请输入 UNINSTALL：" answer
         [ "$answer" = "UNINSTALL" ] || { echo "已取消卸载。"; return 0; }

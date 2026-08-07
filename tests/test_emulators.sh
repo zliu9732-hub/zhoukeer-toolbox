@@ -55,7 +55,7 @@ for icon in yuzu cemu duckstation pcsx2 rpcs3 shadps4; do
     [ -s "$PROJECT_ROOT/assets/emulators/$icon.png" ] || fail "缺少模拟器专用图标：$icon"
     assert_contains "$module_text" "assets/emulators/$icon.png" "模拟器未使用专用图标：$icon"
 done
-assert_not_contains "$module_text" 'assets/icon-round.png' "模拟器桌面入口仍使用工具箱图标"
+assert_not_contains "$module_text" 'assets/icon-round.png' "模拟器桌面入口仍使用Renkit图标"
 
 KEY_TEST_ROOT="$(mktemp -d)"
 trap 'rm -rf -- "$KEY_TEST_ROOT"' EXIT

@@ -79,7 +79,7 @@ ui_apply_screen_font() {
 logo() {
     echo -e "${BLUE}"
     echo "===================================="
-    echo "    📦 周克儿工具箱 v${TOOLBOX_VERSION}"
+    echo "    📦 Renkit v${TOOLBOX_VERSION}"
     echo "   SteamOS Handheld Toolbox"
     echo "===================================="
     echo -e "${NC}"
@@ -206,7 +206,7 @@ draw_category_frame() {
     ui_sidebar_item 12 advanced "! 更多设置" "$selected" 0
     ui_sidebar_item 14 uninstall "- 卸载已安装" "$selected" 0
     ui_sidebar_item 16 notice "▧ 免责声明与须知" "$selected" 0
-    ui_sidebar_item 18 exit "× 退出工具箱" "$selected" 0
+    ui_sidebar_item 18 exit "× 退出Renkit" "$selected" 0
 
     row=2
     while [ "$row" -le "$UI_LAST_ROW" ]; do
@@ -216,7 +216,7 @@ draw_category_frame() {
     done
 
     if [ -n "$title" ]; then
-        ui_panel_line 2 '\033[1;38;5;203m' "◆ 周克儿工具箱  ·  V${TOOLBOX_VERSION}"
+        ui_panel_line 2 '\033[1;38;5;203m' "◆ Renkit  ·  V${TOOLBOX_VERSION}"
         ui_panel_line 3 '\033[1;38;5;45m' "STEAMOS 掌机  /  中文工具"
         ui_panel_line 4 '\033[38;5;203m' "────────────────────────────────────────"
         if [ "$show_context" = "1" ]; then
@@ -232,7 +232,7 @@ draw_disclaimer_frame() {
     ui_reset_screen
 
     ui_move 2 6
-    printf '\033[1;38;5;203m ◆ 周克儿工具箱  ·  V%s \033[0m' "$TOOLBOX_VERSION"
+    printf '\033[1;38;5;203m ◆ Renkit  ·  V%s \033[0m' "$TOOLBOX_VERSION"
     ui_move 3 6
     printf '\033[38;5;203m────────────────────────────────────────────────────────────\033[0m'
     ui_move 5 6

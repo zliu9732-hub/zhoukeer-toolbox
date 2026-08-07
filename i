@@ -29,7 +29,7 @@ elif [ -n "$GITHUB_URL" ] && download_bootstrap "$GITHUB_URL"; then
 elif [ -n "$DOMAIN_URL" ] && download_bootstrap "$DOMAIN_URL"; then
     :
 else
-    echo "工具箱安装入口下载失败，请检查网络。"
+    echo "Renkit安装入口下载失败，请检查网络。"
     exit 1
 fi
 

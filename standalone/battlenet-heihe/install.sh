@@ -7,7 +7,7 @@ set -u
 
 TOOL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# 数据目录默认与工具箱共用，方便复用已下载的战网/黑盒环境；也可用环境变量覆盖。
+# 数据目录默认与Renkit共用，方便复用已下载的战网/黑盒环境；也可用环境变量覆盖。
 if [ -d "$HOME/.local/share/zhoukeer-toolbox/apps" ]; then
     : "${ZHOUKEER_APP_DIR:=$HOME/.local/share/zhoukeer-toolbox/apps}"
 else
@@ -19,7 +19,7 @@ if [ -f "$TOOL_DIR/modules/game_launchers.sh" ]; then
     # shellcheck disable=SC1091
     source "$TOOL_DIR/modules/game_launchers.sh"
 elif [ -f "$TOOL_DIR/../../modules/game_launchers.sh" ]; then
-    # 在工具箱仓库内直接运行时使用仓库模块。
+    # 在Renkit仓库内直接运行时使用仓库模块。
     # shellcheck disable=SC1091
     source "$TOOL_DIR/../../modules/game_launchers.sh"
 else

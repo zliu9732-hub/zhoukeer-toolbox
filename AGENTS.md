@@ -1,8 +1,8 @@
-# 周克儿工具箱长期开发规则
+# Renkit长期开发规则
 
 ## 项目边界
 
-1. 项目名称为“周克儿工具箱”，目标平台是 Steam Deck / SteamOS，主要语言为 Bash。
+1. 项目名称为“Renkit”，目标平台是 Steam Deck / SteamOS，主要语言为 Bash。
 2. 开发电脑是 macOS。macOS 上只能进行静态检查、语法检查和模拟测试；禁止执行 SteamOS 安装、修复、网络、权限、Flatpak、pacman、systemctl、EFI 或磁盘操作。
 3. 保留中文触控菜单和现有项目结构，禁止无关重构。
 4. 优先做最小修改，不得为了“优化”而重写已经工作的模块。

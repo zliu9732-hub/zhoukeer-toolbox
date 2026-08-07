@@ -57,7 +57,7 @@ grep -Fq '配置路径不是普通文件' "$TMP_ROOT/directory-target-output" ||
     fail "目录配置的安全错误提示缺失"
 
 # 系统原 swap 在两次移动尝试后仍受保护时，创建流程必须把已成功启用的
-# 工具箱独立 swap 视为成功降级，不能把前一次 mv 失败带回主菜单。
+# Renkit独立 swap 视为成功降级，不能把前一次 mv 失败带回主菜单。
 (
     PROTECTED_MAIN="$TMP_ROOT/protected-swapfile"
     PROTECTED_FALLBACK="$TMP_ROOT/protected-fallback-swapfile"
@@ -88,7 +88,7 @@ grep -Fq '配置路径不是普通文件' "$TMP_ROOT/directory-target-output" ||
         fail "系统原 swap 受保护时，成功启用独立 swap 后仍返回失败"
     fi
     [ "$MEMORY_SWAPFILE_PATH" = "$PROTECTED_FALLBACK" ] || \
-        fail "成功降级后没有切换到工具箱独立 swap 路径"
+        fail "成功降级后没有切换到Renkit独立 swap 路径"
     grep -Fq '独立 swap 已安全启用，继续配置' "$TMP_ROOT/protected-fallback.output" || \
         fail "成功降级后没有说明将继续完成其余配置"
 )
@@ -176,7 +176,7 @@ memory_move_swapfile_after_forced_immutable_clear "$RETRY_SOURCE" "$RETRY_BACKUP
 [ -f "$RETRY_BACKUP" ] || fail "旧 swap 备份缺失"
 [ "$MEMORY_SWAPFILE_WAS_IMMUTABLE" -eq 1 ] || fail "回退移动未记录不可变保护"
 
-# 系统 swap 无法移动且工具箱备用路径残留旧文件时，应先原子备份旧备用
+# 系统 swap 无法移动且Renkit备用路径残留旧文件时，应先原子备份旧备用
 # 文件，再启用新文件；失败不能覆盖或丢失旧内容。
 FALLBACK_NEW="$TMP_ROOT/fallback-new"
 MEMORY_FALLBACK_SWAPFILE_PATH="$TMP_ROOT/.zhoukeer-swapfile"

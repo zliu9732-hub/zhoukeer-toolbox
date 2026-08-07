@@ -110,7 +110,7 @@ run_preflight() {
         if preflight_network_ok; then
             printf '网络=至少一条安全线路可用\n' >> "$PREFLIGHT_DETAIL_FILE"
         else
-            echo "下载连接暂时不可用，工具箱没有开始修改。请检查网络后重试。"
+            echo "下载连接暂时不可用，Renkit没有开始修改。请检查网络后重试。"
             printf '网络=不可用\n' >> "$PREFLIGHT_DETAIL_FILE"
             failed=1
         fi

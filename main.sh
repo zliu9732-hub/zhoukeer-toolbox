@@ -4,7 +4,7 @@ set -u
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# 工具箱会原子更新自身目录；主菜单始终停在稳定目录，避免旧目录被替换后
+# Renkit会原子更新自身目录；主菜单始终停在稳定目录，避免旧目录被替换后
 # 子命令持续输出 shell-init/getcwd 错误。
 cd "$HOME" 2>/dev/null || cd / || exit 1
 
@@ -29,10 +29,10 @@ ensure_runtime_dirs
 
 show_startup_loading() {
     # 终端恢复尺寸前可能会短暂只显示背景横线；先给出明确反馈，避免误以为卡住。
-    printf '\033[0m\033[2J\033[H\n\n  工具箱启动中，请耐心等待…\n  若启动较慢，工具箱可能正在更新，请耐心等待。\n'
+    printf '\033[0m\033[2J\033[H\n\n  Renkit启动中，请耐心等待…\n  若启动较慢，Renkit可能正在更新，请耐心等待。\n'
 }
 
-# 首次启动时 Konsole 可能还未应用工具箱的 120×32 配置；先等画布就绪，
+# 首次启动时 Konsole 可能还未应用Renkit的 120×32 配置；先等画布就绪，
 # 避免固定第 24 行的触控导航被裁掉而看起来像菜单或插件分页丢失。
 show_startup_loading
 ui_apply_screen_font
@@ -42,7 +42,7 @@ ui_wait_for_minimum_canvas || true
 case "${1:-}" in
     ""|--touch) ;;
     --gui) exec bash "$PROJECT_ROOT/core/gui.sh" ;;
-    *) echo "请从桌面的“周克儿工具箱”图标启动。"; exit 1 ;;
+    *) echo "请从桌面的“Renkit”图标启动。"; exit 1 ;;
 esac
 
 enable_mouse_tracking
@@ -69,7 +69,7 @@ DECKY_TOUCH_PAGE_SIZE=5
 
 pause_menu() {
     echo ""
-    echo "请点击窗口任意位置返回工具箱"
+    echo "请点击窗口任意位置返回Renkit"
     enable_mouse_tracking
     read_touch_click || true
     disable_mouse_tracking
@@ -110,7 +110,7 @@ confirm_and_run() {
 
     draw_category_frame "" "$title" "$message"
     ui_panel_line 8 '\033[1;38;5;220m' "请确认是否继续这项操作"
-    ui_touch_button 10 '\033[1;30;48;5;114m' "继续执行" "已授权工具箱完成该操作"
+    ui_touch_button 10 '\033[1;30;48;5;114m' "继续执行" "已授权Renkit完成该操作"
     ui_touch_button 15 '\033[1;97;48;5;160m' "返回主菜单" "不做任何更改"
     ui_prompt
     choice="$(read_touch_menu right:10-11:yes right:15-16:no)"
@@ -136,7 +136,7 @@ show_disclaimer() {
         ui_disclaimer_line 13 '\033[1;38;5;220m' "第三方软件与插件均从作者或官方发布页获取；欢迎支持作者"
         ui_disclaimer_button 16 '\033[1;38;5;114m' "点击窗口任意位置开始使用" "点击即表示已阅读上述说明；关闭窗口即可退出"
         # 非全屏 Konsole 的可见行数和触屏坐标可能在首帧不同步，不能再把进入
-        # 工具箱限定在固定的第 12–19 行；欢迎页不执行任何系统操作，因此任意
+        # Renkit限定在固定的第 12–19 行；欢迎页不执行任何系统操作，因此任意
         # 主指针点击均视为确认，关闭窗口仍可直接退出。
         choice="$(read_menu_choice any:1-999:agree)"
         case "$choice" in
@@ -161,7 +161,7 @@ ensure_password_ready() {
         ui_panel_line 7 '\033[1;38;5;220m' "首次使用必须完成此步骤，但不会强制修改已有密码"
         ui_touch_button 10 '\033[1;97;48;5;24m' "我已有管理员密码" "输入一次并保存到桌面，不修改密码"
         ui_touch_button 15 '\033[1;97;48;5;58m' "我还没有管理员密码" "按系统提示设置新密码"
-        ui_touch_button 20 '\033[1;97;48;5;160m' "退出工具箱" "暂不进行任何操作"
+        ui_touch_button 20 '\033[1;97;48;5;160m' "退出Renkit" "暂不进行任何操作"
         ui_prompt
         choice="$(read_touch_menu right:10-11:import right:15-16:set right:20-21:exit)"
         case "$choice" in
@@ -226,12 +226,12 @@ usage_notice_menu() {
         # 图片中的“我已阅读并知悉”只是静态内容，不能接收触控事件。这里使用
         # 真实的终端按钮，点击后立即返回首页，避免用户被图片查看器困住。
         draw_category_frame notice "免责声明及使用须知" "请阅读并用下方真实按钮确认"
-        ui_panel_line 8 '\033[1;38;5;203m' "工具箱不包含付费软件、破解、ROM、BIOS 或密钥"
+        ui_panel_line 8 '\033[1;38;5;203m' "Renkit不包含付费软件、破解、ROM、BIOS 或密钥"
         ui_panel_line 10 '\033[38;5;250m' "第三方软件由其作者或官方渠道提供；请自行确认授权"
         ui_panel_line 12 '\033[38;5;250m' "涉及下载、安装、权限与磁盘的操作都会另行说明并确认"
         ui_panel_line 14 '\033[38;5;250m' "完整说明已在首次启动页展示；本页不执行任何系统操作"
         ui_touch_button 18 '\033[1;97;48;5;24m' "我已阅读并知悉" "关闭免责声明并返回首页"
-        ui_touch_button 21 '\033[1;97;48;5;238m' "返回首页" "暂不确认，继续使用工具箱"
+        ui_touch_button 21 '\033[1;97;48;5;238m' "返回首页" "暂不确认，继续使用Renkit"
         ui_prompt
         choice="$(read_touch_menu right:18-19:acknowledge right:21-22:home)"
         case "$choice" in
@@ -899,7 +899,7 @@ domestic_source_preflight() {
         ui_panel_line 13 '\033[1;38;5;203m' "Flatpak 缓存关闭 GPG；archlinuxcn 保持 GPG 验证"
         ui_panel_line 15 '\033[1;38;5;203m' "pacman 完整更新 + locale｜临时关闭只读保护｜可恢复"
         ui_touch_button 17 '\033[1;97;48;5;160m' "初始化国内源并检测系统组件" "完整更新系统组件并配置国内缓存"
-        ui_touch_button 19 '\033[1;97;48;5;30m' "恢复官方软件源" "恢复 Flathub 并移除工具箱 archlinuxcn"
+        ui_touch_button 19 '\033[1;97;48;5;30m' "恢复官方软件源" "恢复 Flathub 并移除Renkit archlinuxcn"
         ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "不做任何修改"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -928,10 +928,10 @@ memory_touch_menu() {
     local choice
 
     while true; do
-        draw_category_frame advanced "虚拟内存" "优化、查看或撤销工具箱设置"
+        draw_category_frame advanced "虚拟内存" "优化、查看或撤销Renkit设置"
         ui_touch_button 7 '\033[1;97;48;5;24m' "一键优化" "设置 zram 与磁盘 swap"
         ui_touch_button 11 '\033[1;97;48;5;24m' "查看状态" "查看当前 zram 与 swap"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "撤销工具箱优化" "保留系统原 swap"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "撤销Renkit优化" "保留系统原 swap"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回更多设置" "查看其他系统功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -948,7 +948,7 @@ memory_touch_menu() {
                 return 0
                 ;;
             restore)
-                confirm_and_run "撤销工具箱虚拟内存优化" "只删除工具箱创建的配置和独立 swap；系统原 swap 会保留" \
+                confirm_and_run "撤销Renkit虚拟内存优化" "只删除Renkit创建的配置和独立 swap；系统原 swap 会保留" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/memory_tuning.sh" restore
                 return 0
                 ;;
@@ -1077,7 +1077,7 @@ uninstall_software_menu() {
                 ui_touch_button 10 '\033[1;97;48;5;160m' "卸载 mGBA" "保留游戏存档与配置"
                 ui_touch_button 12 '\033[1;97;48;5;160m' "卸载 Azahar" "保留 3DS 存档与密钥"
                 ui_touch_button 14 '\033[1;97;48;5;160m' "卸载 Steam302" "停止后台加速并移除开机自启"
-                ui_touch_button 16 '\033[1;97;48;5;160m' "卸载 GE-Proton" "只删除工具箱当前版本"
+                ui_touch_button 16 '\033[1;97;48;5;160m' "卸载 GE-Proton" "只删除Renkit当前版本"
                 ui_touch_button 18 '\033[1;97;48;5;24m' "上一页" "返回游戏启动器与模拟器"
                 ui_touch_button 20 '\033[1;97;48;5;24m' "下一页" "Decky 组件"
                 ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
@@ -1097,7 +1097,7 @@ uninstall_software_menu() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             wechat|qq|browser|chrome|edge|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5|protontricks|bottles|xbox-cloud|qqmusic|netease-music|yesplaymusic|qbittorrent|motrix|freedownloadmanager|media-downloader|flameshot|onlyoffice|joplin|heroic|lutris|chiaki4deck|parsec)
-                confirm_and_run "卸载软件" "只卸载所选软件及工具箱创建的快捷方式" env ZHOUKEER_AUTO_CONFIRM=1 \
+                confirm_and_run "卸载软件" "只卸载所选软件及Renkit创建的快捷方式" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/software.sh" uninstall "$choice"
                 ;;
             battlenet|epic|ubisoft|heihe)
@@ -1117,7 +1117,7 @@ uninstall_software_menu() {
                     bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
                 ;;
             ge-proton)
-                confirm_and_run "卸载 GE-Proton" "只删除工具箱当前 GE-Proton 版本" env ZHOUKEER_AUTO_CONFIRM=1 \
+                confirm_and_run "卸载 GE-Proton" "只删除Renkit当前 GE-Proton 版本" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/ge_proton.sh" uninstall
                 ;;
             decky-loader)
@@ -1145,7 +1145,7 @@ steam_accelerator_touch_menu() {
         ui_touch_button 9 '\033[1;97;48;5;24m' "打开官方配置界面" "官方配置窗口"
         ui_touch_button 11 '\033[1;97;48;5;24m' "重置加速" "停止并重新启动后台加速服务"
         ui_touch_button 13 '\033[1;97;48;5;24m' "查看运行状态" "检查加速是否开启"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "安全卸载" "先停止工具箱进程，再删除程序文件"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "安全卸载" "先停止Renkit进程，再删除程序文件"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -1166,7 +1166,7 @@ steam_accelerator_touch_menu() {
                 ;;
             status) run_action "Steamcommunity 302 状态" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" status ;;
             uninstall)
-                confirm_and_run "卸载 Steamcommunity 302" "会停止工具箱启动的进程；官方 systemd、hosts、DNS 和证书需按官方程序另行处理" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
+                confirm_and_run "卸载 Steamcommunity 302" "会停止Renkit启动的进程；官方 systemd、hosts、DNS 和证书需按官方程序另行处理" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
                 ;;
             advanced) NEXT_CATEGORY="advanced"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
@@ -1184,7 +1184,7 @@ support_menu() {
         ui_touch_button 7 '\033[1;97;48;5;24m' "检查常见问题" "检查系统、游戏和可安全清理的内容"
         ui_touch_button 9 '\033[1;97;48;5;24m' "查看下载状态" "查看最近成功时间和失败原因"
         ui_touch_button 11 '\033[1;97;48;5;24m' "发给维护人员" "生成诊断包，不包含密码和隐私信息"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "使用帮助与设置" "查看指南、备份设置和工具箱更新"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "使用帮助与设置" "查看指南、备份设置和Renkit更新"
         ui_touch_button 15 '\033[1;97;48;5;160m' "更多设置" "管理国内下载和加速功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -1246,15 +1246,15 @@ help_menu() {
             ui_touch_button 11 '\033[1;97;48;5;24m' "游戏兼容指南" "查看游戏运行建议"
             ui_touch_button 13 '\033[1;97;48;5;24m' "掌机常用快捷键" "查看常用按键方法"
             ui_touch_button 15 '\033[1;97;48;5;24m' "外接设备检查" "检查显示器和蓝牙"
-            ui_touch_button 19 '\033[1;97;48;5;30m' "下一页" "查看记录和工具箱更新"
+            ui_touch_button 19 '\033[1;97;48;5;30m' "下一页" "查看记录和Renkit更新"
         else
-            ui_touch_button 5 '\033[1;97;48;5;24m' "备份工具箱设置" "只备份工具箱管理的内容"
-            ui_touch_button 7 '\033[1;97;48;5;160m' "恢复工具箱设置" "先列出内容并备份当前状态"
+            ui_touch_button 5 '\033[1;97;48;5;24m' "备份Renkit设置" "只备份Renkit管理的内容"
+            ui_touch_button 7 '\033[1;97;48;5;160m' "恢复Renkit设置" "先列出内容并备份当前状态"
             ui_touch_button 9 '\033[1;97;48;5;24m' "查看详细网络信息" "查看各条连接的技术详情"
             ui_touch_button 11 '\033[1;97;48;5;24m' "导出旧版文字报告" "仅用于兼容旧排查流程"
-            ui_touch_button 13 '\033[1;97;48;5;24m' "操作记录" "导出最近工具箱记录"
+            ui_touch_button 13 '\033[1;97;48;5;24m' "操作记录" "导出最近Renkit记录"
             ui_touch_button 15 '\033[1;97;48;5;24m' "更新日志" "查看版本改动内容"
-            ui_touch_button 17 '\033[1;97;48;5;160m' "检查并更新工具箱" "下载并安装最新版本 · 会联网并更新"
+            ui_touch_button 17 '\033[1;97;48;5;160m' "检查并更新Renkit" "下载并安装最新版本 · 会联网并更新"
             ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "返回系统信息和指南"
         fi
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -1270,8 +1270,8 @@ help_menu() {
             system-info) run_action "查看系统信息" bash "$PROJECT_ROOT/core/detect.sh" ;;
             diagnostic-bundle) run_action "生成诊断包" bash "$PROJECT_ROOT/modules/diagnostics.sh" bundle ;;
             report) run_action "导出诊断报告" bash "$PROJECT_ROOT/core/detect.sh" --report ;;
-            backup-settings) run_action "备份工具箱设置" bash "$PROJECT_ROOT/modules/settings_backup.sh" backup ;;
-            restore-settings) run_action "恢复工具箱设置" bash "$PROJECT_ROOT/modules/settings_backup.sh" restore ;;
+            backup-settings) run_action "备份Renkit设置" bash "$PROJECT_ROOT/modules/settings_backup.sh" backup ;;
+            restore-settings) run_action "恢复Renkit设置" bash "$PROJECT_ROOT/modules/settings_backup.sh" restore ;;
             network-details) run_action "详细网络信息" bash "$PROJECT_ROOT/modules/network.sh" --details ;;
             new-guide) run_action "新手使用指南" bash "$PROJECT_ROOT/modules/safety_center.sh" guide ;;
             game-guide) run_action "游戏兼容指南" bash "$PROJECT_ROOT/modules/game_guides.sh" show ;;
@@ -1322,7 +1322,7 @@ changelog_menu() {
         draw_category_frame support "更新日志" "$release_heading"
         ui_panel_line 7 '\033[1;38;5;114m' "✓ ${release_notes[0]:-当前版本已安装，暂无摘要}"
         ui_panel_line 10 '\033[1;38;5;45m' "✓ ${release_notes[1]:-完整改动以 CHANGELOG.md 为准}"
-        ui_panel_line 13 '\033[1;38;5;220m' "完整日志随工具箱自动更新，不再显示旧版固定日期"
+        ui_panel_line 13 '\033[1;38;5;220m' "完整日志随Renkit自动更新，不再显示旧版固定日期"
         ui_touch_button 17 '\033[1;97;48;5;238m' "返回检测与帮助" "查看其他说明"
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -1379,11 +1379,11 @@ while true; do
         dual) NEXT_CATEGORY="advanced" ;;
         maintenance|help|optimize|guides|changelog) NEXT_CATEGORY="support" ;;
         update)
-            confirm_and_run "检查并更新工具箱" "会联网下载、校验并安全替换为最新版本" bash "$PROJECT_ROOT/update.sh"
+            confirm_and_run "检查并更新Renkit" "会联网下载、校验并安全替换为最新版本" bash "$PROJECT_ROOT/update.sh"
             [ "$NEXT_CATEGORY" = "update" ] && NEXT_CATEGORY="support"
             ;;
         exit)
-            log "用户退出工具箱"
+            log "用户退出Renkit"
             exit 0
             ;;
         *) NEXT_CATEGORY="home" ;;

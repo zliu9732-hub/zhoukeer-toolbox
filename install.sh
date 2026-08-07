@@ -90,7 +90,7 @@ assignment_is_empty() {
     esac
 }
 
-# 汉化插件 ZIP 随工具箱更新后，其校验值必须与新包同步。旧的工具箱默认值
+# 汉化插件 ZIP 随Renkit更新后，其校验值必须与新包同步。旧的Renkit默认值
 # 不再对应当前仓库中的包，保留会使用户更新后始终校验失败；只迁移这两个已知
 # 的历史默认值，不覆盖用户自行设置的其他下载地址或校验值。
 assignment_is_retired_chinese_plugin_hash() {
@@ -362,9 +362,9 @@ if [ "$DRY_RUN" -eq 1 ]; then
         echo "[dry-run] 将创建用户配置: $CONFIG_FILE"
     fi
     show_config_migration_dry_run
-    echo "[dry-run] 将创建桌面快捷方式: $HOME/Desktop/周克儿工具箱.desktop"
+    echo "[dry-run] 将创建桌面快捷方式: $HOME/Desktop/Renkit.desktop"
     echo "[dry-run] 将创建应用菜单入口: $HOME/.local/share/applications/zhoukeer-toolbox.desktop"
-    echo "[dry-run] 将创建工具箱专用的 Konsole 大字体和背景主题"
+    echo "[dry-run] 将创建Renkit专用的 Konsole 大字体和背景主题"
     echo "[dry-run] 不会创建目录、复制文件或修改权限。"
     exit $?
 fi
@@ -381,7 +381,7 @@ if [ "$SYSTEM" != "Linux" ]; then
 fi
 
 echo "================================"
-echo " 周克儿工具箱 V4 安装程序"
+echo " Renkit 1.0 安装程序"
 echo "================================"
 echo "来源目录: $SOURCE_ROOT"
 echo "安装目录: $INSTALL_DIR"
@@ -505,7 +505,7 @@ remove_appledouble_files() {
     find "$root" -type f -name '._*' -exec rm -f -- {} +
 }
 
-for file in main.sh main_old.sh launch.sh install.sh uninstall.sh update.sh bootstrap.sh i README.md VERSION .gitignore; do
+for file in main.sh launch.sh install.sh uninstall.sh update.sh bootstrap.sh i README.md VERSION .gitignore; do
     if [ -f "$SOURCE_ROOT/$file" ]; then
         copy_file "$SOURCE_ROOT/$file" "$STAGING_DIR/$file"
     fi
@@ -569,7 +569,7 @@ if ! grep -Fq 'STEAM302_LAYOUT_VALIDATION_REVISION="ascii-files-v2"' \
 fi
 find "$STAGING_DIR" -maxdepth 3 -type f -name "*.sh" ! -name '._*' -exec chmod +x {} +
 
-# 安装目录即将被原子替换。先离开它，避免从工具箱内部发起更新时，
+# 安装目录即将被原子替换。先离开它，避免从Renkit内部发起更新时，
 # 当前 Shell 落在已删除目录并持续输出 getcwd/chdir 错误。
 if ! cd "$INSTALL_PARENT" 2>/dev/null; then
     cd "$HOME" 2>/dev/null || cd / || exit 1
@@ -597,10 +597,10 @@ fi
 if [ -f "$INSTALL_DIR/modules/software.sh" ]; then
     ZHOUKEER_AUTO_CONFIRM=1 bash "$INSTALL_DIR/modules/software.sh" repair-shortcuts \
         >/dev/null 2>&1 || \
-        echo "部分桌面快捷方式重建失败，可在工具箱中重新点击对应软件修复。"
+        echo "部分桌面快捷方式重建失败，可在Renkit中重新点击对应软件修复。"
 fi
 
-DESKTOP_FILE="$HOME/Desktop/周克儿工具箱.desktop"
+DESKTOP_FILE="$HOME/Desktop/Renkit.desktop"
 APPLICATION_FILE="$HOME/.local/share/applications/zhoukeer-toolbox.desktop"
 ICON_PATH="$INSTALL_DIR/assets/icon-toolbox-deck.png"
 BACKGROUND_PATH="$INSTALL_DIR/assets/background.jpg"
@@ -616,8 +616,8 @@ if [ ! -d "$HOME/Desktop" ]; then
     mkdir -p "$HOME/Desktop"
 fi
 
-# 工具箱专用 Konsole 别名：让窗口使用独立名称，便于 Plasma 按 StartupWMClass
-# 只把工具箱窗口匹配成工具箱图标，而不影响其他 Konsole 窗口。
+# Renkit专用 Konsole 别名：让窗口使用独立名称，便于 Plasma 按 StartupWMClass
+# 只把Renkit窗口匹配成Renkit图标，而不影响其他 Konsole 窗口。
 KONSOLE_BIN="$(command -v konsole 2>/dev/null || true)"
 KONSOLE_ALIAS="$HOME/.local/bin/zhoukeer-konsole"
 KONSOLE_WM_CLASS="konsole"
@@ -641,7 +641,7 @@ Font=Noto Sans Mono CJK SC,12,-1,5,50,0,0,0,0,0
 LineSpacing=0
 
 [General]
-Name=周克儿工具箱
+Name=Renkit
 Parent=FALLBACK/
 TerminalColumns=120
 TerminalMargin=6
@@ -656,8 +656,8 @@ rm -f "$HOME/.local/share/konsole/ZhoukeerToolboxSplash.profile" \
 cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
 Type=Application
-Name=周克儿工具箱
-Comment=Steam Deck工具箱
+Name=Renkit
+Comment=Steam Deck 工具
 Exec=/usr/bin/env bash "$INSTALL_DIR/launch.sh"
 Icon=$ICON_ENTRY
 Terminal=false
@@ -668,12 +668,12 @@ EOF
 cp "$DESKTOP_FILE" "$APPLICATION_FILE"
 chmod +x "$DESKTOP_FILE" "$APPLICATION_FILE"
 
-# 更新工具箱时，为已安装的Firefox刷新URL处理器，供战网等应用调用。
+# 更新Renkit时，为已安装的Firefox刷新URL处理器，供战网等应用调用。
 if [ -x "$INSTALL_DIR/apps/firefox/firefox" ] && \
     [ -f "$INSTALL_DIR/modules/software.sh" ]; then
     ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$INSTALL_DIR/modules/software.sh" browser || \
-        echo "Firefox网页链接处理器刷新失败，可在工具箱中重新点击安装Firefox。"
+        echo "Firefox网页链接处理器刷新失败，可在Renkit中重新点击安装Firefox。"
 fi
 
 if [ -f "$INSTALL_DIR/core/env.sh" ]; then

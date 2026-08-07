@@ -1,8 +1,8 @@
 # 第三方依赖 License 清单
 
-周克儿工具箱自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止商业使用、销售、转卖或二次盈利发布）；下列第三方组件仍遵循各自原始许可证。
+Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止商业使用、销售、转卖或二次盈利发布）；下列第三方组件仍遵循各自原始许可证。
 
-本清单记录周克儿工具箱会下载、安装或镜像的第三方项目。进入 Gitee 公开镜像
+本清单记录Renkit会下载、安装或镜像的第三方项目。进入 Gitee 公开镜像
 的项目必须具有明确的再分发许可；没有明确再分发授权的项目只保留官方源或
 代理回退，不进入 `mirrors/`。
 
@@ -23,7 +23,7 @@
 | GE-Proton | Steam 兼容层 | https://github.com/GloriousEggroll/proton-ge-custom | Proton 顶层 BSD-3-Clause，组件各自许可 | 是 | 镜像包含上游 LICENSE.proton 说明 |
 | ToDesk | ToDesk 官方安装包 | https://www.todesk.com/ | 专有软件 | 是 | 维护者确认仅用于非商业装机工具，保持官方包原样并保留官网回退 |
 | Epic Games 启动器 | Epic 官方 Windows 安装器 | https://www.epicgames.com/ | 专有软件 | 是 | 维护者要求镜像以解决官方下载失败，保持官方包原样并保留官方源回退 |
-| Steamcommunity 302 | Steam/GitHub 加速 | https://www.dogfight360.com/blog/ | 作者公开免费发布，仓库未附带 LICENSE | 是 | 工具箱只从自有 Gitee 镜像下载，镜像由维护者从官方源更新 |
+| Steamcommunity 302 | Steam/GitHub 加速 | https://www.dogfight360.com/blog/ | 作者公开免费发布，仓库未附带 LICENSE | 是 | Renkit只从自有 Gitee 镜像下载，镜像由维护者从官方源更新 |
 | Greenlight | Xbox 云游戏客户端 | https://github.com/unknownskl/greenlight | MIT | 否（Flathub 官方源） | 通过 Flathub 安装，不进入仓库 mirrors |
 | Yuzu | Switch 模拟器 | https://github.com/yuzu-emu/yuzu | 上游仓库已下线 | 否 | 不镜像，仅保留现有 GitHub Release 回退 |
 | Cemu | Wii U 模拟器 | https://github.com/cemu-project/Cemu | MPL-2.0 | 否（官方源） | AppImage 走既有 GitHub Release 回退 |
@@ -35,9 +35,9 @@
 ## 说明
 
 - “进入 Gitee 镜像”表示该项目的文件会出现在 `mirrors/` 目录并通过
-  `latest.txt` 分块清单下载；未进入镜像的项目仍可在工具箱内使用官方源或
+  `latest.txt` 分块清单下载；未进入镜像的项目仍可在Renkit内使用官方源或
   既有代理回退。
 - Flatpak 应用依赖（LibreOffice、Firefox、LocalSend 等）由 Flathub 及
   上海交大/中科大镜像提供，不进入本仓库 `mirrors/`。
-- 镜像中的压缩包均为上游发布的原始文件，工具箱不在镜像阶段修改内容；
+- 镜像中的压缩包均为上游发布的原始文件，Renkit不在镜像阶段修改内容；
   下载后仍会校验固定 SHA256。

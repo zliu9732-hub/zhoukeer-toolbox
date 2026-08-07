@@ -75,7 +75,7 @@ DECKY_UNIFIDECK_SHA256="a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59
 DECKY_FREEDECK_URL="https://github.com/panyiwei-home/Freedeck/releases/download/0.6/freedeck.v.0.6.zip"
 DECKY_FREEDECK_SHA256="04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62"
 DECKY_FREEDECK_VERSION="0.6"
-# 汉化完整包固定使用工具箱 GitHub Release 资产，避免原始文件下载过慢。
+# 汉化完整包固定使用Renkit GitHub Release 资产，避免原始文件下载过慢。
 DECKY_LSFG_ZH_URL="https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.9/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip"
 DECKY_LSFG_ZH_SHA256="11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"
 DECKY_FSR4_ZH_URL="https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v1.2.2/Decky-Framegen-FSR4-v0.17.zip"
@@ -555,7 +555,7 @@ download_decky_component() {
     local actual_sha256
 
     if [ -z "$url" ] || [ -z "$expected_sha256" ]; then
-        echo "$name 的下载配置不完整，请先更新工具箱。"
+        echo "$name 的下载配置不完整，请先更新Renkit。"
         return 1
     fi
     download_policy_url_allowed "$url" || {
@@ -877,7 +877,7 @@ install_plugin_store() (
         return 1
     fi
     if [ "$(id -u)" -eq 0 ]; then
-        echo "请使用Steam Deck桌面用户运行工具箱，不要直接以root运行。"
+        echo "请使用Steam Deck桌面用户运行Renkit，不要直接以root运行。"
         return 1
     fi
     for command_name in curl sudo install systemctl jq; do
@@ -1189,7 +1189,7 @@ download_verified_package() {
     local mirror_id
 
     if [ -z "$url" ] || [ -z "$expected_sha256" ]; then
-        echo "$name 的下载配置不完整，请先更新工具箱。"
+        echo "$name 的下载配置不完整，请先更新Renkit。"
         return 1
     fi
     mirror_id="$(gitee_mirror_id_for_url "$url" 2>/dev/null || true)"
@@ -1425,7 +1425,7 @@ install_decky_zip_from_gitee_archive() {
         "${DECKY_GITEE_ARCHIVE_URL:-}" \
         "$repository_archive" \
         "${DECKY_GITEE_ARCHIVE_SHA256:-}" \
-        "工具箱归档" || return 1
+        "Renkit归档" || return 1
     extract_gitee_plugin_archive \
         "$repository_archive" "$archive_member" "$plugin_archive" "$plugin_sha256" || return 1
     unzip -q "$plugin_archive" -d "$extract_dir" || {
@@ -1533,26 +1533,26 @@ install_zhoukeer_localizer() {
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
-        echo "周克儿汉化仅支持真实 SteamOS 环境。"
+        echo "Renkit汉化仅支持真实 SteamOS 环境。"
         return 1
     fi
     if [ -L "$source_dir" ] || [ ! -f "$source_dir/plugin.json" ] || [ ! -s "$source_dir/dist/index.js" ]; then
-        echo "周克儿汉化组件不完整，请更新工具箱后再试。"
+        echo "Renkit汉化组件不完整，请更新Renkit后再试。"
         return 1
     fi
     if decky_plugin_directory_is_complete "$plugin_root" "zhoukeer-localizer"; then
-        echo "[已安装] 周克儿汉化已存在且文件完整，无需重复安装。"
+        echo "[已安装] Renkit汉化已存在且文件完整，无需重复安装。"
         return 0
     fi
     prepare_plugin_root "$plugin_root" || return 1
 
     install_tree_atomically "$source_dir" "$plugin_root" "zhoukeer-localizer" || {
-        echo "周克儿汉化安装失败，已尽量保留旧版本。"
+        echo "Renkit汉化安装失败，已尽量保留旧版本。"
         return 1
     }
-    echo "周克儿汉化修复版已安装，正在让 Decky 重新扫描插件目录..."
-    reload_decky_plugins "Decky 已重新加载。返回游戏模式后，在插件列表中打开“周克儿汉化”，再打开需要汉化的插件页面。"
-    log "周克儿汉化修复版安装完成"
+    echo "Renkit汉化修复版已安装，正在让 Decky 重新扫描插件目录..."
+    reload_decky_plugins "Decky 已重新加载。返回游戏模式后，在插件列表中打开“Renkit汉化”，再打开需要汉化的插件页面。"
+    log "Renkit汉化修复版安装完成"
 }
 
 uninstall_all_decky_plugins() {
@@ -1579,7 +1579,7 @@ uninstall_all_decky_plugins() {
                 return 0
             }
         else
-            echo "请从工具箱菜单点击“一键清空已装插件”后，在触控确认页继续。"
+            echo "请从Renkit菜单点击“一键清空已装插件”后，在触控确认页继续。"
             return 1
         fi
     fi
@@ -2101,7 +2101,7 @@ install_lsfg_chinese() {
        [ ! -f "$LSFG_ZH_SOURCE_DIR/package.json" ] || \
        [ ! -s "$LSFG_ZH_SOURCE_DIR/dist/index.js" ] || \
        [ ! -f "$LSFG_ZH_SOURCE_DIR/LICENSE" ]; then
-        echo "小黄鸭 v$LSFG_OFFICIAL_VERSION 中文组件不完整，请更新工具箱后再试。"
+        echo "小黄鸭 v$LSFG_OFFICIAL_VERSION 中文组件不完整，请更新Renkit后再试。"
         return 1
     fi
     bundled_version="$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
@@ -2215,7 +2215,7 @@ install_fsr4_chinese() {
        [ ! -f "$FSR4_ZH_SOURCE_DIR/package.json" ] || \
        [ ! -s "$FSR4_ZH_SOURCE_DIR/dist/index.js" ] || \
        [ ! -f "$FSR4_ZH_SOURCE_DIR/LICENSE" ]; then
-        echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文组件不完整，请更新工具箱后再试。"
+        echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文组件不完整，请更新Renkit后再试。"
         return 1
     fi
     bundled_version="$(sed -n 's/.*\"version\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p' "$FSR4_ZH_SOURCE_DIR/package.json" | head -n 1)"
@@ -2337,7 +2337,7 @@ remove_legacy_lsfg_directories() {
     local manifest_name
     local removed=0
 
-    # 旧工具箱曾把同一插件安装在中文或仓库名目录。Decky 会把它们当成
+    # 旧Renkit曾把同一插件安装在中文或仓库名目录。Decky 会把它们当成
     # 独立插件继续加载，导致界面仍显示旧版本；只删除名称和清单都能确认的旧副本。
     for legacy_name in "小黄鸭" "LSFG-VK" "decky-lsfg-vk" "Decky.LSFG-VK"; do
         legacy_dir="$plugin_root/$legacy_name"
@@ -2425,7 +2425,7 @@ prepare_managed_guide_target() {
         echo "教程目标不是普通文件，未覆盖：$target" >&2
         return 1
     fi
-    if [ -f "$target" ] && ! grep -Fq '由周克儿工具箱管理' "$target"; then
+    if [ -f "$target" ] && ! grep -Fq '由Renkit管理' "$target"; then
         echo "发现同名的用户文件，未覆盖：$target" >&2
         return 1
     fi
@@ -2439,7 +2439,7 @@ create_feature_usage_guide() {
     prepare_managed_guide_target "$target" || return 1
     temporary="$(mktemp "$desktop_dir/.zhoukeer-feature-guide.XXXXXX")" || return 1
     if ! cat > "$temporary" <<'EOF'
-由周克儿工具箱管理
+由Renkit管理
 风灵月影、小黄鸭、FSR4 使用教程
 
 【先看这句】FSR/FSR4 不适合所有游戏。只在明确支持的游戏中尝试；出现黑屏、闪退、花屏、画面变差或帧数下降时，立即关闭并恢复原设置。联网和竞技游戏还可能有反作弊风险，不要使用修改器或第三方注入功能。
@@ -2488,7 +2488,7 @@ create_fsr4_supported_games_guide() {
     prepare_managed_guide_target "$target" || return 1
     temporary="$(mktemp "$desktop_dir/.zhoukeer-fsr4-guide.XXXXXX")" || return 1
     if ! cat > "$temporary" <<'EOF'
-由周克儿工具箱管理
+由Renkit管理
 FSR4 支持游戏名单（依据用户提供截图整理）
 
 【重要】FSR/FSR4 不适合所有游戏。本名单只用于判断是否值得尝试，不代表每台设备、每个游戏版本都能正常工作。出现黑屏、闪退、花屏、画面变差或帧数下降时，立即关闭并恢复原设置。名单已按要求排除指定游戏。

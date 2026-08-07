@@ -66,7 +66,7 @@ validate_todesk_settings() {
         [ -n "$TODESK_OFFICIAL_DEB_URL" ] && \
         [ -n "$TODESK_OFFICIAL_DEB_SHA256" ] && \
         [ -n "$TODESK_LOCAL_PACKAGE_NAME" ] || {
-        echo "ToDesk官方包配置不完整，请更新工具箱。"
+        echo "ToDesk官方包配置不完整，请更新Renkit。"
         return 1
     }
     [ "${#TODESK_OFFICIAL_DEB_SHA256}" -eq 64 ] || {
@@ -114,7 +114,7 @@ show_todesk_warning() {
     echo "4. 重新进入桌面模式后再安装并启动ToDesk"
     echo ""
     echo "该操作将："
-    echo "- 通过工具箱受控镜像下载未修改的ToDesk官方DEB并校验固定SHA256"
+    echo "- 通过Renkit受控镜像下载未修改的ToDesk官方DEB并校验固定SHA256"
     echo "- 在本机转换为SteamOS软件包，不执行官方DEB自带的维护脚本"
     echo "- 优先读取桌面管理员密码.txt自动验证，记录不可用时由系统询问"
     echo "- 临时关闭SteamOS只读保护"

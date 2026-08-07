@@ -138,12 +138,12 @@ sync_ge_proton() {
     echo "Synced GE-Proton $version"
 }
 
-# 小黄鸭汉化叠加固定 v0.12.5，镜像必须与工具箱内置版本一致，否则 SHA 校验会拒绝。
+# 小黄鸭汉化叠加固定 v0.12.5，镜像必须与Renkit内置版本一致，否则 SHA 校验会拒绝。
 sync_plugin lsfg "xXJSONDeruloXx/decky-lsfg-vk" '^Decky[.]LSFG-VK[.]zip$' "Decky LSFG-VK" \
     "v0.12.5" "Decky.LSFG-VK.zip" \
     "https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip" \
     "13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
-# FSR4 汉化叠加固定 v0.17，镜像必须与工具箱内置版本一致，否则 SHA 校验会拒绝。
+# FSR4 汉化叠加固定 v0.17，镜像必须与Renkit内置版本一致，否则 SHA 校验会拒绝。
 sync_plugin fsr4 "xXJSONDeruloXx/Decky-Framegen" '^Decky-Framegen[.]zip$' "Decky-Framegen" \
     "v0.17" "Decky-Framegen.zip" \
     "https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip" \

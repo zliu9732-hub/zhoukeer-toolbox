@@ -290,7 +290,7 @@ retire_windows_switch_shortcuts() {
         [ ! -e "$path" ] && [ ! -L "$path" ] || rm -f -- "$path"
     done
     echo "一键切换 Windows 功能已移除；未设置任何 EFI 启动项。"
-    echo "旧的工具箱 Windows 桌面入口已清理。"
+    echo "旧的Renkit Windows 桌面入口已清理。"
     log "已停用并清理Windows一次性切换入口"
 }
 
@@ -316,7 +316,7 @@ classify_boot_entry() {
         *Windows\ Boot\ Manager*) echo "Windows（受保护）" ;;
         *SteamOS*|*steamcl.efi*) echo "SteamOS（受保护）" ;;
         *systemd*|*systemd-boot*|*Linux\ Boot\ Manager*) echo "systemd-boot（仅检查）" ;;
-        *Zhoukeer\ Clover*) echo "工具箱 Clover（可完整恢复/删除）" ;;
+        *Zhoukeer\ Clover*) echo "Renkit Clover（可完整恢复/删除）" ;;
         *Clover*) echo "其他 Clover（可清理 NVRAM）" ;;
         *rEFInd*|*refind*) echo "rEFInd（可清理 NVRAM）" ;;
         *OpenCore*|*OPENCORE*|*opencore*) echo "OpenCore（可清理 NVRAM）" ;;

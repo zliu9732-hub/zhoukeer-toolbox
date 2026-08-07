@@ -1,4 +1,4 @@
-const manifest = {"name":"周克儿汉化"};
+const manifest = {"name":"Renkit汉化"};
 const API_VERSION = 2;
 const internalAPIConnection = window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit;
 if (!internalAPIConnection) {
@@ -485,7 +485,7 @@ class TranslationEngine {
 const engine = new TranslationEngine();
 function showEngineError(error) {
     toaster.toast({
-        title: "周克儿汉化",
+        title: "Renkit汉化",
         body: error instanceof Error ? error.message : "无法连接 Steam 主界面。"
     });
 }
@@ -497,7 +497,7 @@ function Content() {
         try {
             await engine.refresh(next);
             toaster.toast({
-                title: "周克儿汉化",
+                title: "Renkit汉化",
                 body: next ? "汉化层已注入 Steam 主界面。" : "汉化层已暂停。"
             });
         }
@@ -509,7 +509,7 @@ function Content() {
         try {
             const translatedCount = await engine.scan();
             toaster.toast({
-                title: "周克儿汉化",
+                title: "Renkit汉化",
                 body: translatedCount > 0
                     ? `本次已处理 ${translatedCount} 处文字。`
                     : "当前可见页面没有新的已知英文文案。"
@@ -524,7 +524,7 @@ function Content() {
 var index = definePlugin(() => {
     void engine.start().catch(showEngineError);
     return {
-        name: "周克儿汉化",
+        name: "Renkit汉化",
         titleView: SP_JSX.jsx("div", { className: DFL.staticClasses.Title, children: "\u5468\u514B\u513F\u6C49\u5316" }),
         content: SP_JSX.jsx(Content, {}),
         icon: SP_JSX.jsx(FaLanguage, {}),

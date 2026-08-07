@@ -360,7 +360,7 @@ clover_install_bootmanager() {
     [ -f "$source_dir/clover-bootmanager.sh" ] && \
         [ -f "$source_dir/clover-bootmanager.service" ] && \
         [ -f "$source_dir/clover-whitelist.conf" ] || {
-        echo "工具箱缺少 Clover 开机修复服务文件。"
+        echo "Renkit缺少 Clover 开机修复服务文件。"
         return 1
     }
     toolbox_sudo install -d -m 0755 -- \
@@ -498,15 +498,15 @@ clover_prepare_staging() {
         return 1
     }
     [ -f "${CLOVER_DEVICE_CONFIG:-$CLOVER_CONFIG_SOURCE}" ] || {
-        echo "工具箱缺少 Clover 配置文件：${CLOVER_DEVICE_CONFIG:-$CLOVER_CONFIG_SOURCE}" >&2
+        echo "Renkit缺少 Clover 配置文件：${CLOVER_DEVICE_CONFIG:-$CLOVER_CONFIG_SOURCE}" >&2
         return 1
     }
     [ -f "$CLOVER_THEME_SOURCE/background.png" ] || {
-        echo "工具箱缺少 Clover 主题背景：$CLOVER_THEME_SOURCE/background.png" >&2
+        echo "Renkit缺少 Clover 主题背景：$CLOVER_THEME_SOURCE/background.png" >&2
         return 1
     }
     [ -f "$CLOVER_THEME_SOURCE/theme.plist" ] || {
-        echo "工具箱缺少 Clover 主题配置：$CLOVER_THEME_SOURCE/theme.plist" >&2
+        echo "Renkit缺少 Clover 主题配置：$CLOVER_THEME_SOURCE/theme.plist" >&2
         return 1
     }
 
@@ -521,7 +521,7 @@ clover_prepare_staging() {
     cp -R -- "$CLOVER_THEME_SOURCE/." "$staged/themes/zhoukeer-phantom/" || return 1
     if [ -n "$CLOVER_EFI_DRIVER" ]; then
         [ -f "$CLOVER_DRIVER_DIR/$CLOVER_EFI_DRIVER" ] || {
-            echo "工具箱缺少设备 Clover 驱动：$CLOVER_EFI_DRIVER" >&2
+            echo "Renkit缺少设备 Clover 驱动：$CLOVER_EFI_DRIVER" >&2
             return 1
         }
         mkdir -p "$staged/drivers/uefi" || return 1
@@ -575,7 +575,7 @@ clover_confirm_install() {
 
     clover_show_install_risk
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
-        echo "已通过工具箱界面确认，开始安装 Clover。"
+        echo "已通过Renkit界面确认，开始安装 Clover。"
         return 0
     fi
     read -r -p "确认写入 EFI 并修改开机顺序请输入 CLOVER：" answer
@@ -586,9 +586,9 @@ clover_confirm_restore() {
     local answer
 
     if [ "${ZHOUKEER_CLOVER_DELETE:-0}" = "1" ]; then
-        echo "将删除工具箱创建的 Clover 双系统引导，并恢复安装前的 BootOrder。"
+        echo "将删除Renkit创建的 Clover 双系统引导，并恢复安装前的 BootOrder。"
     else
-        echo "将移除工具箱创建的 Clover 启动项，并恢复安装前的 BootOrder。"
+        echo "将移除Renkit创建的 Clover 启动项，并恢复安装前的 BootOrder。"
     fi
     echo "如果安装前已有 CLOVER 目录，也会从备份恢复。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
@@ -614,7 +614,7 @@ clover_install() {
         require_command "$command_name" || return 1
     done
     [ -f "$CLOVER_THEME_SOURCE/background.png" ] || {
-        echo "Clover 怪盗主题资源缺失，请更新工具箱后重试。"
+        echo "Clover 怪盗主题资源缺失，请更新Renkit后重试。"
         return 1
     }
     clover_resolve_esp_device || {
@@ -640,7 +640,7 @@ clover_install() {
         CLOVER_DEVICE_CONFIG="$CLOVER_DEVICE_DIR/${CLOVER_DEVICE_PREFIX}-config.plist"
     fi
     [ -f "$CLOVER_DEVICE_CONFIG" ] || {
-        echo "工具箱缺少设备 Clover 配置文件：$CLOVER_DEVICE_CONFIG"
+        echo "Renkit缺少设备 Clover 配置文件：$CLOVER_DEVICE_CONFIG"
         return 1
     }
     clover_confirm_install || {
@@ -804,7 +804,7 @@ clover_restore() {
     target="$CLOVER_ESP/EFI/CLOVER"
     marker="$target/.zhoukeer-managed"
     [ -f "$marker" ] || {
-        echo "未发现由工具箱管理的 Clover，未执行恢复。"
+        echo "未发现由Renkit管理的 Clover，未执行恢复。"
         return 1
     }
     clover_confirm_restore || {
@@ -852,12 +852,12 @@ clover_restore() {
     if [ -n "$original_backup" ] && [ -d "$original_backup" ]; then
         if ! toolbox_sudo mv -- "$original_backup" "$target"; then
             toolbox_sudo mv -- "$removed_path" "$target" || true
-            echo "恢复原 Clover 目录失败，已尝试放回工具箱版本。"
+            echo "恢复原 Clover 目录失败，已尝试放回Renkit版本。"
             return 1
         fi
         echo "已恢复安装前的 Clover 目录：$target"
     else
-        echo "工具箱安装的 Clover 已移出启动目录，备份保存在：$removed_path"
+        echo "Renkit安装的 Clover 已移出启动目录，备份保存在：$removed_path"
     fi
     clover_restore_windows_direct_boot || {
         echo "警告：Windows 直启文件恢复失败，请检查 EFI/Microsoft 目录。"
@@ -877,14 +877,14 @@ clover_status() {
     target="$CLOVER_ESP/EFI/CLOVER"
     boot_number="$(clover_boot_number)"
     if [ -f "$target/.zhoukeer-managed" ] && [ -s "$target/CLOVERX64.efi" ]; then
-        echo "Clover：已由工具箱安装"
+        echo "Clover：已由Renkit安装"
         echo "版本：$(clover_marker_value "$target/.zhoukeer-managed" VERSION)"
         echo "EFI：$target"
         echo "NVRAM：${boot_number:-未检测到启动项}"
         [ -n "$boot_number" ]
         return
     fi
-    echo "Clover：未由工具箱安装"
+    echo "Clover：未由Renkit安装"
     [ -z "$boot_number" ] || echo "检测到非完整状态的 NVRAM 启动项：$boot_number"
     return 1
 }

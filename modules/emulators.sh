@@ -75,7 +75,7 @@ confirm_yuzu_key_import() {
     local answer
 
     echo "仅可导入你本人从合法拥有的设备备份的 Yuzu 密钥。"
-    echo "工具箱不会下载、生成、分享或显示密钥内容。"
+    echo "Renkit不会下载、生成、分享或显示密钥内容。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi
@@ -172,7 +172,7 @@ create_emulator_desktop_shortcut() {
 [Desktop Entry]
 Type=Application
 Name=$EMULATOR_NAME
-Comment=由周克儿工具箱安装
+Comment=由Renkit安装
 Exec="$executable"
 Icon=$EMULATOR_ICON
 Terminal=false
@@ -335,7 +335,7 @@ confirm_emulator_uninstall() {
     local name="$1" answer
 
     echo "将卸载：$name"
-    echo "模拟器游戏存档和配置会保留，只删除程序本体与工具箱创建的入口。"
+    echo "模拟器游戏存档和配置会保留，只删除程序本体与Renkit创建的入口。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi

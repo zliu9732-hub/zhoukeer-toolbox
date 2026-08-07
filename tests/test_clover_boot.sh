@@ -109,14 +109,14 @@ efibootmgr() {
 
 clover_install >/dev/null || fail "模拟 Clover 安装失败"
 [ -s "$ESP/EFI/CLOVER/CLOVERX64.efi" ] || fail "未写入 Clover EFI 文件"
-[ -f "$ESP/EFI/CLOVER/.zhoukeer-managed" ] || fail "未写入工具箱管理标记"
+[ -f "$ESP/EFI/CLOVER/.zhoukeer-managed" ] || fail "未写入Renkit管理标记"
 [ -f "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/background.png" ] || fail "未写入怪盗主题背景"
 cmp -s "$PROJECT_ROOT/assets/clover/zhoukeer-phantom/background.png" \
     "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/background.png" || fail "开机背景与项目资源不一致"
 grep -Fq 'steamcl.efi' "$ESP/EFI/CLOVER/config.plist" || \
     fail "SteamOS 不是默认启动器"
 grep -Fq 'zhoukeer-phantom' "$ESP/EFI/CLOVER/config.plist" || \
-    fail "设备配置未指向工具箱主题"
+    fail "设备配置未指向Renkit主题"
 [ "$(cat "$STATE/bootorder")" = '0002,0000,0001' ] || fail "Clover 未放到 BootOrder 首位"
 [ "$(cat "$ESP/EFI/BOOT/BOOTX64.EFI")" = 'fallback-sentinel' ] || fail "安装覆盖了 BOOTX64.EFI"
 [ ! -f "$ESP/EFI/Microsoft/Boot/bootmgfw.efi" ] || fail "Windows 直启未禁用"
@@ -129,13 +129,13 @@ grep -Fq 'enable --now clover-bootmanager.service' "$STATE/calls" || \
     fail "开机修复服务未启用"
 
 status_output="$(clover_status)" || fail "安装后状态检查失败"
-printf '%s\n' "$status_output" | grep -Fq 'Clover：已由工具箱安装' || fail "状态未报告 Clover 已安装"
+printf '%s\n' "$status_output" | grep -Fq 'Clover：已由Renkit安装' || fail "状态未报告 Clover 已安装"
 
-clover_delete >/dev/null || fail "模拟删除工具箱 Clover 双系统引导失败"
+clover_delete >/dev/null || fail "模拟删除Renkit Clover 双系统引导失败"
 [ -f "$ESP/EFI/CLOVER/original.txt" ] || fail "没有恢复安装前的 CLOVER 目录"
-[ ! -e "$ESP/EFI/CLOVER/.zhoukeer-managed" ] || fail "恢复后仍使用工具箱 Clover"
+[ ! -e "$ESP/EFI/CLOVER/.zhoukeer-managed" ] || fail "恢复后仍使用Renkit Clover"
 [ "$(cat "$STATE/bootorder")" = '0000,0001' ] || fail "没有恢复原 BootOrder"
-[ "$(cat "$STATE/clover-entry")" = '0' ] || fail "没有删除工具箱 Clover NVRAM 入口"
+[ "$(cat "$STATE/clover-entry")" = '0' ] || fail "没有删除Renkit Clover NVRAM 入口"
 [ -f "$ESP/EFI/Microsoft/Boot/bootmgfw.efi" ] || fail "Windows 直启未恢复"
 [ ! -e "$ESP/EFI/Microsoft/bootmgfw.efi" ] || fail "Clover Windows 入口未清理"
 
