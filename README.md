@@ -2,7 +2,7 @@
 
 Renkit是面向 Steam Deck 及其他 SteamOS 掌机的 Bash 工具集，提供一键新机初始化、常用软件、远程协助、插件商城、系统维护和安全更新入口。界面会按终端宽度收紧导航栏；体检、诊断、攻略和启动器功能尽量适配 SteamOS 掌机，涉及引导、只读分区等系统功能仍会先检查环境。
 
-当前正式版：Renkit 1.0；从 Renkit 1.0 起按语义化版本递增。
+当前正式版：Renkit 1.0.1；从 Renkit 1.0 起按语义化版本递增。
 
 - 双系统设置：提供互通盘挂载与只读保护、TF 卡 NTFS 初始化、NTFS/exFAT 基础修复、只读健康检查、受保护的第三方引导项清理、双系统引导修复和一键切换 Windows。rEFInd 继续停用，不提供入口。
 
@@ -205,6 +205,6 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 
 ## 当前版本与维护
 
-当前正式版为 Renkit 1.0，后续版本从 1.0 起按语义化版本递增。后续维护继续围绕 SteamOS 实际使用更新下载链路、插件镜像、菜单与修复；rEFInd、Clover、EFI/BootOrder 和“一键切换 Windows”等高风险入口保持停用。
+当前正式版为 Renkit 1.0.1，后续版本从 1.0 起按语义化版本递增。后续维护继续围绕 SteamOS 实际使用更新下载链路、插件镜像、菜单与修复；rEFInd、Clover、EFI/BootOrder 和“一键切换 Windows”等高风险入口保持停用。
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。

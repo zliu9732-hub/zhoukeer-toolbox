@@ -364,6 +364,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
     show_config_migration_dry_run
     echo "[dry-run] 将创建桌面快捷方式: $HOME/Desktop/Renkit.desktop"
     echo "[dry-run] 将创建应用菜单入口: $HOME/.local/share/applications/zhoukeer-toolbox.desktop"
+    echo "[dry-run] 将清理旧版桌面与应用菜单入口"
     echo "[dry-run] 将创建Renkit专用的 Konsole 大字体和背景主题"
     echo "[dry-run] 不会创建目录、复制文件或修改权限。"
     exit $?
@@ -615,6 +616,10 @@ fi
 if [ ! -d "$HOME/Desktop" ]; then
     mkdir -p "$HOME/Desktop"
 fi
+
+# 清理旧版“周克儿工具箱”桌面与应用菜单入口，避免升级后出现重复图标。
+rm -f "$HOME/Desktop/周克儿工具箱.desktop" \
+    "$HOME/.local/share/applications/周克儿工具箱.desktop" 2>/dev/null || true
 
 # Renkit专用 Konsole 别名：让窗口使用独立名称，便于 Plasma 按 StartupWMClass
 # 只把Renkit窗口匹配成Renkit图标，而不影响其他 Konsole 窗口。

@@ -47,6 +47,7 @@ echo ""
 if [ "$DRY_RUN" -eq 1 ]; then
     echo "[dry-run] 将删除桌面快捷方式: $HOME/Desktop/Renkit.desktop"
     echo "[dry-run] 将删除应用菜单入口: $HOME/.local/share/applications/zhoukeer-toolbox.desktop"
+    echo "[dry-run] 将清理旧版桌面与应用菜单入口"
     echo "[dry-run] 将删除Renkit专用 Konsole 主题"
     echo "[dry-run] 默认安装目录匹配时将删除: $DEFAULT_INSTALL_DIR"
     echo "[dry-run] 可选择备份配置到: $CONFIG_BACKUP_DIR/settings.conf"
@@ -82,6 +83,8 @@ fi
 
 rm -f "$HOME/Desktop/Renkit.desktop"
 rm -f "$HOME/.local/share/applications/zhoukeer-toolbox.desktop"
+rm -f "$HOME/Desktop/周克儿工具箱.desktop"
+rm -f "$HOME/.local/share/applications/周克儿工具箱.desktop"
 rm -f "$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
 rm -f "$HOME/.local/share/konsole/ZhoukeerToolbox.colorscheme"
 rm -f "$HOME/.local/share/konsole/ZhoukeerToolboxSplash.profile"

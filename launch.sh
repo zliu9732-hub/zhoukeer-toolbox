@@ -8,7 +8,7 @@ PROFILE_FILE="$MAIN_PROFILE_FILE"
 STARTUP_VIEW="main-with-disclaimer"
 WINDOW_SIZE="1280x740"
 FONT_SIZE="12"
-WINDOW_FULLSCREEN="${ZHOUKEER_WINDOW_FULLSCREEN:-1}"
+WINDOW_FULLSCREEN="${ZHOUKEER_WINDOW_FULLSCREEN:-0}"
 STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 LAUNCH_LOG="${ZHOUKEER_LAUNCH_LOG:-$STATE_HOME/zhoukeer-toolbox/launcher.log}"
 
@@ -307,8 +307,8 @@ try_konsole_levels() {
     konsole_bin="$(find_toolbox_konsole)" || return 1
     KONSOLE_HELP="$("$konsole_bin" --help 2>/dev/null || true)"
 
-    # 优先自动全屏，字号与兜底窗口尺寸仍按检测到的屏幕分辨率适配。
-    # 不支持 --fullscreen 时退回固定窗口尺寸，保证 32 行画布完整。
+    # 默认使用普通窗口，字号与窗口尺寸按检测到的屏幕分辨率适配；
+    # 需要全屏时由维护者通过 ZHOUKEER_WINDOW_FULLSCREEN=1 显式开启。
     if [ "$WINDOW_FULLSCREEN" = "1" ] && supports_konsole_option '--fullscreen'; then
         optional_args+=(--fullscreen)
         window_mode="全屏（字号按分辨率适配）"
