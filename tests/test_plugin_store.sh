@@ -271,11 +271,11 @@ grep -Fq '"version": "1.0.5"' \
     exit 1
 }
 simpledeckytdp_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js" | awk '{print $1}')"
-[ "$simpledeckytdp_actual_sha256" = "068deb73671f7f296114ff4f349de58d172ee95b049ca9c7576002829afeb5e8" ] || {
+[ "$simpledeckytdp_actual_sha256" = "749d3a0d684fe87b90989979ef034fe13d6af6e81961599536ed0c8b7f1e2c3d" ] || {
     echo "FAIL: SimpleDeckyTDP 中文构建文件校验值不匹配" >&2
     exit 1
 }
-grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="068deb73671f7f296114ff4f349de58d172ee95b049ca9c7576002829afeb5e8"' \
+grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="749d3a0d684fe87b90989979ef034fe13d6af6e81961599536ed0c8b7f1e2c3d"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_simpledeckytdp_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'simpledeckytdp-zh-gitee) install_simpledeckytdp_zh_from_gitee' \

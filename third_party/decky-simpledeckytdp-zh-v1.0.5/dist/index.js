@@ -21433,7 +21433,7 @@ const OtaUpdates = () => {
         buttonText = t("SYSTEM_INFO_REINSTALL", "Reinstall Plugin");
     }
     return (window.SP_REACT.createElement(DeckySection, { title: t("SYSTEM_INFO_TITLE", "System Info") },
-        window.SP_REACT.createElement(ArrowToggleButton, { cacheKey: "SystemInfoSectionCacheKey" },
+        window.SP_REACT.createElement(ArrowToggleButton, { cacheKey: "simpleDeckyTDP.zhSystemInfo", defaultOpen: true },
             window.SP_REACT.createElement(DeckyRow, null,
                 window.SP_REACT.createElement(DeckyField, { label: t("SYSTEM_INFO_SYSTEM_LANGUAGE", "System Language"), bottomSeparator: "none" }, systemLang || "未检测到系统语言")),
             window.SP_REACT.createElement(DeckyRow, null,

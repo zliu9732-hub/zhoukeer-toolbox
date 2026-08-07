@@ -1,3 +1,7 @@
+## Renkit 1.0.4 SimpleDeckyTDP 系统信息默认展开 — 2026-08-08
+
+- SimpleDeckyTDP 汉化版底部“系统信息”区域改为默认展开，并清除旧折叠缓存，避免打开插件后底部空白。
+
 ## Renkit 1.0.3 SimpleDeckyTDP 完整汉化 — 2026-08-08
 
 - SimpleDeckyTDP 插件完整汉化：修复 Steam 中文语言码未命中导致瓦数、滑块等界面回退英文的问题，补齐 GPU 模式、EPP/调频选项、TDP 范围等界面中文。
