@@ -24,7 +24,7 @@ LAUNCHER_BASE="${ZHOUKEER_LAUNCHER_BASE:-$HOME/游戏启动器}"
 LAUNCHER_COVER_MIRROR_ID="${ZHOUKEER_LAUNCHER_COVER_MIRROR_ID:-launcher-covers}"
 LAUNCHER_COVER_BUNDLE_NAME="启动器封面素材"
 LAUNCHER_COVER_CACHE_ROOT="${ZHOUKEER_LAUNCHER_COVER_CACHE_DIR:-$APP_DIR/game-launchers/covers}"
-LAUNCHER_COVER_READY_MARKER="$LAUNCHER_COVER_CACHE_ROOT/.covers-ready-v5"
+LAUNCHER_COVER_READY_MARKER="$LAUNCHER_COVER_CACHE_ROOT/.covers-ready-v6"
 
 launcher_details() {
     case "$1" in
@@ -294,7 +294,7 @@ download_preinstalled_launcher() {
 
 extract_preinstalled_launcher() {
     local archive="$1" drive_c="$2"
-    local target_dir target_exe list_file entry
+    local target_dir target_exe staged_exe list_file extract_dir entry
 
     require_command bsdtar || return 1
     list_file="$(mktemp)" || return 1
@@ -318,22 +318,40 @@ extract_preinstalled_launcher() {
         esac
     done < "$list_file"
     rm -f -- "$list_file"
-    target_dir="$drive_c/Program Files (x86)"
-    mkdir -p "$target_dir" || return 1
+    extract_dir="$(mktemp -d)" || return 1
     if ! bsdtar --no-same-owner --no-same-permissions --no-acls --no-xattrs \
-        --no-fflags -xf "$archive" -C "$target_dir" < /dev/null; then
+        --no-fflags -xf "$archive" -C "$extract_dir" < /dev/null; then
+        rm -rf -- "$extract_dir"
         echo "$LAUNCHER_NAME 客户端解压失败，已停止安装。"
         return 1
     fi
-    target_exe="$target_dir/$LAUNCHER_PREINSTALLED_TARGET_RELATIVE"
-    [ -f "$target_exe" ] && [ ! -L "$target_exe" ] || {
+    staged_exe="$extract_dir/$LAUNCHER_PREINSTALLED_TARGET_RELATIVE"
+    [ -f "$staged_exe" ] && [ ! -L "$staged_exe" ] || {
+        rm -rf -- "$extract_dir"
         echo "解压后未找到 $LAUNCHER_NAME 主程序。"
         return 1
     }
-    if find "$target_dir" -type l -print -quit 2>/dev/null | grep -q .; then
+    if find "$extract_dir" -type l -print -quit 2>/dev/null | grep -q .; then
+        rm -rf -- "$extract_dir"
         echo "$LAUNCHER_NAME 客户端解压产物包含异常链接，已停止安装。"
         return 1
     fi
+    target_dir="$drive_c/Program Files (x86)"
+    mkdir -p "$target_dir" || {
+        rm -rf -- "$extract_dir"
+        return 1
+    }
+    if ! cp -Rp "$extract_dir/." "$target_dir/"; then
+        rm -rf -- "$extract_dir"
+        echo "$LAUNCHER_NAME 客户端文件写入失败，已停止安装。"
+        return 1
+    fi
+    rm -rf -- "$extract_dir"
+    target_exe="$target_dir/$LAUNCHER_PREINSTALLED_TARGET_RELATIVE"
+    [ -f "$target_exe" ] && [ ! -L "$target_exe" ] || {
+        echo "写入后未找到 $LAUNCHER_NAME 主程序。"
+        return 1
+    }
     return 0
 }
 

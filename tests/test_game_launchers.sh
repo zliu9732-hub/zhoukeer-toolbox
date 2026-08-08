@@ -130,7 +130,7 @@ cover_without_marker="$(
     echo "FAIL: 无当前版本标记时仍直接复用了旧封面缓存" >&2
     exit 1
 }
-touch "$STALE_COVER_CACHE/.covers-ready-v5"
+touch "$STALE_COVER_CACHE/.covers-ready-v6"
 cover_with_marker="$(
     MODULE="$MODULE" ZHOUKEER_LAUNCHER_COVER_CACHE_DIR="$STALE_COVER_CACHE" bash -c '
         source "$MODULE"
@@ -453,8 +453,14 @@ if printf '%s\n' "$@" | grep -q -- '-xf'; then
         fi
         prev="$arg"
     done
-    mkdir -p "$(dirname "$FAKE_EXTRACT_FILE")"
-    : > "$FAKE_EXTRACT_FILE"
+    if [ -n "${FAKE_EXTRACT_RELATIVE:-}" ]; then
+        mkdir -p "$target_dir/$(dirname "$FAKE_EXTRACT_RELATIVE")"
+        : > "$target_dir/$FAKE_EXTRACT_RELATIVE"
+    fi
+    if [ -n "${FAKE_EXTRACT_SYMLINK_RELATIVE:-}" ]; then
+        mkdir -p "$target_dir/$(dirname "$FAKE_EXTRACT_SYMLINK_RELATIVE")"
+        ln -s ../outside "$target_dir/$FAKE_EXTRACT_SYMLINK_RELATIVE"
+    fi
     exit 0
 fi
 exit 1
@@ -468,7 +474,7 @@ mkdir -p "$PREINSTALLED_DRIVE_C/Program Files (x86)"
 printf 'Battle.net/Battle.net Launcher.exe\n' > "$TMP_ROOT/good-archive-list.txt"
 if ! MODULE="$MODULE" FAKE_ARCHIVE_LIST="$TMP_ROOT/good-archive-list.txt" \
     PREINSTALLED_ARCHIVE="$PREINSTALLED_ARCHIVE" PREINSTALLED_DRIVE_C="$PREINSTALLED_DRIVE_C" \
-    FAKE_EXTRACT_FILE="$PREINSTALLED_DRIVE_C/Program Files (x86)/Battle.net/Battle.net Launcher.exe" \
+    FAKE_EXTRACT_RELATIVE="Battle.net/Battle.net Launcher.exe" \
     PATH="$FAKE_BSDTAR_BIN:$PATH" bash -c '
         source "$MODULE"
         launcher_details battlenet
@@ -484,7 +490,7 @@ fi
 printf '../evil\n' > "$TMP_ROOT/bad-archive-list.txt"
 if MODULE="$MODULE" FAKE_ARCHIVE_LIST="$TMP_ROOT/bad-archive-list.txt" \
     PREINSTALLED_ARCHIVE="$PREINSTALLED_ARCHIVE" PREINSTALLED_DRIVE_C="$PREINSTALLED_DRIVE_C" \
-    FAKE_EXTRACT_FILE="$PREINSTALLED_DRIVE_C/Program Files (x86)/Battle.net/Battle.net Launcher.exe" \
+    FAKE_EXTRACT_RELATIVE="Battle.net/Battle.net Launcher.exe" \
     PATH="$FAKE_BSDTAR_BIN:$PATH" bash -c '
         source "$MODULE"
         launcher_details battlenet
@@ -494,9 +500,11 @@ if MODULE="$MODULE" FAKE_ARCHIVE_LIST="$TMP_ROOT/bad-archive-list.txt" \
     exit 1
 fi
 printf 'Qingfeng/HeyboxWow/heyboxwow.exe\n' > "$TMP_ROOT/heihe-archive-list.txt"
+mkdir -p "$PREINSTALLED_DRIVE_C/Program Files (x86)/Battle.net"
+ln -s ../existing-target "$PREINSTALLED_DRIVE_C/Program Files (x86)/Battle.net/existing-link"
 if ! MODULE="$MODULE" FAKE_ARCHIVE_LIST="$TMP_ROOT/heihe-archive-list.txt" \
     PREINSTALLED_ARCHIVE="$PREINSTALLED_ARCHIVE" PREINSTALLED_DRIVE_C="$PREINSTALLED_DRIVE_C" \
-    FAKE_EXTRACT_FILE="$PREINSTALLED_DRIVE_C/Program Files (x86)/Qingfeng/HeyboxWow/heyboxwow.exe" \
+    FAKE_EXTRACT_RELATIVE="Qingfeng/HeyboxWow/heyboxwow.exe" \
     PATH="$FAKE_BSDTAR_BIN:$PATH" bash -c '
         source "$MODULE"
         launcher_details heihe
@@ -509,6 +517,24 @@ fi
     echo "FAIL: 黑盒工坊预装客户端解压后主程序缺失" >&2
     exit 1
 }
+[ -L "$PREINSTALLED_DRIVE_C/Program Files (x86)/Battle.net/existing-link" ] || {
+    echo "FAIL: 黑盒工坊安装改动了客户原有战网链接" >&2
+    exit 1
+}
+SYMLINK_DRIVE_C="$TMP_ROOT/symlink-drive-c"
+mkdir -p "$SYMLINK_DRIVE_C/Program Files (x86)"
+if MODULE="$MODULE" FAKE_ARCHIVE_LIST="$TMP_ROOT/heihe-archive-list.txt" \
+    PREINSTALLED_ARCHIVE="$PREINSTALLED_ARCHIVE" PREINSTALLED_DRIVE_C="$SYMLINK_DRIVE_C" \
+    FAKE_EXTRACT_RELATIVE="Qingfeng/HeyboxWow/heyboxwow.exe" \
+    FAKE_EXTRACT_SYMLINK_RELATIVE="Qingfeng/HeyboxWow/unsafe-link" \
+    PATH="$FAKE_BSDTAR_BIN:$PATH" bash -c '
+        source "$MODULE"
+        launcher_details heihe
+        extract_preinstalled_launcher "$PREINSTALLED_ARCHIVE" "$PREINSTALLED_DRIVE_C"
+    '; then
+    echo "FAIL: 黑盒工坊接受了解压包内的异常链接" >&2
+    exit 1
+fi
 
 # 共享前缀：战网独立 drive_c 必须挂到 compatdata/pfx/drive_c。
 PREINSTALLED_APP_DIR="$TMP_ROOT/preinstalled-app"
@@ -1209,7 +1235,7 @@ grep -Fq 'GITEE_MIRROR_REPO="${ZHOUKEER_LAUNCHER_COVER_MIRROR_REPO:-zhoukeer-too
     echo "FAIL: 启动器封面未改走 v2 镜像" >&2
     exit 1
 }
-grep -Fq 'covers-ready-v5' "$MODULE" || {
+grep -Fq 'covers-ready-v6' "$MODULE" || {
     echo "FAIL: 启动器封面未升级镜像缓存版本" >&2
     exit 1
 }
