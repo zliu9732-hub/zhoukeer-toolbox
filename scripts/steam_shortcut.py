@@ -342,6 +342,76 @@ def shortcut_game_id(name: str, exe: str) -> int:
     return (shortcut_app_id(name, exe) << 32) | 0x02000000
 
 
+def unquote_path(value: str) -> str:
+    if value.startswith('"') and value.endswith('"'):
+        return value[1:-1]
+    return value
+
+
+def find_shortcut_entry(
+    entries: list[list[object]], name: str, exe: str | None, exe_basenames: list[str]
+) -> list[object]:
+    shortcuts = [
+        entry
+        for entry in entries
+        if entry[0] == TYPE_OBJECT
+        and entry_value(entry, b"appname") is not None
+        and entry_value(entry, b"exe") is not None
+    ]
+    match_groups: list[list[list[object]]] = []
+    if exe:
+        quoted_exe = quote_path(exe)
+        match_groups.append(
+            [
+                entry
+                for entry in shortcuts
+                if entry_value(entry, b"appname") == name
+                and entry_value(entry, b"exe") == quoted_exe
+            ]
+        )
+        match_groups.append(
+            [entry for entry in shortcuts if entry_value(entry, b"exe") == quoted_exe]
+        )
+    match_groups.append(
+        [entry for entry in shortcuts if entry_value(entry, b"appname") == name]
+    )
+    if exe_basenames:
+        basenames = {basename.casefold() for basename in exe_basenames}
+        match_groups.append(
+            [
+                entry
+                for entry in shortcuts
+                if Path(unquote_path(entry_value(entry, b"exe") or "")).name.casefold()
+                in basenames
+            ]
+        )
+
+    for matches in match_groups:
+        if len(matches) == 1:
+            return matches[0]
+        if len(matches) > 1:
+            raise VdfError("multiple launcher shortcuts matched")
+    raise VdfError("launcher shortcut not found")
+
+
+def find_artwork_ids(args: argparse.Namespace) -> None:
+    entry = find_shortcut_entry(
+        load_shortcuts(args.shortcut_file), args.name, args.exe, args.exe_basename
+    )
+    actual_name = entry_value(entry, b"appname") or ""
+    actual_exe = unquote_path(entry_value(entry, b"exe") or "")
+    stored_app_id = entry_value(entry, b"appid")
+    if stored_app_id and stored_app_id.isdigit():
+        app_id = int(stored_app_id)
+    else:
+        app_id = shortcut_app_id(actual_name, actual_exe)
+    if not 0 <= app_id <= 0xFFFFFFFF:
+        raise VdfError("shortcut appid is invalid")
+    artwork_alt_app_id = shortcut_app_id_without_exe_quotes(actual_name, actual_exe)
+    game_id = (app_id << 32) | 0x02000000
+    print(app_id, artwork_alt_app_id, game_id)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--shortcut-file", type=Path, required=True)
@@ -385,6 +455,11 @@ def main() -> None:
     find_appid = subparsers.add_parser("find-appid")
     find_appid.add_argument("--name", required=True)
     find_appid.add_argument("--exe")
+
+    find_artwork = subparsers.add_parser("find-artwork-ids")
+    find_artwork.add_argument("--name", required=True)
+    find_artwork.add_argument("--exe")
+    find_artwork.add_argument("--exe-basename", action="append", default=[])
 
     gameid = subparsers.add_parser("gameid")
     gameid.add_argument("--name", required=True)
@@ -442,6 +517,12 @@ def main() -> None:
             break
         else:
             raise VdfError("shortcut not found")
+    elif args.command == "find-artwork-ids":
+        if args.exe and not os.path.isabs(args.exe):
+            parser.error("shortcut paths must be absolute")
+        if any(not basename or Path(basename).name != basename for basename in args.exe_basename):
+            parser.error("shortcut executable basenames must not contain a path")
+        find_artwork_ids(args)
     else:
         if not os.path.isabs(args.exe):
             parser.error("shortcut paths must be absolute")

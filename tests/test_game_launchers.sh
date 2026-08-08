@@ -76,6 +76,71 @@ PY
     echo "FAIL: Steam 非 Steam 游戏 GameID 计算错误" >&2
     exit 1
 }
+
+# 用户从 Steam 删除后手动重新添加时，显示名称可能变化；封面修复必须按
+# 唯一的官方主程序文件名找到 Steam 当前条目，并使用当前条目的真实编号。
+MANUAL_SHORTCUTS="$TMP_ROOT/manual-shortcuts.vdf"
+MANUAL_EPIC_EXE="$TMP_ROOT/manual-prefix/EpicGamesLauncher.exe"
+python3 "$HELPER" --shortcut-file "$MANUAL_SHORTCUTS" add \
+    --name "Epic Games Launcher" --exe "$MANUAL_EPIC_EXE" --start-dir "$TMP_ROOT" >/dev/null
+manual_expected_app_id="$(python3 "$HELPER" --shortcut-file "$MANUAL_SHORTCUTS" appid \
+    --name "Epic Games Launcher" --exe "$MANUAL_EPIC_EXE")"
+manual_expected_raw_id="$(python3 "$HELPER" --shortcut-file "$MANUAL_SHORTCUTS" appid-raw \
+    --name "Epic Games Launcher" --exe "$MANUAL_EPIC_EXE")"
+manual_expected_game_id="$(python3 -c \
+    'import sys; print((int(sys.argv[1]) << 32) | 0x02000000)' "$manual_expected_app_id")"
+manual_ids="$(
+    MODULE="$MODULE" MANUAL_SHORTCUTS="$MANUAL_SHORTCUTS" \
+        MANUAL_EPIC_EXE="$MANUAL_EPIC_EXE" TMP_ROOT="$TMP_ROOT" bash -c '
+            source "$MODULE"
+            launcher_details epic
+            find_launcher_artwork_ids epic "$MANUAL_SHORTCUTS" \
+                "$TMP_ROOT/detected-prefix/EpicGamesLauncher.exe"
+        '
+)"
+[ "$manual_ids" = "$manual_expected_app_id $manual_expected_raw_id $manual_expected_game_id" ] || {
+    echo "FAIL: 封面修复未识别手动重新添加且改名的 Epic 条目" >&2
+    exit 1
+}
+
+# 同时存在两个相同主程序名时必须停止，不能把封面写到错误条目。
+python3 "$HELPER" --shortcut-file "$MANUAL_SHORTCUTS" add \
+    --name "另一个 Epic" --exe "$TMP_ROOT/other-prefix/EpicGamesLauncher.exe" \
+    --start-dir "$TMP_ROOT" >/dev/null
+if python3 "$HELPER" --shortcut-file "$MANUAL_SHORTCUTS" find-artwork-ids \
+    --name "Epic Games 启动器" \
+    --exe "$TMP_ROOT/detected-prefix/EpicGamesLauncher.exe" \
+    --exe-basename "EpicGamesLauncher.exe" >/dev/null 2>&1; then
+    echo "FAIL: 多个 Epic 候选条目存在时封面修复没有停止" >&2
+    exit 1
+fi
+
+# 旧封面文件存在但没有当前版本缓存标记时，不能提前返回旧图并跳过刷新。
+STALE_COVER_CACHE="$TMP_ROOT/stale-cover-cache"
+mkdir -p "$STALE_COVER_CACHE/epic"
+cp -- "$PROJECT_ROOT/assets/game-launchers/battlenet.png" \
+    "$STALE_COVER_CACHE/epic/epic.png"
+cover_without_marker="$(
+    MODULE="$MODULE" ZHOUKEER_LAUNCHER_COVER_CACHE_DIR="$STALE_COVER_CACHE" bash -c '
+        source "$MODULE"
+        launcher_cover_file epic epic.png
+    '
+)"
+[ "$cover_without_marker" = "$PROJECT_ROOT/assets/game-launchers/epic.png" ] || {
+    echo "FAIL: 无当前版本标记时仍直接复用了旧封面缓存" >&2
+    exit 1
+}
+touch "$STALE_COVER_CACHE/.covers-ready-v4"
+cover_with_marker="$(
+    MODULE="$MODULE" ZHOUKEER_LAUNCHER_COVER_CACHE_DIR="$STALE_COVER_CACHE" bash -c '
+        source "$MODULE"
+        launcher_cover_file epic epic.png
+    '
+)"
+[ "$cover_with_marker" = "$STALE_COVER_CACHE/epic/epic.png" ] || {
+    echo "FAIL: 已校验的当前版本封面缓存没有被使用" >&2
+    exit 1
+}
 python3 "$HELPER" --shortcut-file "$SHORTCUTS" add \
     --name "Epic Games 启动器" --exe "$INSTALLER" --start-dir "$TMP_ROOT" | grep -Fxq existing
 # Steam 自己写出的 shortcuts.vdf 在根对象后可能保留额外结束标记。
@@ -1134,7 +1199,7 @@ grep -Fq 'GITEE_MIRROR_REPO="${ZHOUKEER_LAUNCHER_COVER_MIRROR_REPO:-zhoukeer-too
     echo "FAIL: 启动器封面未改走 v2 镜像" >&2
     exit 1
 }
-grep -Fq 'covers-ready-v3' "$MODULE" || {
+grep -Fq 'covers-ready-v4' "$MODULE" || {
     echo "FAIL: 启动器封面未升级镜像缓存版本" >&2
     exit 1
 }

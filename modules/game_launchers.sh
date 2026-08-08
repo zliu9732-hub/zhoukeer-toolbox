@@ -24,7 +24,7 @@ LAUNCHER_BASE="${ZHOUKEER_LAUNCHER_BASE:-$HOME/游戏启动器}"
 LAUNCHER_COVER_MIRROR_ID="${ZHOUKEER_LAUNCHER_COVER_MIRROR_ID:-launcher-covers}"
 LAUNCHER_COVER_BUNDLE_NAME="启动器封面素材"
 LAUNCHER_COVER_CACHE_ROOT="${ZHOUKEER_LAUNCHER_COVER_CACHE_DIR:-$APP_DIR/game-launchers/covers}"
-LAUNCHER_COVER_READY_MARKER="$LAUNCHER_COVER_CACHE_ROOT/.covers-ready-v3"
+LAUNCHER_COVER_READY_MARKER="$LAUNCHER_COVER_CACHE_ROOT/.covers-ready-v4"
 
 launcher_details() {
     case "$1" in
@@ -1127,12 +1127,16 @@ launcher_cover_file() {
     local cache_dir="$LAUNCHER_COVER_CACHE_ROOT/$target"
     local cached_file="$cache_dir/$filename"
 
-    if [ -s "$cached_file" ] && [ ! -L "$cached_file" ] && launcher_cover_magic_ok "$cached_file"; then
+    if [ -f "$LAUNCHER_COVER_READY_MARKER" ] && \
+        [ -s "$cached_file" ] && [ ! -L "$cached_file" ] && \
+        launcher_cover_magic_ok "$cached_file"; then
         printf '%s\n' "$cached_file"
         return 0
     fi
     ensure_launcher_covers_cached || true
-    if [ -s "$cached_file" ] && [ ! -L "$cached_file" ] && launcher_cover_magic_ok "$cached_file"; then
+    if [ -f "$LAUNCHER_COVER_READY_MARKER" ] && \
+        [ -s "$cached_file" ] && [ ! -L "$cached_file" ] && \
+        launcher_cover_magic_ok "$cached_file"; then
         printf '%s\n' "$cached_file"
         return 0
     fi
@@ -1566,6 +1570,21 @@ launcher_steam_exe_basenames() {
     esac
 }
 
+find_launcher_artwork_ids() {
+    local target="$1" shortcut_file="$2" launcher_exe="$3" basename
+    local -a match_args=(--name "$LAUNCHER_NAME" --exe "$launcher_exe")
+
+    while IFS= read -r basename; do
+        [ -n "$basename" ] || continue
+        match_args+=(--exe-basename "$basename")
+    done < <(launcher_steam_exe_basenames "$target")
+    python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" \
+        find-artwork-ids "${match_args[@]}" 2>/dev/null || {
+        echo "未找到唯一的 $LAUNCHER_NAME Steam 条目，请保留一个该启动器条目后重试。" >&2
+        return 1
+    }
+}
+
 remove_launcher_desktop_file() {
     local file="$1"
 
@@ -1628,7 +1647,8 @@ uninstall_launcher() {
 
 repair_launcher_artwork() {
     local target="$1"
-    local steam_root shortcut_file launcher_exe drive_c app_id artwork_alt_app_id game_id
+    local steam_root shortcut_file launcher_exe drive_c artwork_ids
+    local app_id artwork_alt_app_id game_id
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
@@ -1650,12 +1670,14 @@ repair_launcher_artwork() {
         echo "未找到 $LAUNCHER_NAME 主程序，无法修复封面。"
         return 1
     }
-    app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" find-appid \
-        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
-    artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
-        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
-    game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
-        --name "$LAUNCHER_NAME" --exe "$launcher_exe")" || return 1
+    artwork_ids="$(find_launcher_artwork_ids "$target" "$shortcut_file" "$launcher_exe")" || return 1
+    read -r app_id artwork_alt_app_id game_id <<< "$artwork_ids"
+    case "$app_id:$artwork_alt_app_id:$game_id" in
+        *[!0-9:]*|::*|*::*|*::)
+            echo "$LAUNCHER_NAME 的 Steam 编号解析失败，未改动封面。"
+            return 1
+            ;;
+    esac
 
     echo "正在重写 $LAUNCHER_NAME 的 Steam 库封面..."
     stop_steam_for_vdf || {
