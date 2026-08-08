@@ -144,6 +144,10 @@ grep -Fq 'Freedeck/releases/download/0.6/freedeck.v.0.6.zip' "$PROJECT_ROOT/modu
 grep -Fq '04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '"freedeck-plugin"' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '"Freedeck" >/dev/null 2>&1; then' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: Freedeck 可用固定版本回退时仍会显示最新 Release 探测错误" >&2
+    exit 1
+}
 grep -Fq 'releases/download/v6.0.9/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'releases/download/v1.2.2/Decky-Framegen-FSR4-v0.17.zip' \

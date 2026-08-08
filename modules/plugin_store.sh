@@ -163,7 +163,7 @@ resolve_plugin_latest() {
         freedeck)
             [ -z "${ZHOUKEER_DECKY_FREEDECK_URL:-}" ] || return 0
             if resolve_latest_github_release "panyiwei-home/Freedeck" \
-                '^freedeck[.]v[0-9.]+[.]zip$' "Freedeck"; then
+                '^freedeck[.]v[0-9.]+[.]zip$' "Freedeck" >/dev/null 2>&1; then
                 DECKY_FREEDECK_URL="$_LATEST_RELEASE_URL"
                 DECKY_FREEDECK_SHA256="$_LATEST_RELEASE_SHA256"
                 DECKY_FREEDECK_VERSION="$_LATEST_RELEASE_TAG"
