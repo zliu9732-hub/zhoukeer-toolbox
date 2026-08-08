@@ -24,7 +24,7 @@ LAUNCHER_BASE="${ZHOUKEER_LAUNCHER_BASE:-$HOME/游戏启动器}"
 LAUNCHER_COVER_MIRROR_ID="${ZHOUKEER_LAUNCHER_COVER_MIRROR_ID:-launcher-covers}"
 LAUNCHER_COVER_BUNDLE_NAME="启动器封面素材"
 LAUNCHER_COVER_CACHE_ROOT="${ZHOUKEER_LAUNCHER_COVER_CACHE_DIR:-$APP_DIR/game-launchers/covers}"
-LAUNCHER_COVER_READY_MARKER="$LAUNCHER_COVER_CACHE_ROOT/.covers-ready-v1"
+LAUNCHER_COVER_READY_MARKER="$LAUNCHER_COVER_CACHE_ROOT/.covers-ready-v2"
 
 launcher_details() {
     case "$1" in
@@ -1087,10 +1087,15 @@ ensure_launcher_covers_cached() {
     local bundle="$LAUNCHER_COVER_CACHE_ROOT/launcher-covers.tar.gz"
     local tmp_dir target target_dir file
 
+    if [ "${ZHOUKEER_TEST_MODE:-0}" = "1" ]; then
+        return 1
+    fi
     [ -f "$LAUNCHER_COVER_READY_MARKER" ] && return 0
     mkdir -p "$LAUNCHER_COVER_CACHE_ROOT" || return 1
-    if ! download_gitee_mirror_file "$LAUNCHER_COVER_MIRROR_ID" "$bundle" \
-        "" "$LAUNCHER_COVER_BUNDLE_NAME" >/dev/null 2>&1; then
+    if ! ( GITEE_MIRROR_REPO="${ZHOUKEER_LAUNCHER_COVER_MIRROR_REPO:-zhoukeer-toolbox-v2}"; \
+        export GITEE_MIRROR_REPO; \
+        download_gitee_mirror_file "$LAUNCHER_COVER_MIRROR_ID" "$bundle" \
+            "" "$LAUNCHER_COVER_BUNDLE_NAME" >/dev/null 2>&1 ); then
         return 1
     fi
     tmp_dir="$(mktemp -d 2>/dev/null)" || {
@@ -1122,17 +1127,17 @@ launcher_cover_file() {
     local cache_dir="$LAUNCHER_COVER_CACHE_ROOT/$target"
     local cached_file="$cache_dir/$filename"
 
+    if [ -s "$cached_file" ] && [ ! -L "$cached_file" ] && launcher_cover_magic_ok "$cached_file"; then
+        printf '%s\n' "$cached_file"
+        return 0
+    fi
+    ensure_launcher_covers_cached || true
+    if [ -s "$cached_file" ] && [ ! -L "$cached_file" ] && launcher_cover_magic_ok "$cached_file"; then
+        printf '%s\n' "$cached_file"
+        return 0
+    fi
     if [ -s "$local_file" ] && [ ! -L "$local_file" ]; then
         printf '%s\n' "$local_file"
-        return 0
-    fi
-    if [ -s "$cached_file" ] && [ ! -L "$cached_file" ] && launcher_cover_magic_ok "$cached_file"; then
-        printf '%s\n' "$cached_file"
-        return 0
-    fi
-    ensure_launcher_covers_cached || return 1
-    if [ -s "$cached_file" ] && [ ! -L "$cached_file" ] && launcher_cover_magic_ok "$cached_file"; then
-        printf '%s\n' "$cached_file"
         return 0
     fi
     echo "启动器封面素材不可用：$filename" >&2

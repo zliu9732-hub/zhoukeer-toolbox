@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+export ZHOUKEER_TEST_MODE=1
+
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 HELPER="$PROJECT_ROOT/scripts/steam_shortcut.py"
 COMPAT_HELPER="$PROJECT_ROOT/scripts/steam_compat.py"
@@ -1126,6 +1128,14 @@ grep -Fq '1513d6cc2afda0367c8375b6f25f490c162da5607ce4b4adbb41906a2d742236' "$MO
 }
 grep -Fq 'tar --no-xattrs --warning=no-unknown-keyword -xzf "$bundle"' "$MODULE" || {
     echo "FAIL: 启动器封面素材解压未忽略 macOS Apple 扩展属性警告" >&2
+    exit 1
+}
+grep -Fq 'GITEE_MIRROR_REPO="${ZHOUKEER_LAUNCHER_COVER_MIRROR_REPO:-zhoukeer-toolbox-v2}"' "$MODULE" || {
+    echo "FAIL: 启动器封面未改走 v2 镜像" >&2
+    exit 1
+}
+grep -Fq 'covers-ready-v2' "$MODULE" || {
+    echo "FAIL: 启动器封面未升级镜像缓存版本" >&2
     exit 1
 }
 
