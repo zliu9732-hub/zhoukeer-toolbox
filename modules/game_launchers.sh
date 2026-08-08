@@ -1388,6 +1388,7 @@ finish_launcher_steam_entry() {
     echo "若库中封面仍是旧图，请在游戏模式运行“修复启动器封面”。"
     if [ "$target" = "battlenet" ]; then
         echo "战网登录页：https://account.battle.net/login"
+        echo "提示：点击战网启动器右边手柄图标，将右触控板行为改为“用作鼠标”。"
     fi
     echo "$LAUNCHER_NAME 已添加到 Steam 库，桌面入口、封面与Renkit标识均已设置。"
 }

@@ -1162,6 +1162,10 @@ grep -Fq 'finish_launcher_steam_entry "$target"' "$MODULE" || {
     echo "FAIL: 黑盒工坊未走 Steam 库转正流程" >&2
     exit 1
 }
+grep -Fq '点击战网启动器右边手柄图标，将右触控板行为改为“用作鼠标”' "$MODULE" || {
+    echo "FAIL: 战网安装完成后缺少右触控板鼠标提示" >&2
+    exit 1
+}
 grep -Fq '桌面入口、封面与Renkit标识均已设置' "$MODULE"
 grep -Fq '跳过安装包下载' "$MODULE"
 grep -Fq 'find_launcher_in_prefix "$prefix" || find_installed_launcher' "$MODULE"
