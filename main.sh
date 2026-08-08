@@ -647,13 +647,18 @@ handheld_plugins_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "掌机控制插件" "Steam Deck 功耗控制与 ROG Ally 系列硬件控制" 0
+        draw_category_frame games "掌机控制插件" "功耗、灯光、按键、震动与风扇控制" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "掌机功耗控制" "SimpleDeckyTDP 汉化版·自动检测版本"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "Ally 控制中心" "ROG Ally / Ally X 的 RGB、TDP、风扇与充电上限"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "Ally 控制中心" "ROG Ally / Ally X 的 RGB、TDP、风扇与充电上限"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "通用掌机 RGB" "HueSync 官方简体中文·支持多品牌掌机"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "Legion Go 控制中心" "初代 Legion Go 的按键、RGB、充电与风扇控制"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "GPD 控制中心" "GPD Win 系列 RGB 与按游戏配置"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "Legion Go 震动控制" "Legion Go / Go 2 震动与触控板反馈"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "Legion Go 2 风扇控制" "仅 Legion Go 2·不受限风扇曲线"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件第二页"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:simpledeckytdp right:9-10:allycenter right:19-20:back right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:simpledeckytdp right:7-8:allycenter right:9-10:huesync right:11-12:legiongo-remapper right:13-14:gpd-control right:15-16:lego-vibe right:17-18:lego2-fan right:19-20:back right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             simpledeckytdp)
@@ -663,6 +668,26 @@ handheld_plugins_menu() {
             allycenter)
                 confirm_and_run "安装 Ally Center" "仅适用于 ROG Ally / Ally X；可控制摇杆 RGB、TDP、风扇和充电上限，插件需要 Decky root 权限；国内源优先，失败自动改用作者 GitHub Release" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter
+                ;;
+            huesync)
+                confirm_and_run "安装通用掌机 RGB" "HueSync 官方已内置简体中文；支持多品牌掌机 RGB；需要 Decky root 权限；请勿与其他灯光插件同时控制同一设备；国内源优先，失败自动改用作者 GitHub Release" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" huesync
+                ;;
+            legiongo-remapper)
+                confirm_and_run "安装 Legion Go 控制中心" "仅适用于初代 Legion Go，不支持 Legion Go S；可控制按键、RGB、80% 充电上限及实验性风扇曲线；需要 Decky root 权限；HHD 可能覆盖灯光设置" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" legiongo-remapper
+                ;;
+            gpd-control)
+                confirm_and_run "安装 GPD 控制中心" "适用于支持的 GPD Win 掌机 RGB，支持按游戏配置；需要 Decky root 权限；国内源优先，失败自动改用作者 GitHub Release" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" gpd-control
+                ;;
+            lego-vibe)
+                confirm_and_run "安装 Legion Go 震动控制" "适用于 Legion Go / Go 2，不支持 Go S；需要 SteamOS 3.8+、内核 6.18+ 和 hid-lenovo-go 驱动；需要 Decky root 权限" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego-vibe
+                ;;
+            lego2-fan)
+                confirm_and_run "安装 Legion Go 2 风扇控制" "高风险：仅适用于 Legion Go 2；插件允许不受限制的风扇曲线，错误设置可能在高温时使用过低转速并损伤设备；需要 Decky root 权限。确认理解风险后继续" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego2-fan
                 ;;
             back) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;

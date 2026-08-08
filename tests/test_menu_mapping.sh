@@ -105,8 +105,12 @@ assert_contains "$touch_plugin_page_2" 'right:19-20:repair' "插件第二页缺�
 assert_contains "$touch_plugin_page_2" 'right:21-22:previous' "插件第二页缺少上一页坐标"
 touch_handheld_plugins="$(function_source "$MAIN_FILE" handheld_plugins_menu)"
 assert_contains "$touch_handheld_plugins" 'right:5-6:simpledeckytdp' "掌机控制子菜单缺少功耗控制坐标"
-assert_contains "$touch_handheld_plugins" 'right:9-10:allycenter' "掌机控制子菜单缺少 Ally Center 坐标"
+assert_contains "$touch_handheld_plugins" 'right:7-8:allycenter' "掌机控制子菜单缺少 Ally Center 坐标"
 assert_contains "$touch_handheld_plugins" 'modules/plugin_store.sh" allycenter' "Ally Center 动作错误"
+for mapping in 'right:9-10:huesync' 'right:11-12:legiongo-remapper' \
+    'right:13-14:gpd-control' 'right:15-16:lego-vibe' 'right:17-18:lego2-fan'; do
+    assert_contains "$touch_handheld_plugins" "$mapping" "掌机控制子菜单坐标错误：$mapping"
+done
 touch_repair="$(function_source "$MAIN_FILE" launcher_repair_menu)"
 for mapping in 'right:5-6:epic' 'right:7-8:battlenet' 'right:9-10:ubisoft' 'right:11-12:heihe' 'right:19-20:back' 'right:22-23:home'; do
     assert_contains "$touch_repair" "$mapping" "修复封面菜单坐标错误：$mapping"

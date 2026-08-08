@@ -98,6 +98,13 @@ for menu in "$touch_handheld_plugins" "$gui_games"; do
     assert_contains "$menu" 'ROG Ally / Ally X' "Ally Center 入口缺少适用机型"
     assert_contains "$menu" 'RGB' "Ally Center 入口缺少 RGB 功能说明"
     assert_contains "$menu" 'modules/plugin_store.sh" allycenter' "Ally Center 未调用独立插件安装动作"
+    for item in '通用掌机 RGB' 'Legion Go 控制中心' 'GPD 控制中心' \
+        'Legion Go 震动控制' 'Legion Go 2 风扇控制'; do
+        assert_contains "$menu" "$item" "掌机控制插件菜单缺少：$item"
+    done
+    for action in huesync legiongo-remapper gpd-control lego-vibe lego2-fan; do
+        assert_contains "$menu" "modules/plugin_store.sh\" $action" "掌机控制插件缺少动作：$action"
+    done
 done
 for menu in "$touch_freedeck" "$gui_games"; do
     assert_contains "$menu" 'Freedeck 0.6 稳定版' "Freedeck 版本菜单缺少稳定版"
@@ -234,7 +241,7 @@ assert_contains "$touch_games_page_1" 'right:13-14:cheatdeck' "CheatDeck 未移�
 assert_contains "$touch_games_page_2" 'right:5-6:handheld-plugins' "掌机控制插件子菜单未放在插件第二页原功耗控制位置"
 touch_handheld_plugins="$(function_source "$MAIN_FILE" handheld_plugins_menu)"
 assert_contains "$touch_handheld_plugins" 'right:5-6:simpledeckytdp' "掌机控制插件子菜单缺少 SimpleDeckyTDP"
-assert_contains "$touch_handheld_plugins" 'right:9-10:allycenter' "掌机控制插件子菜单缺少 Ally Center"
+assert_contains "$touch_handheld_plugins" 'right:7-8:allycenter' "掌机控制插件子菜单缺少 Ally Center"
 assert_contains "$touch_games_page_2" 'right:9-10:tomoon' "ToMoon 未紧挨 Unifideck 排列"
 assert_contains "$touch_games_page_2" 'right:17-18:ubisoft' "Ubisoft Connect 未加入插件第二页"
 assert_contains "$touch_games_page_2" '"育碧"' "育碧菜单仍显示旧名称"

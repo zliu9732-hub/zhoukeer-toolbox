@@ -91,6 +91,33 @@ DECKY_ALLYCENTER_VERSION="1.2.0"
 DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 ALLYCENTER_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0"
 ALLYCENTER_ZH_INDEX_SHA256="14d4e175d964108d762ad5b0ebc36a1c201483af25aa98509bc23c84aac345ea"
+DECKY_HUESYNC_URL="${ZHOUKEER_DECKY_HUESYNC_URL:-https://github.com/honjow/HueSync/releases/download/v3.9.0/huesync.zip}"
+DECKY_HUESYNC_SHA256="${ZHOUKEER_DECKY_HUESYNC_SHA256:-7510c96ed22278a914a3aae591c2393ff4e25812a765d1d633f77baa8a593e1f}"
+DECKY_HUESYNC_VERSION="3.9.0"
+DECKY_HUESYNC_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
+HUESYNC_CN_SOURCE_DIR="$PROJECT_ROOT/third_party/huesync-cn-v3.9.0"
+HUESYNC_CN_INDEX_SHA256="8af434b51c39f054b94ff71a39798569dc58b0fff36c74a5282edcb89e7bd0c5"
+DECKY_LEGIONGO_REMAPPER_URL="${ZHOUKEER_DECKY_LEGIONGO_REMAPPER_URL:-https://github.com/aarron-lee/LegionGoRemapper/releases/download/v0.3.0/LegionGoRemapper.tar.gz}"
+DECKY_LEGIONGO_REMAPPER_SHA256="${ZHOUKEER_DECKY_LEGIONGO_REMAPPER_SHA256:-b89084ece2df8854a732239043484f510a2384d01221441e3a4242fc85b6d9e1}"
+DECKY_LEGIONGO_REMAPPER_VERSION="0.3.0"
+LEGIONGO_REMAPPER_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/legion-go-remapper-zh-v0.3.0"
+LEGIONGO_REMAPPER_ZH_INDEX_SHA256="a0c7beebc4d3628b965a71b25471d6ec559ffc9bbcf5834ab591ccc72bb53e8d"
+DECKY_GPD_CONTROL_URL="${ZHOUKEER_DECKY_GPD_CONTROL_URL:-https://github.com/aarron-lee/GpdControl/releases/download/v0.0.2/GpdControl.tar.gz}"
+DECKY_GPD_CONTROL_SHA256="${ZHOUKEER_DECKY_GPD_CONTROL_SHA256:-3efc5694234fb7f2ae1131fd9dec9e342c1fee7c4a804e4f910920d327ae7fb4}"
+DECKY_GPD_CONTROL_VERSION="0.0.2"
+GPD_CONTROL_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/gpd-control-zh-v0.0.2"
+GPD_CONTROL_ZH_INDEX_SHA256="ec4dd1253bae3b4c7c0f9f1beca2593322e1ee5db3de6ffe8240d3ea1b46f3ef"
+DECKY_LEGO_VIBE_URL="${ZHOUKEER_DECKY_LEGO_VIBE_URL:-https://github.com/Rayekkk/LeGo-Vibe-Control/releases/download/1.5.0/LeGo-Vibe-Control-1.5.0.zip}"
+DECKY_LEGO_VIBE_SHA256="${ZHOUKEER_DECKY_LEGO_VIBE_SHA256:-adda3be351c14d1c8899fb0997565aa67e7439b988112340fad707cfe6be28b7}"
+DECKY_LEGO_VIBE_VERSION="1.5.0"
+LEGO_VIBE_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/lego-vibe-control-zh-v1.5.0"
+LEGO_VIBE_ZH_INDEX_SHA256="8e4ccca1f97d55269c4833dcdccb061560db2e390e52ca6e584bb3ff16c56e63"
+DECKY_LEGO2_FAN_URL="${ZHOUKEER_DECKY_LEGO2_FAN_URL:-https://github.com/Rodpad/LeGo2-Fan-Control/releases/download/Decky/LeGo2FanControl_Decky.zip}"
+DECKY_LEGO2_FAN_SHA256="${ZHOUKEER_DECKY_LEGO2_FAN_SHA256:-a46af0c53eef63b1ad77fff567a120784b6736686565a761524882d011cc6d3e}"
+DECKY_LEGO2_FAN_VERSION="0.260430"
+LEGO2_FAN_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/lego2-fan-control-zh-v0.260430"
+LEGO2_FAN_ZH_INDEX_SHA256="497cc90b588627634b699dda70e6aab06239acbe07cb2f9bf4f9478e88b66c22"
+DECKY_HANDHELD_PLUGIN_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 # 汉化完整包固定使用Renkit GitHub Release 资产，避免原始文件下载过慢。
 DECKY_LSFG_ZH_URL="https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.9/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip"
 DECKY_LSFG_ZH_SHA256="11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"
@@ -188,6 +215,15 @@ resolve_plugin_latest() {
                 DECKY_SIMPLE_TDP_URL="$_LATEST_RELEASE_URL"
                 DECKY_SIMPLE_TDP_SHA256="$_LATEST_RELEASE_SHA256"
                 DECKY_SIMPLE_TDP_VERSION="$_LATEST_RELEASE_TAG"
+            fi
+            ;;
+        huesync)
+            [ -z "${ZHOUKEER_DECKY_HUESYNC_URL:-}" ] || return 0
+            if resolve_latest_github_release "honjow/HueSync" \
+                '^huesync[.]zip$' "HueSync"; then
+                DECKY_HUESYNC_URL="$_LATEST_RELEASE_URL"
+                DECKY_HUESYNC_SHA256="$_LATEST_RELEASE_SHA256"
+                DECKY_HUESYNC_VERSION="${_LATEST_RELEASE_TAG#v}"
             fi
             ;;
     esac
@@ -1225,6 +1261,7 @@ archive_paths_are_safe() {
 
     case "$archive_type" in
         zip) paths="$(unzip -Z1 "$archive")" || return 1 ;;
+        tar.gz) paths="$(tar -tzf "$archive")" || return 1 ;;
         *) return 1 ;;
     esac
 
@@ -1232,6 +1269,12 @@ archive_paths_are_safe() {
         echo "压缩包包含不安全路径，已停止安装。"
         return 1
     fi
+}
+
+tar_archive_has_no_links() {
+    local archive="$1"
+
+    ! tar -tvzf "$archive" | awk '$1 ~ /^[lh]/ { found=1 } END { exit found ? 0 : 1 }'
 }
 
 run_plugin_file_operation() {
@@ -1369,6 +1412,68 @@ install_decky_zip() {
         return 1
     fi
 
+    install_tree_atomically "$plugin_source" "$plugin_root" "$expected_dir" || {
+        echo "$display_name 安装失败，已尽量保留旧版本。"
+        return 1
+    }
+    echo "$display_name 安装成功。"
+    log "$display_name 安装完成"
+    PLUGIN_INSTALL_CHANGED=1
+    cleanup_decky_tmp
+    trap - EXIT INT TERM
+}
+
+install_decky_tar_gz() {
+    local display_name="$1"
+    local url="$2"
+    local sha256="$3"
+    local expected_dir="$4"
+    local skip_existing="${5:-1}"
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local tmp_dir archive extract_dir plugin_source
+
+    PLUGIN_INSTALL_CHANGED=0
+    if [ "$skip_existing" = "1" ] && \
+       decky_plugin_directory_is_complete "$plugin_root" "$expected_dir"; then
+        echo "[已安装] $display_name 已存在且文件完整，无需重复安装。"
+        return 0
+    fi
+    if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
+        ! bash "$PROJECT_ROOT/modules/preflight.sh" decky; then
+        echo "$display_name 安装已停止：准备检查未通过。"
+        return 1
+    fi
+    for command_name in curl tar; do require_command "$command_name" || return 1; done
+    prepare_plugin_root "$plugin_root" || return 1
+
+    tmp_dir="$(mktemp -d)" || return 1
+    DECKY_TMP_DIR="$tmp_dir"
+    archive="$tmp_dir/plugin.tar.gz"
+    extract_dir="$tmp_dir/extracted"
+    mkdir -p "$extract_dir"
+    trap cleanup_decky_tmp EXIT INT TERM
+
+    if ! download_verified_package "$display_name" "$url" "$sha256" "$archive"; then
+        bash "$PROJECT_ROOT/modules/steam_accelerator.sh" ensure || true
+        download_verified_package "$display_name" "$url" "$sha256" "$archive" || return 1
+    fi
+    archive_paths_are_safe "$archive" tar.gz || return 1
+    tar_archive_has_no_links "$archive" || {
+        echo "$display_name 压缩包包含异常链接，已停止安装。"
+        return 1
+    }
+    tar --no-same-owner --no-same-permissions -xzf "$archive" -C "$extract_dir" || {
+        echo "$display_name 解压失败，未改动现有插件。"
+        return 1
+    }
+    plugin_source="$(find_plugin_source "$extract_dir")" || {
+        echo "$display_name 压缩包中没有找到 plugin.json。"
+        return 1
+    }
+    if [ "$(basename "$plugin_source")" != "$expected_dir" ]; then
+        echo "$display_name 的目录结构不符合预期，已停止安装。"
+        return 1
+    fi
     install_tree_atomically "$plugin_source" "$plugin_root" "$expected_dir" || {
         echo "$display_name 安装失败，已尽量保留旧版本。"
         return 1
@@ -2595,6 +2700,130 @@ ensure_allycenter_chinese_current() {
     install_allycenter_chinese
 }
 
+handheld_overlay_is_current() {
+    local plugin_root="$1"
+    local directory_name="$2"
+    local expected_version="$3"
+    local display_name="$4"
+    local expected_sha256="$5"
+    local actual_sha256
+
+    feature_plugin_is_current "$plugin_root" "$directory_name" \
+        "$expected_version" "$display_name" || return 1
+    actual_sha256="$(calculate_decky_sha256 \
+        "$plugin_root/$directory_name/dist/index.js" 2>/dev/null || true)"
+    [ "$actual_sha256" = "$expected_sha256" ]
+}
+
+# 保留作者官方插件的完整后端和驱动文件，仅原子替换同版本的清单与已构建前端。
+install_handheld_frontend_overlay() {
+    local directory_name="$1"
+    local expected_version="$2"
+    local display_name="$3"
+    local overlay_source="$4"
+    local expected_sha256="$5"
+    local author_line="$6"
+    local translated="${7:-1}"
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local official_source="$plugin_root/$directory_name"
+    local bundled_version actual_sha256 work_dir staged_source
+
+    if handheld_overlay_is_current "$plugin_root" "$directory_name" \
+        "$expected_version" "$display_name" "$expected_sha256"; then
+        echo "[已安装] $display_name v$expected_version 已存在且文件完整，无需重复安装。"
+        return 0
+    fi
+    if [ -L "$overlay_source" ] || \
+       [ ! -f "$overlay_source/plugin.json" ] || \
+       [ ! -f "$overlay_source/package.json" ] || \
+       [ ! -s "$overlay_source/dist/index.js" ] || \
+       [ ! -f "$overlay_source/LICENSE" ]; then
+        echo "$display_name v$expected_version 中文组件不完整，请更新Renkit后再试。"
+        return 1
+    fi
+    bundled_version="$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+        "$overlay_source/package.json" | head -n 1)"
+    if [ "$bundled_version" != "$expected_version" ]; then
+        echo "$display_name 中文组件版本 $bundled_version 与目标 v$expected_version 不一致，已停止覆盖。"
+        return 1
+    fi
+    actual_sha256="$(calculate_decky_sha256 "$overlay_source/dist/index.js")" || return 1
+    if [ "$actual_sha256" != "$expected_sha256" ]; then
+        echo "$display_name 中文组件校验失败，已停止覆盖。"
+        return 1
+    fi
+    if [ ! -f "$official_source/main.py" ] || \
+       [ ! -f "$official_source/plugin.json" ] || \
+       [ ! -f "$official_source/package.json" ]; then
+        echo "$display_name 官方后端不完整，请重新安装后再试。"
+        return 1
+    fi
+
+    prepare_plugin_root "$plugin_root" || return 1
+    work_dir="$(mktemp -d)" || return 1
+    staged_source="$work_dir/$directory_name"
+    if ! cp -a -- "$official_source" "$staged_source" || \
+       ! rm -rf -- "$staged_source/dist" || \
+       ! mkdir -p "$staged_source/dist" || \
+       ! cp -a -- "$overlay_source/dist/index.js" "$staged_source/dist/index.js" || \
+       ! cp -a -- "$overlay_source/plugin.json" "$staged_source/plugin.json"; then
+        rm -rf -- "$work_dir"
+        echo "$display_name 中文组件准备失败，原版未改动。"
+        return 1
+    fi
+    install_tree_atomically "$staged_source" "$plugin_root" "$directory_name" || {
+        rm -rf -- "$work_dir"
+        echo "$display_name 中文界面安装失败，已尽量保留原版。"
+        return 1
+    }
+    rm -rf -- "$work_dir"
+    echo "$display_name v$expected_version 已安装。"
+    if [ "$translated" = "1" ]; then
+        echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
+    else
+        echo "该插件由上游自带简体中文；Renkit 仅适配中文显示名。"
+    fi
+    echo "$author_line"
+    reload_decky_plugins "Decky 已重新加载；返回游戏模式即可打开 ${display_name}。"
+    log "$display_name v$expected_version 安装完成"
+}
+
+ensure_handheld_overlay_current() {
+    local archive_type="$1"
+    local directory_name="$2"
+    local expected_version="$3"
+    local display_name="$4"
+    local url="$5"
+    local archive_sha256="$6"
+    local overlay_source="$7"
+    local overlay_sha256="$8"
+    local author_line="$9"
+    local translated="${10:-1}"
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "$display_name 仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    if handheld_overlay_is_current "$plugin_root" "$directory_name" \
+        "$expected_version" "$display_name" "$overlay_sha256"; then
+        echo "[已检测] $display_name 已是完整的 v$expected_version，无需处理。"
+        return 0
+    fi
+
+    echo "正在安装 $display_name..."
+    if [ "$archive_type" = "tar.gz" ]; then
+        GITEE_MIRROR_REPO="$DECKY_HANDHELD_PLUGIN_MIRROR_REPO" \
+            install_decky_tar_gz "$display_name" "$url" "$archive_sha256" "$directory_name" 0 || return 1
+    else
+        GITEE_MIRROR_REPO="$DECKY_HANDHELD_PLUGIN_MIRROR_REPO" \
+            install_decky_zip "$display_name" "$url" "$archive_sha256" "$directory_name" 0 || return 1
+    fi
+    install_handheld_frontend_overlay "$directory_name" "$expected_version" \
+        "$display_name" "$overlay_source" "$overlay_sha256" "$author_line" "$translated"
+}
+
 restore_lsfg_official() {
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
@@ -2982,6 +3211,41 @@ install_configured_plugin() {
         allycenter)
             ensure_allycenter_chinese_current
             ;;
+        huesync)
+            ensure_handheld_overlay_current zip "HueSync" \
+                "$DECKY_HUESYNC_VERSION" "通用掌机 RGB" \
+                "$DECKY_HUESYNC_URL" "$DECKY_HUESYNC_SHA256" \
+                "$HUESYNC_CN_SOURCE_DIR" "$HUESYNC_CN_INDEX_SHA256" \
+                "原作者：honjow；许可证：BSD 3-Clause。" 0
+            ;;
+        legiongo-remapper)
+            ensure_handheld_overlay_current tar.gz "LegionGoRemapper" \
+                "$DECKY_LEGIONGO_REMAPPER_VERSION" "Legion Go 控制中心" \
+                "$DECKY_LEGIONGO_REMAPPER_URL" "$DECKY_LEGIONGO_REMAPPER_SHA256" \
+                "$LEGIONGO_REMAPPER_ZH_SOURCE_DIR" "$LEGIONGO_REMAPPER_ZH_INDEX_SHA256" \
+                "原作者：Aarron Lee；许可证：BSD 3-Clause。"
+            ;;
+        gpd-control)
+            ensure_handheld_overlay_current tar.gz "GpdControl" \
+                "$DECKY_GPD_CONTROL_VERSION" "GPD 控制中心" \
+                "$DECKY_GPD_CONTROL_URL" "$DECKY_GPD_CONTROL_SHA256" \
+                "$GPD_CONTROL_ZH_SOURCE_DIR" "$GPD_CONTROL_ZH_INDEX_SHA256" \
+                "原作者：Aarron Lee；许可证：GPL-3.0。"
+            ;;
+        lego-vibe)
+            ensure_handheld_overlay_current zip "LeGo-Vibe-Control" \
+                "$DECKY_LEGO_VIBE_VERSION" "Legion Go 震动控制" \
+                "$DECKY_LEGO_VIBE_URL" "$DECKY_LEGO_VIBE_SHA256" \
+                "$LEGO_VIBE_ZH_SOURCE_DIR" "$LEGO_VIBE_ZH_INDEX_SHA256" \
+                "原作者：Rayek；许可证：BSD 3-Clause。"
+            ;;
+        lego2-fan)
+            ensure_handheld_overlay_current zip "lego2-fan-control" \
+                "$DECKY_LEGO2_FAN_VERSION" "Legion Go 2 风扇控制" \
+                "$DECKY_LEGO2_FAN_URL" "$DECKY_LEGO2_FAN_SHA256" \
+                "$LEGO2_FAN_ZH_SOURCE_DIR" "$LEGO2_FAN_ZH_INDEX_SHA256" \
+                "原作者：Luke Cama；许可证：GPL-3.0。"
+            ;;
         simpledeckytdp)
             resolve_plugin_latest simpledeckytdp
             install_decky_zip \
@@ -3260,6 +3524,11 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         freedeck) show_plugin_download_speed_tip; install_configured_plugin freedeck ;;
         newfreedeck) show_plugin_download_speed_tip; install_configured_plugin newfreedeck ;;
         allycenter) show_plugin_download_speed_tip; install_configured_plugin allycenter ;;
+        huesync) show_plugin_download_speed_tip; install_configured_plugin huesync ;;
+        legiongo-remapper) show_plugin_download_speed_tip; install_configured_plugin legiongo-remapper ;;
+        gpd-control) show_plugin_download_speed_tip; install_configured_plugin gpd-control ;;
+        lego-vibe) show_plugin_download_speed_tip; install_configured_plugin lego-vibe ;;
+        lego2-fan) show_plugin_download_speed_tip; install_configured_plugin lego2-fan ;;
         simpledeckytdp) show_plugin_download_speed_tip; install_configured_plugin simpledeckytdp ;;
         unifideck) show_plugin_download_speed_tip; install_configured_plugin unifideck ;;
         localizer)

@@ -1,0 +1,10 @@
+{
+  "name": "GPD 控制中心",
+  "author": "Aarron Lee",
+  "flags": ["root"],
+  "publish": {
+    "tags": ["root"],
+    "description": "适用于 GPD Win 系列的 RGB 控制",
+    "image": "https://opengraph.githubassets.com/1/SteamDeckHomebrew/PluginLoader"
+  }
+}

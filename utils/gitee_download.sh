@@ -403,6 +403,11 @@ gitee_mirror_id_for_url() {
         *'/mubaraknumann/unifideck/releases/download/'*) printf '%s\n' unifideck ;;
         *'/panyiwei-home/Freedeck/releases/download/'*) printf '%s\n' freedeck ;;
         *'/PixelAddictUnlocked/allycenter/releases/download/'*) printf '%s\n' allycenter ;;
+        *'/honjow/HueSync/releases/download/'*) printf '%s\n' huesync ;;
+        *'/aarron-lee/LegionGoRemapper/releases/download/'*) printf '%s\n' legiongo-remapper ;;
+        *'/aarron-lee/GpdControl/releases/download/'*) printf '%s\n' gpd-control ;;
+        *'/Rayekkk/LeGo-Vibe-Control/releases/download/'*) printf '%s\n' lego-vibe ;;
+        *'/Rodpad/LeGo2-Fan-Control/releases/download/'*) printf '%s\n' lego2-fan ;;
         *'/aarron-lee/SimpleDeckyTDP/releases/download/'*) printf '%s\n' simpledeckytdp ;;
         *'/SteamDeckHomebrew/decky-loader/releases/download/v3.2.6/'*) printf '%s\n' decky-loader-stable ;;
         *'/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8-pre1/'*) printf '%s\n' decky-loader-prerelease ;;

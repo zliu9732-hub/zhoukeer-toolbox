@@ -531,6 +531,20 @@ copy_allycenter_chinese() {
         "$STAGING_DIR/third_party/allycenter-zh-v1.2.0/dist/index.js"
 }
 
+copy_handheld_frontend_overlay() {
+    local relative_dir="$1"
+    local source_dir="$SOURCE_ROOT/$relative_dir"
+    local relative_file
+
+    # 每个插件都必须把清单、版本、许可和前端一起带入安装包，避免只安装官方后端后缺少汉化组件。
+    for relative_file in plugin.json package.json LICENSE; do
+        copy_file "$source_dir/$relative_file" \
+            "$STAGING_DIR/$relative_dir/$relative_file"
+    done
+    copy_file "$source_dir/dist/index.js" \
+        "$STAGING_DIR/$relative_dir/dist/index.js"
+}
+
 remove_appledouble_files() {
     local root="$1"
 
@@ -554,6 +568,11 @@ copy_lsfg_chinese
 copy_fsr4_chinese
 copy_simpledeckytdp_chinese
 copy_allycenter_chinese
+copy_handheld_frontend_overlay third_party/huesync-cn-v3.9.0
+copy_handheld_frontend_overlay third_party/legion-go-remapper-zh-v0.3.0
+copy_handheld_frontend_overlay third_party/gpd-control-zh-v0.0.2
+copy_handheld_frontend_overlay third_party/lego-vibe-control-zh-v1.5.0
+copy_handheld_frontend_overlay third_party/lego2-fan-control-zh-v0.260430
 
 # 标记由安装器管理的目录，启动器只在这类目录中执行自动更新。
 printf '%s\n' "zhoukeer-toolbox" > "$STAGING_DIR/.zhoukeer-installed"
