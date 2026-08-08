@@ -494,7 +494,22 @@ confirm_decky_install() {
 
 detect_steamos_channel() {
     local os_release="${ZHOUKEER_OS_RELEASE_FILE:-/etc/os-release}"
-    local key raw value
+    local key raw value tracked_branch=""
+
+    # SteamOS 3.7+ 由 atomupd 记录当前跟踪分支；/etc/os-release 只描述已经
+    # 安装的镜像，通常不会随用户在设置中选择测试/预览通道而改变。
+    if command -v atomupd-manager >/dev/null 2>&1; then
+        tracked_branch="$(atomupd-manager tracked-branch 2>/dev/null | head -n 1 || true)"
+    fi
+    # 较旧 SteamOS 仍使用 steamos-select-branch，保留只读查询兼容。
+    if [ -z "$tracked_branch" ] && command -v steamos-select-branch >/dev/null 2>&1; then
+        tracked_branch="$(steamos-select-branch -c 2>/dev/null | head -n 1 || true)"
+    fi
+    tracked_branch="${tracked_branch%$'\r'}"
+    case "$tracked_branch" in
+        rel|release|stable) printf '%s\n' stable; return 0 ;;
+        beta|preview|main|staging) printf '%s\n' prerelease; return 0 ;;
+    esac
 
     [ -r "$os_release" ] && [ ! -L "$os_release" ] || { printf '%s\n' stable; return 0; }
     while IFS='=' read -r key raw; do

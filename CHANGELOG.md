@@ -1,3 +1,9 @@
+## Renkit 1.1.7 插件商城系统通道识别修复 — 2026-08-09
+
+- 修复“根据系统版本安装插件商城”只读取 `/etc/os-release`，导致 SteamOS 测试或预览通道也总被识别为 stable 的问题。
+- 新版优先读取 `atomupd-manager tracked-branch`，兼容旧系统的 `steamos-select-branch -c`，最后才使用系统版本文件兜底；稳定分支安装稳定版，beta/main/preview/staging 分支安装测试版。
+- 只调整通道识别，不改变 Decky 下载、校验、服务切换、插件保留和国内源回退逻辑。
+
 ## Renkit 1.1.6 掌机控制插件中文套装 — 2026-08-09
 
 - “掌机控制插件”扩充为七项：新增通用掌机 RGB、Legion Go 控制中心、GPD 控制中心、Legion Go 震动控制和 Legion Go 2 风扇控制，并统一使用中文插件名。

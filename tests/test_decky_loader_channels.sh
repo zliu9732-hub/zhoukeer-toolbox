@@ -49,6 +49,16 @@ id() {
     esac
 }
 require_command() { return 0; }
+MOCK_ATOMUPD_BRANCH=""
+MOCK_LEGACY_BRANCH=""
+atomupd-manager() {
+    [ "${1:-}" = tracked-branch ] && [ -n "$MOCK_ATOMUPD_BRANCH" ] || return 1
+    printf '%s\n' "$MOCK_ATOMUPD_BRANCH"
+}
+steamos-select-branch() {
+    [ "${1:-}" = -c ] && [ -n "$MOCK_LEGACY_BRANCH" ] || return 1
+    printf '%s\n' "$MOCK_LEGACY_BRANCH"
+}
 
 printf '%s\n' \
     'PRETTY_NAME="SteamOS (holo)"' \
@@ -62,6 +72,35 @@ detected_channel="$(ZHOUKEER_OS_RELEASE_FILE="$TMP_ROOT/os-release-stable" detec
 [ "$detected_channel" = "stable" ] || fail "正式版系统未检测为稳定通道"
 detected_channel="$(ZHOUKEER_OS_RELEASE_FILE="$TMP_ROOT/os-release-preview" detect_steamos_channel)"
 [ "$detected_channel" = "prerelease" ] || fail "预览版系统未检测为测试通道"
+MOCK_ATOMUPD_BRANCH="beta"
+detected_channel="$(ZHOUKEER_OS_RELEASE_FILE="$TMP_ROOT/os-release-stable" detect_steamos_channel)"
+[ "$detected_channel" = "prerelease" ] || fail "atomupd beta 分支未检测为测试通道"
+MOCK_ATOMUPD_BRANCH="main"
+detected_channel="$(ZHOUKEER_OS_RELEASE_FILE="$TMP_ROOT/os-release-stable" detect_steamos_channel)"
+[ "$detected_channel" = "prerelease" ] || fail "atomupd main 分支未检测为测试通道"
+auto_output="$(
+    install_plugin_store() { printf 'SELECTED:%s\n' "$1"; }
+    install_plugin_store_auto
+)"
+printf '%s\n' "$auto_output" | grep -Fq 'SELECTED:prerelease' || \
+    fail "自动安装未把 atomupd main 分支传给测试版安装流程"
+MOCK_ATOMUPD_BRANCH="rel"
+detected_channel="$(ZHOUKEER_OS_RELEASE_FILE="$TMP_ROOT/os-release-preview" detect_steamos_channel)"
+[ "$detected_channel" = "stable" ] || fail "atomupd rel 分支未优先检测为稳定通道"
+auto_output="$(
+    install_plugin_store() { printf 'SELECTED:%s\n' "$1"; }
+    install_plugin_store_auto
+)"
+printf '%s\n' "$auto_output" | grep -Fq 'SELECTED:stable' || \
+    fail "自动安装未把 atomupd rel 分支传给稳定版安装流程"
+MOCK_ATOMUPD_BRANCH=""
+MOCK_LEGACY_BRANCH="beta"
+detected_channel="$(ZHOUKEER_OS_RELEASE_FILE="$TMP_ROOT/os-release-stable" detect_steamos_channel)"
+[ "$detected_channel" = "prerelease" ] || fail "旧版 beta 分支未检测为测试通道"
+MOCK_LEGACY_BRANCH="stable"
+detected_channel="$(ZHOUKEER_OS_RELEASE_FILE="$TMP_ROOT/os-release-preview" detect_steamos_channel)"
+[ "$detected_channel" = "stable" ] || fail "旧版 stable 分支未优先检测为稳定通道"
+MOCK_LEGACY_BRANCH=""
 
 mock_systemctl() {
     local scope="$1"
