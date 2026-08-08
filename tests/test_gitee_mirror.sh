@@ -86,6 +86,13 @@ esac
 mirror_id="$(gitee_mirror_id_for_url \
     'https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip')"
 [ "$mirror_id" = "lsfg" ] || FAIL "LSFG 镜像标识映射错误"
+allycenter_mirror_id="$(gitee_mirror_id_for_url \
+    'https://github.com/PixelAddictUnlocked/allycenter/releases/download/v1.2.0/allycenter-v1.2.0.zip')"
+[ "$allycenter_mirror_id" = "allycenter" ] || FAIL "Ally Center 镜像标识映射错误"
+grep -Fq 'allycenter|Ally Center|v1.2.0|allycenter-v1.2.0.zip|' \
+    "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || FAIL "Ally Center 缺少 Gitee 固定镜像清单"
+grep -Fq '| Ally Center |' "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" || \
+    FAIL "License 清单缺少 Ally Center"
 if gitee_mirror_id_for_url \
     'https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.3/DeckRecall.zip' \
     >/dev/null 2>&1; then

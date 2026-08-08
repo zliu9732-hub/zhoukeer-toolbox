@@ -55,7 +55,7 @@ SIMPLEDECKYTDP_OFFICIAL_VERSION="1.0.5"
 SIMPLEDECKYTDP_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5"
 SIMPLEDECKYTDP_ZH_INDEX_SHA256="fff7ef99f9fe8811f412836c97021bc369a10283ccc461969b4fc55cfe41c040"
 
-# 五款独立插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
+# 独立插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
 DECKY_LSFG_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
 DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip"
@@ -84,6 +84,13 @@ DECKY_NEWFREEDECK_URL="https://github.com/panyiwei-home/Freedeck/releases/downlo
 DECKY_NEWFREEDECK_SHA256="60c9832a5808941d0940caef7fecfe6058532d6cdc52e0002463a5a512be0823"
 DECKY_NEWFREEDECK_VERSION="0.1"
 DECKY_NEWFREEDECK_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
+# Ally Center 固定使用作者 v1.2.0 正式版；国内镜像与 NewFreedeck 共用 mirror-3。
+DECKY_ALLYCENTER_URL="${ZHOUKEER_DECKY_ALLYCENTER_URL:-https://github.com/PixelAddictUnlocked/allycenter/releases/download/v1.2.0/allycenter-v1.2.0.zip}"
+DECKY_ALLYCENTER_SHA256="${ZHOUKEER_DECKY_ALLYCENTER_SHA256:-a1059534de2a0e9556669adff3d933bcde802101faae7558f9b33db3a8e51bc7}"
+DECKY_ALLYCENTER_VERSION="1.2.0"
+DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
+ALLYCENTER_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0"
+ALLYCENTER_ZH_INDEX_SHA256="b188afbe37db53db8f1b5fddf01f4568492bd35c9aa599f4ed3704df04e38528"
 # 汉化完整包固定使用Renkit GitHub Release 资产，避免原始文件下载过慢。
 DECKY_LSFG_ZH_URL="https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.9/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip"
 DECKY_LSFG_ZH_SHA256="11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"
@@ -1282,6 +1289,10 @@ find_plugin_source() {
     local extract_dir="$1"
     local plugin_json
 
+    if [ -f "$extract_dir/plugin.json" ] && [ ! -L "$extract_dir/plugin.json" ]; then
+        printf '%s\n' "$extract_dir"
+        return 0
+    fi
     plugin_json="$(find "$extract_dir" -mindepth 2 -maxdepth 3 -type f -name plugin.json -print -quit)"
     [ -n "$plugin_json" ] || return 1
     dirname "$plugin_json"
@@ -1352,7 +1363,8 @@ install_decky_zip() {
         echo "$display_name 压缩包中没有找到 plugin.json。"
         return 1
     }
-    if [ "$(basename "$plugin_source")" != "$expected_dir" ]; then
+    if [ "$plugin_source" != "$extract_dir" ] && \
+        [ "$(basename "$plugin_source")" != "$expected_dir" ]; then
         echo "$display_name 的目录结构不符合预期，已停止安装。"
         return 1
     fi
@@ -2474,6 +2486,114 @@ ensure_simpledeckytdp_chinese_current() {
     install_simpledeckytdp_zh_from_gitee
 }
 
+allycenter_chinese_is_current() {
+    local plugin_root="$1"
+    local actual_sha256
+
+    feature_plugin_is_current "$plugin_root" "Ally Center" \
+        "$DECKY_ALLYCENTER_VERSION" "Ally Center" || return 1
+    actual_sha256="$(calculate_decky_sha256 \
+        "$plugin_root/Ally Center/dist/index.js" 2>/dev/null || true)"
+    [ "$actual_sha256" = "$ALLYCENTER_ZH_INDEX_SHA256" ]
+}
+
+install_allycenter_chinese() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local reload_after="${1:-1}"
+    local bundled_version actual_sha256 official_source work_dir staged_source
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "Ally Center 中文版仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    if allycenter_chinese_is_current "$plugin_root"; then
+        echo "[已安装] Ally Center v$DECKY_ALLYCENTER_VERSION 中文版已存在且文件完整，无需重复安装。"
+        return 0
+    fi
+    if [ -L "$ALLYCENTER_ZH_SOURCE_DIR" ] || \
+       [ ! -f "$ALLYCENTER_ZH_SOURCE_DIR/plugin.json" ] || \
+       [ ! -f "$ALLYCENTER_ZH_SOURCE_DIR/package.json" ] || \
+       [ ! -s "$ALLYCENTER_ZH_SOURCE_DIR/dist/index.js" ] || \
+       [ ! -f "$ALLYCENTER_ZH_SOURCE_DIR/LICENSE" ]; then
+        echo "Ally Center v$DECKY_ALLYCENTER_VERSION 中文组件不完整，请更新Renkit后再试。"
+        return 1
+    fi
+    bundled_version="$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+        "$ALLYCENTER_ZH_SOURCE_DIR/package.json" | head -n 1)"
+    if [ "$bundled_version" != "$DECKY_ALLYCENTER_VERSION" ]; then
+        echo "Ally Center 中文组件版本 $bundled_version 与目标 v$DECKY_ALLYCENTER_VERSION 不一致，已停止覆盖。"
+        return 1
+    fi
+    actual_sha256="$(calculate_decky_sha256 "$ALLYCENTER_ZH_SOURCE_DIR/dist/index.js")" || return 1
+    if [ "$actual_sha256" != "$ALLYCENTER_ZH_INDEX_SHA256" ]; then
+        echo "Ally Center 中文组件校验失败，已停止覆盖。"
+        return 1
+    fi
+    official_source="$plugin_root/Ally Center"
+    if [ ! -f "$official_source/main.py" ] || \
+       [ ! -f "$official_source/plugin.json" ] || \
+       [ ! -f "$official_source/package.json" ]; then
+        echo "Ally Center 官方后端不完整，请重新安装后再试。"
+        return 1
+    fi
+    prepare_plugin_root "$plugin_root" || return 1
+    work_dir="$(mktemp -d)" || return 1
+    staged_source="$work_dir/Ally Center"
+    if ! cp -a -- "$official_source" "$staged_source" || \
+       ! rm -rf -- "$staged_source/dist" || \
+       ! mkdir -p "$staged_source/dist" || \
+       ! cp -a -- "$ALLYCENTER_ZH_SOURCE_DIR/dist/index.js" "$staged_source/dist/index.js"; then
+        rm -rf -- "$work_dir"
+        echo "Ally Center 中文组件准备失败，原版未改动。"
+        return 1
+    fi
+    install_tree_atomically "$staged_source" "$plugin_root" "Ally Center" || {
+        rm -rf -- "$work_dir"
+        echo "Ally Center 中文版安装失败，已尽量保留原版。"
+        return 1
+    }
+    rm -rf -- "$work_dir"
+    echo "Ally Center v$DECKY_ALLYCENTER_VERSION 中文版已安装。"
+    echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
+    echo "原作者：Keith Baker（Pixel Addict Games）；许可证：MIT。"
+    if [ "$reload_after" = "1" ]; then
+        reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 Ally Center 即可看到中文界面。"
+    fi
+    log "Ally Center v$DECKY_ALLYCENTER_VERSION 中文版安装完成"
+}
+
+# 与其他插件一致：先从 Gitee 固定镜像下载作者原包，失败后自动回退 GitHub，
+# 校验通过并完成原子安装后，再覆盖 Renkit 内置的同版本中文前端。
+ensure_allycenter_chinese_current() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local installed_version=""
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "Ally Center 中文版仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    if allycenter_chinese_is_current "$plugin_root"; then
+        echo "[已检测] Ally Center 已是最新汉化版 v${DECKY_ALLYCENTER_VERSION}，无需处理。"
+        return 0
+    fi
+    if [ -d "$plugin_root/Ally Center" ]; then
+        installed_version="$(decky_plugin_version "$plugin_root/Ally Center" || true)"
+        echo "检测到现有 Ally Center 版本 ${installed_version:-未知}，将替换为 v$DECKY_ALLYCENTER_VERSION 汉化版。"
+    else
+        echo "未检测到 Ally Center，正在安装 v$DECKY_ALLYCENTER_VERSION 汉化版。"
+    fi
+    GITEE_MIRROR_REPO="$DECKY_ALLYCENTER_MIRROR_REPO" \
+        install_decky_zip \
+        "Ally Center（ROG Ally / Ally X 控制中心）" \
+        "$DECKY_ALLYCENTER_URL" \
+        "$DECKY_ALLYCENTER_SHA256" \
+        "Ally Center" \
+        0 || return 1
+    install_allycenter_chinese
+}
+
 restore_lsfg_official() {
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
@@ -2858,6 +2978,9 @@ install_configured_plugin() {
                     "NewFreedeck"
             )
             ;;
+        allycenter)
+            ensure_allycenter_chinese_current
+            ;;
         simpledeckytdp)
             resolve_plugin_latest simpledeckytdp
             install_decky_zip \
@@ -3135,6 +3258,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         deckrecall) show_plugin_download_speed_tip; install_configured_plugin deckrecall ;;
         freedeck) show_plugin_download_speed_tip; install_configured_plugin freedeck ;;
         newfreedeck) show_plugin_download_speed_tip; install_configured_plugin newfreedeck ;;
+        allycenter) show_plugin_download_speed_tip; install_configured_plugin allycenter ;;
         simpledeckytdp) show_plugin_download_speed_tip; install_configured_plugin simpledeckytdp ;;
         unifideck) show_plugin_download_speed_tip; install_configured_plugin unifideck ;;
         localizer)

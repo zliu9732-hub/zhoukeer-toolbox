@@ -16,6 +16,7 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | DeckRecall | DeckRecall 插件 | https://github.com/Ren-Amamiya-pixle/DeckRecall | 未提供 LICENSE | 否 | 无明确再分发授权，仅保留 GitHub 官方源 |
 | Unifideck | Unifideck 插件 | https://github.com/mubaraknumann/unifideck | GPL-3.0 | 是 | |
 | Freedeck | Freedeck 插件 | https://github.com/panyiwei-home/Freedeck | BSD-3-Clause | 是 | LICENSE 文件为 BSD-3 文本 |
+| Ally Center | ROG Ally / Ally X 硬件控制插件 | https://github.com/PixelAddictUnlocked/allycenter | MIT | 是 | 上游 Release 原包，支持 RGB、TDP、风扇与充电上限 |
 | SimpleDeckyTDP | SimpleDeckyTDP 插件 | https://github.com/aarron-lee/SimpleDeckyTDP | BSD-3-Clause | 是 | |
 | 小黄鸭汉化完整包 | LSFG 汉化包 | https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/tag/v6.0.9 | 同 Decky LSFG-VK（BSD-3-Clause） | 否（既有仓库归档） | 汉化包已在 Gitee 仓库归档中，不重复分块镜像 |
 | FSR4 汉化完整包 | FSR4 汉化包 | https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/tag/v1.2.2 | 同 Decky-Framegen（BSD-3-Clause） | 否（既有仓库归档） | 汉化包已在 Gitee 仓库归档中，不重复分块镜像 |

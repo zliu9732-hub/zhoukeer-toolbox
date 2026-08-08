@@ -402,6 +402,7 @@ gitee_mirror_id_for_url() {
         *'/YukiCoco/ToMoon/releases/download/'*) printf '%s\n' tomoon ;;
         *'/mubaraknumann/unifideck/releases/download/'*) printf '%s\n' unifideck ;;
         *'/panyiwei-home/Freedeck/releases/download/'*) printf '%s\n' freedeck ;;
+        *'/PixelAddictUnlocked/allycenter/releases/download/'*) printf '%s\n' allycenter ;;
         *'/aarron-lee/SimpleDeckyTDP/releases/download/'*) printf '%s\n' simpledeckytdp ;;
         *'/SteamDeckHomebrew/decky-loader/releases/download/v3.2.6/'*) printf '%s\n' decky-loader-stable ;;
         *'/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8-pre1/'*) printf '%s\n' decky-loader-prerelease ;;

@@ -156,6 +156,42 @@ grep -Fq 'DECKY_NEWFREEDECK_MIRROR_REPO="zhoukeer-toolbox-mirror-3"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'newfreedeck) show_plugin_download_speed_tip; install_configured_plugin newfreedeck' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'PixelAddictUnlocked/allycenter/releases/download/v1.2.0/allycenter-v1.2.0.zip' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'a1059534de2a0e9556669adff3d933bcde802101faae7558f9b33db3a8e51bc7' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'allycenter) show_plugin_download_speed_tip; install_configured_plugin allycenter' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'ALLYCENTER_ZH_INDEX_SHA256="b188afbe37db53db8f1b5fddf01f4568492bd35c9aa599f4ed3704df04e38528"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'Ren-Amamiya-pixie / zliu9732-hub' \
+    "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js" || {
+    echo "FAIL: Ally Center 中文构建缺少与小黄鸭一致的汉化署名" >&2
+    exit 1
+}
+grep -Fq '中文汉化：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）' \
+    "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/src/index.tsx" || {
+    echo "FAIL: Ally Center 中文源码缺少完整汉化署名" >&2
+    exit 1
+}
+grep -Fq '充电上限已设置为' \
+    "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js" || {
+    echo "FAIL: Ally Center 中文构建缺少电池界面汉化" >&2
+    exit 1
+}
+grep -Fq 'RGB 灯光' \
+    "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/src/index.tsx" || {
+    echo "FAIL: Ally Center 中文构建缺少 RGB 界面汉化" >&2
+    exit 1
+}
+allycenter_zh_actual_sha256="$(shasum -a 256 \
+    "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js" | awk '{print $1}')"
+[ "$allycenter_zh_actual_sha256" = "b188afbe37db53db8f1b5fddf01f4568492bd35c9aa599f4ed3704df04e38528" ] || {
+    echo "FAIL: Ally Center 中文构建文件校验值不匹配" >&2
+    exit 1
+}
 grep -Fq 'releases/download/v6.0.9/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'releases/download/v1.2.2/Decky-Framegen-FSR4-v0.17.zip' \
@@ -358,6 +394,9 @@ printf '%s\n' "$output" | grep -Fq '仅支持真实 SteamOS 环境'
 simpledeckytdp_output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee || true)"
 printf '%s\n' "$simpledeckytdp_output" | grep -Fq '仅支持真实 SteamOS 环境'
 
+allycenter_output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter || true)"
+printf '%s\n' "$allycenter_output" | grep -Fq 'Decky 插件安装仅支持真实 SteamOS 环境'
+
 # 小黄鸭官方 v0.12.5 使用 Decky LSFG-VK，旧汉化包使用“小黄鸭”；
 # 状态检查必须同时兼容官方名和旧中文名。
 PLUGIN_ROOT="$TMP_ROOT/plugins"
@@ -451,5 +490,65 @@ printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: FSR4'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: CheatDeck'
 printf '%s\n' "$update_output" | grep -Fq '官方版本 0.12.5'
 printf '%s\n' "$update_output" | grep -Fq '官方版本 0.17.0'
+
+# Ally Center 官方包的 plugin.json 位于 ZIP 根目录；使用全临时目录和下载桩
+# 验证同一套校验、解压、原子替换流程可正确安装，且再次执行会幂等跳过。
+ALLY_ARCHIVE="$TMP_ROOT/allycenter-v1.2.0.zip"
+ALLY_BUILD="$TMP_ROOT/allycenter-build"
+ALLY_PLUGIN_ROOT="$TMP_ROOT/allycenter-plugins"
+mkdir -p "$ALLY_BUILD/dist" "$ALLY_PLUGIN_ROOT"
+printf '{"name":"Ally Center","author":"Keith Baker","flags":["root"],"api_version":1}\n' \
+    > "$ALLY_BUILD/plugin.json"
+printf '{"version":"1.2.0"}\n' > "$ALLY_BUILD/package.json"
+printf '# official backend fixture\n' > "$ALLY_BUILD/main.py"
+printf 'test bundle\n' > "$ALLY_BUILD/dist/index.js"
+(
+    cd "$ALLY_BUILD"
+    zip -qr "$ALLY_ARCHIVE" .
+)
+ally_install_output="$(
+    ALLY_ARCHIVE="$ALLY_ARCHIVE" \
+    DECKY_PLUGIN_DIR="$ALLY_PLUGIN_ROOT" \
+    PROJECT_ROOT="$PROJECT_ROOT" \
+    ZHOUKEER_DECKY_ALLYCENTER_URL="https://example.invalid/allycenter-v1.2.0.zip" \
+    ZHOUKEER_TEST_MODE=1 \
+    bash -c '
+        source "$PROJECT_ROOT/modules/plugin_store.sh"
+        detect_platform() { IS_STEAMOS=1; }
+        download_verified_package() { cp -- "$ALLY_ARCHIVE" "$4"; }
+        reload_decky_plugins() { echo "TEST_RELOAD: Ally Center"; }
+        ensure_allycenter_chinese_current
+    '
+)"
+printf '%s\n' "$ally_install_output" | grep -Fq 'Ally Center（ROG Ally / Ally X 控制中心） 安装成功。'
+printf '%s\n' "$ally_install_output" | grep -Fq 'Ally Center v1.2.0 中文版已安装。'
+printf '%s\n' "$ally_install_output" | grep -Fq 'TEST_RELOAD: Ally Center'
+[ -s "$ALLY_PLUGIN_ROOT/Ally Center/plugin.json" ] || {
+    echo "FAIL: Ally Center 根目录结构未安装 plugin.json" >&2
+    exit 1
+}
+[ -s "$ALLY_PLUGIN_ROOT/Ally Center/dist/index.js" ] || {
+    echo "FAIL: Ally Center 根目录结构未安装前端文件" >&2
+    exit 1
+}
+installed_allycenter_sha256="$(shasum -a 256 \
+    "$ALLY_PLUGIN_ROOT/Ally Center/dist/index.js" | awk '{print $1}')"
+[ "$installed_allycenter_sha256" = "$allycenter_zh_actual_sha256" ] || {
+    echo "FAIL: Ally Center 安装后未覆盖为已校验的中文前端" >&2
+    exit 1
+}
+ally_repeat_output="$(
+    DECKY_PLUGIN_DIR="$ALLY_PLUGIN_ROOT" \
+    PROJECT_ROOT="$PROJECT_ROOT" \
+    ZHOUKEER_DECKY_ALLYCENTER_URL="https://example.invalid/allycenter-v1.2.0.zip" \
+    ZHOUKEER_TEST_MODE=1 \
+    bash -c '
+        source "$PROJECT_ROOT/modules/plugin_store.sh"
+        detect_platform() { IS_STEAMOS=1; }
+        ensure_allycenter_chinese_current
+    '
+)"
+printf '%s\n' "$ally_repeat_output" | \
+    grep -Fq '[已检测] Ally Center 已是最新汉化版 v1.2.0，无需处理。'
 
 echo "PASS: Decky国内源、独立功能插件和完整清单配置检查通过"

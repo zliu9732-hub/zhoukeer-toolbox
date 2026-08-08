@@ -613,7 +613,7 @@ plugin_page_2_menu() {
 
     while true; do
         draw_category_frame games "插件安装｜更多" "更多独立插件和启动器" 0
-        ui_touch_button 5 '\033[1;97;48;5;24m' "掌机功耗控制" "SimpleDeckyTDP 汉化版·自动检测版本·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "掌机控制插件" "掌机功耗控制与 ROG Ally Center"
         ui_touch_button 7 '\033[1;97;48;5;24m' "Unifideck" "入库第三方平台游戏"
         ui_touch_button 9 '\033[1;97;48;5;24m' "ToMoon" "网络工具"
         ui_touch_button 11 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
@@ -624,11 +624,11 @@ plugin_page_2_menu() {
         ui_touch_button 21 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:simpledeckytdp right:7-8:unifideck right:9-10:tomoon right:11-12:epic right:13-14:ge-proton right:15-16:battlenet right:17-18:ubisoft right:19-20:repair right:21-22:previous right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:handheld-plugins right:7-8:unifideck right:9-10:tomoon right:11-12:epic right:13-14:ge-proton right:15-16:battlenet right:17-18:ubisoft right:19-20:repair right:21-22:previous right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            simpledeckytdp) confirm_and_run "安装/修复掌机功耗控制汉化版" "自动检测版本：非最新汉化版或检测到原版/旧版会自动替换；国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee ;;
+            handheld-plugins) NEXT_CATEGORY="handheld_plugins"; return 0 ;;
             unifideck) confirm_and_run "安装 Unifideck" "入库第三方平台游戏；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
             epic) confirm_and_run "安装 Epic 游戏启动器" "安装并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
             tomoon) confirm_and_run "安装 ToMoon" "网络工具插件，下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon ;;
@@ -640,6 +640,34 @@ plugin_page_2_menu() {
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "plugin_page_2" ] || return 0
+    done
+}
+
+handheld_plugins_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame games "掌机控制插件" "Steam Deck 功耗控制与 ROG Ally 系列硬件控制" 0
+        ui_touch_button 5 '\033[1;97;48;5;24m' "掌机功耗控制" "SimpleDeckyTDP 汉化版·自动检测版本"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "Ally Center" "ROG Ally / Ally X 的 RGB、TDP、风扇与充电上限"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件第二页"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:5-6:simpledeckytdp right:9-10:allycenter right:19-20:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            simpledeckytdp)
+                confirm_and_run "安装/修复掌机功耗控制汉化版" "自动检测版本：非最新汉化版或检测到原版/旧版会自动替换；国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee
+                ;;
+            allycenter)
+                confirm_and_run "安装 Ally Center" "仅适用于 ROG Ally / Ally X；可控制摇杆 RGB、TDP、风扇和充电上限，插件需要 Decky root 权限；国内源优先，失败自动改用作者 GitHub Release" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter
+                ;;
+            back) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = "handheld_plugins" ] || return 0
     done
 }
 
@@ -1436,6 +1464,7 @@ while true; do
         freedeck_versions) freedeck_versions_menu ;;
         decky_loader) decky_loader_menu ;;
         plugin_page_2) plugin_page_2_menu ;;
+        handheld_plugins) handheld_plugins_menu ;;
         battlenet_submenu) battlenet_submenu ;;
         launcher_repair) launcher_repair_menu ;;
         emulators) emulator_menu ;;

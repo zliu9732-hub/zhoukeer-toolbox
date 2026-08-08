@@ -240,6 +240,7 @@ game_environment_gui_menu() {
     local decky_choice
     local battlenet_choice
     local freedeck_choice
+    local handheld_plugin_choice
     local repair_choice
 
     while true; do
@@ -249,7 +250,7 @@ game_environment_gui_menu() {
             lsfg "小黄鸭｜插帧神器（必装）" \
             fsr4 "FSR4｜画质补丁（阅读桌面文档慎用）" \
             freedeck "Freedeck｜选择 0.6 稳定版或 NewFreedeck" \
-            simpledeckytdp "掌机功耗控制｜SimpleDeckyTDP 汉化版·自动检测版本" \
+            handheld-plugins "掌机控制插件｜掌机功耗控制与 ROG Ally Center" \
             browse "浏览官方插件｜逐个查看插件作用" \
             ge-proton "安装 GE 兼容层｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
@@ -300,10 +301,24 @@ game_environment_gui_menu() {
                         ;;
                 esac
                 ;;
-            simpledeckytdp)
-                run_gui_action "安装/修复掌机功耗控制汉化版" \
-                    env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee
+            handheld-plugins)
+                handheld_plugin_choice="$(gui_dialog --menu "掌机控制插件" \
+                    simpledeckytdp "掌机功耗控制｜SimpleDeckyTDP 汉化版·自动检测版本" \
+                    allycenter "Ally Center｜ROG Ally / Ally X 的 RGB、TDP、风扇与充电上限" \
+                    back "返回游戏与插件")" || continue
+                case "$handheld_plugin_choice" in
+                    simpledeckytdp)
+                        run_gui_action "安装/修复掌机功耗控制汉化版" \
+                            env ZHOUKEER_AUTO_CONFIRM=1 \
+                            bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee
+                        ;;
+                    allycenter)
+                        gui_confirm "Ally Center 仅适用于 ROG Ally / Ally X，可控制摇杆 RGB、TDP、风扇和充电上限，插件需要 Decky root 权限。将优先使用国内源，失败自动改用作者 GitHub Release。是否继续？" && \
+                            run_gui_action "安装 Ally Center" \
+                                env ZHOUKEER_AUTO_CONFIRM=1 \
+                                bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter
+                        ;;
+                esac
                 ;;
             browse)
                 plugin_official_gui_pages
