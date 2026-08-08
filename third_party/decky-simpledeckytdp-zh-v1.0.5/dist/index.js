@@ -21445,7 +21445,7 @@ const OtaUpdates = () => {
             Boolean(deviceName) && (window.SP_REACT.createElement(DeckyRow, null,
                 window.SP_REACT.createElement(DeckyField, { label: t("SYSTEM_INFO_DEVICE_NAME", "Device Name"), bottomSeparator: "none" }, deviceName))),
             window.SP_REACT.createElement(DeckyRow, null,
-                window.SP_REACT.createElement(DeckyField, { label: "Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化", bottomSeparator: "none" }, "SimpleDeckyTDP 中文界面（TDP 性能控制）")),
+                window.SP_REACT.createElement(DeckyField, { label: "Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化", bottomSeparator: "none" }, "掌机功耗控制（SimpleDeckyTDP 汉化版）")),
             window.SP_REACT.createElement(DeckyRow, null,
                 window.SP_REACT.createElement(DeckyField, { label: t("SYSTEM_INFO_RESET_SETTINGS", "Reset Plugin Settings"), bottomSeparator: "none" }, t("SYSTEM_INFO_RESET_WARNING", "WARNING! This permanently deletes your current settings. This will also restart the Steam client, no Steam data will be affected."))),
             window.SP_REACT.createElement(DeckyRow, null,
@@ -21732,7 +21732,7 @@ var index = definePlugin(() => {
         unregisterAcPowerListener = unregister;
     });
     return {
-        name: "SimpleDeckyTDP（TDP 性能控制）",
+        name: "掌机功耗控制",
         content: window.SP_REACT.createElement(AppContainer, null),
         icon: window.SP_REACT.createElement(BsCpuFill, null),
         onDismount: () => {

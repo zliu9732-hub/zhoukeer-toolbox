@@ -585,7 +585,7 @@ plugin_page_2_menu() {
 
     while true; do
         draw_category_frame games "插件安装｜更多" "更多独立插件和启动器" 0
-        ui_touch_button 5 '\033[1;97;48;5;24m' "SimpleDeckyTDP" "TDP/功耗性能控制·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "掌机功耗控制" "SimpleDeckyTDP 汉化版·自动检测版本·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
         ui_touch_button 7 '\033[1;97;48;5;24m' "Unifideck" "入库第三方平台游戏"
         ui_touch_button 9 '\033[1;97;48;5;24m' "ToMoon" "网络工具"
         ui_touch_button 11 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
@@ -600,7 +600,7 @@ plugin_page_2_menu() {
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            simpledeckytdp) confirm_and_run "安装 SimpleDeckyTDP 中文版" "TDP/功耗性能控制·国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee ;;
+            simpledeckytdp) confirm_and_run "安装/修复掌机功耗控制汉化版" "自动检测版本：非最新汉化版或检测到原版/旧版会自动替换；国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee ;;
             unifideck) confirm_and_run "安装 Unifideck" "入库第三方平台游戏；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
             epic) confirm_and_run "安装 Epic 游戏启动器" "安装并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
             tomoon) confirm_and_run "安装 ToMoon" "网络工具插件，下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon ;;

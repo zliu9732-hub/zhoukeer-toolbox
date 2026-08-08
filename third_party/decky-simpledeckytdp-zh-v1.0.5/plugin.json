@@ -1,5 +1,5 @@
 {
-  "name": "SimpleDeckyTDP（TDP 性能控制）",
+  "name": "掌机功耗控制",
   "author": "Aarron Lee",
   "flags": ["root"],
   "api_version": 1,

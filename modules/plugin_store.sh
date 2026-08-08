@@ -53,7 +53,7 @@ FSR4_RUNTIME_PATCHER="OptiPatcher_rolling.asi"
 SIMPLEDECKYTDP_OFFICIAL_DIRECTORY="SimpleDeckyTDP"
 SIMPLEDECKYTDP_OFFICIAL_VERSION="1.0.5"
 SIMPLEDECKYTDP_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5"
-SIMPLEDECKYTDP_ZH_INDEX_SHA256="749d3a0d684fe87b90989979ef034fe13d6af6e81961599536ed0c8b7f1e2c3d"
+SIMPLEDECKYTDP_ZH_INDEX_SHA256="9f3e3f0ad3cdae25f10c76f6d1b8d8dedf2b2675ca13d23081783ff1c04ff8c6"
 
 # 五款独立插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
@@ -2339,7 +2339,7 @@ install_simpledeckytdp_chinese() {
     fi
     if feature_plugin_is_current "$plugin_root" "$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" \
         "$SIMPLEDECKYTDP_OFFICIAL_VERSION" \
-        "SimpleDeckyTDP（TDP 性能控制）"; then
+        "掌机功耗控制"; then
         echo "[已安装] SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
         return 0
     fi
@@ -2406,12 +2406,12 @@ install_simpledeckytdp_zh_from_gitee() {
     fi
     if feature_plugin_is_current "$plugin_root" "$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" \
         "$SIMPLEDECKYTDP_OFFICIAL_VERSION" \
-        "SimpleDeckyTDP（TDP 性能控制）"; then
+        "掌机功耗控制"; then
         echo "[已安装] SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
         return 0
     fi
     if feature_plugin_is_present "$plugin_root" "$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" \
-        "SimpleDeckyTDP（TDP 性能控制）" "SimpleDeckyTDP"; then
+        "掌机功耗控制" "SimpleDeckyTDP"; then
         installed_version="$(decky_plugin_version "$plugin_root/$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" || true)"
         echo "检测到现有 SimpleDeckyTDP 版本 ${installed_version:-未知}，正在更新中文插件到 $SIMPLEDECKYTDP_OFFICIAL_VERSION。"
     fi
@@ -2437,6 +2437,29 @@ install_simpledeckytdp_zh_from_gitee() {
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 SimpleDeckyTDP 即可看到中文界面。"
     fi
     log "SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文版安装完成"
+}
+
+ensure_simpledeckytdp_chinese_current() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local installed_version=""
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "掌机功耗控制版本检测仅支持真实 SteamOS 环境。"
+        return 1
+    fi
+    if feature_plugin_is_current "$plugin_root" "$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" \
+        "$SIMPLEDECKYTDP_OFFICIAL_VERSION" "掌机功耗控制"; then
+        echo "[已检测] 掌机功耗控制已是最新汉化版 v$SIMPLEDECKYTDP_OFFICIAL_VERSION，无需处理。"
+        return 0
+    fi
+    if [ -d "$plugin_root/$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" ]; then
+        installed_version="$(decky_plugin_version "$plugin_root/$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" || true)"
+        echo "检测到现有 SimpleDeckyTDP 版本 ${installed_version:-未知}，不是最新汉化版，将替换为“掌机功耗控制”汉化版。"
+    else
+        echo "未检测到 SimpleDeckyTDP，正在安装“掌机功耗控制”汉化版。"
+    fi
+    install_simpledeckytdp_zh_from_gitee
 }
 
 restore_lsfg_official() {
@@ -2929,7 +2952,6 @@ print_feature_plugin_status() {
         echo "✗ CheatDeck：未找到完整插件文件"
         missing=1
     fi
-
     echo ""
     echo "说明：插件侧栏中的 Decky-Framegen 就是 FSR4。"
     echo "CheatDeck 安装完成后可在 Decky 右侧栏显示。"
@@ -3079,7 +3101,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         fsr4-zh) install_fsr4_chinese && refresh_feature_usage_guides ;;
         fsr4-zh-gitee) install_fsr4_zh_from_gitee && refresh_feature_usage_guides ;;
         simpledeckytdp-zh) install_simpledeckytdp_chinese ;;
-        simpledeckytdp-zh-gitee) install_simpledeckytdp_zh_from_gitee ;;
+        simpledeckytdp-zh-gitee) ensure_simpledeckytdp_chinese_current ;;
         lsfg-restore) show_plugin_download_speed_tip; restore_lsfg_official ;;
         lsfg-store) open_lossless_store ;;
         lsfg-import-select) select_and_import_lossless_backup ;;

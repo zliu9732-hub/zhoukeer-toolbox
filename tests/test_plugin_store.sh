@@ -262,7 +262,7 @@ fsr4_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-framegen-zh
     echo "FAIL: FSR4 中文构建文件校验值不匹配" >&2
     exit 1
 }
-grep -Fq '"name": "SimpleDeckyTDP（TDP 性能控制）"' \
+grep -Fq '"name": "掌机功耗控制"' \
     "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/plugin.json"
 grep -Fq '"version": "1.0.5"' \
     "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/package.json"
@@ -271,14 +271,15 @@ grep -Fq '"version": "1.0.5"' \
     exit 1
 }
 simpledeckytdp_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js" | awk '{print $1}')"
-[ "$simpledeckytdp_actual_sha256" = "749d3a0d684fe87b90989979ef034fe13d6af6e81961599536ed0c8b7f1e2c3d" ] || {
+[ "$simpledeckytdp_actual_sha256" = "9f3e3f0ad3cdae25f10c76f6d1b8d8dedf2b2675ca13d23081783ff1c04ff8c6" ] || {
     echo "FAIL: SimpleDeckyTDP 中文构建文件校验值不匹配" >&2
     exit 1
 }
-grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="749d3a0d684fe87b90989979ef034fe13d6af6e81961599536ed0c8b7f1e2c3d"' \
+grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="9f3e3f0ad3cdae25f10c76f6d1b8d8dedf2b2675ca13d23081783ff1c04ff8c6"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_simpledeckytdp_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'simpledeckytdp-zh-gitee) install_simpledeckytdp_zh_from_gitee' \
+grep -Fq 'ensure_simpledeckytdp_chinese_current()' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'simpledeckytdp-zh-gitee) ensure_simpledeckytdp_chinese_current' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'cp -a -- "$official_bin_dir" "$staged_source/bin"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"

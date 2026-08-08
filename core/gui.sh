@@ -247,7 +247,7 @@ game_environment_gui_menu() {
             all "常用插件加27款精选插件｜优先安装三件套，已装则跳过；再补27款精选" \
             lsfg "小黄鸭｜插帧神器（必装）" \
             fsr4 "FSR4｜画质补丁（阅读桌面文档慎用）" \
-            simpledeckytdp "SimpleDeckyTDP｜TDP/功耗性能控制" \
+            simpledeckytdp "掌机功耗控制｜SimpleDeckyTDP 汉化版·自动检测版本" \
             browse "浏览官方插件｜逐个查看插件作用" \
             ge-proton "安装 GE 兼容层｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
@@ -280,7 +280,7 @@ game_environment_gui_menu() {
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee
                 ;;
             simpledeckytdp)
-                run_gui_action "安装 SimpleDeckyTDP（TDP 性能控制）" \
+                run_gui_action "安装/修复掌机功耗控制汉化版" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee
                 ;;
