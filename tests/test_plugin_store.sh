@@ -164,7 +164,7 @@ grep -Fq 'DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'allycenter) show_plugin_download_speed_tip; install_configured_plugin allycenter' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'ALLYCENTER_ZH_INDEX_SHA256="b188afbe37db53db8f1b5fddf01f4568492bd35c9aa599f4ed3704df04e38528"' \
+grep -Fq 'ALLYCENTER_ZH_INDEX_SHA256="14d4e175d964108d762ad5b0ebc36a1c201483af25aa98509bc23c84aac345ea"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Ren-Amamiya-pixie / zliu9732-hub' \
     "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js" || {
@@ -188,7 +188,7 @@ grep -Fq 'RGB 灯光' \
 }
 allycenter_zh_actual_sha256="$(shasum -a 256 \
     "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js" | awk '{print $1}')"
-[ "$allycenter_zh_actual_sha256" = "b188afbe37db53db8f1b5fddf01f4568492bd35c9aa599f4ed3704df04e38528" ] || {
+[ "$allycenter_zh_actual_sha256" = "14d4e175d964108d762ad5b0ebc36a1c201483af25aa98509bc23c84aac345ea" ] || {
     echo "FAIL: Ally Center 中文构建文件校验值不匹配" >&2
     exit 1
 }
@@ -525,6 +525,10 @@ printf '%s\n' "$ally_install_output" | grep -Fq 'Ally Center v1.2.0 中文版已
 printf '%s\n' "$ally_install_output" | grep -Fq 'TEST_RELOAD: Ally Center'
 [ -s "$ALLY_PLUGIN_ROOT/Ally Center/plugin.json" ] || {
     echo "FAIL: Ally Center 根目录结构未安装 plugin.json" >&2
+    exit 1
+}
+grep -Fq '"name": "Ally 控制中心"' "$ALLY_PLUGIN_ROOT/Ally Center/plugin.json" || {
+    echo "FAIL: Ally Center 安装后插件清单未改为中文名称" >&2
     exit 1
 }
 [ -s "$ALLY_PLUGIN_ROOT/Ally Center/dist/index.js" ] || {

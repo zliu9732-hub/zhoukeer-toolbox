@@ -90,7 +90,7 @@ DECKY_ALLYCENTER_SHA256="${ZHOUKEER_DECKY_ALLYCENTER_SHA256:-a1059534de2a0e95566
 DECKY_ALLYCENTER_VERSION="1.2.0"
 DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 ALLYCENTER_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0"
-ALLYCENTER_ZH_INDEX_SHA256="b188afbe37db53db8f1b5fddf01f4568492bd35c9aa599f4ed3704df04e38528"
+ALLYCENTER_ZH_INDEX_SHA256="14d4e175d964108d762ad5b0ebc36a1c201483af25aa98509bc23c84aac345ea"
 # 汉化完整包固定使用Renkit GitHub Release 资产，避免原始文件下载过慢。
 DECKY_LSFG_ZH_URL="https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.9/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip"
 DECKY_LSFG_ZH_SHA256="11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"
@@ -2491,7 +2491,7 @@ allycenter_chinese_is_current() {
     local actual_sha256
 
     feature_plugin_is_current "$plugin_root" "Ally Center" \
-        "$DECKY_ALLYCENTER_VERSION" "Ally Center" || return 1
+        "$DECKY_ALLYCENTER_VERSION" "Ally 控制中心" || return 1
     actual_sha256="$(calculate_decky_sha256 \
         "$plugin_root/Ally Center/dist/index.js" 2>/dev/null || true)"
     [ "$actual_sha256" = "$ALLYCENTER_ZH_INDEX_SHA256" ]
@@ -2543,7 +2543,8 @@ install_allycenter_chinese() {
     if ! cp -a -- "$official_source" "$staged_source" || \
        ! rm -rf -- "$staged_source/dist" || \
        ! mkdir -p "$staged_source/dist" || \
-       ! cp -a -- "$ALLYCENTER_ZH_SOURCE_DIR/dist/index.js" "$staged_source/dist/index.js"; then
+       ! cp -a -- "$ALLYCENTER_ZH_SOURCE_DIR/dist/index.js" "$staged_source/dist/index.js" || \
+       ! cp -a -- "$ALLYCENTER_ZH_SOURCE_DIR/plugin.json" "$staged_source/plugin.json"; then
         rm -rf -- "$work_dir"
         echo "Ally Center 中文组件准备失败，原版未改动。"
         return 1

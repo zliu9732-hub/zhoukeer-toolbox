@@ -304,7 +304,7 @@ game_environment_gui_menu() {
             handheld-plugins)
                 handheld_plugin_choice="$(gui_dialog --menu "掌机控制插件" \
                     simpledeckytdp "掌机功耗控制｜SimpleDeckyTDP 汉化版·自动检测版本" \
-                    allycenter "Ally Center｜ROG Ally / Ally X 的 RGB、TDP、风扇与充电上限" \
+                    allycenter "Ally 控制中心｜ROG Ally / Ally X 的 RGB、TDP、风扇与充电上限" \
                     back "返回游戏与插件")" || continue
                 case "$handheld_plugin_choice" in
                     simpledeckytdp)

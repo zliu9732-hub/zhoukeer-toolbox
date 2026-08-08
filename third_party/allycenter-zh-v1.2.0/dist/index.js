@@ -1,4 +1,4 @@
-const manifest = {"name":"Ally Center"};
+const manifest = {"name":"Ally 控制中心"};
 const API_VERSION = 2;
 const internalAPIConnection = window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit;
 if (!internalAPIConnection) {
@@ -722,7 +722,7 @@ const DownloadModeSection = () => {
 const AboutModal = ({ closeModal }) => {
     return (window.SP_REACT.createElement(DFL.ConfirmModal, { onEscKeypress: closeModal, onOK: closeModal, strOKButtonText: "\u5173\u95ED", bHideCloseIcon: true, bAlertDialog: true },
         window.SP_REACT.createElement("div", { style: { textAlign: "center", marginBottom: "12px" } },
-            window.SP_REACT.createElement("div", { style: { fontSize: "18px", fontWeight: "bold", color: "#fff" } }, "Ally Center"),
+            window.SP_REACT.createElement("div", { style: { fontSize: "18px", fontWeight: "bold", color: "#fff" } }, "Ally \u63A7\u5236\u4E2D\u5FC3"),
             window.SP_REACT.createElement("div", { style: { fontSize: "12px", color: "#8b929a" } }, "\u7248\u672C 1.2.0")),
         window.SP_REACT.createElement("div", { style: { textAlign: "center" } },
             window.SP_REACT.createElement("div", { style: { color: "#8b929a", fontSize: "11px" } }, "\u539F\u4F5C\u8005"),
@@ -749,7 +749,7 @@ const AboutSection = () => {
     };
     return (window.SP_REACT.createElement(DFL.PanelSection, { title: "\u5173\u4E8E" },
         window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-            window.SP_REACT.createElement(DFL.ButtonItem, { layout: "below", onClick: showAboutModal }, "\u5173\u4E8E Ally Center"))));
+            window.SP_REACT.createElement(DFL.ButtonItem, { layout: "below", onClick: showAboutModal }, "\u5173\u4E8E Ally \u63A7\u5236\u4E2D\u5FC3"))));
 };
 const AllyCenterContent = () => {
     return (window.SP_REACT.createElement("div", null,
@@ -769,8 +769,8 @@ var index = DFL.definePlugin(() => {
     // Register the global black overlay component for download mode
     routerHook.addGlobalComponent("AllyCenterBlackOverlay", () => (window.SP_REACT.createElement(BlackScreenOverlay, { stateManager: downloadModeState })));
     return {
-        name: "Ally Center",
-        title: window.SP_REACT.createElement("div", { className: DFL.staticClasses.Title }, "Ally Center"),
+        name: "Ally 控制中心",
+        title: window.SP_REACT.createElement("div", { className: DFL.staticClasses.Title }, "Ally \u63A7\u5236\u4E2D\u5FC3"),
         content: window.SP_REACT.createElement(AllyCenterContent, null),
         icon: window.SP_REACT.createElement(AllyCenterIcon, null),
         onDismount() {

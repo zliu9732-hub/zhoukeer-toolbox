@@ -94,7 +94,7 @@ assert_contains "$touch_plugin_page_2" 'modules/plugin_store.sh" tomoon' "触控
 assert_contains "$gui_games" 'modules/plugin_store.sh" tomoon' "GUI ToMoon 未使用独立安装器"
 assert_contains "$touch_plugin_page_2" 'right:5-6:handheld-plugins' "插件第二页缺少掌机控制插件子菜单"
 for menu in "$touch_handheld_plugins" "$gui_games"; do
-    assert_contains "$menu" 'Ally Center' "掌机控制插件菜单缺少 Ally Center"
+    assert_contains "$menu" 'Ally 控制中心' "掌机控制插件菜单缺少中文名称"
     assert_contains "$menu" 'ROG Ally / Ally X' "Ally Center 入口缺少适用机型"
     assert_contains "$menu" 'RGB' "Ally Center 入口缺少 RGB 功能说明"
     assert_contains "$menu" 'modules/plugin_store.sh" allycenter' "Ally Center 未调用独立插件安装动作"

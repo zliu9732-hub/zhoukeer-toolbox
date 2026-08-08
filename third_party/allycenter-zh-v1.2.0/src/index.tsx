@@ -1233,7 +1233,7 @@ const AboutModal: VFC<{ closeModal: () => void }> = ({ closeModal }) => {
       bAlertDialog={true}
     >
       <div style={{ textAlign: "center", marginBottom: "12px" }}>
-        <div style={{ fontSize: "18px", fontWeight: "bold", color: "#fff" }}>Ally Center</div>
+        <div style={{ fontSize: "18px", fontWeight: "bold", color: "#fff" }}>Ally 控制中心</div>
         <div style={{ fontSize: "12px", color: "#8b929a" }}>版本 1.2.0</div>
       </div>
       <div style={{ textAlign: "center" }}>
@@ -1276,7 +1276,7 @@ const AboutSection: VFC = () => {
     <PanelSection title="关于">
       <PanelSectionRow>
         <ButtonItem layout="below" onClick={showAboutModal}>
-          关于 Ally Center
+          关于 Ally 控制中心
         </ButtonItem>
       </PanelSectionRow>
     </PanelSection>
@@ -1315,8 +1315,8 @@ export default definePlugin(() => {
   ));
 
   return {
-    name: "Ally Center",
-    title: <div className={staticClasses.Title}>Ally Center</div>,
+    name: "Ally 控制中心",
+    title: <div className={staticClasses.Title}>Ally 控制中心</div>,
     content: <AllyCenterContent />,
     icon: <AllyCenterIcon />,
     onDismount() {

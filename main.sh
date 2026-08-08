@@ -649,7 +649,7 @@ handheld_plugins_menu() {
     while true; do
         draw_category_frame games "掌机控制插件" "Steam Deck 功耗控制与 ROG Ally 系列硬件控制" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "掌机功耗控制" "SimpleDeckyTDP 汉化版·自动检测版本"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "Ally Center" "ROG Ally / Ally X 的 RGB、TDP、风扇与充电上限"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "Ally 控制中心" "ROG Ally / Ally X 的 RGB、TDP、风扇与充电上限"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件第二页"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
