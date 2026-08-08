@@ -2,7 +2,7 @@
 // @ts-ignore
 
 // Prevents it from being duplicated in output.
-const manifest = {"name":"SimpleDeckyTDP","author":"Aarron Lee","flags":["root"],"api_version":1,"publish":{"tags":["tdp","root"],"description":"Hardware control plugin for PC handhelds, including TDP, GPU, etc","image":"https://raw.githubusercontent.com/aarron-lee/SimpleDeckyTDP/refs/heads/main/img/plugin-image.jpg"}};
+const manifest = {"name":"掌机功耗控制","author":"Aarron Lee","flags":["root"],"api_version":1,"publish":{"tags":["tdp","root"],"description":"Hardware control plugin for PC handhelds, including TDP, GPU, etc","image":"https://raw.githubusercontent.com/aarron-lee/SimpleDeckyTDP/refs/heads/main/img/plugin-image.jpg"}};
 const API_VERSION = 2;
 const internalAPIConnection = window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit;
 // Initialize

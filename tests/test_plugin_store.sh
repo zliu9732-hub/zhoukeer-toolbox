@@ -264,6 +264,11 @@ fsr4_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-framegen-zh
 }
 grep -Fq '"name": "掌机功耗控制"' \
     "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/plugin.json"
+grep -Fq 'const manifest = {"name":"掌机功耗控制"' \
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js" || {
+    echo "FAIL: SimpleDeckyTDP 前端 API 身份名与插件清单不一致" >&2
+    exit 1
+}
 grep -Fq '"version": "1.0.5"' \
     "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/package.json"
 [ "$(grep -Fc 'Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化' "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js")" -ge 1 ] || {
@@ -271,13 +276,19 @@ grep -Fq '"version": "1.0.5"' \
     exit 1
 }
 simpledeckytdp_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js" | awk '{print $1}')"
-[ "$simpledeckytdp_actual_sha256" = "9f3e3f0ad3cdae25f10c76f6d1b8d8dedf2b2675ca13d23081783ff1c04ff8c6" ] || {
+[ "$simpledeckytdp_actual_sha256" = "3cde6f5a296342e97775293d390a8f1f5fbc3564e668346212a1d77814062442" ] || {
     echo "FAIL: SimpleDeckyTDP 中文构建文件校验值不匹配" >&2
     exit 1
 }
-grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="9f3e3f0ad3cdae25f10c76f6d1b8d8dedf2b2675ca13d23081783ff1c04ff8c6"' \
+grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="3cde6f5a296342e97775293d390a8f1f5fbc3564e668346212a1d77814062442"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_simpledeckytdp_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'simpledeckytdp_chinese_is_current()' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '"$plugin_root/$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY/dist/index.js"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: SimpleDeckyTDP 最新版检测未校验前端文件" >&2
+    exit 1
+}
 grep -Fq 'ensure_simpledeckytdp_chinese_current()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'simpledeckytdp-zh-gitee) ensure_simpledeckytdp_chinese_current' \
     "$PROJECT_ROOT/modules/plugin_store.sh"

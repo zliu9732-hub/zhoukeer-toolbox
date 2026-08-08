@@ -53,7 +53,7 @@ FSR4_RUNTIME_PATCHER="OptiPatcher_rolling.asi"
 SIMPLEDECKYTDP_OFFICIAL_DIRECTORY="SimpleDeckyTDP"
 SIMPLEDECKYTDP_OFFICIAL_VERSION="1.0.5"
 SIMPLEDECKYTDP_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5"
-SIMPLEDECKYTDP_ZH_INDEX_SHA256="9f3e3f0ad3cdae25f10c76f6d1b8d8dedf2b2675ca13d23081783ff1c04ff8c6"
+SIMPLEDECKYTDP_ZH_INDEX_SHA256="3cde6f5a296342e97775293d390a8f1f5fbc3564e668346212a1d77814062442"
 
 # 五款独立插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
@@ -2323,6 +2323,17 @@ install_fsr4_zh_from_gitee() {
     log "FSR4 v$FSR4_OFFICIAL_VERSION 汉化完整包安装完成"
 }
 
+simpledeckytdp_chinese_is_current() {
+    local plugin_root="$1"
+    local actual_sha256
+
+    feature_plugin_is_current "$plugin_root" "$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" \
+        "$SIMPLEDECKYTDP_OFFICIAL_VERSION" "掌机功耗控制" || return 1
+    actual_sha256="$(calculate_decky_sha256 \
+        "$plugin_root/$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY/dist/index.js" 2>/dev/null || true)"
+    [ "$actual_sha256" = "$SIMPLEDECKYTDP_ZH_INDEX_SHA256" ]
+}
+
 install_simpledeckytdp_chinese() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local actual_sha256
@@ -2337,9 +2348,7 @@ install_simpledeckytdp_chinese() {
         echo "SimpleDeckyTDP 中文界面仅支持真实 SteamOS 环境。"
         return 1
     fi
-    if feature_plugin_is_current "$plugin_root" "$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" \
-        "$SIMPLEDECKYTDP_OFFICIAL_VERSION" \
-        "掌机功耗控制"; then
+    if simpledeckytdp_chinese_is_current "$plugin_root"; then
         echo "[已安装] SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
         return 0
     fi
@@ -2404,9 +2413,7 @@ install_simpledeckytdp_zh_from_gitee() {
         echo "SimpleDeckyTDP 中文版仅支持真实 SteamOS 环境。"
         return 1
     fi
-    if feature_plugin_is_current "$plugin_root" "$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" \
-        "$SIMPLEDECKYTDP_OFFICIAL_VERSION" \
-        "掌机功耗控制"; then
+    if simpledeckytdp_chinese_is_current "$plugin_root"; then
         echo "[已安装] SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
         return 0
     fi
@@ -2448,8 +2455,7 @@ ensure_simpledeckytdp_chinese_current() {
         echo "掌机功耗控制版本检测仅支持真实 SteamOS 环境。"
         return 1
     fi
-    if feature_plugin_is_current "$plugin_root" "$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" \
-        "$SIMPLEDECKYTDP_OFFICIAL_VERSION" "掌机功耗控制"; then
+    if simpledeckytdp_chinese_is_current "$plugin_root"; then
         echo "[已检测] 掌机功耗控制已是最新汉化版 v$SIMPLEDECKYTDP_OFFICIAL_VERSION，无需处理。"
         return 0
     fi
