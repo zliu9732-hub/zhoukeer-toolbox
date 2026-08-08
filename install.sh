@@ -516,6 +516,21 @@ copy_simpledeckytdp_chinese() {
     copy_dir_files third_party/decky-simpledeckytdp-zh-v1.0.5/i18n
 }
 
+copy_allycenter_chinese() {
+    local source_dir="$SOURCE_ROOT/third_party/allycenter-zh-v1.2.0"
+    local relative_file
+
+    # 只携带 Ally 控制中心运行时覆盖中文界面所需的清单、版本、许可和前端。
+    for relative_file in plugin.json package.json LICENSE; do
+        if [ -f "$source_dir/$relative_file" ]; then
+            copy_file "$source_dir/$relative_file" \
+                "$STAGING_DIR/third_party/allycenter-zh-v1.2.0/$relative_file"
+        fi
+    done
+    copy_file "$source_dir/dist/index.js" \
+        "$STAGING_DIR/third_party/allycenter-zh-v1.2.0/dist/index.js"
+}
+
 remove_appledouble_files() {
     local root="$1"
 
@@ -538,6 +553,7 @@ copy_dir_files scripts
 copy_lsfg_chinese
 copy_fsr4_chinese
 copy_simpledeckytdp_chinese
+copy_allycenter_chinese
 
 # 标记由安装器管理的目录，启动器只在这类目录中执行自动更新。
 printf '%s\n' "zhoukeer-toolbox" > "$STAGING_DIR/.zhoukeer-installed"

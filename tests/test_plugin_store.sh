@@ -364,6 +364,16 @@ if grep -Eq '^copy_zhoukeer_localizer$' "$PROJECT_ROOT/install.sh"; then
     exit 1
 fi
 grep -Fq 'copy_lsfg_chinese' "$PROJECT_ROOT/install.sh"
+grep -Fq 'copy_allycenter_chinese()' "$PROJECT_ROOT/install.sh" || {
+    echo "FAIL: 主安装器未复制 Ally Center 中文组件" >&2
+    exit 1
+}
+grep -Fq 'copy_allycenter_chinese' "$PROJECT_ROOT/install.sh"
+grep -Fq 'third_party/allycenter-zh-v1.2.0/dist/index.js' \
+    "$PROJECT_ROOT/scripts/package_release.sh" || {
+    echo "FAIL: 发布包未强制校验 Ally Center 中文前端" >&2
+    exit 1
+}
 grep -Fq 'toolbox_sudo systemctl restart "$DECKY_SERVICE_NAME"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '旧版通用扫描式汉化已停用' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'features) show_plugin_download_speed_tip; install_feature_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
