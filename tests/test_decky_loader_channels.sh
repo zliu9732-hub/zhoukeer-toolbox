@@ -220,6 +220,9 @@ download_github_file() {
 
     printf 'github %s|%s|%s\n' \
         "$name" "$url" "$expected_sha256" >> "$CALLS"
+    case "$name" in
+        'Decky PluginLoader分块'*) echo "正在下载 $name..." ;;
+    esac
     case "$url" in
         */decky-installer-cn/latest.txt)
             [ "$GITEE_FAIL" -eq 0 ] || return 1
@@ -259,6 +262,9 @@ prepare_old_testing_install() {
 prepare_old_testing_install
 install_plugin_store stable > "$TMP_ROOT/stable.output" || \
     fail "旧测试版无法切换到稳定版"
+if grep -Fq '分块' "$TMP_ROOT/stable.output"; then
+    fail "稳定版插件商城仍显示分块下载提示"
+fi
 grep -Fxq 'v3.2.6' "$SERVICES_DIR/.loader.version" || \
     fail "稳定版安装未更新版本标记"
 grep -Eq '"branch"[[:space:]]*:[[:space:]]*0' "$SETTINGS_DIR/loader.json" || \
@@ -307,6 +313,9 @@ printf '[Service]\n' > "$USER_UNIT_PATH"
 : > "$USER_ENABLED"
 install_plugin_store prerelease > "$TMP_ROOT/prerelease.output" || \
     fail "Decky 官方测试版安装失败"
+if grep -Fq '分块' "$TMP_ROOT/prerelease.output"; then
+    fail "测试版插件商城仍显示分块下载提示"
+fi
 grep -Fxq 'v3.2.8-pre1' "$SERVICES_DIR/.loader.version" || \
     fail "测试版安装未更新版本标记"
 grep -Eq '"branch"[[:space:]]*:[[:space:]]*1' "$SETTINGS_DIR/loader.json" || \

@@ -21445,8 +21445,6 @@ const OtaUpdates = () => {
             Boolean(deviceName) && (window.SP_REACT.createElement(DeckyRow, null,
                 window.SP_REACT.createElement(DeckyField, { label: t("SYSTEM_INFO_DEVICE_NAME", "Device Name"), bottomSeparator: "none" }, deviceName))),
             window.SP_REACT.createElement(DeckyRow, null,
-                window.SP_REACT.createElement(DeckyField, { label: "Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化", bottomSeparator: "none" }, "掌机功耗控制（SimpleDeckyTDP 汉化版）")),
-            window.SP_REACT.createElement(DeckyRow, null,
                 window.SP_REACT.createElement(DeckyField, { label: t("SYSTEM_INFO_RESET_SETTINGS", "Reset Plugin Settings"), bottomSeparator: "none" }, t("SYSTEM_INFO_RESET_WARNING", "WARNING! This permanently deletes your current settings. This will also restart the Steam client, no Steam data will be affected."))),
             window.SP_REACT.createElement(DeckyRow, null,
                 window.SP_REACT.createElement(DeckyButton, { onClick: async () => {
@@ -21693,6 +21691,11 @@ const App = SP_REACT.memo(({}) => {
     const maxTdpAcProfileEnabled = useSelector(maxTdpAcProfilesEnabledSelector);
     const gpuControlEnabled = useAdvancedOption(AdvancedOptionsEnum.ENABLE_GPU_CONTROL);
     return (window.SP_REACT.createElement(window.SP_REACT.Fragment, null, !loading && (window.SP_REACT.createElement(window.SP_REACT.Fragment, null,
+        window.SP_REACT.createElement(DeckySection, null,
+            window.SP_REACT.createElement(DeckyRow, null,
+                window.SP_REACT.createElement("div", { style: { fontSize: "12px", opacity: 0.7, lineHeight: "1.45" } }, "中文汉化：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya） · 原插件作者：Aarron Lee")),
+            window.SP_REACT.createElement(DeckyRow, null,
+                window.SP_REACT.createElement("div", { style: { width: "100%", textAlign: "center", fontSize: "14px", fontWeight: 700, color: "#ffcc66", padding: "4px 0 8px" } }, "Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化"))),
         window.SP_REACT.createElement(DeckySection, null,
             window.SP_REACT.createElement(TdpProfiles, { isDesktop: isDesktop }),
             tdpControlEnabled && window.SP_REACT.createElement(TdpSlider, { disabled: maxTdpAcProfileEnabled }),

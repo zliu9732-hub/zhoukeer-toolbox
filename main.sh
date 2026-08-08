@@ -523,7 +523,7 @@ game_environment_menu() {
         ui_touch_button 13 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
         ui_touch_button 15 '\033[1;97;48;5;24m' "小黄鸭" "插帧神器（必装）·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
         ui_touch_button 17 '\033[1;97;48;5;24m' "FSR4" "画质补丁（阅读桌面文档慎用）·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
-        ui_touch_button 19 '\033[1;97;48;5;24m' "Freedeck" "下载游戏和模拟器游戏·感谢作者b站一苇Isidf"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "Freedeck 版本选择" "0.6 稳定版或 NewFreedeck 重构版"
         ui_touch_button 21 '\033[1;97;48;5;238m' "下一页…" "查看剩余插件"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -538,11 +538,39 @@ game_environment_menu() {
             cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             lsfg) confirm_and_run "安装小黄鸭" "插帧神器（必装）·国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
             fsr4) confirm_and_run "安装 FSR4" "画质补丁（阅读桌面文档慎用）·国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
-            freedeck) confirm_and_run "安装 Freedeck" "下载游戏和模拟器游戏；感谢作者b站一苇Isidf" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck ;;
+            freedeck) NEXT_CATEGORY="freedeck_versions"; return 0 ;;
             next) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "game_environment" ] || return 0
+    done
+}
+
+freedeck_versions_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame games "Freedeck 版本选择" "稳定版与独立重构版" 0
+        ui_touch_button 5 '\033[1;97;48;5;24m' "Freedeck 0.6 稳定版" "现有稳定版本·感谢作者b站一苇Isidf"
+        ui_touch_button 9 '\033[1;97;48;5;160m' "NewFreedeck v0.1" "独立重构版·上游注明部分功能未完成"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:5-6:stable right:9-10:new right:19-20:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            stable)
+                confirm_and_run "安装 Freedeck 0.6 稳定版" "安装现有稳定版本；感谢作者b站一苇Isidf" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck
+                ;;
+            new)
+                confirm_and_run "安装 NewFreedeck v0.1" "作者独立重构版；上游注明部分功能尚未完成，可能使用异常" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" newfreedeck
+                ;;
+            back) NEXT_CATEGORY="games"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = "freedeck_versions" ] || return 0
     done
 }
 
@@ -1405,6 +1433,7 @@ while true; do
         init) new_machine_menu ;;
         software) common_software_menu ;;
         games) game_environment_menu ;;
+        freedeck_versions) freedeck_versions_menu ;;
         decky_loader) decky_loader_menu ;;
         plugin_page_2) plugin_page_2_menu ;;
         battlenet_submenu) battlenet_submenu ;;

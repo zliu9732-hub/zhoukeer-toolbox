@@ -239,6 +239,7 @@ game_environment_gui_menu() {
     local choice
     local decky_choice
     local battlenet_choice
+    local freedeck_choice
     local repair_choice
 
     while true; do
@@ -247,6 +248,7 @@ game_environment_gui_menu() {
             all "常用插件加27款精选插件｜优先安装三件套，已装则跳过；再补27款精选" \
             lsfg "小黄鸭｜插帧神器（必装）" \
             fsr4 "FSR4｜画质补丁（阅读桌面文档慎用）" \
+            freedeck "Freedeck｜选择 0.6 稳定版或 NewFreedeck" \
             simpledeckytdp "掌机功耗控制｜SimpleDeckyTDP 汉化版·自动检测版本" \
             browse "浏览官方插件｜逐个查看插件作用" \
             ge-proton "安装 GE 兼容层｜提高 Windows 游戏兼容性" \
@@ -278,6 +280,25 @@ game_environment_gui_menu() {
                 run_gui_action "安装 FSR4（画质补丁）" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee
+                ;;
+            freedeck)
+                freedeck_choice="$(gui_dialog --menu "Freedeck 版本选择" \
+                    stable "Freedeck 0.6 稳定版｜现有稳定版本" \
+                    new "NewFreedeck v0.1｜独立重构版，上游注明部分功能未完成" \
+                    back "返回游戏与插件")" || continue
+                case "$freedeck_choice" in
+                    stable)
+                        run_gui_action "安装 Freedeck 0.6 稳定版" \
+                            env ZHOUKEER_AUTO_CONFIRM=1 \
+                            bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck
+                        ;;
+                    new)
+                        gui_confirm "NewFreedeck v0.1 是作者独立重构版；上游注明部分功能尚未完成，可能使用异常。是否继续安装？" && \
+                            run_gui_action "安装 NewFreedeck v0.1" \
+                                env ZHOUKEER_AUTO_CONFIRM=1 \
+                                bash "$PROJECT_ROOT/modules/plugin_store.sh" newfreedeck
+                        ;;
+                esac
                 ;;
             simpledeckytdp)
                 run_gui_action "安装/修复掌机功耗控制汉化版" \

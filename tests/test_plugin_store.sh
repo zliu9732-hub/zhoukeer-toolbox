@@ -148,6 +148,14 @@ grep -Fq '"Freedeck" >/dev/null 2>&1; then' "$PROJECT_ROOT/modules/plugin_store.
     echo "FAIL: Freedeck 可用固定版本回退时仍会显示最新 Release 探测错误" >&2
     exit 1
 }
+grep -Fq 'Freedeck/releases/download/New-0.1/NewFreedeck.v.0.1.zip' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '60c9832a5808941d0940caef7fecfe6058532d6cdc52e0002463a5a512be0823' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'DECKY_NEWFREEDECK_MIRROR_REPO="zhoukeer-toolbox-mirror-3"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'newfreedeck) show_plugin_download_speed_tip; install_configured_plugin newfreedeck' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'releases/download/v6.0.9/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'releases/download/v1.2.2/Decky-Framegen-FSR4-v0.17.zip' \
@@ -279,12 +287,22 @@ grep -Fq '"version": "1.0.5"' \
     echo "FAIL: SimpleDeckyTDP 插件打开后缺少可见汉化署名" >&2
     exit 1
 }
+grep -Fq '中文汉化：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya） · 原插件作者：Aarron Lee' \
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js" || {
+    echo "FAIL: SimpleDeckyTDP 缺少与小黄鸭一致的作者署名行" >&2
+    exit 1
+}
+grep -Fq 'color: "#ffcc66"' \
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js" || {
+    echo "FAIL: SimpleDeckyTDP 缺少与小黄鸭一致的突出汉化署名" >&2
+    exit 1
+}
 simpledeckytdp_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js" | awk '{print $1}')"
-[ "$simpledeckytdp_actual_sha256" = "3cde6f5a296342e97775293d390a8f1f5fbc3564e668346212a1d77814062442" ] || {
+[ "$simpledeckytdp_actual_sha256" = "fff7ef99f9fe8811f412836c97021bc369a10283ccc461969b4fc55cfe41c040" ] || {
     echo "FAIL: SimpleDeckyTDP 中文构建文件校验值不匹配" >&2
     exit 1
 }
-grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="3cde6f5a296342e97775293d390a8f1f5fbc3564e668346212a1d77814062442"' \
+grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="fff7ef99f9fe8811f412836c97021bc369a10283ccc461969b4fc55cfe41c040"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_simpledeckytdp_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'simpledeckytdp_chinese_is_current()' "$PROJECT_ROOT/modules/plugin_store.sh"

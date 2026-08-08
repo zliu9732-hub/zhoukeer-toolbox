@@ -79,6 +79,7 @@ done
 
 touch_plugin_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
 gui_games="$(function_source "$GUI_FILE" game_environment_gui_menu)"
+touch_freedeck="$(function_source "$MAIN_FILE" freedeck_versions_menu)"
 assert_contains "$touch_plugin_page_2" '战网启动器' "插件第二页缺少战网启动器"
 assert_contains "$gui_games" '战网启动器' "GUI 游戏与插件缺少战网启动器"
 assert_contains "$touch_plugin_page_2" 'ToMoon' "插件第二页缺少 ToMoon"
@@ -90,6 +91,11 @@ assert_contains "$touch_plugin_page_2" 'right:21-22:previous' "插件第二页�
 assert_contains "$touch_plugin_page_2" 'right:23-24:home' "插件第二页缺少调整后的返回首页坐标"
 assert_contains "$touch_plugin_page_2" 'modules/plugin_store.sh" tomoon' "触控 ToMoon 未使用独立安装器"
 assert_contains "$gui_games" 'modules/plugin_store.sh" tomoon' "GUI ToMoon 未使用独立安装器"
+for menu in "$touch_freedeck" "$gui_games"; do
+    assert_contains "$menu" 'Freedeck 0.6 稳定版' "Freedeck 版本菜单缺少稳定版"
+    assert_contains "$menu" 'NewFreedeck v0.1' "Freedeck 版本菜单缺少重构版"
+    assert_contains "$menu" '部分功能' "NewFreedeck 入口缺少上游未完成提示"
+done
 touch_software_buttons="$(printf '%s\n' "$touch_software" | grep 'ui_touch_button')"
 gui_software_entries="$(printf '%s\n' "$gui_software" | sed -n '/choice="$(gui_dialog --menu/,/)" || return 0/p')"
 for obsolete_hint in '安装适合 SteamOS 的微信' '安装适合 SteamOS 的 QQ' \

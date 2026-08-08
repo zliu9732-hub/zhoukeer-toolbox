@@ -53,7 +53,7 @@ FSR4_RUNTIME_PATCHER="OptiPatcher_rolling.asi"
 SIMPLEDECKYTDP_OFFICIAL_DIRECTORY="SimpleDeckyTDP"
 SIMPLEDECKYTDP_OFFICIAL_VERSION="1.0.5"
 SIMPLEDECKYTDP_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5"
-SIMPLEDECKYTDP_ZH_INDEX_SHA256="3cde6f5a296342e97775293d390a8f1f5fbc3564e668346212a1d77814062442"
+SIMPLEDECKYTDP_ZH_INDEX_SHA256="fff7ef99f9fe8811f412836c97021bc369a10283ccc461969b4fc55cfe41c040"
 
 # 五款独立插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
@@ -79,6 +79,11 @@ DECKY_UNIFIDECK_SHA256="a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59
 DECKY_FREEDECK_URL="https://github.com/panyiwei-home/Freedeck/releases/download/0.6/freedeck.v.0.6.zip"
 DECKY_FREEDECK_SHA256="04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62"
 DECKY_FREEDECK_VERSION="0.6"
+# NewFreedeck 是作者独立重构版，与 Freedeck 0.6 使用不同插件目录。
+DECKY_NEWFREEDECK_URL="https://github.com/panyiwei-home/Freedeck/releases/download/New-0.1/NewFreedeck.v.0.1.zip"
+DECKY_NEWFREEDECK_SHA256="60c9832a5808941d0940caef7fecfe6058532d6cdc52e0002463a5a512be0823"
+DECKY_NEWFREEDECK_VERSION="0.1"
+DECKY_NEWFREEDECK_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 # 汉化完整包固定使用Renkit GitHub Release 资产，避免原始文件下载过慢。
 DECKY_LSFG_ZH_URL="https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.9/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip"
 DECKY_LSFG_ZH_SHA256="11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"
@@ -382,7 +387,8 @@ download_decky_gitee_loader() {
         part_file="${output}.part.${i}"
         if ! download_github_file \
             "$DECKY_GITEE_MIRROR_BASE/${prefix}.part.${part_name}" \
-            "$part_file" "${part_entries[$i]}" "Decky PluginLoader分块${part_name}"; then
+            "$part_file" "${part_entries[$i]}" "Decky PluginLoader分块${part_name}" \
+            >/dev/null 2>&1; then
             rm -f -- "$output"
             return 1
         fi
@@ -2840,6 +2846,18 @@ install_configured_plugin() {
                 "${DECKY_FREEDECK_SHA256:-}" \
                 "freedeck-plugin"
             ;;
+        newfreedeck)
+            (
+                GITEE_MIRROR_REPO="$DECKY_NEWFREEDECK_MIRROR_REPO"
+                export GITEE_MIRROR_REPO
+                echo "提示：NewFreedeck v$DECKY_NEWFREEDECK_VERSION 为作者重构版，上游注明部分功能尚未完成。"
+                install_decky_zip \
+                    "NewFreedeck（重构测试版）" \
+                    "$DECKY_NEWFREEDECK_URL" \
+                    "$DECKY_NEWFREEDECK_SHA256" \
+                    "NewFreedeck"
+            )
+            ;;
         simpledeckytdp)
             resolve_plugin_latest simpledeckytdp
             install_decky_zip \
@@ -3116,6 +3134,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         tomoon) show_plugin_download_speed_tip; install_configured_plugin tomoon ;;
         deckrecall) show_plugin_download_speed_tip; install_configured_plugin deckrecall ;;
         freedeck) show_plugin_download_speed_tip; install_configured_plugin freedeck ;;
+        newfreedeck) show_plugin_download_speed_tip; install_configured_plugin newfreedeck ;;
         simpledeckytdp) show_plugin_download_speed_tip; install_configured_plugin simpledeckytdp ;;
         unifideck) show_plugin_download_speed_tip; install_configured_plugin unifideck ;;
         localizer)
