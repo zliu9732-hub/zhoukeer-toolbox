@@ -130,7 +130,7 @@ cover_without_marker="$(
     echo "FAIL: 无当前版本标记时仍直接复用了旧封面缓存" >&2
     exit 1
 }
-touch "$STALE_COVER_CACHE/.covers-ready-v4"
+touch "$STALE_COVER_CACHE/.covers-ready-v5"
 cover_with_marker="$(
     MODULE="$MODULE" ZHOUKEER_LAUNCHER_COVER_CACHE_DIR="$STALE_COVER_CACHE" bash -c '
         source "$MODULE"
@@ -654,6 +654,16 @@ for current_app_id in "$app_id" "$artwork_raw_app_id"; do
         done
     done
 done
+cmp -s "$PROJECT_ROOT/assets/game-launchers/epic.png" \
+    "$(dirname "$art_shortcuts")/grid/${app_id}_icon.png" || {
+    echo "FAIL: Epic Steam 图标未保留原始桌面图标素材" >&2
+    exit 1
+}
+cmp -s "$PROJECT_ROOT/assets/game-launchers/epic-logo.png" \
+    "$(dirname "$art_shortcuts")/grid/${app_id}_logo.png" || {
+    echo "FAIL: Epic 横向背景仍使用未留白的桌面图标" >&2
+    exit 1
+}
 for check_id in "$game_id"; do
     for artwork in "$check_id.jpg" "${check_id}p.jpg" "${check_id}_hero.jpg" \
         "${check_id}_logo.png" "${check_id}_icon.png" "${check_id}_background.jpg"; do
@@ -1199,10 +1209,26 @@ grep -Fq 'GITEE_MIRROR_REPO="${ZHOUKEER_LAUNCHER_COVER_MIRROR_REPO:-zhoukeer-too
     echo "FAIL: 启动器封面未改走 v2 镜像" >&2
     exit 1
 }
-grep -Fq 'covers-ready-v4' "$MODULE" || {
+grep -Fq 'covers-ready-v5' "$MODULE" || {
     echo "FAIL: 启动器封面未升级镜像缓存版本" >&2
     exit 1
 }
+
+python3 - "$PROJECT_ROOT/assets/game-launchers" <<'PY'
+from pathlib import Path
+import struct
+import sys
+
+root = Path(sys.argv[1])
+for target in ("epic", "battlenet", "ubisoft", "heihe"):
+    path = root / f"{target}-logo.png"
+    data = path.read_bytes()
+    if data[:8] != b"\x89PNG\r\n\x1a\n" or len(data) < 24:
+        raise SystemExit(f"FAIL: {path.name} 不是有效 PNG")
+    width, height = struct.unpack(">II", data[16:24])
+    if (width, height) != (1024, 1024):
+        raise SystemExit(f"FAIL: {path.name} 不是 1024x1024 透明留白图")
+PY
 
 # 启动器卸载会移除 Steam 条目与桌面入口，但保留游戏与下载文件。
 UNINSTALL_ROOT="$(mktemp -d)"

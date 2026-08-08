@@ -24,7 +24,7 @@ LAUNCHER_BASE="${ZHOUKEER_LAUNCHER_BASE:-$HOME/游戏启动器}"
 LAUNCHER_COVER_MIRROR_ID="${ZHOUKEER_LAUNCHER_COVER_MIRROR_ID:-launcher-covers}"
 LAUNCHER_COVER_BUNDLE_NAME="启动器封面素材"
 LAUNCHER_COVER_CACHE_ROOT="${ZHOUKEER_LAUNCHER_COVER_CACHE_DIR:-$APP_DIR/game-launchers/covers}"
-LAUNCHER_COVER_READY_MARKER="$LAUNCHER_COVER_CACHE_ROOT/.covers-ready-v4"
+LAUNCHER_COVER_READY_MARKER="$LAUNCHER_COVER_CACHE_ROOT/.covers-ready-v5"
 
 launcher_details() {
     case "$1" in
@@ -1185,7 +1185,7 @@ PY
 
 install_launcher_artwork_for_id() {
     local asset_name="$1" grid_dir="$2" artwork_id="$3"
-    local grid_source portrait_source hero_source icon_source background_file
+    local grid_source portrait_source hero_source icon_source logo_source background_file
 
     # 先清理同 stem 的旧 png/jpg/jpeg，避免 Steam 取图结果不确定。
     rm -f -- \
@@ -1226,7 +1226,9 @@ install_launcher_artwork_for_id() {
     [ -s "$hero_source" ] || return 1
     install -m 0644 -- "$hero_source" \
         "$grid_dir/${artwork_id}_hero.jpg" || return 1
-    install -m 0644 -- "$icon_source" \
+    logo_source="$(launcher_cover_file "$asset_name" "$asset_name-logo.png" || true)"
+    [ -s "$logo_source" ] || logo_source="$icon_source"
+    install -m 0644 -- "$logo_source" \
         "$grid_dir/${artwork_id}_logo.png" || return 1
     background_file="$(launcher_cover_file "$asset_name" "$asset_name-background.jpg" || true)"
     [ -s "$background_file" ] || return 1
