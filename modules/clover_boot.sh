@@ -39,17 +39,47 @@ CLOVER_EFI_DRIVER=""
 CLOVER_DEVICE_CONFIG=""
 CLOVER_DEFAULT_OS=""
 
+clover_path_is_dir() {
+    local path="$1"
+
+    [ -d "$path" ] || toolbox_sudo test -d "$path" >/dev/null 2>&1
+}
+
+clover_path_is_file() {
+    local path="$1"
+
+    [ -f "$path" ] || toolbox_sudo test -f "$path" >/dev/null 2>&1
+}
+
+clover_path_is_nonempty_file() {
+    local path="$1"
+
+    [ -s "$path" ] || toolbox_sudo test -s "$path" >/dev/null 2>&1
+}
+
+clover_path_exists() {
+    local path="$1"
+
+    [ -e "$path" ] || toolbox_sudo test -e "$path" >/dev/null 2>&1
+}
+
+clover_path_is_symlink() {
+    local path="$1"
+
+    [ -L "$path" ] || toolbox_sudo test -L "$path" >/dev/null 2>&1
+}
+
 clover_candidate_is_esp() {
     local candidate="$1"
 
-    [ -d "$candidate/EFI" ] || return 1
+    clover_path_is_dir "$candidate/EFI" || return 1
     detect_platform
     if [ "$IS_BAZZITE" -eq 1 ]; then
-        [ -f "$candidate/EFI/fedora/shimx64.efi" ] || \
-            [ -f "$candidate/EFI/CLOVER/CLOVERX64.efi" ]
+        clover_path_is_file "$candidate/EFI/fedora/shimx64.efi" || \
+            clover_path_is_file "$candidate/EFI/CLOVER/CLOVERX64.efi"
     else
-        [ -f "$candidate/EFI/steamos/steamcl.efi" ] || \
-            [ -f "$candidate/EFI/CLOVER/CLOVERX64.efi" ]
+        clover_path_is_file "$candidate/EFI/steamos/steamcl.efi" || \
+            clover_path_is_file "$candidate/EFI/CLOVER/CLOVERX64.efi"
     fi
 }
 
@@ -179,7 +209,7 @@ clover_find_esp() {
                 mountpoint="$(printf '%s\n' "$output" | sed -n 's/^Mounted .* at \(.*\)\.$/\1/p' | tail -n 1)"
             clover_candidate_is_esp "$mountpoint" || {
                 udisksctl unmount --block-device "$device" >/dev/null 2>&1 || true
-                if [ -d "$mountpoint/EFI" ]; then
+                if clover_path_is_dir "$mountpoint/EFI"; then
                     echo "临时挂载的分区不含当前系统的 EFI 启动文件。" >&2
                 else
                     echo "临时挂载的分区不含 EFI 目录。" >&2
@@ -190,7 +220,7 @@ clover_find_esp() {
             CLOVER_ESP_MOUNT_DEVICE="$device"
         fi
         clover_candidate_is_esp "$mountpoint" || {
-            if [ -d "$mountpoint/EFI" ]; then
+            if clover_path_is_dir "$mountpoint/EFI"; then
                 echo "定位到 EFI 分区 ${device}，但其挂载位置不含当前系统启动文件：${mountpoint:-未知}。" >&2
             else
                 echo "定位到 EFI 分区 ${device}，但其挂载位置不含 EFI 目录：${mountpoint:-未知}。" >&2
@@ -249,8 +279,8 @@ clover_windows_entry_exists() {
 
     entries="$(efibootmgr -v 2>/dev/null)" || return 1
     printf '%s\n' "$entries" | grep -Fi 'Windows Boot Manager' >/dev/null && return 0
-    [ -f "$CLOVER_ESP/EFI/Microsoft/Boot/bootmgfw.efi" ] || \
-        [ -f "$CLOVER_ESP/EFI/Microsoft/bootmgfw.efi" ]
+    clover_path_is_file "$CLOVER_ESP/EFI/Microsoft/Boot/bootmgfw.efi" || \
+        clover_path_is_file "$CLOVER_ESP/EFI/Microsoft/bootmgfw.efi"
 }
 
 clover_boot_number() {
@@ -418,13 +448,13 @@ clover_disable_windows_direct_boot() {
     backup_efi="$boot_dir/bootmgfw.efi.zhoukeer-orig"
     moved_efi="$microsoft_dir/bootmgfw.efi"
 
-    [ -f "$old_efi" ] || {
-        [ -f "$moved_efi" ] && return 0
+    clover_path_is_file "$old_efi" || {
+        clover_path_is_file "$moved_efi" && return 0
         echo "未找到 Windows 启动文件，无法禁用 Windows 直启。"
         return 1
     }
     toolbox_sudo mkdir -p -- "$microsoft_dir" || return 1
-    if [ -f "$backup_efi" ]; then
+    if clover_path_is_file "$backup_efi"; then
         toolbox_sudo mv -- "$old_efi" "$moved_efi" || return 1
     else
         toolbox_sudo cp -- "$old_efi" "$backup_efi" || return 1
@@ -445,8 +475,8 @@ clover_restore_windows_direct_boot() {
     backup_efi="$boot_dir/bootmgfw.efi.zhoukeer-orig"
     moved_efi="$microsoft_dir/bootmgfw.efi"
 
-    [ -f "$backup_efi" ] || return 0
-    [ -f "$moved_efi" ] && toolbox_sudo rm -f -- "$moved_efi"
+    clover_path_is_file "$backup_efi" || return 0
+    clover_path_is_file "$moved_efi" && toolbox_sudo rm -f -- "$moved_efi"
     toolbox_sudo mv -- "$backup_efi" "$old_efi" || return 1
     echo "Windows 直启已恢复。"
 }
@@ -651,7 +681,11 @@ clover_marker_value() {
     local marker="$1"
     local key="$2"
 
-    sed -n "s/^${key}=//p" "$marker" | head -n 1
+    if [ -r "$marker" ]; then
+        sed -n "s/^${key}=//p" "$marker" | head -n 1
+    else
+        toolbox_sudo sed -n "s/^${key}=//p" "$marker" 2>/dev/null | head -n 1
+    fi
 }
 
 clover_write_marker() {
@@ -739,7 +773,7 @@ clover_install() {
         echo "未检测到 Windows Boot Manager，已停止安装 Clover。"
         return 1
     }
-    available_kb="$(df -Pk "$CLOVER_ESP" 2>/dev/null | awk 'NR == 2 { print $4 }')"
+    available_kb="$(toolbox_sudo df -Pk "$CLOVER_ESP" 2>/dev/null | awk 'NR == 2 { print $4 }')"
     case "$available_kb" in
         ''|*[!0-9]*) echo "无法确认 EFI 系统分区剩余空间。"; return 1 ;;
     esac
@@ -801,7 +835,7 @@ clover_install() {
     original_order="$current_order"
     original_backup=""
 
-    if [ -f "$target/.zhoukeer-managed" ]; then
+    if clover_path_is_file "$target/.zhoukeer-managed"; then
         original_order="$(clover_marker_value "$target/.zhoukeer-managed" ORIGINAL_BOOT_ORDER)"
         original_backup="$(clover_marker_value "$target/.zhoukeer-managed" ORIGINAL_BACKUP)"
         clover_boot_order_is_safe "$original_order" && \
@@ -810,19 +844,20 @@ clover_install() {
             echo "现有 Clover 管理标记格式异常，EFI 未修改。"
             return 1
         }
-        if [ -n "$original_backup" ] && { [ ! -d "$original_backup" ] || [ -L "$original_backup" ]; }; then
+        if [ -n "$original_backup" ] && \
+            { ! clover_path_is_dir "$original_backup" || clover_path_is_symlink "$original_backup"; }; then
             rm -rf -- "$work_dir"
             echo "现有 Clover 原始备份不存在或不是安全目录，EFI 未修改。"
             return 1
         fi
-    elif [ -e "$target" ]; then
+    elif clover_path_exists "$target"; then
         original_backup="$existing_backup"
     fi
-    [ ! -e "$existing_backup" ] || {
+    if clover_path_exists "$existing_backup"; then
         rm -rf -- "$work_dir"
         echo "Clover 备份目标已存在，EFI 未修改，请稍后重试。"
         return 1
-    }
+    fi
     clover_write_marker "$staged" "$original_backup" "$original_order" || {
         rm -rf -- "$work_dir"
         return 1
@@ -838,7 +873,7 @@ clover_install() {
         echo "复制 Clover 到 EFI 失败，原启动文件未修改。"
         return 1
     }
-    if [ -e "$target" ]; then
+    if clover_path_exists "$target"; then
         toolbox_sudo mv -- "$target" "$existing_backup" || {
             toolbox_sudo rm -rf -- "$temporary_target" >/dev/null 2>&1 || true
             rm -rf -- "$work_dir"
@@ -847,7 +882,9 @@ clover_install() {
         }
     fi
     if ! toolbox_sudo mv -- "$temporary_target" "$target"; then
-        [ ! -e "$existing_backup" ] || toolbox_sudo mv -- "$existing_backup" "$target" || true
+        if clover_path_exists "$existing_backup"; then
+            toolbox_sudo mv -- "$existing_backup" "$target" || true
+        fi
         rm -rf -- "$work_dir"
         echo "启用新 Clover 文件失败，已尝试恢复原目录。"
         return 1
@@ -859,7 +896,9 @@ clover_install() {
             --part "$CLOVER_PARTITION" --label "$CLOVER_BOOT_LABEL" \
             --loader "$CLOVER_LOADER_PATH")"; then
             toolbox_sudo mv -- "$target" "$temporary_target" || true
-            [ ! -e "$existing_backup" ] || toolbox_sudo mv -- "$existing_backup" "$target" || true
+            if clover_path_exists "$existing_backup"; then
+                toolbox_sudo mv -- "$existing_backup" "$target" || true
+            fi
             rm -rf -- "$work_dir"
             echo "创建 Clover NVRAM 启动项失败，已尝试恢复原目录。"
             return 1
@@ -873,7 +912,9 @@ clover_install() {
     if [ -z "$boot_number" ]; then
         echo "无法确认 Clover NVRAM 启动项编号，正在回滚。"
         toolbox_sudo mv -- "$target" "$temporary_target" || true
-        [ ! -e "$existing_backup" ] || toolbox_sudo mv -- "$existing_backup" "$target" || true
+        if clover_path_exists "$existing_backup"; then
+            toolbox_sudo mv -- "$existing_backup" "$target" || true
+        fi
         rm -rf -- "$work_dir"
         return 1
     fi
@@ -882,7 +923,9 @@ clover_install() {
     if ! toolbox_sudo efibootmgr --bootorder "$new_order"; then
         [ "$new_boot_entry" -eq 0 ] || toolbox_sudo efibootmgr --delete-bootnum --bootnum "$boot_number" || true
         toolbox_sudo mv -- "$target" "$temporary_target" || true
-        [ ! -e "$existing_backup" ] || toolbox_sudo mv -- "$existing_backup" "$target" || true
+        if clover_path_exists "$existing_backup"; then
+            toolbox_sudo mv -- "$existing_backup" "$target" || true
+        fi
         [ -z "$current_order" ] || toolbox_sudo efibootmgr --bootorder "$current_order" || true
         rm -rf -- "$work_dir"
         echo "设置 Clover 开机顺序失败，已尝试恢复原状态。"
@@ -920,7 +963,7 @@ clover_restore() {
     clover_resolve_esp_device || return 1
     target="$CLOVER_ESP/EFI/CLOVER"
     marker="$target/.zhoukeer-managed"
-    [ -f "$marker" ] || {
+    clover_path_is_file "$marker" || {
         echo "未发现由Renkit管理的 Clover，未执行恢复。"
         return 1
     }
@@ -938,7 +981,8 @@ clover_restore() {
         echo "Clover BootOrder 标记异常，已拒绝恢复。"
         return 1
     }
-    if [ -n "$original_backup" ] && { [ ! -d "$original_backup" ] || [ -L "$original_backup" ]; }; then
+    if [ -n "$original_backup" ] && \
+        { ! clover_path_is_dir "$original_backup" || clover_path_is_symlink "$original_backup"; }; then
         echo "原 Clover 备份不存在或不是安全目录，已拒绝恢复。"
         return 1
     fi
@@ -966,7 +1010,7 @@ clover_restore() {
     removed_path="$backup_root/clover-removed-$timestamp"
     toolbox_sudo mkdir -p -- "$backup_root" || return 1
     toolbox_sudo mv -- "$target" "$removed_path" || return 1
-    if [ -n "$original_backup" ] && [ -d "$original_backup" ]; then
+    if [ -n "$original_backup" ] && clover_path_is_dir "$original_backup"; then
         if ! toolbox_sudo mv -- "$original_backup" "$target"; then
             toolbox_sudo mv -- "$removed_path" "$target" || true
             echo "恢复原 Clover 目录失败，已尝试放回Renkit版本。"
@@ -997,7 +1041,8 @@ clover_status() {
     clover_resolve_esp_device || return 1
     target="$CLOVER_ESP/EFI/CLOVER"
     boot_number="$(clover_boot_number)"
-    if [ -f "$target/.zhoukeer-managed" ] && [ -s "$target/CLOVERX64.efi" ]; then
+    if clover_path_is_file "$target/.zhoukeer-managed" && \
+        clover_path_is_nonempty_file "$target/CLOVERX64.efi"; then
         echo "Clover：已由Renkit安装"
         echo "版本：$(clover_marker_value "$target/.zhoukeer-managed" VERSION)"
         echo "EFI：$target"
