@@ -127,6 +127,17 @@ fi
 grep -Fq 'modules/domestic_source.sh" enable' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 国内 Flatpak 源入口缺失"
 grep -Fq 'modules/domestic_source.sh" restore' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 官方 Flatpak 源恢复入口缺失"
 grep -Fq 'localsend) title="LocalSend"' "$PROJECT_ROOT/main-bazzite.sh" || fail "LocalSend 菜单动作缺失"
+grep -Fq 'modules/ge_proton.sh" install-trainer' "$PROJECT_ROOT/main-bazzite.sh" || fail "修改器常用 GE-Proton 入口缺失"
+grep -Fq 'modules/emulators.sh" yuzu-keys' "$PROJECT_ROOT/main-bazzite.sh" || fail "Yuzu 自备密钥导入入口缺失"
+grep -Fq 'modules/emulators.sh" yuzu-keys-status' "$PROJECT_ROOT/main-bazzite.sh" || fail "Yuzu 密钥状态入口缺失"
+grep -Fq 'modules/decky_bundle.sh" plugin' "$PROJECT_ROOT/main-bazzite.sh" || fail "Decky 官方插件逐个安装入口缺失"
+grep -Fq 'DECKY_BUNDLE_INCLUDE_CUSTOM=0' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite Decky 推荐安装未禁用自定义插件"
+grep -Fq 'modules/game_guides.sh" show' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 中文兼容攻略入口缺失"
+grep -Fq 'modules/handheld_helper.sh" peripherals' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 外接设备检查入口缺失"
+grep -Fq 'modules/safety_center.sh" records' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 操作记录导出入口缺失"
+if grep -Fq 'modules/plugin_store.sh' "$PROJECT_ROOT/main-bazzite.sh"; then
+    fail "Bazzite 菜单误接入 SteamOS 插件商城模块"
+fi
 grep -Fq 'main-bazzite.sh' "$PROJECT_ROOT/scripts/package_release.sh" || fail "发布包未校验 Bazzite 主程序"
 grep -Fq 'modules/bazzite_decky.sh' "$PROJECT_ROOT/scripts/package_release.sh" || fail "发布包未校验 Bazzite Decky 模块"
 

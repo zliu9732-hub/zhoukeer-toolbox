@@ -1264,9 +1264,15 @@ install_software() {
 show_software_status() {
     local target
     local installed_count=0
+    local target_count=0
 
+    detect_platform
     echo "常用软件与远程协助安装状态："
     for target in "${SOFTWARE_TARGETS[@]}"; do
+        if [ "$IS_BAZZITE" -eq 1 ] && [ "$target" = "anydesk" ]; then
+            continue
+        fi
+        target_count=$((target_count + 1))
         software_details "$target" || return 1
         if software_is_installed; then
             echo "✓ $SOFTWARE_NAME：已安装"
@@ -1275,14 +1281,18 @@ show_software_status() {
             echo "- $SOFTWARE_NAME：未安装"
         fi
     done
-    echo "已安装：$installed_count / ${#SOFTWARE_TARGETS[@]}"
+    echo "已安装：$installed_count / $target_count"
 }
 
 repair_software_shortcuts() {
     local target
     local repaired=0
 
+    detect_platform
     for target in "${SOFTWARE_TARGETS[@]}"; do
+        if [ "$IS_BAZZITE" -eq 1 ] && [ "$target" = "anydesk" ]; then
+            continue
+        fi
         software_details "$target" || return 1
         if software_is_installed; then
             create_software_shortcut || return 1
@@ -1531,6 +1541,12 @@ uninstall_flatpak_software() {
         confirm_software_uninstall "$app_name" || { echo "已取消卸载。"; return 0; }
         flatpak uninstall --user --noninteractive -y "$app_id" || return 1
     elif flatpak info --system "$app_id" >/dev/null 2>&1; then
+        detect_platform
+        if [ "$IS_BAZZITE" -eq 1 ]; then
+            echo "$app_name 是系统级 Flatpak，Renkit Bazzite版不会提权卸载。"
+            echo "请使用 Bazzite 自带的软件管理界面维护该系统级应用。"
+            return 0
+        fi
         confirm_software_uninstall "$app_name" || { echo "已取消卸载。"; return 0; }
         toolbox_sudo flatpak uninstall --system --noninteractive -y "$app_id" || return 1
     else
