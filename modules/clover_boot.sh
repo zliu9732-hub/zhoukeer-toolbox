@@ -25,6 +25,7 @@ CLOVER_DRIVER_DIR="$PROJECT_ROOT/assets/clover/drivers"
 CLOVER_BOOTMANAGER_DIR="$PROJECT_ROOT/assets/clover/bootmanager"
 CLOVER_BOOTMANAGER_SYSTEM_DIR="${ZHOUKEER_CLOVER_SYSTEM_DIR:-/etc/systemd/system}"
 CLOVER_BOOTMANAGER_WHITELIST_DIR="${ZHOUKEER_CLOVER_WHITELIST_DIR:-/etc/atomic-update.conf.d}"
+CLOVER_DMI_ROOT="${ZHOUKEER_DMI_ROOT:-/sys/class/dmi/id}"
 CLOVER_ESP=""
 CLOVER_ESP_SOURCE=""
 CLOVER_DISK=""
@@ -36,12 +37,27 @@ CLOVER_DEVICE_PREFIX=""
 CLOVER_DEVICE_NAME=""
 CLOVER_EFI_DRIVER=""
 CLOVER_DEVICE_CONFIG=""
+CLOVER_DEFAULT_OS=""
+
+clover_candidate_is_esp() {
+    local candidate="$1"
+
+    [ -d "$candidate/EFI" ] || return 1
+    detect_platform
+    if [ "$IS_BAZZITE" -eq 1 ]; then
+        [ -f "$candidate/EFI/fedora/shimx64.efi" ] || \
+            [ -f "$candidate/EFI/CLOVER/CLOVERX64.efi" ]
+    else
+        [ -f "$candidate/EFI/steamos/steamcl.efi" ] || \
+            [ -f "$candidate/EFI/CLOVER/CLOVERX64.efi" ]
+    fi
+}
 
 clover_nvram_partuuid() {
     local entries needle value
 
     entries="$(efibootmgr -v 2>/dev/null)" || return 1
-    for needle in 'cloverx64.efi' 'steamcl.efi'; do
+    for needle in 'cloverx64.efi' 'steamcl.efi' 'shimx64.efi'; do
         value="$(printf '%s\n' "$entries" | awk -v needle="$needle" '
             index(tolower($0), needle) && match($0, /HD\([^,]+,GPT,[^,]+/) {
                 value = substr($0, RSTART, RLENGTH)
@@ -75,13 +91,10 @@ clover_find_mounted_esp() {
     local detected
 
     # 某些 SteamOS 安装会把同一块 FAT 分区挂载到非标准位置，或保留空的
-    # /esp 挂载点。只检查已经挂载的 FAT 分区，确认其中存在 SteamOS/Clover
+    # /esp 挂载点。只检查已经挂载的 FAT 分区，确认其中存在 SteamOS/Bazzite/Clover
     # 启动文件后才采用，不会挂载、写入或修改任何分区。
     while IFS= read -r candidate; do
-        [ -d "$candidate/EFI" ] || continue
-        detected="$(find "$candidate/EFI" -maxdepth 3 -type f \
-            \( -iname steamcl.efi -o -iname CLOVERX64.efi \) -print -quit 2>/dev/null || true)"
-        [ -n "$detected" ] || continue
+        clover_candidate_is_esp "$candidate" || continue
         CLOVER_ESP_FOUND="$candidate"
         return 0
     done < <(findmnt -rn -t vfat,fat,fat32,msdos -o TARGET 2>/dev/null || true)
@@ -113,9 +126,7 @@ clover_find_unmounted_esp() {
         mountpoint="$(findmnt -rn -S "$device" -o TARGET 2>/dev/null | head -n 1)"
         [ -n "$mountpoint" ] || \
             mountpoint="$(printf '%s\n' "$output" | sed -n 's/^Mounted .* at \(.*\)\.$/\1/p' | tail -n 1)"
-        if [ -d "$mountpoint/EFI" ] && \
-            find "$mountpoint/EFI" -maxdepth 3 -type f \
-                \( -iname steamcl.efi -o -iname CLOVERX64.efi \) -print -quit 2>/dev/null | grep -q .; then
+        if clover_candidate_is_esp "$mountpoint"; then
             CLOVER_ESP_FOUND="$mountpoint"
             CLOVER_ESP_MOUNTED_BY_TOOLBOX=1
             CLOVER_ESP_MOUNT_DEVICE="$device"
@@ -135,8 +146,7 @@ clover_find_esp() {
         for candidate in "$(bootctl --print-esp-path 2>/dev/null || true)" \
             "$(bootctl --print-boot-path 2>/dev/null || true)"; do
             [ -d "$candidate" ] || continue
-            detected="$(find "$candidate/EFI" -maxdepth 3 -type f \( -iname steamcl.efi -o -iname CLOVERX64.efi \) -print -quit 2>/dev/null || true)"
-            [ -n "$detected" ] || continue
+            clover_candidate_is_esp "$candidate" || continue
             CLOVER_ESP_FOUND="$candidate"
             return 0
         done
@@ -144,8 +154,7 @@ clover_find_esp() {
 
     for candidate in /esp /boot/efi /efi /boot; do
         [ -d "$candidate" ] || continue
-        detected="$(find "$candidate/EFI" -maxdepth 3 -type f \( -iname steamcl.efi -o -iname CLOVERX64.efi \) -print -quit 2>/dev/null || true)"
-        [ -n "$detected" ] || continue
+        clover_candidate_is_esp "$candidate" || continue
         CLOVER_ESP_FOUND="$candidate"
         return 0
     done
@@ -168,23 +177,31 @@ clover_find_esp() {
             mountpoint="$(findmnt -rn -S "$device" -o TARGET 2>/dev/null | head -n 1)"
             [ -n "$mountpoint" ] || \
                 mountpoint="$(printf '%s\n' "$output" | sed -n 's/^Mounted .* at \(.*\)\.$/\1/p' | tail -n 1)"
-            [ -d "$mountpoint/EFI" ] || {
+            clover_candidate_is_esp "$mountpoint" || {
                 udisksctl unmount --block-device "$device" >/dev/null 2>&1 || true
-                echo "临时挂载的分区不是有效 EFI 系统分区。" >&2
+                if [ -d "$mountpoint/EFI" ]; then
+                    echo "临时挂载的分区不含当前系统的 EFI 启动文件。" >&2
+                else
+                    echo "临时挂载的分区不含 EFI 目录。" >&2
+                fi
                 return 1
             }
             CLOVER_ESP_MOUNTED_BY_TOOLBOX=1
             CLOVER_ESP_MOUNT_DEVICE="$device"
         fi
-        [ -d "$mountpoint/EFI" ] || {
-            echo "定位到 EFI 分区 ${device}，但其挂载位置不含 EFI 目录：${mountpoint:-未知}。" >&2
+        clover_candidate_is_esp "$mountpoint" || {
+            if [ -d "$mountpoint/EFI" ]; then
+                echo "定位到 EFI 分区 ${device}，但其挂载位置不含当前系统启动文件：${mountpoint:-未知}。" >&2
+            else
+                echo "定位到 EFI 分区 ${device}，但其挂载位置不含 EFI 目录：${mountpoint:-未知}。" >&2
+            fi
             return 1
         }
         CLOVER_ESP_FOUND="$mountpoint"
         return 0
     fi
 
-    echo "未找到 Clover/SteamOS 启动项对应的 EFI 系统分区。" >&2
+    echo "未找到 Clover/SteamOS/Bazzite 启动项对应的 EFI 系统分区。" >&2
     return 1
 }
 
@@ -231,7 +248,9 @@ clover_windows_entry_exists() {
     local entries
 
     entries="$(efibootmgr -v 2>/dev/null)" || return 1
-    printf '%s\n' "$entries" | grep -Fi 'Windows Boot Manager' >/dev/null
+    printf '%s\n' "$entries" | grep -Fi 'Windows Boot Manager' >/dev/null && return 0
+    [ -f "$CLOVER_ESP/EFI/Microsoft/Boot/bootmgfw.efi" ] || \
+        [ -f "$CLOVER_ESP/EFI/Microsoft/bootmgfw.efi" ]
 }
 
 clover_boot_number() {
@@ -254,8 +273,8 @@ clover_boot_number_from_input() {
 clover_detect_device() {
     local board_name product_name
 
-    board_name="$(cat /sys/class/dmi/id/board_name 2>/dev/null || true)"
-    product_name="$(cat /sys/class/dmi/id/product_name 2>/dev/null || true)"
+    board_name="$(cat "$CLOVER_DMI_ROOT/board_name" 2>/dev/null || true)"
+    product_name="$(cat "$CLOVER_DMI_ROOT/product_name" 2>/dev/null || true)"
     CLOVER_DEVICE_PREFIX=""
     CLOVER_DEVICE_NAME=""
     CLOVER_EFI_DRIVER=""
@@ -289,27 +308,74 @@ clover_detect_device() {
             CLOVER_EFI_DRIVER="asusrogallyx.efi"
             ;;
         *)
-            echo "不支持当前设备，无法安装 Clover 双系统引导。"
-            return 1
+            detect_platform
+            if [ "$IS_BAZZITE" -eq 1 ]; then
+                CLOVER_DEVICE_PREFIX="Bazzite-generic"
+                CLOVER_DEVICE_NAME="Bazzite 通用设备 ${product_name:-${board_name:-未知型号}}"
+                CLOVER_DEVICE_CONFIG="$CLOVER_CONFIG_SOURCE"
+            else
+                echo "不支持当前设备，无法安装 Clover 双系统引导。"
+                return 1
+            fi
             ;;
     esac
 }
 
-clover_choose_default_os() {
-    local answer default="${ZHOUKEER_CLOVER_DEFAULT_OS:-}"
+clover_linux_name() {
+    detect_platform
+    if [ "$IS_BAZZITE" -eq 1 ]; then
+        printf '%s\n' "Bazzite"
+    else
+        printf '%s\n' "SteamOS"
+    fi
+}
 
+clover_choose_default_os() {
+    local answer default="${ZHOUKEER_CLOVER_DEFAULT_OS:-}" linux_name
+
+    linux_name="$(clover_linux_name)"
     case "$default" in
-        SteamOS|Windows) printf '%s\n' "$default"; return 0 ;;
+        "$linux_name"|Windows) printf '%s\n' "$default"; return 0 ;;
     esac
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
-        printf '%s\n' "SteamOS"
+        printf '%s\n' "$linux_name"
         return 0
     fi
-    read -r -p "Clover 默认启动项（SteamOS/Windows）：" answer
+    read -r -p "Clover 默认启动项（${linux_name}/Windows）：" answer
     case "$answer" in
         Windows|windows) printf '%s\n' "Windows" ;;
-        *) printf '%s\n' "SteamOS" ;;
+        *) printf '%s\n' "$linux_name" ;;
     esac
+}
+
+clover_configure_default_loader() {
+    local config="$1"
+    local default_os="$2"
+    local temporary="${config}.new.$$"
+
+    awk -v default_os="$default_os" '
+        BEGIN {
+            slash = sprintf("%c", 92)
+            if (default_os == "Bazzite") loader = slash "EFI" slash "fedora" slash "shimx64.efi"
+            else if (default_os == "Windows") loader = slash "EFI" slash "Microsoft" slash "bootmgfw.efi"
+            else loader = slash "EFI" slash "STEAMOS" slash "STEAMCL.efi"
+        }
+        /<key>DefaultLoader<\/key>/ {
+            print
+            if ((getline next_line) <= 0) exit 2
+            match(next_line, /^[[:space:]]*/)
+            print substr(next_line, 1, RLENGTH) "<string>" loader "</string>"
+            found++
+            next
+        }
+        { print }
+        END { if (found != 1) exit 3 }
+    ' "$config" > "$temporary" || {
+        rm -f -- "$temporary"
+        echo "无法设置 Clover 默认启动项。" >&2
+        return 1
+    }
+    mv -- "$temporary" "$config"
 }
 
 clover_disable_windows_direct_boot() {
@@ -358,28 +424,43 @@ clover_install_bootmanager() {
     local source_dir="$CLOVER_BOOTMANAGER_DIR"
 
     [ -f "$source_dir/clover-bootmanager.sh" ] && \
-        [ -f "$source_dir/clover-bootmanager.service" ] && \
-        [ -f "$source_dir/clover-whitelist.conf" ] || {
+        [ -f "$source_dir/clover-bootmanager.service" ] || {
         echo "Renkit缺少 Clover 开机修复服务文件。"
         return 1
     }
-    toolbox_sudo install -d -m 0755 -- \
-        "$CLOVER_BOOTMANAGER_SYSTEM_DIR" "$CLOVER_BOOTMANAGER_WHITELIST_DIR" || return 1
+    toolbox_sudo install -d -m 0755 -- "$CLOVER_BOOTMANAGER_SYSTEM_DIR" || return 1
     toolbox_sudo install -m 0755 -- \
         "$source_dir/clover-bootmanager.sh" \
         "$CLOVER_BOOTMANAGER_SYSTEM_DIR/clover-bootmanager.sh" || return 1
     toolbox_sudo install -m 0644 -- \
         "$source_dir/clover-bootmanager.service" \
         "$CLOVER_BOOTMANAGER_SYSTEM_DIR/clover-bootmanager.service" || return 1
-    toolbox_sudo install -m 0644 -- \
-        "$source_dir/clover-whitelist.conf" \
-        "$CLOVER_BOOTMANAGER_WHITELIST_DIR/clover-whitelist.conf" || return 1
+    detect_platform
+    if [ "$IS_STEAMOS" -eq 1 ]; then
+        [ -f "$source_dir/clover-whitelist.conf" ] || {
+            echo "Renkit缺少 SteamOS Clover 更新白名单。"
+            return 1
+        }
+        toolbox_sudo install -d -m 0755 -- "$CLOVER_BOOTMANAGER_WHITELIST_DIR" || return 1
+        toolbox_sudo install -m 0644 -- \
+            "$source_dir/clover-whitelist.conf" \
+            "$CLOVER_BOOTMANAGER_WHITELIST_DIR/clover-whitelist.conf" || return 1
+    fi
     toolbox_sudo systemctl daemon-reload || return 1
     toolbox_sudo systemctl enable --now clover-bootmanager.service || return 1
     if [ "${ZHOUKEER_CLOVER_SKIP_BOOTMANAGER_RUN:-0}" != "1" ]; then
         toolbox_sudo "$CLOVER_BOOTMANAGER_SYSTEM_DIR/clover-bootmanager.sh" || return 1
     fi
     echo "Clover 开机修复服务已启用。"
+}
+
+clover_remove_bootmanager() {
+    toolbox_sudo systemctl disable --now clover-bootmanager.service >/dev/null 2>&1 || true
+    toolbox_sudo rm -f -- \
+        "$CLOVER_BOOTMANAGER_SYSTEM_DIR/clover-bootmanager.service" \
+        "$CLOVER_BOOTMANAGER_SYSTEM_DIR/clover-bootmanager.sh" \
+        "$CLOVER_BOOTMANAGER_WHITELIST_DIR/clover-whitelist.conf" || return 1
+    toolbox_sudo systemctl daemon-reload || return 1
 }
 
 clover_boot_order() {
@@ -517,6 +598,7 @@ clover_prepare_staging() {
     }
     [ -f "$staged/CLOVERX64.efi" ] || cp -- "$staged/cloverx64.efi" "$staged/CLOVERX64.efi" || return 1
     cp -- "${CLOVER_DEVICE_CONFIG:-$CLOVER_CONFIG_SOURCE}" "$staged/config.plist" || return 1
+    clover_configure_default_loader "$staged/config.plist" "${CLOVER_DEFAULT_OS:-SteamOS}" || return 1
     mkdir -p "$staged/themes/zhoukeer-phantom" || return 1
     cp -R -- "$CLOVER_THEME_SOURCE/." "$staged/themes/zhoukeer-phantom/" || return 1
     if [ -n "$CLOVER_EFI_DRIVER" ]; then
@@ -559,7 +641,7 @@ clover_show_install_risk() {
     echo "================================================"
     echo "版本：Clover ${CLOVER_VERSION}（Gitee 分块镜像）"
     echo "设备：${CLOVER_DEVICE_NAME:-Steam Deck/掌机}"
-    echo "主题：自定义怪盗，分辨率 1280×800"
+    echo "主题：自定义怪盗"
     echo "EFI 分区：$CLOVER_ESP ($CLOVER_ESP_SOURCE)"
     echo "目标：$CLOVER_ESP/EFI/CLOVER"
     echo "NVRAM：新增 ${CLOVER_BOOT_LABEL}，并放到现有 BootOrder 首位"
@@ -567,7 +649,7 @@ clover_show_install_risk() {
     echo "不会覆盖 EFI/BOOT/BOOTX64.EFI；会备份并禁用 Windows 直启文件。"
     echo "安装完成后会启用 Clover 开机修复服务。"
     echo "已有 CLOVER 目录和原 BootOrder 会先备份；恢复入口可撤销本次安装。"
-    echo "若掌机按键在 Clover 中不可用，请连接 USB 键盘；8 秒后默认进入 SteamOS。"
+    echo "若掌机按键在 Clover 中不可用，请连接 USB 键盘；倒计时后进入默认系统。"
 }
 
 clover_confirm_install() {
@@ -608,7 +690,7 @@ clover_install() {
     local temporary_target boot_number new_boot_entry=0 create_output available_kb
 
     echo "正在检查 Clover 安装环境…"
-    require_steamos || return 1
+    require_supported_gaming_os || return 1
     clover_detect_device || return 1
     for command_name in curl tar findmnt lsblk efibootmgr awk sed df; do
         require_command "$command_name" || return 1
@@ -634,7 +716,10 @@ clover_install() {
         return 1
     }
     default_os="$(clover_choose_default_os)" || return 1
-    if [ "$default_os" = "Windows" ]; then
+    CLOVER_DEFAULT_OS="$default_os"
+    if [ "$CLOVER_DEVICE_PREFIX" = "Bazzite-generic" ]; then
+        CLOVER_DEVICE_CONFIG="$CLOVER_CONFIG_SOURCE"
+    elif [ "$default_os" = "Windows" ]; then
         CLOVER_DEVICE_CONFIG="$CLOVER_DEVICE_DIR/${CLOVER_DEVICE_PREFIX}-win-config.plist"
     else
         CLOVER_DEVICE_CONFIG="$CLOVER_DEVICE_DIR/${CLOVER_DEVICE_PREFIX}-config.plist"
@@ -785,7 +870,7 @@ clover_install() {
 
     rm -rf -- "$work_dir"
     echo "Clover $CLOVER_VERSION 已安装，自定义怪盗开机主题已启用。"
-    echo "默认启动项：${default_os}；开机将显示 SteamOS 和 Windows。"
+    echo "默认启动项：${default_os}；开机将显示 $(clover_linux_name) 和 Windows。"
     echo "原 BootOrder：${original_order:-未读取到}"
     echo "当前 BootOrder：$new_order"
     [ -z "$original_backup" ] || echo "原 Clover 备份：$original_backup"
@@ -796,7 +881,7 @@ clover_restore() {
     local target marker original_backup original_order backup_root removed_path
     local boot_number timestamp delete_count=0
 
-    require_steamos || return 1
+    require_supported_gaming_os || return 1
     for command_name in findmnt lsblk efibootmgr awk sed; do
         require_command "$command_name" || return 1
     done
@@ -862,6 +947,10 @@ clover_restore() {
     clover_restore_windows_direct_boot || {
         echo "警告：Windows 直启文件恢复失败，请检查 EFI/Microsoft 目录。"
     }
+    clover_remove_bootmanager || {
+        echo "警告：Clover 开机修复服务未能完全移除，请手动检查 systemd。"
+        return 1
+    }
     echo "原开机顺序已恢复：${original_order:-由固件自动整理}"
     log "Clover已恢复: esp=$CLOVER_ESP"
 }
@@ -869,7 +958,7 @@ clover_restore() {
 clover_status() {
     local target boot_number
 
-    require_steamos || return 1
+    require_supported_gaming_os || return 1
     for command_name in findmnt lsblk efibootmgr awk sed; do
         require_command "$command_name" || return 1
     done

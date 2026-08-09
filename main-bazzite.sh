@@ -156,7 +156,7 @@ home_menu() {
     ui_panel_line 8 '\033[1;38;5;220m' "已自动切换到 Bazzite 功能集"
     ui_panel_line 10 '\033[1;38;5;45m' "常用软件、启动器、兼容层、模拟器和诊断已开放"
     ui_panel_line 12 '\033[1;38;5;114m' "Decky 由 Bazzite 官方 ujust 负责安装和维护"
-    ui_panel_line 14 '\033[1;38;5;250m' "系统调优、pacman、ToDesk、EFI 功能不会出现在本版"
+    ui_panel_line 14 '\033[1;38;5;250m' "系统调优、pacman、ToDesk仍隔离；Clover需单独确认"
     ui_prompt
     choice="$(read_touch_menu)"
     apply_navigation "$choice" || true
@@ -566,20 +566,46 @@ support_menu() {
     done
 }
 
+bazzite_clover_menu() {
+    local choice
+    while true; do
+        draw_category_frame advanced "Bazzite Clover 双系统引导" "高风险功能 · 仅用于已有 Windows 的双系统"
+        ui_panel_line 5 '\033[1;38;5;203m' "会写入 EFI、修改 UEFI BootOrder，并备份原文件"
+        ui_panel_line 7 '\033[1;38;5;220m' "请先关闭 Secure Boot；失败时可从本页执行恢复"
+        ui_touch_button 10 '\033[1;30;48;5;220m' "安装 Clover 双系统引导" "自动识别 Bazzite EFI，不使用固定磁盘名"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "查看 Clover 状态" "只读检查 EFI 与 NVRAM 启动项"
+        ui_touch_button 18 '\033[1;97;48;5;160m' "恢复安装前引导" "恢复原 BootOrder 与 Windows 启动文件"
+        ui_touch_button 21 '\033[1;97;48;5;238m' "返回高级功能"
+        ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页"
+        ui_prompt
+        choice="$(read_touch_menu right:10-11:install right:14-15:status right:18-19:restore right:21-22:back right:23-24:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            install) confirm_and_run "安装 Clover 双系统引导" "会写入 EFI、修改 BootOrder、备份原文件并禁用 Windows 直启；仅适用于已有 Windows Boot Manager 的 Bazzite 双系统" bash "$PROJECT_ROOT/modules/clover_boot.sh" install ;;
+            status) run_action "查看 Clover 状态" bash "$PROJECT_ROOT/modules/clover_boot.sh" status ;;
+            restore) confirm_and_run "恢复安装前引导" "删除Renkit创建的 Clover 启动项，并恢复原 BootOrder 和 Windows 启动文件" bash "$PROJECT_ROOT/modules/clover_boot.sh" restore ;;
+            back) return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+    done
+}
+
 advanced_menu() {
     local choice
     while true; do
         draw_category_frame advanced "Bazzite 版说明" "本版功能边界与后续适配状态"
         ui_panel_line 7 '\033[1;38;5;114m' "✓ Flatpak / AppImage / GE-Proton / 启动器 / 模拟器"
         ui_panel_line 10 '\033[1;38;5;114m' "✓ Bazzite 官方 Decky 安装与官方插件队列"
-        ui_panel_line 13 '\033[1;38;5;220m' "暂不开放：系统调优、ToDesk、EFI、Clover、pacman 国内源"
+        ui_panel_line 13 '\033[1;38;5;220m' "暂不开放：系统调优、ToDesk、通用 EFI 工具、pacman 国内源"
         ui_panel_line 16 '\033[1;38;5;250m' "这些功能与 SteamOS 版完全隔离，不会误调用"
+        ui_touch_button 18 '\033[1;30;48;5;220m' "Clover 双系统引导" "Bazzite 专用检测，安装与恢复均需确认"
         ui_touch_button 20 '\033[1;97;48;5;24m' "查看 Bazzite 与 Decky 状态"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页"
         ui_prompt
-        choice="$(read_touch_menu right:20-21:status right:23-24:home)"
+        choice="$(read_touch_menu right:18-19:clover right:20-21:status right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
+            clover) bazzite_clover_menu ;;
             status) NEXT_CATEGORY="init"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -748,7 +774,7 @@ notice_menu() {
     draw_category_frame notice "免责声明与使用须知" "Bazzite 版功能与 SteamOS 版相互隔离"
     ui_panel_line 8 '\033[1;38;5;203m' "Renkit不包含付费软件、破解、ROM、BIOS 或密钥"
     ui_panel_line 11 '\033[38;5;250m' "第三方软件与插件由各自作者或官方渠道提供"
-    ui_panel_line 14 '\033[38;5;250m' "硬件控制和系统级修改尚未在 Bazzite 版开放"
+    ui_panel_line 14 '\033[38;5;250m' "硬件控制仍未开放；Clover 是单独确认的高风险功能"
     ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页"
     ui_prompt
     choice="$(read_touch_menu right:20-21:home)"
