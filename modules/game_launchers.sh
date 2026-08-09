@@ -1260,7 +1260,7 @@ apply_launcher_decky_artwork() {
     local attempt
     shift
 
-    [ "${IS_STEAMOS:-0}" -eq 1 ] || return 0
+    [ "${IS_STEAMOS:-0}" -eq 1 ] || [ "${IS_BAZZITE:-0}" -eq 1 ] || return 0
     for attempt in 1 2; do
         if bash "$PROJECT_ROOT/scripts/apply_steam_artwork.sh" "$target" "$@" >/dev/null 2>&1; then
             echo "$LAUNCHER_NAME Steam 库封面已即时应用。"
@@ -1400,8 +1400,8 @@ finish_battlenet_steam_entry() {
 install_launcher() {
     local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file app_id artwork_alt_app_id game_id icon_path workdir platform_drive_c grid_dir grid_icon visible_exe
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ]; then
-        echo "游戏启动器安装仅支持真实 SteamOS 环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "游戏启动器安装仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
     launcher_details "$target" || return 1
@@ -1621,8 +1621,8 @@ uninstall_launcher() {
     local basename
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ]; then
-        echo "游戏启动器卸载仅支持真实 SteamOS 环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "游戏启动器卸载仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
     launcher_details "$target" || return 1
@@ -1672,8 +1672,8 @@ repair_launcher_artwork() {
     local app_id artwork_alt_app_id game_id
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ]; then
-        echo "封面修复仅支持真实 SteamOS 环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "封面修复仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
     [ "$target" = "uplay" ] && target="ubisoft"

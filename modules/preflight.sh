@@ -85,8 +85,8 @@ run_preflight() {
         return 1
     }
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
-        echo "此操作仅支持真实 SteamOS，已安全退出。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
+        echo "此操作仅支持 SteamOS 或 Bazzite，已安全退出。"
         return 1
     fi
 

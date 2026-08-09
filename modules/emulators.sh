@@ -87,7 +87,7 @@ import_yuzu_keys() {
     local prod_source="$YUZU_KEY_IMPORT_DIR/prod.keys"
     local title_source="$YUZU_KEY_IMPORT_DIR/title.keys"
 
-    require_steamos || return 1
+    require_supported_gaming_os || return 1
     confirm_yuzu_key_import || { echo "已取消导入密钥。"; return 1; }
     if ! yuzu_key_file_is_valid "$prod_source"; then
         echo "未找到有效的 prod.keys。请把本人备份的 prod.keys 放到：$YUZU_KEY_IMPORT_DIR"
@@ -112,7 +112,7 @@ import_yuzu_keys() {
 }
 
 show_yuzu_key_status() {
-    require_steamos || return 1
+    require_supported_gaming_os || return 1
     if yuzu_key_file_is_valid "$YUZU_KEYS_DIR/prod.keys"; then
         echo "Yuzu prod.keys：已就绪"
     else
@@ -142,7 +142,7 @@ import_azahar_keys() {
     local source="$AZAHAR_KEYS_IMPORT_DIR/aes_keys.txt"
     local temporary
 
-    require_steamos || return 1
+    require_supported_gaming_os || return 1
     if [ ! -e "$source" ]; then
         echo "未找到 3DS 密钥：请把本人备份的 aes_keys.txt 放到 $AZAHAR_KEYS_IMPORT_DIR"
         return 1
@@ -254,7 +254,7 @@ add_flatpak_emulator_to_steam() {
 install_flatpak_emulator() {
     local app_id="$1" app_name="$2"
 
-    require_steamos || return 1
+    require_supported_gaming_os || return 1
     if ! declare -F install_flatpak_app >/dev/null 2>&1; then
         # shellcheck disable=SC1091
         source "$PROJECT_ROOT/modules/software.sh"
@@ -269,7 +269,7 @@ install_flatpak_emulator() {
 install_azahar_emulator() {
     local target icon
 
-    require_steamos || return 1
+    require_supported_gaming_os || return 1
     target="$AZAHAR_APPIMAGE"
     icon="$AZAHAR_ICON"
     if [ ! -f "$target" ] || [ ! -x "$target" ]; then
@@ -293,7 +293,7 @@ install_azahar_emulator() {
 
 install_emulator() {
     local target temporary
-    require_steamos || return 1
+    require_supported_gaming_os || return 1
     emulator_details "$1" || return 1
     if [ "$1" = "azahar" ]; then
         install_azahar_emulator || return 1
@@ -360,7 +360,7 @@ uninstall_emulator() {
     local target="$1" steam_root shortcut_file
     local launch_options=""
 
-    require_steamos || return 1
+    require_supported_gaming_os || return 1
     emulator_details "$target" || return 1
     confirm_emulator_uninstall "$EMULATOR_NAME" || { echo "已取消卸载。"; return 0; }
 

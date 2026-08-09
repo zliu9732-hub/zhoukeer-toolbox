@@ -3,6 +3,7 @@
 set -u
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MAIN_PROGRAM="$PROJECT_ROOT/main.sh"
 MAIN_PROFILE_FILE="$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
 PROFILE_FILE="$MAIN_PROFILE_FILE"
 STARTUP_VIEW="main-with-disclaimer"
@@ -11,6 +12,18 @@ FONT_SIZE="12"
 WINDOW_FULLSCREEN="${ZHOUKEER_WINDOW_FULLSCREEN:-0}"
 STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 LAUNCH_LOG="${ZHOUKEER_LAUNCH_LOG:-$STATE_HOME/zhoukeer-toolbox/launcher.log}"
+
+resolve_main_program() {
+    if [ -r "$PROJECT_ROOT/core/platform.sh" ]; then
+        # shellcheck disable=SC1091
+        source "$PROJECT_ROOT/core/platform.sh"
+        detect_platform
+        if [ "$(uname -s 2>/dev/null || echo unknown)" = "Linux" ] && \
+            [ "${IS_STEAMOS:-0}" -ne 1 ]; then
+            MAIN_PROGRAM="$PROJECT_ROOT/main-bazzite.sh"
+        fi
+    fi
+}
 
 prepare_launcher_log() {
     local fallback_log
@@ -134,10 +147,10 @@ run_main() {
     run_startup_update
     # 自动更新与主界面复用同一个终端；进入触控 UI 前清除更新输出和滚动残影。
     printf '\033[0m\033[r\033[3J\033[2J\033[H'
-    launcher_log "主程序开始：$PROJECT_ROOT/main.sh --touch"
-    if [ ! -r "$PROJECT_ROOT/main.sh" ]; then
+    launcher_log "主程序开始：$MAIN_PROGRAM --touch"
+    if [ ! -r "$MAIN_PROGRAM" ]; then
         message="主程序文件缺失或无法读取：
-$PROJECT_ROOT/main.sh
+$MAIN_PROGRAM
 
 启动日志：$LAUNCH_LOG"
         show_launch_error "Renkit启动失败" "$message" || true
@@ -145,11 +158,11 @@ $PROJECT_ROOT/main.sh
     fi
 
     if command -v tee >/dev/null 2>&1; then
-        ZHOUKEER_LAUNCHED=1 bash "$PROJECT_ROOT/main.sh" --touch \
+        ZHOUKEER_LAUNCHED=1 bash "$MAIN_PROGRAM" --touch \
             2> >(tee -a "$LAUNCH_LOG" | filter_terminal_stderr >&2)
         status=$?
     else
-        ZHOUKEER_LAUNCHED=1 bash "$PROJECT_ROOT/main.sh" --touch
+        ZHOUKEER_LAUNCHED=1 bash "$MAIN_PROGRAM" --touch
         status=$?
     fi
 
@@ -171,6 +184,7 @@ $LAUNCH_LOG"
 }
 
 prepare_launcher_log || true
+resolve_main_program
 
 case "${1:-}" in
     --run-main)
@@ -244,10 +258,10 @@ adapt_window_size() {
 
 adapt_window_size
 
-if [ ! -r "$PROJECT_ROOT/main.sh" ]; then
+if [ ! -r "$MAIN_PROGRAM" ] && [ ! -r "$PROJECT_ROOT/update.sh" ]; then
     show_launch_error "Renkit启动失败" \
         "安装可能不完整，未找到主程序：
-$PROJECT_ROOT/main.sh
+$MAIN_PROGRAM
 
 启动日志：$LAUNCH_LOG" || true
     exit 1
@@ -388,7 +402,7 @@ fi
 show_launch_error "Renkit启动失败" \
     "未能启动 Konsole 或其他兼容终端。
 请检查终端程序是否完整，或在 Konsole 中运行：
-bash \"$PROJECT_ROOT/main.sh\"
+bash \"$MAIN_PROGRAM\"
 
 启动日志：$LAUNCH_LOG" || true
 exit 1

@@ -149,7 +149,7 @@ generate_diagnostic_bundle() {
     diagnostic_redact_file "$raw_file" "$bundle_dir/最近错误摘要.txt"
 
     printf '%s\n' \
-        "内容：Renkit版本、SteamOS 基础信息、网络检查、下载与更新状态、最近错误安全摘要。" \
+        "内容：Renkit版本、系统基础信息、网络检查、下载与更新状态、最近错误安全摘要。" \
         "隐私：用户名、HOME、IP、MAC、局域网地址、密码、Token、Cookie、代理认证和远程协助凭据会被隐藏。" \
         "排除：不读取、不复制管理员密码便利模式文件，不包含游戏、存档、账号数据或完整日志。" \
         "发送：Renkit不会上传或自动发送，请由你自行决定是否发给维护人员。" > "$bundle_dir/请先阅读.txt"

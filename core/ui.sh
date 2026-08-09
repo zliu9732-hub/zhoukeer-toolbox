@@ -80,7 +80,7 @@ logo() {
     echo -e "${BLUE}"
     echo "===================================="
     echo "    📦 Renkit v${TOOLBOX_VERSION}"
-    echo "   SteamOS Handheld Toolbox"
+    echo "   ${RENKIT_CONSOLE_TITLE:-SteamOS Handheld Toolbox}"
     echo "===================================="
     echo -e "${NC}"
 }
@@ -217,7 +217,7 @@ draw_category_frame() {
 
     if [ -n "$title" ]; then
         ui_panel_line 2 '\033[1;38;5;203m' "◆ Renkit  ·  V${TOOLBOX_VERSION}"
-        ui_panel_line 3 '\033[1;38;5;45m' "STEAMOS 掌机  /  中文工具"
+        ui_panel_line 3 '\033[1;38;5;45m' "${RENKIT_PLATFORM_LABEL:-STEAMOS 掌机  /  中文工具}"
         ui_panel_line 4 '\033[38;5;203m' "────────────────────────────────────────"
         if [ "$show_context" = "1" ]; then
             ui_panel_line 5 '\033[1;38;5;220m' "▌ $title"

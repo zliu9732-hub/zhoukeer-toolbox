@@ -61,7 +61,7 @@ KEY_TEST_ROOT="$(mktemp -d)"
 trap 'rm -rf -- "$KEY_TEST_ROOT"' EXIT
 (
     source "$MODULE"
-    require_steamos() { return 0; }
+    require_supported_gaming_os() { return 0; }
     log() { :; }
     YUZU_KEY_IMPORT_DIR="$KEY_TEST_ROOT/import"
     YUZU_KEYS_DIR="$KEY_TEST_ROOT/keys"
@@ -147,7 +147,7 @@ python3 "$PROJECT_ROOT/scripts/steam_shortcut.py" --shortcut-file "$UNINSTALL_SH
 (
     export ZHOUKEER_EMULATOR_DIR="$UNINSTALL_EMULATORS"
     source "$MODULE"
-    require_steamos() { return 0; }
+    require_supported_gaming_os() { return 0; }
     HOME="$UNINSTALL_HOME" \
     ZHOUKEER_STEAM_ROOT="$UNINSTALL_ROOT/steam" \
     ZHOUKEER_SHORTCUT_FILE="$UNINSTALL_SHORTCUTS" \
@@ -158,7 +158,7 @@ python3 "$PROJECT_ROOT/scripts/steam_shortcut.py" --shortcut-file "$UNINSTALL_SH
 (
     export ZHOUKEER_EMULATOR_DIR="$UNINSTALL_EMULATORS"
     source "$MODULE"
-    require_steamos() { return 0; }
+    require_supported_gaming_os() { return 0; }
     HOME="$UNINSTALL_HOME" \
     ZHOUKEER_STEAM_ROOT="$UNINSTALL_ROOT/steam" \
     ZHOUKEER_SHORTCUT_FILE="$UNINSTALL_SHORTCUTS" \

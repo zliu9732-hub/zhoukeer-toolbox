@@ -381,8 +381,24 @@ if [ "$SYSTEM" != "Linux" ]; then
     exit 1
 fi
 
+if [ ! -r "$SOURCE_ROOT/core/platform.sh" ]; then
+    echo "安装包缺少平台识别模块，已停止安装。"
+    exit 1
+fi
+# shellcheck disable=SC1091
+source "$SOURCE_ROOT/core/platform.sh"
+detect_platform
+
+TOOLBOX_DISPLAY_NAME="Renkit"
+TOOLBOX_DESKTOP_COMMENT="Steam Deck 工具"
+if [ "$IS_STEAMOS" -ne 1 ]; then
+    PLATFORM_FAMILY="bazzite"
+    TOOLBOX_DISPLAY_NAME="Renkit Bazzite版"
+    TOOLBOX_DESKTOP_COMMENT="Bazzite 掌机工具"
+fi
+
 echo "================================"
-echo " Renkit 1.0 安装程序"
+echo " Renkit 安装程序"
 echo "================================"
 echo "来源目录: $SOURCE_ROOT"
 echo "安装目录: $INSTALL_DIR"
@@ -552,7 +568,7 @@ remove_appledouble_files() {
     find "$root" -type f -name '._*' -exec rm -f -- {} +
 }
 
-for file in main.sh launch.sh install.sh uninstall.sh update.sh bootstrap.sh i README.md VERSION .gitignore; do
+for file in main.sh main-bazzite.sh launch.sh install.sh uninstall.sh update.sh bootstrap.sh i README.md VERSION .gitignore; do
     if [ -f "$SOURCE_ROOT/$file" ]; then
         copy_file "$SOURCE_ROOT/$file" "$STAGING_DIR/$file"
     fi
@@ -576,6 +592,7 @@ copy_handheld_frontend_overlay third_party/lego2-fan-control-zh-v0.260430
 
 # 标记由安装器管理的目录，启动器只在这类目录中执行自动更新。
 printf '%s\n' "zhoukeer-toolbox" > "$STAGING_DIR/.zhoukeer-installed"
+printf '%s\n' "$PLATFORM_FAMILY" > "$STAGING_DIR/.renkit-platform"
 
 # 清理历史 RustDesk 服务器配置残留；当前 RustDesk 安装不再使用这些字段。
 while IFS= read -r retired_config; do
@@ -616,6 +633,10 @@ if ! grep -Fq 'STEAM302_LAYOUT_VALIDATION_REVISION="ascii-files-v2"' \
     "$STAGING_DIR/modules/steam_accelerator.sh" || \
     ! grep -Fq 'run_launcher_installer()' \
     "$STAGING_DIR/modules/game_launchers.sh" || \
+    ! grep -Fq 'RENKIT_PLATFORM_LABEL="BAZZITE 掌机  /  中文工具"' \
+    "$STAGING_DIR/main-bazzite.sh" || \
+    ! grep -Fq 'ujust setup-decky' \
+    "$STAGING_DIR/modules/bazzite_decky.sh" || \
     ! grep -Fq 'memory_optimize()' \
     "$STAGING_DIR/modules/memory_tuning.sh"; then
     echo "新版本关键模块不完整，旧版本保持不变。"
@@ -699,7 +720,7 @@ Font=Noto Sans Mono CJK SC,12,-1,5,50,0,0,0,0,0
 LineSpacing=0
 
 [General]
-Name=Renkit
+Name=$TOOLBOX_DISPLAY_NAME
 Parent=FALLBACK/
 TerminalColumns=120
 TerminalMargin=6
@@ -714,8 +735,8 @@ rm -f "$HOME/.local/share/konsole/ZhoukeerToolboxSplash.profile" \
 cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
 Type=Application
-Name=Renkit
-Comment=Steam Deck 工具
+Name=$TOOLBOX_DISPLAY_NAME
+Comment=$TOOLBOX_DESKTOP_COMMENT
 Exec=/usr/bin/env bash "$INSTALL_DIR/launch.sh"
 Icon=$ICON_ENTRY
 Terminal=false
@@ -748,4 +769,5 @@ echo "安装完成"
 echo "桌面快捷方式: $DESKTOP_FILE"
 echo "应用菜单入口: $APPLICATION_FILE"
 echo ""
-echo "启动命令: bash \"$INSTALL_DIR/main.sh\""
+echo "已安装版本: $TOOLBOX_DISPLAY_NAME"
+echo "启动命令: bash \"$INSTALL_DIR/launch.sh\""

@@ -1,3 +1,10 @@
+## Renkit 1.1.8 SteamOS / Bazzite 独立双平台版 — 2026-08-09
+
+- 同一条安装命令自动分流：SteamOS 保持原有 `main.sh` 和全部现有功能，其他 Linux 使用独立的 `main-bazzite.sh`，两套菜单互不调用对方的系统功能。
+- Bazzite 首期开放常用 Flatpak/AppImage、GE-Proton、Epic/战网/育碧/黑盒工坊、Steam 入库与封面、九款模拟器、网络诊断和安全清理。
+- Bazzite 的 Decky Loader 只调用官方 `ujust setup-decky`，不执行 pacman、steamos-readonly、SteamOS 通道选择或服务替换；系统调优、ToDesk、EFI/Clover 等入口暂不开放。
+- 新增 SteamOS/Bazzite 平台解析、启动分流、Bazzite Decky 模拟与发布防漏包测试；`/etc/os-release` 改为白名单读取，不作为 Shell 执行。
+
 ## Renkit 1.1.7 插件商城系统通道识别修复 — 2026-08-09
 
 - 修复“根据系统版本安装插件商城”只读取 `/etc/os-release`，导致 SteamOS 测试或预览通道也总被识别为 stable 的问题。

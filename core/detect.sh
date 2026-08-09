@@ -40,13 +40,11 @@ detect_platform
 echo "系统：$SYSTEM"
 echo "发行版：$PLATFORM_NAME"
 
-if [ -r /etc/os-release ]; then
-    # shellcheck disable=SC1091
-    . /etc/os-release
-    echo "系统版本：${PRETTY_NAME:-${NAME:-未知}}"
+if [ -r "${ZHOUKEER_OS_RELEASE_FILE:-/etc/os-release}" ]; then
+    echo "系统版本：$(platform_os_release_value PRETTY_NAME 2>/dev/null || platform_os_release_value NAME 2>/dev/null || echo 未知)"
 fi
 
-if [ -f /etc/os-release ]; then
+if [ -f "${ZHOUKEER_OS_RELEASE_FILE:-/etc/os-release}" ]; then
     echo "Linux系统"
 fi
 
@@ -57,9 +55,12 @@ fi
 if [ "$IS_STEAMOS" -eq 1 ]; then
     echo "SteamOS环境：是"
     health_pass "已识别 SteamOS 环境"
+elif [ "$IS_BAZZITE" -eq 1 ]; then
+    echo "Bazzite环境：是"
+    health_pass "已识别 Bazzite 环境"
 else
     echo "SteamOS环境：否"
-    health_warn "未识别到 SteamOS；部分 Deck 专用功能可能不可用"
+    health_warn "未识别到 SteamOS 或 Bazzite；掌机专用功能可能不可用"
 fi
 
 echo "设备架构：$(uname -m)"

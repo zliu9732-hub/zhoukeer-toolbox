@@ -253,8 +253,8 @@ apply_steam_compat_via_decky() {
     local DECKY_EXECUTE_TIMEOUT="${DECKY_ARTWORK_TIMEOUT:-12}"
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
-        echo "Decky 兼容层设置仅支持真实 SteamOS 环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
+        echo "Decky 兼容层设置仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
     [ -n "$app_ids" ] || {
@@ -313,8 +313,8 @@ apply_steam_launcher_artwork_via_decky() {
     local payload_file tab payload_response artwork_ok failure_detail
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
-        echo "Decky 封面即时应用仅支持真实 SteamOS 环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
+        echo "Decky 封面即时应用仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
     [ "$#" -gt 0 ] || {
@@ -414,8 +414,8 @@ open_steam_internal_browser_via_decky() {
     local DECKY_EXECUTE_TIMEOUT="${DECKY_BROWSER_TIMEOUT:-10}"
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
-        echo "Steam 内置浏览器仅支持真实 SteamOS 环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
+        echo "Steam 内置浏览器仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
     case "$url" in
@@ -479,8 +479,8 @@ install_recommended_decky_plugins() {
     local include_custom="${DECKY_BUNDLE_INCLUDE_CUSTOM:-1}"
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "${ZHOUKEER_ALLOW_NON_STEAMOS:-0}" != "1" ]; then
-        echo "推荐插件整组安装仅支持真实SteamOS环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "${ZHOUKEER_ALLOW_NON_STEAMOS:-0}" != "1" ]; then
+        echo "推荐插件整组安装仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
     if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \

@@ -1,8 +1,11 @@
 # Renkit
 
-Renkit是面向 Steam Deck 及其他 SteamOS 掌机的 Bash 工具集，提供一键新机初始化、常用软件、远程协助、插件商城、系统维护和安全更新入口。界面会按终端宽度收紧导航栏；体检、诊断、攻略和启动器功能尽量适配 SteamOS 掌机，涉及引导、只读分区等系统功能仍会先检查环境。
+Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装命令会自动选择独立版本：SteamOS 保留完整原版功能，Bazzite 使用单独菜单，仅开放已适配的常用软件、Decky、兼容层、启动器、模拟器和诊断功能。
 
-当前正式版：Renkit 1.0.1；从 Renkit 1.0 起按语义化版本递增。
+当前正式版：Renkit 1.1.8；从 Renkit 1.0 起按语义化版本递增。
+
+- SteamOS 版：继续使用原有 `main.sh`，系统初始化、国内源、插件与高级功能保持原逻辑。
+- Bazzite 版：使用独立 `main-bazzite.sh`；Decky 通过官方 `ujust setup-decky` 安装，不调用 pacman、steamos-readonly、ToDesk、内存调优或 EFI/Clover 功能。
 
 - 双系统设置：提供互通盘挂载与只读保护、TF 卡 NTFS 初始化、NTFS/exFAT 基础修复、只读健康检查、受保护的第三方引导项清理、双系统引导修复和一键切换 Windows。rEFInd 继续停用，不提供入口。
 
@@ -47,7 +50,7 @@ Renkit是面向 Steam Deck 及其他 SteamOS 掌机的 Bash 工具集，提供�
 
 ## 主菜单
 
-Steam Deck桌面快捷方式会通过兼容启动器打开约 `1280×740` 的双栏 Konsole 界面，使用 12 号中文字体和固定九分类触控坐标。直接运行 `main.sh` 也会自动转入专用主题窗口。启动器会依次尝试完整主题、无主题兼容参数、Konsole最小参数和系统中的其他终端；主程序异常退出或所有终端均不可用时会显示明确提示。独立启动日志保存在 `~/.local/state/zhoukeer-toolbox/launcher.log`，不与业务操作日志混用。
+桌面快捷方式会通过兼容启动器打开约 `1280×740` 的双栏 Konsole 界面，使用 12 号中文字体和固定九分类触控坐标。直接运行当前平台对应的主程序也会自动转入专用主题窗口。启动器会依次尝试完整主题、无主题兼容参数、Konsole最小参数和系统中的其他终端；主程序异常退出或所有终端均不可用时会显示明确提示。独立启动日志保存在 `~/.local/state/zhoukeer-toolbox/launcher.log`，不与业务操作日志混用。
 
 ## 一行命令安装（推荐）
 
@@ -101,7 +104,7 @@ curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/bootstrap
 ## 运行
 
 ```bash
-bash "${HOME}/.local/share/zhoukeer-toolbox/main.sh"
+bash "${HOME}/.local/share/zhoukeer-toolbox/launch.sh"
 ```
 
 ## 常见问题
