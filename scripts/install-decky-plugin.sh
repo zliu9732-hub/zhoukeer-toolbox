@@ -31,8 +31,8 @@ case "$PLUGIN_ID" in
         ;;
     cheatdeck)
         PLUGIN_NAME="CheatDeck"
-        PLUGIN_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.2.1/CheatDeck.zip"
-        PLUGIN_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
+        PLUGIN_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v2.0.0/CheatDeck.zip"
+        PLUGIN_SHA256="32e2931f9ca8083c1605f04b4ed089b0bf210f79db236a7fd34f02c519e902d9"
         PLUGIN_MIRROR_ID="cheatdeck"
         PLUGIN_DIRECTORY="CheatDeck"
         PLUGIN_AUTHOR="SheffeyG"

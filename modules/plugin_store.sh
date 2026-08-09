@@ -60,13 +60,13 @@ DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/downloa
 DECKY_LSFG_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
 DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip"
 DECKY_FSR4_SHA256="3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f"
-DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v1.2.1/CheatDeck.zip"
-DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
-DECKY_CHEATDECK_VERSION="1.2.1"
+DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v2.0.0/CheatDeck.zip"
+DECKY_CHEATDECK_SHA256="32e2931f9ca8083c1605f04b4ed089b0bf210f79db236a7fd34f02c519e902d9"
+DECKY_CHEATDECK_VERSION="2.0.0"
 DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip"
 DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
-DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.3/DeckRecall.zip"
-DECKY_DECKRECALL_SHA256="9171a8a656f0900014cafddeb8c81806de5fbe376bf66ec78f595bebe85d96d0"
+DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.8/DeckRecall.zip"
+DECKY_DECKRECALL_SHA256="360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4"
 DECKY_DECKRECALL_AUTO_UPDATE="${ZHOUKEER_DECKY_DECKRECALL_AUTO_UPDATE:-1}"
 DECKY_LATEST_GITHUB_VERSION=""
 DECKY_LATEST_GITHUB_URL=""
@@ -1153,7 +1153,31 @@ decky_plugin_store_is_installed() {
         [ -f "$DECKY_UNIT_PATH" ]
 }
 
+decky_plugin_loader_is_installed() {
+    [ -x "$HOME/homebrew/services/PluginLoader" ] || \
+        [ -x "$HOME/.local/share/decky-loader/services/PluginLoader" ]
+}
+
 ensure_plugin_store_ready() {
+    detect_platform
+    if [ "$IS_BAZZITE" -eq 1 ]; then
+        if decky_plugin_loader_is_installed; then
+            echo "已检测到 Bazzite Decky Loader，开始安装插件。"
+            return 0
+        fi
+        echo "未检测到 Decky Loader，先调用 Bazzite 官方安装入口。"
+        bash "$PROJECT_ROOT/modules/bazzite_decky.sh" install || {
+            echo "Bazzite Decky Loader 未安装完成，已停止后续插件安装。"
+            return 1
+        }
+        decky_plugin_loader_is_installed || {
+            echo "Bazzite Decky Loader 安装后未通过文件检查，已停止后续插件安装。"
+            return 1
+        }
+        echo "Bazzite Decky Loader 已安装完成，继续安装插件。"
+        return 0
+    fi
+
     if decky_plugin_store_is_installed; then
         echo "已检测到插件商城，开始安装插件。"
         return 0
@@ -2229,8 +2253,8 @@ install_lsfg_chinese() {
     local staged_source
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ]; then
-        echo "小黄鸭仅支持真实 SteamOS 环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "小黄鸭仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
     if feature_plugin_is_current "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" \
@@ -2343,8 +2367,8 @@ install_fsr4_chinese() {
     local official_bin_dir official_assets_dir work_dir staged_source
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ]; then
-        echo "FSR4 中文界面仅支持真实 SteamOS 环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "FSR4 中文界面仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
     if feature_plugin_is_current "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" \
@@ -2482,8 +2506,8 @@ install_simpledeckytdp_chinese() {
     local staged_source
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ]; then
-        echo "SimpleDeckyTDP 中文界面仅支持真实 SteamOS 环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "SimpleDeckyTDP 中文界面仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
     if simpledeckytdp_chinese_is_current "$plugin_root"; then
@@ -2547,8 +2571,8 @@ install_simpledeckytdp_zh_from_gitee() {
     local installed_version
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ]; then
-        echo "SimpleDeckyTDP 中文版仅支持真实 SteamOS 环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "SimpleDeckyTDP 中文版仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
     if simpledeckytdp_chinese_is_current "$plugin_root"; then
@@ -2623,8 +2647,8 @@ install_allycenter_chinese() {
     local bundled_version actual_sha256 official_source work_dir staged_source
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ]; then
-        echo "Ally Center 中文版仅支持真实 SteamOS 环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "Ally Center 中文版仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
     if allycenter_chinese_is_current "$plugin_root"; then
@@ -2691,8 +2715,8 @@ ensure_allycenter_chinese_current() {
     local installed_version=""
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ]; then
-        echo "Ally Center 中文版仅支持真实 SteamOS 环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "Ally Center 中文版仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
     if allycenter_chinese_is_current "$plugin_root"; then
@@ -2817,8 +2841,8 @@ ensure_handheld_overlay_current() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ]; then
-        echo "$display_name 仅支持真实 SteamOS 环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "$display_name 仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
     if handheld_overlay_is_current "$plugin_root" "$directory_name" \
@@ -3137,8 +3161,8 @@ install_configured_plugin() {
     local installed_version
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ]; then
-        echo "Decky 插件安装仅支持真实 SteamOS 环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "Decky 插件安装仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
 
@@ -3391,8 +3415,8 @@ install_feature_plugins() {
     local failed=0
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ]; then
-        echo "功能插件安装仅支持真实 SteamOS 环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "功能插件安装仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
 

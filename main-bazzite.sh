@@ -421,19 +421,101 @@ bazzite_official_plugin_pages() {
 bazzite_decky_plugins_menu() {
     local choice
     while true; do
-        draw_category_frame games "Decky 官方插件" "整组推荐或逐个选择"
+        draw_category_frame games "Decky 插件" "官方插件与 Renkit 汉化功能插件"
         ui_touch_button 6 '\033[1;97;48;5;24m' "安装常用官方插件" "由 Decky 官方商店读取最新版本"
         ui_touch_button 10 '\033[1;97;48;5;24m' "逐个浏览官方插件" "共 23 个官方插件"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "汉化功能插件" "小黄鸭、FSR4 与 CheatDeck · 国内分块镜像"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回游戏与插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页"
         ui_prompt
-        choice="$(read_touch_menu right:6-7:recommended right:10-11:browse right:19-20:back right:22-23:home)"
+        choice="$(read_touch_menu right:6-7:recommended right:10-11:browse right:14-15:features right:19-20:back right:22-23:home)"
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
             recommended) confirm_and_run "安装常用 Decky 插件" "只使用 Decky 官方商店，不安装自定义或硬件控制插件" env DECKY_BUNDLE_INCLUDE_CUSTOM=0 bash "$PROJECT_ROOT/modules/decky_bundle.sh" install ;;
             browse) bazzite_official_plugin_pages || return 1 ;;
+            features) bazzite_feature_plugins_menu || return 1 ;;
             back) return 0 ;;
             home) NEXT_CATEGORY="home"; return 1 ;;
+        esac
+    done
+}
+
+bazzite_feature_plugins_menu() {
+    local choice
+    while true; do
+        draw_category_frame games "汉化功能插件" "Gitee 分块镜像优先 · 安装后核对真实插件文件"
+        ui_touch_button 4 '\033[1;97;48;5;24m' "一键安装三款" "小黄鸭、FSR4 与 CheatDeck"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "安装小黄鸭" "LSFG-VK 汉化版"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "安装 FSR4" "Decky-Framegen 汉化版"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "安装 CheatDeck" "修改器启动插件"
+        ui_touch_button 16 '\033[1;97;48;5;24m' "安装 DeckRecall" "添加启动项并恢复游戏可玩状态"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "更多功能插件" "Freedeck、ToMoon、Unifideck 与掌机控制"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回 Decky 插件"
+        ui_prompt
+        choice="$(read_touch_menu right:4-5:all right:7-8:lsfg right:10-11:fsr4 right:13-14:cheatdeck right:16-17:deckrecall right:19-20:more right:22-23:back)"
+        if apply_navigation "$choice"; then return 1; fi
+        case "$choice" in
+            all) confirm_and_run "安装三款汉化功能插件" "使用 Gitee 分块镜像并校验 SHA256；插件目录不可写时可能请求管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
+            lsfg) confirm_and_run "安装小黄鸭" "Gitee 分块镜像优先并校验 SHA256，保留官方运行核心后叠加 Renkit 汉化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
+            fsr4) confirm_and_run "安装 FSR4" "Gitee 分块镜像优先并校验 SHA256，保留官方运行核心后叠加 Renkit 汉化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
+            cheatdeck) confirm_and_run "安装 CheatDeck" "Gitee 分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
+            deckrecall) confirm_and_run "安装 DeckRecall" "作者未提供再分发许可证，使用作者 GitHub Release 与国内代理回退并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckrecall ;;
+            more) bazzite_extra_plugins_menu || return 1 ;;
+            back) return 0 ;;
+        esac
+    done
+}
+
+bazzite_extra_plugins_menu() {
+    local choice
+    while true; do
+        draw_category_frame games "更多功能插件" "现有 Renkit 插件 · Gitee 国内镜像优先"
+        ui_touch_button 4 '\033[1;97;48;5;24m' "安装 Freedeck" "0.6 稳定版"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "安装 NewFreedeck" "0.1 重构测试版，可与稳定版共存"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "安装 ToMoon" "第三方游戏工具插件"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "安装 Unifideck" "统一游戏库插件"
+        ui_touch_button 16 '\033[1;97;48;5;24m' "掌机控制插件" "功耗、RGB、按键、震动与风扇"
+        ui_touch_button 19 '\033[1;97;48;5;30m' "检查三款常用插件" "小黄鸭、FSR4 与 CheatDeck"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回汉化功能插件"
+        ui_prompt
+        choice="$(read_touch_menu right:4-5:freedeck right:7-8:newfreedeck right:10-11:tomoon right:13-14:unifideck right:16-17:handheld right:19-20:status right:22-23:back)"
+        if apply_navigation "$choice"; then return 1; fi
+        case "$choice" in
+            freedeck) confirm_and_run "安装 Freedeck" "Gitee 分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck ;;
+            newfreedeck) confirm_and_run "安装 NewFreedeck" "上游重构测试版，部分功能可能尚未完成；Gitee 分块镜像优先" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" newfreedeck ;;
+            tomoon) confirm_and_run "安装 ToMoon" "Gitee 分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon ;;
+            unifideck) confirm_and_run "安装 Unifideck" "Gitee 分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
+            handheld) bazzite_handheld_plugins_menu || return 1 ;;
+            status) run_action "汉化功能插件状态" bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status ;;
+            back) return 0 ;;
+        esac
+    done
+}
+
+bazzite_handheld_plugins_menu() {
+    local choice
+    while true; do
+        draw_category_frame games "掌机控制插件" "请按实际机型安装 · 错误机型不要启用硬件控制"
+        ui_touch_button 2 '\033[1;97;48;5;24m' "掌机功耗控制" "SimpleDeckyTDP 中文版"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "Ally 控制中心" "仅 ROG Ally / Ally X"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "通用掌机 RGB" "HueSync，上游自带中文"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "Legion Go 控制中心" "按键映射与控制"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "GPD 控制中心" "GPD 掌机专用"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "Legion Go 震动控制" "Legion Go 专用"
+        ui_touch_button 20 '\033[1;97;48;5;24m' "Legion Go 2 风扇控制" "硬件风扇控制有风险"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回更多功能插件"
+        ui_prompt
+        choice="$(read_touch_menu right:2-3:simpletdp right:5-6:allycenter right:8-9:huesync right:11-12:legionremap right:14-15:gpd right:17-18:legovibe right:20-21:lego2fan right:22-23:back)"
+        if apply_navigation "$choice"; then return 1; fi
+        case "$choice" in
+            simpletdp) confirm_and_run "安装掌机功耗控制" "安装 SimpleDeckyTDP 中文版；Gitee 国内镜像优先" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee ;;
+            allycenter) confirm_and_run "安装 Ally 控制中心" "仅用于 ROG Ally / Ally X；会调用硬件控制后端" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter ;;
+            huesync) confirm_and_run "安装通用掌机 RGB" "HueSync 上游自带中文；请确认设备灯效受支持" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" huesync ;;
+            legionremap) confirm_and_run "安装 Legion Go 控制中心" "仅用于 Legion Go；会调用按键控制后端" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" legiongo-remapper ;;
+            gpd) confirm_and_run "安装 GPD 控制中心" "仅用于 GPD 掌机；会调用硬件控制后端" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" gpd-control ;;
+            legovibe) confirm_and_run "安装 Legion Go 震动控制" "仅用于 Legion Go；会修改震动控制参数" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego-vibe ;;
+            lego2fan) confirm_and_run "安装 Legion Go 2 风扇控制" "仅用于 Legion Go 2；错误设置可能导致过热，请确认机型" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego2-fan ;;
+            back) return 0 ;;
         esac
     done
 }
@@ -443,7 +525,7 @@ games_menu() {
     while true; do
         draw_category_frame games "游戏与插件" "Bazzite 官方 Decky · Proton · 启动器"
         ui_touch_button 2 '\033[1;97;48;5;24m' "安装 Decky Loader" "Bazzite 官方 ujust"
-        ui_touch_button 4 '\033[1;97;48;5;24m' "Decky 官方插件" "整组推荐或逐个浏览"
+        ui_touch_button 4 '\033[1;97;48;5;24m' "Decky 插件" "官方插件与汉化功能插件"
         ui_touch_button 6 '\033[1;97;48;5;24m' "GE-Proton 兼容层" "最新版与修改器常用版本"
         ui_touch_button 8 '\033[1;97;48;5;24m' "安装 Epic 启动器"
         ui_touch_button 10 '\033[1;97;48;5;24m' "安装战网启动器"

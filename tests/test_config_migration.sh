@@ -93,9 +93,11 @@ test_blank_config_migration() {
     assert_value "$config_file" DECKY_FSR4_SHA256 \
         "3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f"
     assert_value "$config_file" DECKY_CHEATDECK_SHA256 \
-        "83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"
+        "32e2931f9ca8083c1605f04b4ed089b0bf210f79db236a7fd34f02c519e902d9"
     assert_value "$config_file" DECKY_TOMOON_SHA256 \
         "5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
+    assert_value "$config_file" DECKY_DECKRECALL_SHA256 \
+        "360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4"
 
     backup_count="$(find "$install_dir/config" -maxdepth 1 -type f \
         -name 'settings.conf.bak.*' | wc -l | tr -d ' ')"
