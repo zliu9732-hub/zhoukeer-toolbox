@@ -1,4 +1,4 @@
-## Renkit 1.1.10 Bazzite 用户空间功能扩展 — 2026-08-09
+## Renkit 1.2.0 Bazzite 用户空间功能扩展 — 2026-08-09
 
 - Bazzite 常用软件由 16 项扩展到 31 项；新增百度网盘、WiliWili、Fcitx5、Xbox 云游戏、音乐、下载、截图、办公、笔记和 Parsec 等官方 Flathub 应用，继续默认走用户级官方 Flathub。
 - 新增 Bazzite 分类卸载菜单，可移除常用软件、四款游戏启动器、九款模拟器、当前 GE-Proton 和 Renkit；系统级 Flatpak 明确交给 Bazzite 自带工具，Renkit 不调用 sudo 卸载。
