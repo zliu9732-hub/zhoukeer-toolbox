@@ -1,3 +1,9 @@
+## Renkit 1.2.2 Clover 自动分辨率 — 2026-08-09
+
+- SteamOS 与 Bazzite 安装 Clover 时不再把 Steam Deck、ROG Ally、Legion Go 等机型的固定分辨率写入 EFI，改由 Clover 根据当前掌机固件提供的 UEFI GOP 显示模式自动选择。
+- 机型识别、专用 EFI 驱动、默认系统、主题、Windows 备份、BootOrder 和恢复流程保持不变；只在写入前生成的临时配置中安全移除固定分辨率字段。
+- 新增 SteamOS 与 Bazzite 模拟断言，确保最终 Clover 配置不含 `ScreenResolution`；全部相关测试只操作临时目录和模拟命令。
+
 ## Renkit 1.2.1 Bazzite Clover 双系统引导 — 2026-08-09
 
 - Bazzite 独立高级菜单新增 Clover 安装、状态与恢复入口；仍不接入 SteamOS 的 pacman、只读系统、ToDesk、内存调优或其他通用 EFI 功能。
