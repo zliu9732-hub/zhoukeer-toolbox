@@ -1,3 +1,10 @@
+## Renkit 1.2.9 Bazzite 旧 SteamOS 引导自动清理 — 2026-08-10
+
+- Bazzite 的“安装/修复 Clover 双系统引导”会识别旧 `steamcl.efi`，先归档到 EFI 内的 Renkit 备份目录，再删除对应的旧 SteamOS NVRAM 项；不增加独立按钮，也不删除任何系统分区。
+- Bazzite Clover 配置自动移除失效的 SteamOS 菜单项，只保留 Bazzite 与 Windows；SteamOS 版 Clover 流程保持原样。
+- 清理只匹配指向 `steamcl.efi` 的启动项，最多处理 8 项；失败时尝试恢复启动文件与入口，重复安装会继承原备份记录，恢复 Clover 时也会还原被归档的 SteamOS 引导。
+- 新增临时 EFI/NVRAM 模拟测试，验证 Windows、Bazzite、Clover 均不会被误删，并覆盖重复执行和恢复流程。
+
 ## Renkit 1.2.8 GPD WIN 3 Clover 横屏与默认启动修复 — 2026-08-10
 
 - GPD WIN 3（G1618-03）安装 Clover 时单独请求 `1280x720` 横屏 GOP 模式，其他掌机继续使用自动分辨率。

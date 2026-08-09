@@ -39,6 +39,8 @@ CLOVER_EFI_DRIVER=""
 CLOVER_DEVICE_CONFIG=""
 CLOVER_SCREEN_RESOLUTION=""
 CLOVER_DEFAULT_OS=""
+CLOVER_STEAMOS_BACKUP=""
+CLOVER_STEAMOS_BOOT_NUMBERS=""
 
 clover_path_is_dir() {
     local path="$1"
@@ -328,6 +330,17 @@ clover_boot_number_from_input() {
     '
 }
 
+clover_steamos_boot_numbers_from_input() {
+    awk '
+        tolower($0) ~ /steamcl\.efi/ {
+            value = substr($1, 5, 4)
+            gsub(/[^0-9A-Fa-f]/, "", value)
+            value = toupper(value)
+            if (length(value) == 4 && !seen[value]++) print value
+        }
+    '
+}
+
 clover_detect_device() {
     local board_name product_name
 
@@ -441,6 +454,72 @@ clover_configure_default_loader() {
         echo "无法设置 Clover 默认启动项。" >&2
         return 1
     }
+    mv -- "$temporary" "$config"
+}
+
+clover_remove_steamos_entries() {
+    local config="$1"
+    local temporary="${config}.entries.$$"
+
+    awk '
+        function reset_entry() {
+            entry = ""
+            entry_depth = 0
+            drop_entry = 0
+            buffering = 0
+        }
+        {
+            lower = tolower($0)
+            if (!in_entries) {
+                print
+                if (lower ~ /<key>[[:space:]]*entries[[:space:]]*<\/key>/) {
+                    waiting_for_array = 1
+                } else if (waiting_for_array && lower ~ /<array>/) {
+                    in_entries = 1
+                    waiting_for_array = 0
+                } else if (waiting_for_array && lower !~ /^[[:space:]]*$/) {
+                    waiting_for_array = 0
+                }
+                next
+            }
+            if (buffering) {
+                entry = entry $0 ORS
+                if (lower ~ /steamcl\.efi/) drop_entry = 1
+                if (lower ~ /<dict>/) entry_depth++
+                if (lower ~ /<\/dict>/) entry_depth--
+                if (entry_depth == 0) {
+                    if (!drop_entry) printf "%s", entry
+                    reset_entry()
+                }
+                next
+            }
+            if (lower ~ /<\/array>/) {
+                print
+                in_entries = 0
+                next
+            }
+            if (lower ~ /<dict>/) {
+                buffering = 1
+                entry_depth = 1
+                drop_entry = (lower ~ /steamcl\.efi/)
+                entry = $0 ORS
+                next
+            }
+            print
+        }
+        END {
+            if (buffering || in_entries) exit 2
+        }
+    ' "$config" > "$temporary" || {
+        rm -f -- "$temporary"
+        echo "无法移除 Clover 中的旧 SteamOS 菜单项，配置文件未修改。" >&2
+        return 1
+    }
+    if grep -Fi 'steamcl.efi' "$temporary" >/dev/null; then
+        rm -f -- "$temporary"
+        echo "Clover 配置仍包含旧 SteamOS 启动器，已停止安装。" >&2
+        return 1
+    fi
     mv -- "$temporary" "$config"
 }
 
@@ -622,6 +701,73 @@ clover_backup_path_is_safe() {
     esac
 }
 
+clover_steamos_backup_path_is_safe() {
+    local path="$1"
+    local root="$CLOVER_ESP/EFI/zhoukeer-backups"
+    local name timestamp primary suffix
+
+    [ -n "$path" ] || return 0
+    case "$path" in
+        "$root"/steamos-before-*) ;;
+        *) return 1 ;;
+    esac
+    name="${path##*/}"
+    timestamp="${name#steamos-before-}"
+    primary="${timestamp%%-*}"
+    [ "${#primary}" -eq 14 ] || return 1
+    case "$primary" in
+        *[!0-9]*) return 1 ;;
+    esac
+    [ "$timestamp" = "$primary" ] && return 0
+    suffix="${timestamp#*-}"
+    [ -n "$suffix" ] || return 1
+    case "$suffix" in
+        *[!0-9]*) return 1 ;;
+    esac
+}
+
+clover_boot_number_list_is_safe() {
+    local numbers="$1" number
+
+    [ -n "$numbers" ] || return 0
+    while IFS= read -r number; do
+        [ "${#number}" -eq 4 ] || return 1
+        case "$number" in
+            *[!0-9A-Fa-f]*) return 1 ;;
+        esac
+    done <<< "$numbers"
+}
+
+clover_replace_boot_numbers() {
+    local order="$1" old_numbers="$2" replacement="$3"
+    local item old_number result="" inserted=0 old_ifs="$IFS" matched
+
+    IFS=','
+    for item in $order; do
+        IFS="$old_ifs"
+        matched=0
+        while IFS= read -r old_number; do
+            [ -n "$old_number" ] || continue
+            if [ "$(printf '%s' "$item" | tr '[:lower:]' '[:upper:]')" = \
+                "$(printf '%s' "$old_number" | tr '[:lower:]' '[:upper:]')" ]; then
+                matched=1
+                break
+            fi
+        done <<< "$old_numbers"
+        if [ "$matched" -eq 1 ]; then
+            if [ "$inserted" -eq 0 ] && [ -n "$replacement" ]; then
+                result="${result:+$result,}$replacement"
+                inserted=1
+            fi
+        else
+            result="${result:+$result,}$item"
+        fi
+        IFS=','
+    done
+    IFS="$old_ifs"
+    printf '%s\n' "$result"
+}
+
 clover_prepend_boot_order() {
     local boot_number="$1"
     local current="$2"
@@ -717,6 +863,9 @@ clover_prepare_staging() {
     mv -- "$loader_temporary" "$staged/CLOVERX64.efi" || return 1
     cp -- "${CLOVER_DEVICE_CONFIG:-$CLOVER_CONFIG_SOURCE}" "$staged/config.plist" || return 1
     clover_configure_default_loader "$staged/config.plist" "${CLOVER_DEFAULT_OS:-SteamOS}" || return 1
+    if [ "${CLOVER_DEFAULT_OS:-SteamOS}" = "Bazzite" ]; then
+        clover_remove_steamos_entries "$staged/config.plist" || return 1
+    fi
     clover_configure_screen_resolution "$staged/config.plist" \
         "${CLOVER_SCREEN_RESOLUTION:-}" || return 1
     mkdir -p "$staged/themes/zhoukeer-phantom" || return 1
@@ -759,6 +908,116 @@ EOF
     chmod 0644 "$staged/.zhoukeer-managed"
 }
 
+clover_append_steamos_marker() {
+    local marker="$1" backup="$2" numbers="$3" temporary
+
+    temporary="$(mktemp)" || return 1
+    if clover_path_is_file "$marker"; then
+        toolbox_sudo cat -- "$marker" > "$temporary" || {
+            rm -f -- "$temporary"
+            return 1
+        }
+    fi
+    {
+        printf 'STEAMOS_BACKUP=%s\n' "$backup"
+        printf 'STEAMOS_BOOT_NUMBERS=%s\n' "$(printf '%s\n' "$numbers" | awk '
+            NF { value = value (value ? "," : "") $0 }
+            END { print value }
+        ')"
+    } >> "$temporary"
+    toolbox_sudo cp -- "$temporary" "$marker" || {
+        rm -f -- "$temporary"
+        return 1
+    }
+    rm -f -- "$temporary"
+}
+
+clover_cleanup_legacy_steamos() {
+    local old_dir backup_root backup timestamp numbers number delete_count=0 number_count
+    local deleted_numbers="" marker
+
+    detect_platform
+    [ "$IS_BAZZITE" -eq 1 ] || return 0
+    clover_path_is_file "$CLOVER_ESP/EFI/fedora/shimx64.efi" || {
+        echo "未确认 Bazzite EFI 启动文件，拒绝清理旧 SteamOS 引导。" >&2
+        return 1
+    }
+    old_dir="$CLOVER_ESP/EFI/steamos"
+    numbers="$(toolbox_sudo efibootmgr -v 2>/dev/null | clover_steamos_boot_numbers_from_input)"
+    if ! clover_path_is_dir "$old_dir" && [ -z "$numbers" ]; then
+        return 0
+    fi
+    clover_boot_number_list_is_safe "$numbers" || {
+        echo "旧 SteamOS NVRAM 启动项格式异常，拒绝清理。" >&2
+        return 1
+    }
+    number_count="$(printf '%s\n' "$numbers" | awk 'NF { count++ } END { print count + 0 }')"
+    [ "$number_count" -le 8 ] || {
+        echo "旧 SteamOS NVRAM 启动项数量异常，拒绝清理。" >&2
+        return 1
+    }
+
+    backup_root="$CLOVER_ESP/EFI/zhoukeer-backups"
+    clover_path_is_symlink "$backup_root" && {
+        echo "EFI 备份目录是符号链接，拒绝清理旧 SteamOS 引导。" >&2
+        return 1
+    }
+    clover_path_is_symlink "$old_dir" && {
+        echo "旧 SteamOS EFI 目录是符号链接，拒绝清理。" >&2
+        return 1
+    }
+    timestamp="$(date +%Y%m%d%H%M%S)-$$"
+    backup="$backup_root/steamos-before-$timestamp"
+    toolbox_sudo mkdir -p -- "$backup_root" || return 1
+    if clover_path_is_dir "$old_dir"; then
+        clover_path_exists "$backup" && {
+            echo "旧 SteamOS 备份目标已存在，拒绝覆盖。" >&2
+            return 1
+        }
+        toolbox_sudo mv -- "$old_dir" "$backup" || {
+            echo "备份旧 SteamOS EFI 目录失败，未删除启动项。" >&2
+            return 1
+        }
+    else
+        backup=""
+    fi
+
+    while IFS= read -r number; do
+        [ -n "$number" ] || continue
+        delete_count=$((delete_count + 1))
+        if ! toolbox_sudo efibootmgr --delete-bootnum --bootnum "$number"; then
+            [ -z "$backup" ] || toolbox_sudo mv -- "$backup" "$old_dir" >/dev/null 2>&1 || true
+            if [ -n "$deleted_numbers" ] && clover_path_is_file "$old_dir/steamcl.efi"; then
+                toolbox_sudo efibootmgr --create --disk "$CLOVER_DISK" \
+                    --part "$CLOVER_PARTITION" --label "SteamOS" \
+                    --loader '\EFI\steamos\steamcl.efi' >/dev/null 2>&1 || true
+            fi
+            echo "清理旧 SteamOS NVRAM 启动项失败，已尝试恢复启动文件。" >&2
+            return 1
+        fi
+        deleted_numbers="${deleted_numbers}${deleted_numbers:+$'\n'}$number"
+    done <<< "$numbers"
+
+    marker="$CLOVER_ESP/EFI/CLOVER/.zhoukeer-managed"
+    if ! clover_append_steamos_marker "$marker" "$backup" "$numbers"; then
+        [ -z "$backup" ] || toolbox_sudo mv -- "$backup" "$old_dir" >/dev/null 2>&1 || true
+        if [ -n "$numbers" ] && clover_path_is_file "$old_dir/steamcl.efi"; then
+            toolbox_sudo efibootmgr --create --disk "$CLOVER_DISK" \
+                --part "$CLOVER_PARTITION" --label "SteamOS" \
+                --loader '\EFI\steamos\steamcl.efi' >/dev/null 2>&1 || true
+        fi
+        echo "记录旧 SteamOS 备份失败，已尝试恢复。" >&2
+        return 1
+    fi
+    CLOVER_STEAMOS_BACKUP="$backup"
+    CLOVER_STEAMOS_BOOT_NUMBERS="$numbers"
+    echo "已清理旧 SteamOS 引导；启动文件备份：${backup:-无残留目录}"
+    log "旧SteamOS引导已清理: backup=${backup:-none} boot_numbers=$(printf '%s\n' "$numbers" | awk '
+        NF { value = value (value ? "," : "") $0 }
+        END { print value }
+    ')"
+}
+
 clover_show_install_risk() {
     echo "================================================"
     echo " Clover 开机选择菜单"
@@ -775,6 +1034,10 @@ clover_show_install_risk() {
     echo "NVRAM：新增 ${CLOVER_BOOT_LABEL}，并放到现有 BootOrder 首位"
     echo ""
     echo "不会覆盖 EFI/BOOT/BOOTX64.EFI；会保留 Windows 官方启动文件和启动项。"
+    detect_platform
+    if [ "$IS_BAZZITE" -eq 1 ]; then
+        echo "Bazzite 安装时若检测到旧 SteamOS 引导，会先备份再自动清理，不删除任何系统分区。"
+    fi
     echo "安装完成后会启用 Clover 开机修复服务。"
     echo "已有 CLOVER 目录和原 BootOrder 会先备份；恢复入口可撤销本次安装。"
     echo "若掌机按键在 Clover 中不可用，请连接 USB 键盘；倒计时后进入默认系统。"
@@ -816,6 +1079,7 @@ clover_install() {
     local work_dir archive staged target backup_root timestamp
     local existing_backup original_backup original_order current_order new_order staging_log
     local temporary_target boot_number new_boot_entry=0 create_output available_kb
+    local inherited_steamos_backup inherited_steamos_numbers final_order
 
     echo "正在检查 Clover 安装环境…"
     require_supported_gaming_os || return 1
@@ -899,12 +1163,18 @@ clover_install() {
     }
     original_order="$current_order"
     original_backup=""
+    inherited_steamos_backup=""
+    inherited_steamos_numbers=""
 
     if clover_path_is_file "$target/.zhoukeer-managed"; then
         original_order="$(clover_marker_value "$target/.zhoukeer-managed" ORIGINAL_BOOT_ORDER)"
         original_backup="$(clover_marker_value "$target/.zhoukeer-managed" ORIGINAL_BACKUP)"
+        inherited_steamos_backup="$(clover_marker_value "$target/.zhoukeer-managed" STEAMOS_BACKUP)"
+        inherited_steamos_numbers="$(clover_marker_value "$target/.zhoukeer-managed" STEAMOS_BOOT_NUMBERS | tr ',' '\n')"
         clover_boot_order_is_safe "$original_order" && \
-            clover_backup_path_is_safe "$original_backup" || {
+            clover_backup_path_is_safe "$original_backup" && \
+            clover_steamos_backup_path_is_safe "$inherited_steamos_backup" && \
+            clover_boot_number_list_is_safe "$inherited_steamos_numbers" || {
             rm -rf -- "$work_dir"
             echo "现有 Clover 管理标记格式异常，EFI 未修改。"
             return 1
@@ -927,6 +1197,15 @@ clover_install() {
         rm -rf -- "$work_dir"
         return 1
     }
+    if [ -n "$inherited_steamos_backup" ] || [ -n "$inherited_steamos_numbers" ]; then
+        {
+            printf 'STEAMOS_BACKUP=%s\n' "$inherited_steamos_backup"
+            printf 'STEAMOS_BOOT_NUMBERS=%s\n' "$(printf '%s\n' "$inherited_steamos_numbers" | awk '
+                NF { value = value (value ? "," : "") $0 }
+                END { print value }
+            ')"
+        } >> "$staged/.zhoukeer-managed"
+    fi
 
     toolbox_sudo mkdir -p -- "$CLOVER_ESP/EFI" "$backup_root" || {
         rm -rf -- "$work_dir"
@@ -1010,18 +1289,32 @@ clover_install() {
         return 1
     fi
 
+    if [ -z "$inherited_steamos_backup" ] && [ -z "$inherited_steamos_numbers" ]; then
+        if ! clover_cleanup_legacy_steamos; then
+            echo "Clover 已安装，但旧 SteamOS 引导清理失败；请重新运行安装/修复。"
+            rm -rf -- "$work_dir"
+            return 1
+        fi
+    else
+        CLOVER_STEAMOS_BACKUP="$inherited_steamos_backup"
+        CLOVER_STEAMOS_BOOT_NUMBERS="$inherited_steamos_numbers"
+    fi
+
     rm -rf -- "$work_dir"
+    final_order="$(clover_boot_order)"
     echo "Clover $CLOVER_VERSION 已安装，自定义怪盗开机主题已启用。"
     echo "默认启动项：${default_os}；开机将显示 $(clover_linux_name) 和 Windows。"
     echo "原 BootOrder：${original_order:-未读取到}"
-    echo "当前 BootOrder：$new_order"
+    echo "当前 BootOrder：${final_order:-$new_order}"
     [ -z "$original_backup" ] || echo "原 Clover 备份：$original_backup"
+    [ -z "$CLOVER_STEAMOS_BACKUP" ] || echo "旧 SteamOS 引导备份：$CLOVER_STEAMOS_BACKUP"
     log "Clover安装完成: version=$CLOVER_VERSION esp=$CLOVER_ESP boot=$boot_number"
 }
 
 clover_restore() {
     local target marker original_backup original_order backup_root removed_path
-    local boot_number timestamp delete_count=0
+    local boot_number timestamp delete_count=0 steamos_backup steamos_numbers
+    local restored_steamos_number restored_order create_output
 
     require_supported_gaming_os || return 1
     for command_name in findmnt lsblk efibootmgr awk sed sudo; do
@@ -1041,12 +1334,19 @@ clover_restore() {
     }
     original_backup="$(clover_marker_value "$marker" ORIGINAL_BACKUP)"
     original_order="$(clover_marker_value "$marker" ORIGINAL_BOOT_ORDER)"
+    steamos_backup="$(clover_marker_value "$marker" STEAMOS_BACKUP)"
+    steamos_numbers="$(clover_marker_value "$marker" STEAMOS_BOOT_NUMBERS | tr ',' '\n')"
     clover_backup_path_is_safe "$original_backup" || {
         echo "Clover 备份路径标记异常，已拒绝恢复。"
         return 1
     }
     clover_boot_order_is_safe "$original_order" || {
         echo "Clover BootOrder 标记异常，已拒绝恢复。"
+        return 1
+    }
+    clover_steamos_backup_path_is_safe "$steamos_backup" && \
+        clover_boot_number_list_is_safe "$steamos_numbers" || {
+        echo "旧 SteamOS 备份标记异常，已拒绝恢复。"
         return 1
     }
     if [ -n "$original_backup" ] && \
@@ -1056,7 +1356,41 @@ clover_restore() {
     fi
     toolbox_sudo true || return 1
 
-    if [ -n "$original_order" ] && ! toolbox_sudo efibootmgr --bootorder "$original_order"; then
+    restored_order="$original_order"
+    if [ -n "$steamos_backup" ]; then
+        clover_path_is_dir "$steamos_backup" || {
+            echo "旧 SteamOS 启动文件备份不存在，已拒绝恢复原引导。"
+            return 1
+        }
+        clover_path_exists "$CLOVER_ESP/EFI/steamos" && {
+            echo "EFI/steamos 已存在，拒绝覆盖恢复。"
+            return 1
+        }
+        toolbox_sudo mv -- "$steamos_backup" "$CLOVER_ESP/EFI/steamos" || return 1
+    fi
+    if [ -n "$steamos_numbers" ] && \
+        clover_path_is_file "$CLOVER_ESP/EFI/steamos/steamcl.efi"; then
+        restored_steamos_number="$(toolbox_sudo efibootmgr -v 2>/dev/null | \
+            clover_steamos_boot_numbers_from_input | head -n 1)"
+        if [ -z "$restored_steamos_number" ]; then
+            create_output="$(toolbox_sudo efibootmgr --create --disk "$CLOVER_DISK" \
+                --part "$CLOVER_PARTITION" --label "SteamOS" \
+                --loader '\EFI\steamos\steamcl.efi')" || return 1
+            restored_steamos_number="$(printf '%s\n' "$create_output" | \
+                clover_steamos_boot_numbers_from_input)"
+            [ -n "$restored_steamos_number" ] || \
+                restored_steamos_number="$(toolbox_sudo efibootmgr -v 2>/dev/null | \
+                    clover_steamos_boot_numbers_from_input | head -n 1)"
+        fi
+        [ -n "$restored_steamos_number" ] || {
+            echo "恢复旧 SteamOS NVRAM 启动项失败。"
+            return 1
+        }
+        restored_order="$(clover_replace_boot_numbers "$original_order" \
+            "$steamos_numbers" "$restored_steamos_number")"
+    fi
+
+    if [ -n "$restored_order" ] && ! toolbox_sudo efibootmgr --bootorder "$restored_order"; then
         echo "恢复原 BootOrder 失败；Clover 文件暂时保留。"
         return 1
     fi
@@ -1095,7 +1429,7 @@ clover_restore() {
         echo "警告：Clover 开机修复服务未能完全移除，请手动检查 systemd。"
         return 1
     }
-    echo "原开机顺序已恢复：${original_order:-由固件自动整理}"
+    echo "原开机顺序已恢复：${restored_order:-由固件自动整理}"
     log "Clover已恢复: esp=$CLOVER_ESP"
 }
 
