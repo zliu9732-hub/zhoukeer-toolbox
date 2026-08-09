@@ -125,14 +125,18 @@ configure_chinese_locales() {
 }
 
 configure_domestic_flatpak() {
-    require_steamos || return 1
+    require_supported_gaming_os || return 1
     require_command flatpak || return 1
     require_command timeout || return 1
 
     DOMESTIC_FLATPAK_SKIPPED=0
     export DOMESTIC_FLATPAK_SKIPPED
 
-    echo "[2/2] 配置上海交大和中科大 Flatpak 国内缓存..."
+    if [ "$IS_BAZZITE" -eq 1 ]; then
+        echo "配置 Bazzite 用户级 Flatpak 国内缓存..."
+    else
+        echo "[2/2] 配置上海交大和中科大 Flatpak 国内缓存..."
+    fi
     if ! ensure_flatpak_remotes; then
         if flatpak_any_remote_exists; then
             DOMESTIC_FLATPAK_SKIPPED=1
@@ -211,7 +215,7 @@ configure_archlinuxcn_with_fallback() {
 restore_official_flatpak() {
     local repo_file
 
-    require_steamos || return 1
+    require_supported_gaming_os || return 1
     require_command flatpak || return 1
     require_command timeout || return 1
     require_command curl || return 1
@@ -252,20 +256,23 @@ restore_official_flatpak() {
         echo "官方源已恢复，但移除 $FLATHUB_CN_FALLBACK_REMOTE 失败。"
         return 1
     fi
-    if flatpak_system_remote_exists "$FLATHUB_CN_REMOTE" && \
-        ! toolbox_sudo timeout --foreground 30 flatpak remote-delete --system --force \
-            "$FLATHUB_CN_REMOTE"; then
-        echo "官方源已恢复，但移除系统级 $FLATHUB_CN_REMOTE 失败。"
-        return 1
-    fi
-    if flatpak_system_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE" && \
-        ! toolbox_sudo timeout --foreground 30 flatpak remote-delete --system --force \
-            "$FLATHUB_CN_FALLBACK_REMOTE"; then
-        echo "官方源已恢复，但移除系统级 $FLATHUB_CN_FALLBACK_REMOTE 失败。"
-        return 1
+    if [ "$IS_STEAMOS" -eq 1 ]; then
+        if flatpak_system_remote_exists "$FLATHUB_CN_REMOTE" && \
+            ! toolbox_sudo timeout --foreground 30 flatpak remote-delete --system --force \
+                "$FLATHUB_CN_REMOTE"; then
+            echo "官方源已恢复，但移除系统级 $FLATHUB_CN_REMOTE 失败。"
+            return 1
+        fi
+        if flatpak_system_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE" && \
+            ! toolbox_sudo timeout --foreground 30 flatpak remote-delete --system --force \
+                "$FLATHUB_CN_FALLBACK_REMOTE"; then
+            echo "官方源已恢复，但移除系统级 $FLATHUB_CN_FALLBACK_REMOTE 失败。"
+            return 1
+        fi
     fi
 
-    if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" /etc/pacman.conf 2>/dev/null; then
+    if [ "$IS_STEAMOS" -eq 1 ] && \
+        grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" /etc/pacman.conf 2>/dev/null; then
         require_command steamos-readonly || return 1
         require_command install || return 1
         if ! toolbox_sudo steamos-readonly disable; then
@@ -283,8 +290,13 @@ restore_official_flatpak() {
         fi
     fi
 
-    echo "已恢复 Flathub 官方源并启用 GPG 验证，同时移除Renkit管理的 archlinuxcn 配置。"
-    log "已恢复Flathub官方源并移除国内缓存源和Renkit管理的archlinuxcn配置"
+    if [ "$IS_STEAMOS" -eq 1 ]; then
+        echo "已恢复 Flathub 官方源并启用 GPG 验证，同时移除Renkit管理的 archlinuxcn 配置。"
+        log "已恢复Flathub官方源并移除国内缓存源和Renkit管理的archlinuxcn配置"
+    else
+        echo "已恢复 Bazzite 官方 Flathub 并启用 GPG 验证；系统更新源保持不变。"
+        log "Bazzite已恢复官方Flathub并移除国内缓存源"
+    fi
 }
 
 prepare_system_packages() (
@@ -432,12 +444,17 @@ initialize_software_sources() {
 
 show_software_source_status() {
     require_command flatpak || return 1
-    if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" /etc/pacman.conf 2>/dev/null; then
-        echo "pacman 国内仓库：archlinuxcn｜$ARCHLINUXCN_REPO_URL（Renkit管理）"
-    elif pacman_conf_has_archlinuxcn /etc/pacman.conf 2>/dev/null; then
-        echo "pacman 国内仓库：检测到用户已有 archlinuxcn 配置（Renkit不覆盖）"
-    else
-        echo "pacman 国内仓库：未配置 archlinuxcn"
+    detect_platform
+    if [ "$IS_STEAMOS" -eq 1 ]; then
+        if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" /etc/pacman.conf 2>/dev/null; then
+            echo "pacman 国内仓库：archlinuxcn｜$ARCHLINUXCN_REPO_URL（Renkit管理）"
+        elif pacman_conf_has_archlinuxcn /etc/pacman.conf 2>/dev/null; then
+            echo "pacman 国内仓库：检测到用户已有 archlinuxcn 配置（Renkit不覆盖）"
+        else
+            echo "pacman 国内仓库：未配置 archlinuxcn"
+        fi
+    elif [ "$IS_BAZZITE" -eq 1 ]; then
+        echo "Bazzite 系统更新源：保持官方配置（Renkit不修改）"
     fi
     echo "用户级 Flatpak 下载源："
     flatpak remotes --user --show-details 2>/dev/null || \
