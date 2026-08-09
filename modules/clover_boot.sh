@@ -657,6 +657,7 @@ clover_prepare_staging() {
     local extracted="$work_dir/extracted"
     local staged="$work_dir/CLOVER"
     local source_clover="$extracted/Clover/clover"
+    local loader_source loader_temporary
 
     clover_archive_is_safe "$archive" || return 1
     mkdir -p "$extracted" "$staged/themes" || return 1
@@ -684,7 +685,12 @@ clover_prepare_staging() {
         echo "解压后缺少 cloverx64.efi。" >&2
         return 1
     }
-    [ -f "$staged/CLOVERX64.efi" ] || cp -- "$staged/cloverx64.efi" "$staged/CLOVERX64.efi" || return 1
+    # FAT32 不区分文件名大小写。不能同时保留 cloverx64.efi 和 CLOVERX64.efi，
+    # 否则从 Linux 临时目录复制到 EFI 时会因目标文件已存在而失败。
+    loader_source="$staged/cloverx64.efi"
+    loader_temporary="$staged/.cloverx64.efi.renkit.$$"
+    mv -- "$loader_source" "$loader_temporary" || return 1
+    mv -- "$loader_temporary" "$staged/CLOVERX64.efi" || return 1
     cp -- "${CLOVER_DEVICE_CONFIG:-$CLOVER_CONFIG_SOURCE}" "$staged/config.plist" || return 1
     clover_configure_default_loader "$staged/config.plist" "${CLOVER_DEFAULT_OS:-SteamOS}" || return 1
     clover_configure_auto_resolution "$staged/config.plist" || return 1

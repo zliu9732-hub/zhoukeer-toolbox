@@ -1,3 +1,9 @@
+## Renkit 1.2.7 Clover FAT32 文件名兼容 — 2026-08-10
+
+- 修复 Linux 临时目录同时包含 `cloverx64.efi` 与 `CLOVERX64.efi`，复制到不区分大小写的 FAT32 EFI 时提示“文件已存在”的问题。
+- Clover 启动文件改为通过临时名称安全改名，EFI 中只写入一个标准大写文件名。
+- 新增回归测试，禁止准备阶段再次复制仅大小写不同的 Clover EFI 文件。
+
 ## Renkit 1.2.6 Clover FAT32 复制兼容 — 2026-08-10
 
 - 修复向 FAT32 EFI 分区复制 Clover 时，`cp -a` 尝试保留 Linux 所有权和权限并连续报“不允许的操作”的问题。
