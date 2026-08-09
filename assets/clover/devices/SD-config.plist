@@ -109,7 +109,7 @@
 					<key>Image</key>
 					<string>os_win</string>
 					<key>Path</key>
-					<string>\efi\microsoft\bootmgfw.efi</string>
+					<string>\efi\microsoft\boot\bootmgfw.efi</string>
 					<key>Title</key>
 					<string>Windows</string>
 					<key>Type</key>

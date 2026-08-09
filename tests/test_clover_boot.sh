@@ -31,9 +31,13 @@ mkdir -p \
     "$FIXTURE_ROOT/Clover/custom" \
     "$STATE"
 printf 'steam\n' > "$ESP/EFI/steamos/steamcl.efi"
-printf 'windows\n' > "$ESP/EFI/Microsoft/Boot/bootmgfw.efi"
+# 模拟 1.2.7 已把 Windows 启动文件移走；1.2.8 重装必须自动恢复。
+printf 'windows\n' > "$ESP/EFI/Microsoft/bootmgfw.efi"
+printf 'windows\n' > "$ESP/EFI/Microsoft/Boot/bootmgfw.efi.zhoukeer-orig"
 printf 'fallback-sentinel\n' > "$ESP/EFI/BOOT/BOOTX64.EFI"
 printf 'original-clover\n' > "$ESP/EFI/CLOVER/original.txt"
+mkdir -p "$ESP/EFI/CLOVER/themes/zhoukeer-phantom"
+printf 'old-background\n' > "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/background.png"
 printf 'clover-binary\n' > "$FIXTURE_ROOT/Clover/clover/cloverx64.efi"
 cp -- "$PROJECT_ROOT/assets/clover/devices/SD-config.plist" \
     "$FIXTURE_ROOT/Clover/custom/SD-config.plist"
@@ -134,6 +138,13 @@ fi
 [ -f "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/background.png" ] || fail "未写入怪盗主题背景"
 cmp -s "$PROJECT_ROOT/assets/clover/zhoukeer-phantom/background.png" \
     "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/background.png" || fail "开机背景与项目资源不一致"
+if command -v sha256sum >/dev/null 2>&1; then
+    background_sha="$(sha256sum "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/background.png" | awk '{print $1}')"
+else
+    background_sha="$(shasum -a 256 "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/background.png" | awk '{print $1}')"
+fi
+[ "$background_sha" = "b2e5ded70aff4ecdc12f351e642ee7dca2b2b173ec465fbeb14c5136eb7eb696" ] || \
+    fail "Clover 安装后仍保留旧版开机背景"
 grep -Fq 'steamcl.efi' "$ESP/EFI/CLOVER/config.plist" || \
     fail "SteamOS 不是默认启动器"
 grep -Fq 'zhoukeer-phantom' "$ESP/EFI/CLOVER/config.plist" || \
@@ -143,9 +154,9 @@ if grep -Fq '<key>ScreenResolution</key>' "$ESP/EFI/CLOVER/config.plist"; then
 fi
 [ "$(cat "$STATE/bootorder")" = '0002,0000,0001' ] || fail "Clover 未放到 BootOrder 首位"
 [ "$(cat "$ESP/EFI/BOOT/BOOTX64.EFI")" = 'fallback-sentinel' ] || fail "安装覆盖了 BOOTX64.EFI"
-[ ! -f "$ESP/EFI/Microsoft/Boot/bootmgfw.efi" ] || fail "Windows 直启未禁用"
-[ -f "$ESP/EFI/Microsoft/bootmgfw.efi" ] || fail "Clover Windows 入口文件缺失"
-[ -f "$ESP/EFI/Microsoft/Boot/bootmgfw.efi.zhoukeer-orig" ] || fail "Windows EFI 未备份"
+[ -f "$ESP/EFI/Microsoft/Boot/bootmgfw.efi" ] || fail "Windows 官方启动文件未恢复"
+[ ! -e "$ESP/EFI/Microsoft/bootmgfw.efi" ] || fail "旧版 Windows 启动副本未清理"
+[ ! -e "$ESP/EFI/Microsoft/Boot/bootmgfw.efi.zhoukeer-orig" ] || fail "旧版 Windows 启动备份未清理"
 [ -f "$SYSTEM_DIR/clover-bootmanager.service" ] || fail "开机修复服务未安装"
 [ -f "$SYSTEM_DIR/clover-bootmanager.sh" ] || fail "开机修复脚本未安装"
 [ -f "$WHITELIST_DIR/clover-whitelist.conf" ] || fail "开机修复白名单未安装"
@@ -161,7 +172,7 @@ clover_delete >/dev/null || fail "模拟删除Renkit Clover 双系统引导失�
 [ "$(cat "$STATE/bootorder")" = '0000,0001' ] || fail "没有恢复原 BootOrder"
 [ "$(cat "$STATE/clover-entry")" = '0' ] || fail "没有删除Renkit Clover NVRAM 入口"
 [ -f "$ESP/EFI/Microsoft/Boot/bootmgfw.efi" ] || fail "Windows 直启未恢复"
-[ ! -e "$ESP/EFI/Microsoft/bootmgfw.efi" ] || fail "Clover Windows 入口未清理"
+[ ! -e "$ESP/EFI/Microsoft/bootmgfw.efi" ] || fail "旧版 Clover Windows 入口未清理"
 [ ! -e "$SYSTEM_DIR/clover-bootmanager.service" ] || fail "Clover 服务未移除"
 [ ! -e "$SYSTEM_DIR/clover-bootmanager.sh" ] || fail "Clover 开机修复脚本未移除"
 [ ! -e "$WHITELIST_DIR/clover-whitelist.conf" ] || fail "SteamOS Clover 白名单未移除"
@@ -199,4 +210,4 @@ fi
 grep -Fq '包含符号链接' "$TMP_ROOT/bad-stage-output" || \
     fail "Clover 安装包准备失败没有输出具体原因"
 
-echo "PASS: Clover Gitee 镜像、设备配置、怪盗主题、Windows 直启禁用、BootOrder 和删除恢复模拟测试通过"
+echo "PASS: Clover Gitee 镜像、设备配置、怪盗主题、Windows 启动保留、BootOrder 和删除恢复模拟测试通过"

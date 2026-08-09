@@ -156,19 +156,26 @@ ensure_boot_entry() {
     printf '%s\n' "$number"
 }
 
-disable_windows_direct_boot() {
+ensure_windows_direct_boot() {
     local standard backup moved
 
     standard="$ESP/EFI/Microsoft/Boot/bootmgfw.efi"
     backup="$standard.zhoukeer-orig"
     moved="$ESP/EFI/Microsoft/bootmgfw.efi"
     if [ -f "$standard" ]; then
-        mkdir -p -- "$ESP/EFI/Microsoft"
-        [ -f "$backup" ] || cp -- "$standard" "$backup" || \
-            fail "无法备份 Windows 启动文件。"
-        mv -- "$standard" "$moved" || fail "无法禁用 Windows 直启。"
-    elif [ ! -f "$moved" ]; then
-        fail "未找到 Windows 启动文件，未修改开机顺序。"
+        [ ! -f "$moved" ] || rm -f -- "$moved" || fail "无法清理旧版 Windows 启动副本。"
+        [ ! -f "$backup" ] || rm -f -- "$backup" || fail "无法清理旧版 Windows 启动备份。"
+    else
+        mkdir -p -- "$ESP/EFI/Microsoft/Boot"
+        if [ -f "$backup" ]; then
+            mv -- "$backup" "$standard" || fail "无法恢复 Windows 官方启动文件。"
+        elif [ -f "$moved" ]; then
+            mv -- "$moved" "$standard" || fail "无法恢复 Windows 官方启动文件。"
+        else
+            fail "未找到 Windows 启动文件，未修改开机顺序。"
+        fi
+        [ ! -f "$moved" ] || rm -f -- "$moved" || fail "无法清理旧版 Windows 启动副本。"
+        [ ! -f "$backup" ] || rm -f -- "$backup" || fail "无法清理旧版 Windows 启动备份。"
     fi
 }
 
@@ -219,7 +226,7 @@ main() {
     }
     : > "$STATUS_FILE" || exit 1
     chmod 0644 "$STATUS_FILE" || exit 1
-    for command_name in awk cp efibootmgr findmnt lsblk mkdir mv sed tr; do
+    for command_name in awk efibootmgr findmnt lsblk mkdir mv rm sed tr; do
         command -v "$command_name" >/dev/null 2>&1 || fail "缺少命令：$command_name"
     done
     detect_supported_os
@@ -231,7 +238,7 @@ main() {
     clover_number="$(ensure_boot_entry "$CLOVER_LABEL" "$CLOVER_LOADER" 'cloverx64.efi')"
     os_number="$(ensure_boot_entry "$OS_LABEL" "$OS_LOADER" "$OS_LOADER_NEEDLE")"
     new_order="$(prepend_clover_to_boot_order "$clover_number")"
-    disable_windows_direct_boot
+    ensure_windows_direct_boot
 
     log_line "EFI 分区：${ESP_SOURCE}，挂载点：${ESP}"
     log_line "Clover 启动项：${clover_number}；${OS_LABEL} 启动项：${os_number}"

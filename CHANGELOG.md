@@ -1,3 +1,10 @@
+## Renkit 1.2.8 GPD WIN 3 Clover 横屏与默认启动修复 — 2026-08-10
+
+- GPD WIN 3（G1618-03）安装 Clover 时单独请求 `1280x720` 横屏 GOP 模式，其他掌机继续使用自动分辨率。
+- Bazzite 的 Clover 开机修复服务改为等待本地文件系统，并通过系统 Bash 启动脚本，规避 SELinux 对 systemd 配置目录脚本直接执行的限制。
+- 保留 Windows 官方启动文件与 NVRAM 启动项；升级时自动修复旧版移走的 `bootmgfw.efi`，恢复桌面“切换至 Windows”。
+- Clover 主题背景替换为当前 1536×1024 深色 Renkit 图；升级仍整体替换活动主题目录，不会残留旧背景。
+
 ## Renkit 1.2.7 Clover FAT32 文件名兼容 — 2026-08-10
 
 - 修复 Linux 临时目录同时包含 `cloverx64.efi` 与 `CLOVERX64.efi`，复制到不区分大小写的 FAT32 EFI 时提示“文件已存在”的问题。

@@ -1,10 +1,13 @@
 [Unit]
 Description=Renkit Clover boot order repair
+After=local-fs.target
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/etc/systemd/system/clover-bootmanager.sh
+# Bazzite/Fedora 的 SELinux 会按 systemd 配置目录标记此脚本；
+# 显式通过系统 Bash 读取，避免把 /etc/systemd/system 中的文件直接当可执行程序。
+ExecStart=/usr/bin/bash /etc/systemd/system/clover-bootmanager.sh
 
 [Install]
 WantedBy=multi-user.target

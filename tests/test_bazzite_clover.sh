@@ -16,6 +16,7 @@ DMI_ROOT="$TMP_ROOT/dmi"
 FIXTURE_ROOT="$TMP_ROOT/fixture"
 FIXTURE="$TMP_ROOT/Clover.tar.gz"
 STAGE_ROOT="$TMP_ROOT/stage"
+GPD_STAGE_ROOT="$TMP_ROOT/gpd-stage"
 mkdir -p "$DMI_ROOT" "$FIXTURE_ROOT/Clover/clover" "$FIXTURE_ROOT/Clover/custom"
 cat > "$OS_RELEASE" <<'EOF'
 ID=bazzite
@@ -42,6 +43,7 @@ require_supported_gaming_os || fail "Bazzite 被 Clover 模块拒绝"
 clover_detect_device || fail "Bazzite 通用设备识别失败"
 [ "$CLOVER_DEVICE_PREFIX" = "Bazzite-generic" ] || fail "未知 Bazzite 设备没有使用通用配置"
 [ -z "$CLOVER_EFI_DRIVER" ] || fail "通用 Bazzite 配置误加载设备专用驱动"
+[ -z "$CLOVER_SCREEN_RESOLUTION" ] || fail "通用 Bazzite 配置误写固定分辨率"
 [ "$(clover_choose_default_os)" = "Bazzite" ] || fail "Bazzite 默认启动项选择错误"
 
 CLOVER_DEFAULT_OS="Bazzite"
@@ -54,11 +56,27 @@ awk '
     }
     END { exit(found ? 0 : 1) }
 ' "$staged/config.plist" || fail "Bazzite shim 未设置为默认启动器"
-grep -Fq '<string>\EFI\Microsoft\bootmgfw.efi</string>' "$staged/config.plist" || \
-    fail "Clover Windows 入口没有指向Renkit管理位置"
+grep -Fq '<string>\EFI\Microsoft\Boot\bootmgfw.efi</string>' "$staged/config.plist" || \
+    fail "Clover Windows 入口没有指向官方启动文件"
 if grep -Fq '<key>ScreenResolution</key>' "$staged/config.plist"; then
     fail "Bazzite Clover 通用配置仍写死屏幕分辨率"
 fi
+
+printf '%s\n' "G1618-03" > "$DMI_ROOT/product_name"
+clover_detect_device || fail "GPD WIN 3 设备识别失败"
+[ "$CLOVER_DEVICE_PREFIX" = "Bazzite-generic" ] || fail "GPD WIN 3 没有复用 Bazzite 通用配置"
+[ "$CLOVER_SCREEN_RESOLUTION" = "1280x720" ] || fail "GPD WIN 3 没有启用横屏分辨率"
+CLOVER_DEFAULT_OS="Bazzite"
+CLOVER_DEVICE_CONFIG="$PROJECT_ROOT/assets/clover/config.plist"
+gpd_staged="$(clover_prepare_staging "$FIXTURE" "$GPD_STAGE_ROOT")" || \
+    fail "GPD WIN 3 Clover 准备阶段失败"
+awk '
+    /<key>ScreenResolution<\/key>/ {
+        getline
+        if ($0 ~ /<string>1280x720<\/string>/) found=1
+    }
+    END { exit(found ? 0 : 1) }
+' "$gpd_staged/config.plist" || fail "GPD WIN 3 Clover 未写入 1280x720 横屏模式"
 
 SYSTEM_DIR="$TMP_ROOT/systemd"
 WHITELIST_DIR="$TMP_ROOT/steam-atomic-whitelist"
@@ -72,6 +90,11 @@ clover_install_bootmanager >/dev/null || fail "Bazzite Clover 服务模拟安装
 [ -f "$SYSTEM_DIR/clover-bootmanager.service" ] || fail "Bazzite Clover 服务文件缺失"
 [ -f "$SYSTEM_DIR/clover-bootmanager.sh" ] || fail "Bazzite Clover 修复脚本缺失"
 [ ! -e "$WHITELIST_DIR/clover-whitelist.conf" ] || fail "Bazzite 误安装 SteamOS atomic-update 白名单"
+grep -Fq 'After=local-fs.target' "$SYSTEM_DIR/clover-bootmanager.service" || \
+    fail "Bazzite Clover 服务未等待本地 EFI 挂载"
+grep -Fq 'ExecStart=/usr/bin/bash /etc/systemd/system/clover-bootmanager.sh' \
+    "$SYSTEM_DIR/clover-bootmanager.service" || \
+    fail "Bazzite Clover 服务仍直接执行 systemd 配置目录中的脚本"
 
 # 下面所有 EFI/NVRAM 操作均使用临时目录与模拟命令，不接触真实系统。
 ESP="$TMP_ROOT/esp"
@@ -80,7 +103,9 @@ MOCK_STATE="$TMP_ROOT/state"
 mkdir -p "$ESP/EFI/fedora" "$ESP/EFI/CLOVER" "$ESP/EFI/Microsoft/Boot" "$MOCK_BIN" "$MOCK_STATE"
 printf '%s\n' "bazzite" > "$ESP/EFI/fedora/shimx64.efi"
 printf '%s\n' "clover" > "$ESP/EFI/CLOVER/CLOVERX64.efi"
-printf '%s\n' "windows" > "$ESP/EFI/Microsoft/Boot/bootmgfw.efi"
+# 模拟旧版 Renkit 已移动 Windows 文件，开机服务必须迁回官方位置。
+printf '%s\n' "windows" > "$ESP/EFI/Microsoft/bootmgfw.efi"
+printf '%s\n' "windows" > "$ESP/EFI/Microsoft/Boot/bootmgfw.efi.zhoukeer-orig"
 printf '%s\n' "0" > "$MOCK_STATE/clover-entry"
 printf '%s\n' "0001,0003,0004" > "$MOCK_STATE/bootorder"
 
@@ -130,9 +155,9 @@ ZHOUKEER_CLOVER_STATUS_FILE="$STATUS_FILE" \
 
 [ "$(cat "$MOCK_STATE/bootorder")" = "0002,0001,0003,0004" ] || \
     fail "开机修复没有保留原有 Bazzite、Windows 与 PXE 启动项"
-[ -f "$ESP/EFI/Microsoft/Boot/bootmgfw.efi.zhoukeer-orig" ] || fail "Windows EFI 没有备份"
-[ -f "$ESP/EFI/Microsoft/bootmgfw.efi" ] || fail "Windows EFI 没有移到 Clover 入口位置"
-[ ! -f "$ESP/EFI/Microsoft/Boot/bootmgfw.efi" ] || fail "Windows 直启文件仍在原位置"
+[ -f "$ESP/EFI/Microsoft/Boot/bootmgfw.efi" ] || fail "Windows 官方启动文件没有恢复"
+[ ! -e "$ESP/EFI/Microsoft/Boot/bootmgfw.efi.zhoukeer-orig" ] || fail "旧版 Windows 启动备份仍残留"
+[ ! -e "$ESP/EFI/Microsoft/bootmgfw.efi" ] || fail "旧版 Windows 启动副本仍残留"
 grep -Fq 'Clover 开机修复完成' "$STATUS_FILE" || fail "开机修复状态日志缺失"
 
 STATUS_TARGET="$TMP_ROOT/status-target.txt"
