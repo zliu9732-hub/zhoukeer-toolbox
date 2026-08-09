@@ -1,3 +1,9 @@
+## Renkit 1.2.4 Bazzite Clover 管理员验证 — 2026-08-10
+
+- 修复 Bazzite 独立菜单未先准备管理员密码记录，导致 1.2.3 无法完成 root-only EFI 复核的问题。
+- 安装、状态和恢复 Clover 前统一验证管理员权限；Bazzite 尚未录入或记录失效时，会明确要求输入一次当前账户密码，验证失败不修改 EFI。
+- 新增完全模拟的 Bazzite 管理员密码录入测试；SteamOS 原有首次使用流程保持不变。
+
 ## Renkit 1.2.3 Bazzite EFI 权限兼容 — 2026-08-10
 
 - 修复 Bazzite 将 `/boot/efi` 设为仅 root 可读取时，Clover 错误提示“挂载位置不含 EFI 目录”的问题；只读探测会通过Renkit现有管理员权限通道复核。
