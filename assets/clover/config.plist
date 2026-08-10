@@ -51,7 +51,7 @@
                     <key>Image</key>
                     <string>os_win11.png</string>
                     <key>Path</key>
-                    <string>\EFI\Microsoft\bootmgfw.efi</string>
+                    <string>\EFI\Microsoft\Boot\bootmgfw.efi</string>
                     <key>Type</key>
                     <string>Windows</string>
                     <key>VolumeType</key>
@@ -79,6 +79,8 @@
         </dict>
         <key>TextOnly</key>
         <false/>
+        <key>ScreenResolution</key>
+        <string>1280x720</string>
         <key>Theme</key>
         <string>zhoukeer-phantom</string>
     </dict>

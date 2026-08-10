@@ -37,6 +37,7 @@ CLOVER_DEVICE_PREFIX=""
 CLOVER_DEVICE_NAME=""
 CLOVER_EFI_DRIVER=""
 CLOVER_DEVICE_CONFIG=""
+CLOVER_SCREEN_RESOLUTION=""
 CLOVER_DEFAULT_OS=""
 
 clover_path_is_dir() {
@@ -335,8 +336,16 @@ clover_detect_device() {
     CLOVER_DEVICE_PREFIX=""
     CLOVER_DEVICE_NAME=""
     CLOVER_EFI_DRIVER=""
+    CLOVER_SCREEN_RESOLUTION=""
 
     case "$board_name:$product_name" in
+        *:G1618-03|*:*GPD*WIN*3*)
+            CLOVER_DEVICE_PREFIX="Bazzite-generic"
+            CLOVER_DEVICE_NAME="GPD WIN 3 ${product_name}"
+            # GPD WIN 3 的 UEFI GOP 常把内置横屏面板报告为 720x1280。
+            # Clover 没有通用的画面旋转开关，优先请求固件的横屏 GOP 模式。
+            CLOVER_SCREEN_RESOLUTION="1280x720"
+            ;;
         Jupiter:*|Galileo:*)
             CLOVER_DEVICE_PREFIX="SD"
             CLOVER_DEVICE_NAME="Steam Deck ${product_name}"
@@ -414,7 +423,7 @@ clover_configure_default_loader() {
         BEGIN {
             slash = sprintf("%c", 92)
             if (default_os == "Bazzite") loader = slash "EFI" slash "fedora" slash "shimx64.efi"
-            else if (default_os == "Windows") loader = slash "EFI" slash "Microsoft" slash "bootmgfw.efi"
+            else if (default_os == "Windows") loader = slash "EFI" slash "Microsoft" slash "Boot" slash "bootmgfw.efi"
             else loader = slash "EFI" slash "STEAMOS" slash "STEAMCL.efi"
         }
         /<key>DefaultLoader<\/key>/ {
@@ -435,11 +444,20 @@ clover_configure_default_loader() {
     mv -- "$temporary" "$config"
 }
 
-clover_configure_auto_resolution() {
+clover_configure_screen_resolution() {
     local config="$1"
+    local resolution="${2:-}"
     local temporary="${config}.resolution.$$"
 
-    awk '
+    case "$resolution" in
+        ''|[0-9]*[xX][0-9]*) ;;
+        *)
+            echo "Clover 屏幕分辨率格式异常：$resolution" >&2
+            return 1
+            ;;
+    esac
+
+    awk -v resolution="$resolution" '
         /<key>ScreenResolution<\/key>/ {
             found++
             if (found > 1) {
@@ -454,19 +472,27 @@ clover_configure_auto_resolution() {
                 error = 3
                 exit
             }
+            if (resolution != "") {
+                print
+                match(resolution_line, /^[[:space:]]*/)
+                print substr(resolution_line, 1, RLENGTH) "<string>" resolution "</string>"
+            }
             next
         }
         { print }
-        END { if (error) exit error }
+        END {
+            if (error) exit error
+            if (resolution != "" && found != 1) exit 5
+        }
     ' "$config" > "$temporary" || {
         rm -f -- "$temporary"
-        echo "无法启用 Clover 自动分辨率，配置文件格式异常。" >&2
+        echo "无法配置 Clover 屏幕分辨率，配置文件格式异常。" >&2
         return 1
     }
     mv -- "$temporary" "$config"
 }
 
-clover_disable_windows_direct_boot() {
+clover_ensure_windows_direct_boot() {
     local boot_dir microsoft_dir old_efi backup_efi moved_efi
 
     boot_dir="$CLOVER_ESP/EFI/Microsoft/Boot"
@@ -475,37 +501,35 @@ clover_disable_windows_direct_boot() {
     backup_efi="$boot_dir/bootmgfw.efi.zhoukeer-orig"
     moved_efi="$microsoft_dir/bootmgfw.efi"
 
-    clover_path_is_file "$old_efi" || {
-        clover_path_is_file "$moved_efi" && return 0
-        echo "未找到 Windows 启动文件，无法禁用 Windows 直启。"
-        return 1
-    }
-    toolbox_sudo mkdir -p -- "$microsoft_dir" || return 1
-    if clover_path_is_file "$backup_efi"; then
-        toolbox_sudo mv -- "$old_efi" "$moved_efi" || return 1
+    if clover_path_is_file "$old_efi"; then
+        if clover_path_is_file "$moved_efi"; then
+            toolbox_sudo rm -f -- "$moved_efi" || return 1
+        fi
+        if clover_path_is_file "$backup_efi"; then
+            toolbox_sudo rm -f -- "$backup_efi" || return 1
+        fi
     else
-        toolbox_sudo cp -- "$old_efi" "$backup_efi" || return 1
-        if ! toolbox_sudo mv -- "$old_efi" "$moved_efi"; then
-            toolbox_sudo rm -f -- "$backup_efi" || true
+        toolbox_sudo mkdir -p -- "$boot_dir" || return 1
+        if clover_path_is_file "$backup_efi"; then
+            toolbox_sudo mv -- "$backup_efi" "$old_efi" || return 1
+        elif clover_path_is_file "$moved_efi"; then
+            toolbox_sudo mv -- "$moved_efi" "$old_efi" || return 1
+        else
+            echo "未找到 Windows 启动文件，无法保留 Windows 启动项。"
             return 1
         fi
+        if clover_path_is_file "$moved_efi"; then
+            toolbox_sudo rm -f -- "$moved_efi" || return 1
+        fi
+        if clover_path_is_file "$backup_efi"; then
+            toolbox_sudo rm -f -- "$backup_efi" || return 1
+        fi
     fi
-    echo "Windows 直启已禁用，Clover 开机菜单接管 Windows 入口。"
+    echo "Windows 官方启动文件已保留，桌面切换 Windows 可继续使用。"
 }
 
 clover_restore_windows_direct_boot() {
-    local boot_dir microsoft_dir old_efi backup_efi moved_efi
-
-    boot_dir="$CLOVER_ESP/EFI/Microsoft/Boot"
-    microsoft_dir="$CLOVER_ESP/EFI/Microsoft"
-    old_efi="$boot_dir/bootmgfw.efi"
-    backup_efi="$boot_dir/bootmgfw.efi.zhoukeer-orig"
-    moved_efi="$microsoft_dir/bootmgfw.efi"
-
-    clover_path_is_file "$backup_efi" || return 0
-    clover_path_is_file "$moved_efi" && toolbox_sudo rm -f -- "$moved_efi"
-    toolbox_sudo mv -- "$backup_efi" "$old_efi" || return 1
-    echo "Windows 直启已恢复。"
+    clover_ensure_windows_direct_boot
 }
 
 clover_install_bootmanager() {
@@ -693,7 +717,8 @@ clover_prepare_staging() {
     mv -- "$loader_temporary" "$staged/CLOVERX64.efi" || return 1
     cp -- "${CLOVER_DEVICE_CONFIG:-$CLOVER_CONFIG_SOURCE}" "$staged/config.plist" || return 1
     clover_configure_default_loader "$staged/config.plist" "${CLOVER_DEFAULT_OS:-SteamOS}" || return 1
-    clover_configure_auto_resolution "$staged/config.plist" || return 1
+    clover_configure_screen_resolution "$staged/config.plist" \
+        "${CLOVER_SCREEN_RESOLUTION:-}" || return 1
     mkdir -p "$staged/themes/zhoukeer-phantom" || return 1
     cp -R -- "$CLOVER_THEME_SOURCE/." "$staged/themes/zhoukeer-phantom/" || return 1
     if [ -n "$CLOVER_EFI_DRIVER" ]; then
@@ -740,12 +765,16 @@ clover_show_install_risk() {
     echo "================================================"
     echo "版本：Clover ${CLOVER_VERSION}（Gitee 分块镜像）"
     echo "设备：${CLOVER_DEVICE_NAME:-Steam Deck/掌机}"
-    echo "主题：自定义怪盗；分辨率：UEFI 自动识别"
+    if [ -n "${CLOVER_SCREEN_RESOLUTION:-}" ]; then
+        echo "主题：自定义怪盗；分辨率：${CLOVER_SCREEN_RESOLUTION}（设备专用横屏）"
+    else
+        echo "主题：自定义怪盗；分辨率：UEFI 自动识别"
+    fi
     echo "EFI 分区：$CLOVER_ESP ($CLOVER_ESP_SOURCE)"
     echo "目标：$CLOVER_ESP/EFI/CLOVER"
     echo "NVRAM：新增 ${CLOVER_BOOT_LABEL}，并放到现有 BootOrder 首位"
     echo ""
-    echo "不会覆盖 EFI/BOOT/BOOTX64.EFI；会备份并禁用 Windows 直启文件。"
+    echo "不会覆盖 EFI/BOOT/BOOTX64.EFI；会保留 Windows 官方启动文件和启动项。"
     echo "安装完成后会启用 Clover 开机修复服务。"
     echo "已有 CLOVER 目录和原 BootOrder 会先备份；恢复入口可撤销本次安装。"
     echo "若掌机按键在 Clover 中不可用，请连接 USB 键盘；倒计时后进入默认系统。"
@@ -970,8 +999,8 @@ clover_install() {
         return 1
     fi
 
-    if ! clover_disable_windows_direct_boot; then
-        echo "Clover 已安装，但 Windows 直启禁用失败，请重新运行修复。"
+    if ! clover_ensure_windows_direct_boot; then
+        echo "Clover 已安装，但 Windows 启动文件修复失败，请重新运行修复。"
         rm -rf -- "$work_dir"
         return 1
     fi

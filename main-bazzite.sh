@@ -581,7 +581,7 @@ bazzite_clover_menu() {
         choice="$(read_touch_menu right:10-11:install right:14-15:status right:18-19:restore right:21-22:back right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
-            install) confirm_and_run "安装 Clover 双系统引导" "会写入 EFI、修改 BootOrder、备份原文件并禁用 Windows 直启；仅适用于已有 Windows Boot Manager 的 Bazzite 双系统" bash "$PROJECT_ROOT/modules/clover_boot.sh" install ;;
+            install) confirm_and_run "安装 Clover 双系统引导" "会写入 EFI、修改 BootOrder 并备份原 Clover；保留 Windows 官方启动项，仅适用于已有 Windows Boot Manager 的 Bazzite 双系统" bash "$PROJECT_ROOT/modules/clover_boot.sh" install ;;
             status) run_action "查看 Clover 状态" bash "$PROJECT_ROOT/modules/clover_boot.sh" status ;;
             restore) confirm_and_run "恢复安装前引导" "删除Renkit创建的 Clover 启动项，并恢复原 BootOrder 和 Windows 启动文件" bash "$PROJECT_ROOT/modules/clover_boot.sh" restore ;;
             back) return 0 ;;
