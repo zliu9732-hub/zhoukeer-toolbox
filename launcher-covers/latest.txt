@@ -1,0 +1,9 @@
+id=launcher-covers
+name=启动器封面素材
+version=1.1.2
+file=launcher-covers.tar.gz
+source_url=
+sha256=2ec5d13ff9a974a25e18c2205e659ea6f4621124bf682fd537fa7b498d51d27d
+size=2756640
+chunks=0
+chunk_size=0
