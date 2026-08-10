@@ -130,7 +130,7 @@ cover_without_marker="$(
     echo "FAIL: 无当前版本标记时仍直接复用了旧封面缓存" >&2
     exit 1
 }
-touch "$STALE_COVER_CACHE/.covers-ready-v6"
+touch "$STALE_COVER_CACHE/.covers-ready-v7"
 cover_with_marker="$(
     MODULE="$MODULE" ZHOUKEER_LAUNCHER_COVER_CACHE_DIR="$STALE_COVER_CACHE" bash -c '
         source "$MODULE"
@@ -1239,7 +1239,7 @@ grep -Fq 'GITEE_MIRROR_REPO="${ZHOUKEER_LAUNCHER_COVER_MIRROR_REPO:-zhoukeer-too
     echo "FAIL: 启动器封面未改走 v2 镜像" >&2
     exit 1
 }
-grep -Fq 'covers-ready-v6' "$MODULE" || {
+grep -Fq 'covers-ready-v7' "$MODULE" || {
     echo "FAIL: 启动器封面未升级镜像缓存版本" >&2
     exit 1
 }
