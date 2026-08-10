@@ -379,6 +379,9 @@ grep -Fq '旧版通用扫描式汉化已停用' "$PROJECT_ROOT/modules/plugin_st
 grep -Fq 'features) show_plugin_download_speed_tip; install_feature_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'tomoon) show_plugin_download_speed_tip; install_configured_plugin tomoon' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'deckrecall) show_plugin_download_speed_tip; install_configured_plugin deckrecall' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'onexplayer-apex) show_plugin_download_speed_tip; install_configured_plugin onexplayer-apex' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'OneXPlayer_Apex_Tools.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '7c522bc8145697d78d6165f7f97671d4d67a5bf4f9e4ed5e6feccbb1154acb91' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '"tomoon"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'feature-status) print_feature_plugin_status' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'uninstall) uninstall_all_decky_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -405,7 +408,7 @@ simpledeckytdp_output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeck
 printf '%s\n' "$simpledeckytdp_output" | grep -Fq '仅支持 SteamOS 或 Bazzite'
 
 allycenter_output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter || true)"
-printf '%s\n' "$allycenter_output" | grep -Fq 'Decky 插件安装仅支持真实 SteamOS 环境'
+printf '%s\n' "$allycenter_output" | grep -Fq 'Decky 插件安装仅支持 SteamOS 或 Bazzite'
 
 # 小黄鸭官方 v0.12.5 使用 Decky LSFG-VK，旧汉化包使用“小黄鸭”；
 # 状态检查必须同时兼容官方名和旧中文名。

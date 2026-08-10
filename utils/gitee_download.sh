@@ -400,6 +400,7 @@ gitee_mirror_id_for_url() {
         *'/xXJSONDeruloXx/Decky-Framegen/releases/download/'*) printf '%s\n' fsr4 ;;
         *'/SheffeyG/CheatDeck/releases/download/'*) printf '%s\n' cheatdeck ;;
         *'/YukiCoco/ToMoon/releases/download/'*) printf '%s\n' tomoon ;;
+        *'/Ren-Amamiya-pixle/DeckRecall/releases/download/'*) printf '%s\n' deckrecall ;;
         *'/mubaraknumann/unifideck/releases/download/'*) printf '%s\n' unifideck ;;
         *'/panyiwei-home/Freedeck/releases/download/'*) printf '%s\n' freedeck ;;
         *'/PixelAddictUnlocked/allycenter/releases/download/'*) printf '%s\n' allycenter ;;
@@ -408,6 +409,7 @@ gitee_mirror_id_for_url() {
         *'/aarron-lee/GpdControl/releases/download/'*) printf '%s\n' gpd-control ;;
         *'/Rayekkk/LeGo-Vibe-Control/releases/download/'*) printf '%s\n' lego-vibe ;;
         *'/Rodpad/LeGo2-Fan-Control/releases/download/'*) printf '%s\n' lego2-fan ;;
+        *'/srsholmes/onexplayer-apex-bazzite-fixes/releases/download/'*) printf '%s\n' onexplayer-apex ;;
         *'/aarron-lee/SimpleDeckyTDP/releases/download/'*) printf '%s\n' simpledeckytdp ;;
         *'/SteamDeckHomebrew/decky-loader/releases/download/v3.2.6/'*) printf '%s\n' decky-loader-stable ;;
         *'/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8-pre1/'*) printf '%s\n' decky-loader-prerelease ;;
