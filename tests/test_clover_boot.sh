@@ -83,6 +83,15 @@ clover_choose_default_os() { printf '%s\n' "SteamOS"; }
 download_gitee_mirror_file() {
     cp -- "$FIXTURE" "$2"
 }
+cp() {
+    local source="${@: -2:1}"
+    local target="${@: -1}"
+    if [ "$(basename "$source")" = "cloverx64.efi" ] && \
+        [ "$(basename "$target")" = "CLOVERX64.efi" ]; then
+        fail "Clover 准备阶段仍复制大小写冲突的 EFI 文件"
+    fi
+    command cp "$@"
+}
 systemctl() {
     printf 'systemctl %s\n' "$*" >> "$STATE/calls"
 }
