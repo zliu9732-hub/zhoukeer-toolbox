@@ -459,7 +459,7 @@ bazzite_feature_plugins_menu() {
             lsfg) confirm_and_run "安装小黄鸭" "Gitee 分块镜像优先并校验 SHA256，保留官方运行核心后叠加 Renkit 汉化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
             fsr4) confirm_and_run "安装 FSR4" "Gitee 分块镜像优先并校验 SHA256，保留官方运行核心后叠加 Renkit 汉化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             cheatdeck) confirm_and_run "安装 CheatDeck" "Gitee 分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
-            deckrecall) confirm_and_run "安装 DeckRecall" "作者未提供再分发许可证，使用作者 GitHub Release 与国内代理回退并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckrecall ;;
+            deckrecall) confirm_and_run "安装 DeckRecall" "作者已授权 Renkit 国内镜像分发；Gitee 镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckrecall ;;
             more) bazzite_extra_plugins_menu || return 1 ;;
             back) return 0 ;;
         esac
@@ -502,10 +502,10 @@ bazzite_handheld_plugins_menu() {
         ui_touch_button 11 '\033[1;97;48;5;24m' "Legion Go 控制中心" "按键映射与控制"
         ui_touch_button 14 '\033[1;97;48;5;24m' "GPD 控制中心" "GPD 掌机专用"
         ui_touch_button 17 '\033[1;97;48;5;24m' "Legion Go 震动控制" "Legion Go 专用"
-        ui_touch_button 20 '\033[1;97;48;5;24m' "Legion Go 2 风扇控制" "硬件风扇控制有风险"
-        ui_touch_button 22 '\033[1;97;48;5;238m' "返回更多功能插件"
+        ui_touch_button 20 '\033[1;97;48;5;30m' "更多掌机插件" "Legion Go 2 与 OneXPlayer Apex"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回掌机插件第一页"
         ui_prompt
-        choice="$(read_touch_menu right:2-3:simpletdp right:5-6:allycenter right:8-9:huesync right:11-12:legionremap right:14-15:gpd right:17-18:legovibe right:20-21:lego2fan right:22-23:back)"
+        choice="$(read_touch_menu right:2-3:simpletdp right:5-6:allycenter right:8-9:huesync right:11-12:legionremap right:14-15:gpd right:17-18:legovibe right:20-21:more right:22-23:back)"
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
             simpletdp) confirm_and_run "安装掌机功耗控制" "安装 SimpleDeckyTDP 中文版；Gitee 国内镜像优先" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee ;;
@@ -514,7 +514,27 @@ bazzite_handheld_plugins_menu() {
             legionremap) confirm_and_run "安装 Legion Go 控制中心" "仅用于 Legion Go；会调用按键控制后端" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" legiongo-remapper ;;
             gpd) confirm_and_run "安装 GPD 控制中心" "仅用于 GPD 掌机；会调用硬件控制后端" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" gpd-control ;;
             legovibe) confirm_and_run "安装 Legion Go 震动控制" "仅用于 Legion Go；会修改震动控制参数" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego-vibe ;;
+            more) bazzite_handheld_plugins_more_menu || return 1 ;;
+            back) return 0 ;;
+        esac
+    done
+}
+
+bazzite_handheld_plugins_more_menu() {
+    local choice
+    while true; do
+        draw_category_frame games "更多掌机插件" "机型专用硬件控制 · 安装前必须核对设备"
+        ui_touch_button 6 '\033[1;97;48;5;24m' "Legion Go 2 风扇控制" "仅 Legion Go 2 · 错误设置可能过热"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "OneXPlayer Apex 工具" "仅 Apex（Strix Halo）· HHD、睡眠与风扇修复"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回上一页"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回更多功能插件"
+        ui_prompt
+        choice="$(read_touch_menu right:6-7:lego2fan right:10-11:onexplayer right:19-20:previous right:22-23:back)"
+        if apply_navigation "$choice"; then return 1; fi
+        case "$choice" in
             lego2fan) confirm_and_run "安装 Legion Go 2 风扇控制" "仅用于 Legion Go 2；错误设置可能导致过热，请确认机型" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego2-fan ;;
+            onexplayer) confirm_and_run "安装 OneXPlayer Apex 工具" "仅用于 OneXPlayer Apex（Strix Halo）；会修改 HHD、睡眠设置并加载机型专用内核模块，其他机型严禁安装" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" onexplayer-apex ;;
+            previous) return 0 ;;
             back) return 0 ;;
         esac
     done

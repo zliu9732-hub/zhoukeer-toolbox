@@ -68,6 +68,7 @@ DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03
 DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.8/DeckRecall.zip"
 DECKY_DECKRECALL_SHA256="360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4"
 DECKY_DECKRECALL_AUTO_UPDATE="${ZHOUKEER_DECKY_DECKRECALL_AUTO_UPDATE:-1}"
+DECKY_DECKRECALL_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_LATEST_GITHUB_VERSION=""
 DECKY_LATEST_GITHUB_URL=""
 DECKY_LATEST_GITHUB_SHA256=""
@@ -117,6 +118,11 @@ DECKY_LEGO2_FAN_SHA256="${ZHOUKEER_DECKY_LEGO2_FAN_SHA256:-a46af0c53eef63b1ad77f
 DECKY_LEGO2_FAN_VERSION="0.260430"
 LEGO2_FAN_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/lego2-fan-control-zh-v0.260430"
 LEGO2_FAN_ZH_INDEX_SHA256="497cc90b588627634b699dda70e6aab06239acbe07cb2f9bf4f9478e88b66c22"
+# OneXPlayer Apex Tools 只适用于 Apex（Strix Halo）；上游包会操作 HHD、睡眠和内核模块。
+DECKY_ONEXPLAYER_APEX_URL="https://github.com/srsholmes/onexplayer-apex-bazzite-fixes/releases/download/build-b696161/OneXPlayer_Apex_Tools.zip"
+DECKY_ONEXPLAYER_APEX_SHA256="7c522bc8145697d78d6165f7f97671d4d67a5bf4f9e4ed5e6feccbb1154acb91"
+DECKY_ONEXPLAYER_APEX_VERSION="build-b696161"
+DECKY_ONEXPLAYER_APEX_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_HANDHELD_PLUGIN_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 # 汉化完整包固定使用Renkit GitHub Release 资产，避免原始文件下载过慢。
 DECKY_LSFG_ZH_URL="https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.9/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip"
@@ -2613,8 +2619,8 @@ ensure_simpledeckytdp_chinese_current() {
     local installed_version=""
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ]; then
-        echo "掌机功耗控制版本检测仅支持真实 SteamOS 环境。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "掌机功耗控制版本检测仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
     if simpledeckytdp_chinese_is_current "$plugin_root"; then
@@ -3221,11 +3227,15 @@ install_configured_plugin() {
             ;;
         deckrecall)
             resolve_plugin_latest deckrecall
-            install_decky_zip \
-                "DeckRecall（添加启动项及恢复游戏可玩状态）" \
-                "${DECKY_DECKRECALL_URL:-}" \
-                "${DECKY_DECKRECALL_SHA256:-}" \
-                "DeckRecall"
+            (
+                GITEE_MIRROR_REPO="$DECKY_DECKRECALL_MIRROR_REPO"
+                export GITEE_MIRROR_REPO
+                install_decky_zip \
+                    "DeckRecall（添加启动项及恢复游戏可玩状态）" \
+                    "${DECKY_DECKRECALL_URL:-}" \
+                    "${DECKY_DECKRECALL_SHA256:-}" \
+                    "DeckRecall"
+            )
             ;;
         freedeck)
             resolve_plugin_latest freedeck
@@ -3284,6 +3294,22 @@ install_configured_plugin() {
                 "$DECKY_LEGO2_FAN_URL" "$DECKY_LEGO2_FAN_SHA256" \
                 "$LEGO2_FAN_ZH_SOURCE_DIR" "$LEGO2_FAN_ZH_INDEX_SHA256" \
                 "原作者：Luke Cama；许可证：GPL-3.0。"
+            ;;
+        onexplayer-apex)
+            if [ "$IS_BAZZITE" -ne 1 ]; then
+                echo "OneXPlayer Apex 工具仅支持 Bazzite，SteamOS 和其他 Linux 不会安装。"
+                return 1
+            fi
+            (
+                GITEE_MIRROR_REPO="$DECKY_ONEXPLAYER_APEX_MIRROR_REPO"
+                export GITEE_MIRROR_REPO
+                echo "警告：此插件仅适用于 OneXPlayer Apex（Strix Halo），其他机型不要安装或启用。"
+                install_decky_zip \
+                    "OneXPlayer Apex 工具" \
+                    "$DECKY_ONEXPLAYER_APEX_URL" \
+                    "$DECKY_ONEXPLAYER_APEX_SHA256" \
+                    "OneXPlayer Apex Tools"
+            )
             ;;
         simpledeckytdp)
             resolve_plugin_latest simpledeckytdp
@@ -3568,6 +3594,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         gpd-control) show_plugin_download_speed_tip; install_configured_plugin gpd-control ;;
         lego-vibe) show_plugin_download_speed_tip; install_configured_plugin lego-vibe ;;
         lego2-fan) show_plugin_download_speed_tip; install_configured_plugin lego2-fan ;;
+        onexplayer-apex) show_plugin_download_speed_tip; install_configured_plugin onexplayer-apex ;;
         simpledeckytdp) show_plugin_download_speed_tip; install_configured_plugin simpledeckytdp ;;
         unifideck) show_plugin_download_speed_tip; install_configured_plugin unifideck ;;
         localizer)

@@ -128,6 +128,8 @@ for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck; do
     mkdir -p "$BAZZITE_PLUGIN_ROOT/$plugin_dir/dist"
     printf 'test bundle\n' > "$BAZZITE_PLUGIN_ROOT/$plugin_dir/dist/index.js"
 done
+grep -Fq 'OneXPlayer Apex 工具仅支持 Bazzite' "$PROJECT_ROOT/modules/plugin_store.sh" || \
+    fail "OneXPlayer Apex 插件缺少 Bazzite 平台隔离"
 printf '{"name":"Decky LSFG-VK"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
 printf '{"version":"0.12.5"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky LSFG-VK/package.json"
 printf '{"name":"Decky-Framegen"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky-Framegen/plugin.json"
@@ -159,7 +161,8 @@ grep -Fq 'modules/plugin_store.sh" features' "$PROJECT_ROOT/main-bazzite.sh" || 
 grep -Fq 'modules/plugin_store.sh" lsfg-zh-gitee' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 小黄鸭入口缺失"
 grep -Fq 'modules/plugin_store.sh" fsr4-zh-gitee' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite FSR4 入口缺失"
 for plugin_action in cheatdeck deckrecall freedeck newfreedeck tomoon unifideck \
-    simpledeckytdp-zh-gitee allycenter huesync legiongo-remapper gpd-control lego-vibe lego2-fan; do
+    simpledeckytdp-zh-gitee allycenter huesync legiongo-remapper gpd-control lego-vibe lego2-fan \
+    onexplayer-apex; do
     grep -Fq "modules/plugin_store.sh\" $plugin_action" "$PROJECT_ROOT/main-bazzite.sh" || \
         fail "Bazzite 插件入口缺失：$plugin_action"
 done

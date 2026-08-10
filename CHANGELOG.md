@@ -1,8 +1,9 @@
-## Renkit 1.2.10 Bazzite 汉化插件与安装结果校验 — 2026-08-10
+## Renkit 1.3.0 Bazzite 汉化插件与安装结果校验 — 2026-08-10
 
-- Bazzite 的 Decky 菜单新增完整功能插件分页：除小黄鸭、FSR4 与 CheatDeck 外，还可安装 DeckRecall、Freedeck、NewFreedeck、ToMoon、Unifideck，以及七款现有掌机控制插件；SteamOS 原菜单保持不变。
-- 已授权再分发的插件在 Bazzite 上复用现有 Gitee 分块镜像、固定版本与 SHA256 校验；DeckRecall 因上游未提供 LICENSE，保留作者 GitHub Release 与国内代理回退，不擅自建立公开镜像。
+- Bazzite 的 Decky 菜单新增完整功能插件分页：除小黄鸭、FSR4 与 CheatDeck 外，还可安装 DeckRecall、Freedeck、NewFreedeck、ToMoon、Unifideck，以及现有掌机控制插件和 OneXPlayer Apex Tools；SteamOS 原菜单保持不变。
+- DeckRecall 作者已明确授权 Renkit 建立国内镜像；DeckRecall 与 OneXPlayer Apex Tools 均使用 Gitee 镜像优先、固定版本与 SHA256 校验，失败才回退作者 GitHub Release。
 - CheatDeck 固定基线更新到 v2.0.0，DeckRecall 固定回退版本更新到 v0.2.8；自动解析最新正式版的逻辑保持不变。
+- 修复 Bazzite 菜单安装“掌机功耗控制”汉化版时被旧 SteamOS-only 版本检测误拦截的问题；汉化前端继续复用上游原生后端。
 - Bazzite 缺少 Decky Loader 时只调用官方 `ujust setup-decky`；不会执行 SteamOS 的 Decky 服务替换、pacman 或只读系统操作。
 - 官方 Decky 插件不再把“请求已排队”显示成安装成功：提交后轮询 Decky 已安装列表并核对目标版本，缺失、商店无版本或超时均明确返回失败，重新执行会跳过已经完成的插件。
 
