@@ -117,6 +117,9 @@ efibootmgr() {
 }
 
 clover_install >/dev/null || fail "模拟 Clover 安装失败"
+if rg -n 'toolbox_sudo[[:space:]]+cp[[:space:]]+-a' "$MODULE" >/dev/null; then
+    fail "Clover 仍使用 FAT32 不兼容的 cp -a 复制 EFI 文件"
+fi
 [ -s "$ESP/EFI/CLOVER/CLOVERX64.efi" ] || fail "未写入 Clover EFI 文件"
 [ -f "$ESP/EFI/CLOVER/.zhoukeer-managed" ] || fail "未写入Renkit管理标记"
 [ -f "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/background.png" ] || fail "未写入怪盗主题背景"

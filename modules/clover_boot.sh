@@ -897,7 +897,9 @@ clover_install() {
         rm -rf -- "$work_dir"
         return 1
     }
-    toolbox_sudo cp -a -- "$staged" "$temporary_target" || {
+    # EFI 通常是 FAT32，不支持 Linux 所有权、权限和时间戳。不能使用 cp -a，
+    # 否则 GNU cp 会在文件内容已复制后因 chown/chmod 失败而整体返回失败。
+    toolbox_sudo cp -R -- "$staged" "$temporary_target" || {
         toolbox_sudo rm -rf -- "$temporary_target" >/dev/null 2>&1 || true
         rm -rf -- "$work_dir"
         echo "复制 Clover 到 EFI 失败，原启动文件未修改。"
