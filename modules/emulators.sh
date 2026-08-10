@@ -28,13 +28,14 @@ emulator_details() {
     EMULATOR_CATEGORY="Game;Emulator;"
     EMULATOR_MIN_BYTES=20971520
     EMULATOR_FLATPAK_ID=""
+    EMULATOR_MIRROR_REPO=""
     case "$1" in
-        yuzu) EMULATOR_NAME="Yuzu（Switch 模拟器）"; EMULATOR_ASSET="yuzu.AppImage"; EMULATOR_FILE="Yuzu.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/yuzu.png"; EMULATOR_SHA256="6d44d52fc6ebd8f3b2e4707516cce535034285d4567302251bafd109c7972258" ;;
-        cemu) EMULATOR_NAME="Cemu（Wii U 模拟器）"; EMULATOR_ASSET="Cemu.AppImage"; EMULATOR_FILE="Cemu.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/cemu.png"; EMULATOR_SHA256="05ad07e3b2fb60f9c19f84c7d65c4e978bc2cf58b4b53d39fca0376227900c27" ;;
-        duckstation) EMULATOR_NAME="DuckStation（PS1 模拟器）"; EMULATOR_ASSET="DuckStation.AppImage"; EMULATOR_FILE="DuckStation.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/duckstation.png"; EMULATOR_SHA256="9f213d799c886cde0ab98513b2b439a8d55ea996dba6accde7bb9ba8948c99f9" ;;
-        pcsx2) EMULATOR_NAME="PCSX2（PS2 模拟器）"; EMULATOR_ASSET="pcsx2-Qt.AppImage"; EMULATOR_FILE="PCSX2.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/pcsx2.png"; EMULATOR_SHA256="227c8f5a38bd0ae9c565b9350868b4f4bd27ae00cde0a598738c2bdd8ca97e88" ;;
-        rpcs3) EMULATOR_NAME="RPCS3（PS3 模拟器）"; EMULATOR_ASSET="rpcs3.AppImage"; EMULATOR_FILE="RPCS3.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/rpcs3.png"; EMULATOR_SHA256="2d258b557c17ebba4bea927be4032cfcbc230c26b8f090b796daa5935faa4a8b" ;;
-        shadps4) EMULATOR_NAME="ShadPS4（PS4 模拟器）"; EMULATOR_ASSET="Shadps4-qt.AppImage"; EMULATOR_FILE="ShadPS4.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/shadps4.png"; EMULATOR_SHA256="17385fa479d2b810c3837e162e418c9d0f7c3c32018d3dfb2ef81e8defb611e2" ;;
+        yuzu) EMULATOR_NAME="Yuzu（Switch 模拟器）"; EMULATOR_ASSET="yuzu.AppImage"; EMULATOR_FILE="Yuzu.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/yuzu.png"; EMULATOR_SHA256="6d44d52fc6ebd8f3b2e4707516cce535034285d4567302251bafd109c7972258"; EMULATOR_MIRROR_REPO="zhoukeer-toolbox-mirror-7" ;;
+        cemu) EMULATOR_NAME="Cemu（Wii U 模拟器）"; EMULATOR_ASSET="Cemu.AppImage"; EMULATOR_FILE="Cemu.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/cemu.png"; EMULATOR_SHA256="05ad07e3b2fb60f9c19f84c7d65c4e978bc2cf58b4b53d39fca0376227900c27"; EMULATOR_MIRROR_REPO="zhoukeer-toolbox-mirror-6" ;;
+        duckstation) EMULATOR_NAME="DuckStation（PS1 模拟器）"; EMULATOR_ASSET="DuckStation.AppImage"; EMULATOR_FILE="DuckStation.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/duckstation.png"; EMULATOR_SHA256="9f213d799c886cde0ab98513b2b439a8d55ea996dba6accde7bb9ba8948c99f9"; EMULATOR_MIRROR_REPO="zhoukeer-toolbox-mirror-4" ;;
+        pcsx2) EMULATOR_NAME="PCSX2（PS2 模拟器）"; EMULATOR_ASSET="pcsx2-Qt.AppImage"; EMULATOR_FILE="PCSX2.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/pcsx2.png"; EMULATOR_SHA256="227c8f5a38bd0ae9c565b9350868b4f4bd27ae00cde0a598738c2bdd8ca97e88"; EMULATOR_MIRROR_REPO="zhoukeer-toolbox-mirror-5" ;;
+        rpcs3) EMULATOR_NAME="RPCS3（PS3 模拟器）"; EMULATOR_ASSET="rpcs3.AppImage"; EMULATOR_FILE="RPCS3.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/rpcs3.png"; EMULATOR_SHA256="2d258b557c17ebba4bea927be4032cfcbc230c26b8f090b796daa5935faa4a8b"; EMULATOR_MIRROR_REPO="zhoukeer-toolbox-mirror-2" ;;
+        shadps4) EMULATOR_NAME="ShadPS4（PS4 模拟器）"; EMULATOR_ASSET="Shadps4-qt.AppImage"; EMULATOR_FILE="ShadPS4.AppImage"; EMULATOR_ICON="$PROJECT_ROOT/assets/emulators/shadps4.png"; EMULATOR_SHA256="17385fa479d2b810c3837e162e418c9d0f7c3c32018d3dfb2ef81e8defb611e2"; EMULATOR_MIRROR_REPO="zhoukeer-toolbox-mirror-3" ;;
         ppsspp) EMULATOR_NAME="PPSSPP（PSP 模拟器）"; EMULATOR_FLATPAK_ID="org.ppsspp.PPSSPP" ;;
         mgba) EMULATOR_NAME="mGBA（GBA 模拟器）"; EMULATOR_FLATPAK_ID="io.mgba.mGBA" ;;
         azahar) EMULATOR_NAME="Azahar（3DS 模拟器）"; EMULATOR_FILE="Azahar.AppImage"; EMULATOR_ICON="$AZAHAR_ICON" ;;
@@ -313,8 +314,17 @@ install_emulator() {
     if ! emulator_file_is_valid "$target"; then
         temporary="$target.new.$$"
         echo "正在下载并校验 $EMULATOR_NAME…"
-        download_github_release "$EMULATOR_RELEASE_REPO" "$EMULATOR_RELEASE_TAG" "$EMULATOR_ASSET" \
-            "$temporary" "$EMULATOR_SHA256" "$EMULATOR_NAME" || return 1
+        if [ -n "$EMULATOR_MIRROR_REPO" ]; then
+            if ! GITEE_MIRROR_REPO="$EMULATOR_MIRROR_REPO" \
+                download_with_gitee_mirror_fallback "$1" \
+                "https://github.com/$EMULATOR_RELEASE_REPO/releases/download/$EMULATOR_RELEASE_TAG/$EMULATOR_ASSET" \
+                "$EMULATOR_SHA256" "$temporary" "$EMULATOR_NAME"; then
+                return 1
+            fi
+        else
+            download_github_release "$EMULATOR_RELEASE_REPO" "$EMULATOR_RELEASE_TAG" "$EMULATOR_ASSET" \
+                "$temporary" "$EMULATOR_SHA256" "$EMULATOR_NAME" || return 1
+        fi
         emulator_file_is_valid "$temporary" || { rm -f -- "$temporary"; echo "模拟器文件格式或大小异常。"; return 1; }
         mv -f -- "$temporary" "$target" || return 1
     fi

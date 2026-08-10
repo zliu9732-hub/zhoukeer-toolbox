@@ -25,7 +25,8 @@ assert_not_contains() {
 bash -n "$MODULE"
 module_text="$(cat "$MODULE")"
 
-assert_contains "$module_text" 'download_github_release' "模拟器下载未复用安全下载器"
+assert_contains "$module_text" 'download_with_gitee_mirror_fallback' "模拟器下载未优先使用 Gitee 分块镜像"
+assert_contains "$module_text" 'EMULATOR_MIRROR_REPO' "模拟器缺少镜像仓库配置"
 assert_contains "$module_text" 'emulator_file_is_valid' "模拟器文件缺少格式校验"
 assert_contains "$module_text" '_github_sha256' "已下载的模拟器未复检 SHA256"
 assert_contains "$module_text" 'create_emulator_desktop_shortcut' "模拟器未创建桌面入口"
@@ -54,6 +55,13 @@ assert_contains "$module_text" '不会下载、生成、分享或显示密钥内
 for icon in yuzu cemu duckstation pcsx2 rpcs3 shadps4; do
     [ -s "$PROJECT_ROOT/assets/emulators/$icon.png" ] || fail "缺少模拟器专用图标：$icon"
     assert_contains "$module_text" "assets/emulators/$icon.png" "模拟器未使用专用图标：$icon"
+done
+for pair in 'yuzu|zhoukeer-toolbox-mirror-7' 'cemu|zhoukeer-toolbox-mirror-6' \
+    'duckstation|zhoukeer-toolbox-mirror-4' 'pcsx2|zhoukeer-toolbox-mirror-5' \
+    'rpcs3|zhoukeer-toolbox-mirror-2' 'shadps4|zhoukeer-toolbox-mirror-3'; do
+    emulator="${pair%%|*}"
+    repo="${pair#*|}"
+    assert_contains "$module_text" "$repo" "模拟器缺少 Gitee 镜像仓库：$emulator"
 done
 assert_not_contains "$module_text" 'assets/icon-round.png' "模拟器桌面入口仍使用Renkit图标"
 

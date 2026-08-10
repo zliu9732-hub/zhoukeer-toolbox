@@ -1,3 +1,9 @@
+## Renkit 1.3.1 模拟器 Gitee 分块镜像 — 2026-08-10
+
+- 修复 ShadPS4（PS4 模拟器）无法从 GitHub Release 下载的问题；Yuzu、Cemu、DuckStation、PCSX2、RPCS3、ShadPS4 六款 AppImage 模拟器全部改为 Gitee 8MiB 分块镜像优先，镜像仓库按模拟器拆分到 mirror-2～mirror-7，SHA256、大小和 ELF 格式校验通过后才回退 GitHub Release。
+- 模拟器安装仍只安装模拟器本体，不包含游戏、BIOS、固件或密钥；镜像文件保持上游未修改的固定 AppImage。
+- License 清单同步更新六款模拟器的镜像授权说明；DuckStation 仅分发自有 Release 中未修改的固定 AppImage，保留 CC BY-NC-ND 署名与许可要求。
+
 ## Renkit 1.3.0 Bazzite 汉化插件与安装结果校验 — 2026-08-10
 
 - Bazzite 的 Decky 菜单新增完整功能插件分页：除小黄鸭、FSR4 与 CheatDeck 外，还可安装 DeckRecall、Freedeck、NewFreedeck、ToMoon、Unifideck，以及现有掌机控制插件和 OneXPlayer Apex Tools；SteamOS 原菜单保持不变。

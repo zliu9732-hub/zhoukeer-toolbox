@@ -444,6 +444,12 @@ todesk|ToDesk 官方安装包|v6.0.25|todesk-v4.8.6.2-amd64.deb|https://github.c
 steam302|Steamcommunity 302|14.0.02|steamcommunity_302_Linux_AMD64_V14.0.02.tar.gz|https://www.dogfight360.com/blog/wp-content/uploads/2026/02/steamcommunity_302_Linux_AMD64_V14.0.02.tar.gz|5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f|4b9994102b2256ca5fdf2e806a2c7035|
 clover|Clover 双系统引导资源|v1.0.0|Clover.tar.gz|https://gitee.com/easylife2025/emu/releases/download/v1.0.0/Clover.tar.gz|10782cebdf1e4130c9b759435c520b4e9452b03a9b10d5f3fff7d2125e99837d|
 ge-proton|GE-Proton|GE-Proton11-3|GE-Proton11-3.tar.gz|https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-3/GE-Proton11-3.tar.gz|861c2edc8d40d051fb1e7a692deb953be52bd339c46d90f2b7dde50ddad91266|
+yuzu|Yuzu（Switch 模拟器）|emulator-assets-v1|yuzu.AppImage|https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/yuzu.AppImage|6d44d52fc6ebd8f3b2e4707516cce535034285d4567302251bafd109c7972258|
+cemu|Cemu（Wii U 模拟器）|emulator-assets-v1|Cemu.AppImage|https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/Cemu.AppImage|05ad07e3b2fb60f9c19f84c7d65c4e978bc2cf58b4b53d39fca0376227900c27|
+duckstation|DuckStation（PS1 模拟器）|emulator-assets-v1|DuckStation.AppImage|https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/DuckStation.AppImage|9f213d799c886cde0ab98513b2b439a8d55ea996dba6accde7bb9ba8948c99f9|
+pcsx2|PCSX2（PS2 模拟器）|emulator-assets-v1|pcsx2-Qt.AppImage|https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/pcsx2-Qt.AppImage|227c8f5a38bd0ae9c565b9350868b4f4bd27ae00cde0a598738c2bdd8ca97e88|
+rpcs3|RPCS3（PS3 模拟器）|emulator-assets-v1|rpcs3.AppImage|https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/rpcs3.AppImage|2d258b557c17ebba4bea927be4032cfcbc230c26b8f090b796daa5935faa4a8b|
+shadps4|ShadPS4（PS4 模拟器）|emulator-assets-v1|Shadps4-qt.AppImage|https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/Shadps4-qt.AppImage|17385fa479d2b810c3837e162e418c9d0f7c3c32018d3dfb2ef81e8defb611e2|
 EOF
 }
 
