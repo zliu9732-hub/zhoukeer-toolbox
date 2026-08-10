@@ -66,7 +66,10 @@ assert_contains "$javascript" "utilities/install_plugins" "未调用Decky内置�
 assert_contains "$javascript" "if(iv.get(n)===String(l.name))continue" "未跳过已是最新版的插件"
 assert_contains "$javascript" "l.hash+\".zip\"" "未按Decky官方哈希构造发布包地址"
 assert_contains "$javascript" "m+\":current\"" "未返回已是最新版状态"
-assert_contains "$javascript" "m+\":queued:\"+rq.length" "未返回安装请求状态"
+assert_contains "$javascript" "m+\":installed:\"+rq.length" "未返回真实安装完成状态"
+assert_contains "$javascript" "m+\":missing:\"+missing.length" "未返回安装后缺失状态"
+assert_contains "$javascript" "attempt<30" "未在提交后轮询已安装插件"
+assert_contains "$javascript" "fv.get(pg.name)!==String(pg.version)" "未核对插件最终版本"
 
 single_javascript="$(build_decky_bundle_javascript "" '["SteamGridDB"]')"
 assert_contains "$single_javascript" 'const on=["SteamGridDB"]' "单插件安装未限制为选中的官方插件"
@@ -128,7 +131,7 @@ curl() {
             ;;
         */methods/execute_in_tab)
             printf '%s' "$data" > "$CAPTURE_FILE"
-            printf '%s' '{"result":{"success":true,"result":"zhoukeer-decky-bundle-queued:queued:24"},"success":true}'
+            printf '%s' '{"result":{"success":true,"result":"zhoukeer-decky-bundle:installed:24"},"success":true}'
             ;;
         *) return 1 ;;
     esac
@@ -139,12 +142,31 @@ output="$(
     ZHOUKEER_AUTO_CONFIRM=1
     install_recommended_decky_plugins
 )"
-assert_contains "$output" "安装清单已交给Decky Loader" "整组安装未报告成功提交"
+assert_contains "$output" "Decky 已确认所选插件全部安装完成" "整组安装未核对真实安装结果"
 assert_contains "$(cat "$CAPTURE_FILE")" "utilities/install_plugins" "发送给Steam界面的代码未调用Decky安装器"
 assert_contains "$(cat "$CAPTURE_FILE")" "X-Decky-Version" "发送代码未按Decky版本读取官方商店"
 
 if grep -Eq 'unzip|extractall|homebrew/plugins' "$MODULE"; then
     fail "推荐整组安装不应绕过Decky自行解压插件"
 fi
+
+curl() {
+    local target=""
+    while [ "$#" -gt 0 ]; do
+        case "$1" in http://*|https://*) target="$1" ;; esac
+        shift || true
+    done
+    case "$target" in
+        */auth/token) printf '%s' "test-token" ;;
+        */methods/execute_in_tab)
+            printf '%s' '{"result":{"success":true,"result":"zhoukeer-decky-bundle:missing:1"},"success":true}'
+            ;;
+        *) return 1 ;;
+    esac
+}
+if missing_output="$(ZHOUKEER_ALLOW_NON_STEAMOS=1 ZHOUKEER_AUTO_CONFIRM=1 install_recommended_decky_plugins 2>&1)"; then
+    fail "仍有插件未落盘时不应报告成功"
+fi
+assert_contains "$missing_output" "仍有插件未出现在已安装列表" "缺失插件没有给出真实失败提示"
 
 echo "PASS: Decky官方商店推荐插件整组安装测试通过"

@@ -121,6 +121,26 @@ ZHOUKEER_OS_RELEASE_FILE="$BAZZITE_RELEASE" \
 [ "$(cat "$UJUST_LOG")" = "setup-decky" ] || fail "Decky 未调用 ujust setup-decky"
 grep -Fq 'Decky Loader 安装完成' "$TMP_ROOT/decky.out" || fail "Decky 安装未报告成功"
 
+# Bazzite 已安装官方 Decky 后，汉化功能插件必须通过平台门禁；测试仅在临时
+# HOME 中放置完整文件桩，不下载、不提权，也不接触真实 Decky 服务。
+BAZZITE_PLUGIN_ROOT="$DECKY_HOME/homebrew/plugins"
+for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck; do
+    mkdir -p "$BAZZITE_PLUGIN_ROOT/$plugin_dir/dist"
+    printf 'test bundle\n' > "$BAZZITE_PLUGIN_ROOT/$plugin_dir/dist/index.js"
+done
+printf '{"name":"Decky LSFG-VK"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
+printf '{"version":"0.12.5"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky LSFG-VK/package.json"
+printf '{"name":"Decky-Framegen"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky-Framegen/plugin.json"
+printf '{"version":"0.17.0"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky-Framegen/package.json"
+printf '{"name":"CheatDeck"}\n' > "$BAZZITE_PLUGIN_ROOT/CheatDeck/plugin.json"
+printf '{"version":"2.0.0"}\n' > "$BAZZITE_PLUGIN_ROOT/CheatDeck/package.json"
+HOME="$DECKY_HOME" PATH="$DECKY_BIN:/usr/bin:/bin" \
+DECKY_PLUGIN_DIR="$BAZZITE_PLUGIN_ROOT" ZHOUKEER_TEST_MODE=1 \
+ZHOUKEER_OS_RELEASE_FILE="$BAZZITE_RELEASE" \
+    bash "$PROJECT_ROOT/modules/plugin_store.sh" features > "$TMP_ROOT/bazzite-features.out"
+grep -Fq '三款常用功能插件已全部安装' "$TMP_ROOT/bazzite-features.out" || \
+    fail "Bazzite 汉化功能插件仍被 SteamOS 平台门禁拦截"
+
 if rg -n 'modules/(todesk|memory_tuning|dual_system)' "$PROJECT_ROOT/main-bazzite.sh"; then
     fail "Bazzite 菜单暴露了未适配的系统模块"
 fi
@@ -135,11 +155,20 @@ grep -Fq 'modules/emulators.sh" yuzu-keys' "$PROJECT_ROOT/main-bazzite.sh" || fa
 grep -Fq 'modules/emulators.sh" yuzu-keys-status' "$PROJECT_ROOT/main-bazzite.sh" || fail "Yuzu 密钥状态入口缺失"
 grep -Fq 'modules/decky_bundle.sh" plugin' "$PROJECT_ROOT/main-bazzite.sh" || fail "Decky 官方插件逐个安装入口缺失"
 grep -Fq 'DECKY_BUNDLE_INCLUDE_CUSTOM=0' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite Decky 推荐安装未禁用自定义插件"
+grep -Fq 'modules/plugin_store.sh" features' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 汉化功能插件组合入口缺失"
+grep -Fq 'modules/plugin_store.sh" lsfg-zh-gitee' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 小黄鸭入口缺失"
+grep -Fq 'modules/plugin_store.sh" fsr4-zh-gitee' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite FSR4 入口缺失"
+for plugin_action in cheatdeck deckrecall freedeck newfreedeck tomoon unifideck \
+    simpledeckytdp-zh-gitee allycenter huesync legiongo-remapper gpd-control lego-vibe lego2-fan; do
+    grep -Fq "modules/plugin_store.sh\" $plugin_action" "$PROJECT_ROOT/main-bazzite.sh" || \
+        fail "Bazzite 插件入口缺失：$plugin_action"
+done
+grep -Fq 'modules/plugin_store.sh" feature-status' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 插件真实状态入口缺失"
 grep -Fq 'modules/game_guides.sh" show' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 中文兼容攻略入口缺失"
 grep -Fq 'modules/handheld_helper.sh" peripherals' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 外接设备检查入口缺失"
 grep -Fq 'modules/safety_center.sh" records' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 操作记录导出入口缺失"
-if grep -Fq 'modules/plugin_store.sh' "$PROJECT_ROOT/main-bazzite.sh"; then
-    fail "Bazzite 菜单误接入 SteamOS 插件商城模块"
+if grep -Eq 'modules/plugin_store.sh" (store|store-test|store-auto|store-uninstall)' "$PROJECT_ROOT/main-bazzite.sh"; then
+    fail "Bazzite 菜单误接入 SteamOS Decky Loader 管理动作"
 fi
 grep -Fq 'main-bazzite.sh' "$PROJECT_ROOT/scripts/package_release.sh" || fail "发布包未校验 Bazzite 主程序"
 grep -Fq 'modules/bazzite_decky.sh' "$PROJECT_ROOT/scripts/package_release.sh" || fail "发布包未校验 Bazzite Decky 模块"

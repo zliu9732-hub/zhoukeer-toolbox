@@ -15,7 +15,7 @@ load_config
 DECKY_API_BASE="http://127.0.0.1:1337"
 DECKY_STORE_URL="${DECKY_STORE_URL:-https://plugins.deckbrew.xyz/plugins}"
 DECKY_ARTIFACT_BASE="${DECKY_ARTIFACT_BASE:-https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions}"
-DECKY_BUNDLE_MARKER="zhoukeer-decky-bundle-queued"
+DECKY_BUNDLE_MARKER="zhoukeer-decky-bundle"
 DECKY_BUNDLE_TMP_DIR=""
 
 # 这两款不在官方数据库中的插件固定使用作者 Release，避免旧安装保留的
@@ -116,8 +116,8 @@ build_decky_bundle_javascript() {
     local custom_plugins="$1"
     local official_names="${2:-$DECKY_OFFICIAL_PLUGIN_NAMES}"
 
-    # Wait for Decky to compare versions and accept the request before returning
-    # a marker. This prevents the terminal from reporting an unconfirmed install.
+    # Decky 接收请求不等于插件已经落盘。提交后继续轮询已安装列表，只有全部
+    # 插件和目标版本均可见时才返回成功标记，避免“显示成功但实际未安装”。
     printf '%s\n' \
         "(async function(){" \
         "const m=$(json_quote "$DECKY_BUNDLE_MARKER");const on=$official_names;const c=[$custom_plugins];" \
@@ -126,11 +126,15 @@ build_decky_bundle_javascript() {
         "const v=await DeckyPluginLoader.updateVersion();const r=await fetch(su,{headers:{\"X-Decky-Version\":v.current}});" \
         "if(!r.ok)throw Error(\"http\"+r.status);const s=await r.json();" \
         "const b=new Map(s.map(function(p){return[p.name,p];}));const i=await DeckyBackend.call(\"loader/get_plugins\");" \
-        "const iv=new Map(i.map(function(p){return[p.name,String(p.version||\"\")];}));const rq=[];let p;" \
-        "for(const n of on){p=b.get(n);const l=p.versions&&p.versions[0];if(!l||!l.hash)continue;if(iv.get(n)===String(l.name))continue;" \
+        "const iv=new Map(i.map(function(p){return[p.name,String(p.version||\"\")];}));const rq=[];const unavailable=[];let p;" \
+        "for(const n of on){p=b.get(n);const l=p&&p.versions&&p.versions[0];if(!l||!l.hash){unavailable.push(n);continue;}if(iv.get(n)===String(l.name))continue;" \
         "rq.push({name:n,artifact:l.artifact||ab+\"/\"+l.hash+\".zip\",version:String(l.name),hash:l.hash,install_type:iv.has(n)?2:0});}" \
         "for(const pg of c){if(iv.get(pg.name)===String(pg.version))continue;rq.push({name:pg.name,artifact:pg.artifact,version:String(pg.version),hash:pg.hash,install_type:iv.has(pg.name)?2:0});}" \
-        "if(!rq.length)return m+\":current\";await DeckyBackend.call(\"utilities/install_plugins\",rq);return m+\":queued:\"+rq.length;" \
+        "if(unavailable.length)return m+\":unavailable:\"+unavailable.length;if(!rq.length)return m+\":current\";" \
+        "await DeckyBackend.call(\"utilities/install_plugins\",rq);let missing=rq;" \
+        "for(let attempt=0;attempt<30;attempt++){const f=await DeckyBackend.call(\"loader/get_plugins\");const fv=new Map(f.map(function(pg){return[pg.name,String(pg.version||\"\")];}));" \
+        "missing=rq.filter(function(pg){return fv.get(pg.name)!==String(pg.version);});if(!missing.length)return m+\":installed:\"+rq.length;await new Promise(function(resolve){setTimeout(resolve,2000);});}" \
+        "return m+\":missing:\"+missing.length;" \
         "}catch(e){console.error(\"zkeer:\",e);return m+\":failed\";}})()"
 }
 
@@ -530,10 +534,18 @@ install_recommended_decky_plugins() {
             echo "所选插件已经全部是当前最新版，无需重复安装。"
             log "Decky推荐插件检查完成: 已是最新版"
             ;;
-        *"$DECKY_BUNDLE_MARKER:queued:"*)
-            echo "安装清单已交给Decky Loader。"
-            echo "请在Steam界面的Decky确认窗口中核对清单并点击安装，后续下载和权限处理均由Decky完成。"
-            log "Decky推荐插件安装请求已提交"
+        *"$DECKY_BUNDLE_MARKER:installed:"*)
+            echo "Decky 已确认所选插件全部安装完成。"
+            log "Decky推荐插件安装完成并通过已安装列表检查"
+            ;;
+        *"$DECKY_BUNDLE_MARKER:unavailable:"*)
+            echo "Decky 官方商店中有插件缺少可安装版本，未显示为成功。"
+            return 1
+            ;;
+        *"$DECKY_BUNDLE_MARKER:missing:"*)
+            echo "Decky 已接收请求，但仍有插件未出现在已安装列表中。"
+            echo "请查看 Steam 界面的 Decky 安装提示；处理后可重新运行，已装插件会自动跳过。"
+            return 1
             ;;
         *)
             echo "Decky未能确认插件安装请求，未将其显示为成功。"

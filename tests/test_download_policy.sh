@@ -50,11 +50,11 @@ done
 if download_policy_github_mirror_allowed 'https://unknown-mirror.example/'; then fail "未知 GitHub 加速源被接受"; fi
 
 printf '<!doctype html><html>403</html>\n' > "$TMP_ROOT/error.zip"
-if download_policy_response_is_safe 'https://github.com/SheffeyG/CheatDeck/releases/download/v1.2.1/CheatDeck.zip' "$TMP_ROOT/error.zip"; then
+if download_policy_response_is_safe 'https://github.com/SheffeyG/CheatDeck/releases/download/v2.0.0/CheatDeck.zip' "$TMP_ROOT/error.zip"; then
     fail "HTML 错误页被当成 ZIP"
 fi
 printf '\x50\x4b\x03\x04payload' > "$TMP_ROOT/good.zip"
-download_policy_response_is_safe 'https://github.com/SheffeyG/CheatDeck/releases/download/v1.2.1/CheatDeck.zip' "$TMP_ROOT/good.zip" || fail "合法 ZIP 魔数被拒绝"
+download_policy_response_is_safe 'https://github.com/SheffeyG/CheatDeck/releases/download/v2.0.0/CheatDeck.zip' "$TMP_ROOT/good.zip" || fail "合法 ZIP 魔数被拒绝"
 printf '!<arch>\npackage' > "$TMP_ROOT/good.deb"
 download_policy_response_is_safe 'https://dl.todesk.com/linux/todesk-v4.8.6.2-amd64.deb' "$TMP_ROOT/good.deb" || fail "合法 DEB 魔数被拒绝"
 dd if=/dev/zero of="$TMP_ROOT/large.VERSION" bs=1048576 count=3 >/dev/null 2>&1

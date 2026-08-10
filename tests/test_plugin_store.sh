@@ -100,17 +100,17 @@ grep -Fq 'DECKY_LSFG_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'DECKY_FSR4_SHA256="3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f"' \
     "$PROJECT_ROOT/config/settings.example.conf"
-grep -Fq 'DECKY_CHEATDECK_SHA256="83d1129939e6417fdface46c3a86fe925785509e78b09757839a9c6ea72029f9"' \
+grep -Fq 'DECKY_CHEATDECK_SHA256="32e2931f9ca8083c1605f04b4ed089b0bf210f79db236a7fd34f02c519e902d9"' \
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"' \
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'CheatDeck/releases/download/v1.2.1/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'CheatDeck/releases/download/v2.0.0/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.3/DeckRecall.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '9171a8a656f0900014cafddeb8c81806de5fbe376bf66ec78f595bebe85d96d0' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'DECKY_DECKRECALL_SHA256="9171a8a656f0900014cafddeb8c81806de5fbe376bf66ec78f595bebe85d96d0"' \
+grep -Fq 'Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.8/DeckRecall.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'DECKY_DECKRECALL_SHA256="360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4"' \
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'resolve_deckrecall_latest' "$PROJECT_ROOT/modules/plugin_store.sh"
 deckrecall_install="$(sed -n '/^[[:space:]]*deckrecall)/,/^[[:space:]]*;;/p' "$PROJECT_ROOT/modules/plugin_store.sh")"
@@ -399,10 +399,10 @@ if grep -Fqi '云盘' "$PROJECT_ROOT/modules/plugin_store.sh"; then
 fi
 
 output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg || true)"
-printf '%s\n' "$output" | grep -Fq '仅支持真实 SteamOS 环境'
+printf '%s\n' "$output" | grep -Fq '仅支持 SteamOS 或 Bazzite'
 
 simpledeckytdp_output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee || true)"
-printf '%s\n' "$simpledeckytdp_output" | grep -Fq '仅支持真实 SteamOS 环境'
+printf '%s\n' "$simpledeckytdp_output" | grep -Fq '仅支持 SteamOS 或 Bazzite'
 
 allycenter_output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter || true)"
 printf '%s\n' "$allycenter_output" | grep -Fq 'Decky 插件安装仅支持真实 SteamOS 环境'
@@ -419,12 +419,12 @@ printf '{"version":"0.12.5"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
 printf '{ "name": "Decky-Framegen" }\n' > "$PLUGIN_ROOT/Decky-Framegen/plugin.json"
 printf '{"version":"0.17.0"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
 printf '{"name": "CheatDeck"}\n' > "$PLUGIN_ROOT/CheatDeck/plugin.json"
-printf '{"version":"1.2.1"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
+printf '{"version":"2.0.0"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
 status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
     bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"
 printf '%s\n' "$status_output" | grep -Fq '✓ 小黄鸭（LSFG-VK）：已写入 Decky'
 printf '%s\n' "$status_output" | grep -Fq '✓ FSR4（Decky-Framegen）：已写入 Decky，官方版本 0.17.0'
-printf '%s\n' "$status_output" | grep -Fq '✓ CheatDeck：已写入 Decky，官方版本 1.2.1'
+printf '%s\n' "$status_output" | grep -Fq '✓ CheatDeck：已写入 Decky，官方版本 2.0.0'
 
 printf '{"name":"小黄鸭"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
 legacy_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
@@ -451,18 +451,18 @@ fi
 printf '%s\n' "$stale_fsr4_status_output" | \
     grep -Fq '检测到版本 0.16.9，请更新到 0.17.0'
 
-printf '{"version":"1.2.0"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
+printf '{"version":"1.2.1"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
 if stale_cheatdeck_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
     bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"; then
-    echo "FAIL: 旧版 CheatDeck 不应被识别为官方 1.2.1" >&2
+    echo "FAIL: 旧版 CheatDeck 不应被识别为官方 2.0.0" >&2
     exit 1
 fi
 printf '%s\n' "$stale_cheatdeck_status_output" | \
-    grep -Fq '检测到版本 1.2.0，请更新到 1.2.1'
+    grep -Fq '检测到版本 1.2.1，请更新到 2.0.0'
 
 # 整组安装必须把同名旧版送入更新流程，不能只凭名称和目录跳过。
 printf '{"version":"0.12.1"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
-printf '{"version":"1.2.0"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
+printf '{"version":"1.2.1"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
 update_output="$(
     DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
         source "$PROJECT_ROOT/modules/plugin_store.sh"

@@ -94,7 +94,7 @@ grep -Fq 'allycenter|Ally Center|v1.2.0|allycenter-v1.2.0.zip|' \
 grep -Fq '| Ally Center |' "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" || \
     FAIL "License 清单缺少 Ally Center"
 if gitee_mirror_id_for_url \
-    'https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.3/DeckRecall.zip' \
+    'https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.8/DeckRecall.zip' \
     >/dev/null 2>&1; then
     FAIL "DeckRecall 未提供 LICENSE，不应进入公开镜像"
 fi

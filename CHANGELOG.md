@@ -1,3 +1,11 @@
+## Renkit 1.2.10 Bazzite 汉化插件与安装结果校验 — 2026-08-10
+
+- Bazzite 的 Decky 菜单新增完整功能插件分页：除小黄鸭、FSR4 与 CheatDeck 外，还可安装 DeckRecall、Freedeck、NewFreedeck、ToMoon、Unifideck，以及七款现有掌机控制插件；SteamOS 原菜单保持不变。
+- 已授权再分发的插件在 Bazzite 上复用现有 Gitee 分块镜像、固定版本与 SHA256 校验；DeckRecall 因上游未提供 LICENSE，保留作者 GitHub Release 与国内代理回退，不擅自建立公开镜像。
+- CheatDeck 固定基线更新到 v2.0.0，DeckRecall 固定回退版本更新到 v0.2.8；自动解析最新正式版的逻辑保持不变。
+- Bazzite 缺少 Decky Loader 时只调用官方 `ujust setup-decky`；不会执行 SteamOS 的 Decky 服务替换、pacman 或只读系统操作。
+- 官方 Decky 插件不再把“请求已排队”显示成安装成功：提交后轮询 Decky 已安装列表并核对目标版本，缺失、商店无版本或超时均明确返回失败，重新执行会跳过已经完成的插件。
+
 ## Renkit 1.2.9 Bazzite 旧 SteamOS 引导自动清理 — 2026-08-10
 
 - Bazzite 的“安装/修复 Clover 双系统引导”会识别旧 `steamcl.efi`，先归档到 EFI 内的 Renkit 备份目录，再删除对应的旧 SteamOS NVRAM 项；不增加独立按钮，也不删除任何系统分区。
