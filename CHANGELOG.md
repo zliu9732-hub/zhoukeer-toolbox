@@ -1,3 +1,11 @@
+## Renkit 1.1.10 Bazzite 用户空间功能扩展 — 2026-08-09
+
+- Bazzite 常用软件由 16 项扩展到 31 项；新增百度网盘、WiliWili、Fcitx5、Xbox 云游戏、音乐、下载、截图、办公、笔记和 Parsec 等官方 Flathub 应用，继续默认走用户级官方 Flathub。
+- 新增 Bazzite 分类卸载菜单，可移除常用软件、四款游戏启动器、九款模拟器、当前 GE-Proton 和 Renkit；系统级 Flatpak 明确交给 Bazzite 自带工具，Renkit 不调用 sudo 卸载。
+- GE-Proton 增加最新版与修改器常用四版本选择；Yuzu 增加本人合法备份密钥的导入与只读状态页。
+- Decky 官方插件支持整组推荐或逐个浏览安装，只向本机 Decky 官方商店提交请求，不接入 SteamOS 专用插件商城模块。
+- 检查与维护新增软件状态、桌面图标修复、中文兼容攻略、掌机快捷键、外接设备只读检查和操作记录导出；Bazzite 列表继续排除 ToDesk 与 AnyDesk。
+
 ## Renkit 1.1.9 Bazzite Flatpak 下载源隔离 — 2026-08-09
 
 - Bazzite 软件安装默认使用带 GPG 签名验证的官方 Flathub，不再自动配置国内镜像；SteamOS 原有国内源与安装流程保持不变。

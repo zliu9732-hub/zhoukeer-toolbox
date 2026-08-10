@@ -125,11 +125,22 @@ case "$command" in
         mv "$state/${scope}-remotes.new" "$state/${scope}-remotes"
         ;;
     info)
+        info_scope=any
         app_id=""
         for arg in "$@"; do
-            case "$arg" in --*) ;; *) app_id="$arg" ;; esac
+            case "$arg" in
+                --user) info_scope=user ;;
+                --system) info_scope=system ;;
+                --*) ;;
+                *) app_id="$arg" ;;
+            esac
         done
-        [ -n "$app_id" ] && [ -f "$state/installed.$app_id" ]
+        [ -n "$app_id" ] || exit 1
+        case "$info_scope" in
+            user) [ -f "$state/installed.$app_id" ] ;;
+            system) [ -f "$state/system-installed.$app_id" ] ;;
+            *) [ -f "$state/installed.$app_id" ] || [ -f "$state/system-installed.$app_id" ] ;;
+        esac
         ;;
     install)
         printf 'install %s\n' "$*" >> "$state/commands"
@@ -137,6 +148,24 @@ case "$command" in
         for arg in "$@"; do app_id="$arg"; done
         [ -n "$app_id" ] || exit 1
         touch "$state/installed.$app_id"
+        ;;
+    uninstall)
+        printf 'uninstall %s\n' "$*" >> "$state/commands"
+        uninstall_scope=user
+        app_id=""
+        for arg in "$@"; do
+            case "$arg" in
+                --system) uninstall_scope=system ;;
+                --user) uninstall_scope=user ;;
+                --*) ;;
+                *) app_id="$arg" ;;
+            esac
+        done
+        [ -n "$app_id" ] || exit 1
+        case "$uninstall_scope" in
+            user) rm -f -- "$state/installed.$app_id" ;;
+            system) rm -f -- "$state/system-installed.$app_id" ;;
+        esac
         ;;
     *)
         echo "unexpected flatpak command: $command" >&2
@@ -181,6 +210,36 @@ env "${COMMON_ENV[@]}" ZHOUKEER_FLATPAK_SOURCE_MODE=official \
     bash "$PROJECT_ROOT/modules/software.sh" chrome > "$TMP_ROOT/chrome.out"
 grep -Fq 'install --user --noninteractive -y flathub com.google.Chrome' \
     "$STATE_DIR/commands" || fail "Chrome 安装入口未使用官方 Flathub"
+env "${COMMON_ENV[@]}" ZHOUKEER_FLATPAK_SOURCE_MODE=official \
+    bash "$PROJECT_ROOT/modules/software.sh" qbittorrent > "$TMP_ROOT/qbittorrent.out"
+grep -Fq 'install --user --noninteractive -y flathub org.qbittorrent.qBittorrent' \
+    "$STATE_DIR/commands" || fail "新增 Bazzite 软件未使用官方 Flathub"
+
+# Bazzite 卸载用户级 Flatpak 时不提权；只存在系统级安装时明确拒绝自动删除。
+env "${COMMON_ENV[@]}" ZHOUKEER_FLATPAK_SOURCE_MODE=official \
+    bash "$PROJECT_ROOT/modules/software.sh" uninstall localsend > "$TMP_ROOT/uninstall-user.out"
+grep -Fq 'uninstall --user --noninteractive -y org.localsend.localsend_app' \
+    "$STATE_DIR/commands" || fail "Bazzite 用户级 Flatpak 卸载命令缺失"
+rm -f -- "$STATE_DIR/installed.com.google.Chrome"
+touch "$STATE_DIR/system-installed.com.google.Chrome"
+env "${COMMON_ENV[@]}" ZHOUKEER_FLATPAK_SOURCE_MODE=official \
+    bash "$PROJECT_ROOT/modules/software.sh" uninstall chrome > "$TMP_ROOT/uninstall-system.out"
+grep -Fq '系统级 Flatpak，Renkit Bazzite版不会提权卸载' \
+    "$TMP_ROOT/uninstall-system.out" || fail "Bazzite 未拒绝系统级 Flatpak 自动卸载"
+if grep -Eq 'uninstall .*--system|sudo ' "$STATE_DIR/commands"; then
+    fail "Bazzite 软件卸载修改了系统级应用"
+fi
+
+env "${COMMON_ENV[@]}" ZHOUKEER_FLATPAK_SOURCE_MODE=official \
+    bash "$PROJECT_ROOT/modules/software.sh" status > "$TMP_ROOT/status.out"
+if grep -Fq 'AnyDesk' "$TMP_ROOT/status.out"; then
+    fail "Bazzite 软件状态仍显示已排除的 AnyDesk"
+fi
+commands_before_repair="$(wc -l < "$STATE_DIR/commands" | tr -d ' ')"
+env "${COMMON_ENV[@]}" ZHOUKEER_FLATPAK_SOURCE_MODE=official \
+    bash "$PROJECT_ROOT/modules/software.sh" repair-shortcuts > "$TMP_ROOT/repair.out"
+commands_after_repair="$(wc -l < "$STATE_DIR/commands" | tr -d ' ')"
+[ "$commands_before_repair" = "$commands_after_repair" ] || fail "修复快捷方式意外修改了 Flatpak"
 
 # 国内源只能经明确风险提示后手动启用，并且 Bazzite 只修改用户级远程。
 env "${COMMON_ENV[@]}" \
@@ -217,5 +276,16 @@ fi
 grep -Fq 'ZHOUKEER_FLATPAK_SOURCE_MODE="official"' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 主程序未固定官方源模式"
 grep -Fq '确认信任并启用国内源' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 菜单缺少显式确认入口"
 grep -Fq '仅修改用户级 Flatpak，不改 Bazzite 系统源' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 菜单缺少修改范围说明"
+grep -Fq 'modules/software.sh" uninstall "$choice"' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 常用软件卸载入口缺失"
+grep -Fq 'modules/game_launchers.sh" uninstall "$choice"' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 启动器卸载入口缺失"
+grep -Fq 'modules/emulators.sh" uninstall "$choice"' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 模拟器卸载入口缺失"
+grep -Fq 'modules/ge_proton.sh" uninstall' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite GE-Proton 卸载入口缺失"
+grep -Fq 'modules/software.sh" status' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 软件状态入口缺失"
+grep -Fq 'modules/software.sh" repair-shortcuts' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 快捷方式修复入口缺失"
+for target in baidunetdisk willwill fcitx5 xbox-cloud qqmusic netease-music \
+    yesplaymusic qbittorrent motrix freedownloadmanager media-downloader \
+    flameshot onlyoffice joplin parsec; do
+    grep -Fq ":$target " "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 软件菜单缺少：$target"
+done
 
 echo "PASS: Bazzite 默认官方 Flathub、手动国内源与用户级隔离测试通过"
