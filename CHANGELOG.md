@@ -1,3 +1,9 @@
+## Renkit 1.3.2 镜像仓库恢复与 seed 修复 — 2026-08-10
+
+- 修复 Gitee 分块镜像仓库 mirror-2/3/5/6/7 在推送模拟器分块时意外丢失旧插件与 GE-Proton 内容的问题；旧提交中的原文件已完整恢复，模拟器分块同时保留，所有 `latest.txt` 与分块已公网回读。
+- `scripts/seed_gitee_local_asset.sh` 在部分克隆后先 `read-tree HEAD` 再添加新 id，后续镜像推送会保留仓库已有分块，不再覆盖其他镜像内容。
+- Ally Center 等插件的 Gitee 镜像恢复可用；下载逻辑未改动，GitHub 回退行为保持不变。
+
 ## Renkit 1.3.1 模拟器 Gitee 分块镜像 — 2026-08-10
 
 - 修复 ShadPS4（PS4 模拟器）无法从 GitHub Release 下载的问题；Yuzu、Cemu、DuckStation、PCSX2、RPCS3、ShadPS4 六款 AppImage 模拟器全部改为 Gitee 8MiB 分块镜像优先，镜像仓库按模拟器拆分到 mirror-2～mirror-7，SHA256、大小和 ELF 格式校验通过后才回退 GitHub Release。
