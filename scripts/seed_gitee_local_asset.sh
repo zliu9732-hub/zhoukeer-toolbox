@@ -44,6 +44,10 @@ else
     git clone -q --filter=blob:none --no-checkout \
         "git@gitee.com:${OWNER}/${REPO}.git" "$TMP/mirror"
 fi
+# 部分克隆默认不写出索引；先读回 HEAD 树，后续 add 新 id 时保留仓库已有分块。
+if git -C "$TMP/mirror" rev-parse --verify HEAD >/dev/null 2>&1; then
+    git -C "$TMP/mirror" read-tree HEAD
+fi
 
 # 空仓库默认分支可能是 master，统一切到发布分支再提交推送。
 if ! git -C "$TMP/mirror" rev-parse --verify "refs/heads/$BRANCH" >/dev/null 2>&1; then
