@@ -69,6 +69,33 @@ clover_path_is_symlink() {
     [ -L "$path" ] || toolbox_sudo test -L "$path" >/dev/null 2>&1
 }
 
+clover_prepare_admin_access() {
+    [ "$(id -u 2>/dev/null || echo 1)" = "0" ] && return 0
+
+    if load_toolbox_password >/dev/null 2>&1 && \
+        toolbox_sudo true >/dev/null 2>&1; then
+        TOOLBOX_PASSWORD=""
+        unset TOOLBOX_PASSWORD
+        return 0
+    fi
+    TOOLBOX_PASSWORD=""
+    unset TOOLBOX_PASSWORD
+
+    detect_platform
+    if [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "管理员权限验证失败，请先在Renkit中录入管理员密码。"
+        return 1
+    fi
+
+    echo "Bazzite 的 EFI 目录仅允许管理员读取。"
+    echo "请录入一次当前 Bazzite 账户密码；验证成功后再继续安装 Clover。"
+    bash "$PROJECT_ROOT/modules/password.sh" import || return 1
+    toolbox_sudo true >/dev/null 2>&1 || {
+        echo "管理员权限验证失败，EFI 和开机顺序均未修改。"
+        return 1
+    }
+}
+
 clover_candidate_is_esp() {
     local candidate="$1"
 
@@ -758,13 +785,14 @@ clover_install() {
     echo "正在检查 Clover 安装环境…"
     require_supported_gaming_os || return 1
     clover_detect_device || return 1
-    for command_name in curl tar findmnt lsblk efibootmgr awk sed df; do
+    for command_name in curl tar findmnt lsblk efibootmgr awk sed df sudo; do
         require_command "$command_name" || return 1
     done
     [ -f "$CLOVER_THEME_SOURCE/background.png" ] || {
         echo "Clover 怪盗主题资源缺失，请更新Renkit后重试。"
         return 1
     }
+    clover_prepare_admin_access || return 1
     clover_resolve_esp_device || {
         echo "无法定位可用 EFI 系统分区，EFI 和开机顺序均未修改。"
         return 1
@@ -957,9 +985,10 @@ clover_restore() {
     local boot_number timestamp delete_count=0
 
     require_supported_gaming_os || return 1
-    for command_name in findmnt lsblk efibootmgr awk sed; do
+    for command_name in findmnt lsblk efibootmgr awk sed sudo; do
         require_command "$command_name" || return 1
     done
+    clover_prepare_admin_access || return 1
     clover_resolve_esp_device || return 1
     target="$CLOVER_ESP/EFI/CLOVER"
     marker="$target/.zhoukeer-managed"
@@ -1035,9 +1064,10 @@ clover_status() {
     local target boot_number
 
     require_supported_gaming_os || return 1
-    for command_name in findmnt lsblk efibootmgr awk sed; do
+    for command_name in findmnt lsblk efibootmgr awk sed sudo; do
         require_command "$command_name" || return 1
     done
+    clover_prepare_admin_access || return 1
     clover_resolve_esp_device || return 1
     target="$CLOVER_ESP/EFI/CLOVER"
     boot_number="$(clover_boot_number)"

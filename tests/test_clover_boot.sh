@@ -57,6 +57,7 @@ log() { :; }
 toolbox_sudo() {
     "$@"
 }
+clover_prepare_admin_access() { return 0; }
 clover_resolve_esp_device() {
     CLOVER_ESP="$ESP"
     CLOVER_ESP_SOURCE="/dev/fakep1"
