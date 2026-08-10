@@ -121,9 +121,12 @@ ZHOUKEER_OS_RELEASE_FILE="$BAZZITE_RELEASE" \
 [ "$(cat "$UJUST_LOG")" = "setup-decky" ] || fail "Decky 未调用 ujust setup-decky"
 grep -Fq 'Decky Loader 安装完成' "$TMP_ROOT/decky.out" || fail "Decky 安装未报告成功"
 
-if rg -n 'modules/(todesk|memory_tuning|clover_boot|dual_system)' "$PROJECT_ROOT/main-bazzite.sh"; then
+if rg -n 'modules/(todesk|memory_tuning|dual_system)' "$PROJECT_ROOT/main-bazzite.sh"; then
     fail "Bazzite 菜单暴露了未适配的系统模块"
 fi
+grep -Fq 'modules/clover_boot.sh" install' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite Clover 安装入口缺失"
+grep -Fq 'modules/clover_boot.sh" status' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite Clover 状态入口缺失"
+grep -Fq 'modules/clover_boot.sh" restore' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite Clover 恢复入口缺失"
 grep -Fq 'modules/domestic_source.sh" enable' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 国内 Flatpak 源入口缺失"
 grep -Fq 'modules/domestic_source.sh" restore' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 官方 Flatpak 源恢复入口缺失"
 grep -Fq 'localsend) title="LocalSend"' "$PROJECT_ROOT/main-bazzite.sh" || fail "LocalSend 菜单动作缺失"

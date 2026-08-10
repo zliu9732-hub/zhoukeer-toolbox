@@ -16,7 +16,7 @@ VERIFY_FILES="VERSION LICENSE THIRD_PARTY_LICENSES.md main.sh launch.sh install.
 PACKAGE_SOURCES=()
 
 # Bazzite 使用独立主程序和官方 Decky 入口，发布包必须同时携带这两个文件。
-VERIFY_FILES="$VERIFY_FILES main-bazzite.sh modules/bazzite_decky.sh"
+VERIFY_FILES="$VERIFY_FILES main-bazzite.sh modules/bazzite_decky.sh assets/clover/bootmanager/clover-bootmanager.service assets/clover/bootmanager/clover-whitelist.conf"
 
 mkdir -p "$DIST_DIR"
 

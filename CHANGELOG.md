@@ -1,3 +1,11 @@
+## Renkit 1.2.1 Bazzite Clover 双系统引导 — 2026-08-09
+
+- Bazzite 独立高级菜单新增 Clover 安装、状态与恢复入口；仍不接入 SteamOS 的 pacman、只读系统、ToDesk、内存调优或其他通用 EFI 功能。
+- Clover 支持 Bazzite 的 Fedora shim 启动器，并为未知 Bazzite 掌机/迷你主机提供不加载机型专用驱动的通用配置；默认启动项可选择 Bazzite 或 Windows。
+- EFI 分区、磁盘与分区号改为动态识别，不再固定 `/dev/nvme0n1p1`；开机修复只把 Clover 放到首位，保留 Windows、PXE 和其他现有 BootOrder 项。
+- 重写 Clover 开机修复服务，移除 `sudo`、`bash -c` 和 EFI 变量删除操作，状态日志迁移到 root 管理的 `/run/renkit`；恢复 Clover 时同步停用并移除修复服务，SteamOS 原菜单与设备配置保持不变。
+- 新增完全模拟的 Bazzite Iris Xe 通用设备、EFI 第 7 分区、Windows 文件备份及 BootOrder 保留测试；macOS 测试不会访问真实 EFI、磁盘或 systemd。
+
 ## Renkit 1.2.0 Bazzite 用户空间功能扩展 — 2026-08-09
 
 - Bazzite 常用软件由 16 项扩展到 31 项；新增百度网盘、WiliWili、Fcitx5、Xbox 云游戏、音乐、下载、截图、办公、笔记和 Parsec 等官方 Flathub 应用，继续默认走用户级官方 Flathub。

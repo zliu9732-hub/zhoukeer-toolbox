@@ -1,10 +1,10 @@
 [Unit]
-Description=Custom systemd service for Clover - GUI Boot Manager.
+Description=Renkit Clover boot order repair
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/bin/bash -c '/etc/systemd/system/clover-bootmanager.sh'
+ExecStart=/etc/systemd/system/clover-bootmanager.sh
 
 [Install]
 WantedBy=multi-user.target

@@ -50,7 +50,8 @@ source "$MODULE"
 
 CLOVER_BOOTMANAGER_SYSTEM_DIR="$SYSTEM_DIR"
 CLOVER_BOOTMANAGER_WHITELIST_DIR="$WHITELIST_DIR"
-require_steamos() { return 0; }
+require_supported_gaming_os() { return 0; }
+detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
 require_command() { return 0; }
 log() { :; }
 toolbox_sudo() {
@@ -138,6 +139,10 @@ clover_delete >/dev/null || fail "模拟删除Renkit Clover 双系统引导失�
 [ "$(cat "$STATE/clover-entry")" = '0' ] || fail "没有删除Renkit Clover NVRAM 入口"
 [ -f "$ESP/EFI/Microsoft/Boot/bootmgfw.efi" ] || fail "Windows 直启未恢复"
 [ ! -e "$ESP/EFI/Microsoft/bootmgfw.efi" ] || fail "Clover Windows 入口未清理"
+[ ! -e "$SYSTEM_DIR/clover-bootmanager.service" ] || fail "Clover 服务未移除"
+[ ! -e "$SYSTEM_DIR/clover-bootmanager.sh" ] || fail "Clover 开机修复脚本未移除"
+[ ! -e "$WHITELIST_DIR/clover-whitelist.conf" ] || fail "SteamOS Clover 白名单未移除"
+grep -Fq 'disable --now clover-bootmanager.service' "$STATE/calls" || fail "Clover 服务未停用"
 
 CLOVER_ESP="$ESP"
 clover_backup_path_is_safe "$ESP/EFI/zhoukeer-backups/clover-before-20260722123045" || \
