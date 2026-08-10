@@ -118,6 +118,9 @@ grep -Fq 'steamcl.efi' "$ESP/EFI/CLOVER/config.plist" || \
     fail "SteamOS 不是默认启动器"
 grep -Fq 'zhoukeer-phantom' "$ESP/EFI/CLOVER/config.plist" || \
     fail "设备配置未指向Renkit主题"
+if grep -Fq '<key>ScreenResolution</key>' "$ESP/EFI/CLOVER/config.plist"; then
+    fail "SteamOS Clover 安装后仍写死屏幕分辨率"
+fi
 [ "$(cat "$STATE/bootorder")" = '0002,0000,0001' ] || fail "Clover 未放到 BootOrder 首位"
 [ "$(cat "$ESP/EFI/BOOT/BOOTX64.EFI")" = 'fallback-sentinel' ] || fail "安装覆盖了 BOOTX64.EFI"
 [ ! -f "$ESP/EFI/Microsoft/Boot/bootmgfw.efi" ] || fail "Windows 直启未禁用"

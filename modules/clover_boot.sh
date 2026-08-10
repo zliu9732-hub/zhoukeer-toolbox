@@ -378,6 +378,37 @@ clover_configure_default_loader() {
     mv -- "$temporary" "$config"
 }
 
+clover_configure_auto_resolution() {
+    local config="$1"
+    local temporary="${config}.resolution.$$"
+
+    awk '
+        /<key>ScreenResolution<\/key>/ {
+            found++
+            if (found > 1) {
+                error = 4
+                exit
+            }
+            if ((getline resolution_line) <= 0) {
+                error = 2
+                exit
+            }
+            if (resolution_line !~ /^[[:space:]]*<string>[0-9]+[xX][0-9]+<\/string>[[:space:]]*$/) {
+                error = 3
+                exit
+            }
+            next
+        }
+        { print }
+        END { if (error) exit error }
+    ' "$config" > "$temporary" || {
+        rm -f -- "$temporary"
+        echo "无法启用 Clover 自动分辨率，配置文件格式异常。" >&2
+        return 1
+    }
+    mv -- "$temporary" "$config"
+}
+
 clover_disable_windows_direct_boot() {
     local boot_dir microsoft_dir old_efi backup_efi moved_efi
 
@@ -599,6 +630,7 @@ clover_prepare_staging() {
     [ -f "$staged/CLOVERX64.efi" ] || cp -- "$staged/cloverx64.efi" "$staged/CLOVERX64.efi" || return 1
     cp -- "${CLOVER_DEVICE_CONFIG:-$CLOVER_CONFIG_SOURCE}" "$staged/config.plist" || return 1
     clover_configure_default_loader "$staged/config.plist" "${CLOVER_DEFAULT_OS:-SteamOS}" || return 1
+    clover_configure_auto_resolution "$staged/config.plist" || return 1
     mkdir -p "$staged/themes/zhoukeer-phantom" || return 1
     cp -R -- "$CLOVER_THEME_SOURCE/." "$staged/themes/zhoukeer-phantom/" || return 1
     if [ -n "$CLOVER_EFI_DRIVER" ]; then
@@ -641,7 +673,7 @@ clover_show_install_risk() {
     echo "================================================"
     echo "版本：Clover ${CLOVER_VERSION}（Gitee 分块镜像）"
     echo "设备：${CLOVER_DEVICE_NAME:-Steam Deck/掌机}"
-    echo "主题：自定义怪盗"
+    echo "主题：自定义怪盗；分辨率：UEFI 自动识别"
     echo "EFI 分区：$CLOVER_ESP ($CLOVER_ESP_SOURCE)"
     echo "目标：$CLOVER_ESP/EFI/CLOVER"
     echo "NVRAM：新增 ${CLOVER_BOOT_LABEL}，并放到现有 BootOrder 首位"

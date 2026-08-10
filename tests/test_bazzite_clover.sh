@@ -56,6 +56,9 @@ awk '
 ' "$staged/config.plist" || fail "Bazzite shim 未设置为默认启动器"
 grep -Fq '<string>\EFI\Microsoft\bootmgfw.efi</string>' "$staged/config.plist" || \
     fail "Clover Windows 入口没有指向Renkit管理位置"
+if grep -Fq '<key>ScreenResolution</key>' "$staged/config.plist"; then
+    fail "Bazzite Clover 通用配置仍写死屏幕分辨率"
+fi
 
 SYSTEM_DIR="$TMP_ROOT/systemd"
 WHITELIST_DIR="$TMP_ROOT/steam-atomic-whitelist"
