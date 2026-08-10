@@ -36,10 +36,13 @@ MIRROR_SOURCE="$ROOT/mirrors/$id"
 TMP="$(mktemp -d)"
 trap 'rm -rf -- "$TMP"' EXIT
 
+# Gitee 大仓库整包 clone 容易挂起；只拉提交/树对象即可添加新分块并推送。
 if [ -n "${GITEE_TOKEN:-}" ]; then
-    git clone -q "https://${OWNER}:${GITEE_TOKEN}@gitee.com/${OWNER}/${REPO}.git" "$TMP/mirror"
+    git clone -q --filter=blob:none --no-checkout \
+        "https://${OWNER}:${GITEE_TOKEN}@gitee.com/${OWNER}/${REPO}.git" "$TMP/mirror"
 else
-    git clone -q "git@gitee.com:${OWNER}/${REPO}.git" "$TMP/mirror"
+    git clone -q --filter=blob:none --no-checkout \
+        "git@gitee.com:${OWNER}/${REPO}.git" "$TMP/mirror"
 fi
 
 # 空仓库默认分支可能是 master，统一切到发布分支再提交推送。

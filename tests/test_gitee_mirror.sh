@@ -103,15 +103,31 @@ grep -Fq '作者授权 Renkit 镜像分发 | 是' "$PROJECT_ROOT/THIRD_PARTY_LIC
 onexplayer_mirror_id="$(gitee_mirror_id_for_url \
     'https://github.com/srsholmes/onexplayer-apex-bazzite-fixes/releases/download/build-b696161/OneXPlayer_Apex_Tools.zip')"
 [ "$onexplayer_mirror_id" = "onexplayer-apex" ] || FAIL "OneXPlayer Apex 镜像标识映射错误"
+for emulator in 'yuzu|yuzu.AppImage|yuzu' 'cemu|Cemu.AppImage|cemu' \
+    'duckstation|DuckStation.AppImage|duckstation' 'pcsx2|pcsx2-Qt.AppImage|pcsx2' \
+    'rpcs3|rpcs3.AppImage|rpcs3' 'shadps4|Shadps4-qt.AppImage|shadps4'; do
+    name="${emulator%%|*}"
+    rest="${emulator#*|}"
+    asset="${rest%%|*}"
+    expected_id="${rest#*|}"
+    emulator_mirror_id="$(gitee_mirror_id_for_url \
+        "https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/$asset")"
+    [ "$emulator_mirror_id" = "$expected_id" ] || FAIL "$name 模拟器镜像标识映射错误"
+    grep -Fq "$name|" "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || \
+        FAIL "$name 缺少 Gitee 固定镜像清单"
+done
 if gitee_mirror_id_for_url \
     'https://github.com/stenzek/duckstation/releases/download/v0.1/DuckStation.AppImage' \
     >/dev/null 2>&1; then
-    FAIL "DuckStation 使用 CC BY-NC-ND，不应进入公开镜像"
+    FAIL "DuckStation 上游 GitHub 地址不应被识别为自有镜像"
 fi
 
 grep -Fq 'DeckRecall' "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" || \
     FAIL "License 清单缺少 DeckRecall"
 grep -Fq 'CC BY-NC-ND 4.0' "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" || \
     FAIL "License 清单缺少 DuckStation 许可证说明"
+grep -Fq 'Gitee 分块镜像优先，GitHub Release 回退' \
+    "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" || \
+    FAIL "License 清单缺少模拟器 Gitee 镜像说明"
 
 echo "PASS: Gitee 分块镜像清单、重组、校验与授权过滤测试通过"

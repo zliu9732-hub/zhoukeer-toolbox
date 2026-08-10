@@ -34,12 +34,12 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | Epic Games 启动器 | Epic 官方 Windows 安装器 | https://www.epicgames.com/ | 专有软件 | 是 | 维护者要求镜像以解决官方下载失败，保持官方包原样并保留官方源回退 |
 | Steamcommunity 302 | Steam/GitHub 加速 | https://www.dogfight360.com/blog/ | 作者公开免费发布，仓库未附带 LICENSE | 是 | Renkit只从自有 Gitee 镜像下载，镜像由维护者从官方源更新 |
 | Greenlight | Xbox 云游戏客户端 | https://github.com/unknownskl/greenlight | MIT | 否（Flathub 官方源） | 通过 Flathub 安装，不进入仓库 mirrors |
-| Yuzu | Switch 模拟器 | https://github.com/yuzu-emu/yuzu | 上游仓库已下线 | 否 | 不镜像，仅保留现有 GitHub Release 回退 |
-| Cemu | Wii U 模拟器 | https://github.com/cemu-project/Cemu | MPL-2.0 | 否（官方源） | AppImage 走既有 GitHub Release 回退 |
-| DuckStation | PS1 模拟器 | https://github.com/stenzek/duckstation | CC BY-NC-ND 4.0 | 否 | 非商业且禁止演绎，不进入公开镜像 |
-| PCSX2 | PS2 模拟器 | https://github.com/PCSX2/pcsx2 | GPL-3.0 | 否（官方源） | AppImage 走既有 GitHub Release 回退 |
-| RPCS3 | PS3 模拟器 | https://github.com/RPCS3/rpcs3 | GPL-2.0 | 否（官方源） | AppImage 走既有 GitHub Release 回退 |
-| ShadPS4 | PS4 模拟器 | https://github.com/shadps4-emu/shadPS4 | GPL-2.0 | 否（官方源） | AppImage 走既有 GitHub Release 回退 |
+| Yuzu | Switch 模拟器 | https://github.com/yuzu-emu/yuzu | 上游仓库已下线 | 是（自有 Release 固定包） | Gitee 分块镜像优先，GitHub Release 回退；仅分发自有 Release 中未修改的固定 AppImage |
+| Cemu | Wii U 模拟器 | https://github.com/cemu-project/Cemu | MPL-2.0 | 是 | Gitee 分块镜像优先，GitHub Release 回退；镜像为上游未修改的固定 AppImage |
+| DuckStation | PS1 模拟器 | https://github.com/stenzek/duckstation | CC BY-NC-ND 4.0 | 是（自有非商业镜像） | 仅分发自有 Release 中未修改的固定 AppImage，保留署名与许可要求；Gitee 分块镜像优先，GitHub Release 回退 |
+| PCSX2 | PS2 模拟器 | https://github.com/PCSX2/pcsx2 | GPL-3.0 | 是 | Gitee 分块镜像优先，GitHub Release 回退；镜像为上游未修改的固定 AppImage |
+| RPCS3 | PS3 模拟器 | https://github.com/RPCS3/rpcs3 | GPL-2.0 | 是 | Gitee 分块镜像优先，GitHub Release 回退；镜像为上游未修改的固定 AppImage |
+| ShadPS4 | PS4 模拟器 | https://github.com/shadps4-emu/shadPS4 | GPL-2.0 | 是 | Gitee 分块镜像优先，GitHub Release 回退；镜像为上游未修改的固定 AppImage |
 
 ## 说明
 

@@ -414,6 +414,12 @@ gitee_mirror_id_for_url() {
         *'/SteamDeckHomebrew/decky-loader/releases/download/v3.2.6/'*) printf '%s\n' decky-loader-stable ;;
         *'/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8-pre1/'*) printf '%s\n' decky-loader-prerelease ;;
         *'/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton'*) printf '%s\n' ge-proton ;;
+        *'/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/yuzu.AppImage') printf '%s\n' yuzu ;;
+        *'/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/Cemu.AppImage') printf '%s\n' cemu ;;
+        *'/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/DuckStation.AppImage') printf '%s\n' duckstation ;;
+        *'/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/pcsx2-Qt.AppImage') printf '%s\n' pcsx2 ;;
+        *'/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/rpcs3.AppImage') printf '%s\n' rpcs3 ;;
+        *'/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/Shadps4-qt.AppImage') printf '%s\n' shadps4 ;;
         *) return 1 ;;
     esac
 }
