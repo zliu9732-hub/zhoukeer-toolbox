@@ -1,0 +1,198 @@
+#!/bin/bash
+
+set -euo pipefail
+
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+fail() {
+    echo "FAIL: $*" >&2
+    exit 1
+}
+
+run_choice_test() {
+    local input="$1"
+    local expected="$2"
+    local mapping="$3"
+    local actual
+
+    if ! actual="$(
+        INPUT="$input" MAPPING="$mapping" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+            source "$PROJECT_ROOT/core/ui.sh"
+            printf "%b" "$INPUT" | read_menu_choice "$MAPPING"
+        '
+    )"; then
+        fail "触控事件未命中任何动作：$mapping"
+    fi
+    [ "$actual" = "$expected" ] || fail "触控事件期望 $expected，实际为 $actual"
+}
+
+run_choice_test '1\033[<0;40;13M' "wechat" "right:12-14:wechat"
+run_choice_test '\033[<0;40;13m\033[<0;40;18M' "cancel" "right:18-19:cancel"
+run_choice_test '\033[<64;40;13M\033[<32;40;13M\033[<0;40;18M' "cancel" "right:18-19:cancel"
+run_choice_test '\033[<0;15;5M' "nav-software" "left:5-6:nav-software"
+run_choice_test '\033[<0;40;22M' "home" "right:22-23:home"
+run_choice_test '\033[<0;8;1M' "agree" "any:1-999:agree"
+run_choice_test '\033[<0;80;19M' "agree" "any:1-999:agree"
+
+grep -Fq 'UI_LAST_ROW=24' "$PROJECT_ROOT/core/ui.sh" || fail "触控画布行数异常"
+grep -Fq 'TOOLBOX_VERSION' "$PROJECT_ROOT/core/ui.sh" || fail "触控标题没有使用真实版本号"
+if grep -Fq 'Renkit  ·  V5' "$PROJECT_ROOT/core/ui.sh"; then
+    fail "触控标题仍硬编码 V5"
+fi
+logo_source="$(sed -n '/^logo()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
+printf '%s\n' "$logo_source" | grep -Fq 'v${TOOLBOX_VERSION}' || fail "logo 没有使用真实版本号"
+if printf '%s\n' "$logo_source" | grep -Fq 'cat <<'; then
+    fail "logo 仍使用不会展开变量的 heredoc"
+fi
+grep -Fq 'GUI_TITLE="Renkit V$(' "$PROJECT_ROOT/core/gui.sh" || fail "图形窗口标题没有使用真实版本号"
+grep -Fq 'Font=Noto Sans Mono CJK SC,12' "$PROJECT_ROOT/install.sh" || fail "中文字体大小没有恢复为默认可读尺寸"
+grep -Fq 'TerminalColumns=120' "$PROJECT_ROOT/install.sh" || fail "终端列数不是紧凑布局"
+grep -Fq 'TerminalRows=32' "$PROJECT_ROOT/install.sh" || fail "终端行数不是紧凑布局"
+grep -Fq 'WINDOW_SIZE="1280x740"' "$PROJECT_ROOT/launch.sh" || fail "Renkit窗口尺寸未同步"
+grep -Fq 'ZHOUKEER_FONT_SIZE' "$PROJECT_ROOT/launch.sh" || fail "启动器没有按分辨率设置字号"
+grep -Fq 'ui_apply_screen_font' "$PROJECT_ROOT/core/ui.sh" || fail "界面缺少分辨率字号适配"
+grep -Fq 'ui_apply_screen_font' "$PROJECT_ROOT/main.sh" || fail "启动流程没有应用分辨率字号"
+grep -Fq "printf '\\033[0m\\033[r\\033[3J\\033[2J\\033[H'" "$PROJECT_ROOT/launch.sh" || fail "首次进入前未清理更新输出"
+
+layout_wait="$(sed -n '/^ui_wait_for_minimum_canvas()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
+printf '%s\n' "$layout_wait" | grep -Fq 'ui_request_preferred_canvas' || fail "窗口过矮时没有请求恢复Renkit画布"
+printf '%s\n' "$layout_wait" | grep -Fq 'UI_LAST_ROW' || fail "窗口画布没有按触控底部行检查"
+canvas_request="$(sed -n '/^ui_request_preferred_canvas()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
+printf '%s\n' "$canvas_request" | grep -Fq '\033[8;%s;%st' || fail "没有请求 Konsole 恢复标准行列尺寸"
+grep -Fq 'ui_wait_for_minimum_canvas || true' "$PROJECT_ROOT/main.sh" || fail "主程序首次绘制前没有等待窗口尺寸就绪"
+startup_loading="$(sed -n '/^show_startup_loading()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+printf '%s\n' "$startup_loading" | grep -Fq 'Renkit启动中，请耐心等待' || fail "启动等待阶段缺少明确提示"
+printf '%s\n' "$startup_loading" | grep -Fq '若启动较慢，Renkit可能正在更新，请耐心等待' || fail "启动等待阶段缺少更新说明"
+main_prefix="$(sed -n '1,/^# V5 默认就是纯触控界面/p' "$PROJECT_ROOT/main.sh")"
+printf '%s\n' "$main_prefix" | grep -Fq 'show_startup_loading' || fail "启动提示没有在触控界面初始化前显示"
+
+disclaimer="$(sed -n '/^draw_disclaimer_frame()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
+printf '%s\n' "$disclaimer" | grep -Fq 'ui_reset_screen' || fail "免责声明首屏未执行完整清屏"
+main_disclaimer="$(sed -n '/^show_disclaimer()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+if printf '%s\n' "$main_disclaimer" | grep -Fq 'ui_disclaimer_line 14'; then
+    fail "免责声明正文仍紧贴首个按钮"
+fi
+printf '%s\n' "$main_disclaimer" | grep -Fq 'draw_disclaimer_frame' || fail "启动免责声明没有使用终端文字版"
+printf '%s\n' "$main_disclaimer" | grep -Fq 'any:1-999:agree' || fail "欢迎页没有允许任意位置点击进入"
+printf '%s\n' "$main_disclaimer" | grep -Fq '关闭窗口即可退出' || fail "欢迎页没有说明非全屏时的退出方式"
+if printf '%s\n' "$main_disclaimer" | grep -Fq 'launch.sh" --open-main'; then
+    fail "启动免责声明仍使用独立图片主题"
+fi
+grep -Fq 'ZHOUKEER_SKIP_DISCLAIMER' "$PROJECT_ROOT/main.sh" || fail "常规Renkit没有跳过重复免责声明"
+if grep -Fq 'ColorScheme=ZhoukeerToolboxSplash' "$PROJECT_ROOT/install.sh"; then
+    fail "安装程序仍在生成免责声明图片主题"
+fi
+[ ! -e "$PROJECT_ROOT/assets/disclaimer-usage.jpg" ] || fail "免责声明大图仍保留在项目资源中"
+grep -Fq 'assets/icon-toolbox-deck.png' "$PROJECT_ROOT/install.sh" || fail "安装程序没有使用新的Renkit桌面图标"
+
+touch_button="$(sed -n '/^ui_touch_button()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
+printf '%s\n' "$touch_button" | grep -Fq 'if [ -n "$hint" ]' || fail "空说明按钮仍会显示分隔符"
+if printf '%s\n' "$touch_button" | grep -Fq '48;5;234'; then
+    fail "功能按钮仍使用独立黑色底块"
+fi
+printf '%s\n' "$touch_button" | grep -Fq 'row + 1' || fail "功能按钮之间缺少分隔线"
+printf '%s\n' "$touch_button" | grep -Fq '────────────────' || fail "功能按钮分隔线未绘制"
+
+ui_prompt_source="$(sed -n '/^ui_prompt()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
+printf '%s\n' "$ui_prompt_source" | grep -Fq 'enable_mouse_tracking' \
+    || fail "触控提示没有重新启用鼠标追踪"
+
+sidebar_item="$(sed -n '/^ui_sidebar_item()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
+if printf '%s\n' "$sidebar_item" | grep -Fq '48;5;234'; then
+    fail "侧栏分类仍使用独立黑色底块"
+fi
+
+if grep -Fq '48;5;234' "$PROJECT_ROOT/core/ui.sh"; then
+    fail "触控界面仍残留黑色文字底块"
+fi
+
+password_gate="$(sed -n '/^ensure_password_ready()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+printf '%s\n' "$password_gate" | grep -Fq 'modules/password.sh" import' || fail "首次启动缺少现有密码录入入口"
+printf '%s\n' "$password_gate" | grep -Fq 'modules/password.sh" set' || fail "首次启动缺少新密码设置入口"
+printf '%s\n' "$password_gate" | grep -Fq 'right:10-11:import' || fail "现有密码按钮坐标错误"
+printf '%s\n' "$password_gate" | grep -Fq 'right:15-16:set' || fail "新密码按钮坐标错误"
+grep -Fq 'ensure_gui_password_ready' "$PROJECT_ROOT/core/gui.sh" || fail "图形入口未强制准备密码记录"
+
+new_machine_preflight="$(sed -n '/^new_machine_preflight()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+printf '%s\n' "$new_machine_preflight" | grep -Fq 'CEF 远程调试' || fail "新机初始化没有提示开启 CEF 远程调试"
+printf '%s\n' "$new_machine_preflight" | grep -Fq 'right:18-19:start' || fail "新机初始化确认按钮坐标错误"
+printf '%s\n' "$new_machine_preflight" | grep -Fq 'right:20-21:init' || fail "新机初始化返回按钮坐标错误"
+grep -Fq 'CEF 远程调试' "$PROJECT_ROOT/modules/new_machine.sh" || fail "新机初始化终端说明没有提示 CEF 远程调试"
+
+touch_button="$(sed -n '/^ui_touch_button()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
+printf '%s\n' "$touch_button" | grep -Fq '· %s' || fail "按钮说明没有放到功能名称后方"
+
+installer_entry="$(sed -n '/^if download_bootstrap/,/^fi$/p' "$PROJECT_ROOT/i")"
+printf '%s\n' "$installer_entry" | sed -n '1p' | grep -Fq 'GITEE_URL' || fail "短安装入口没有优先使用 Gitee"
+printf '%s\n' "$installer_entry" | grep -Fq 'GITHUB_URL' || fail "短安装入口缺少 GitHub 备用源"
+printf '%s\n' "$installer_entry" | grep -Fq 'DOMAIN_URL' || fail "短安装入口缺少域名备用源"
+
+frame="$(sed -n '/^draw_category_frame()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
+for entry in \
+    'ui_sidebar_item 2 init "◆ 新机器设置"' \
+    'ui_sidebar_item 4 software "▣ 安装常用软件"' \
+    'ui_sidebar_item 6 games "✦ 游戏与插件"' \
+    'ui_sidebar_item 8 emulators "▦ 模拟器"' \
+    'ui_sidebar_item 10 support "◎ 检查与维护"' \
+    'ui_sidebar_item 12 advanced "! 更多设置"' \
+    'ui_sidebar_item 14 uninstall "- 卸载已安装"' \
+    'ui_sidebar_item 16 notice "▧ 免责声明与须知"' \
+    'ui_sidebar_item 18 exit "× 退出Renkit"'; do
+    printf '%s\n' "$frame" | grep -Fq -- "$entry" || fail "侧栏缺少：$entry"
+done
+
+[ "$(printf '%s\n' "$frame" | grep -c 'ui_sidebar_item')" -eq 9 ] || fail "侧栏入口数量错误"
+
+touch_nav="$(sed -n '/^read_touch_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+for mapping in \
+    'left:2-3:nav-init' \
+    'left:4-5:nav-software' \
+    'left:6-7:nav-games' \
+    'left:8-9:nav-emulators' \
+    'left:10-11:nav-check' \
+    'left:12-13:nav-advanced' \
+    'left:14-15:nav-uninstall' \
+    'left:16-17:nav-notice' \
+    'left:18-19:nav-exit'; do
+    printf '%s\n' "$touch_nav" | grep -Fq -- "$mapping" || fail "导航坐标缺失：$mapping"
+done
+
+software="$(sed -n '/^common_software_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+printf '%s\n' "$software" | grep -Fq 'draw_category_frame software "" "" 0' || fail "常用软件没有释放右侧标题空间"
+printf '%s\n' "$software" | grep -Fq 'ui_touch_button 20' || fail "常用软件 AnyDesk 文字行错误"
+printf '%s\n' "$software" | grep -Fq 'right:20-21:anydesk' || fail "常用软件 AnyDesk 触控坐标错误"
+printf '%s\n' "$software" | grep -Fq 'right:22-23:more' || fail "常用软件更多页坐标错误"
+printf '%s\n' "$software" | grep -Fq 'ui_touch_button 6' || fail "Firefox按钮行错误"
+printf '%s\n' "$software" | grep -Fq 'right:6-7:browser' || fail "Firefox触控坐标错误"
+printf '%s\n' "$software" | grep -Fq 'right:14-15:todesk' || fail "ToDesk触控坐标错误"
+printf '%s\n' "$software" | grep -Fq 'modules/software.sh" browser' || fail "Firefox安装动作缺失"
+more_software="$(sed -n '/^common_software_more_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+printf '%s\n' "$more_software" | grep -Fq '百度网盘' || fail "更多常用软件缺少百度网盘"
+printf '%s\n' "$more_software" | grep -Fq 'WiliWili' || fail "更多常用软件缺少 WiliWili"
+printf '%s\n' "$more_software" | grep -Fq 'right:14-15:willwill' || fail "WiliWili 触控坐标错误"
+for item in 'LibreOffice 办公套件' 'VLC 播放器' 'OBS Studio' 'LocalSend 局域网传文件' 'right:2-3:libreoffice' 'right:8-9:localsend'; do
+    printf '%s\n' "$more_software" | grep -Fq "$item" || fail "更多常用软件缺少：$item"
+done
+printf '%s\n' "$more_software" | grep -Fq 'right:22-23:home' || fail "更多常用软件返回首页坐标错误"
+
+games="$(sed -n '/^game_environment_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+printf '%s\n' "$games" | grep -Fq 'draw_category_frame games "游戏与插件｜插件商城" "浏览插件商城、运行组件和启动器" 0' || fail "游戏与插件仍显示与首个按钮重叠的分类文字"
+
+home="$(sed -n '/^home_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+for aligned_line in \
+    'ui_panel_line 2' \
+    'ui_panel_line 4' \
+    'ui_panel_line 6' \
+    'ui_panel_line 8' \
+    'ui_panel_line 10' \
+    'ui_panel_line 12' \
+    'ui_panel_line 14' \
+    'ui_panel_line 16'; do
+    printf '%s\n' "$home" | grep -Fq "$aligned_line" || fail "首页说明没有与左侧分类对齐：$aligned_line"
+done
+
+changelog="$(sed -n '/^changelog_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+printf '%s\n' "$changelog" | grep -Fq 'CHANGELOG.md' || fail "更新日志文件映射缺失"
+printf '%s\n' "$changelog" | grep -Fq 'VERSION' || fail "更新日志版本映射缺失"
+
+echo "PASS: 九分类触控坐标、返回首页和基础界面配置正确"

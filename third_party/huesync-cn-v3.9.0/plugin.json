@@ -1,0 +1,11 @@
+{
+  "name": "通用掌机 RGB",
+  "author": "honjow",
+  "flags": ["root"],
+  "api_version": 1,
+  "publish": {
+    "tags": ["root"],
+    "description": "LED controller for non-Steam Deck gaming handhelds running SteamOS.",
+    "image": "https://github.com/honjow/HueSync/raw/main/screenshot/HueSync.jpg"
+  }
+}

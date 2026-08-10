@@ -1,0 +1,11 @@
+{
+  "name": "Ally 控制中心",
+  "author": "Keith Baker",
+  "flags": ["root"],
+  "api_version": 1,
+  "publish": {
+    "tags": ["hardware", "rog-ally", "asus", "rgb", "battery", "performance"],
+    "description": "ASUS ROG Ally / Ally X 综合控制中心：RGB 灯光、电池健康、设备信息、性能预设与屏幕控制。",
+    "image": "https://github.com/PixelAddictUnlocked/allycenter/raw/main/icons/icon.png"
+  }
+}

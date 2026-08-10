@@ -1,0 +1,27 @@
+
+# macOS
+.DS_Store
+
+# 临时和备份文件
+*.save
+*.bak.*
+
+# 日志文件
+logs/
+*.log
+
+# 通用临时文件
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# 本地运行产物
+apps/
+.mirror-cache/
+管理员密码.txt
+
+# Release版本化产物（dist中的稳定更新包和SHA256SUMS需要提交）
+dist/renkit-*.tar.gz
+dist/renkit-*.tar.gz.sha256

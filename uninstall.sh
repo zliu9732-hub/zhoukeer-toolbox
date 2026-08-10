@@ -1,0 +1,123 @@
+#!/bin/bash
+
+set -u
+
+DRY_RUN=0
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run)
+            DRY_RUN=1
+            ;;
+        *)
+            echo "未知参数: $arg"
+            exit 1
+            ;;
+    esac
+done
+
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEFAULT_INSTALL_DIR="$HOME/.local/share/zhoukeer-toolbox"
+CONFIG_BACKUP_DIR="$HOME/.config/zhoukeer-toolbox"
+LOG_BACKUP_DIR="$HOME/.local/state/zhoukeer-toolbox"
+PASSWORD_RECORD="$HOME/Desktop/管理员密码.txt"
+
+confirm_action() {
+    local prompt="$1"
+    local answer
+
+    read -r -p "$prompt [y/N]: " answer
+    case "$answer" in
+        y|Y|yes|YES)
+            return 0
+            ;;
+        *)
+            echo "已取消"
+            return 1
+            ;;
+    esac
+}
+
+echo "================================"
+echo " Renkit 1.0 卸载程序"
+echo "================================"
+echo "当前目录: $PROJECT_ROOT"
+echo "模式: $([ "$DRY_RUN" -eq 1 ] && echo dry-run || echo uninstall)"
+echo ""
+
+if [ "$DRY_RUN" -eq 1 ]; then
+    echo "[dry-run] 将删除桌面快捷方式: $HOME/Desktop/Renkit.desktop"
+    echo "[dry-run] 将删除应用菜单入口: $HOME/.local/share/applications/zhoukeer-toolbox.desktop"
+    echo "[dry-run] 将清理旧版桌面与应用菜单入口"
+    echo "[dry-run] 将删除Renkit专用 Konsole 主题"
+    echo "[dry-run] 默认安装目录匹配时将删除: $DEFAULT_INSTALL_DIR"
+    echo "[dry-run] 可选择备份配置到: $CONFIG_BACKUP_DIR/settings.conf"
+    echo "[dry-run] 可选择备份日志到: $LOG_BACKUP_DIR/logs"
+    echo "[dry-run] 卸载时会询问是否删除桌面明文密码记录: $PASSWORD_RECORD"
+    echo "[dry-run] 不会删除或备份任何文件。"
+    exit 0
+fi
+
+if ! confirm_action "确认卸载Renkit？"; then
+    exit 0
+fi
+
+PRESERVE_CONFIG=0
+if confirm_action "是否保留用户配置？"; then
+    PRESERVE_CONFIG=1
+fi
+
+PRESERVE_LOGS=0
+if confirm_action "是否保留日志？"; then
+    PRESERVE_LOGS=1
+fi
+
+DELETE_PASSWORD_RECORD=0
+if [ -e "$PASSWORD_RECORD" ] || [ -L "$PASSWORD_RECORD" ]; then
+    echo "注意：该文件包含明文系统密码：$PASSWORD_RECORD"
+    if confirm_action "是否同时删除桌面密码记录？"; then
+        DELETE_PASSWORD_RECORD=1
+    else
+        echo "将保留桌面密码记录，请妥善保管或稍后手动删除。"
+    fi
+fi
+
+rm -f "$HOME/Desktop/Renkit.desktop"
+rm -f "$HOME/.local/share/applications/zhoukeer-toolbox.desktop"
+rm -f "$HOME/Desktop/周克儿工具箱.desktop"
+rm -f "$HOME/.local/share/applications/周克儿工具箱.desktop"
+rm -f "$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
+rm -f "$HOME/.local/share/konsole/ZhoukeerToolbox.colorscheme"
+rm -f "$HOME/.local/share/konsole/ZhoukeerToolboxSplash.profile"
+rm -f "$HOME/.local/share/konsole/ZhoukeerToolboxSplash.colorscheme"
+echo "已删除快捷方式"
+
+if [ "$DELETE_PASSWORD_RECORD" -eq 1 ]; then
+    if [ -d "$PASSWORD_RECORD" ] && [ ! -L "$PASSWORD_RECORD" ]; then
+        echo "警告：密码记录路径是目录，Renkit不会自动删除: $PASSWORD_RECORD"
+    else
+        rm -f -- "$PASSWORD_RECORD"
+        echo "已删除桌面密码记录"
+    fi
+fi
+
+if [ "$PRESERVE_CONFIG" -eq 1 ] && [ -f "$PROJECT_ROOT/config/settings.conf" ]; then
+    mkdir -p "$CONFIG_BACKUP_DIR"
+    cp "$PROJECT_ROOT/config/settings.conf" "$CONFIG_BACKUP_DIR/settings.conf"
+    echo "已备份配置到: $CONFIG_BACKUP_DIR/settings.conf"
+fi
+
+if [ "$PRESERVE_LOGS" -eq 1 ] && [ -d "$PROJECT_ROOT/logs" ]; then
+    mkdir -p "$LOG_BACKUP_DIR"
+    cp -R "$PROJECT_ROOT/logs" "$LOG_BACKUP_DIR/"
+    echo "已备份日志到: $LOG_BACKUP_DIR/logs"
+fi
+
+if [ "$PROJECT_ROOT" = "$DEFAULT_INSTALL_DIR" ]; then
+    cd "$HOME" || exit 1
+    rm -rf "$DEFAULT_INSTALL_DIR"
+    echo "已删除安装目录: $DEFAULT_INSTALL_DIR"
+else
+    echo "当前目录不是默认安装目录，未删除源码目录: $PROJECT_ROOT"
+fi
+
+echo "卸载完成"

@@ -1,0 +1,12 @@
+{
+    "deckip"    : "192.168.0.6",
+    "deckport"  : "22",
+    "deckuser"  : "deck",
+    "deckpass"  : "gamer",
+    "deckkey"   : "-i ${env:HOME}/.ssh/id_rsa",
+    "deckdir"   : "${env:HOME}",
+    "pluginname": "Decky-Framegen",
+    "python.analysis.extraPaths": [
+        "./py_modules"
+    ]
+}

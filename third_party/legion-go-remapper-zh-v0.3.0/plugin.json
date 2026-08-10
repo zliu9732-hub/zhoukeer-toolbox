@@ -1,0 +1,10 @@
+{
+  "name": "Legion Go 控制中心",
+  "author": "Aarron Lee",
+  "flags": ["root"],
+  "publish": {
+    "tags": ["root"],
+    "description": "适用于 Legion Go 的按键映射、RGB、充电与风扇控制",
+    "image": "https://opengraph.githubassets.com/1/SteamDeckHomebrew/PluginLoader"
+  }
+}

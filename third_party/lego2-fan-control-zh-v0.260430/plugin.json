@@ -1,0 +1,13 @@
+{
+  "name": "Legion Go 2 风扇控制",
+  "version": "0.260430",
+  "author": "Luke Cama",
+  "description": "Legion Go 2 完整风扇控制",
+  "flags": [
+    "root"
+  ],
+  "api_version": 2,
+  "main": "main.py",
+  "bin": "dist/index.js",
+  "icon": "🌀"
+}

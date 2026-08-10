@@ -1,0 +1,563 @@
+#!/bin/bash
+
+set -eu
+
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+MODULE="$PROJECT_ROOT/modules/steam_accelerator.sh"
+TMP_ROOT="$(mktemp -d)"
+BIN_DIR="$TMP_ROOT/bin"
+HOME_DIR="$TMP_ROOT/home"
+APP_ROOT="$TMP_ROOT/apps"
+STATE_DIR="$TMP_ROOT/state"
+FIXTURE="$TMP_ROOT/steamcommunity302.fixture"
+PROC_ROOT="$TMP_ROOT/proc"
+
+cleanup() {
+    rm -rf "$TMP_ROOT"
+}
+trap cleanup EXIT
+
+fail() {
+    echo "FAIL: $*" >&2
+    exit 1
+}
+
+assert_no_staging_leftovers() {
+    if find "$APP_ROOT" -maxdepth 1 -name '.steamcommunity302-*' -print | grep -q .; then
+        fail "安装结束后仍有 staging 或备份目录"
+    fi
+}
+
+mkdir -p "$BIN_DIR" "$HOME_DIR" "$APP_ROOT" "$STATE_DIR"
+mkdir -p "$STATE_DIR/systemd"
+printf '\037\213\010 offline steamcommunity302 archive fixture\n' > "$FIXTURE"
+FIXTURE_SIZE="$(wc -c < "$FIXTURE" | tr -d ' ')"
+
+cat > "$BIN_DIR/uname" <<'EOF'
+#!/bin/sh
+case "${1:-}" in
+    -m) printf 'x86_64\n' ;;
+    *) printf 'Linux\n' ;;
+esac
+EOF
+
+cat > "$BIN_DIR/curl" <<EOF
+#!/bin/sh
+output=""
+url=""
+printf '%s\n' "\$*" >> "\${STEAM302_TEST_STATE:?}/curl.calls"
+while [ "\$#" -gt 0 ]; do
+    case "\$1" in
+        --output) shift; output="\${1:-}" ;;
+        *) url="\$1" ;;
+    esac
+    shift
+done
+[ -n "\$output" ] || exit 91
+case "\$url" in
+    */steam302/latest.txt)
+        cat > "\$output" <<'MANIFEST'
+id=steam302
+name=Steamcommunity 302
+version=14.0.02
+file=steamcommunity_302_Linux_AMD64_V14.0.02.tar.gz
+sha256=5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f
+size=$FIXTURE_SIZE
+chunks=0
+chunk_size=0
+MANIFEST
+        ;;
+    *)
+        cp "\${STEAM302_TEST_ARCHIVE_SOURCE:?}" "\$output"
+        ;;
+esac
+EOF
+
+cat > "$BIN_DIR/md5sum" <<'EOF'
+#!/bin/sh
+printf 'md5\n' >> "${STEAM302_TEST_STATE:?}/hash.calls"
+case "${HASH_MODE:-ok}" in
+    bad_md5) hash="00000000000000000000000000000000" ;;
+    *) hash="4b9994102b2256ca5fdf2e806a2c7035" ;;
+esac
+printf '%s  %s\n' "$hash" "$1"
+EOF
+
+cat > "$BIN_DIR/sha256sum" <<'EOF'
+#!/bin/sh
+printf 'sha256\n' >> "${STEAM302_TEST_STATE:?}/hash.calls"
+case "${HASH_MODE:-ok}" in
+    bad_sha256) hash="0000000000000000000000000000000000000000000000000000000000000000" ;;
+    *) hash="5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f" ;;
+esac
+printf '%s  %s\n' "$hash" "$1"
+EOF
+
+cat > "$BIN_DIR/tar" <<'EOF'
+#!/bin/sh
+operation="${1:-}"
+shift || true
+printf '%s\n' "$operation $*" >> "${STEAM302_TEST_STATE:?}/tar.calls"
+
+case "$operation" in
+    -tzf)
+        if [ "${TAR_MODE:-ok}" = "bad_layout" ]; then
+            printf '../outside\n'
+            exit 0
+        fi
+        cat <<'LIST'
+./Steamcommunity_302/
+./Steamcommunity_302/Steamcommunity_302
+./Steamcommunity_302/steamcommunity_302.cli
+./Steamcommunity_302/steamcommunity_302.caddy
+./Steamcommunity_302/S302_rules.ini
+./Steamcommunity_302/S302.ini
+./Steamcommunity_302/run_\350\277\220\350\241\214.sh
+./Steamcommunity_302/.launcher/
+./Steamcommunity_302/.launcher/launcher_\345\220\257\345\212\250\345\231\250.sh
+./Steamcommunity_302/.launcher/setup_desktop_\347\224\237\346\210\220\346\241\214\351\235\242\345\277\253\346\215\267\346\226\271\345\274\217.sh
+./Steamcommunity_302/.launcher/302_icon.ico
+LIST
+        ;;
+    -tvzf)
+        cat <<'LIST'
+drwxr-xr-x user/group 0 Jan 1 00:00 ./Steamcommunity_302/
+-rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/Steamcommunity_302
+-rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/steamcommunity_302.cli
+-rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/steamcommunity_302.caddy
+-rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/S302_rules.ini
+-rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/S302.ini
+-rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/run_运行.sh
+drwxr-xr-x user/group 0 Jan 1 00:00 ./Steamcommunity_302/.launcher/
+-rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/.launcher/launcher_启动器.sh
+-rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/.launcher/setup_desktop_生成桌面快捷方式.sh
+-rw-r--r-- user/group 1 Jan 1 00:00 ./Steamcommunity_302/.launcher/302_icon.ico
+LIST
+        ;;
+    -xzf)
+        [ "${TAR_MODE:-ok}" != "fail_extract" ] || exit 92
+        archive="${1:-}"
+        shift || true
+        [ -f "$archive" ] || exit 93
+        [ "${1:-}" = "-C" ] || exit 94
+        destination="${2:-}"
+        package="$destination/Steamcommunity_302"
+        mkdir -p "$package/.launcher"
+        cat > "$package/run_运行.sh" <<'SCRIPT'
+#!/bin/sh
+exit 0
+SCRIPT
+        printf '%s\n' "${FAKE_PACKAGE_CONTENT:-fresh}" > "$package/Steamcommunity_302"
+        cat > "$package/steamcommunity_302.cli" <<'SCRIPT'
+#!/bin/sh
+while [ ! -f S302.exit ]; do sleep 0.1; done
+SCRIPT
+        printf 'caddy\n' > "$package/steamcommunity_302.caddy"
+cat > "$package/S302_rules.ini" <<'INI'
+[Rules]
+enabled = all
+
+[github]
+INI
+        cat > "$package/S302.ini" <<'INI'
+[Setting]
+Steam_store=1
+Steam_community=1
+github=1
+INI
+        cat > "$package/.launcher/launcher_启动器.sh" <<'SCRIPT'
+#!/bin/sh
+exit 0
+SCRIPT
+        cat > "$package/.launcher/setup_desktop_生成桌面快捷方式.sh" <<'SCRIPT'
+#!/bin/sh
+exit 0
+SCRIPT
+        printf 'icon\n' > "$package/.launcher/302_icon.ico"
+        ;;
+    *)
+        echo "unexpected tar operation: $operation" >&2
+        exit 95
+        ;;
+esac
+EOF
+
+cat > "$BIN_DIR/systemctl" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$*" >> "${STEAM302_TEST_STATE:?}/systemctl.calls"
+case "${1:-}" in
+    is-active) [ -f "$STEAM302_TEST_STATE/service-active" ] ;;
+    is-enabled) [ -f "$STEAM302_TEST_STATE/service-enabled" ] ;;
+    cat) [ -f "$STEAM302_TEST_SYSTEMD_DIR/steamcommunity302.service" ] ;;
+    daemon-reload) exit 0 ;;
+    enable)
+        touch "$STEAM302_TEST_STATE/service-enabled"
+        ;;
+    disable)
+        rm -f "$STEAM302_TEST_STATE/service-enabled" "$STEAM302_TEST_STATE/service-active"
+        ;;
+    start)
+        [ -f "$STEAM302_TEST_SYSTEMD_DIR/steamcommunity302.service" ] || exit 96
+        touch "$STEAM302_TEST_STATE/service-active"
+        ;;
+    restart)
+        rm -f "$STEAM302_TEST_STATE/service-active"
+        [ -f "$STEAM302_TEST_SYSTEMD_DIR/steamcommunity302.service" ] || exit 96
+        touch "$STEAM302_TEST_STATE/service-active"
+        ;;
+    stop)
+        rm -f "$STEAM302_TEST_STATE/service-active"
+        ;;
+    *) exit 96 ;;
+esac
+EOF
+
+for forbidden_command in sudo pacman steamos-readonly; do
+    cat > "$BIN_DIR/$forbidden_command" <<'EOF'
+#!/bin/sh
+printf '%s %s\n' "$(basename "$0")" "$*" >> "${STEAM302_TEST_STATE:?}/forbidden.calls"
+exit 97
+EOF
+done
+
+chmod +x "$BIN_DIR"/*
+
+run_module() {
+    env \
+        PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" \
+        HOME="$HOME_DIR" \
+        ZHOUKEER_APP_DIR="$APP_ROOT" \
+        ZHOUKEER_AUTO_CONFIRM=1 \
+        ZHOUKEER_TEST_MODE=1 \
+        STEAM302_TEST_STATE="$STATE_DIR" \
+        STEAM302_TEST_SYSTEMD_DIR="$STATE_DIR/systemd" \
+        ZHOUKEER_SYSTEMD_DIR="$STATE_DIR/systemd" \
+        STEAM302_TEST_ARCHIVE_SOURCE="$FIXTURE" \
+        HASH_MODE="${HASH_MODE:-ok}" \
+        TAR_MODE="${TAR_MODE:-ok}" \
+        FAKE_PACKAGE_CONTENT="${FAKE_PACKAGE_CONTENT:-fresh}" \
+        MODULE="$MODULE" bash -c '
+            source "$MODULE"
+            toolbox_sudo() { "$@"; }
+            case "$1" in
+                install) install_steam302 ;;
+                launch) launch_steam302 ;;
+                start|enable) enable_steam302 ;;
+                reset) reset_steam302 ;;
+                stop) stop_steam302_service ;;
+                status) show_steam302_status ;;
+                ensure) ensure_steam302_for_download ;;
+                uninstall) uninstall_steam302 ;;
+                *) exit 1 ;;
+            esac
+        ' -- "$@"
+}
+
+run_start_service() {
+    env \
+        PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" \
+        HOME="$HOME_DIR" \
+        ZHOUKEER_APP_DIR="$APP_ROOT" \
+        ZHOUKEER_AUTO_CONFIRM=1 \
+        STEAM302_TEST_STATE="$STATE_DIR" \
+        MODULE="$MODULE" \
+        bash -c 'source "$MODULE"; toolbox_sudo() { "$@"; }; start_steam302_service'
+}
+
+bash -n "$MODULE" || fail "模块语法检查失败"
+grep -Fq 'core/logger.sh' "$MODULE" || fail "独立加速模块没有加载日志函数"
+grep -Fq 'STEAM302_VERSION="14.0.02"' "$MODULE" || fail "缺少固定版本"
+grep -Fq 'download_gitee_mirror_file' "$MODULE" || fail "未使用自有 Gitee 镜像下载"
+if grep -Fq 'dogfight360' "$MODULE"; then
+    fail "模块仍引用其他下载来源"
+fi
+grep -Fq '4b9994102b2256ca5fdf2e806a2c7035' "$MODULE" || fail "缺少官方 MD5"
+grep -Fq '5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f' \
+    "$MODULE" || fail "缺少固定 SHA256"
+grep -Fq 'steamcommunity_302.cli Service' "$PROJECT_ROOT/modules/steam302_root_start.sh" || \
+    fail "内置启动器没有使用 Service 参数"
+grep -Fq 'ExecStart=$STEAM302_CLI Service' "$MODULE" || \
+    fail "后台服务没有使用 Service 参数"
+grep -Fq 'Restart=always' "$MODULE" || fail "后台服务没有按官方逻辑常驻重启"
+grep -Fq 'ensure_steam302_for_download()' "$MODULE" || fail "缺少 Steamcommunity 302 工具函数"
+grep -Fq '下载较慢，正在启用加速，请耐心等待' "$MODULE" || fail "缺少简洁的自动加速提示"
+grep -Fq '加速已开启，正在重试下载' "$MODULE" || fail "缺少自动加速完成提示"
+
+fallback_output="$(MODULE="$MODULE" bash -c '
+    source "$MODULE"
+    steam302_download_acceleration_is_ready() { return 1; }
+    steam302_service_is_active() { return 1; }
+    steam302_cli_is_running() { return 1; }
+    steam302_is_installed() { return 1; }
+    install_steam302() { return 1; }
+    ensure_steam302_for_download
+' 2>&1)" || fail "自动加速失败后不应阻断插件安装"
+printf '%s\n' "$fallback_output" | grep -Fq 'Steam + GitHub 加速未开启' || \
+    fail "未加速时没有醒目提示"
+
+ready_output="$(MODULE="$MODULE" bash -c '
+    source "$MODULE"
+    steam302_download_acceleration_is_ready() { return 0; }
+    ensure_steam302_for_download
+')" || fail "加速状态检测不应阻断下载"
+[ -z "$ready_output" ] || fail "已开启加速时仍显示多余提示"
+
+if grep -Fq 'ZHOUKEER_START_STEAM_AFTER_302' "$MODULE"; then
+    fail "模块仍保留自动启动 Steam 开关"
+fi
+if grep -Fq 'start_steam_client' "$MODULE"; then
+    fail "模块仍包含自动启动 Steam 逻辑"
+fi
+steam_enable_output="$(MODULE="$MODULE" bash -c '
+    source "$MODULE"
+    ZHOUKEER_TEST_MODE=1
+    steam302_download_acceleration_is_ready() { return 0; }
+    steam302_service_is_active() { return 0; }
+    steam302_cli_is_running() { return 0; }
+    steam302_is_installed() { return 0; }
+    install_steam302() { return 0; }
+    start_steam302_service() { return 0; }
+    start_steam_client() { echo "unexpected-steam-start"; }
+    enable_steam302
+' 2>&1)" || fail "开启 302 加速不应失败"
+if printf '%s\n' "$steam_enable_output" | grep -Fq 'unexpected-steam-start'; then
+    fail "开启加速后仍自动启动 Steam"
+fi
+
+launch_function="$(sed -n '/^launch_steam302()/,/^}/p' "$MODULE")"
+printf '%s\n' "$launch_function" | grep -Fq 'toolbox_sudo /usr/bin/env -i' || \
+    fail "Steamcommunity 302 root进程没有使用最小化环境"
+printf '%s\n' "$launch_function" | grep -Fq 'HOME="/root"' || \
+    fail "Steamcommunity 302 root进程没有隔离HOME"
+printf '%s\n' "$launch_function" | grep -Fq 'USER="root"' || \
+    fail "Steamcommunity 302 root进程没有固定USER"
+if printf '%s\n' "$launch_function" | grep -Eq 'toolbox_sudo[[:space:]]+-E'; then
+    fail "Steamcommunity 302仍把调用者完整环境传给root进程"
+fi
+
+# 模拟旧版已移入备份后收到中断：EXIT 清理必须恢复旧版，而不是删备份。
+SIGNAL_ROOT="$TMP_ROOT/signal-restore"
+mkdir -p \
+    "$SIGNAL_ROOT/apps/.backup/steamcommunity302" \
+    "$SIGNAL_ROOT/apps/.stage" \
+    "$SIGNAL_ROOT/apps/steamcommunity302"
+printf 'old-version\n' > "$SIGNAL_ROOT/apps/.backup/steamcommunity302/version.txt"
+printf 'partial-new\n' > "$SIGNAL_ROOT/apps/steamcommunity302/version.txt"
+PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" \
+    HOME="$HOME_DIR" \
+    ZHOUKEER_APP_DIR="$SIGNAL_ROOT/apps" \
+    MODULE="$MODULE" \
+    SIGNAL_ROOT="$SIGNAL_ROOT" \
+    bash -c '
+        source "$MODULE"
+        STEAM302_INSTALL_DIR="$SIGNAL_ROOT/apps/steamcommunity302"
+        STEAM302_STAGE_DIR="$SIGNAL_ROOT/apps/.stage"
+        STEAM302_BACKUP_DIR="$SIGNAL_ROOT/apps/.backup"
+        STEAM302_SWAP_FINISHED=0
+        steam302_install_cleanup
+    '
+[ "$(cat "$SIGNAL_ROOT/apps/steamcommunity302/version.txt")" = 'old-version' ] || \
+    fail "中断清理没有恢复旧版本"
+[ ! -e "$SIGNAL_ROOT/apps/.backup" ] || fail "恢复后仍残留备份目录"
+
+install_output="$(run_module install)" || fail "离线模拟安装失败"
+TARGET="$APP_ROOT/steamcommunity302"
+SHORTCUT="$HOME_DIR/Desktop/Steamcommunity 302.desktop"
+
+[ -x "$TARGET/run_运行.sh" ] || fail "run_运行.sh 未安装或不可执行"
+[ -x "$TARGET/Steamcommunity_302" ] || fail "主程序未安装或不可执行"
+[ "$(sed -n '1p' "$TARGET/.zhoukeer-version")" = "14.0.02" ] || \
+    fail "版本标记错误"
+[ ! -e "$SHORTCUT" ] || fail "后台加速模式不应创建桌面快捷方式"
+printf '%s\n' "$install_output" | grep -Fq 'Steam + GitHub 加速已开启' || \
+    fail "安装完成后缺少简洁成功提示"
+if printf '%s\n' "$install_output" | grep -Eq '内置加速规则|校验均通过|开机自启服务|桌面图标'; then
+    fail "安装成功仍显示面向实现的冗余细节"
+fi
+[ -f "$TARGET/S302.ini" ] || fail "没有生成内置配置"
+grep -Fq '[Setting]' "$TARGET/S302.ini" || fail "内置配置缺少 Setting 开关"
+grep -Eq '^Steam_store=1' "$TARGET/S302.ini" || fail "内置配置没有启用 Steam 规则"
+grep -Eq '^github=1' "$TARGET/S302.ini" || fail "内置配置没有启用 GitHub 规则"
+
+# 官方 S302.ini 缺失时，仍要生成可用的 [Setting] 配置，不能覆盖成只有规则列表。
+rm -f "$TARGET/S302.ini"
+env PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" HOME="$HOME_DIR" \
+    ZHOUKEER_APP_DIR="$APP_ROOT" MODULE="$MODULE" \
+    bash -c 'source "$MODULE"; ensure_steam302_config' || \
+    fail "缺少 S302.ini 时无法生成配置"
+[ -f "$TARGET/S302.ini" ] || fail "缺少 S302.ini 时没有生成配置"
+grep -Fq '[Setting]' "$TARGET/S302.ini" || fail "生成配置缺少 Setting 开关"
+grep -Eq '^Steam_store[[:space:]]*=[[:space:]]*1' "$TARGET/S302.ini" || \
+    fail "生成配置没有启用 Steam 规则"
+grep -Eq '^github[[:space:]]*=[[:space:]]*1' "$TARGET/S302.ini" || \
+    fail "生成配置没有启用 GitHub 规则"
+[ -f "$STATE_DIR/systemd/steamcommunity302.service" ] || fail "没有创建后台自启服务"
+grep -Fqx '# Managed by Zhoukeer Toolbox' "$STATE_DIR/systemd/steamcommunity302.service" || \
+    fail "后台服务缺少Renkit管理标记"
+[ -f "$STATE_DIR/service-enabled" ] || fail "后台服务没有设置开机自启"
+[ -f "$STATE_DIR/service-active" ] || fail "安装后后台服务没有立即启动"
+
+# 官方 CLI 以 root 身份运行，普通用户不能依赖 kill -0 判断它是否存活。
+# 模拟 /proc 中存在 root 进程，并确保陈旧 PID 不会匹配到其他程序。
+mkdir -p "$PROC_ROOT/4242"
+printf './steamcommunity_302.cli\0' > "$PROC_ROOT/4242/cmdline"
+printf '4242\n' > "$TARGET/.zhoukeer-cli.pid"
+env PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" HOME="$HOME_DIR" \
+    ZHOUKEER_APP_DIR="$APP_ROOT" ZHOUKEER_PROC_ROOT="$PROC_ROOT" MODULE="$MODULE" \
+    bash -c 'source "$MODULE"; steam302_cli_is_running' || \
+    fail "无法通过 /proc 识别 root 身份的官方 CLI"
+printf '/usr/bin/unrelated-process\0' > "$PROC_ROOT/4242/cmdline"
+if env PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" HOME="$HOME_DIR" \
+    ZHOUKEER_APP_DIR="$APP_ROOT" ZHOUKEER_PROC_ROOT="$PROC_ROOT" MODULE="$MODULE" \
+    bash -c 'source "$MODULE"; steam302_cli_is_running'; then
+    fail "陈旧 PID 错误匹配到无关进程"
+fi
+rm -f "$TARGET/.zhoukeer-cli.pid"
+
+grep -Fq -- '--connect-timeout 10' "$STATE_DIR/curl.calls" || \
+    fail "curl 缺少连接超时"
+grep -Fq -- '--max-time 1200' "$STATE_DIR/curl.calls" || \
+    fail "curl 缺少总超时"
+grep -Fq -- '--retry 2' "$STATE_DIR/curl.calls" || fail "curl 缺少重试"
+grep -Fq -- '--retry-all-errors' "$STATE_DIR/curl.calls" || \
+    fail "curl 未覆盖瞬时网络错误重试"
+grep -Fq 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/steam302/latest.txt' \
+    "$STATE_DIR/curl.calls" || fail "未使用自有 Gitee 镜像清单"
+if grep -Fq 'dogfight360.com' "$STATE_DIR/curl.calls"; then
+    fail "Steamcommunity 302 仍连接其他来源"
+fi
+[ "$(grep -c '^md5$' "$STATE_DIR/hash.calls")" -eq 1 ] || fail "没有执行 MD5 校验"
+[ "$(grep -c '^sha256$' "$STATE_DIR/hash.calls")" -ge 2 ] || \
+    fail "没有执行镜像与安装包 SHA256 校验"
+grep -Fq 'enable steamcommunity302.service' "$STATE_DIR/systemctl.calls" || \
+    fail "安装过程没有启用后台服务"
+grep -Fq 'start steamcommunity302.service' "$STATE_DIR/systemctl.calls" || \
+    fail "安装过程没有立即启动后台服务"
+[ ! -e "$STATE_DIR/forbidden.calls" ] || fail "安装过程调用了禁止的系统命令"
+assert_no_staging_leftovers
+
+status_output="$(run_module status)" || fail "已安装状态检查返回失败"
+printf '%s\n' "$status_output" | grep -Fq 'Steamcommunity 302：已安装' || \
+    fail "状态未报告已安装"
+printf '%s\n' "$status_output" | grep -Fq '版本：14.0.02' || \
+    fail "状态未报告版本"
+
+# 后台服务已经运行时，一键启动必须保持幂等，不能重复拉起第二个 CLI。
+start_output="$(run_start_service)" || fail "一键启动内置加速失败"
+printf '%s\n' "$start_output" | grep -Fq 'Steam + GitHub 加速已开启' || \
+    fail "一键启动没有报告内置加速成功"
+[ ! -f "$TARGET/.zhoukeer-cli.pid" ] || fail "已有后台服务时又重复拉起了 CLI"
+stop_output="$(
+    env PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" HOME="$HOME_DIR" \
+        ZHOUKEER_APP_DIR="$APP_ROOT" STEAM302_TEST_STATE="$STATE_DIR" \
+        STEAM302_TEST_SYSTEMD_DIR="$STATE_DIR/systemd" \
+        ZHOUKEER_SYSTEMD_DIR="$STATE_DIR/systemd" \
+        MODULE="$MODULE" bash -c 'source "$MODULE"; toolbox_sudo() { "$@"; }; stop_steam302_service'
+)" || fail "一键停止内置加速失败"
+printf '%s\n' "$stop_output" | grep -Fq '后台服务已停止' || fail "停止后台服务没有报告成功"
+[ ! -f "$STATE_DIR/service-active" ] || fail "停止后后台服务仍在运行"
+[ ! -f "$TARGET/.zhoukeer-cli.pid" ] || fail "停止后仍残留 CLI PID"
+
+# 重置：Renkit托管的 systemd 服务通过 restart 重新拉起。
+reset_output="$(
+    env PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" HOME="$HOME_DIR" \
+        ZHOUKEER_APP_DIR="$APP_ROOT" STEAM302_TEST_STATE="$STATE_DIR" \
+        STEAM302_TEST_SYSTEMD_DIR="$STATE_DIR/systemd" \
+        ZHOUKEER_SYSTEMD_DIR="$STATE_DIR/systemd" \
+        MODULE="$MODULE" bash -c 'source "$MODULE"; toolbox_sudo() { "$@"; }; reset_steam302'
+)" || fail "重置后台加速失败"
+printf '%s\n' "$reset_output" | grep -Fq 'Steam + GitHub 加速已重置' || \
+    fail "重置后台服务没有报告成功"
+grep -Fq 'restart steamcommunity302.service' "$STATE_DIR/systemctl.calls" || \
+    fail "重置没有重启后台服务"
+[ -f "$STATE_DIR/service-active" ] || fail "重置后后台服务没有恢复运行"
+
+# 无 systemd 托管时，重置回退为停止并重新启动内置 CLI。
+reset_cli_output="$(MODULE="$MODULE" bash -c '
+    source "$MODULE"
+    steam302_is_installed() { return 0; }
+    steam302_service_is_toolbox_managed() { return 1; }
+    stop_steam302_cli() { echo "cli-stopped"; }
+    start_steam302_service() { echo "cli-started"; }
+    reset_steam302
+' 2>&1)" || fail "内置 CLI 重置失败"
+printf '%s\n' "$reset_cli_output" | grep -Fq 'cli-stopped' || fail "重置没有停止内置 CLI"
+printf '%s\n' "$reset_cli_output" | grep -Fq 'cli-started' || fail "重置没有重新启动内置 CLI"
+printf '%s\n' "$reset_cli_output" | grep -Fq 'Steam + GitHub 加速已重置' || \
+    fail "内置 CLI 重置缺少成功提示"
+
+if MODULE="$MODULE" bash -c '
+    source "$MODULE"
+    steam302_is_installed() { return 1; }
+    reset_steam302
+' >/dev/null 2>&1; then
+    fail "未安装时重置不应成功"
+fi
+
+# SHA256 失败时，下载和 staging 都不能破坏已有版本。
+printf '13.0.00\n' > "$TARGET/.zhoukeer-version"
+printf 'preserve-on-hash-failure\n' > "$TARGET/old-version.txt"
+if HASH_MODE=bad_sha256 run_module install > "$STATE_DIR/bad-sha.output" 2>&1; then
+    fail "SHA256 错误时安装仍成功"
+fi
+[ -f "$TARGET/old-version.txt" ] || fail "SHA256 错误破坏了旧版本"
+[ "$(sed -n '1p' "$TARGET/.zhoukeer-version")" = "13.0.00" ] || \
+    fail "SHA256 错误替换了旧版本标记"
+grep -Fq 'SHA256 校验失败' "$STATE_DIR/bad-sha.output" || \
+    fail "SHA256 错误提示不明确"
+assert_no_staging_leftovers
+
+# MD5 同样必须独立通过。
+if HASH_MODE=bad_md5 run_module install > "$STATE_DIR/bad-md5.output" 2>&1; then
+    fail "MD5 错误时安装仍成功"
+fi
+[ -f "$TARGET/old-version.txt" ] || fail "MD5 错误破坏了旧版本"
+grep -Fq 'MD5 校验失败' "$STATE_DIR/bad-md5.output" || fail "MD5 错误提示不明确"
+assert_no_staging_leftovers
+
+# 解压失败时同样保留旧版本。
+if TAR_MODE=fail_extract run_module install > "$STATE_DIR/bad-tar.output" 2>&1; then
+    fail "解压错误时安装仍成功"
+fi
+[ -f "$TARGET/old-version.txt" ] || fail "解压错误破坏了旧版本"
+grep -Fq '解压失败' "$STATE_DIR/bad-tar.output" || fail "解压错误提示不明确"
+assert_no_staging_leftovers
+
+# 正常更新采用 staging 后替换，旧文件不会混入新版。
+FAKE_PACKAGE_CONTENT=updated run_module install > "$STATE_DIR/update.output" || \
+    fail "模拟更新失败"
+[ ! -e "$TARGET/old-version.txt" ] || fail "更新后混入旧版本残留文件"
+[ "$(sed -n '1p' "$TARGET/Steamcommunity_302")" = "updated" ] || \
+    fail "新版程序没有替换到稳定目录"
+assert_no_staging_leftovers
+
+# 没有明确输入 UNINSTALL 时不得删除任何文件。
+if printf 'NO\n' | env \
+    PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" \
+    HOME="$HOME_DIR" \
+    ZHOUKEER_APP_DIR="$APP_ROOT" \
+    STEAM302_TEST_STATE="$STATE_DIR" \
+    STEAM302_TEST_ARCHIVE_SOURCE="$FIXTURE" \
+    bash "$MODULE" uninstall > "$STATE_DIR/cancel-uninstall.output" 2>&1; then
+    :
+else
+    fail "取消卸载不应返回失败"
+fi
+[ -d "$TARGET" ] || fail "未确认卸载时删除了程序"
+grep -Fq '已取消' "$STATE_DIR/cancel-uninstall.output" || fail "取消卸载提示缺失"
+
+# 卸载会停止并移除Renkit托管的运行中系统服务。
+touch "$STATE_DIR/service-active"
+run_module uninstall > "$STATE_DIR/uninstall.output" || fail "安全卸载失败"
+[ ! -e "$TARGET" ] || fail "卸载后程序目录仍存在"
+[ ! -e "$SHORTCUT" ] || fail "卸载后桌面快捷方式仍存在"
+[ ! -e "$STATE_DIR/systemd/steamcommunity302.service" ] || fail "卸载后仍残留Renkit后台服务"
+[ ! -e "$STATE_DIR/forbidden.calls" ] || fail "卸载过程调用了禁止的系统命令"
+
+if run_module status > "$STATE_DIR/not-installed.output" 2>&1; then
+    fail "未安装状态应返回非零"
+fi
+grep -Fq 'Steamcommunity 302：未安装' "$STATE_DIR/not-installed.output" || \
+    fail "状态未报告未安装"
+
+echo "PASS: Steamcommunity 302 离线安装、双校验、原子替换和安全卸载测试通过"
