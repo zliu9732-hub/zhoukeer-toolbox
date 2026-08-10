@@ -1,3 +1,10 @@
+## Renkit 1.1.9 Bazzite Flatpak 下载源隔离 — 2026-08-09
+
+- Bazzite 软件安装默认使用带 GPG 签名验证的官方 Flathub，不再自动配置国内镜像；SteamOS 原有国内源与安装流程保持不变。
+- Bazzite 使用准备新增独立的 Flatpak 下载源菜单：明确显示关闭 GPG 验证的风险、远程名称和完整 URL，用户主动确认后才启用上海交大与中科大镜像。
+- Bazzite 国内源的启用与恢复只修改用户级 Flatpak 远程，不调用 sudo、不修改系统更新源；恢复官方源时重新启用 GPG 验证。
+- 新增 Bazzite 官方安装、手动国内源、恢复官方源、旧系统级远程隔离和普通 Fedora 拒绝执行的模拟测试。
+
 ## Renkit 1.1.8 SteamOS / Bazzite 独立双平台版 — 2026-08-09
 
 - 同一条安装命令自动分流：SteamOS 保持原有 `main.sh` 和全部现有功能，其他 Linux 使用独立的 `main-bazzite.sh`，两套菜单互不调用对方的系统功能。

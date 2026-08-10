@@ -2,10 +2,10 @@
 
 Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装命令会自动选择独立版本：SteamOS 保留完整原版功能，Bazzite 使用单独菜单，仅开放已适配的常用软件、Decky、兼容层、启动器、模拟器和诊断功能。
 
-当前正式版：Renkit 1.1.8；从 Renkit 1.0 起按语义化版本递增。
+当前正式版：Renkit 1.1.9；从 Renkit 1.0 起按语义化版本递增。
 
 - SteamOS 版：继续使用原有 `main.sh`，系统初始化、国内源、插件与高级功能保持原逻辑。
-- Bazzite 版：使用独立 `main-bazzite.sh`；Decky 通过官方 `ujust setup-decky` 安装，不调用 pacman、steamos-readonly、ToDesk、内存调优或 EFI/Clover 功能。
+- Bazzite 版：使用独立 `main-bazzite.sh`；Decky 通过官方 `ujust setup-decky` 安装；Flatpak 默认使用带 GPG 验证的官方 Flathub，国内镜像仅在用户确认风险后以用户级远程启用，并可恢复官方源；不调用 pacman、steamos-readonly、ToDesk、内存调优或 EFI/Clover 功能。
 
 - 双系统设置：提供互通盘挂载与只读保护、TF 卡 NTFS 初始化、NTFS/exFAT 基础修复、只读健康检查、受保护的第三方引导项清理、双系统引导修复和一键切换 Windows。rEFInd 继续停用，不提供入口。
 

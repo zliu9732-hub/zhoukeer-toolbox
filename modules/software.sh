@@ -22,6 +22,10 @@ FLATPAK_INSTALL_RETRIES="${ZHOUKEER_FLATPAK_INSTALL_RETRIES:-1}"
 FLATPAK_SOURCE_PROBE_TIMEOUT="${ZHOUKEER_FLATPAK_SOURCE_PROBE_TIMEOUT:-8}"
 INSTALL_PRIMARY_REMOTE="$FLATHUB_CN_REMOTE"
 INSTALL_FALLBACK_REMOTE="$FLATHUB_CN_FALLBACK_REMOTE"
+case "${ZHOUKEER_FLATPAK_SOURCE_MODE:-domestic}" in
+    official|domestic) FLATPAK_SOURCE_MODE="${ZHOUKEER_FLATPAK_SOURCE_MODE:-domestic}" ;;
+    *) FLATPAK_SOURCE_MODE="domestic" ;;
+esac
 
 QQ_CONFIG_PRIMARY="https://qq-web.cdn-go.cn/im.qq.com_new/latest/rainbow/pcConfig.json"
 QQ_CONFIG_FALLBACK="https://im.qq.com/proxy/domain/qq-web.cdn-go.cn/im.qq.com_new/latest/rainbow/pcConfig.json"
@@ -238,7 +242,11 @@ SOFTWARE_TARGETS=(
 )
 
 software_print_domestic_source_hint() {
-    echo "提示：请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。"
+    if [ "$FLATPAK_SOURCE_MODE" = "official" ]; then
+        echo "提示：当前使用官方 Flathub；如国内网络下载较慢，可在 Bazzite 使用准备中手动选择国内 Flatpak 源。"
+    else
+        echo "提示：请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。"
+    fi
 }
 
 confirm_software_install() {
@@ -268,7 +276,11 @@ confirm_software_install() {
             echo "将通过 Flatpak 国内源安装：$SOFTWARE_NAME"
             ;;
         *)
-            echo "将通过 Flatpak 国内源安装：$SOFTWARE_NAME"
+            if [ "$FLATPAK_SOURCE_MODE" = "official" ]; then
+                echo "将通过官方 Flathub 安装：$SOFTWARE_NAME"
+            else
+                echo "将通过 Flatpak 国内源安装：$SOFTWARE_NAME"
+            fi
             ;;
     esac
 
@@ -347,7 +359,12 @@ confirm_official_flatpak_restore() {
 
     echo "将恢复官方 Flathub：https://dl.flathub.org/repo/"
     echo "将重新启用 GPG 验证，并移除 $FLATHUB_CN_REMOTE 和 $FLATHUB_CN_FALLBACK_REMOTE。"
-    echo "同时会移除由Renkit写入的 archlinuxcn 配置；用户原有配置不会被删除。"
+    detect_platform
+    if [ "$IS_STEAMOS" -eq 1 ]; then
+        echo "同时会移除由Renkit写入的 archlinuxcn 配置；用户原有配置不会被删除。"
+    else
+        echo "不会修改 Bazzite 系统更新源。"
+    fi
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         echo "已通过Renkit界面确认，正在恢复官方源。"
         return 0
@@ -362,7 +379,16 @@ configure_domestic_flatpak_remote() {
     local display_name="$3"
     local scope
 
-    scope="$(flatpak_remote_scope "$remote")"
+    detect_platform
+    if [ "$IS_BAZZITE" -eq 1 ]; then
+        if flatpak_remote_exists "$remote"; then
+            scope=user
+        else
+            scope=missing
+        fi
+    else
+        scope="$(flatpak_remote_scope "$remote")"
+    fi
     if [ "$scope" = "missing" ]; then
         if ! timeout --foreground 30 flatpak remote-add --user --if-not-exists \
             --no-gpg-verify "$remote" "$url"; then
@@ -393,10 +419,17 @@ configure_domestic_flatpak_remote() {
 }
 
 ensure_flatpak_remotes() {
-    if [ "${ZHOUKEER_FORCE_FLATPAK_RECONFIGURE:-0}" != "1" ] && \
-       [ "$(flatpak_remote_scope "$FLATHUB_CN_REMOTE")" != "missing" ] && \
-       [ "$(flatpak_remote_scope "$FLATHUB_CN_FALLBACK_REMOTE")" != "missing" ]; then
-        return 0
+    detect_platform
+    if [ "${ZHOUKEER_FORCE_FLATPAK_RECONFIGURE:-0}" != "1" ]; then
+        if [ "$IS_BAZZITE" -eq 1 ]; then
+            if flatpak_remote_exists "$FLATHUB_CN_REMOTE" && \
+               flatpak_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE"; then
+                return 0
+            fi
+        elif [ "$(flatpak_remote_scope "$FLATHUB_CN_REMOTE")" != "missing" ] && \
+             [ "$(flatpak_remote_scope "$FLATHUB_CN_FALLBACK_REMOTE")" != "missing" ]; then
+            return 0
+        fi
     fi
     confirm_domestic_flatpak_risk || {
         echo "已取消国内 Flatpak 源配置，未修改任何远程源。"
@@ -1166,38 +1199,52 @@ install_software() {
         create_software_shortcut
         return $?
     fi
-    if ! ensure_flatpak_remotes; then
-        echo "国内Flathub缓存源配置失败，已停止，不会转连官方源。"
-        echo "提示：请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。"
-        return 1
-    fi
-
-    choose_install_remotes
-    local _fr_retry=0
-    while [ "$_fr_retry" -le 1 ]; do
-        echo "正在安装 $SOFTWARE_NAME..."
-        if run_flatpak_install "$INSTALL_PRIMARY_REMOTE"; then
-            break
-        fi
-        if run_flatpak_install "$INSTALL_FALLBACK_REMOTE"; then
-            break
-        fi
-        if [ "$_fr_retry" -eq 0 ]; then
-            echo "检测到下载源不可用，正在切换至国内源，请耐心等待..."
-            if ! ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
-                bash "$PROJECT_ROOT/modules/domestic_source.sh" enable >/dev/null 2>&1; then
-                ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
-                    ensure_flatpak_remotes >/dev/null 2>&1 || true
-            fi
-            choose_install_remotes 2>/dev/null || true
-            _fr_retry=1
-        else
-            echo "两个国内缓存均失败或超时，已停止。"
-            echo "提示：请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。"
-            log "$SOFTWARE_NAME Flatpak安装失败"
+    if [ "$FLATPAK_SOURCE_MODE" = "official" ]; then
+        if ! ensure_official_flathub_remote; then
+            echo "官方 Flathub 源配置失败，已停止。"
             return 1
         fi
-    done
+        echo "正在从官方 Flathub 安装 $SOFTWARE_NAME..."
+        if ! run_flatpak_install "$FLATHUB_OFFICIAL_REMOTE"; then
+            echo "官方 Flathub 安装失败或超时，已停止。"
+            software_print_domestic_source_hint
+            log "$SOFTWARE_NAME 官方Flatpak安装失败"
+            return 1
+        fi
+    else
+        if ! ensure_flatpak_remotes; then
+            echo "国内Flathub缓存源配置失败，已停止，不会转连官方源。"
+            echo "提示：请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。"
+            return 1
+        fi
+
+        choose_install_remotes
+        local _fr_retry=0
+        while [ "$_fr_retry" -le 1 ]; do
+            echo "正在安装 $SOFTWARE_NAME..."
+            if run_flatpak_install "$INSTALL_PRIMARY_REMOTE"; then
+                break
+            fi
+            if run_flatpak_install "$INSTALL_FALLBACK_REMOTE"; then
+                break
+            fi
+            if [ "$_fr_retry" -eq 0 ]; then
+                echo "检测到下载源不可用，正在切换至国内源，请耐心等待..."
+                if ! ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
+                    bash "$PROJECT_ROOT/modules/domestic_source.sh" enable >/dev/null 2>&1; then
+                    ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
+                        ensure_flatpak_remotes >/dev/null 2>&1 || true
+                fi
+                choose_install_remotes 2>/dev/null || true
+                _fr_retry=1
+            else
+                echo "两个国内缓存均失败或超时，已停止。"
+                echo "提示：请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。"
+                log "$SOFTWARE_NAME Flatpak安装失败"
+                return 1
+            fi
+        done
+    fi
 
     if ! software_is_installed; then
         echo "$SOFTWARE_NAME 安装命令结束，但未检测到已安装应用。"
@@ -1384,6 +1431,26 @@ install_flatpak_app() {
             echo "桌面快捷方式已确认。"
         fi
         return 0
+    fi
+
+    if [ "$FLATPAK_SOURCE_MODE" = "official" ]; then
+        require_command flatpak || return 1
+        require_command timeout || return 1
+        ensure_official_flathub_remote || {
+            echo "官方 Flathub 源配置失败，已停止。"
+            return 1
+        }
+        echo "正在从官方 Flathub 安装 $app_name..."
+        SOFTWARE_APP_ID="$app_id"
+        if run_flatpak_install "$FLATHUB_OFFICIAL_REMOTE"; then
+            echo "$app_name 安装完成。"
+            _fp_desk="$(find "$HOME/.local/share/flatpak/exports/share/applications" /var/lib/flatpak/exports/share/applications -name "${app_id}.desktop" 2>/dev/null | head -1)"
+            [ -n "$_fp_desk" ] && cp "$_fp_desk" "$HOME/Desktop/" 2>/dev/null && chmod +x "$HOME/Desktop/${app_id}.desktop" 2>/dev/null && echo "  桌面快捷方式已创建。"
+            log "$app_name 官方 Flatpak 安装完成"
+            return 0
+        fi
+        echo "$app_name 官方 Flathub 安装失败。"
+        return 1
     fi
 
     echo "提示：如遇下载缓慢，请在Renkit【系统设置 → 国内源】中初始化国内 Flathub 源。"
