@@ -123,4 +123,19 @@ clover_find_unmounted_esp || fail "没有从未挂载 FAT 分区找到实际 EFI
 clover_release_esp_mount
 grep -Fq 'unmount --block-device /dev/unmountedesp' "$CALLS" || fail "未挂载 EFI 检查后没有释放挂载"
 
-echo "PASS: 可从现有 Clover NVRAM 启动项反查、临时挂载并释放 EFI"
+# Fedora/Bazzite 常以 root-only 权限挂载 /boot/efi。模拟普通用户无法 stat
+# 子目录、但 sudo test 可以只读确认 EFI 内容的场景。
+PROTECTED_ESP="$TMP_ROOT/protected-esp"
+toolbox_sudo() {
+    if [ "${1:-}" = "test" ]; then
+        case "${2:-}:${3:-}" in
+            "-d:$PROTECTED_ESP/EFI"|\
+            "-f:$PROTECTED_ESP/EFI/CLOVER/CLOVERX64.efi") return 0 ;;
+        esac
+    fi
+    "$@"
+}
+clover_candidate_is_esp "$PROTECTED_ESP" || \
+    fail "root-only 的 Bazzite EFI 被误判为不含 EFI 目录"
+
+echo "PASS: 可识别 root-only EFI，并从 NVRAM 反查、临时挂载和释放 EFI"

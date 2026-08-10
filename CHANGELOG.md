@@ -1,3 +1,9 @@
+## Renkit 1.2.3 Bazzite EFI 权限兼容 — 2026-08-10
+
+- 修复 Bazzite 将 `/boot/efi` 设为仅 root 可读取时，Clover 错误提示“挂载位置不含 EFI 目录”的问题；只读探测会通过Renkit现有管理员权限通道复核。
+- Clover 安装、状态、Windows 启动文件识别和恢复流程统一兼容受保护的 EFI 目录；磁盘、分区、BootOrder、确认和回滚规则保持不变。
+- 新增 root-only EFI 模拟测试；macOS 测试只调用模拟命令，不访问真实 EFI 或磁盘。
+
 ## Renkit 1.2.2 Clover 自动分辨率 — 2026-08-09
 
 - SteamOS 与 Bazzite 安装 Clover 时不再把 Steam Deck、ROG Ally、Legion Go 等机型的固定分辨率写入 EFI，改由 Clover 根据当前掌机固件提供的 UEFI GOP 显示模式自动选择。
