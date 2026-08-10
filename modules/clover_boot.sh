@@ -779,7 +779,7 @@ clover_delete() {
 
 clover_install() {
     local work_dir archive staged target backup_root timestamp
-    local existing_backup original_backup original_order current_order new_order staging_output
+    local existing_backup original_backup original_order current_order new_order staging_log
     local temporary_target boot_number new_boot_entry=0 create_output available_kb
 
     echo "正在检查 Clover 安装环境…"
@@ -841,13 +841,15 @@ clover_install() {
         rm -rf -- "$work_dir"
         return 1
     fi
-    if ! staging_output="$(clover_prepare_staging "$archive" "$work_dir" 2>&1)"; then
-        printf '%s\n' "$staging_output"
+    staging_log="$work_dir/staging.log"
+    if ! clover_prepare_staging "$archive" "$work_dir" \
+        >/dev/null 2>"$staging_log"; then
+        [ ! -s "$staging_log" ] || cat -- "$staging_log"
         rm -rf -- "$work_dir"
         echo "Clover 安装文件准备失败，EFI 未修改。"
         return 1
     fi
-    staged="$staging_output"
+    staged="$work_dir/CLOVER"
 
     target="$CLOVER_ESP/EFI/CLOVER"
     backup_root="$CLOVER_ESP/EFI/zhoukeer-backups"

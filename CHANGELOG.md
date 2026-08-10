@@ -1,3 +1,9 @@
+## Renkit 1.2.5 Clover Linux 解压警告兼容 — 2026-08-10
+
+- 修复 Linux `tar` 输出 macOS 扩展属性警告时，警告文字被误当成 Clover 临时目录并触发“文件名过长”的问题。
+- Clover 临时目录改为使用Renkit已知的固定工作路径；解压真正失败时仍显示错误并保证 EFI 未修改。
+- 模拟测试加入 `LIBARCHIVE.xattr` 警告，确认不会再污染安装路径。
+
 ## Renkit 1.2.4 Bazzite Clover 管理员验证 — 2026-08-10
 
 - 修复 Bazzite 独立菜单未先准备管理员密码记录，导致 1.2.3 无法完成 root-only EFI 复核的问题。

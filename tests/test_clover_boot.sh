@@ -48,6 +48,13 @@ printf '0\n' > "$STATE/clover-entry"
 # shellcheck disable=SC1090
 source "$MODULE"
 
+eval "$(declare -f clover_prepare_staging | \
+    sed '1s/clover_prepare_staging/clover_prepare_staging_real/')"
+clover_prepare_staging() {
+    echo "tar: 忽略未知的扩展头关键字 LIBARCHIVE.xattr.com.apple.quarantine" >&2
+    clover_prepare_staging_real "$@"
+}
+
 CLOVER_BOOTMANAGER_SYSTEM_DIR="$SYSTEM_DIR"
 CLOVER_BOOTMANAGER_WHITELIST_DIR="$WHITELIST_DIR"
 require_supported_gaming_os() { return 0; }
