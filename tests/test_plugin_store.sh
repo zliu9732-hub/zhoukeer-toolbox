@@ -401,7 +401,7 @@ DECKRECALL_MIRROR_LOG="$TMP_ROOT/deckrecall-mirror.log"
     decky_plugin_directory_is_complete() {
         [ "${DECKRECALL_TEST_MODE:-new}" = "existing" ]
     }
-    patch_deckrecall_system_browser() { return 0; }
+    patch_deckrecall_steam_browser() { return 0; }
     reload_decky_plugins() {
         printf 'reload\n' >> "$DECKRECALL_RELOAD_LOG"
     }
@@ -418,8 +418,8 @@ DECKRECALL_MIRROR_LOG="$TMP_ROOT/deckrecall-mirror.log"
     exit 1
 }
 
-# DeckRecall 打开风灵月影网站时优先交给系统默认浏览器，避免 Steam
-# 游戏模式内置浏览器下载 EXE/压缩包时卡住；重复修复必须保持幂等。
+# DeckRecall 必须对齐桌面模式已验证可下载的 Steam 浏览器调用，不能改用
+# 系统浏览器；重复修复必须保持幂等，并能迁移 1.4.1 的错误补丁。
 DECKRECALL_PLUGIN_ROOT="$TMP_ROOT/deckrecall-browser/plugins"
 mkdir -p "$DECKRECALL_PLUGIN_ROOT/DeckRecall/dist"
 printf '%s\n' \
@@ -429,25 +429,57 @@ printf '%s\n' \
     export DECKY_PLUGIN_DIR="$DECKRECALL_PLUGIN_ROOT"
     # shellcheck disable=SC1090
     source "$PROJECT_ROOT/modules/plugin_store.sh"
-    patch_deckrecall_system_browser
+    patch_deckrecall_steam_browser
     first_hash="$(shasum -a 256 "$DECKY_PLUGIN_DIR/DeckRecall/dist/index.js" | awk '{print $1}')"
-    patch_deckrecall_system_browser
+    patch_deckrecall_steam_browser
     second_hash="$(shasum -a 256 "$DECKY_PLUGIN_DIR/DeckRecall/dist/index.js" | awk '{print $1}')"
     [ "$first_hash" = "$second_hash" ] || {
         echo "FAIL: DeckRecall 浏览器补丁重复执行后改变了文件" >&2
         exit 1
     }
 )
-grep -Fq 'systemBrowser.OpenInSystemBrowser("https://flingtrainer.com/");' \
+grep -Fq 'steamBrowser.OpenUrl("https://flingtrainer.com/");' \
     "$DECKRECALL_PLUGIN_ROOT/DeckRecall/dist/index.js" || {
-    echo "FAIL: DeckRecall 没有改用系统默认浏览器" >&2
+    echo "FAIL: DeckRecall 没有直接调用 Steam 浏览器" >&2
     exit 1
 }
+if grep -Fq 'systemBrowser.OpenInSystemBrowser' \
+    "$DECKRECALL_PLUGIN_ROOT/DeckRecall/dist/index.js"; then
+    echo "FAIL: DeckRecall 仍在调用系统默认浏览器" >&2
+    exit 1
+fi
 [ "$(grep -Foc 'DFL.Navigation.NavigateToExternalWeb("https://flingtrainer.com/");' \
     "$DECKRECALL_PLUGIN_ROOT/DeckRecall/dist/index.js")" -eq 1 ] || {
     echo "FAIL: DeckRecall 浏览器补丁没有保留唯一的兼容回退" >&2
     exit 1
 }
+
+DECKRECALL_WRONG_PATCH_ROOT="$TMP_ROOT/deckrecall-wrong-browser/plugins"
+mkdir -p "$DECKRECALL_WRONG_PATCH_ROOT/DeckRecall/dist"
+cat > "$DECKRECALL_WRONG_PATCH_ROOT/DeckRecall/dist/index.js" <<'SCRIPT'
+before();const systemBrowser = globalThis.SteamClient?.System;
+                                if (typeof systemBrowser?.OpenInSystemBrowser === "function") {
+                                    systemBrowser.OpenInSystemBrowser("https://flingtrainer.com/");
+                                    return;
+                                }
+                                DFL.Navigation.NavigateToExternalWeb("https://flingtrainer.com/");after();
+SCRIPT
+(
+    export DECKY_PLUGIN_DIR="$DECKRECALL_WRONG_PATCH_ROOT"
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    patch_deckrecall_steam_browser
+)
+grep -Fq 'steamBrowser.OpenUrl("https://flingtrainer.com/");' \
+    "$DECKRECALL_WRONG_PATCH_ROOT/DeckRecall/dist/index.js" || {
+    echo "FAIL: DeckRecall 没有迁移 1.4.1 的错误系统浏览器补丁" >&2
+    exit 1
+}
+if grep -Fq 'systemBrowser.OpenInSystemBrowser' \
+    "$DECKRECALL_WRONG_PATCH_ROOT/DeckRecall/dist/index.js"; then
+    echo "FAIL: DeckRecall 迁移后仍保留错误系统浏览器调用" >&2
+    exit 1
+fi
 grep -Fq 'onexplayer-apex) show_plugin_download_speed_tip; install_configured_plugin onexplayer-apex' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'OneXPlayer_Apex_Tools.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '7c522bc8145697d78d6165f7f97671d4d67a5bf4f9e4ed5e6feccbb1154acb91' "$PROJECT_ROOT/modules/plugin_store.sh"
