@@ -611,6 +611,7 @@ steam_accelerator_gui_menu() {
             reset "重置加速服务" \
             status "查看运行状态" \
             uninstall "安全卸载" \
+            console "奇游 / 迅游 / UU 主机加速器" \
             back "返回系统设置" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
@@ -642,6 +643,30 @@ steam_accelerator_gui_menu() {
                 gui_confirm "会停止Renkit启动的进程；官方 systemd、hosts、DNS 和证书需按官方程序另行处理。确认继续？" && \
                     run_gui_action "卸载Steamcommunity 302" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
+                ;;
+            console) console_accelerator_gui_menu ;;
+            back) return 0 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
+        esac
+    done
+}
+
+console_accelerator_gui_menu() {
+    local choice
+
+    while true; do
+        choice="$(gui_dialog --menu "主机加速器｜官方安装与配置入口｜无 SteamOS 原生客户端" \
+            qiyou "奇游主机加速｜手机 App、联机宝或路由方案" \
+            xunyou "迅游主机加速｜打开官方主机加速页面" \
+            uu "网易UU主机加速｜手机 App、路由插件或加速盒" \
+            back "返回加速设置" \
+            home "返回首页" \
+            nav-exit "退出Renkit")" || return 0
+        case "$choice" in
+            qiyou|xunyou|uu)
+                run_gui_action "打开主机加速器官方页面" \
+                    bash "$PROJECT_ROOT/modules/console_accelerators.sh" "$choice"
                 ;;
             back) return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;

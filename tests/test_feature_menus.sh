@@ -273,7 +273,7 @@ for menu in "$touch_dual" "$gui_dual"; do
     assert_not_contains "$menu" 'modules/dual_system.sh" remove' "双系统菜单仍可执行旧 systemd-boot 隐藏动作"
 done
 
-for gui_menu_name in software_menu game_environment_gui_menu emulator_gui_menu support_gui_menu plugin_official_gui_pages dual_system_menu steam_accelerator_gui_menu maintenance_gui_menu help_gui_menu new_machine_gui_menu advanced_tools_gui_menu memory_gui_menu f1_screen_fix_gui_menu; do
+for gui_menu_name in software_menu game_environment_gui_menu emulator_gui_menu support_gui_menu plugin_official_gui_pages dual_system_menu steam_accelerator_gui_menu console_accelerator_gui_menu maintenance_gui_menu help_gui_menu new_machine_gui_menu advanced_tools_gui_menu memory_gui_menu f1_screen_fix_gui_menu; do
     gui_menu="$(function_source "$GUI_FILE" "$gui_menu_name")"
     assert_contains "$gui_menu" 'home "返回首页"' "GUI 页面缺少返回首页：$gui_menu_name"
     assert_contains "$gui_menu" 'nav-exit "退出Renkit"' "GUI 页面缺少退出Renkit：$gui_menu_name"
@@ -285,6 +285,9 @@ for menu in "$touch_accelerator" "$gui_accelerator"; do
     assert_contains "$menu" '重置加速' "Steamcommunity 302 菜单缺少重置入口"
     assert_contains "$menu" '打开官方配置界面' "Steamcommunity 302 菜单缺少配置界面入口"
     assert_not_contains "$menu" '自动启动 Steam' "Steamcommunity 302 菜单仍提示自动启动 Steam"
+    assert_contains "$menu" '奇游' "Steamcommunity 302 菜单缺少奇游主机加速入口"
+    assert_contains "$menu" '迅游' "Steamcommunity 302 菜单缺少迅游主机加速入口"
+    assert_contains "$menu" 'UU' "Steamcommunity 302 菜单缺少UU主机加速入口"
 done
 
 touch_ge_proton="$(function_source "$MAIN_FILE" ge_proton_menu)"

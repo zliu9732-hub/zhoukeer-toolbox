@@ -31,7 +31,8 @@ Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装�
 - ToDesk：使用固定的第三方SteamOS适配包并校验SHA256，安装完成后恢复只读保护。
 - Steam Deck 优化：清理 Steam 下载缓存、着色器缓存，并提供性能模式提示。
 - 国内下载源与系统组件：先检测 SteamOS 基础组件，已安装且无对应更新时跳过 pacman 更新；archlinuxcn 使用上海交大、中科大和官方 HTTPS 镜像逐级回退，安装并加载 GPG 密钥环；三条线路均失败时撤销Renkit写入的该仓库并继续配置 locale 与 Flatpak 国内缓存，不阻断其他软件安装。完成后恢复只读保护，恢复入口不覆盖用户原有配置。
-- Steam加速器：使用Steamcommunity 302官方Linux AMD64固定安装包；安装后不创建桌面图标，自动启用 Steam 与 GitHub 规则、立即后台运行并设置开机自启。
+- Steam加速器：使用Steamcommunity 302官方Linux AMD64固定安装包；安装后自动启用 Steam 与 GitHub 规则、立即后台运行并设置开机自启，并检查官方就绪标记或本地 DNS/代理监听，避免只看到进程就误报成功。
+- 主机加速器：提供奇游、迅游、网易UU的官方主机加速安装与配置入口；三家没有 SteamOS 原生客户端，因此不会下载 Windows 包，只引导使用手机 App、路由插件或加速盒。
 - 更多设置：集中提供国内源、Steam302、zram 与磁盘 swap 一键优化、修改管理员密码和双系统工具。
 - 安全诊断包：一键在桌面生成可发给维护人员的本地诊断包，自动隐藏用户名、HOME、网络地址、密码、Token、Cookie、代理认证和远程协助凭据；不会读取管理员密码便利模式文件，不上传、不联网发送。
 - 设置备份与恢复：只处理Renkit白名单配置、Renkit管理的国内源状态、Steam302 规则、内存参数和Renkit快捷方式；不处理游戏、存档、Steam 账号数据、整个 HOME 或非Renkit管理的系统配置。
@@ -147,7 +148,9 @@ ToDesk并非SteamOS原生软件，SteamOS系统更新可能移除通过pacman安
 
 Renkit安装的是Steamcommunity 302官方提供的Linux AMD64固定安装包，不使用来源不明的二次打包。安装过程可能需要root权限；实际启用加速时，Steamcommunity 302可能修改本机hosts或DNS、安装自签根证书，并通过本机HTTPS代理处理请求。使用前请阅读官方界面中的说明，退出或卸载前也应按官方方式恢复相关设置。
 
-Renkit会生成只启用 Steam 与 GitHub 的配置，并创建带管理标记的 systemd 服务，安装完成后立即启动并设置开机自启。桌面不会出现 Steamcommunity 302 图标；停止或卸载时只处理Renkit生成的同名服务，不覆盖或删除其他程序创建的服务。官方 CLI 仍可能按自身实现修改 hosts、DNS、证书或本机代理，使用前请阅读风险说明。
+Renkit会生成只启用 Steam 与 GitHub 的配置，并创建带管理标记的 systemd 服务，安装完成后立即启动并设置开机自启。启动、更新、重置和状态检查不会只看 systemd 进程，而会继续检查官方 `S302.run` 就绪标记，或本地 DNS 53 与代理 80/443 监听；进程存在但代理未就绪时会提示打开一次官方配置界面完成证书和 DNS 初始化。桌面不会出现 Steamcommunity 302 图标；停止或卸载时只处理Renkit生成的同名服务，不覆盖或删除其他程序创建的服务。官方 CLI 仍可能按自身实现修改 hosts、DNS、证书或本机代理，使用前请阅读风险说明。
+
+奇游、迅游、网易UU目前都没有可直接安装到 SteamOS 的官方 Linux 客户端。Renkit的“主机加速器”页面只打开三家的官方主机加速安装与配置入口，按官网方案使用手机 App、路由器插件、电脑共享或加速盒；不会把 Windows 客户端装进 Wine 后误报为可用。
 
 ## SteamOS密码便利模式
 

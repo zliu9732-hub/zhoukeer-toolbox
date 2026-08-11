@@ -73,6 +73,7 @@ touch_maintenance="$(function_source "$MAIN_FILE" maintenance_menu)"
 touch_advanced="$(function_source "$MAIN_FILE" advanced_tools_menu)"
 touch_memory="$(function_source "$MAIN_FILE" memory_touch_menu)"
 touch_accelerator="$(function_source "$MAIN_FILE" steam_accelerator_touch_menu)"
+touch_console_accelerators="$(function_source "$MAIN_FILE" console_accelerator_touch_menu)"
 touch_notice="$(function_source "$MAIN_FILE" usage_notice_menu)"
 
 assert_contains "$touch_software" 'right:14-15:todesk' "常用软件 ToDesk 坐标错误"
@@ -144,6 +145,10 @@ assert_not_contains "$touch_advanced" 'set-password' "系统设置仍显示首�
 assert_not_contains "$touch_advanced" 'decky-install' "系统设置仍显示插件商城入口"
 assert_contains "$touch_accelerator" 'right:9-10:launch' "Steamcommunity 302 缺少配置界面坐标"
 assert_contains "$touch_accelerator" 'right:11-12:reset' "Steamcommunity 302 缺少重置坐标"
+assert_contains "$touch_accelerator" 'right:17-18:console-accelerators' "Steamcommunity 302 缺少主机加速器入口"
+for mapping in 'right:7-8:qiyou' 'right:10-11:xunyou' 'right:13-14:uu'; do
+    assert_contains "$touch_console_accelerators" "$mapping" "主机加速器坐标错误：$mapping"
+done
 touch_ge_proton="$(function_source "$MAIN_FILE" ge_proton_menu)"
 gui_ge_proton="$(function_source "$GUI_FILE" ge_proton_gui_menu)"
 for menu in "$touch_ge_proton" "$gui_ge_proton"; do
@@ -197,6 +202,7 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_contains "$source_text" 'modules/steam_accelerator.sh" enable' "Steamcommunity 302 开启动作错误：$file"
     assert_contains "$source_text" 'modules/steam_accelerator.sh" launch' "Steamcommunity 302 配置界面动作错误：$file"
     assert_contains "$source_text" 'modules/steam_accelerator.sh" reset' "Steamcommunity 302 重置动作错误：$file"
+    assert_contains "$source_text" 'modules/console_accelerators.sh"' "主机加速器官方入口动作错误：$file"
     assert_not_contains "$source_text" 'ZHOUKEER_START_STEAM_AFTER_302' "Steamcommunity 302 仍会自动启动 Steam：$file"
     assert_contains "$source_text" 'modules/diagnostics.sh" bundle' "安全诊断包动作错误：$file"
     assert_contains "$source_text" 'modules/settings_backup.sh" backup' "设置备份动作错误：$file"
