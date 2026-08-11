@@ -131,6 +131,17 @@ cover_without_marker="$(
     exit 1
 }
 touch "$STALE_COVER_CACHE/.covers-ready-v7"
+cover_with_old_marker="$(
+    MODULE="$MODULE" ZHOUKEER_LAUNCHER_COVER_CACHE_DIR="$STALE_COVER_CACHE" bash -c '
+        source "$MODULE"
+        launcher_cover_file epic epic.png
+    '
+)"
+[ "$cover_with_old_marker" = "$PROJECT_ROOT/assets/game-launchers/epic.png" ] || {
+    echo "FAIL: v7 旧标记仍阻止横向封面刷新" >&2
+    exit 1
+}
+touch "$STALE_COVER_CACHE/.covers-ready-v8"
 cover_with_marker="$(
     MODULE="$MODULE" ZHOUKEER_LAUNCHER_COVER_CACHE_DIR="$STALE_COVER_CACHE" bash -c '
         source "$MODULE"
@@ -688,6 +699,11 @@ cmp -s "$PROJECT_ROOT/assets/game-launchers/epic.png" \
 cmp -s "$PROJECT_ROOT/assets/game-launchers/epic-logo.png" \
     "$(dirname "$art_shortcuts")/grid/${app_id}_logo.png" || {
     echo "FAIL: Epic 横向背景仍使用未留白的桌面图标" >&2
+    exit 1
+}
+cmp -s "$PROJECT_ROOT/assets/game-launchers/epic-grid.jpg" \
+    "$(dirname "$art_shortcuts")/grid/${app_id}.jpg" || {
+    echo "FAIL: Epic 横向胶囊图没有写入 Wide Capsule 文件" >&2
     exit 1
 }
 
@@ -1271,7 +1287,7 @@ grep -Fq 'GITEE_MIRROR_REPO="${ZHOUKEER_LAUNCHER_COVER_MIRROR_REPO:-zhoukeer-too
     echo "FAIL: 启动器封面未改走 v2 镜像" >&2
     exit 1
 }
-grep -Fq 'covers-ready-v7' "$MODULE" || {
+grep -Fq 'covers-ready-v8' "$MODULE" || {
     echo "FAIL: 启动器封面未升级镜像缓存版本" >&2
     exit 1
 }
@@ -1282,6 +1298,27 @@ import struct
 import sys
 
 root = Path(sys.argv[1])
+
+def jpeg_size(data: bytes) -> tuple[int, int]:
+    pos = 2
+    while pos + 9 <= len(data):
+        if data[pos] != 0xFF:
+            pos += 1
+            continue
+        marker = data[pos + 1]
+        if marker in (0xD8, 0xD9) or 0xD0 <= marker <= 0xD7:
+            pos += 2
+            continue
+        if marker == 0xDA:
+            break
+        length = struct.unpack(">H", data[pos + 2:pos + 4])[0]
+        if marker in (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7,
+                      0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF):
+            height, width = struct.unpack(">HH", data[pos + 5:pos + 9])
+            return width, height
+        pos += 2 + length
+    raise SystemExit("FAIL: JPEG 尺寸读取失败")
+
 for target in ("epic", "battlenet", "ubisoft", "heihe"):
     path = root / f"{target}-logo.png"
     data = path.read_bytes()
@@ -1290,7 +1327,42 @@ for target in ("epic", "battlenet", "ubisoft", "heihe"):
     width, height = struct.unpack(">II", data[16:24])
     if (width, height) != (1024, 1024):
         raise SystemExit(f"FAIL: {path.name} 不是 1024x1024 透明留白图")
+    grid = root / f"{target}-grid.jpg"
+    if jpeg_size(grid.read_bytes()) != (920, 430):
+        raise SystemExit(f"FAIL: {grid.name} 不是 920x430 横向胶囊图")
+    portrait = root / f"{target}-portrait.jpg"
+    if jpeg_size(portrait.read_bytes()) != (600, 900):
+        raise SystemExit(f"FAIL: {portrait.name} 不是 600x900 竖版胶囊图")
 PY
+
+COVER_MANIFEST="$PROJECT_ROOT/launcher-covers/latest.txt"
+COVER_VERSION="$(sed -n 's/^version=//p' "$COVER_MANIFEST")"
+COVER_FILE="$(sed -n 's/^file=//p' "$COVER_MANIFEST")"
+COVER_SHA="$(sed -n 's/^sha256=//p' "$COVER_MANIFEST")"
+COVER_SIZE="$(sed -n 's/^size=//p' "$COVER_MANIFEST")"
+COVER_BUNDLE="$PROJECT_ROOT/launcher-covers/$COVER_VERSION/$COVER_FILE"
+[ "$COVER_VERSION" = "1.1.3" ] && [ -f "$COVER_BUNDLE" ] || {
+    echo "FAIL: 启动器封面镜像没有升级到 1.1.3" >&2
+    exit 1
+}
+ACTUAL_COVER_SHA="$(shasum -a 256 "$COVER_BUNDLE" | awk '{print $1}')"
+ACTUAL_COVER_SIZE="$(stat -f '%z' "$COVER_BUNDLE" 2>/dev/null || stat -c '%s' "$COVER_BUNDLE")"
+[ "$ACTUAL_COVER_SHA" = "$COVER_SHA" ] && [ "$ACTUAL_COVER_SIZE" = "$COVER_SIZE" ] || {
+    echo "FAIL: 启动器封面镜像清单与实际包不一致" >&2
+    exit 1
+}
+COVER_EXTRACTED="$TMP_ROOT/launcher-covers-extracted"
+mkdir -p "$COVER_EXTRACTED"
+tar -xzf "$COVER_BUNDLE" -C "$COVER_EXTRACTED"
+for target in epic battlenet ubisoft heihe; do
+    for suffix in .png -grid.jpg -hero.jpg -portrait.jpg -background.jpg -logo.png; do
+        cmp -s "$PROJECT_ROOT/assets/game-launchers/${target}${suffix}" \
+            "$COVER_EXTRACTED/$target/${target}${suffix}" || {
+            echo "FAIL: 封面镜像缺少当前素材：${target}${suffix}" >&2
+            exit 1
+        }
+    done
+done
 
 # 启动器卸载会移除 Steam 条目与桌面入口，但保留游戏与下载文件。
 UNINSTALL_ROOT="$(mktemp -d)"
