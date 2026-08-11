@@ -401,6 +401,7 @@ DECKRECALL_MIRROR_LOG="$TMP_ROOT/deckrecall-mirror.log"
     decky_plugin_directory_is_complete() {
         [ "${DECKRECALL_TEST_MODE:-new}" = "existing" ]
     }
+    patch_deckrecall_system_browser() { return 0; }
     reload_decky_plugins() {
         printf 'reload\n' >> "$DECKRECALL_RELOAD_LOG"
     }
@@ -414,6 +415,37 @@ DECKRECALL_MIRROR_LOG="$TMP_ROOT/deckrecall-mirror.log"
 }
 [ "$(grep -c '^zhoukeer-toolbox-mirror-3$' "$DECKRECALL_MIRROR_LOG")" -eq 2 ] || {
     echo "FAIL: DeckRecall 没有使用指定 Gitee 镜像仓库" >&2
+    exit 1
+}
+
+# DeckRecall 打开风灵月影网站时优先交给系统默认浏览器，避免 Steam
+# 游戏模式内置浏览器下载 EXE/压缩包时卡住；重复修复必须保持幂等。
+DECKRECALL_PLUGIN_ROOT="$TMP_ROOT/deckrecall-browser/plugins"
+mkdir -p "$DECKRECALL_PLUGIN_ROOT/DeckRecall/dist"
+printf '%s\n' \
+    'before();DFL.Navigation.NavigateToExternalWeb("https://flingtrainer.com/");after();' \
+    > "$DECKRECALL_PLUGIN_ROOT/DeckRecall/dist/index.js"
+(
+    export DECKY_PLUGIN_DIR="$DECKRECALL_PLUGIN_ROOT"
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    patch_deckrecall_system_browser
+    first_hash="$(shasum -a 256 "$DECKY_PLUGIN_DIR/DeckRecall/dist/index.js" | awk '{print $1}')"
+    patch_deckrecall_system_browser
+    second_hash="$(shasum -a 256 "$DECKY_PLUGIN_DIR/DeckRecall/dist/index.js" | awk '{print $1}')"
+    [ "$first_hash" = "$second_hash" ] || {
+        echo "FAIL: DeckRecall 浏览器补丁重复执行后改变了文件" >&2
+        exit 1
+    }
+)
+grep -Fq 'systemBrowser.OpenInSystemBrowser("https://flingtrainer.com/");' \
+    "$DECKRECALL_PLUGIN_ROOT/DeckRecall/dist/index.js" || {
+    echo "FAIL: DeckRecall 没有改用系统默认浏览器" >&2
+    exit 1
+}
+[ "$(grep -Foc 'DFL.Navigation.NavigateToExternalWeb("https://flingtrainer.com/");' \
+    "$DECKRECALL_PLUGIN_ROOT/DeckRecall/dist/index.js")" -eq 1 ] || {
+    echo "FAIL: DeckRecall 浏览器补丁没有保留唯一的兼容回退" >&2
     exit 1
 }
 grep -Fq 'onexplayer-apex) show_plugin_download_speed_tip; install_configured_plugin onexplayer-apex' "$PROJECT_ROOT/modules/plugin_store.sh"
