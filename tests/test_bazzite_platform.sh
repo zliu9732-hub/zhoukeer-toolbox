@@ -155,6 +155,7 @@ grep -Fq 'localsend) title="LocalSend"' "$PROJECT_ROOT/main-bazzite.sh" || fail 
 grep -Fq 'modules/ge_proton.sh" install-trainer' "$PROJECT_ROOT/main-bazzite.sh" || fail "修改器常用 GE-Proton 入口缺失"
 grep -Fq 'modules/emulators.sh" yuzu-keys' "$PROJECT_ROOT/main-bazzite.sh" || fail "Yuzu 自备密钥导入入口缺失"
 grep -Fq 'modules/emulators.sh" yuzu-keys-status' "$PROJECT_ROOT/main-bazzite.sh" || fail "Yuzu 密钥状态入口缺失"
+grep -Fq 'modules/emulators.sh" install-all' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 一键安装模拟器入口缺失"
 grep -Fq 'modules/decky_bundle.sh" plugin' "$PROJECT_ROOT/main-bazzite.sh" || fail "Decky 官方插件逐个安装入口缺失"
 grep -Fq 'DECKY_BUNDLE_INCLUDE_CUSTOM=0' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite Decky 推荐安装未禁用自定义插件"
 grep -Fq 'modules/plugin_store.sh" features' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 汉化功能插件组合入口缺失"

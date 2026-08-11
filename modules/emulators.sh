@@ -341,6 +341,80 @@ install_emulator() {
     echo "$EMULATOR_NAME 已安装，桌面图标和 Steam 库条目已创建。"
 }
 
+emulator_install_is_complete() {
+    local emulator="$1" target desktop_file application_file steam_root shortcut_file shortcut
+
+    emulator_details "$emulator" || return 1
+    [ -z "$EMULATOR_FLATPAK_ID" ] && [ "$emulator" != "azahar" ] || return 1
+    target="$EMULATOR_ROOT/$EMULATOR_FILE"
+    emulator_file_is_valid "$target" || return 1
+    [ -x "$target" ] || return 1
+
+    desktop_file="$HOME/Desktop/$EMULATOR_NAME.desktop"
+    application_file="$HOME/.local/share/applications/$EMULATOR_FILE.desktop"
+    for shortcut in "$desktop_file" "$application_file"; do
+        [ -f "$shortcut" ] && [ ! -L "$shortcut" ] || return 1
+        grep -Fqx -- "Exec=\"$target\"" "$shortcut" || return 1
+        grep -Fqx -- "Icon=$EMULATOR_ICON" "$shortcut" || return 1
+    done
+
+    require_command python3 >/dev/null 2>&1 || return 1
+    steam_root="$(find_steam_root 2>/dev/null)" || return 1
+    shortcut_file="$(find_shortcut_file "$steam_root" 2>/dev/null)" || return 1
+    python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" verify \
+        --name "$EMULATOR_NAME" --exe "$target" --icon "$EMULATOR_ICON" >/dev/null 2>&1
+}
+
+confirm_install_all_emulators() {
+    local answer
+
+    echo "将一键安装 Yuzu、Cemu、DuckStation、PCSX2、RPCS3 和 ShadPS4 共 6 款模拟器。"
+    echo "只安装模拟器本体，不包含游戏、BIOS、固件或密钥；已完整安装的项目会跳过。"
+    echo "每款模拟器都会使用固定 SHA256 校验，创建桌面图标并添加到 Steam 库。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        return 0
+    fi
+    read -r -p "确认一键安装请输入 INSTALL-ALL：" answer
+    [ "$answer" = "INSTALL-ALL" ]
+}
+
+install_all_emulators() {
+    local emulator display_name successful_count=0 skipped_count=0
+    local -a failed_names=()
+    local -a emulators=(yuzu cemu duckstation pcsx2 rpcs3 shadps4)
+
+    require_supported_gaming_os || return 1
+    if ! confirm_install_all_emulators; then
+        echo "已取消一键安装模拟器。"
+        return 0
+    fi
+
+    for emulator in "${emulators[@]}"; do
+        emulator_details "$emulator" || return 1
+        display_name="$EMULATOR_NAME"
+        echo
+        echo "[$((successful_count + skipped_count + ${#failed_names[@]} + 1))/${#emulators[@]}] $display_name"
+        if emulator_install_is_complete "$emulator"; then
+            echo "$display_name 已完整安装，已跳过。"
+            skipped_count=$((skipped_count + 1))
+        elif install_emulator "$emulator"; then
+            successful_count=$((successful_count + 1))
+        else
+            failed_names+=("$display_name")
+            echo "$display_name 安装失败，继续安装下一项。"
+        fi
+    done
+
+    echo
+    echo "一键安装完成：新安装 $successful_count 款，跳过 $skipped_count 款，失败 ${#failed_names[@]} 款。"
+    if [ "${#failed_names[@]}" -gt 0 ]; then
+        echo "安装失败的模拟器："
+        printf '  - %s\n' "${failed_names[@]}"
+        return 1
+    fi
+    log "一键安装模拟器完成：新安装 $successful_count 款，跳过 $skipped_count 款"
+}
+
 confirm_emulator_uninstall() {
     local name="$1" answer
 
@@ -420,12 +494,13 @@ uninstall_emulator() {
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         yuzu|cemu|duckstation|pcsx2|rpcs3|shadps4|ppsspp|mgba|azahar) install_emulator "$1" ;;
+        install-all) install_all_emulators ;;
         yuzu-keys) import_yuzu_keys ;;
         yuzu-keys-status) show_yuzu_key_status ;;
         uninstall)
             [ -n "${2:-}" ] || { echo "用法: $0 uninstall 目标"; exit 1; }
             uninstall_emulator "$2"
             ;;
-        *) echo "用法: $0 {yuzu|cemu|duckstation|pcsx2|rpcs3|shadps4|ppsspp|mgba|azahar|yuzu-keys|yuzu-keys-status|uninstall 目标}"; exit 1 ;;
+        *) echo "用法: $0 {install-all|yuzu|cemu|duckstation|pcsx2|rpcs3|shadps4|ppsspp|mgba|azahar|yuzu-keys|yuzu-keys-status|uninstall 目标}"; exit 1 ;;
     esac
 fi

@@ -1,3 +1,10 @@
+## Renkit 1.3.8 一键安装模拟器与官方图标 — 2026-08-11
+
+- SteamOS、Bazzite 触控菜单和桌面 GUI 新增“一键安装 6 款”，依次安装 Yuzu、Cemu、DuckStation、PCSX2、RPCS3、ShadPS4；已完整安装的项目会跳过，单项失败会汇总并继续后续安装。
+- 一键安装继续复用各模拟器原有的 Gitee 分块镜像优先、GitHub 回退、固定 SHA256、ELF 格式校验、桌面入口和 Steam 入库流程；不包含游戏、BIOS、固件或密钥。
+- 六张 AI 生成的模拟器图标全部替换为各项目官方默认图标，并固定来源提交与文件 SHA256；PPSSPP、mGBA 继续使用 Flatpak 官方图标，Azahar 继续使用用户本地程序图标。
+- 游戏启动器入库、Steam 条目和封面代码及素材未改动。
+
 ## Renkit 1.3.7 新密码单次中文输入 — 2026-08-11
 
 - 确认当前用户没有系统密码后，只显示一次中文新密码输入；Renkit通过本地伪终端自动完成系统 `passwd` 的两次确认，不再显示英文 `New password / Retype new password`。

@@ -51,10 +51,26 @@ assert_contains "$module_text" 'yuzu_key_file_is_valid' "Yuzu 密钥文件未校
 assert_contains "$module_text" 'YUZU_KEY_MAX_BYTES=1048576' "Yuzu 密钥缺少大小限制"
 assert_contains "$module_text" 'chmod 600' "Yuzu 密钥未限制为仅本人可读"
 assert_contains "$module_text" '不会下载、生成、分享或显示密钥内容' "Yuzu 密钥导入缺少安全说明"
+assert_contains "$module_text" 'install_all_emulators' "缺少一键安装模拟器动作"
+assert_contains "$module_text" 'emulator_install_is_complete' "一键安装未检测完整安装状态"
+assert_contains "$module_text" '安装失败，继续安装下一项' "一键安装遇到单项失败时会中断"
+assert_contains "$module_text" 'INSTALL-ALL' "一键安装命令行入口缺少明确确认"
 
 for icon in yuzu cemu duckstation pcsx2 rpcs3 shadps4; do
     [ -s "$PROJECT_ROOT/assets/emulators/$icon.png" ] || fail "缺少模拟器专用图标：$icon"
     assert_contains "$module_text" "assets/emulators/$icon.png" "模拟器未使用专用图标：$icon"
+done
+for icon_hash in \
+    'yuzu|9b158cc82784a3470ff720af282c924639e7c654bbe7ff004bf9f260f8f8d385' \
+    'cemu|6458a99b8bd54e44857efa0f82bfd6035e7e072e7e080e3330e4e2cfe89cbd33' \
+    'duckstation|c24ff7ebd838d9ec2fe405f4b65496607fc2536f9b02600f1689de8b3dbb91fa' \
+    'pcsx2|956278a74b5ed2e6ea7a17dfa95f984282af3252a61838e7cb4cf2e0ed80ca87' \
+    'rpcs3|3bc15b47b2f2cec67996120ceae3e94e034ecf83cfc078eb60cd1c40ae2db0aa' \
+    'shadps4|d4bb1009991e10cc86f944325e9f261f675c082f4181583a2a6428914cfa8d85'; do
+    icon="${icon_hash%%|*}"
+    expected_hash="${icon_hash#*|}"
+    actual_hash="$(shasum -a 256 "$PROJECT_ROOT/assets/emulators/$icon.png" | awk '{print $1}')"
+    [ "$actual_hash" = "$expected_hash" ] || fail "模拟器未使用已核验的官方默认图标：$icon"
 done
 for pair in 'yuzu|zhoukeer-toolbox-mirror-7' 'cemu|zhoukeer-toolbox-mirror-6' \
     'duckstation|zhoukeer-toolbox-mirror-4' 'pcsx2|zhoukeer-toolbox-mirror-5' \
@@ -65,8 +81,33 @@ for pair in 'yuzu|zhoukeer-toolbox-mirror-7' 'cemu|zhoukeer-toolbox-mirror-6' \
 done
 assert_not_contains "$module_text" 'assets/icon-round.png' "模拟器桌面入口仍使用Renkit图标"
 
+# 一键安装只调用现有单项安装函数；测试替换状态和安装函数，不下载、不写 Steam。
+BATCH_TEST_ROOT="$(mktemp -d)"
+trap 'rm -rf -- "$BATCH_TEST_ROOT"' EXIT
+(
+    source "$MODULE"
+    require_supported_gaming_os() { return 0; }
+    log() { :; }
+    emulator_install_is_complete() { [ "$1" = "cemu" ]; }
+    install_emulator() {
+        printf '%s\n' "$1" >> "$BATCH_TEST_ROOT/actions"
+        [ "$1" != "pcsx2" ]
+    }
+    if ZHOUKEER_AUTO_CONFIRM=1 install_all_emulators > "$BATCH_TEST_ROOT/output"; then
+        exit 1
+    fi
+)
+assert_not_contains "$(cat "$BATCH_TEST_ROOT/actions")" 'cemu' "一键安装未跳过已完整安装的模拟器"
+for action in yuzu duckstation pcsx2 rpcs3 shadps4; do
+    assert_contains "$(cat "$BATCH_TEST_ROOT/actions")" "$action" "一键安装未调用单项动作：$action"
+done
+assert_contains "$(cat "$BATCH_TEST_ROOT/output")" 'Cemu（Wii U 模拟器） 已完整安装，已跳过。' "一键安装缺少跳过提示"
+assert_contains "$(cat "$BATCH_TEST_ROOT/output")" 'PCSX2（PS2 模拟器） 安装失败，继续安装下一项。' "一键安装未汇总单项失败"
+assert_contains "$(tail -n 1 "$BATCH_TEST_ROOT/actions")" 'shadps4' "一键安装在单项失败后未继续"
+assert_contains "$(cat "$BATCH_TEST_ROOT/output")" '新安装 4 款，跳过 1 款，失败 1 款' "一键安装汇总计数错误"
+
 KEY_TEST_ROOT="$(mktemp -d)"
-trap 'rm -rf -- "$KEY_TEST_ROOT"' EXIT
+trap 'rm -rf -- "$BATCH_TEST_ROOT" "$KEY_TEST_ROOT"' EXIT
 (
     source "$MODULE"
     require_supported_gaming_os() { return 0; }
@@ -94,7 +135,7 @@ done
 
 # 模拟器卸载会移除 Steam 条目、桌面入口和程序本体，保留存档与配置。
 UNINSTALL_ROOT="$(mktemp -d)"
-trap 'rm -rf -- "$KEY_TEST_ROOT" "$UNINSTALL_ROOT"' EXIT
+trap 'rm -rf -- "$BATCH_TEST_ROOT" "$KEY_TEST_ROOT" "$UNINSTALL_ROOT"' EXIT
 UNINSTALL_HOME="$UNINSTALL_ROOT/home"
 UNINSTALL_EMULATORS="$UNINSTALL_ROOT/emulators"
 UNINSTALL_BIN="$UNINSTALL_ROOT/bin"
