@@ -24,7 +24,7 @@ LAUNCHER_BASE="${ZHOUKEER_LAUNCHER_BASE:-$HOME/游戏启动器}"
 LAUNCHER_COVER_MIRROR_ID="${ZHOUKEER_LAUNCHER_COVER_MIRROR_ID:-launcher-covers}"
 LAUNCHER_COVER_BUNDLE_NAME="启动器封面素材"
 LAUNCHER_COVER_CACHE_ROOT="${ZHOUKEER_LAUNCHER_COVER_CACHE_DIR:-$APP_DIR/game-launchers/covers}"
-LAUNCHER_COVER_READY_MARKER="$LAUNCHER_COVER_CACHE_ROOT/.covers-ready-v7"
+LAUNCHER_COVER_READY_MARKER="$LAUNCHER_COVER_CACHE_ROOT/.covers-ready-v8"
 
 launcher_details() {
     case "$1" in
@@ -1166,18 +1166,19 @@ launcher_cover_file() {
     return 1
 }
 
-launcher_image_is_600x900() {
-    local file="$1"
+launcher_image_has_dimensions() {
+    local file="$1" expected_width="$2" expected_height="$3"
 
-    python3 - "$file" <<'PY'
+    python3 - "$file" "$expected_width" "$expected_height" <<'PY'
 import struct
 import sys
 
+expected = (int(sys.argv[2]), int(sys.argv[3]))
 with open(sys.argv[1], "rb") as handle:
     head = handle.read(24)
 if head[:8] == b"\x89PNG\r\n\x1a\n" and len(head) >= 24:
     width, height = struct.unpack(">II", head[16:24])
-    sys.exit(0 if (width, height) == (600, 900) else 1)
+    sys.exit(0 if (width, height) == expected else 1)
 if head[:2] == b"\xff\xd8":
     with open(sys.argv[1], "rb") as handle:
         data = handle.read()
@@ -1195,7 +1196,7 @@ if head[:2] == b"\xff\xd8":
         length = struct.unpack(">H", data[pos + 2:pos + 4])[0]
         if marker in (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF):
             height, width = struct.unpack(">HH", data[pos + 5:pos + 9])
-            sys.exit(0 if (width, height) == (600, 900) else 1)
+            sys.exit(0 if (width, height) == expected else 1)
         pos += 2 + length
 sys.exit(1)
 PY
@@ -1213,15 +1214,21 @@ install_launcher_artwork_for_id() {
     install -m 0644 -- "$icon_source" \
         "$stage_dir/${artwork_id}_icon.png" || { rm -rf -- "$stage_dir"; return 1; }
     grid_source="$(launcher_cover_file "$asset_name" "$asset_name-grid.jpg" || true)"
-    if [ -s "$grid_source" ] && ! launcher_image_is_600x900 "$grid_source"; then
-        echo "主封面图不是 600x900 竖版，已改用竖版图写入 Steam 库封面：$asset_name"
-        grid_source="$(launcher_cover_file "$asset_name" "$asset_name-portrait.jpg" || true)"
-    fi
     [ -s "$grid_source" ] || { rm -rf -- "$stage_dir"; return 1; }
+    if ! launcher_image_has_dimensions "$grid_source" 920 430; then
+        echo "横向胶囊图不是 920x430，已保留 Steam 库现有封面：$asset_name"
+        rm -rf -- "$stage_dir"
+        return 1
+    fi
     install -m 0644 -- "$grid_source" \
         "$stage_dir/${artwork_id}.jpg" || { rm -rf -- "$stage_dir"; return 1; }
     portrait_source="$(launcher_cover_file "$asset_name" "$asset_name-portrait.jpg" || true)"
     [ -s "$portrait_source" ] || { rm -rf -- "$stage_dir"; return 1; }
+    if ! launcher_image_has_dimensions "$portrait_source" 600 900; then
+        echo "竖版胶囊图不是 600x900，已保留 Steam 库现有封面：$asset_name"
+        rm -rf -- "$stage_dir"
+        return 1
+    fi
     install -m 0644 -- "$portrait_source" \
         "$stage_dir/${artwork_id}p.jpg" || { rm -rf -- "$stage_dir"; return 1; }
     hero_source="$(launcher_cover_file "$asset_name" "$asset_name-hero.jpg" || true)"
