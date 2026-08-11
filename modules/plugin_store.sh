@@ -3165,6 +3165,7 @@ install_configured_plugin() {
     local reload_after_install="${2:-1}"
     local open_lsfg_store="${3:-1}"
     local installed_version
+    local deckrecall_ready=0
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
@@ -3227,15 +3228,15 @@ install_configured_plugin() {
             ;;
         deckrecall)
             resolve_plugin_latest deckrecall
-            (
-                GITEE_MIRROR_REPO="$DECKY_DECKRECALL_MIRROR_REPO"
-                export GITEE_MIRROR_REPO
-                install_decky_zip \
-                    "DeckRecall（添加启动项及恢复游戏可玩状态）" \
-                    "${DECKY_DECKRECALL_URL:-}" \
-                    "${DECKY_DECKRECALL_SHA256:-}" \
-                    "DeckRecall"
-            )
+            GITEE_MIRROR_REPO="$DECKY_DECKRECALL_MIRROR_REPO" install_decky_zip \
+                "DeckRecall（添加启动项及恢复游戏可玩状态）" \
+                "${DECKY_DECKRECALL_URL:-}" \
+                "${DECKY_DECKRECALL_SHA256:-}" \
+                "DeckRecall"
+            if decky_plugin_directory_is_complete \
+                "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "DeckRecall"; then
+                deckrecall_ready=1
+            fi
             ;;
         freedeck)
             resolve_plugin_latest freedeck
@@ -3340,7 +3341,11 @@ install_configured_plugin() {
         print_cef_remote_debugging_tip
     fi
 
-    if [ "$reload_after_install" = "1" ] && [ "$PLUGIN_INSTALL_CHANGED" -eq 1 ]; then
+    # DeckRecall 旧版安装流程在子 shell 中丢失了 PLUGIN_INSTALL_CHANGED，
+    # 文件已存在的用户再次执行时也会因幂等跳过而无法触发重载。只要确认
+    # DeckRecall 目录完整，就允许重复执行专门修复 Decky 的扫描状态。
+    if [ "$reload_after_install" = "1" ] && \
+       { [ "$PLUGIN_INSTALL_CHANGED" -eq 1 ] || [ "$deckrecall_ready" -eq 1 ]; }; then
         reload_decky_plugins "Decky 已重新加载，返回游戏模式后可在插头菜单看到新插件。"
     fi
 }

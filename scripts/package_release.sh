@@ -4,7 +4,7 @@ set -u
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="$(tr -d '\r\n' < "$PROJECT_ROOT/VERSION")"
-# 版本号规则：1.0.9 之后为 1.1.0，严格按语义化版本递增，不做跳版。
+# 版本号规则：补丁位只允许 0 到 9；x.y.9 之后必须为 x.(y+1).0。
 DIST_DIR="$PROJECT_ROOT/dist"
 PACKAGE_NAME="renkit.tar.gz"
 PACKAGE_PATH="$DIST_DIR/$PACKAGE_NAME"
@@ -15,6 +15,28 @@ MAX_GITEE_RAW_PACKAGE_BYTES=9437184
 VERIFY_FILES="VERSION LICENSE THIRD_PARTY_LICENSES.md main.sh launch.sh install.sh update.sh bootstrap.sh modules/software.sh modules/domestic_source.sh modules/new_machine.sh modules/network.sh modules/diagnostics.sh modules/preflight.sh modules/settings_backup.sh modules/steam_accelerator.sh modules/steam302_root_start.sh modules/console_accelerators.sh modules/plugin_store.sh modules/game_launchers.sh modules/emulators.sh modules/ge_proton.sh modules/todesk.sh modules/memory_tuning.sh modules/f1_screen_fix.sh modules/dual_system.sh modules/dual_system_tools.sh modules/clover_boot.sh scripts/steam_shortcut.py scripts/steam_compat.py scripts/install-decky-plugin.sh scripts/apply_steam_artwork.sh scripts/build_steam_artwork_payload.py scripts/decky_ws_call.py scripts/decky_probe.py scripts/open_steam_internal_browser.sh scripts/mirror_gitee_assets.sh core/gui.sh core/platform.sh core/download_policy.sh core/source_status.sh assets/icon.png assets/icon-round.png assets/icon-toolbox-deck.png assets/background.jpg assets/software/wechat.png assets/emulators/yuzu.png assets/emulators/cemu.png assets/emulators/duckstation.png assets/emulators/pcsx2.png assets/emulators/rpcs3.png assets/emulators/shadps4.png assets/clover/config.plist assets/clover/zhoukeer-phantom/background.png assets/clover/zhoukeer-phantom/theme.plist assets/clover/devices/SD-config.plist assets/clover/drivers/asusrogally.efi assets/clover/bootmanager/clover-bootmanager.sh third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js third_party/decky-framegen-zh-v0.17/dist/index.js third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js third_party/decky-simpledeckytdp-zh-v1.0.5/plugin.json third_party/decky-simpledeckytdp-zh-v1.0.5/package.json third_party/allycenter-zh-v1.2.0/dist/index.js third_party/allycenter-zh-v1.2.0/plugin.json third_party/allycenter-zh-v1.2.0/package.json third_party/allycenter-zh-v1.2.0/LICENSE third_party/huesync-cn-v3.9.0/dist/index.js third_party/huesync-cn-v3.9.0/plugin.json third_party/huesync-cn-v3.9.0/package.json third_party/huesync-cn-v3.9.0/LICENSE third_party/legion-go-remapper-zh-v0.3.0/dist/index.js third_party/legion-go-remapper-zh-v0.3.0/plugin.json third_party/legion-go-remapper-zh-v0.3.0/package.json third_party/legion-go-remapper-zh-v0.3.0/LICENSE third_party/gpd-control-zh-v0.0.2/dist/index.js third_party/gpd-control-zh-v0.0.2/plugin.json third_party/gpd-control-zh-v0.0.2/package.json third_party/gpd-control-zh-v0.0.2/LICENSE third_party/lego-vibe-control-zh-v1.5.0/dist/index.js third_party/lego-vibe-control-zh-v1.5.0/plugin.json third_party/lego-vibe-control-zh-v1.5.0/package.json third_party/lego-vibe-control-zh-v1.5.0/LICENSE third_party/lego2-fan-control-zh-v0.260430/dist/index.js third_party/lego2-fan-control-zh-v0.260430/plugin.json third_party/lego2-fan-control-zh-v0.260430/package.json third_party/lego2-fan-control-zh-v0.260430/LICENSE utils/github_download.sh utils/gitee_download.sh"
 VERIFY_FILES="$VERIFY_FILES scripts/set_user_password_pty.py"
 PACKAGE_SOURCES=()
+
+validate_release_version() {
+    local major minor patch extra
+
+    IFS='.' read -r major minor patch extra <<< "$VERSION"
+    if [ -n "${extra:-}" ] || [ -z "${major:-}" ] || [ -z "${minor:-}" ] || [ -z "${patch:-}" ]; then
+        echo "版本号必须是三段纯数字格式（例如 1.4.0）：$VERSION"
+        exit 1
+    fi
+    case "$major:$minor:$patch" in
+        *[!0-9:]* )
+            echo "版本号必须是三段纯数字格式（例如 1.4.0）：$VERSION"
+            exit 1
+            ;;
+    esac
+    if [ "$patch" -gt 9 ]; then
+        echo "补丁版本只允许 0 到 9；x.y.9 之后必须发布 x.(y+1).0：$VERSION"
+        exit 1
+    fi
+}
+
+validate_release_version
 
 # Bazzite 使用独立主程序和官方 Decky 入口，发布包必须同时携带这两个文件。
 VERIFY_FILES="$VERIFY_FILES main-bazzite.sh modules/bazzite_decky.sh assets/clover/bootmanager/clover-bootmanager.service assets/clover/bootmanager/clover-whitelist.conf"
