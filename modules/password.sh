@@ -24,6 +24,18 @@ load_non_root_identity() {
     case "$CURRENT_TOOLBOX_USERNAME" in ''|*:*|*$'\n'*) return 1 ;; esac
 }
 
+current_system_password_status() {
+    local status_line status_user status_value
+
+    status_line="$(LC_ALL=C passwd -S "$CURRENT_TOOLBOX_USERNAME" 2>/dev/null)" || return 1
+    read -r status_user status_value _ <<< "$status_line"
+    [ "$status_user" = "$CURRENT_TOOLBOX_USERNAME" ] || return 1
+    case "$status_value" in
+        P|NP|L) printf '%s\n' "$status_value" ;;
+        *) return 1 ;;
+    esac
+}
+
 show_plaintext_password_warning() {
     echo "重要提示：新密码会以明文写入桌面“管理员密码.txt”。"
     echo "文件权限固定为 600，但所有以当前用户身份运行的软件都可能读取它。"
@@ -187,6 +199,7 @@ import_existing_password() {
 
 set_system_password() {
     local action_label="设置系统密码"
+    local password_status
 
     is_linux || {
         echo "系统密码功能仅支持 Linux/SteamOS。"
@@ -194,6 +207,23 @@ set_system_password() {
     }
     require_command passwd || return 1
     load_non_root_identity || return 1
+
+    password_status="$(current_system_password_status 2>/dev/null || true)"
+    case "$password_status" in
+        P)
+            echo "检测到当前用户已经设置过系统密码，所以系统会要求输入 Current password。"
+            echo "如果知道旧密码，请返回选择“我已有管理员密码”，输入一次即可保存记录。"
+            echo "如果忘记旧密码，Renkit不会绕过系统强制重置，请先查看："
+            echo "https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/blob/main/STEAMDECK_PASSWORD_RESET_GUIDE.md"
+            return 1
+            ;;
+        L)
+            echo "检测到当前用户的系统密码已锁定，不能在这里直接设置新密码。"
+            echo "Renkit不会绕过系统强制重置，请先查看："
+            echo "https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/blob/main/STEAMDECK_PASSWORD_RESET_GUIDE.md"
+            return 1
+            ;;
+    esac
 
     show_plaintext_password_warning
     echo ""

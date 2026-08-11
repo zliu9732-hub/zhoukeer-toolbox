@@ -86,8 +86,13 @@ cat > "$BIN_DIR/passwd" <<'EOF'
 #!/bin/sh
 state="${PASSWORD_TEST_STATE:?}"
 printf 'CALL %s\n' "$*" >> "$state/passwd-calls"
+if [ "${1:-}" = "-S" ]; then
+    printf 'deck %s 2026-07-14 0 99999 7 -1\n' "${FAKE_PASSWORD_STATUS:-NP}"
+    exit 0
+fi
 # 设置流程中的系统 passwd 是交互步骤；测试中直接模拟成功，
 # 把调用脚本的 stdin 留给后续明文记录提示。
+printf 'SET_PASSWORD\n' >> "$state/passwd-calls"
 exit 0
 EOF
 
@@ -177,6 +182,7 @@ run_password_module() {
         PASSWORD_TEST_STATE="$STATE_DIR" \
         FAKE_SUDO_PASSWORD="$accepted_password" \
         FAKE_SUDO_PASSWORD_ALT="$alternate_password" \
+        FAKE_PASSWORD_STATUS="${FAKE_PASSWORD_STATUS:-NP}" \
         bash "$PROJECT_ROOT/modules/password.sh" "$action"
 }
 
@@ -186,8 +192,36 @@ set_output="$(printf '%s\n' "$SET_PASSWORD" | \
 assert_password_record "$SET_PASSWORD"
 assert_output_hides_password "$set_output" "$SET_PASSWORD"
 grep -Fq 'CALL' "$STATE_DIR/passwd-calls" || fail "设置密码时未调用 passwd"
+grep -Fxq 'CALL -S deck' "$STATE_DIR/passwd-calls" || \
+    fail "设置密码前没有只读检查当前系统密码状态"
+grep -Fxq 'SET_PASSWORD' "$STATE_DIR/passwd-calls" || \
+    fail "无系统密码时没有进入新密码设置"
 grep -Fxq "STDIN=<$SET_PASSWORD>" "$STATE_DIR/sudo-stdin" || \
     fail "设置后没有用新密码做假的 sudo 验证"
+
+# 已有密码时不能误进 passwd 的 Current password 流程；应引导录入旧密码或重置。
+rm -f -- "$STATE_DIR/passwd-calls" "$STATE_DIR/sudo-cache"
+if set_existing_output="$(FAKE_PASSWORD_STATUS=P run_password_module set "$SET_PASSWORD" 2>&1)"; then
+    fail "已有系统密码时仍进入了新密码设置"
+fi
+printf '%s\n' "$set_existing_output" | grep -Fq '我已有管理员密码' || \
+    fail "已有系统密码时没有引导录入现有密码"
+printf '%s\n' "$set_existing_output" | grep -Fq 'STEAMDECK_PASSWORD_RESET_GUIDE.md' || \
+    fail "已有系统密码时没有提供忘记密码教程"
+if grep -Fxq 'SET_PASSWORD' "$STATE_DIR/passwd-calls"; then
+    fail "已有系统密码时仍调用了交互式 passwd"
+fi
+
+# 锁定密码也必须停止，不能尝试绕过系统重置。
+rm -f -- "$STATE_DIR/passwd-calls"
+if locked_output="$(FAKE_PASSWORD_STATUS=L run_password_module set "$SET_PASSWORD" 2>&1)"; then
+    fail "系统密码锁定时仍进入了新密码设置"
+fi
+printf '%s\n' "$locked_output" | grep -Fq '系统密码已锁定' || \
+    fail "系统密码锁定时缺少明确提示"
+if grep -Fxq 'SET_PASSWORD' "$STATE_DIR/passwd-calls"; then
+    fail "系统密码锁定时仍调用了交互式 passwd"
+fi
 
 # 修改密码：旧密码来自记录并自动用于 sudo 验证，新密码只输入一次。
 rm -f -- "$STATE_DIR/chpasswd-stdin" "$STATE_DIR/sudo-cache"
