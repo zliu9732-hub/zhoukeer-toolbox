@@ -35,6 +35,7 @@ QQ_MIN_BYTES="${ZHOUKEER_QQ_MIN_BYTES:-52428800}"
 
 WECHAT_APPIMAGE_URL="${ZHOUKEER_WECHAT_APPIMAGE_URL:-https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_x86_64.AppImage}"
 WECHAT_APPIMAGE_PATH="${ZHOUKEER_WECHAT_APPIMAGE_PATH:-$APP_DIR/WeChat.AppImage}"
+WECHAT_ICON_PATH="${ZHOUKEER_WECHAT_ICON_PATH:-$PROJECT_ROOT/assets/software/wechat.png}"
 WECHAT_DOWNLOAD_TIMEOUT="${ZHOUKEER_WECHAT_DOWNLOAD_TIMEOUT:-900}"
 WECHAT_MIN_BYTES="${ZHOUKEER_WECHAT_MIN_BYTES:-104857600}"
 
@@ -964,7 +965,11 @@ create_software_shortcut() {
             ;;
         wechat_appimage)
             exec_line="\"$WECHAT_APPIMAGE_PATH\""
-            icon_name="wechat"
+            if [ ! -f "$WECHAT_ICON_PATH" ] || [ -L "$WECHAT_ICON_PATH" ]; then
+                echo "缺少微信官方图标，未创建无图标的桌面入口。"
+                return 1
+            fi
+            icon_name="$WECHAT_ICON_PATH"
             ;;
         rustdesk_appimage)
             exec_line="\"$RUSTDESK_APPIMAGE_PATH\""

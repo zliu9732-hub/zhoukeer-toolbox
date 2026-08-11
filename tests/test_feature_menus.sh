@@ -251,6 +251,8 @@ for menu in "$touch_emulators" "$gui_emulators"; do
     done
     assert_contains "$menu" '桌面图标' "模拟器菜单未说明桌面入口"
     assert_contains "$menu" 'Steam 库' "模拟器菜单未说明 Steam 入库"
+    assert_contains "$menu" '一键安装 6 款' "模拟器菜单缺少一键安装入口"
+    assert_contains "$menu" 'modules/emulators.sh" install-all' "模拟器菜单一键安装动作错误"
     assert_not_contains "$menu" 'EmuDeck' "模拟器菜单不应包含 EmuDeck"
     assert_not_contains "$menu" '返回游戏与插件' "模拟器独立入口仍返回游戏与插件"
 done

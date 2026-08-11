@@ -602,12 +602,16 @@ emulator_menu() {
         ui_touch_button 14 '\033[1;97;48;5;24m' "PPSSPP（PSP）"
         ui_touch_button 16 '\033[1;97;48;5;24m' "mGBA（GBA）"
         ui_touch_button 18 '\033[1;97;48;5;24m' "Azahar（3DS）"
+        ui_touch_button 20 '\033[1;97;48;5;28m' "一键安装 6 款"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页"
         ui_prompt
-        choice="$(read_touch_menu right:2-3:yuzu right:4-5:cemu right:6-7:duckstation right:8-9:pcsx2 right:10-11:rpcs3 right:12-13:shadps4 right:14-15:ppsspp right:16-17:mgba right:18-19:azahar right:22-23:home)"
+        choice="$(read_touch_menu right:2-3:yuzu right:4-5:cemu right:6-7:duckstation right:8-9:pcsx2 right:10-11:rpcs3 right:12-13:shadps4 right:14-15:ppsspp right:16-17:mgba right:18-19:azahar right:20-21:install-all right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             home) NEXT_CATEGORY="home"; return 0 ;;
+            install-all)
+                confirm_and_run "一键安装 6 款模拟器" "依次安装 Yuzu、Cemu、DuckStation、PCSX2、RPCS3 和 ShadPS4；只安装模拟器本体，不包含游戏、BIOS、固件或密钥。已完整安装的项目会跳过，单项失败不会中断后续安装。" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/emulators.sh" install-all
+                ;;
             yuzu) bazzite_yuzu_menu || return 0 ;;
             cemu|duckstation|pcsx2|rpcs3|shadps4|ppsspp|mgba|azahar)
                 title="$choice"

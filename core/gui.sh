@@ -445,6 +445,7 @@ emulator_gui_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "安装模拟器｜完成后自动创建桌面图标并添加到 Steam 库" \
+            install-all "一键安装 6 款｜Switch、Wii U、PS1、PS2、PS3、PS4" \
             yuzu "Yuzu｜Switch 模拟器" \
             cemu "Cemu｜Wii U 模拟器" \
             duckstation "DuckStation｜PS1 模拟器" \
@@ -457,6 +458,11 @@ emulator_gui_menu() {
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
         case "$choice" in
+            install-all)
+                gui_confirm "将依次安装 Yuzu、Cemu、DuckStation、PCSX2、RPCS3 和 ShadPS4；只安装模拟器本体，不包含游戏、BIOS、固件或密钥。已完整安装的项目会跳过，单项失败不会中断后续安装。是否继续？" && \
+                    run_gui_action "一键安装 6 款模拟器" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/emulators.sh" install-all
+                ;;
             yuzu)
                 choice="$(gui_dialog --menu "Yuzu｜仅导入本人合法备份的密钥" \
                     install "安装 Yuzu 本体" \

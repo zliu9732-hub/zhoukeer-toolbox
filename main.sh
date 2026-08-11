@@ -775,6 +775,7 @@ emulator_menu() {
 
     while true; do
         draw_category_frame emulators "安装模拟器" "安装后自动创建桌面图标，并添加到 Steam 库" 0
+        ui_touch_button 2 '\033[1;97;48;5;28m' "一键安装 6 款" "Switch、Wii U、PS1、PS2、PS3、PS4"
         ui_touch_button 5 '\033[1;97;48;5;24m' "Yuzu" "Switch 模拟器"
         ui_touch_button 7 '\033[1;97;48;5;24m' "Cemu" "Wii U 模拟器"
         ui_touch_button 9 '\033[1;97;48;5;24m' "DuckStation" "PS1 模拟器"
@@ -786,10 +787,13 @@ emulator_menu() {
         ui_touch_button 21 '\033[1;97;48;5;24m' "Azahar" "3DS 模拟器"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:yuzu right:7-8:cemu right:9-10:duckstation right:11-12:pcsx2 right:13-14:rpcs3 right:15-16:shadps4 right:17-18:ppsspp right:19-20:mgba right:21-22:azahar right:23-24:home)"
+        choice="$(read_touch_menu right:2-3:install-all right:5-6:yuzu right:7-8:cemu right:9-10:duckstation right:11-12:pcsx2 right:13-14:rpcs3 right:15-16:shadps4 right:17-18:ppsspp right:19-20:mgba right:21-22:azahar right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
+            install-all)
+                confirm_and_run "一键安装 6 款模拟器" "依次安装 Yuzu、Cemu、DuckStation、PCSX2、RPCS3 和 ShadPS4；只安装模拟器本体，不包含游戏、BIOS、固件或密钥。已完整安装的项目会跳过，单项失败不会中断后续安装。" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/emulators.sh" install-all
+                ;;
             yuzu) yuzu_menu ;;
             cemu|duckstation|pcsx2|rpcs3|shadps4|ppsspp|mgba|azahar)
                 confirm_and_run "安装模拟器" "只安装模拟器本体；不包含游戏、BIOS 或固件。完成后会创建桌面图标并添加到 Steam 库；写入 Steam 前会安全退出并重启 Steam。" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/emulators.sh" "$choice"
