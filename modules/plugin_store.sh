@@ -1403,6 +1403,92 @@ decky_plugin_directory_is_complete() {
     [ -n "$manifest_name" ]
 }
 
+patch_deckrecall_system_browser() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local plugin_dir="$plugin_root/DeckRecall"
+    local index_file="$plugin_dir/dist/index.js"
+    local temporary
+    local staged
+    local index_size
+    local patched_marker='systemBrowser.OpenInSystemBrowser("https://flingtrainer.com/");'
+
+    [ -d "$plugin_dir" ] && [ ! -L "$plugin_dir" ] && \
+        [ -d "$plugin_dir/dist" ] && [ ! -L "$plugin_dir/dist" ] && \
+        [ -f "$index_file" ] && [ ! -L "$index_file" ] || {
+        echo "DeckRecall 前端文件类型异常，未修改浏览器调用。"
+        return 1
+    }
+    index_size="$(wc -c < "$index_file" | tr -d '[:space:]')"
+    case "$index_size" in
+        ''|*[!0-9]*)
+            echo "无法确认 DeckRecall 前端文件大小，未修改浏览器调用。"
+            return 1
+            ;;
+    esac
+    if [ "$index_size" -le 0 ] || [ "$index_size" -gt 4194304 ]; then
+        echo "DeckRecall 前端文件大小异常，未修改浏览器调用。"
+        return 1
+    fi
+    if grep -Fq -- "$patched_marker" "$index_file"; then
+        echo "[已修复] DeckRecall 已使用系统浏览器打开风灵月影网站。"
+        return 0
+    fi
+    require_command python3 || return 1
+    prepare_plugin_root "$plugin_root" || return 1
+    temporary="$(mktemp "${TMPDIR:-/tmp}/deckrecall-browser.XXXXXX")" || return 1
+    if ! python3 - "$index_file" "$temporary" <<'PY'
+import sys
+from pathlib import Path
+
+source_path = Path(sys.argv[1])
+output_path = Path(sys.argv[2])
+old = b'DFL.Navigation.NavigateToExternalWeb("https://flingtrainer.com/");'
+new = b'''const systemBrowser = globalThis.SteamClient?.System;
+                                if (typeof systemBrowser?.OpenInSystemBrowser === "function") {
+                                    systemBrowser.OpenInSystemBrowser("https://flingtrainer.com/");
+                                    return;
+                                }
+                                DFL.Navigation.NavigateToExternalWeb("https://flingtrainer.com/");'''
+content = source_path.read_bytes()
+if content.count(old) != 1:
+    raise SystemExit(2)
+output_path.write_bytes(content.replace(old, new, 1))
+PY
+    then
+        rm -f -- "$temporary"
+        echo "当前 DeckRecall 版本的浏览器调用与已核验版本不一致，未强行修改。"
+        return 1
+    fi
+    chmod 0644 "$temporary" || {
+        rm -f -- "$temporary"
+        return 1
+    }
+    if ! grep -Fq -- "$patched_marker" "$temporary" || \
+        [ "$(grep -Foc 'DFL.Navigation.NavigateToExternalWeb("https://flingtrainer.com/");' "$temporary")" -ne 1 ]; then
+        rm -f -- "$temporary"
+        echo "DeckRecall 浏览器兼容补丁校验失败，原文件保持不变。"
+        return 1
+    fi
+
+    staged="$plugin_dir/dist/.index.js.renkit-new.$$"
+    if [ -e "$staged" ] || [ -L "$staged" ]; then
+        rm -f -- "$temporary"
+        echo "DeckRecall 浏览器补丁临时路径已存在，未修改原文件。"
+        return 1
+    fi
+    if ! run_plugin_file_operation cp -- "$temporary" "$staged" || \
+        ! run_plugin_file_operation chmod 0644 "$staged" || \
+        ! run_plugin_file_operation mv -- "$staged" "$index_file"; then
+        run_plugin_file_operation rm -f -- "$staged" >/dev/null 2>&1 || true
+        rm -f -- "$temporary"
+        echo "DeckRecall 浏览器补丁写入失败，原文件保持不变。"
+        return 1
+    fi
+    rm -f -- "$temporary"
+    PLUGIN_INSTALL_CHANGED=1
+    echo "DeckRecall 已改用系统默认浏览器打开风灵月影网站，避免内置浏览器下载卡住。"
+}
+
 install_decky_zip() {
     local display_name="$1"
     local url="$2"
@@ -3233,6 +3319,7 @@ install_configured_plugin() {
                 "${DECKY_DECKRECALL_URL:-}" \
                 "${DECKY_DECKRECALL_SHA256:-}" \
                 "DeckRecall"
+            patch_deckrecall_system_browser || return 1
             if decky_plugin_directory_is_complete \
                 "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "DeckRecall"; then
                 deckrecall_ready=1
