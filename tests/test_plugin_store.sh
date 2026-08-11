@@ -379,6 +379,43 @@ grep -Fq '旧版通用扫描式汉化已停用' "$PROJECT_ROOT/modules/plugin_st
 grep -Fq 'features) show_plugin_download_speed_tip; install_feature_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'tomoon) show_plugin_download_speed_tip; install_configured_plugin tomoon' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'deckrecall) show_plugin_download_speed_tip; install_configured_plugin deckrecall' "$PROJECT_ROOT/modules/plugin_store.sh"
+
+# DeckRecall 的镜像变量不能通过子 shell 隔离，否则安装完成标记会丢失，
+# Decky 不会重载；已写入完整文件的旧安装再次执行也必须补做重载。
+DECKRECALL_RELOAD_LOG="$TMP_ROOT/deckrecall-reload.log"
+DECKRECALL_MIRROR_LOG="$TMP_ROOT/deckrecall-mirror.log"
+(
+    export DECKRECALL_RELOAD_LOG DECKRECALL_MIRROR_LOG
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
+    resolve_plugin_latest() { return 0; }
+    install_decky_zip() {
+        printf '%s\n' "${GITEE_MIRROR_REPO:-missing}" >> "$DECKRECALL_MIRROR_LOG"
+        case "${DECKRECALL_TEST_MODE:-new}" in
+            new) PLUGIN_INSTALL_CHANGED=1 ;;
+            existing) PLUGIN_INSTALL_CHANGED=0 ;;
+            *) return 1 ;;
+        esac
+    }
+    decky_plugin_directory_is_complete() {
+        [ "${DECKRECALL_TEST_MODE:-new}" = "existing" ]
+    }
+    reload_decky_plugins() {
+        printf 'reload\n' >> "$DECKRECALL_RELOAD_LOG"
+    }
+
+    DECKRECALL_TEST_MODE=new install_configured_plugin deckrecall
+    DECKRECALL_TEST_MODE=existing install_configured_plugin deckrecall
+)
+[ "$(grep -c '^reload$' "$DECKRECALL_RELOAD_LOG")" -eq 2 ] || {
+    echo "FAIL: DeckRecall 新安装或已有文件修复后没有重载 Decky" >&2
+    exit 1
+}
+[ "$(grep -c '^zhoukeer-toolbox-mirror-3$' "$DECKRECALL_MIRROR_LOG")" -eq 2 ] || {
+    echo "FAIL: DeckRecall 没有使用指定 Gitee 镜像仓库" >&2
+    exit 1
+}
 grep -Fq 'onexplayer-apex) show_plugin_download_speed_tip; install_configured_plugin onexplayer-apex' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'OneXPlayer_Apex_Tools.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '7c522bc8145697d78d6165f7f97671d4d67a5bf4f9e4ed5e6feccbb1154acb91' "$PROJECT_ROOT/modules/plugin_store.sh"
