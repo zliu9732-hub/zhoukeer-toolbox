@@ -1403,14 +1403,14 @@ decky_plugin_directory_is_complete() {
     [ -n "$manifest_name" ]
 }
 
-patch_deckrecall_system_browser() {
+patch_deckrecall_steam_browser() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local plugin_dir="$plugin_root/DeckRecall"
     local index_file="$plugin_dir/dist/index.js"
     local temporary
     local staged
     local index_size
-    local patched_marker='systemBrowser.OpenInSystemBrowser("https://flingtrainer.com/");'
+    local patched_marker='steamBrowser.OpenUrl("https://flingtrainer.com/");'
 
     [ -d "$plugin_dir" ] && [ ! -L "$plugin_dir" ] && \
         [ -d "$plugin_dir/dist" ] && [ ! -L "$plugin_dir/dist" ] && \
@@ -1430,7 +1430,7 @@ patch_deckrecall_system_browser() {
         return 1
     fi
     if grep -Fq -- "$patched_marker" "$index_file"; then
-        echo "[已修复] DeckRecall 已使用系统浏览器打开风灵月影网站。"
+        echo "[已修复] DeckRecall 已直接调用 Steam 浏览器打开风灵月影网站。"
         return 0
     fi
     require_command python3 || return 1
@@ -1443,16 +1443,26 @@ from pathlib import Path
 source_path = Path(sys.argv[1])
 output_path = Path(sys.argv[2])
 old = b'DFL.Navigation.NavigateToExternalWeb("https://flingtrainer.com/");'
-new = b'''const systemBrowser = globalThis.SteamClient?.System;
+wrong_system_browser = b'''const systemBrowser = globalThis.SteamClient?.System;
                                 if (typeof systemBrowser?.OpenInSystemBrowser === "function") {
                                     systemBrowser.OpenInSystemBrowser("https://flingtrainer.com/");
                                     return;
                                 }
                                 DFL.Navigation.NavigateToExternalWeb("https://flingtrainer.com/");'''
+new = b'''const steamBrowser = globalThis.SteamClient?.Browser;
+                                if (typeof steamBrowser?.OpenUrl === "function") {
+                                    steamBrowser.OpenUrl("https://flingtrainer.com/");
+                                    return;
+                                }
+                                DFL.Navigation.NavigateToExternalWeb("https://flingtrainer.com/");'''
 content = source_path.read_bytes()
-if content.count(old) != 1:
+if content.count(wrong_system_browser) == 1:
+    content = content.replace(wrong_system_browser, new, 1)
+elif content.count(old) == 1:
+    content = content.replace(old, new, 1)
+else:
     raise SystemExit(2)
-output_path.write_bytes(content.replace(old, new, 1))
+output_path.write_bytes(content)
 PY
     then
         rm -f -- "$temporary"
@@ -1464,6 +1474,7 @@ PY
         return 1
     }
     if ! grep -Fq -- "$patched_marker" "$temporary" || \
+        grep -Fq 'systemBrowser.OpenInSystemBrowser("https://flingtrainer.com/");' "$temporary" || \
         [ "$(grep -Foc 'DFL.Navigation.NavigateToExternalWeb("https://flingtrainer.com/");' "$temporary")" -ne 1 ]; then
         rm -f -- "$temporary"
         echo "DeckRecall 浏览器兼容补丁校验失败，原文件保持不变。"
@@ -1486,7 +1497,7 @@ PY
     fi
     rm -f -- "$temporary"
     PLUGIN_INSTALL_CHANGED=1
-    echo "DeckRecall 已改用系统默认浏览器打开风灵月影网站，避免内置浏览器下载卡住。"
+    echo "DeckRecall 已改为直接调用 Steam 浏览器打开风灵月影网站。"
 }
 
 install_decky_zip() {
@@ -3319,7 +3330,7 @@ install_configured_plugin() {
                 "${DECKY_DECKRECALL_URL:-}" \
                 "${DECKY_DECKRECALL_SHA256:-}" \
                 "DeckRecall"
-            patch_deckrecall_system_browser || return 1
+            patch_deckrecall_steam_browser || return 1
             if decky_plugin_directory_is_complete \
                 "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "DeckRecall"; then
                 deckrecall_ready=1

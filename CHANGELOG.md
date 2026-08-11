@@ -1,3 +1,10 @@
+## Renkit 1.4.2 DeckRecall Steam 浏览器调用修正 — 2026-08-11
+
+- 纠正 1.4.1 把 DeckRecall 改用系统默认浏览器的错误方向；桌面模式已验证可下载的是 Steam 浏览器，本版改为直接调用与 Renkit 现有兜底链路一致的 `SteamClient.Browser.OpenUrl`。
+- 已经执行过 1.4.1 DeckRecall 修复的用户再次安装时，会识别并迁移错误的 `OpenInSystemBrowser` 代码，不需要手动删除插件；官方 v0.2.8 原始调用和 1.4.1 错误调用都只进行一次精确替换。
+- `Navigation.NavigateToExternalWeb` 仅在 Steam Browser API 缺失时作为兼容回退，修复完成后自动重载 Decky。
+- 自动更新验证覆盖 `1.3.10 → 1.4.0` 与 `1.3.10 → 1.4.2`；游戏启动器入库、Steam 条目、封面代码及素材未改动。
+
 ## Renkit 1.4.1 DeckRecall 下载浏览器修复 — 2026-08-11
 
 - DeckRecall 的“打开风灵月影官网”不再固定使用 Steam 游戏模式内置浏览器；安装时会对已核验的唯一调用点做原子兼容修复，优先使用 Decky/Steam 提供的系统默认浏览器接口，避免下载 EXE 或压缩包时一直卡住。
