@@ -195,18 +195,22 @@ case "${1:-}" in
         ;;
     disable)
         rm -f "$STEAM302_TEST_STATE/service-enabled" "$STEAM302_TEST_STATE/service-active"
+        rm -f "$ZHOUKEER_APP_DIR/steamcommunity302/S302.run"
         ;;
     start)
         [ -f "$STEAM302_TEST_SYSTEMD_DIR/steamcommunity302.service" ] || exit 96
         touch "$STEAM302_TEST_STATE/service-active"
+        touch "$ZHOUKEER_APP_DIR/steamcommunity302/S302.run"
         ;;
     restart)
         rm -f "$STEAM302_TEST_STATE/service-active"
         [ -f "$STEAM302_TEST_SYSTEMD_DIR/steamcommunity302.service" ] || exit 96
         touch "$STEAM302_TEST_STATE/service-active"
+        touch "$ZHOUKEER_APP_DIR/steamcommunity302/S302.run"
         ;;
     stop)
         rm -f "$STEAM302_TEST_STATE/service-active"
+        rm -f "$ZHOUKEER_APP_DIR/steamcommunity302/S302.run"
         ;;
     *) exit 96 ;;
 esac
@@ -282,6 +286,8 @@ grep -Fq 'Restart=always' "$MODULE" || fail "后台服务没有按官方逻辑�
 grep -Fq 'ensure_steam302_for_download()' "$MODULE" || fail "缺少 Steamcommunity 302 工具函数"
 grep -Fq '下载较慢，正在启用加速，请耐心等待' "$MODULE" || fail "缺少简洁的自动加速提示"
 grep -Fq '加速已开启，正在重试下载' "$MODULE" || fail "缺少自动加速完成提示"
+grep -Fq 'steam302_runtime_is_ready()' "$MODULE" || fail "缺少实际加速就绪检查"
+grep -Fq 'DNS/代理尚未真正就绪' "$MODULE" || fail "缺少假启动修复提示"
 
 fallback_output="$(MODULE="$MODULE" bash -c '
     source "$MODULE"
@@ -441,6 +447,17 @@ printf '%s\n' "$status_output" | grep -Fq 'Steamcommunity 302：已安装' || \
     fail "状态未报告已安装"
 printf '%s\n' "$status_output" | grep -Fq '版本：14.0.02' || \
     fail "状态未报告版本"
+printf '%s\n' "$status_output" | grep -Fq '加速状态：已就绪' || \
+    fail "状态没有执行实际加速就绪检查"
+
+# 只有 systemd 进程、没有官方运行标记或本地监听时，不能再假报成功。
+rm -f "$TARGET/S302.run"
+if run_start_service > "$STATE_DIR/not-ready.output" 2>&1; then
+    fail "仅后台进程运行时仍错误报告加速成功"
+fi
+grep -Fq 'DNS/代理尚未真正就绪' "$STATE_DIR/not-ready.output" || \
+    fail "加速未真正就绪时没有给出修复指引"
+touch "$TARGET/S302.run"
 
 # 后台服务已经运行时，一键启动必须保持幂等，不能重复拉起第二个 CLI。
 start_output="$(run_start_service)" || fail "一键启动内置加速失败"

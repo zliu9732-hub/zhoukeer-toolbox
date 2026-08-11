@@ -1273,10 +1273,11 @@ steam_accelerator_touch_menu() {
         ui_touch_button 11 '\033[1;97;48;5;24m' "重置加速" "停止并重新启动后台加速服务"
         ui_touch_button 13 '\033[1;97;48;5;24m' "查看运行状态" "检查加速是否开启"
         ui_touch_button 15 '\033[1;97;48;5;160m' "安全卸载" "先停止Renkit进程，再删除程序文件"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "主机加速器" "奇游、迅游、UU 官方安装与配置入口"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:install right:7-8:start right:9-10:launch right:11-12:reset right:13-14:status right:15-16:uninstall right:19-20:advanced right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:install right:7-8:start right:9-10:launch right:11-12:reset right:13-14:status right:15-16:uninstall right:17-18:console-accelerators right:19-20:advanced right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             install)
@@ -1295,7 +1296,34 @@ steam_accelerator_touch_menu() {
             uninstall)
                 confirm_and_run "卸载 Steamcommunity 302" "会停止Renkit启动的进程；官方 systemd、hosts、DNS 和证书需按官方程序另行处理" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
                 ;;
+            console-accelerators) console_accelerator_touch_menu ;;
             advanced) NEXT_CATEGORY="advanced"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = "advanced" ] || return 0
+    done
+}
+
+console_accelerator_touch_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame advanced "主机加速器" "打开奇游、迅游、UU 官方安装与配置页面"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "奇游主机加速" "手机 App、联机宝或路由方案"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "迅游主机加速" "打开官方主机加速页面"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "网易UU主机加速" "手机 App、路由插件或加速盒"
+        ui_panel_line 16 '\033[1;38;5;220m' "三家均无 SteamOS 原生客户端，不安装 Windows 版"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回加速设置" "回到 Steamcommunity 302"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:7-8:qiyou right:10-11:xunyou right:13-14:uu right:19-20:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            qiyou|xunyou|uu)
+                run_action "打开主机加速器官方页面" \
+                    bash "$PROJECT_ROOT/modules/console_accelerators.sh" "$choice"
+                ;;
+            back) return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "advanced" ] || return 0

@@ -22,6 +22,7 @@ STEAM302_RULES_FILE="$STEAM302_INSTALL_DIR/S302_rules.ini"
 STEAM302_CONFIG_FILE="$STEAM302_INSTALL_DIR/S302.ini"
 STEAM302_PID_FILE="$STEAM302_INSTALL_DIR/.zhoukeer-cli.pid"
 STEAM302_LOG_FILE="$APP_DIR/steamcommunity302.log"
+STEAM302_RUN_FILE="$STEAM302_INSTALL_DIR/S302.run"
 STEAM302_ROOT_STARTER="$PROJECT_ROOT/modules/steam302_root_start.sh"
 STEAM302_ENABLED_RULES="Steam_store,Steam_store_unlock,Steam_community,Steam_API,Steam_API_unlock,Steam_community_unlock,steamchat,steamchat_unlock,Steam_cloud_google,steam_update,Steam_broadcast_redir,Steam_broadcast_redir_unlock,imgfix,imgfix_fastly,github"
 STEAM302_LAYOUT_VALIDATION_REVISION="ascii-files-v2"
@@ -216,6 +217,56 @@ steam302_service_is_toolbox_managed() {
     grep -Fqx '# Managed by Zhoukeer Toolbox' "$STEAM302_SERVICE_FILE"
 }
 
+steam302_process_is_running() {
+    steam302_service_is_active || steam302_cli_is_running
+}
+
+steam302_local_ports_are_ready() {
+    local listeners
+
+    command -v ss >/dev/null 2>&1 || return 1
+    listeners="$(ss -H -lntu 2>/dev/null)" || return 1
+    printf '%s\n' "$listeners" | awk '
+        {
+            for (i = 1; i <= NF; i++) {
+                endpoint = $i
+                gsub(/^\[/, "", endpoint)
+                gsub(/\]$/, "", endpoint)
+                if (endpoint ~ /:53$/) dns = 1
+                if (endpoint ~ /:(80|443)$/) web = 1
+            }
+        }
+        END { exit !(dns && web) }
+    '
+}
+
+steam302_runtime_is_ready() {
+    steam302_config_has_download_targets || return 1
+    steam302_process_is_running || return 1
+
+    # 官方 CLI 在服务初始化完成后会创建 S302.run。部分版本可能不保留
+    # 该标记，因此再用只读的本地监听检查兼容：DNS 53 与 Web 80/443
+    # 至少各有一个监听，才认为实际代理链路已建立。
+    [ -f "$STEAM302_RUN_FILE" ] || steam302_local_ports_are_ready
+}
+
+steam302_wait_until_ready() {
+    local attempt
+
+    for attempt in 1 2 3 4 5; do
+        steam302_runtime_is_ready && return 0
+        sleep 1
+    done
+    return 1
+}
+
+print_steam302_not_ready_help() {
+    echo "Steamcommunity 302 进程已启动，但 DNS/代理尚未真正就绪。"
+    echo "请打开一次“官方配置界面”，按官方提示完成证书和 DNS 初始化并启动服务。"
+    echo "完成后回到Renkit选择“重置加速”，再查看运行状态。"
+    echo "日志：$STEAM302_LOG_FILE"
+}
+
 confirm_steam302_service_start() {
     local answer
 
@@ -229,7 +280,7 @@ confirm_steam302_service_start() {
 }
 
 print_steam302_ready_notice() {
-    echo "Steam + GitHub 加速已开启。"
+    echo "Steam + GitHub 加速已开启（有效性检查通过）。"
 }
 
 start_steam302_service() {
@@ -243,13 +294,13 @@ start_steam302_service() {
         return 1
     }
     ensure_steam302_config || return 1
-    if steam302_service_is_active; then
+    if steam302_runtime_is_ready; then
         print_steam302_ready_notice
         return 0
     fi
-    if steam302_cli_is_running; then
-        print_steam302_ready_notice
-        return 0
+    if steam302_process_is_running; then
+        print_steam302_not_ready_help
+        return 1
     fi
 
     confirm_steam302_service_start || {
@@ -259,18 +310,22 @@ start_steam302_service() {
 
     # 优先按参考逻辑走Renkit托管的 systemd 后台服务；不可用时回退内置 CLI。
     if steam302_setup_autostart; then
-        if steam302_service_is_active; then
+        if steam302_wait_until_ready; then
             print_steam302_ready_notice
             return 0
         fi
-        echo "后台服务已启动但未保持运行，改用内置 CLI 重试。"
+        if steam302_service_is_active; then
+            print_steam302_not_ready_help
+            return 1
+        fi
+        echo "后台服务未保持运行，改用内置 CLI 重试。"
     fi
 
     [ -x "$STEAM302_ROOT_STARTER" ] || {
         echo "内置加速启动器不存在或不可执行。"
         return 1
     }
-    rm -f "$STEAM302_INSTALL_DIR/S302.exit" "$STEAM302_PID_FILE"
+    rm -f "$STEAM302_INSTALL_DIR/S302.exit" "$STEAM302_PID_FILE" "$STEAM302_RUN_FILE"
     if ! toolbox_sudo /usr/bin/env -i \
         PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
         HOME="/root" \
@@ -287,9 +342,13 @@ start_steam302_service() {
 
     sleep 1
     pid="$(sed -n '1p' "$STEAM302_PID_FILE" 2>/dev/null || true)"
-    if steam302_cli_is_running; then
+    if steam302_wait_until_ready; then
         print_steam302_ready_notice
         return 0
+    fi
+    if steam302_cli_is_running; then
+        print_steam302_not_ready_help
+        return 1
     fi
     echo "官方 CLI 未保持运行，请查看日志：$STEAM302_LOG_FILE"
     [ -n "$pid" ] && sed -n '1,20p' "$STEAM302_LOG_FILE" 2>/dev/null || true
@@ -333,8 +392,7 @@ enable_steam302() {
 }
 
 steam302_download_acceleration_is_ready() {
-    steam302_config_has_download_targets || return 1
-    steam302_cli_is_running || steam302_service_is_active
+    steam302_runtime_is_ready
 }
 
 ensure_steam302_for_download() {
@@ -420,6 +478,7 @@ SERVICE_EOF
     if steam302_service_is_active; then
         :
     else
+        rm -f "$STEAM302_RUN_FILE"
         toolbox_sudo systemctl start "$STEAM302_SERVICE_NAME" >/dev/null 2>&1 || {
             echo "系统服务启动失败，将使用内置加速方式重试。"
             return 1
@@ -441,6 +500,19 @@ steam302_remove_autostart() {
     fi
 }
 
+steam302_restart_after_install() {
+    steam302_service_is_toolbox_managed || return 0
+    steam302_service_is_active || return 0
+
+    # 更新程序目录后，旧服务进程仍可能占用已经替换的二进制。安装流程
+    # 必须显式重启，不能因 systemd 仍显示 active 就误认为新版已生效。
+    rm -f "$STEAM302_RUN_FILE"
+    toolbox_sudo systemctl restart "$STEAM302_SERVICE_NAME" >/dev/null 2>&1 || {
+        echo "后台服务已更新，但重启失败。"
+        return 1
+    }
+}
+
 stop_steam302_service() {
     if steam302_service_is_toolbox_managed && steam302_service_is_active; then
         toolbox_sudo systemctl stop "$STEAM302_SERVICE_NAME" >/dev/null 2>&1 || {
@@ -448,6 +520,7 @@ stop_steam302_service() {
             return 1
         }
         echo "Steam + GitHub 后台服务已停止；开机自启设置保留。"
+        rm -f "$STEAM302_RUN_FILE"
     fi
     if steam302_cli_is_running; then
         stop_steam302_cli || {
@@ -466,16 +539,20 @@ reset_steam302() {
     echo "正在重置 Steam + GitHub 加速..."
     if steam302_service_is_toolbox_managed; then
         stop_steam302_cli || true
+        rm -f "$STEAM302_RUN_FILE"
         toolbox_sudo systemctl restart "$STEAM302_SERVICE_NAME" >/dev/null 2>&1 || {
             echo "后台服务重置失败。"
             return 1
         }
-        sleep 1
-        if steam302_service_is_active; then
-            echo "Steam + GitHub 加速已重置。"
+        if steam302_wait_until_ready; then
+            echo "Steam + GitHub 加速已重置（有效性检查通过）。"
             return 0
         fi
-        echo "后台服务重置后未运行。"
+        if steam302_service_is_active; then
+            print_steam302_not_ready_help
+        else
+            echo "后台服务重置后未运行。"
+        fi
         return 1
     fi
     stop_steam302_cli || {
@@ -483,7 +560,7 @@ reset_steam302() {
         return 1
     }
     start_steam302_service || return 1
-    echo "Steam + GitHub 加速已重置。"
+    echo "Steam + GitHub 加速已重置（有效性检查通过）。"
 }
 
 download_steam302_archive() {
@@ -748,8 +825,13 @@ install_steam302() (
             ensure_steam302_config || return 1
             rm -f -- "$STEAM302_DESKTOP_FILE" || return 1
             steam302_setup_autostart || return 1
-            echo "Steam + GitHub 加速已开启。"
-            return 0
+            steam302_restart_after_install || return 1
+            if steam302_wait_until_ready; then
+                print_steam302_ready_notice
+                return 0
+            fi
+            print_steam302_not_ready_help
+            return 1
         fi
     fi
 
@@ -839,7 +921,13 @@ install_steam302() (
         echo "Steamcommunity 302 已安装，但后台自启未完成。"
         return 1
     fi
-    echo "Steam + GitHub 加速已开启。"
+    steam302_restart_after_install || return 1
+    if ! steam302_wait_until_ready; then
+        echo "Steamcommunity 302 已安装，后台服务也已启动，但加速初始化未完成。"
+        print_steam302_not_ready_help
+        return 1
+    fi
+    print_steam302_ready_notice
 )
 
 show_steam302_status() {
@@ -856,10 +944,14 @@ show_steam302_status() {
         echo "Steamcommunity 302：未安装"
     fi
 
-    if steam302_service_is_active; then
-        echo "后台服务：正在运行"
+    if steam302_runtime_is_ready; then
+        echo "加速状态：已就绪（运行与本地代理检查通过）"
+    elif steam302_service_is_active; then
+        echo "加速状态：服务进程正在运行，但 DNS/代理未检测到就绪"
+        echo "处理方法：打开一次官方配置界面完成证书和 DNS 初始化，再重置加速"
     elif steam302_cli_is_running; then
-        echo "内置加速：正在运行（Steam + GitHub）"
+        echo "加速状态：内置进程正在运行，但 DNS/代理未检测到就绪"
+        echo "处理方法：打开一次官方配置界面完成证书和 DNS 初始化，再重置加速"
     elif steam302_service_is_enabled; then
         echo "后台服务：已设为开机启动，但当前未运行"
     else
