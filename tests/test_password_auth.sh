@@ -83,17 +83,22 @@ printf '%s\n' "$*" >> "${PASSWORD_TEST_STATE:?}/xdg-open-calls"
 EOF
 
 cat > "$BIN_DIR/passwd" <<'EOF'
-#!/bin/sh
+#!/bin/bash
 state="${PASSWORD_TEST_STATE:?}"
 printf 'CALL %s\n' "$*" >> "$state/passwd-calls"
 if [ "${1:-}" = "-S" ]; then
     printf 'deck %s 2026-07-14 0 99999 7 -1\n' "${FAKE_PASSWORD_STATUS:-NP}"
     exit 0
 fi
-# 设置流程中的系统 passwd 是交互步骤；测试中直接模拟成功，
-# 把调用脚本的 stdin 留给后续明文记录提示。
+printf 'New password:'
+IFS= read -r first || exit 21
+printf '\nRetype new password:'
+IFS= read -r second || exit 22
+printf '\n'
+if [ "$first" != "${FAKE_EXPECTED_NEW_PASSWORD:-}" ] || [ "$second" != "$first" ]; then
+    exit 23
+fi
 printf 'SET_PASSWORD\n' >> "$state/passwd-calls"
-exit 0
 EOF
 
 cat > "$BIN_DIR/chpasswd" <<'EOF'
@@ -183,10 +188,11 @@ run_password_module() {
         FAKE_SUDO_PASSWORD="$accepted_password" \
         FAKE_SUDO_PASSWORD_ALT="$alternate_password" \
         FAKE_PASSWORD_STATUS="${FAKE_PASSWORD_STATUS:-NP}" \
+        FAKE_EXPECTED_NEW_PASSWORD="$accepted_password" \
         bash "$PROJECT_ROOT/modules/password.sh" "$action"
 }
 
-# 设置密码：假的系统 passwd 先成功，脚本再读取一行并以 600 权限记录。
+# 设置密码：中文界面只读取一次，PTY 辅助程序自动完成系统的两次确认。
 set_output="$(printf '%s\n' "$SET_PASSWORD" | \
     run_password_module set "$SET_PASSWORD")"
 assert_password_record "$SET_PASSWORD"
@@ -196,6 +202,11 @@ grep -Fxq 'CALL -S deck' "$STATE_DIR/passwd-calls" || \
     fail "设置密码前没有只读检查当前系统密码状态"
 grep -Fxq 'SET_PASSWORD' "$STATE_DIR/passwd-calls" || \
     fail "无系统密码时没有进入新密码设置"
+if printf '%s\n' "$set_output" | grep -Eq 'New password|Retype new password'; then
+    fail "无系统密码时仍向用户显示英文 passwd 提示"
+fi
+prompt_count="$(printf '%s\n' "$set_output" | grep -c '请输入新密码')"
+[ "$prompt_count" -eq 1 ] || fail "设置新密码时没有严格只提示输入一次"
 grep -Fxq "STDIN=<$SET_PASSWORD>" "$STATE_DIR/sudo-stdin" || \
     fail "设置后没有用新密码做假的 sudo 验证"
 

@@ -11,6 +11,7 @@ source "$PROJECT_ROOT/core/auth.sh"
 
 CURRENT_TOOLBOX_USERNAME=""
 CURRENT_TOOLBOX_UID=""
+PASSWORD_SET_HELPER="$PROJECT_ROOT/scripts/set_user_password_pty.py"
 
 load_non_root_identity() {
     CURRENT_TOOLBOX_UID="$(id -u 2>/dev/null)" || return 1
@@ -206,7 +207,12 @@ set_system_password() {
         return 1
     }
     require_command passwd || return 1
+    require_command python3 || return 1
     load_non_root_identity || return 1
+    [ -f "$PASSWORD_SET_HELPER" ] && [ ! -L "$PASSWORD_SET_HELPER" ] || {
+        echo "Renkit密码设置辅助组件缺失，请先更新或重新安装Renkit。"
+        return 1
+    }
 
     password_status="$(current_system_password_status 2>/dev/null || true)"
     case "$password_status" in
@@ -223,32 +229,45 @@ set_system_password() {
             echo "https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/blob/main/STEAMDECK_PASSWORD_RESET_GUIDE.md"
             return 1
             ;;
+        NP) ;;
+        *)
+            echo "无法安全确认当前系统密码状态，未执行任何修改。"
+            echo "请更新 SteamOS 后重试，或选择“我已有管理员密码”。"
+            return 1
+            ;;
     esac
 
     show_plaintext_password_warning
     echo ""
     echo "$action_label"
-    echo "请按照系统提示输入密码；输入时屏幕不会显示字符，这是正常现象。"
-    if ! passwd; then
-        echo "系统密码没有修改。"
+    echo "只需输入一次新密码；Renkit会自动完成系统的两次确认。"
+    echo "输入时屏幕不会显示字符，这是正常现象。"
+    NEW_PASSWORD=""
+    prompt_new_password || return 1
+    if ! printf '%s\n' "$NEW_PASSWORD" | python3 "$PASSWORD_SET_HELPER"; then
+        NEW_PASSWORD=""
+        unset NEW_PASSWORD
+        echo "系统拒绝了这个密码，请换一个更长、更安全的密码后重试。"
         return 1
     fi
 
-    CAPTURED_PASSWORD=""
-    capture_and_verify_current_password || {
-        echo "系统密码已生效，但自动验证密码没有记录。"
+    if ! validate_toolbox_password_value "$NEW_PASSWORD"; then
+        NEW_PASSWORD=""
+        unset NEW_PASSWORD
+        echo "系统密码可能已生效，但自动验证失败，没有创建桌面记录。"
         return 1
-    }
-    write_password_record "$action_label" "$CAPTURED_PASSWORD" || {
-        CAPTURED_PASSWORD=""
-        unset CAPTURED_PASSWORD
+    fi
+    write_password_record "$action_label" "$NEW_PASSWORD" || {
+        NEW_PASSWORD=""
+        unset NEW_PASSWORD
         remove_stale_password_record >/dev/null 2>&1 || true
         echo "密码已生效，但桌面密码文件创建失败。旧记录已停用或清除。"
         return 1
     }
-    CAPTURED_PASSWORD=""
-    unset CAPTURED_PASSWORD
+    NEW_PASSWORD=""
+    unset NEW_PASSWORD
     log "$action_label 完成（桌面密码记录已更新）"
+    echo "系统密码已设置，桌面密码记录也已生成。"
 }
 
 prompt_new_password() {
