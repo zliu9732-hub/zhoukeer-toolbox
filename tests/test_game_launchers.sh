@@ -690,6 +690,38 @@ cmp -s "$PROJECT_ROOT/assets/game-launchers/epic-logo.png" \
     echo "FAIL: Epic 横向背景仍使用未留白的桌面图标" >&2
     exit 1
 }
+
+# 任一新素材不可用时必须保留现有封面，不能先删旧图后留下空白。
+ATOMIC_GRID="$TMP_ROOT/atomic-artwork/grid"
+mkdir -p "$ATOMIC_GRID"
+for artwork in "777.jpg" "777p.jpg" "777_hero.jpg" \
+    "777_logo.png" "777_icon.png" "777_background.jpg"; do
+    printf 'existing-%s\n' "$artwork" > "$ATOMIC_GRID/$artwork"
+done
+if MODULE="$MODULE" ATOMIC_GRID="$ATOMIC_GRID" bash -c '
+    source "$MODULE"
+    launcher_cover_file() {
+        case "$2" in
+            epic-background.jpg) return 1 ;;
+            *) printf "%s\n" "$PROJECT_ROOT/assets/game-launchers/$2" ;;
+        esac
+    }
+    install_launcher_artwork_for_id epic "$ATOMIC_GRID" 777
+'; then
+    echo "FAIL: 封面素材不完整时仍报告写入成功" >&2
+    exit 1
+fi
+for artwork in "777.jpg" "777p.jpg" "777_hero.jpg" \
+    "777_logo.png" "777_icon.png" "777_background.jpg"; do
+    grep -Fxq "existing-$artwork" "$ATOMIC_GRID/$artwork" || {
+        echo "FAIL: 封面素材不完整时破坏了原文件：$artwork" >&2
+        exit 1
+    }
+done
+[ -z "$(find "$ATOMIC_GRID" -maxdepth 1 -type d -name '.renkit-artwork-*' -print -quit)" ] || {
+    echo "FAIL: 封面写入失败后遗留了暂存目录" >&2
+    exit 1
+}
 for check_id in "$game_id"; do
     for artwork in "$check_id.jpg" "${check_id}p.jpg" "${check_id}_hero.jpg" \
         "${check_id}_logo.png" "${check_id}_icon.png" "${check_id}_background.jpg"; do

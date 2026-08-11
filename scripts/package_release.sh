@@ -26,7 +26,7 @@ cd "$PROJECT_ROOT" || exit 1
 # 只打包 Git 已跟踪文件，避免把本机临时文件或未提交资料带入公开包。
 while IFS= read -r -d '' source_path; do
     case "$source_path" in
-        dist/*|mirrors/*|decky-installer-cn/*|decky-plugins/zhoukeer-localizer/*|assets/background.png|assets/welcome.png|assets/disclaimer-usage.png|assets/windows-switch.png|assets/game-launchers/*|website/*|index.html|todesk.html) continue ;;
+        dist/*|mirrors/*|launcher-covers/*|decky-installer-cn/*|decky-plugins/zhoukeer-localizer/*|assets/background.png|assets/welcome.png|assets/disclaimer-usage.png|assets/windows-switch.png|assets/game-launchers/*|website/*|index.html|todesk.html) continue ;;
         third_party/decky-lsfg-vk-zh-v0.12.5/dist/*.map) continue ;;
         # FSR4 的 TypeScript 源码仅用于开发；安装器只会使用下列运行文件。
         # 不把整套源码塞进自更新包，避免 Gitee 对大文件原始下载返回 403。
