@@ -177,7 +177,12 @@ SHORTCUT="$HOME_DIR/Desktop/微信.desktop"
 [ -x "$STATE_DIR/apps/WeChat.AppImage" ]
 [ -x "$SHORTCUT" ]
 grep -Fq "Exec=\"$STATE_DIR/apps/WeChat.AppImage\"" "$SHORTCUT"
-grep -Fq 'Icon=wechat' "$SHORTCUT"
+grep -Fq "Icon=$PROJECT_ROOT/assets/software/wechat.png" "$SHORTCUT"
+[ "$(shasum -a 256 "$PROJECT_ROOT/assets/software/wechat.png" | awk '{print $1}')" = \
+    '9381f14469bd3dcb67c842384a47ea220790c601870e71393ded1e943e46f1f4' ] || {
+    echo "FAIL: 微信未使用已核验的官方图标" >&2
+    exit 1
+}
 grep -Fxq 'https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_x86_64.AppImage' \
     "$STATE_DIR/curl-urls"
 ! grep -Fq 'com.tencent.WeChat' "$STATE_DIR/commands"
@@ -193,6 +198,7 @@ ZHOUKEER_AUTO_CONFIRM=1 \
 bash "$PROJECT_ROOT/modules/software.sh" wechat >/dev/null
 
 [ -x "$SHORTCUT" ]
+[ "$(sed -n 's/^Icon=//p' "$SHORTCUT")" = "$PROJECT_ROOT/assets/software/wechat.png" ]
 [ "$(grep -c 'WeChatLinux_x86_64.AppImage$' "$STATE_DIR/curl-urls")" -eq 1 ]
 
 # QQ 改用两个国内 Flathub 缓存，避免腾讯 AppImage CDN 返回 403。

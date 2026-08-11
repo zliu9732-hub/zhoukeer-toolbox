@@ -40,6 +40,7 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | PCSX2 | PS2 模拟器 | https://github.com/PCSX2/pcsx2 | GPL-3.0 | 是 | Gitee 分块镜像优先，GitHub Release 回退；镜像为上游未修改的固定 AppImage |
 | RPCS3 | PS3 模拟器 | https://github.com/RPCS3/rpcs3 | GPL-2.0 | 是 | Gitee 分块镜像优先，GitHub Release 回退；镜像为上游未修改的固定 AppImage |
 | ShadPS4 | PS4 模拟器 | https://github.com/shadps4-emu/shadPS4 | GPL-2.0 | 是 | Gitee 分块镜像优先，GitHub Release 回退；镜像为上游未修改的固定 AppImage |
+| 微信 Linux | 微信官方 AppImage 与桌面图标 | https://linux.weixin.qq.com/ / https://github.com/flathub/com.tencent.WeChat | 专有软件；图标为腾讯商标 | 否（Renkit 内置图标） | AppImage 从腾讯官方 CDN 下载；默认图标取自 `flathub/com.tencent.WeChat@f1ca9e7` 的应用清单并随 Renkit 更新包分发 |
 
 ### 内置模拟器图标来源
 
