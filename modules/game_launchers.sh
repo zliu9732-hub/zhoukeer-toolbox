@@ -1203,55 +1203,57 @@ PY
 
 install_launcher_artwork_for_id() {
     local asset_name="$1" grid_dir="$2" artwork_id="$3"
-    local grid_source portrait_source hero_source icon_source logo_source background_file
+    local grid_source portrait_source hero_source icon_source logo_source background_file stage_dir staged_file
 
-    # 先清理同 stem 的旧 png/jpg/jpeg，避免 Steam 取图结果不确定。
-    rm -f -- \
-        "$grid_dir/${artwork_id}.jpg" \
-        "$grid_dir/${artwork_id}.jpeg" \
-        "$grid_dir/${artwork_id}.png" \
-        "$grid_dir/${artwork_id}p.jpg" \
-        "$grid_dir/${artwork_id}p.jpeg" \
-        "$grid_dir/${artwork_id}p.png" \
-        "$grid_dir/${artwork_id}_hero.jpg" \
-        "$grid_dir/${artwork_id}_hero.jpeg" \
-        "$grid_dir/${artwork_id}_hero.png" \
-        "$grid_dir/${artwork_id}_logo.jpg" \
-        "$grid_dir/${artwork_id}_logo.jpeg" \
-        "$grid_dir/${artwork_id}_logo.png" \
-        "$grid_dir/${artwork_id}_icon.jpg" \
-        "$grid_dir/${artwork_id}_icon.jpeg" \
-        "$grid_dir/${artwork_id}_icon.png" \
-        "$grid_dir/${artwork_id}_background.jpg" \
-        "$grid_dir/${artwork_id}_background.png"
+    # 先在同一文件系统准备完整的新素材。任一素材失败时保留现有封面，
+    # 避免修复过程中先删旧图、再因下载或写入失败留下空白库封面。
+    stage_dir="$(mktemp -d "$grid_dir/.renkit-artwork-${artwork_id}.XXXXXX" 2>/dev/null)" || return 1
     icon_source="$(launcher_cover_file "$asset_name" "$asset_name.png" || true)"
-    [ -s "$icon_source" ] || return 1
+    [ -s "$icon_source" ] || { rm -rf -- "$stage_dir"; return 1; }
     install -m 0644 -- "$icon_source" \
-        "$grid_dir/${artwork_id}_icon.png" || return 1
+        "$stage_dir/${artwork_id}_icon.png" || { rm -rf -- "$stage_dir"; return 1; }
     grid_source="$(launcher_cover_file "$asset_name" "$asset_name-grid.jpg" || true)"
     if [ -s "$grid_source" ] && ! launcher_image_is_600x900 "$grid_source"; then
         echo "主封面图不是 600x900 竖版，已改用竖版图写入 Steam 库封面：$asset_name"
         grid_source="$(launcher_cover_file "$asset_name" "$asset_name-portrait.jpg" || true)"
     fi
-    [ -s "$grid_source" ] || return 1
+    [ -s "$grid_source" ] || { rm -rf -- "$stage_dir"; return 1; }
     install -m 0644 -- "$grid_source" \
-        "$grid_dir/${artwork_id}.jpg" || return 1
+        "$stage_dir/${artwork_id}.jpg" || { rm -rf -- "$stage_dir"; return 1; }
     portrait_source="$(launcher_cover_file "$asset_name" "$asset_name-portrait.jpg" || true)"
-    [ -s "$portrait_source" ] || return 1
+    [ -s "$portrait_source" ] || { rm -rf -- "$stage_dir"; return 1; }
     install -m 0644 -- "$portrait_source" \
-        "$grid_dir/${artwork_id}p.jpg" || return 1
+        "$stage_dir/${artwork_id}p.jpg" || { rm -rf -- "$stage_dir"; return 1; }
     hero_source="$(launcher_cover_file "$asset_name" "$asset_name-hero.jpg" || true)"
-    [ -s "$hero_source" ] || return 1
+    [ -s "$hero_source" ] || { rm -rf -- "$stage_dir"; return 1; }
     install -m 0644 -- "$hero_source" \
-        "$grid_dir/${artwork_id}_hero.jpg" || return 1
+        "$stage_dir/${artwork_id}_hero.jpg" || { rm -rf -- "$stage_dir"; return 1; }
     logo_source="$(launcher_cover_file "$asset_name" "$asset_name-logo.png" || true)"
     [ -s "$logo_source" ] || logo_source="$icon_source"
     install -m 0644 -- "$logo_source" \
-        "$grid_dir/${artwork_id}_logo.png" || return 1
+        "$stage_dir/${artwork_id}_logo.png" || { rm -rf -- "$stage_dir"; return 1; }
     background_file="$(launcher_cover_file "$asset_name" "$asset_name-background.jpg" || true)"
-    [ -s "$background_file" ] || return 1
+    [ -s "$background_file" ] || { rm -rf -- "$stage_dir"; return 1; }
     install -m 0644 -- "$background_file" \
-        "$grid_dir/${artwork_id}_background.jpg" || return 1
+        "$stage_dir/${artwork_id}_background.jpg" || { rm -rf -- "$stage_dir"; return 1; }
+
+    # 新素材完整后才清理不同扩展名的旧文件；目标文件由同文件系统 mv 原子替换。
+    rm -f -- \
+        "$grid_dir/${artwork_id}.jpeg" \
+        "$grid_dir/${artwork_id}.png" \
+        "$grid_dir/${artwork_id}p.jpeg" \
+        "$grid_dir/${artwork_id}p.png" \
+        "$grid_dir/${artwork_id}_hero.jpeg" \
+        "$grid_dir/${artwork_id}_hero.png" \
+        "$grid_dir/${artwork_id}_logo.jpg" \
+        "$grid_dir/${artwork_id}_logo.jpeg" \
+        "$grid_dir/${artwork_id}_icon.jpg" \
+        "$grid_dir/${artwork_id}_icon.jpeg" \
+        "$grid_dir/${artwork_id}_background.png" || { rm -rf -- "$stage_dir"; return 1; }
+    for staged_file in "$stage_dir"/*; do
+        mv -f -- "$staged_file" "$grid_dir/" || { rm -rf -- "$stage_dir"; return 1; }
+    done
+    rmdir -- "$stage_dir" || return 1
     chmod 0755 -R -- "$grid_dir" 2>/dev/null || true
 }
 
