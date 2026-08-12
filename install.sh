@@ -534,6 +534,19 @@ copy_fsr4_chinese() {
     copy_dir_files third_party/decky-framegen-zh-v0.17/defaults
 }
 
+copy_cssloader_chinese() {
+    local source_dir="$SOURCE_ROOT/third_party/cssloader-zh-v2.1.2"
+    local relative_file
+
+    # CSS Loader 官方后端由官方 ZIP 提供；Renkit安装目录只需保留已校验的中文前端覆盖层。
+    for relative_file in plugin.json package.json LICENSE; do
+        copy_file "$source_dir/$relative_file" \
+            "$STAGING_DIR/third_party/cssloader-zh-v2.1.2/$relative_file"
+    done
+    copy_file "$source_dir/dist/index.js" \
+        "$STAGING_DIR/third_party/cssloader-zh-v2.1.2/dist/index.js"
+}
+
 copy_simpledeckytdp_chinese() {
     local source_dir="$SOURCE_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5"
     local relative_file
@@ -599,8 +612,10 @@ copy_dir_files utils
 copy_dir_files config
 copy_dir_files assets
 copy_dir_files scripts
+copy_dir_files data
 copy_lsfg_chinese
 copy_fsr4_chinese
+copy_cssloader_chinese
 copy_simpledeckytdp_chinese
 copy_allycenter_chinese
 copy_handheld_frontend_overlay third_party/huesync-cn-v3.9.0

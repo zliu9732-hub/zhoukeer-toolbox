@@ -345,6 +345,23 @@ test_runtime_scripts_packaged() {
         fail "安装目录缺少可执行的 Decky 官方插件安装脚本"
 }
 
+test_fsr4_list_and_cssloader_overlay_packaged() {
+    local case_root="$TMP_ROOT/fsr4-list-cssloader"
+    local install_dir="$case_root/install"
+    local game_list="$install_dir/data/fsr4_optiscaler_tested_games_2026-08-07.txt"
+    local css_dir="$install_dir/third_party/cssloader-zh-v2.1.2"
+
+    run_installer "$case_root/home" "$install_dir"
+
+    [ -s "$game_list" ] || fail "安装目录缺少 FSR4 官方兼容游戏清单"
+    [ "$(grep -vc '^#' "$game_list")" -eq 683 ] || \
+        fail "安装后的 FSR4 官方兼容游戏清单条目数不正确"
+    [ -s "$css_dir/plugin.json" ] || fail "安装目录缺少 CSS Loader 中文清单"
+    [ -s "$css_dir/package.json" ] || fail "安装目录缺少 CSS Loader 版本文件"
+    [ -s "$css_dir/LICENSE" ] || fail "安装目录缺少 CSS Loader 许可证"
+    [ -s "$css_dir/dist/index.js" ] || fail "安装目录缺少 CSS Loader 中文前端"
+}
+
 test_install_from_replaced_workdir() {
     local case_root="$TMP_ROOT/replaced-workdir"
     local install_dir="$case_root/install"
@@ -386,6 +403,7 @@ test_missing_config_created
 test_dry_run_has_no_side_effects
 test_lsfg_chinese_runtime_files_packaged
 test_runtime_scripts_packaged
+test_fsr4_list_and_cssloader_overlay_packaged
 test_install_from_replaced_workdir
 
 echo "PASS: 配置迁移测试全部通过"
