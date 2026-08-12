@@ -444,11 +444,11 @@ new_machine_preflight() {
         draw_category_frame init "新机初始化" "更新系统组件后安装常用软件并初始化国内源"
         ui_panel_line 7 '\033[1;38;5;220m' "① Steam 键 → 设置 → 启用开发者模式"
         ui_panel_line 9 '\033[1;38;5;45m' "② 设置左侧出现“开发者”后 → 开发者 → 杂项"
-        ui_panel_line 11 '\033[1;38;5;45m' "③ 开启“使用旧版 X11 桌面模式”（ToDesk）"
-        ui_panel_line 13 '\033[1;38;5;220m' "④ 开启“CEF 远程调试”（Decky 插件商城）"
-        ui_panel_line 15 '\033[1;38;5;45m' "⑤ 重新进入桌面模式，再开始初始化"
-        ui_panel_line 16 '\033[1;38;5;45m' "继续后将初始化国内源、更新系统组件，再安装常用软件、Decky 和 ToDesk"
-        ui_touch_button 18 '\033[1;30;48;5;114m' "设置已完成，开始新机初始化" "点击即确认已开启开发者模式、X11 和 CEF 远程调试"
+        ui_panel_line 11 '\033[1;38;5;220m' "③ 开启“CEF 远程调试”（Decky 插件商城）"
+        ui_panel_line 13 '\033[1;38;5;45m' "④ 重新进入桌面模式，再开始初始化"
+        ui_panel_line 15 '\033[1;38;5;45m' "继续后将更新系统组件，并安装常用软件、插件、兼容层和 Epic"
+        ui_panel_line 16 '\033[1;38;5;45m' "Epic 与 FreeDeck 默认安装；战网、育碧、黑盒工坊按需选择"
+        ui_touch_button 18 '\033[1;30;48;5;114m' "设置已完成，开始新机初始化" "点击即确认已开启开发者模式和 CEF 远程调试"
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回新机必备" "暂不初始化"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         choice="$(read_touch_menu right:18-19:start right:20-21:init right:22-23:home)"
@@ -517,7 +517,7 @@ game_environment_menu() {
     while true; do
         draw_category_frame games "游戏与插件｜插件商城" "浏览插件商城、运行组件和启动器" 0
         ui_touch_button 5 '\033[1;97;48;5;160m' "安装插件商城" "稳定版国内失败自动切换官方源 · 可选测试版 · 高级操作"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭等三款插件"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭、FSR4、封面、主题等七款插件"
         ui_touch_button 9 '\033[1;97;48;5;24m' "DeckRecall" "添加启动项及恢复游戏可玩状态"
         ui_touch_button 11 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
         ui_touch_button 13 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
@@ -532,7 +532,7 @@ game_environment_menu() {
 
         case "$choice" in
             decky-install) NEXT_CATEGORY="decky_loader"; return 0 ;;
-            features) confirm_and_run "安装常用插件组合" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；未安装插件商城时会先安装插件商城，再继续安装三款插件；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
+            features) confirm_and_run "安装常用插件组合" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；未安装插件商城时会先安装插件商城，再继续安装七款常用插件；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
             deckrecall) confirm_and_run "安装 DeckRecall" "添加启动项及恢复游戏可玩状态；来自作者 GitHub Release，下载后会校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckrecall ;;
             browse) plugin_official_touch_pages ;;
             cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;

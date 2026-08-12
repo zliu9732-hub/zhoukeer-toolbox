@@ -1,0 +1,3 @@
+# CSS Loader v2.1.2 作为上游 GPL 源码快照保留；不机械改写其原有空白，
+# 避免对官方后端产生与中文前端无关的差异。
+third_party/cssloader-zh-v2.1.2/** whitespace=-trailing-space,-space-before-tab

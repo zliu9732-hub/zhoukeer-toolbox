@@ -16,6 +16,8 @@ download_policy_url_allowed 'https://api.github.com/repos/GloriousEggroll/proton
 download_policy_url_allowed 'https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service' || fail "Decky 官方服务模板被拒绝"
 download_policy_url_allowed 'https://dl.todesk.com/linux/todesk-v4.8.6.2-amd64.deb' || fail "ToDesk 官方 DEB 被拒绝"
 download_policy_url_allowed 'https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.25/todesk-v4.8.6.2-amd64.deb' || fail "ToDesk Release 镜像被拒绝"
+download_policy_url_allowed 'https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip' || fail "Friendeck 官方 Release 被拒绝"
+download_policy_url_allowed 'https://github.com/jinzhongjia/decky-music/releases/download/v1.0.0/Decky.Music.zip' || fail "Decky Music 官方 Release 被拒绝"
 download_policy_url_allowed 'https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Windows/EpicInstaller-20.1.4.msi?launcherfilename=EpicInstaller-20.1.4.msi' || fail "Epic Akamai CDN 备用地址被拒绝"
 download_policy_url_allowed 'https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Windows/EpicInstaller-20.1.4.exe' || fail "Epic Akamai EXE 地址被拒绝"
 download_policy_url_allowed 'https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.001' || fail "战网预装客户端分卷 1 被拒绝"

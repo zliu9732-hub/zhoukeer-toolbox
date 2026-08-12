@@ -149,6 +149,22 @@ sync_plugin fsr4 "xXJSONDeruloXx/Decky-Framegen" '^Decky-Framegen[.]zip$' "Decky
     "https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip" \
     "3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f"
 sync_plugin cheatdeck "SheffeyG/CheatDeck" '^CheatDeck[.]zip$' "CheatDeck"
+sync_plugin steamgriddb "SteamGridDB/decky-steamgriddb" '^$' "SteamGridDB" \
+    "v1.7.1" "steamgriddb-v1.7.1.zip" \
+    "https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3.zip" \
+    "6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3"
+sync_plugin cssloader "DeckThemes/SDH-CssLoader" '^$' "CSS Loader" \
+    "v2.1.2" "cssloader-v2.1.2.zip" \
+    "https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip" \
+    "1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350"
+sync_plugin friendeck "panyiwei-home/Friendeck" '^Friendeck[.]v[.]0[.]7[.]7[.]zip$' "Friendeck" \
+    "0.7.7" "Friendeck.v.0.7.7.zip" \
+    "https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip" \
+    "65465ff115e105912adf72b5461e17b697ac07100ce7061de2e962851e41c653"
+sync_plugin deckymusic "jinzhongjia/decky-music" '^Decky[.]Music[.]zip$' "Decky Music" \
+    "v1.0.0" "Decky.Music.zip" \
+    "https://github.com/jinzhongjia/decky-music/releases/download/v1.0.0/Decky.Music.zip" \
+    "ec2956bbee1d84b25b7f8749f06794b54014828a04707beccd06feb5d49dfa53"
 sync_plugin tomoon "YukiCoco/ToMoon" '^tomoon-v[0-9.]+[.]zip$' "ToMoon"
 sync_plugin unifideck "mubaraknumann/unifideck" '^unifideck[.]prod[.]v[0-9.]+[.]zip$' "Unifideck"
 sync_plugin freedeck "panyiwei-home/Freedeck" '^freedeck[.]v[0-9.]+[.]zip$' "Freedeck"

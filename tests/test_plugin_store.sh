@@ -236,16 +236,20 @@ feature_install="$(sed -n '/^install_feature_plugins()/,/^}/p' "$PROJECT_ROOT/mo
 for install_call in \
     'install_lsfg_zh_from_gitee 0' \
     'install_fsr4_zh_from_gitee 0' \
-    'install_configured_plugin cheatdeck 0 0'; do
+    'install_configured_plugin cheatdeck 0 0' \
+    'install_configured_plugin steamgriddb 0 0' \
+    'install_configured_plugin cssloader 0 0' \
+    'install_configured_plugin friendeck 0 0' \
+    'install_configured_plugin deckymusic 0 0'; do
     printf '%s\n' "$feature_install" | grep -Fq "$install_call" || {
-        echo "FAIL: 三件套缺少下载调用：$install_call" >&2
+        echo "FAIL: 七款常用插件缺少下载调用：$install_call" >&2
         exit 1
     }
 done
 store_line="$(printf '%s\n' "$feature_install" | grep -n 'check_lossless_scaling_installation' | tail -n 1 | cut -d: -f1)"
 loop_line="$(printf '%s\n' "$feature_install" | grep -n 'done' | head -n 1 | cut -d: -f1)"
 [ -n "$store_line" ] && [ -n "$loop_line" ] && [ "$store_line" -gt "$loop_line" ] || {
-    echo "FAIL: 小黄鸭正版页面仍在三件套安装中途打开" >&2
+    echo "FAIL: 小黄鸭正版页面仍在常用插件组合安装中途打开" >&2
     exit 1
 }
 grep -Fq 'check_lossless_scaling_installation' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -268,7 +272,7 @@ printf '%s\n' "$feature_install_function" | grep -Fq 'ensure_plugin_store_ready 
 }
 printf '%s\n' "$feature_install_function" | grep -Fq '小黄鸭（LSFG-VK）'
 printf '%s\n' "$feature_install_function" | grep -Fq 'reload_decky_plugins'
-printf '%s\n' "$feature_install_function" | grep -Fq '三款插件会出现在插头菜单中'
+printf '%s\n' "$feature_install_function" | grep -Fq '七款常用插件会出现在插头菜单中'
 grep -Fq 'CheatDeck 安装完成后可在 Decky 右侧栏显示' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '风灵月影网址.txt' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '若返回游戏模式后没有看到 Decky 的插头图标' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -512,7 +516,7 @@ grep -Fq '不会删除 Decky Loader 本体' "$PROJECT_ROOT/modules/plugin_store.
 grep -Fq 'all) show_plugin_download_speed_tip; install_all_plugin_packages' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '正在安装小黄鸭' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '正在安装 FSR4' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。' \
+grep -Fq '将依次安装：小黄鸭、FSR4、CheatDeck、游戏封面更换、主题美化、文件传输助手、音乐播放器。' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Fq 'Lossless Scaling.rar' "$PROJECT_ROOT/modules/plugin_store.sh" || \
     grep -Eq 'https?://[^[:space:]]*Lossless' "$PROJECT_ROOT/modules/plugin_store.sh"; then
@@ -536,7 +540,7 @@ printf '%s\n' "$allycenter_output" | grep -Fq 'Decky 插件安装仅支持 Steam
 # 小黄鸭官方 v0.12.5 使用 Decky LSFG-VK，旧汉化包使用“小黄鸭”；
 # 状态检查必须同时兼容官方名和旧中文名。
 PLUGIN_ROOT="$TMP_ROOT/plugins"
-for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck; do
+for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck decky-steamgriddb SDH-CssLoader Friendeck-plugin "Decky Music"; do
     mkdir -p "$PLUGIN_ROOT/$plugin_dir/dist"
     printf 'bundle\n' > "$PLUGIN_ROOT/$plugin_dir/dist/index.js"
 done
@@ -546,11 +550,25 @@ printf '{ "name": "Decky-Framegen" }\n' > "$PLUGIN_ROOT/Decky-Framegen/plugin.js
 printf '{"version":"0.17.0"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
 printf '{"name": "CheatDeck"}\n' > "$PLUGIN_ROOT/CheatDeck/plugin.json"
 printf '{"version":"2.0.0"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
+printf '{"name": "游戏封面更换"}\n' > "$PLUGIN_ROOT/decky-steamgriddb/plugin.json"
+printf '{"version":"1.7.1"}\n' > "$PLUGIN_ROOT/decky-steamgriddb/package.json"
+printf '{"name": "主题美化"}\n' > "$PLUGIN_ROOT/SDH-CssLoader/plugin.json"
+printf '{"version":"2.1.2"}\n' > "$PLUGIN_ROOT/SDH-CssLoader/package.json"
+cp "$PROJECT_ROOT/third_party/cssloader-zh-v2.1.2/dist/index.js" \
+    "$PLUGIN_ROOT/SDH-CssLoader/dist/index.js"
+printf '{"name": "文件传输助手"}\n' > "$PLUGIN_ROOT/Friendeck-plugin/plugin.json"
+printf '{"version":"0.7.5"}\n' > "$PLUGIN_ROOT/Friendeck-plugin/package.json"
+printf '{"name": "音乐播放器"}\n' > "$PLUGIN_ROOT/Decky Music/plugin.json"
+printf '{"version":"1.0.0"}\n' > "$PLUGIN_ROOT/Decky Music/package.json"
 status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
     bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"
 printf '%s\n' "$status_output" | grep -Fq '✓ 小黄鸭（LSFG-VK）：已写入 Decky'
 printf '%s\n' "$status_output" | grep -Fq '✓ FSR4（Decky-Framegen）：已写入 Decky，官方版本 0.17.0'
 printf '%s\n' "$status_output" | grep -Fq '✓ CheatDeck：已写入 Decky，官方版本 2.0.0'
+printf '%s\n' "$status_output" | grep -Fq '✓ 游戏封面更换（SteamGridDB）'
+printf '%s\n' "$status_output" | grep -Fq '✓ 主题美化（CSS Loader）'
+printf '%s\n' "$status_output" | grep -Fq '✓ 文件传输助手（Friendeck）'
+printf '%s\n' "$status_output" | grep -Fq '✓ 音乐播放器（Decky Music）'
 
 printf '{"name":"小黄鸭"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
 legacy_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
@@ -605,13 +623,19 @@ update_output="$(
             echo "TEST_UPDATE: FSR4"
         }
         install_configured_plugin() {
-            if [ "$1" = "cheatdeck" ]; then
-                printf '\''{"version":"%s"}\n'\'' "$DECKY_CHEATDECK_VERSION" > \
-                    "$DECKY_PLUGIN_DIR/CheatDeck/package.json"
-                echo "TEST_UPDATE: CheatDeck"
-                return 0
-            fi
-            return 1
+            case "$1" in
+                cheatdeck)
+                    printf '\''{"version":"%s"}\n'\'' "$DECKY_CHEATDECK_VERSION" > \
+                        "$DECKY_PLUGIN_DIR/CheatDeck/package.json"
+                    echo "TEST_UPDATE: CheatDeck"
+                    ;;
+                steamgriddb) echo "TEST_UPDATE: SteamGridDB" ;;
+                cssloader) echo "TEST_UPDATE: CSS Loader" ;;
+                friendeck) echo "TEST_UPDATE: Friendeck" ;;
+                deckymusic) echo "TEST_UPDATE: Decky Music" ;;
+                *) return 1 ;;
+            esac
+            return 0
         }
         refresh_feature_usage_guides() { return 0; }
         reload_decky_plugins() { return 0; }
@@ -624,6 +648,10 @@ update_output="$(
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: LSFG'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: FSR4'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: CheatDeck'
+printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: SteamGridDB'
+printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: CSS Loader'
+printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: Friendeck'
+printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: Decky Music'
 printf '%s\n' "$update_output" | grep -Fq '官方版本 0.12.5'
 printf '%s\n' "$update_output" | grep -Fq '官方版本 0.17.0'
 
