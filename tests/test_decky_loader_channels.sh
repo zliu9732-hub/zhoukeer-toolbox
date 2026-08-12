@@ -379,6 +379,20 @@ prerelease_install_line="$(grep -n '^install -m 0755 .*PluginLoader.new' "$CALLS
     fail "测试版未在写入新文件前停用系统级和用户级旧服务"
 grep -Fq 'LOG_LEVEL=DEBUG' "$UNIT_PATH" || fail "测试版未安装官方预发布服务模板"
 
+# GitHub 与 Gitee 使用独立发布历史；自动镜像必须在 Gitee v2 当前历史上提交，
+# 不能再把 GitHub main 直接推到旧仓库，否则会因 non-fast-forward 永久失败。
+SYNC_WORKFLOW="$PROJECT_ROOT/.github/workflows/sync-decky-gitee.yml"
+grep -Fq 'zhoukeer-toolbox-v2.git' "$SYNC_WORKFLOW" || \
+    fail "Decky 自动镜像未指向当前 Gitee v2 仓库"
+grep -Fq 'git clone --depth 1 --filter=blob:none --sparse' "$SYNC_WORKFLOW" || \
+    fail "Decky 自动镜像未基于 Gitee 当前历史创建普通提交"
+grep -Fq 'sparse-checkout set decky-installer-cn' "$SYNC_WORKFLOW" || \
+    fail "Decky 自动镜像未限制为 Decky 目录"
+if grep -Fq 'zhoukeer-toolbox.git"' "$SYNC_WORKFLOW" || \
+   grep -Fq 'git push gitee main' "$SYNC_WORKFLOW"; then
+    fail "Decky 自动镜像仍直接推送旧 Gitee 仓库或分叉历史"
+fi
+
 # Gitee 镜像不可用时，必须回退到原有国内/官方线路。
 : > "$CALLS"
 GITEE_FAIL=1
