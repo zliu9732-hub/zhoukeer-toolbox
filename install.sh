@@ -131,6 +131,17 @@ assignment_is_retired_unifideck_default() {
     esac
 }
 
+assignment_is_retired_deckrecall_default() {
+    local key="$1"
+    local assignment="$2"
+
+    case "$key:$assignment" in
+        DECKY_DECKRECALL_URL:*releases/download/v0.2.8/DeckRecall.zip*|DECKY_DECKRECALL_URL:*releases/download/v0.3.1/DeckRecall.zip*) return 0 ;;
+        DECKY_DECKRECALL_SHA256:*360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4*|DECKY_DECKRECALL_SHA256:*b17b484569b34811991392bef245101b6b5790a9f00634cd90d6d7550be5612c*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 prepare_config_migration() {
     local config_file="$1"
     local example_file="$2"
@@ -184,6 +195,12 @@ prepare_config_migration() {
         fi
 
         if assignment_is_retired_unifideck_default "$key" "$current_assignment"; then
+            CONFIG_MIGRATION_KEYS+=("$key")
+            CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
+            continue
+        fi
+
+        if assignment_is_retired_deckrecall_default "$key" "$current_assignment"; then
             CONFIG_MIGRATION_KEYS+=("$key")
             CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
         fi

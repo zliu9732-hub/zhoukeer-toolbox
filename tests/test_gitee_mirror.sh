@@ -93,11 +93,11 @@ grep -Fq 'allycenter|Ally Center|v1.2.0|allycenter-v1.2.0.zip|' \
     "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || FAIL "Ally Center 缺少 Gitee 固定镜像清单"
 grep -Fq '| Ally Center |' "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" || \
     FAIL "License 清单缺少 Ally Center"
-deckrecall_mirror_id="$(gitee_mirror_id_for_url \
-    'https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.8/DeckRecall.zip')"
-[ "$deckrecall_mirror_id" = "deckrecall" ] || FAIL "DeckRecall 作者授权后的镜像标识映射错误"
-grep -Fq 'deckrecall|DeckRecall|v0.2.8|DeckRecall.zip|' \
-    "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || FAIL "DeckRecall 缺少 Gitee 固定镜像清单"
+if gitee_mirror_id_for_url \
+    'https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.3.2/DeckRecall.zip' \
+    >/dev/null 2>&1; then
+    FAIL "DeckRecall v0.3.2 仍被路由到过期 Gitee v0.2.8 镜像清单"
+fi
 grep -Fq '作者授权 Renkit 镜像分发 | 是' "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" || \
     FAIL "DeckRecall 作者镜像授权未写入 License 清单"
 onexplayer_mirror_id="$(gitee_mirror_id_for_url \

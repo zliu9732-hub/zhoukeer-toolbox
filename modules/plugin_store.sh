@@ -65,10 +65,10 @@ DECKY_CHEATDECK_SHA256="32e2931f9ca8083c1605f04b4ed089b0bf210f79db236a7fd34f02c5
 DECKY_CHEATDECK_VERSION="2.0.0"
 DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip"
 DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
-DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.8/DeckRecall.zip"
-DECKY_DECKRECALL_SHA256="360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4"
+DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.3.2/DeckRecall.zip"
+DECKY_DECKRECALL_SHA256="a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c"
+DECKY_DECKRECALL_VERSION="0.3.2"
 DECKY_DECKRECALL_AUTO_UPDATE="${ZHOUKEER_DECKY_DECKRECALL_AUTO_UPDATE:-1}"
-DECKY_DECKRECALL_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_LATEST_GITHUB_VERSION=""
 DECKY_LATEST_GITHUB_URL=""
 DECKY_LATEST_GITHUB_SHA256=""
@@ -150,10 +150,26 @@ resolve_deckrecall_latest() {
         '^DeckRecall[.]zip$' "DeckRecall"; then
         DECKY_DECKRECALL_URL="$_LATEST_RELEASE_URL"
         DECKY_DECKRECALL_SHA256="$_LATEST_RELEASE_SHA256"
+        DECKY_DECKRECALL_VERSION="${_LATEST_RELEASE_TAG#v}"
         log "DeckRecall 自动检测最新版本: $_LATEST_RELEASE_TAG"
     else
         echo "自动检测最新 DeckRecall 失败，继续使用固定版本。"
     fi
+}
+
+deckrecall_version_is_older() {
+    local installed="$1"
+    local latest="$2"
+    local installed_major installed_minor installed_patch
+    local latest_major latest_minor latest_patch
+
+    [[ "$installed" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || return 1
+    [[ "$latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || return 1
+    IFS=. read -r installed_major installed_minor installed_patch <<< "$installed"
+    IFS=. read -r latest_major latest_minor latest_patch <<< "$latest"
+    [ "$installed_major" -lt "$latest_major" ] || \
+        { [ "$installed_major" -eq "$latest_major" ] && [ "$installed_minor" -lt "$latest_minor" ]; } || \
+        { [ "$installed_major" -eq "$latest_major" ] && [ "$installed_minor" -eq "$latest_minor" ] && [ "$installed_patch" -lt "$latest_patch" ]; }
 }
 
 resolve_plugin_latest() {
@@ -1410,6 +1426,7 @@ patch_deckrecall_steam_browser() {
     local temporary
     local staged
     local index_size
+    local installed_version
     local patched_marker='steamBrowser.OpenUrl("https://flingtrainer.com/");'
 
     [ -d "$plugin_dir" ] && [ ! -L "$plugin_dir" ] && \
@@ -1428,6 +1445,12 @@ patch_deckrecall_steam_browser() {
     if [ "$index_size" -le 0 ] || [ "$index_size" -gt 4194304 ]; then
         echo "DeckRecall 前端文件大小异常，未修改浏览器调用。"
         return 1
+    fi
+    installed_version="$(decky_plugin_version "$plugin_dir" || true)"
+    if [[ "$installed_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
+        ! deckrecall_version_is_older "$installed_version" "0.3.1"; then
+        echo "[已内置] DeckRecall $installed_version 已使用新版下载与浏览器处理，无需兼容补丁。"
+        return 0
     fi
     if grep -Fq -- "$patched_marker" "$index_file"; then
         echo "[已修复] DeckRecall 已直接调用 Steam 浏览器打开风灵月影网站。"
@@ -3325,11 +3348,24 @@ install_configured_plugin() {
             ;;
         deckrecall)
             resolve_plugin_latest deckrecall
-            GITEE_MIRROR_REPO="$DECKY_DECKRECALL_MIRROR_REPO" install_decky_zip \
-                "DeckRecall（添加启动项及恢复游戏可玩状态）" \
-                "${DECKY_DECKRECALL_URL:-}" \
-                "${DECKY_DECKRECALL_SHA256:-}" \
-                "DeckRecall"
+            installed_version="$(decky_plugin_version \
+                "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/DeckRecall" || true)"
+            if feature_plugin_is_present \
+                "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "DeckRecall" "DeckRecall" && \
+                [[ "$installed_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
+                ! deckrecall_version_is_older "$installed_version" "$DECKY_DECKRECALL_VERSION"; then
+                echo "[已安装] DeckRecall $installed_version 已是最新正式版，无需重复下载。"
+                PLUGIN_INSTALL_CHANGED=0
+            else
+                [ -z "$installed_version" ] || \
+                    echo "检测到 DeckRecall 已安装版本 $installed_version，最新正式版 $DECKY_DECKRECALL_VERSION。"
+                GITHUB_RETRIES=1 GITHUB_MIN_SPEED_TIME=15 install_decky_zip \
+                    "DeckRecall（添加启动项及恢复游戏可玩状态）" \
+                    "${DECKY_DECKRECALL_URL:-}" \
+                    "${DECKY_DECKRECALL_SHA256:-}" \
+                    "DeckRecall" \
+                    0
+            fi
             patch_deckrecall_steam_browser || return 1
             if decky_plugin_directory_is_complete \
                 "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "DeckRecall"; then

@@ -400,7 +400,6 @@ gitee_mirror_id_for_url() {
         *'/xXJSONDeruloXx/Decky-Framegen/releases/download/'*) printf '%s\n' fsr4 ;;
         *'/SheffeyG/CheatDeck/releases/download/'*) printf '%s\n' cheatdeck ;;
         *'/YukiCoco/ToMoon/releases/download/'*) printf '%s\n' tomoon ;;
-        *'/Ren-Amamiya-pixle/DeckRecall/releases/download/'*) printf '%s\n' deckrecall ;;
         *'/mubaraknumann/unifideck/releases/download/'*) printf '%s\n' unifideck ;;
         *'/panyiwei-home/Freedeck/releases/download/'*) printf '%s\n' freedeck ;;
         *'/PixelAddictUnlocked/allycenter/releases/download/'*) printf '%s\n' allycenter ;;

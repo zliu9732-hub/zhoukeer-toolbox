@@ -108,14 +108,32 @@ grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$PROJECT_R
 grep -Fq 'Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CheatDeck/releases/download/v2.0.0/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.8/DeckRecall.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'DECKY_DECKRECALL_SHA256="360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4"' \
+grep -Fq 'Ren-Amamiya-pixle/DeckRecall/releases/download/v0.3.2/DeckRecall.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'DECKY_DECKRECALL_SHA256="a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c"' \
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'resolve_deckrecall_latest' "$PROJECT_ROOT/modules/plugin_store.sh"
 deckrecall_install="$(sed -n '/^[[:space:]]*deckrecall)/,/^[[:space:]]*;;/p' "$PROJECT_ROOT/modules/plugin_store.sh")"
 printf '%s\n' "$deckrecall_install" | grep -Fq '"DeckRecall"' || {
     echo "FAIL: DeckRecall 未校验发布包插件目录" >&2
+    exit 1
+}
+printf '%s\n' "$deckrecall_install" | grep -Fq 'DeckRecall $installed_version 已是最新正式版，无需重复下载' || {
+    echo "FAIL: DeckRecall 同版仍会重复下载" >&2
+    exit 1
+}
+printf '%s\n' "$deckrecall_install" | grep -Fq 'GITHUB_MIN_SPEED_TIME=15' || {
+    echo "FAIL: DeckRecall 下载低速切换时间过长" >&2
+    exit 1
+}
+(
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    deckrecall_version_is_older 0.2.8 0.3.1
+    ! deckrecall_version_is_older 0.3.1 0.3.1
+    ! deckrecall_version_is_older 0.10.0 0.9.0
+) || {
+    echo "FAIL: DeckRecall 未正确使用三段语义版本比较" >&2
     exit 1
 }
 grep -Fq 'mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip' \
@@ -380,8 +398,8 @@ grep -Fq 'features) show_plugin_download_speed_tip; install_feature_plugins' "$P
 grep -Fq 'tomoon) show_plugin_download_speed_tip; install_configured_plugin tomoon' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'deckrecall) show_plugin_download_speed_tip; install_configured_plugin deckrecall' "$PROJECT_ROOT/modules/plugin_store.sh"
 
-# DeckRecall 的镜像变量不能通过子 shell 隔离，否则安装完成标记会丢失，
-# Decky 不会重载；已写入完整文件的旧安装再次执行也必须补做重载。
+# DeckRecall 不再走过期 Gitee 清单；安装完成标记仍不能被子 Shell 隔离，
+# Decky 才能在新安装或旧安装修复后正确重载。
 DECKRECALL_RELOAD_LOG="$TMP_ROOT/deckrecall-reload.log"
 DECKRECALL_MIRROR_LOG="$TMP_ROOT/deckrecall-mirror.log"
 (
@@ -413,10 +431,14 @@ DECKRECALL_MIRROR_LOG="$TMP_ROOT/deckrecall-mirror.log"
     echo "FAIL: DeckRecall 新安装或已有文件修复后没有重载 Decky" >&2
     exit 1
 }
-[ "$(grep -c '^zhoukeer-toolbox-mirror-3$' "$DECKRECALL_MIRROR_LOG")" -eq 2 ] || {
-    echo "FAIL: DeckRecall 没有使用指定 Gitee 镜像仓库" >&2
+[ "$(grep -c '^zhoukeer-toolbox-mirror$' "$DECKRECALL_MIRROR_LOG")" -eq 2 ] || {
+    echo "FAIL: DeckRecall 安装被注入了非默认镜像仓库" >&2
     exit 1
 }
+if printf '%s\n' "$deckrecall_install" | grep -Fq 'GITEE_MIRROR_REPO='; then
+    echo "FAIL: DeckRecall 仍被强制注入 Gitee 镜像仓库" >&2
+    exit 1
+fi
 
 # DeckRecall 必须对齐桌面模式已验证可下载的 Steam 浏览器调用，不能改用
 # 系统浏览器；重复修复必须保持幂等，并能迁移 1.4.1 的错误补丁。
