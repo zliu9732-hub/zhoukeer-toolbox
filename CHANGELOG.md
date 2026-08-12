@@ -1,3 +1,10 @@
+## Renkit 1.4.4 Decky Gitee 自动镜像修复 — 2026-08-12
+
+- 修复定时任务把 GitHub `main` 直接推送到已分叉的旧 Gitee 仓库，持续触发 `non-fast-forward` 失败邮件的问题。
+- Decky 自动镜像改为克隆当前 `zhoukeer-toolbox-v2` 的 Gitee 历史，只同步 `decky-installer-cn` 目录并创建普通提交；不 force push、不覆盖 Gitee 历史。
+- 新增工作流静态回归检查，防止镜像地址退回旧仓库或再次直接推送分叉历史；Decky 稳定版与测试版安装逻辑不变。
+- 同步修正运行时显示版本，使其与正式发布版本保持一致；自动更新继续兼容历史 `1.3.10` 用户。
+
 ## Renkit 1.4.3 启动器横向胶囊图比例修复 — 2026-08-11
 
 - 修复 Epic、战网、育碧、黑盒工坊把 600×900 竖版封面同时写入 Steam `grid_l / Wide Capsule` 横向槽位，导致横屏封面被放大裁切的问题。

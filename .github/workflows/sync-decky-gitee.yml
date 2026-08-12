@@ -42,5 +42,19 @@ jobs:
             echo "GITEE_TOKEN secret is missing"
             exit 1
           fi
-          git remote add gitee "https://zliu9732-hub:${GITEE_TOKEN}@gitee.com/zliu9732-hub/zhoukeer-toolbox.git"
-          git push gitee main
+          sync_dir="$(mktemp -d)"
+          git clone --depth 1 --filter=blob:none --sparse \
+            "https://zliu9732-hub:${GITEE_TOKEN}@gitee.com/zliu9732-hub/zhoukeer-toolbox-v2.git" \
+            "$sync_dir/repo"
+          git -C "$sync_dir/repo" sparse-checkout set decky-installer-cn
+          git -C "$sync_dir/repo" config user.name "zhoukeer-toolbox[bot]"
+          git -C "$sync_dir/repo" config user.email "bot@users.noreply.github.com"
+          git -C "$sync_dir/repo" rm -r --ignore-unmatch decky-installer-cn
+          cp -a -- decky-installer-cn "$sync_dir/repo/"
+          git -C "$sync_dir/repo" add decky-installer-cn
+          if git -C "$sync_dir/repo" diff --cached --quiet; then
+            echo "No Gitee Decky mirror changes"
+          else
+            git -C "$sync_dir/repo" commit -m "Sync Decky Loader mirror to latest"
+            git -C "$sync_dir/repo" push origin main
+          fi
