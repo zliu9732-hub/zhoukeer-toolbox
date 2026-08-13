@@ -98,6 +98,9 @@ test_blank_config_migration() {
         "5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
     assert_value "$config_file" DECKY_DECKRECALL_SHA256 \
         "a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c"
+    assert_value "$config_file" DECKY_SAVEPULSE_SHA256 \
+        "28c150fc7639c51ed7b3b28b70b6a3cd3cbe92b5ac683917129661a1e02b8b1f"
+    assert_value "$config_file" DECKY_SAVEPULSE_VERSION "0.1.0-alpha.1"
 
     backup_count="$(find "$install_dir/config" -maxdepth 1 -type f \
         -name 'settings.conf.bak.*' | wc -l | tr -d ' ')"

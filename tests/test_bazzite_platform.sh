@@ -171,7 +171,7 @@ grep -Fq 'DECKY_BUNDLE_INCLUDE_CUSTOM=0' "$PROJECT_ROOT/main-bazzite.sh" || fail
 grep -Fq 'modules/plugin_store.sh" features' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 汉化功能插件组合入口缺失"
 grep -Fq 'modules/plugin_store.sh" lsfg-zh-gitee' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 小黄鸭入口缺失"
 grep -Fq 'modules/plugin_store.sh" fsr4-zh-gitee' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite FSR4 入口缺失"
-for plugin_action in cheatdeck deckrecall freedeck newfreedeck tomoon unifideck \
+for plugin_action in cheatdeck deckrecall savepulse freedeck newfreedeck tomoon unifideck \
     simpledeckytdp-zh-gitee allycenter huesync legiongo-remapper gpd-control lego-vibe lego2-fan \
     onexplayer-apex; do
     grep -Fq "modules/plugin_store.sh\" $plugin_action" "$PROJECT_ROOT/main-bazzite.sh" || \

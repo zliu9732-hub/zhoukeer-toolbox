@@ -18,6 +18,7 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | Decky Music | QQ 音乐与网易云音乐插件 | https://github.com/jinzhongjia/decky-music | MIT | 是 | v1.0.0 原包；安装后仅改 `plugin.json` 显示名称 |
 | ToMoon | ToMoon 插件 | https://github.com/YukiCoco/ToMoon | BSD-3-Clause | 是 | |
 | DeckRecall | DeckRecall 插件 | https://github.com/Ren-Amamiya-pixle/DeckRecall | 作者授权 Renkit 镜像分发 | 是 | DeckRecall 作者于 2026-08-10 在 Renkit 开发会话中明确授权国内镜像分发 |
+| SavePulse | 自动版本存档与加密 WebDAV 换机恢复插件 | https://github.com/Ren-Amamiya-pixle/SavePulse | GPL-3.0-only | 否（作者 GitHub Release） | 每位用户绑定自己的坚果云或标准 WebDAV，Renkit 仅安装固定校验的公开 Release |
 | Unifideck | Unifideck 插件 | https://github.com/mubaraknumann/unifideck | GPL-3.0 | 是 | |
 | Freedeck | Freedeck 插件 | https://github.com/panyiwei-home/Freedeck | BSD-3-Clause | 是 | LICENSE 文件为 BSD-3 文本 |
 | Ally Center | ROG Ally / Ally X 硬件控制插件 | https://github.com/PixelAddictUnlocked/allycenter | MIT | 是 | 上游 Release 原包，支持 RGB、TDP、风扇与充电上限 |

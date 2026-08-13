@@ -110,6 +110,8 @@ grep -Fq 'CheatDeck/releases/download/v2.0.0/CheatDeck.zip' "$PROJECT_ROOT/modul
 grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Ren-Amamiya-pixle/DeckRecall/releases/download/v0.3.2/DeckRecall.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'Ren-Amamiya-pixle/SavePulse/releases/download/v0.1.0-alpha.1/SavePulse.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '28c150fc7639c51ed7b3b28b70b6a3cd3cbe92b5ac683917129661a1e02b8b1f' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_DECKRECALL_SHA256="a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c"' \
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'resolve_deckrecall_latest' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -124,6 +126,50 @@ printf '%s\n' "$deckrecall_install" | grep -Fq 'DeckRecall $installed_version �
 }
 printf '%s\n' "$deckrecall_install" | grep -Fq 'GITHUB_MIN_SPEED_TIME=15' || {
     echo "FAIL: DeckRecall 下载低速切换时间过长" >&2
+    exit 1
+}
+savepulse_install="$(sed -n '/^[[:space:]]*savepulse)/,/^[[:space:]]*;;/p' "$PROJECT_ROOT/modules/plugin_store.sh")"
+printf '%s\n' "$savepulse_install" | grep -Fq '"SavePulse"' || {
+    echo "FAIL: SavePulse 未校验发布包插件目录" >&2
+    exit 1
+}
+printf '%s\n' "$savepulse_install" | grep -Fq 'DECKY_SAVEPULSE_SHA256' || {
+    echo "FAIL: SavePulse 未使用固定 SHA256" >&2
+    exit 1
+}
+
+# SavePulse 公开 Release 为单一顶层目录；使用本地 ZIP 桩验证固定版本安装、
+# 目录检查、原子替换及 Decky 重载，不发起网络请求。
+SAVEPULSE_ARCHIVE="$TMP_ROOT/SavePulse.zip"
+SAVEPULSE_BUILD="$TMP_ROOT/savepulse-build/SavePulse"
+SAVEPULSE_PLUGIN_ROOT="$TMP_ROOT/savepulse-plugins"
+mkdir -p "$SAVEPULSE_BUILD/dist" "$SAVEPULSE_BUILD/backend" "$SAVEPULSE_PLUGIN_ROOT"
+printf '{"name":"SavePulse","flags":["root"],"api_version":1}\n' > "$SAVEPULSE_BUILD/plugin.json"
+printf '{"version":"0.1.0-alpha.1"}\n' > "$SAVEPULSE_BUILD/package.json"
+printf 'test bundle\n' > "$SAVEPULSE_BUILD/dist/index.js"
+printf '# backend fixture\n' > "$SAVEPULSE_BUILD/main.py"
+printf '# package fixture\n' > "$SAVEPULSE_BUILD/backend/main.py"
+(
+    cd "$(dirname "$SAVEPULSE_BUILD")"
+    zip -qr "$SAVEPULSE_ARCHIVE" SavePulse
+)
+savepulse_install_output="$(
+    SAVEPULSE_ARCHIVE="$SAVEPULSE_ARCHIVE" \
+    DECKY_PLUGIN_DIR="$SAVEPULSE_PLUGIN_ROOT" \
+    PROJECT_ROOT="$PROJECT_ROOT" \
+    ZHOUKEER_TEST_MODE=1 \
+    bash -c '
+        source "$PROJECT_ROOT/modules/plugin_store.sh"
+        detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
+        download_verified_package() { cp -- "$SAVEPULSE_ARCHIVE" "$4"; }
+        reload_decky_plugins() { echo "TEST_RELOAD: SavePulse"; }
+        install_configured_plugin savepulse
+    '
+)"
+printf '%s\n' "$savepulse_install_output" | grep -Fq 'SavePulse（自动存档与加密 WebDAV 换机恢复） 安装成功。'
+printf '%s\n' "$savepulse_install_output" | grep -Fq 'TEST_RELOAD: SavePulse'
+[ -s "$SAVEPULSE_PLUGIN_ROOT/SavePulse/plugin.json" ] || {
+    echo "FAIL: SavePulse 未安装到预期目录" >&2
     exit 1
 }
 (

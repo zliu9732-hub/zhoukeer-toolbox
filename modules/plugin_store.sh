@@ -86,6 +86,9 @@ DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/d
 DECKY_DECKRECALL_SHA256="a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c"
 DECKY_DECKRECALL_VERSION="0.3.2"
 DECKY_DECKRECALL_AUTO_UPDATE="${ZHOUKEER_DECKY_DECKRECALL_AUTO_UPDATE:-1}"
+DECKY_SAVEPULSE_URL="${DECKY_SAVEPULSE_URL:-https://github.com/Ren-Amamiya-pixle/SavePulse/releases/download/v0.1.0-alpha.1/SavePulse.zip}"
+DECKY_SAVEPULSE_SHA256="${DECKY_SAVEPULSE_SHA256:-28c150fc7639c51ed7b3b28b70b6a3cd3cbe92b5ac683917129661a1e02b8b1f}"
+DECKY_SAVEPULSE_VERSION="${DECKY_SAVEPULSE_VERSION:-0.1.0-alpha.1}"
 DECKY_LATEST_GITHUB_VERSION=""
 DECKY_LATEST_GITHUB_URL=""
 DECKY_LATEST_GITHUB_SHA256=""
@@ -3472,6 +3475,25 @@ install_configured_plugin() {
                 deckrecall_ready=1
             fi
             ;;
+        savepulse)
+            if feature_plugin_is_current \
+                "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
+                "SavePulse" "$DECKY_SAVEPULSE_VERSION" "SavePulse"; then
+                echo "[已安装] SavePulse $DECKY_SAVEPULSE_VERSION 已存在且文件完整，无需重复安装。"
+                PLUGIN_INSTALL_CHANGED=0
+            else
+                installed_version="$(decky_plugin_version \
+                    "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/SavePulse" || true)"
+                [ -z "$installed_version" ] || \
+                    echo "检测到 SavePulse 已安装版本 $installed_version，将更新到 $DECKY_SAVEPULSE_VERSION。"
+                GITHUB_RETRIES=1 GITHUB_MIN_SPEED_TIME=15 install_decky_zip \
+                    "SavePulse（自动存档与加密 WebDAV 换机恢复）" \
+                    "$DECKY_SAVEPULSE_URL" \
+                    "$DECKY_SAVEPULSE_SHA256" \
+                    "SavePulse" \
+                    0
+            fi
+            ;;
         freedeck)
             resolve_plugin_latest freedeck
             install_decky_zip \
@@ -3891,6 +3913,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         deckymusic) show_plugin_download_speed_tip; install_configured_plugin deckymusic ;;
         tomoon) show_plugin_download_speed_tip; install_configured_plugin tomoon ;;
         deckrecall) show_plugin_download_speed_tip; install_configured_plugin deckrecall ;;
+        savepulse) show_plugin_download_speed_tip; install_configured_plugin savepulse ;;
         freedeck) show_plugin_download_speed_tip; install_configured_plugin freedeck ;;
         newfreedeck) show_plugin_download_speed_tip; install_configured_plugin newfreedeck ;;
         allycenter) show_plugin_download_speed_tip; install_configured_plugin allycenter ;;

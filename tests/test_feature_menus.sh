@@ -78,21 +78,23 @@ for menu in "$touch_remote" "$gui_remote"; do
 done
 
 touch_plugin_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
+touch_launcher_tools="$(function_source "$MAIN_FILE" launcher_tools_menu)"
 gui_games="$(function_source "$GUI_FILE" game_environment_gui_menu)"
 touch_freedeck="$(function_source "$MAIN_FILE" freedeck_versions_menu)"
 touch_handheld_plugins="$(function_source "$MAIN_FILE" handheld_plugins_menu)"
-assert_contains "$touch_plugin_page_2" '战网启动器' "插件第二页缺少战网启动器"
+assert_contains "$touch_plugin_page_2" '启动器与封面' "插件第二页缺少启动器与封面子菜单"
+assert_contains "$touch_launcher_tools" '战网与黑盒工坊' "启动器与封面子菜单缺少战网入口"
 assert_contains "$gui_games" '战网启动器' "GUI 游戏与插件缺少战网启动器"
 assert_contains "$touch_plugin_page_2" 'ToMoon' "插件第二页缺少 ToMoon"
 assert_contains "$gui_games" 'ToMoon' "GUI 游戏与插件缺少 ToMoon"
 assert_not_contains "$touch_plugin_page_2" '安装模拟器' "插件第二页仍显示模拟器入口"
 assert_not_contains "$gui_games" '安装模拟器' "GUI 游戏与插件仍显示模拟器入口"
-assert_contains "$touch_plugin_page_2" 'right:19-20:repair' "插件第二页缺少修复封面坐标"
+assert_contains "$touch_launcher_tools" 'right:11-12:repair' "启动器与封面子菜单缺少修复封面坐标"
 assert_contains "$touch_plugin_page_2" 'right:21-22:previous' "插件第二页缺少调整后的上一页坐标"
 assert_contains "$touch_plugin_page_2" 'right:23-24:home' "插件第二页缺少调整后的返回首页坐标"
 assert_contains "$touch_plugin_page_2" 'modules/plugin_store.sh" tomoon' "触控 ToMoon 未使用独立安装器"
 assert_contains "$gui_games" 'modules/plugin_store.sh" tomoon' "GUI ToMoon 未使用独立安装器"
-assert_contains "$touch_plugin_page_2" 'right:5-6:handheld-plugins' "插件第二页缺少掌机控制插件子菜单"
+assert_contains "$touch_plugin_page_2" 'right:9-10:handheld-plugins' "插件第二页缺少掌机控制插件子菜单"
 for menu in "$touch_handheld_plugins" "$gui_games"; do
     assert_contains "$menu" 'Ally 控制中心' "掌机控制插件菜单缺少中文名称"
     assert_contains "$menu" 'ROG Ally / Ally X' "Ally Center 入口缺少适用机型"
@@ -122,6 +124,7 @@ done
 touch_games="$(function_source "$MAIN_FILE" game_environment_menu)
 $(function_source "$MAIN_FILE" decky_loader_menu)
 $(function_source "$MAIN_FILE" plugin_page_2_menu)
+$(function_source "$MAIN_FILE" launcher_tools_menu)
 $(function_source "$MAIN_FILE" handheld_plugins_menu)
 $(function_source "$MAIN_FILE" battlenet_submenu)"
 gui_games="$(function_source "$GUI_FILE" game_environment_gui_menu)"
@@ -235,16 +238,17 @@ for menu in "$touch_games_page_1" "$gui_games_page_1"; do
     assert_contains "$menu" 'CEF 远程调试' "插件商城或插件组合缺少 CEF 远程调试提示"
 done
 touch_games_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
+touch_launcher_tools="$(function_source "$MAIN_FILE" launcher_tools_menu)"
 touch_emulators="$(function_source "$MAIN_FILE" emulator_menu)"
 gui_emulators="$(function_source "$GUI_FILE" emulator_gui_menu)"
-assert_contains "$touch_games_page_1" 'right:13-14:cheatdeck' "CheatDeck 未移动到插件第一页原 TDP 位置"
-assert_contains "$touch_games_page_2" 'right:5-6:handheld-plugins' "掌机控制插件子菜单未放在插件第二页原功耗控制位置"
+assert_contains "$touch_games_page_1" 'right:11-12:cheatdeck' "CheatDeck 未放在插件第一页"
+assert_contains "$touch_games_page_2" 'right:9-10:handheld-plugins' "掌机控制插件子菜单未放在插件第二页"
 touch_handheld_plugins="$(function_source "$MAIN_FILE" handheld_plugins_menu)"
 assert_contains "$touch_handheld_plugins" 'right:5-6:simpledeckytdp' "掌机控制插件子菜单缺少 SimpleDeckyTDP"
 assert_contains "$touch_handheld_plugins" 'right:7-8:allycenter' "掌机控制插件子菜单缺少 Ally Center"
-assert_contains "$touch_games_page_2" 'right:9-10:tomoon' "ToMoon 未紧挨 Unifideck 排列"
-assert_contains "$touch_games_page_2" 'right:17-18:ubisoft' "Ubisoft Connect 未加入插件第二页"
-assert_contains "$touch_games_page_2" '"育碧"' "育碧菜单仍显示旧名称"
+assert_contains "$touch_games_page_2" 'right:13-14:tomoon' "ToMoon 未紧挨 Unifideck 排列"
+assert_contains "$touch_launcher_tools" 'right:9-10:ubisoft' "Ubisoft Connect 未加入启动器子菜单"
+assert_contains "$touch_launcher_tools" '"育碧"' "育碧菜单仍显示旧名称"
 for menu in "$touch_emulators" "$gui_emulators"; do
     for item in 'Yuzu' 'Cemu' 'DuckStation' 'PCSX2' 'RPCS3' 'ShadPS4' 'PPSSPP' 'mGBA' 'Azahar'; do
         assert_contains "$menu" "$item" "模拟器菜单缺少：$item"

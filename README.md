@@ -2,7 +2,7 @@
 
 Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装命令会自动选择独立版本：SteamOS 保留完整原版功能，Bazzite 使用单独菜单，仅开放已适配的常用软件、Decky、兼容层、启动器、模拟器和诊断功能。
 
-当前正式版：Renkit 1.4.7；从 Renkit 1.0 起按语义化版本递增。
+当前正式版：Renkit 1.4.8；从 Renkit 1.0 起按语义化版本递增。
 
 - SteamOS 版：继续使用原有 `main.sh`，系统初始化、国内源、插件与高级功能保持原逻辑。
 - Bazzite 版：使用独立 `main-bazzite.sh`；Decky 通过官方 `ujust setup-decky` 安装，并可整组或逐个安装官方商店插件；Flatpak 默认使用带 GPG 验证的官方 Flathub，国内镜像仅在用户确认风险后以用户级远程启用，并可恢复官方源；提供用户级软件、启动器、模拟器与 GE-Proton 安装/卸载，以及 Yuzu 自备密钥、诊断、攻略和快捷方式维护；不调用 pacman、steamos-readonly、ToDesk、AnyDesk或内存调优。Clover 双系统引导作为独立高风险入口开放，动态识别 Bazzite EFI，并提供状态检查和恢复。
@@ -22,7 +22,7 @@ Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装�
 ## 功能
 
 - 一键新机初始化：一次确认后执行 18 项客户交付流程，检查 SteamOS、网络、电源和系统组件，配置国内源与中文输入法，安装常用软件、Decky、FreeDeck、Epic、常用插件、修改器兼容层、虚拟内存和 Steamcommunity 302，并生成桌面报告与使用说明；战网、Ubisoft Connect 和黑盒工坊开始前可选。
-- 插件商城：常用组合包含小黄鸭、FSR4、CheatDeck、游戏封面更换（SteamGridDB）、主题美化（CSS Loader 中文版）、文件传输助手（Friendeck）和音乐播放器（Decky Music），另提供 Decky 官方精选插件；支持整组或单项安装和七款文件状态检查。固定版本均先走国内镜像，失败后回退作者发布源，并执行 SHA256、ZIP 结构与插件目录校验。安装或检测到功能插件后会在桌面补充风灵月影、小黄鸭和 FSR4 小白教程；检测到 FSR4 时另建 OptiScaler 官方 Wiki 已测试游戏清单。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
+- 插件商城：常用组合包含小黄鸭、FSR4、CheatDeck、游戏封面更换（SteamGridDB）、主题美化（CSS Loader 中文版）、文件传输助手（Friendeck）和音乐播放器（Decky Music），另提供 Decky 官方精选插件；支持整组或单项安装和七款文件状态检查。独立提供 DeckRecall 与 SavePulse：SavePulse 可自动保留存档版本，并使用每位用户自己的坚果云或标准 WebDAV 做加密备份和换机恢复。固定版本均执行 SHA256、ZIP 结构与插件目录校验。安装或检测到功能插件后会在桌面补充风灵月影、小黄鸭和 FSR4 小白教程；检测到 FSR4 时另建 OptiScaler 官方 Wiki 已测试游戏清单。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
 
 使用小黄鸭前，安装完成后请在 Steam 正版页面打开游戏右侧齿轮，进入“属性 → 测试版”，选择名称以 Linux 开头的可用版本；随后进入游戏模式，按 Steam Deck 机身右下角的“三个点（…）”按钮，在打开的菜单中依次点击插头图标 → 小黄鸭 → 安装 LSFG。
 - 常用软件与远程协助：微信使用腾讯官网官方 AppImage；QQ、Chrome、Edge、AnyDesk、百度网盘、LibreOffice、VLC、OBS Studio、LocalSend、PeaZip、WiliWili、QQ音乐、网易云音乐、YesPlayMusic、qBittorrent、Motrix、Free Download Manager、Media Downloader、Flameshot、OnlyOffice、Joplin、Protontricks、Bottles 通过上海交大和中科大 Flathub 国内缓存安装；Xbox 云游戏通过 Flathub 安装 Greenlight，云游戏需 Xbox 账号；Heroic、Lutris、Chiaki4Deck、Parsec 通过 Flathub 安装并自动加入 Steam 库；WiliWili 也会同步加入 Steam 库；Firefox 使用官方 Flathub 的 `org.mozilla.firefox`；RustDesk 使用作者 GitHub Release 提供的 AppImage。安装成功后会创建桌面快捷方式，不修改 SteamOS 只读分区。
@@ -211,6 +211,6 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 
 ## 当前版本与维护
 
-当前正式版为 Renkit 1.4.7，后续版本从 1.0 起按语义化版本递增。后续维护同时覆盖 SteamOS 与 Bazzite 的独立菜单；rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
+当前正式版为 Renkit 1.4.8，后续版本从 1.0 起按语义化版本递增。后续维护同时覆盖 SteamOS 与 Bazzite 的独立菜单；rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。

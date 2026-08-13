@@ -518,22 +518,20 @@ game_environment_menu() {
         draw_category_frame games "游戏与插件｜插件商城" "浏览插件商城、运行组件和启动器" 0
         ui_touch_button 5 '\033[1;97;48;5;160m' "安装插件商城" "稳定版国内失败自动切换官方源 · 可选测试版 · 高级操作"
         ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭、FSR4、封面、主题等七款插件"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "DeckRecall" "添加启动项及恢复游戏可玩状态"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "小黄鸭" "插帧神器（必装）·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "FSR4" "画质补丁（阅读桌面文档慎用）·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "小黄鸭" "插帧神器（必装）·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "FSR4" "画质补丁（阅读桌面文档慎用）·汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）"
         ui_touch_button 19 '\033[1;97;48;5;24m' "Freedeck 版本选择" "0.6 稳定版或 NewFreedeck 重构版"
         ui_touch_button 21 '\033[1;97;48;5;238m' "下一页…" "查看剩余插件"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:decky-install right:7-8:features right:9-10:deckrecall right:11-12:browse right:13-14:cheatdeck right:15-16:lsfg right:17-18:fsr4 right:19-20:freedeck right:21-22:next right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:decky-install right:7-8:features right:9-10:browse right:11-12:cheatdeck right:13-14:lsfg right:15-16:fsr4 right:19-20:freedeck right:21-22:next right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
             decky-install) NEXT_CATEGORY="decky_loader"; return 0 ;;
             features) confirm_and_run "安装常用插件组合" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；未安装插件商城时会先安装插件商城，再继续安装七款常用插件；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
-            deckrecall) confirm_and_run "安装 DeckRecall" "添加启动项及恢复游戏可玩状态；来自作者 GitHub Release，下载后会校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckrecall ;;
             browse) plugin_official_touch_pages ;;
             cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             lsfg) confirm_and_run "安装小黄鸭" "插帧神器（必装）·国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
@@ -613,33 +611,57 @@ plugin_page_2_menu() {
 
     while true; do
         draw_category_frame games "插件安装｜更多" "更多独立插件和启动器" 0
-        ui_touch_button 5 '\033[1;97;48;5;24m' "掌机控制插件" "掌机功耗控制与 ROG Ally Center"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "Unifideck" "入库第三方平台游戏"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "ToMoon" "网络工具"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "安装 GE 兼容层" "提高 Windows 游戏兼容性"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "战网启动器" "安装并添加到 Steam"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "育碧" "安装育碧游戏平台并添加到 Steam"
-        ui_touch_button 19 '\033[1;97;48;5;24m' "重新应用启动器封面" "重写 Steam 库封面，不依赖 Decky"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "DeckRecall" "添加启动项及恢复游戏可玩状态"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "SavePulse" "自动版本存档、个人 WebDAV 云备份与换机恢复"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "掌机控制插件" "掌机功耗控制与 ROG Ally Center"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "Unifideck" "入库第三方平台游戏"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "ToMoon" "网络工具"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "安装 GE 兼容层" "提高 Windows 游戏兼容性"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "启动器与封面" "Epic、战网、育碧及封面修复"
         ui_touch_button 21 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:handheld-plugins right:7-8:unifideck right:9-10:tomoon right:11-12:epic right:13-14:ge-proton right:15-16:battlenet right:17-18:ubisoft right:19-20:repair right:21-22:previous right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:deckrecall right:7-8:savepulse right:9-10:handheld-plugins right:11-12:unifideck right:13-14:tomoon right:15-16:ge-proton right:17-18:launchers right:21-22:previous right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
+            deckrecall) confirm_and_run "安装 DeckRecall" "添加启动项及恢复游戏可玩状态；来自作者 GitHub Release，下载后会校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckrecall ;;
+            savepulse) confirm_and_run "安装 SavePulse" "自动版本存档、个人坚果云或标准 WebDAV 云备份与换机恢复；来自作者 GitHub Release，下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" savepulse ;;
             handheld-plugins) NEXT_CATEGORY="handheld_plugins"; return 0 ;;
             unifideck) confirm_and_run "安装 Unifideck" "入库第三方平台游戏；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
-            epic) confirm_and_run "安装 Epic 游戏启动器" "安装并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
             tomoon) confirm_and_run "安装 ToMoon" "网络工具插件，下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon ;;
-            battlenet) NEXT_CATEGORY="battlenet_submenu"; return 0 ;;
-            ubisoft) confirm_and_run "安装育碧" "自动安装育碧游戏平台、创建桌面入口并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft ;;
             ge-proton) ge_proton_menu ;;
-            repair) NEXT_CATEGORY="launcher_repair"; return 0 ;;
+            launchers) NEXT_CATEGORY="launcher_tools"; return 0 ;;
             previous) NEXT_CATEGORY="games"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "plugin_page_2" ] || return 0
+    done
+}
+
+launcher_tools_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame games "启动器与封面" "第三方启动器安装及 Steam 库封面修复" 0
+        ui_touch_button 5 '\033[1;97;48;5;24m' "Epic 游戏启动器" "安装并添加到 Steam"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "战网与黑盒工坊" "进入战网安装子菜单"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "育碧" "安装并添加到 Steam"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "重新应用启动器封面" "重写 Steam 库封面，不依赖 Decky"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件第二页"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页"
+        ui_prompt
+        choice="$(read_touch_menu right:5-6:epic right:7-8:battlenet right:9-10:ubisoft right:11-12:repair right:19-20:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            epic) confirm_and_run "安装 Epic 游戏启动器" "安装并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
+            battlenet) NEXT_CATEGORY="battlenet_submenu"; return 0 ;;
+            ubisoft) confirm_and_run "安装育碧" "自动安装育碧游戏平台、创建桌面入口并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft ;;
+            repair) NEXT_CATEGORY="launcher_repair"; return 0 ;;
+            back) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = "launcher_tools" ] || return 0
     done
 }
 
@@ -737,7 +759,7 @@ battlenet_submenu() {
         case "$choice" in
             battlenet) confirm_and_run "安装战网启动器" "自动下载预装客户端并绑定 Proton 10.0-4，写入 Steam 库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
             heihe) confirm_and_run "安装黑盒工坊" "自动下载预装客户端并绑定 Proton 10.0-4，写入 Steam 库；需要先安装战网启动器" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" heihe ;;
-            back) NEXT_CATEGORY="games"; return 0 ;;
+            back) NEXT_CATEGORY="launcher_tools"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "battlenet_submenu" ] || return 0
@@ -763,7 +785,7 @@ launcher_repair_menu() {
             battlenet) confirm_and_run "重新应用战网封面" "重写 Steam 库封面并重启 Steam，不依赖 Decky" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" apply-artwork battlenet ;;
             ubisoft) confirm_and_run "重新应用育碧封面" "重写 Steam 库封面并重启 Steam，不依赖 Decky" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" apply-artwork ubisoft ;;
             heihe) confirm_and_run "重新应用黑盒工坊封面" "重写 Steam 库封面并重启 Steam，不依赖 Decky" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" apply-artwork heihe ;;
-            back) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
+            back) NEXT_CATEGORY="launcher_tools"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "launcher_repair" ] || return 0
@@ -1521,6 +1543,7 @@ while true; do
         freedeck_versions) freedeck_versions_menu ;;
         decky_loader) decky_loader_menu ;;
         plugin_page_2) plugin_page_2_menu ;;
+        launcher_tools) launcher_tools_menu ;;
         handheld_plugins) handheld_plugins_menu ;;
         battlenet_submenu) battlenet_submenu ;;
         launcher_repair) launcher_repair_menu ;;

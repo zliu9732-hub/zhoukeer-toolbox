@@ -249,15 +249,17 @@ game_environment_gui_menu() {
             all "常用插件加27款精选插件｜优先安装七款常用插件，已装则跳过；再补27款精选" \
             lsfg "小黄鸭｜插帧神器（必装）" \
             fsr4 "FSR4｜画质补丁（阅读桌面文档慎用）" \
+            browse "浏览官方插件｜逐个查看插件作用" \
             freedeck "Freedeck｜选择 0.6 稳定版或 NewFreedeck" \
             handheld-plugins "掌机控制插件｜掌机功耗控制与 ROG Ally Center" \
-            browse "浏览官方插件｜逐个查看插件作用" \
             ge-proton "安装 GE 兼容层｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
             tomoon "ToMoon｜网络工具" \
             battlenet "战网启动器｜自动下载预装客户端并绑定 Proton 10.0-4" \
             ubisoft "育碧｜安装育碧游戏平台并添加到 Steam" \
             repair "修复启动器封面｜重写 Steam 库封面并重启 Steam" \
+            deckrecall "DeckRecall｜添加启动项及恢复游戏可玩状态" \
+            savepulse "SavePulse｜自动版本存档、个人 WebDAV 云备份与换机恢复" \
             decky-install "安装插件商城｜稳定版国内失败自动切换官方源｜可选测试版｜高级操作" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
@@ -281,6 +283,14 @@ game_environment_gui_menu() {
                 run_gui_action "安装 FSR4（画质补丁）" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee
+                ;;
+            deckrecall)
+                run_gui_action "安装 DeckRecall" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" deckrecall
+                ;;
+            savepulse)
+                run_gui_action "安装 SavePulse" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" savepulse
                 ;;
             freedeck)
                 freedeck_choice="$(gui_dialog --menu "Freedeck 版本选择" \
