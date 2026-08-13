@@ -557,7 +557,7 @@ dual_system_menu() {
             unprotect "恢复互通盘写入｜重新以可写方式挂载｜高级操作" \
             cleanup-boot "清理第三方引导项｜保护 SteamOS / Windows｜保留 EFI 文件" \
             repair-boot "修复双系统引导｜补齐缺失的 SteamOS / Windows / Clover 引导项｜高级操作" \
-            switch-to-windows "一键切换至 Windows｜设置 BootNext 后立即重启｜高风险" \
+            switch-to-windows "创建切换至 Windows 快捷方式｜仅创建桌面图标｜本次不重启" \
             back "返回系统设置" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
@@ -599,9 +599,8 @@ dual_system_menu() {
                     bash "$PROJECT_ROOT/modules/clover_boot.sh" install
                 ;;
             switch-to-windows)
-                gui_confirm "将设置 BootNext 到 Windows 并立即重启进入 Windows；请先保存所有工作。是否继续？" && \
-                    run_gui_action "一键切换至 Windows" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" switch-to-windows
+                run_gui_action "创建切换至 Windows 快捷方式" \
+                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-shortcut
                 ;;
             back) return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;

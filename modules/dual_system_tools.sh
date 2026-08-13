@@ -294,6 +294,74 @@ retire_windows_switch_shortcuts() {
     log "已停用并清理Windows一次性切换入口"
 }
 
+desktop_exec_quote() {
+    local value="$1"
+
+    value="${value//\\/\\\\}"
+    value="${value//\"/\\\"}"
+    printf '"%s"' "$value"
+}
+
+create_windows_switch_shortcut() {
+    local module_path launcher_exec icon_value desktop_dir
+
+    require_steamos || return 1
+    module_path="$PROJECT_ROOT/modules/dual_system_tools.sh"
+    [ -f "$module_path" ] || {
+        echo "找不到 Windows 切换组件：$module_path"
+        return 1
+    }
+    case "$WINDOWS_SWITCH_DIR" in
+        "$HOME"/*) ;;
+        *) echo "Windows 切换脚本目录不安全：$WINDOWS_SWITCH_DIR"; return 1 ;;
+    esac
+    case "$WINDOWS_SWITCH_DESKTOP" in
+        "$HOME"/*) ;;
+        *) echo "Windows 桌面快捷方式路径不安全：$WINDOWS_SWITCH_DESKTOP"; return 1 ;;
+    esac
+
+    desktop_dir="$(dirname "$WINDOWS_SWITCH_DESKTOP")"
+    mkdir -p -- "$WINDOWS_SWITCH_DIR" "$desktop_dir" || return 1
+    chmod 0700 "$WINDOWS_SWITCH_DIR" || return 1
+
+    umask 077
+    {
+        printf '%s\n' '#!/bin/bash'
+        printf '%s\n' 'set -euo pipefail'
+        printf '%s\n' 'unset ZHOUKEER_AUTO_CONFIRM'
+        printf 'exec bash %q switch-to-windows\n' "$module_path"
+    } > "$WINDOWS_SWITCH_LAUNCHER" || return 1
+    chmod 0700 "$WINDOWS_SWITCH_LAUNCHER" || return 1
+
+    launcher_exec="$(desktop_exec_quote "$WINDOWS_SWITCH_LAUNCHER")"
+    if [ -s "$WINDOWS_SWITCH_ICON" ]; then
+        icon_value="$WINDOWS_SWITCH_ICON"
+    else
+        icon_value="system-reboot"
+    fi
+    {
+        printf '%s\n' '[Desktop Entry]'
+        printf '%s\n' 'Type=Application'
+        printf '%s\n' 'Name=切换至 Windows'
+        printf '%s\n' 'Comment=确认后让下一次启动进入 Windows'
+        printf 'Exec=%s\n' "$launcher_exec"
+        printf 'Icon=%s\n' "$icon_value"
+        printf '%s\n' 'Terminal=true'
+        printf '%s\n' 'StartupNotify=false'
+        printf '%s\n' 'Categories=System;'
+    } > "$WINDOWS_SWITCH_DESKTOP" || return 1
+    chmod 0755 "$WINDOWS_SWITCH_DESKTOP" || return 1
+    umask 022
+    if command -v gio >/dev/null 2>&1; then
+        gio set "$WINDOWS_SWITCH_DESKTOP" metadata::trusted true >/dev/null 2>&1 || true
+    fi
+
+    echo "已创建桌面快捷方式：$WINDOWS_SWITCH_DESKTOP"
+    echo "本次操作没有设置 BootNext，也没有重启。"
+    echo "以后主动打开该图标并输入 WINDOWS 确认后，才会切换并重启进入 Windows。"
+    log "已创建Windows切换桌面快捷方式"
+}
+
 find_boot_esp_for_health() {
     local candidate
 
@@ -736,11 +804,11 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         repair-drive) repair_shared_drive ;;
         repair-boot) repair_dual_boot ;;
         switch-to-windows) switch_to_windows ;;
-        windows-shortcut|windows-next) retire_windows_switch_shortcuts ;;
+        windows-shortcut) create_windows_switch_shortcut ;;
         health) dual_boot_health_check ;;
         cleanup-boot) cleanup_third_party_boot_entry ;;
         *)
-            echo "用法: $0 {tf-format-mount|repair-drive|repair-boot|switch-to-windows|health|cleanup-boot}"
+            echo "用法: $0 {tf-format-mount|repair-drive|repair-boot|windows-shortcut|switch-to-windows|health|cleanup-boot}"
             exit 1
             ;;
     esac

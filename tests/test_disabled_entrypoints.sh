@@ -26,10 +26,10 @@ for menu in "$touch_dual" "$gui_dual"; do
     if printf '%s\n' "$menu" | grep -Fq 'modules/clover_boot.sh" delete'; then
         fail "Clover 删除动作不应直接暴露在双系统菜单"
     fi
-    for action in tf-format-mount repair-drive health cleanup-boot switch-to-windows; do
+    for action in tf-format-mount repair-drive health cleanup-boot windows-shortcut; do
         printf '%s\n' "$menu" | grep -Fq "modules/dual_system_tools.sh\" $action" || fail "双系统扩展动作缺失：$action"
     done
-    for removed_action in windows-shortcut windows-next; do
+    for removed_action in switch-to-windows windows-next; do
         if printf '%s\n' "$menu" | grep -Fq "modules/dual_system_tools.sh\" $removed_action"; then
             fail "双系统菜单仍可执行已移除动作：$removed_action"
         fi

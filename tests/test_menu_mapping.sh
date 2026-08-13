@@ -96,6 +96,7 @@ assert_contains "$touch_decky_loader" '仅当 SteamOS 使用测试或预览通�
 assert_contains "$touch_games" 'right:9-10:browse' "浏览官方插件触控坐标错误"
 assert_not_contains "$touch_games" 'right:9-10:deckrecall' "DeckRecall 仍显示在插件第一页"
 assert_contains "$touch_games" 'NEXT_CATEGORY="freedeck_versions"' "Freedeck 未进入版本选择子菜单"
+assert_contains "$touch_games" 'right:15-16:fsr4 right:17-18:freedeck' "FSR4 与 Freedeck 之间仍有空行"
 assert_not_contains "$touch_games" 'right:9-10:all' "已删除的常用加精选插件入口仍显示"
 official_plugin_names="$(sed -n '/^DECKY_OFFICIAL_PLUGIN_NAMES=(/,/^)/p' "$MAIN_FILE")"
 assert_not_contains "$official_plugin_names" 'Freedeck' "官方插件最后一页仍显示 Freedeck"
@@ -216,8 +217,8 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_contains "$source_text" 'modules/clover_boot.sh" install' "Clover 安装/修复动作错误：$file"
     assert_not_contains "$source_text" 'modules/clover_boot.sh" delete' "Clover 删除动作不应直接暴露：$file"
     assert_contains "$source_text" 'modules/dual_system_tools.sh" health' "双系统健康检查动作错误：$file"
-    assert_contains "$source_text" 'modules/dual_system_tools.sh" switch-to-windows' "Windows 一键切换动作错误：$file"
-    assert_not_contains "$source_text" 'modules/dual_system_tools.sh" windows-shortcut' "已移除的 Windows 一键切换仍可从菜单执行：$file"
+    assert_contains "$source_text" 'modules/dual_system_tools.sh" windows-shortcut' "Windows 桌面快捷方式动作错误：$file"
+    assert_not_contains "$source_text" 'modules/dual_system_tools.sh" switch-to-windows' "工具箱菜单仍会立即切换 Windows：$file"
     assert_not_contains "$source_text" 'modules/dual_system_tools.sh" windows-next' "已移除的 Windows 立即切换仍可从菜单执行：$file"
 done
 

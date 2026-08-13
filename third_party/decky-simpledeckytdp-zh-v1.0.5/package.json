@@ -1,7 +1,7 @@
 {
   "name": "simple-decky-tdp",
   "version": "1.0.5",
-  "description": "掌机硬件控制插件，支持 TDP、GPU、EPP 等。中文汉化：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）。",
+  "description": "掌机硬件控制插件，支持 TDP、GPU、EPP 等。中文汉化：Ren-Amamiya-pixle。",
   "type": "module",
   "scripts": {
     "build": "rollup -c",

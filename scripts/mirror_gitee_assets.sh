@@ -433,7 +433,7 @@ cssloader|CSS Loader|v2.1.2|cssloader-v2.1.2.zip|https://cdn.tzatzikiweeb.moe/fi
 friendeck|Friendeck|0.7.7|Friendeck.v.0.7.7.zip|https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip|65465ff115e105912adf72b5461e17b697ac07100ce7061de2e962851e41c653|
 deckymusic|Decky Music|v1.0.0|Decky.Music.zip|https://github.com/jinzhongjia/decky-music/releases/download/v1.0.0/Decky.Music.zip|ec2956bbee1d84b25b7f8749f06794b54014828a04707beccd06feb5d49dfa53|
 tomoon|ToMoon|v0.2.8|tomoon-v0.2.8.zip|https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip|5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6|
-deckrecall|DeckRecall|v0.2.8|DeckRecall.zip|https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.8/DeckRecall.zip|360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4|
+deckrecall|DeckRecall|v0.4.1|DeckRecall.zip|https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.1/DeckRecall.zip|3fabe4ea5ff616c0771629d86159a5cb64f2686454550dcad04924785c6db54b|
 savepulse|SavePulse|v0.2.0-alpha.1|SavePulse.zip|https://github.com/Ren-Amamiya-pixle/SavePulse/releases/download/v0.2.0-alpha.1/SavePulse.zip|e0680fc3995b8bbb2971673db43d5e9459d8fa8e4a1b431a1f5d4edad19a35ad|
 unifideck|Unifideck|Release-0.7.2|unifideck.prod.v0.7.2.zip|https://github.com/mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip|a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59366936de|
 freedeck|Freedeck|0.6|freedeck.v.0.6.zip|https://github.com/panyiwei-home/Freedeck/releases/download/0.6/freedeck.v.0.6.zip|04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62|

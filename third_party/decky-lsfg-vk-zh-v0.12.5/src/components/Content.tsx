@@ -77,12 +77,12 @@ export function Content() {
     <PanelSection>
       <PanelSectionRow>
         <div style={{ fontSize: "12px", opacity: 0.7, lineHeight: "1.45" }}>
-          中文汉化：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya） · 原插件作者：Kurt Himebauch（xXJSONDeruloXx）
+          中文汉化：Ren-Amamiya-pixle · 原插件作者：Kurt Himebauch（xXJSONDeruloXx）
         </div>
       </PanelSectionRow>
       <PanelSectionRow>
         <div style={{ width: "100%", textAlign: "center", fontSize: "14px", fontWeight: 700, color: "#ffcc66", padding: "4px 0 8px" }}>
-          Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化
+          Ren-Amamiya-pixle汉化
         </div>
       </PanelSectionRow>
       {!isInstalled && (

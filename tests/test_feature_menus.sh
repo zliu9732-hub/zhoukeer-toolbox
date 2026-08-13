@@ -264,7 +264,7 @@ done
 touch_dual="$(function_source "$MAIN_FILE" dual_system_menu)"
 gui_dual="$(function_source "$GUI_FILE" dual_system_menu)"
 for menu in "$touch_dual" "$gui_dual"; do
-    for item in '挂载双系统互通盘' '初始化并挂载 TF 卡' '修复磁盘写入错误' '双系统互通盘保护' '双系统健康检查' '恢复互通盘写入' '清理第三方引导项' '修复双系统引导' '一键切换至 Windows'; do
+    for item in '挂载双系统互通盘' '初始化并挂载 TF 卡' '修复磁盘写入错误' '双系统互通盘保护' '双系统健康检查' '恢复互通盘写入' '清理第三方引导项' '修复双系统引导' '创建切换至 Windows 快捷方式'; do
         assert_contains "$menu" "$item" "双系统与互通盘缺少：$item"
     done
     for removed_item in '安装或修复 Clover' '查看 Clover 状态' '删除 Clover 双系统引导'; do

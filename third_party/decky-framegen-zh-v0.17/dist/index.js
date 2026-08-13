@@ -2,7 +2,7 @@
 // @ts-ignore
 
 // Prevents it from being duplicated in output.
-const manifest = {"name":"Decky-Framegen(FSR4)","author":"Kurt Himebauch","flags":[],"api_version":1,"publish":{"tags":["DLSS","Framegen","upscaling","FSR"],"description":"汉化：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）。管理 OptiScaler，为 DirectX 12 游戏提供超分辨率与插帧支持。","image":"https://raw.githubusercontent.com/xXJSONDeruloXx/Decky-Framegen/refs/heads/main/assets/optiscaler_final.png"}};
+const manifest = {"name":"Decky-Framegen(FSR4)","author":"Kurt Himebauch","flags":[],"api_version":1,"publish":{"tags":["DLSS","Framegen","upscaling","FSR"],"description":"汉化：Ren-Amamiya-pixle。管理 OptiScaler，为 DirectX 12 游戏提供超分辨率与插帧支持。","image":"https://raw.githubusercontent.com/xXJSONDeruloXx/Decky-Framegen/refs/heads/main/assets/optiscaler_final.png"}};
 const API_VERSION = 2;
 const internalAPIConnection = window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit;
 // Initialize
@@ -904,9 +904,9 @@ function OptiScalerControls({ pathExists, setPathExists, fgmodInfo }) {
     const installedVariantLabel = fgmodInfo?.selected_fsr4_variant_label || FSR4_VARIANT_OPTIONS.find((option) => option.value === fsr4Variant)?.label;
     return (window.SP_REACT.createElement(DFL.PanelSection, null,
         window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-            window.SP_REACT.createElement(DFL.Field, { label: "Ren-Amamiya-pixie / zliu9732-hub\uFF08\u95F2\u9C7CRenAmamiya\uFF09\u6C49\u5316", description: "FSR4 \u4E2D\u6587\u754C\u9762" }, "\u539F\u63D2\u4EF6\u4F5C\u8005\uFF1AKurt Himebauch\uFF08xXJSONDeruloXx\uFF09")),
+            window.SP_REACT.createElement(DFL.Field, { label: "Ren-Amamiya-pixle\u6C49\u5316", description: "FSR4 \u4E2D\u6587\u754C\u9762" }, "\u539F\u63D2\u4EF6\u4F5C\u8005\uFF1AKurt Himebauch\uFF08xXJSONDeruloXx\uFF09")),
         window.SP_REACT.createElement(DFL.PanelSectionRow, null,
-            window.SP_REACT.createElement("div", { style: { width: "100%", textAlign: "center", fontSize: "14px", fontWeight: 700, color: "#ffcc66", padding: "4px 0 8px" } }, "Ren-Amamiya-pixie / zliu9732-hub\uFF08\u95F2\u9C7CRenAmamiya\uFF09\u6C49\u5316")),
+            window.SP_REACT.createElement("div", { style: { width: "100%", textAlign: "center", fontSize: "14px", fontWeight: 700, color: "#ffcc66", padding: "4px 0 8px" } }, "Ren-Amamiya-pixle\u6C49\u5316")),
         window.SP_REACT.createElement(InstallationStatus, { pathExists: pathExists, installing: installing, onInstallClick: handleInstallClick }),
         window.SP_REACT.createElement(OptiScalerHeader, { pathExists: pathExists }),
         window.SP_REACT.createElement(DFL.PanelSectionRow, null,

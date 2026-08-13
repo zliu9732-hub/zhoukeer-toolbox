@@ -97,7 +97,7 @@ test_blank_config_migration() {
     assert_value "$config_file" DECKY_TOMOON_SHA256 \
         "5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
     assert_value "$config_file" DECKY_DECKRECALL_SHA256 \
-        "38a4265f9fc0f98c137a016bce6b7474f0b20e3aa9391be3e79987bafeab29d1"
+        "3fabe4ea5ff616c0771629d86159a5cb64f2686454550dcad04924785c6db54b"
     assert_value "$config_file" DECKY_SAVEPULSE_SHA256 \
         "e0680fc3995b8bbb2971673db43d5e9459d8fa8e4a1b431a1f5d4edad19a35ad"
     assert_value "$config_file" DECKY_SAVEPULSE_VERSION "0.2.0-alpha.1"
@@ -212,16 +212,16 @@ test_retired_deckrecall_default_migrated() {
     mkdir -p "$(dirname "$config_file")"
     cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
     sed -i.bak \
-        -e 's|releases/download/v0.4.0/DeckRecall.zip|releases/download/v0.2.8/DeckRecall.zip|' \
-        -e 's/38a4265f9fc0f98c137a016bce6b7474f0b20e3aa9391be3e79987bafeab29d1/360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4/' \
+        -e 's|releases/download/v0.4.1/DeckRecall.zip|releases/download/v0.2.8/DeckRecall.zip|' \
+        -e 's/3fabe4ea5ff616c0771629d86159a5cb64f2686454550dcad04924785c6db54b/360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4/' \
         "$config_file"
 
     run_installer "$case_root/home" "$install_dir"
 
     assert_value "$config_file" DECKY_DECKRECALL_URL \
-        "https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.0/DeckRecall.zip"
+        "https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.1/DeckRecall.zip"
     assert_value "$config_file" DECKY_DECKRECALL_SHA256 \
-        "38a4265f9fc0f98c137a016bce6b7474f0b20e3aa9391be3e79987bafeab29d1"
+        "3fabe4ea5ff616c0771629d86159a5cb64f2686454550dcad04924785c6db54b"
 }
 
 test_retired_savepulse_default_migrated() {

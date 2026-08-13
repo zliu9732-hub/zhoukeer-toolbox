@@ -1,3 +1,10 @@
+## Renkit 1.5.0 Windows 快捷切换与插件下载修复 — 2026-08-13
+
+- “切换至 Windows”入口改为只创建桌面快捷方式，本次操作绝不设置 BootNext 或重启；用户以后主动打开桌面图标、输入 `WINDOWS` 二次确认后，才会切换并重启。
+- 插件第一页收紧布局，FSR4 与 Freedeck 连续显示，不再空一行；DeckRecall 与 SavePulse 仍位于第二页。
+- DeckRecall 固定回退更新到 v0.4.1：绕过 SteamOS Python 证书链故障，下载和 API 请求改用严格 TLS 的系统 curl；接入 Gitee 分块镜像、最新版 GE-Proton，并修复 EXE/目录选择无反应。
+- Renkit 汉化插件的公开署名统一为 `Ren-Amamiya-pixle`，不再显示旧账号、闲鱼名或旧拼写；原作者与开源许可证继续完整保留。
+
 ## Renkit 1.4.9 DeckRecall EXE 入库与 SavePulse 自动识别 — 2026-08-13
 
 - DeckRecall 固定回退更新到 v0.4.0：可选择 Windows 安装 EXE，借助 Steam Proton 完成安装后识别主程序并入库，也可选择已解压的非 Steam 游戏目录，自动排序候选游戏 EXE、设置 Proton 并创建桌面快捷方式；不自动套用不可信封面。

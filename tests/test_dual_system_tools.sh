@@ -179,6 +179,17 @@ for removed_path in "$WINDOWS_SWITCH_LAUNCHER" "$WINDOWS_LEGACY_SWITCH_LAUNCHER"
     [ ! -e "$removed_path" ] && [ ! -L "$removed_path" ] || fail "旧 Windows 切换入口未清理：$removed_path"
 done
 
+create_windows_switch_shortcut >/dev/null || fail "Windows 桌面快捷方式创建失败"
+[ -x "$WINDOWS_SWITCH_LAUNCHER" ] || fail "Windows 切换脚本未创建或不可执行"
+[ -x "$WINDOWS_SWITCH_DESKTOP" ] || fail "Windows 桌面快捷方式未创建或不可执行"
+grep -Fq 'switch-to-windows' "$WINDOWS_SWITCH_LAUNCHER" || fail "桌面快捷方式没有绑定 Windows 切换动作"
+grep -Fq 'unset ZHOUKEER_AUTO_CONFIRM' "$WINDOWS_SWITCH_LAUNCHER" || fail "桌面快捷方式没有强制开启二次确认"
+grep -Fq 'Terminal=true' "$WINDOWS_SWITCH_DESKTOP" || fail "桌面快捷方式无法显示二次确认终端"
+[ ! -f "$STATE/bootnext" ] || fail "创建桌面快捷方式时错误设置了 BootNext"
+if grep -Fq 'systemctl reboot' "$CALLS"; then
+    fail "创建桌面快捷方式时错误触发了重启"
+fi
+
 find_boot_esp_for_health() { printf '%s\n' "$TMP_ROOT/esp"; }
 health_output="$(dual_boot_health_check)" || fail "双系统健康检查失败"
 for expected in 'Windows（受保护）' 'SteamOS（受保护）' 'Renkit Clover' 'rEFInd' 'OpenCore' 'GRUB' 'systemd-boot（仅检查）'; do

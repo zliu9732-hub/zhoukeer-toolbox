@@ -7,7 +7,7 @@ Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装�
 - SteamOS 版：继续使用原有 `main.sh`，系统初始化、国内源、插件与高级功能保持原逻辑。
 - Bazzite 版：使用独立 `main-bazzite.sh`；Decky 通过官方 `ujust setup-decky` 安装，并可整组或逐个安装官方商店插件；Flatpak 默认使用带 GPG 验证的官方 Flathub，国内镜像仅在用户确认风险后以用户级远程启用，并可恢复官方源；提供用户级软件、启动器、模拟器与 GE-Proton 安装/卸载，以及 Yuzu 自备密钥、诊断、攻略和快捷方式维护；不调用 pacman、steamos-readonly、ToDesk、AnyDesk或内存调优。Clover 双系统引导作为独立高风险入口开放，动态识别 Bazzite EFI，并提供状态检查和恢复。
 
-- 双系统设置：提供互通盘挂载与只读保护、TF 卡 NTFS 初始化、NTFS/exFAT 基础修复、只读健康检查、受保护的第三方引导项清理、双系统引导修复和一键切换 Windows。rEFInd 继续停用，不提供入口。
+- 双系统设置：提供互通盘挂载与只读保护、TF 卡 NTFS 初始化、NTFS/exFAT 基础修复、只读健康检查、受保护的第三方引导项清理、双系统引导修复，以及桌面“切换至 Windows”快捷方式。工具箱入口只创建图标，不会立即重启；用户主动打开图标并二次确认后才切换。rEFInd 继续停用，不提供入口。
 
 远程协助中提供 RustDesk、AnyDesk 和 ToDesk。RustDesk 使用作者 GitHub Release 安装独立 AppImage 并自动创建桌面图标，不会修改 SteamOS 只读系统分区，也不会被Renkit自动写入任何服务器配置；AnyDesk 通过 Flathub 国内镜像安装；ToDesk 使用固定官方 DEB 的 SteamOS 适配包。
 

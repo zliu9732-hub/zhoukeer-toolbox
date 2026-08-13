@@ -20889,7 +20889,7 @@
             return null;
         }
         return (window.SP_REACT.createElement(window.SP_REACT.Fragment, null,
-            window.SP_REACT.createElement("div", { style: { color: "#d9a441", fontSize: "12px", padding: "4px 12px" } }, "\u4E2D\u6587\u6C49\u5316\uFF1ARen-Amamiya-pixie / zliu9732-hub\uFF08\u95F2\u9C7CRenAmamiya\uFF09"),
+            window.SP_REACT.createElement("div", { style: { color: "#d9a441", fontSize: "12px", padding: "4px 12px" } }, "\u4E2D\u6587\u6C49\u5316\uFF1ARen-Amamiya-pixle"),
             supportsAcpiCall && (window.SP_REACT.createElement(deckyFrontendLib.PanelSection, null,
                 window.SP_REACT.createElement(deckyFrontendLib.PanelSectionRow, null,
                     window.SP_REACT.createElement(deckyFrontendLib.ToggleField, { label: "\u542F\u7528 80% \u5145\u7535\u4E0A\u9650", checked: chargeLimitEnabled, onChange: setChargeLimit })))),

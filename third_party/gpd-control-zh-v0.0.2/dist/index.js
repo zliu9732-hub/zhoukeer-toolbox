@@ -19564,7 +19564,7 @@
 	        return null;
 	    }
 	    return (window.SP_REACT.createElement(window.SP_REACT.Fragment, null,
-	        window.SP_REACT.createElement("div", { style: { color: "#d9a441", fontSize: "12px", padding: "4px 12px" } }, "\u4E2D\u6587\u6C49\u5316\uFF1ARen-Amamiya-pixie / zliu9732-hub\uFF08\u95F2\u9C7CRenAmamiya\uFF09"),
+	        window.SP_REACT.createElement("div", { style: { color: "#d9a441", fontSize: "12px", padding: "4px 12px" } }, "\u4E2D\u6587\u6C49\u5316\uFF1ARen-Amamiya-pixle"),
 	        window.SP_REACT.createElement(ErrorBoundary, { title: '手柄灯光' },
 	            window.SP_REACT.createElement(ControllerLightingPanel, null)),
 	        window.SP_REACT.createElement(ErrorBoundary, null,
