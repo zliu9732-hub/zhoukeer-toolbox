@@ -54,11 +54,11 @@ curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-ins
 
 ### 3.1 当前存在版本分叉，必须优先处理
 
-截至本文写入时：
+截至本文写入时（交接文档本身随后可能作为“仅文档提交”叠加在对应分支顶部）：
 
 - 本地 `main` 与 GitHub `origin/main`：提交 `6e14f94`，源码版本 `1.4.4`。
 - GitHub 最新正式 Release：`v1.4.4`。
-- Gitee v2 `main`：提交 `0abc034`，部署版本 `1.4.7`。
+- Gitee v2 的当前功能代码基线：提交 `0abc034`，部署版本 `1.4.7`。
 - Gitee v2 的 `1.4.7` 包已公网验证：`VERSION=1.4.7`，包内 `core/env.sh` 也是 `1.4.7`。
 - 当时公网 `dist/renkit.tar.gz` SHA256：`289a8607a1add4d3cd7f03751960704bcf0603773e361c856ee909c57a701e96`；接手时应重新读取，不要永久硬编码这个值。
 - Gitee v2 有 `v1.4.5`、`v1.4.6`、`v1.4.7` 标签；GitHub 没有这些版本的 Release。
