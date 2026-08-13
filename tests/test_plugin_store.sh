@@ -228,14 +228,14 @@ grep -Fq 'DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'allycenter) show_plugin_download_speed_tip; install_configured_plugin allycenter' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'ALLYCENTER_ZH_INDEX_SHA256="8acca54a7e5a8e3e531d2c22536e3c212c3410ea5b8be48dcae06e75987478f6"' \
+grep -Fq 'ALLYCENTER_ZH_INDEX_SHA256="b259747035cd0308b6776311a94a98ab01b37493d667746f641982968b14ca25"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'Ren-Amamiya-pixle' \
+grep -Fq 'Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）' \
     "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js" || {
     echo "FAIL: Ally Center 中文构建缺少与小黄鸭一致的汉化署名" >&2
     exit 1
 }
-grep -Fq '中文汉化：Ren-Amamiya-pixle' \
+grep -Fq '中文汉化：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）' \
     "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/src/index.tsx" || {
     echo "FAIL: Ally Center 中文源码缺少完整汉化署名" >&2
     exit 1
@@ -252,7 +252,7 @@ grep -Fq 'RGB 灯光' \
 }
 allycenter_zh_actual_sha256="$(shasum -a 256 \
     "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js" | awk '{print $1}')"
-[ "$allycenter_zh_actual_sha256" = "8acca54a7e5a8e3e531d2c22536e3c212c3410ea5b8be48dcae06e75987478f6" ] || {
+[ "$allycenter_zh_actual_sha256" = "b259747035cd0308b6776311a94a98ab01b37493d667746f641982968b14ca25" ] || {
     echo "FAIL: Ally Center 中文构建文件校验值不匹配" >&2
     exit 1
 }
@@ -353,11 +353,11 @@ grep -Fq '小黄鸭运行核心缺失' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'cp -a -- "$official_runtime" "$staged_source/bin/$LSFG_RUNTIME_ARCHIVE"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_fsr4_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'restore_lsfg_official()' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'LSFG_ZH_INDEX_SHA256="34e1936aa93e89f47ca501cea880bf358a60022ae6f939a66fdbb7ebf4524b18"' \
+grep -Fq 'LSFG_ZH_INDEX_SHA256="c823b4b7b1a0123db75af6f24368cee2f0642964f7e994278ab94839ecd42bbe"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '中文汉化：Ren-Amamiya-pixle' \
+grep -Fq '中文汉化：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）' \
     "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/src/components/Content.tsx"
-[ "$(grep -Fc 'Ren-Amamiya-pixle汉化' "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/src/components/Content.tsx")" -ge 1 ] || {
+[ "$(grep -Fc 'Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）汉化' "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/src/components/Content.tsx")" -ge 1 ] || {
     echo "FAIL: 小黄鸭插件打开后缺少可见汉化署名" >&2
     exit 1
 }
@@ -365,16 +365,16 @@ grep -Fq '"name": "小黄鸭"' \
     "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/plugin.json"
 grep -Fq '"name": "Decky-Framegen(FSR4)"' \
     "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17/plugin.json"
-grep -Fq 'Ren-Amamiya-pixle' \
+grep -Fq 'Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）' \
     "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17/plugin.json"
-grep -Fq 'Ren-Amamiya-pixle汉化' \
+grep -Fq 'Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）汉化' \
     "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17/src/components/OptiScalerControls.tsx"
-[ "$(grep -Fc 'Ren-Amamiya-pixle汉化' "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17/src/components/OptiScalerControls.tsx")" -ge 2 ] || {
+[ "$(grep -Fc 'Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）汉化' "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17/src/components/OptiScalerControls.tsx")" -ge 2 ] || {
     echo "FAIL: FSR4 插件打开后缺少单独可见的汉化署名" >&2
     exit 1
 }
 fsr4_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17/dist/index.js" | awk '{print $1}')"
-[ "$fsr4_actual_sha256" = "54b65e03949fbdac7a70c70c9bc0a2371a405979c627e62b5f19715b8cfe6d4a" ] || {
+[ "$fsr4_actual_sha256" = "8f8068a18e03110db3c00938c5523e7db1d79118e5200844fc3a145542eb70c9" ] || {
     echo "FAIL: FSR4 中文构建文件校验值不匹配" >&2
     exit 1
 }
@@ -387,11 +387,11 @@ grep -Fq 'const manifest = {"name":"掌机功耗控制"' \
 }
 grep -Fq '"version": "1.0.5"' \
     "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/package.json"
-[ "$(grep -Fc 'Ren-Amamiya-pixle汉化' "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js")" -ge 1 ] || {
+[ "$(grep -Fc 'Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）汉化' "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js")" -ge 1 ] || {
     echo "FAIL: SimpleDeckyTDP 插件打开后缺少可见汉化署名" >&2
     exit 1
 }
-grep -Fq '中文汉化：Ren-Amamiya-pixle · 原插件作者：Aarron Lee' \
+grep -Fq '中文汉化：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya） · 原插件作者：Aarron Lee' \
     "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js" || {
     echo "FAIL: SimpleDeckyTDP 缺少与小黄鸭一致的作者署名行" >&2
     exit 1
@@ -402,11 +402,11 @@ grep -Fq 'color: "#ffcc66"' \
     exit 1
 }
 simpledeckytdp_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js" | awk '{print $1}')"
-[ "$simpledeckytdp_actual_sha256" = "d91938e5c897a6b25c6acaeb9eb00369a997076bca46cbe833a58d9e866602b0" ] || {
+[ "$simpledeckytdp_actual_sha256" = "9e9a80bca6ac0e47c46fdc13be34b412944b1d74fc892b2963671d7e6bb36f38" ] || {
     echo "FAIL: SimpleDeckyTDP 中文构建文件校验值不匹配" >&2
     exit 1
 }
-grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="d91938e5c897a6b25c6acaeb9eb00369a997076bca46cbe833a58d9e866602b0"' \
+grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="9e9a80bca6ac0e47c46fdc13be34b412944b1d74fc892b2963671d7e6bb36f38"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_simpledeckytdp_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'simpledeckytdp_chinese_is_current()' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -423,7 +423,7 @@ grep -Fq 'cp -a -- "$official_bin_dir" "$staged_source/bin"' \
 grep -Fq '"version": "0.12.5"' \
     "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/package.json"
 zh_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js" | awk '{print $1}')"
-[ "$zh_actual_sha256" = "34e1936aa93e89f47ca501cea880bf358a60022ae6f939a66fdbb7ebf4524b18" ] || {
+[ "$zh_actual_sha256" = "c823b4b7b1a0123db75af6f24368cee2f0642964f7e994278ab94839ecd42bbe" ] || {
     echo "FAIL: 小黄鸭中文构建文件校验值不匹配" >&2
     exit 1
 }

@@ -1,3 +1,9 @@
+## Renkit 1.5.3 汉化署名补全 — 2026-08-14
+
+- 工具箱内置的汉化插件统一恢复大号与闲鱼署名：`Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）`。
+- 覆盖小黄鸭、FSR4、掌机功耗控制、Ally Center、CSS Loader 中文前端及五款掌机插件的前端与描述。
+- 原作者、许可证和硬件后端保持不变；同时修复常用功能插件组合中 SteamGridDB、CSS Loader、Friendeck、Decky Music 单独安装入口静默失败的问题。
+
 ## Renkit 1.5.2 DeckRecall 下载运行时修复 — 2026-08-13
 
 - DeckRecall 固定版本更新到 v0.4.2，修复 Decky Loader 的 PyInstaller 临时 OpenSSL 环境污染系统 `curl`，导致小黄鸭、FSR4 与 GE-Proton 下载后统一显示失败的问题。
@@ -14,7 +20,7 @@
 - “切换至 Windows”入口改为只创建桌面快捷方式，本次操作绝不设置 BootNext 或重启；用户以后主动打开桌面图标、输入 `WINDOWS` 二次确认后，才会切换并重启。
 - 插件第一页收紧布局，FSR4 与 Freedeck 连续显示，不再空一行；DeckRecall 与 SavePulse 仍位于第二页。
 - DeckRecall 固定回退更新到 v0.4.1：绕过 SteamOS Python 证书链故障，下载和 API 请求改用严格 TLS 的系统 curl；接入 Gitee 分块镜像、最新版 GE-Proton，并修复 EXE/目录选择无反应。
-- Renkit 汉化插件的公开署名统一为 `Ren-Amamiya-pixle`，不再显示旧账号、闲鱼名或旧拼写；原作者与开源许可证继续完整保留。
+- Renkit 汉化插件的公开署名统一为 `Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）`，保留原作者与开源许可证。
 
 ## Renkit 1.4.9 DeckRecall EXE 入库与 SavePulse 自动识别 — 2026-08-13
 

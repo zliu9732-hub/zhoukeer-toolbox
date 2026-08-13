@@ -128,8 +128,8 @@ show_disclaimer() {
     while true; do
         # 免责声明统一使用终端文字版，不再依赖免责声明大图主题。
         draw_disclaimer_frame
-        ui_disclaimer_line 8 '\033[1;38;5;220m' "Ren-Amamiya-pixle制作"
-        ui_disclaimer_line 9 '\033[38;5;45m' "GitHub：Ren-Amamiya-pixle"
+        ui_disclaimer_line 8 '\033[1;38;5;220m' "Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）制作"
+        ui_disclaimer_line 9 '\033[38;5;45m' "GitHub：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）"
         ui_disclaimer_line 10 '\033[38;5;45m' "支持免费使用；禁止商业、销售、转卖或借此盈利"
         ui_disclaimer_line 11 '\033[38;5;45m' "下载内容均来自官方免费发布或开源项目"
         ui_disclaimer_line 12 '\033[38;5;45m' "不包含付费软件本体、破解或商业授权"
@@ -520,8 +520,8 @@ game_environment_menu() {
         ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭、FSR4、封面、主题等七款插件"
         ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
         ui_touch_button 11 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "小黄鸭" "插帧神器（必装）·汉化作者：Ren-Amamiya-pixle"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "FSR4" "画质补丁（阅读桌面文档慎用）·汉化作者：Ren-Amamiya-pixle"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "小黄鸭" "插帧神器（必装）·汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "FSR4" "画质补丁（阅读桌面文档慎用）·汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）"
         ui_touch_button 17 '\033[1;97;48;5;24m' "Freedeck 版本选择" "0.6 稳定版或 NewFreedeck 重构版"
         ui_touch_button 21 '\033[1;97;48;5;238m' "下一页…" "查看剩余插件"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -534,8 +534,8 @@ game_environment_menu() {
             features) confirm_and_run "安装常用插件组合" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；未安装插件商城时会先安装插件商城，再继续安装七款常用插件；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
             browse) plugin_official_touch_pages ;;
             cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
-            lsfg) confirm_and_run "安装小黄鸭" "插帧神器（必装）·国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixle" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
-            fsr4) confirm_and_run "安装 FSR4" "画质补丁（阅读桌面文档慎用）·国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixle" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
+            lsfg) confirm_and_run "安装小黄鸭" "插帧神器（必装）·国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
+            fsr4) confirm_and_run "安装 FSR4" "画质补丁（阅读桌面文档慎用）·国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             freedeck) NEXT_CATEGORY="freedeck_versions"; return 0 ;;
             next) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
@@ -684,7 +684,7 @@ handheld_plugins_menu() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             simpledeckytdp)
-                confirm_and_run "安装/修复掌机功耗控制汉化版" "自动检测版本：非最新汉化版或检测到原版/旧版会自动替换；国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixle" \
+                confirm_and_run "安装/修复掌机功耗控制汉化版" "自动检测版本：非最新汉化版或检测到原版/旧版会自动替换；国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee
                 ;;
             allycenter)

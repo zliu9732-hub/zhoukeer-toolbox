@@ -4,7 +4,7 @@ A comprehensive Decky Loader plugin for the **ASUS ROG Ally** running SteamOS.
 
 Renkit 中文版基于作者官方 v1.2.0 构建，未修改硬件控制后端。
 
-中文汉化：Ren-Amamiya-pixle
+中文汉化：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）
 
 ## Features
 

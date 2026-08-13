@@ -728,7 +728,7 @@ const AboutModal = ({ closeModal }) => {
             window.SP_REACT.createElement("div", { style: { color: "#8b929a", fontSize: "11px" } }, "\u539F\u4F5C\u8005"),
             window.SP_REACT.createElement("div", { style: { color: "#1a9fff", fontSize: "14px", fontWeight: "bold" } }, "Keith Baker"),
             window.SP_REACT.createElement("div", { style: { color: "#8b929a", fontSize: "11px", marginBottom: "12px" } }, "Pixel Addict Games"),
-            window.SP_REACT.createElement("div", { style: { color: "#ffcc66", fontSize: "12px", marginBottom: "12px" } }, "\u4E2D\u6587\u6C49\u5316\uFF1ARen-Amamiya-pixle"),
+            window.SP_REACT.createElement("div", { style: { color: "#ffcc66", fontSize: "12px", marginBottom: "12px" } }, "\u4E2D\u6587\u6C49\u5316\uFF1ARen-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）"),
             window.SP_REACT.createElement("div", { style: { color: "#8b929a", fontSize: "11px", marginBottom: "4px", textAlign: "left" } }, "\u7279\u522B\u611F\u8C22"),
             window.SP_REACT.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginBottom: "2px" } },
                 window.SP_REACT.createElement("span", { style: { color: "#fff", fontSize: "12px" } }, "HueSync"),
@@ -753,7 +753,7 @@ const AboutSection = () => {
 };
 const AllyCenterContent = () => {
     return (window.SP_REACT.createElement("div", null,
-        window.SP_REACT.createElement("div", { style: { color: "#ffcc66", fontSize: "12px", textAlign: "center", padding: "6px 8px" } }, "\u4E2D\u6587\u6C49\u5316\uFF1ARen-Amamiya-pixle"),
+        window.SP_REACT.createElement("div", { style: { color: "#ffcc66", fontSize: "12px", textAlign: "center", padding: "6px 8px" } }, "\u4E2D\u6587\u6C49\u5316\uFF1ARen-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）"),
         window.SP_REACT.createElement(DownloadModeSection, null),
         window.SP_REACT.createElement(PerformanceSection, null),
         window.SP_REACT.createElement(CpuSettingsSection, null),

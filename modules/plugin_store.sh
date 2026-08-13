@@ -42,18 +42,18 @@ LSFG_OFFICIAL_DIRECTORY="Decky LSFG-VK"
 LSFG_OFFICIAL_VERSION="0.12.5"
 LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"
 LSFG_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5"
-LSFG_ZH_INDEX_SHA256="34e1936aa93e89f47ca501cea880bf358a60022ae6f939a66fdbb7ebf4524b18"
+LSFG_ZH_INDEX_SHA256="c823b4b7b1a0123db75af6f24368cee2f0642964f7e994278ab94839ecd42bbe"
 FSR4_OFFICIAL_DIRECTORY="Decky-Framegen"
 FSR4_OFFICIAL_VERSION="0.17.0"
 FSR4_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17"
-FSR4_ZH_INDEX_SHA256="54b65e03949fbdac7a70c70c9bc0a2371a405979c627e62b5f19715b8cfe6d4a"
+FSR4_ZH_INDEX_SHA256="8f8068a18e03110db3c00938c5523e7db1d79118e5200844fc3a145542eb70c9"
 FSR4_RUNTIME_ARCHIVE="Optiscaler_0.9.4-final.20260718._MM.7z"
 FSR4_RUNTIME_UPSCALER="amd_fidelityfx_upscaler_dx12.dll"
 FSR4_RUNTIME_PATCHER="OptiPatcher_rolling.asi"
 SIMPLEDECKYTDP_OFFICIAL_DIRECTORY="SimpleDeckyTDP"
 SIMPLEDECKYTDP_OFFICIAL_VERSION="1.0.5"
 SIMPLEDECKYTDP_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5"
-SIMPLEDECKYTDP_ZH_INDEX_SHA256="d91938e5c897a6b25c6acaeb9eb00369a997076bca46cbe833a58d9e866602b0"
+SIMPLEDECKYTDP_ZH_INDEX_SHA256="9e9a80bca6ac0e47c46fdc13be34b412944b1d74fc892b2963671d7e6bb36f38"
 STEAMGRIDDB_OFFICIAL_DIRECTORY="decky-steamgriddb"
 STEAMGRIDDB_OFFICIAL_VERSION="1.7.1"
 CSSLOADER_OFFICIAL_DIRECTORY="SDH-CssLoader"
@@ -112,7 +112,7 @@ DECKY_ALLYCENTER_SHA256="${ZHOUKEER_DECKY_ALLYCENTER_SHA256:-a1059534de2a0e95566
 DECKY_ALLYCENTER_VERSION="1.2.0"
 DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 ALLYCENTER_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0"
-ALLYCENTER_ZH_INDEX_SHA256="8acca54a7e5a8e3e531d2c22536e3c212c3410ea5b8be48dcae06e75987478f6"
+ALLYCENTER_ZH_INDEX_SHA256="b259747035cd0308b6776311a94a98ab01b37493d667746f641982968b14ca25"
 DECKY_HUESYNC_URL="${ZHOUKEER_DECKY_HUESYNC_URL:-https://github.com/honjow/HueSync/releases/download/v3.9.0/huesync.zip}"
 DECKY_HUESYNC_SHA256="${ZHOUKEER_DECKY_HUESYNC_SHA256:-7510c96ed22278a914a3aae591c2393ff4e25812a765d1d633f77baa8a593e1f}"
 DECKY_HUESYNC_VERSION="3.9.0"
@@ -123,22 +123,22 @@ DECKY_LEGIONGO_REMAPPER_URL="${ZHOUKEER_DECKY_LEGIONGO_REMAPPER_URL:-https://git
 DECKY_LEGIONGO_REMAPPER_SHA256="${ZHOUKEER_DECKY_LEGIONGO_REMAPPER_SHA256:-b89084ece2df8854a732239043484f510a2384d01221441e3a4242fc85b6d9e1}"
 DECKY_LEGIONGO_REMAPPER_VERSION="0.3.0"
 LEGIONGO_REMAPPER_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/legion-go-remapper-zh-v0.3.0"
-LEGIONGO_REMAPPER_ZH_INDEX_SHA256="0babee91d75beca2bd692a270177410e35b0a275b024edaa17431949a36c41fa"
+LEGIONGO_REMAPPER_ZH_INDEX_SHA256="829abcdfa0a1610af2768b017adef33c59fa57913423b6953ba94ff25dd01dd0"
 DECKY_GPD_CONTROL_URL="${ZHOUKEER_DECKY_GPD_CONTROL_URL:-https://github.com/aarron-lee/GpdControl/releases/download/v0.0.2/GpdControl.tar.gz}"
 DECKY_GPD_CONTROL_SHA256="${ZHOUKEER_DECKY_GPD_CONTROL_SHA256:-3efc5694234fb7f2ae1131fd9dec9e342c1fee7c4a804e4f910920d327ae7fb4}"
 DECKY_GPD_CONTROL_VERSION="0.0.2"
 GPD_CONTROL_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/gpd-control-zh-v0.0.2"
-GPD_CONTROL_ZH_INDEX_SHA256="c49fc7e78a2628a8ec1fa217958d0696c47665a214c3473a32307d64024b148d"
+GPD_CONTROL_ZH_INDEX_SHA256="06670b3f3956e9b8d8b88aa78fa27b7f7e12c5c6de2d9f551cee0029b2925e6f"
 DECKY_LEGO_VIBE_URL="${ZHOUKEER_DECKY_LEGO_VIBE_URL:-https://github.com/Rayekkk/LeGo-Vibe-Control/releases/download/1.5.0/LeGo-Vibe-Control-1.5.0.zip}"
 DECKY_LEGO_VIBE_SHA256="${ZHOUKEER_DECKY_LEGO_VIBE_SHA256:-adda3be351c14d1c8899fb0997565aa67e7439b988112340fad707cfe6be28b7}"
 DECKY_LEGO_VIBE_VERSION="1.5.0"
 LEGO_VIBE_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/lego-vibe-control-zh-v1.5.0"
-LEGO_VIBE_ZH_INDEX_SHA256="eebf1d6731c7a836172662bdc0a833e0119b8cd4f3f818d09ec317559df44db3"
+LEGO_VIBE_ZH_INDEX_SHA256="735e958bcf4434ec4b20b33e6dc0c9c6d39a82a8136d9f28d902816f9e9ea77c"
 DECKY_LEGO2_FAN_URL="${ZHOUKEER_DECKY_LEGO2_FAN_URL:-https://github.com/Rodpad/LeGo2-Fan-Control/releases/download/Decky/LeGo2FanControl_Decky.zip}"
 DECKY_LEGO2_FAN_SHA256="${ZHOUKEER_DECKY_LEGO2_FAN_SHA256:-a46af0c53eef63b1ad77fff567a120784b6736686565a761524882d011cc6d3e}"
 DECKY_LEGO2_FAN_VERSION="0.260430"
 LEGO2_FAN_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/lego2-fan-control-zh-v0.260430"
-LEGO2_FAN_ZH_INDEX_SHA256="a963df95557d68031f2435c0231e94f2b4adaa7ee5317edbda621da087c15ac4"
+LEGO2_FAN_ZH_INDEX_SHA256="2324d3fe7daf66224fed41db321d41ee181305c824f9342a1bc89e02c3ccf3d2"
 # OneXPlayer Apex Tools 只适用于 Apex（Strix Halo）；上游包会操作 HHD、睡眠和内核模块。
 DECKY_ONEXPLAYER_APEX_URL="https://github.com/srsholmes/onexplayer-apex-bazzite-fixes/releases/download/build-b696161/OneXPlayer_Apex_Tools.zip"
 DECKY_ONEXPLAYER_APEX_SHA256="7c522bc8145697d78d6165f7f97671d4d67a5bf4f9e4ed5e6feccbb1154acb91"
@@ -2531,7 +2531,7 @@ install_lsfg_bundle() {
         "$skip_existing" || return 1
     remove_legacy_lsfg_directories "$plugin_root"
 
-    echo "汉化作者：Ren-Amamiya-pixle，感谢支持！"
+    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     if [ "$open_store_after" = "1" ]; then
         check_lossless_scaling_installation
     fi
@@ -2597,9 +2597,9 @@ install_lsfg_chinese() {
     }
     rm -rf -- "$work_dir"
     echo "小黄鸭 v$LSFG_OFFICIAL_VERSION 已安装。"
-    echo "汉化作者：Ren-Amamiya-pixle，感谢支持！"
+    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
-    echo "汉化作者：Ren-Amamiya-pixle，感谢支持！"
+    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可使用。"
     fi
@@ -2647,7 +2647,7 @@ install_lsfg_zh_from_gitee() {
     fi
     remove_legacy_lsfg_directories "$plugin_root"
     echo "小黄鸭安装成功。"
-    echo "汉化作者：Ren-Amamiya-pixle，感谢支持！"
+    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可使用。"
     fi
@@ -2715,10 +2715,10 @@ install_fsr4_chinese() {
         return 1
     }
     rm -rf -- "$work_dir"
-    echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面已安装（Ren-Amamiya-pixle汉化）。"
-    echo "汉化作者：Ren-Amamiya-pixle，感谢支持！"
+    echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面已安装（Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）汉化）。"
+    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
-    echo "汉化作者：Ren-Amamiya-pixle，感谢支持！"
+    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 FSR4 插帧即可看到中文界面。"
     fi
@@ -2772,7 +2772,7 @@ install_fsr4_zh_from_gitee() {
         return $?
     fi
     echo "FSR4 安装成功。"
-    echo "汉化作者：Ren-Amamiya-pixle，感谢支持！"
+    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 FSR4 插帧即可看到中文界面。"
     fi
@@ -2849,8 +2849,8 @@ install_simpledeckytdp_chinese() {
         return 1
     }
     rm -rf -- "$work_dir"
-    echo "SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文界面已安装（Ren-Amamiya-pixle汉化）。"
-    echo "汉化作者：Ren-Amamiya-pixle，感谢支持！"
+    echo "SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文界面已安装（Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）汉化）。"
+    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     echo "原作者：Aarron Lee；许可证：BSD 3-Clause。"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 SimpleDeckyTDP 即可看到中文界面。"
@@ -2895,7 +2895,7 @@ install_simpledeckytdp_zh_from_gitee() {
         return $?
     fi
     echo "SimpleDeckyTDP 安装成功。"
-    echo "汉化作者：Ren-Amamiya-pixle，感谢支持！"
+    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 SimpleDeckyTDP 即可看到中文界面。"
     fi
@@ -2994,7 +2994,7 @@ install_allycenter_chinese() {
     }
     rm -rf -- "$work_dir"
     echo "Ally Center v$DECKY_ALLYCENTER_VERSION 中文版已安装。"
-    echo "汉化作者：Ren-Amamiya-pixle，感谢支持！"
+    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     echo "原作者：Keith Baker（Pixel Addict Games）；许可证：MIT。"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 Ally Center 即可看到中文界面。"
@@ -3112,7 +3112,7 @@ install_handheld_frontend_overlay() {
     rm -rf -- "$work_dir"
     echo "$display_name v$expected_version 已安装。"
     if [ "$translated" = "1" ]; then
-        echo "汉化作者：Ren-Amamiya-pixle，感谢支持！"
+        echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     else
         echo "该插件由上游自带简体中文；Renkit 仅适配中文显示名。"
     fi
@@ -3586,6 +3586,18 @@ install_configured_plugin() {
                 "${DECKY_UNIFIDECK_URL:-}" \
                 "${DECKY_UNIFIDECK_SHA256:-}" \
                 "Unifideck"
+            ;;
+        steamgriddb)
+            resolve_plugin_latest steamgriddb
+            ;;
+        cssloader)
+            resolve_plugin_latest cssloader
+            ;;
+        friendeck)
+            resolve_plugin_latest friendeck
+            ;;
+        deckymusic)
+            resolve_plugin_latest deckymusic
             ;;
         *) return 1 ;;
     esac || return 1

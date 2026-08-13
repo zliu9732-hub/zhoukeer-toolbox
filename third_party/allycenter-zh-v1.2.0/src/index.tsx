@@ -1242,7 +1242,7 @@ const AboutModal: VFC<{ closeModal: () => void }> = ({ closeModal }) => {
         <div style={{ color: "#8b929a", fontSize: "11px", marginBottom: "12px" }}>Pixel Addict Games</div>
 
         <div style={{ color: "#ffcc66", fontSize: "12px", marginBottom: "12px" }}>
-          中文汉化：Ren-Amamiya-pixle
+          中文汉化：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）
         </div>
 
         <div style={{ color: "#8b929a", fontSize: "11px", marginBottom: "4px", textAlign: "left" }}>特别感谢</div>
@@ -1287,7 +1287,7 @@ const AllyCenterContent: VFC = () => {
   return (
     <div>
       <div style={{ color: "#ffcc66", fontSize: "12px", textAlign: "center", padding: "6px 8px" }}>
-        中文汉化：Ren-Amamiya-pixle
+        中文汉化：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）
       </div>
       <DownloadModeSection />
       <PerformanceSection />
