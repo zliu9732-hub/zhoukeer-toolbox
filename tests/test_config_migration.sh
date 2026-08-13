@@ -97,7 +97,10 @@ test_blank_config_migration() {
     assert_value "$config_file" DECKY_TOMOON_SHA256 \
         "5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
     assert_value "$config_file" DECKY_DECKRECALL_SHA256 \
-        "360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4"
+        "a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c"
+    assert_value "$config_file" DECKY_SAVEPULSE_SHA256 \
+        "28c150fc7639c51ed7b3b28b70b6a3cd3cbe92b5ac683917129661a1e02b8b1f"
+    assert_value "$config_file" DECKY_SAVEPULSE_VERSION "0.1.0-alpha.1"
 
     backup_count="$(find "$install_dir/config" -maxdepth 1 -type f \
         -name 'settings.conf.bak.*' | wc -l | tr -d ' ')"
@@ -199,6 +202,26 @@ test_retired_unifideck_default_migrated() {
     assert_value "$config_file" DECKY_UNIFIDECK_VERSION "0.7.2"
     assert_value "$config_file" DECKY_UNIFIDECK_SHA256 \
         "a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59366936de"
+}
+
+test_retired_deckrecall_default_migrated() {
+    local case_root="$TMP_ROOT/retired-deckrecall"
+    local install_dir="$case_root/install"
+    local config_file="$install_dir/config/settings.conf"
+
+    mkdir -p "$(dirname "$config_file")"
+    cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
+    sed -i.bak \
+        -e 's|releases/download/v0.3.2/DeckRecall.zip|releases/download/v0.2.8/DeckRecall.zip|' \
+        -e 's/a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c/360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4/' \
+        "$config_file"
+
+    run_installer "$case_root/home" "$install_dir"
+
+    assert_value "$config_file" DECKY_DECKRECALL_URL \
+        "https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.3.2/DeckRecall.zip"
+    assert_value "$config_file" DECKY_DECKRECALL_SHA256 \
+        "a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c"
 }
 
 test_custom_unifideck_version_preserved() {
@@ -325,6 +348,23 @@ test_runtime_scripts_packaged() {
         fail "安装目录缺少可执行的 Decky 官方插件安装脚本"
 }
 
+test_fsr4_list_and_cssloader_overlay_packaged() {
+    local case_root="$TMP_ROOT/fsr4-list-cssloader"
+    local install_dir="$case_root/install"
+    local game_list="$install_dir/data/fsr4_optiscaler_tested_games_2026-08-07.txt"
+    local css_dir="$install_dir/third_party/cssloader-zh-v2.1.2"
+
+    run_installer "$case_root/home" "$install_dir"
+
+    [ -s "$game_list" ] || fail "安装目录缺少 FSR4 官方兼容游戏清单"
+    [ "$(grep -vc '^#' "$game_list")" -eq 683 ] || \
+        fail "安装后的 FSR4 官方兼容游戏清单条目数不正确"
+    [ -s "$css_dir/plugin.json" ] || fail "安装目录缺少 CSS Loader 中文清单"
+    [ -s "$css_dir/package.json" ] || fail "安装目录缺少 CSS Loader 版本文件"
+    [ -s "$css_dir/LICENSE" ] || fail "安装目录缺少 CSS Loader 许可证"
+    [ -s "$css_dir/dist/index.js" ] || fail "安装目录缺少 CSS Loader 中文前端"
+}
+
 test_install_from_replaced_workdir() {
     local case_root="$TMP_ROOT/replaced-workdir"
     local install_dir="$case_root/install"
@@ -358,6 +398,7 @@ test_chinese_plugin_hashes_migrated
 test_chinese_plugin_v504_hashes_migrated
 test_retired_freedeck_url_migrated
 test_retired_unifideck_default_migrated
+test_retired_deckrecall_default_migrated
 test_custom_unifideck_version_preserved
 test_retired_rustdesk_config_removed_app_preserved
 test_retired_decky_installer_config_removed
@@ -365,6 +406,7 @@ test_missing_config_created
 test_dry_run_has_no_side_effects
 test_lsfg_chinese_runtime_files_packaged
 test_runtime_scripts_packaged
+test_fsr4_list_and_cssloader_overlay_packaged
 test_install_from_replaced_workdir
 
 echo "PASS: 配置迁移测试全部通过"

@@ -299,7 +299,7 @@ for repo_url in \
     grep -Fq "$repo_url" "$PROJECT_ROOT/modules/domestic_source.sh" || \
         fail "缺少 archlinuxcn 镜像回退：$repo_url"
 done
-grep -Fq '初始化国内源并检测系统组件' "$PROJECT_ROOT/modules/new_machine.sh" || \
+grep -Fq '更新必要系统组件并优化国内软件源' "$PROJECT_ROOT/modules/new_machine.sh" || \
     fail "新机初始化没有运行国内源与系统组件检测"
 
 # 配置文件测试只操作临时目录，toolbox_sudo 被替换为直接调用假 install/locale-gen。

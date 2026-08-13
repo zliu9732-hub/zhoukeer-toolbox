@@ -100,6 +100,36 @@ run_update() {
         bash "$INSTALL_DIR/update.sh" --startup
 }
 
+run_check_only() {
+    HOME="$TMP_ROOT/home" \
+    XDG_STATE_HOME="$TMP_ROOT/xdg-state" \
+    PATH="$BIN_DIR:/usr/bin:/bin" \
+    FAKE_REMOTE_DIR="$REMOTE_DIR" \
+    FAKE_CURL_LOG="$CURL_LOG" \
+    ZHOUKEER_GITEE_RAW_BASE="https://test.invalid/repo" \
+    ZHOUKEER_DOMAIN_RAW_BASE="https://domain.test/repo" \
+    ZHOUKEER_TEST_MODE=1 \
+    FAKE_GITEE_RAW_BASE="https://test.invalid/repo" \
+    FAKE_DOMAIN_RAW_BASE="https://domain.test/repo" \
+        bash "$INSTALL_DIR/update.sh" --check-only
+}
+
+# 工具箱里的“检测更新”只能比较版本，不能顺带下载或安装更新包。
+: > "$CURL_LOG"
+run_check_only > "$STATE_DIR/check-only.output"
+grep -Fq '发现 Renkit 新版本：V4.1.0（当前 V4.0.0）' "$STATE_DIR/check-only.output" || {
+    echo "FAIL: 仅检测模式没有显示真实的新旧版本" >&2
+    exit 1
+}
+if grep -Fq '/dist/renkit.tar.gz' "$CURL_LOG"; then
+    echo "FAIL: 仅检测模式仍下载了更新包" >&2
+    exit 1
+fi
+if [ "$(tr -d '\r\n' < "$INSTALL_DIR/VERSION")" != '4.0.0' ]; then
+    echo "FAIL: 仅检测模式修改了本地版本" >&2
+    exit 1
+fi
+
 : > "$CURL_LOG"
 run_update >/dev/null
 if [ "$(tr -d '\r\n' < "$INSTALL_DIR/VERSION")" != '4.1.0' ]; then
@@ -127,16 +157,16 @@ grep -Fq '/dist/renkit.tar.gz' "$CURL_LOG"
 grep -Fq '/dist/SHA256SUMS' "$CURL_LOG"
 
 # 1.4.0 发布后的补丁版也必须保持同一条更新链；1.3.10 用户即使没有
-# 先启动 1.4.0，也会由最高版本选择逻辑直接拿到当前 1.4.4。
+# 先启动 1.4.0，也会由最高版本选择逻辑直接拿到当前 1.4.8。
 printf '%s\n' '1.3.10' > "$INSTALL_DIR/VERSION"
-printf '%s\n' '1.4.4' > "$RELEASE_DIR/VERSION"
-printf '%s\n' '1.4.4' > "$REMOTE_DIR/VERSION"
+printf '%s\n' '1.4.8' > "$RELEASE_DIR/VERSION"
+printf '%s\n' '1.4.8' > "$REMOTE_DIR/VERSION"
 tar -czf "$REMOTE_DIR/dist/renkit.tar.gz" -C "$RELEASE_DIR" .
 PACKAGE_SHA="$(shasum -a 256 "$REMOTE_DIR/dist/renkit.tar.gz" | awk '{print $1}')"
 printf '%s  %s\n' "$PACKAGE_SHA" 'renkit.tar.gz' > "$REMOTE_DIR/dist/SHA256SUMS"
 run_update >/dev/null
-if [ "$(tr -d '\r\n' < "$INSTALL_DIR/VERSION")" != '1.4.4' ]; then
-    echo "FAIL: Renkit 1.3.10 没有直接升级到当前 1.4.4"
+if [ "$(tr -d '\r\n' < "$INSTALL_DIR/VERSION")" != '1.4.8' ]; then
+    echo "FAIL: Renkit 1.3.10 没有直接升级到当前 1.4.8"
     exit 1
 fi
 

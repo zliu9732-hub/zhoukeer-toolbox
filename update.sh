@@ -4,6 +4,7 @@ set -u
 
 DRY_RUN=0
 STARTUP_MODE=0
+CHECK_ONLY=0
 for arg in "$@"; do
     case "$arg" in
         --dry-run)
@@ -11,6 +12,9 @@ for arg in "$@"; do
             ;;
         --startup)
             STARTUP_MODE=1
+            ;;
+        --check-only)
+            CHECK_ONLY=1
             ;;
         *)
             echo "未知参数: $arg"
@@ -568,6 +572,22 @@ if [ -r "$PROJECT_ROOT/VERSION" ]; then
 fi
 if [ "$REMOTE_VERSION" != "unknown" ] && [ "$LOCAL_VERSION" = "$REMOTE_VERSION" ]; then
     echo "✓ Renkit已是最新版本"
+    exit 0
+fi
+
+if [ "$CHECK_ONLY" -eq 1 ]; then
+    if [ "$REMOTE_VERSION" = "unknown" ]; then
+        echo "无法确认远程版本，当前版本 V${LOCAL_VERSION} 保持不变。"
+        exit 1
+    fi
+    if version_greater "$REMOTE_VERSION" "$LOCAL_VERSION"; then
+        echo "发现 Renkit 新版本：V${REMOTE_VERSION}（当前 V${LOCAL_VERSION}）"
+        echo "可在Renkit“检查与维护”中执行更新。"
+    elif version_greater "$LOCAL_VERSION" "$REMOTE_VERSION"; then
+        echo "当前 Renkit V${LOCAL_VERSION} 高于可用正式版 V${REMOTE_VERSION}，不会降级。"
+    else
+        echo "版本检测完成：当前 V${LOCAL_VERSION}，远程 V${REMOTE_VERSION}。"
+    fi
     exit 0
 fi
 

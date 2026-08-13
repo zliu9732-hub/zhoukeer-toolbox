@@ -428,6 +428,10 @@ decky-loader-service-prerelease|Decky Loader 测试版服务模板|v3.2.8-pre1|p
 lsfg|Decky LSFG-VK|v0.12.5|Decky.LSFG-VK.zip|https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip|13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07|
 fsr4|Decky-Framegen|v0.17|Decky-Framegen.zip|https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip|3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f|
 cheatdeck|CheatDeck|v2.0.0|CheatDeck.zip|https://github.com/SheffeyG/CheatDeck/releases/download/v2.0.0/CheatDeck.zip|32e2931f9ca8083c1605f04b4ed089b0bf210f79db236a7fd34f02c519e902d9|
+steamgriddb|SteamGridDB|v1.7.1|steamgriddb-v1.7.1.zip|https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3.zip|6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3|
+cssloader|CSS Loader|v2.1.2|cssloader-v2.1.2.zip|https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip|1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350|
+friendeck|Friendeck|0.7.7|Friendeck.v.0.7.7.zip|https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip|65465ff115e105912adf72b5461e17b697ac07100ce7061de2e962851e41c653|
+deckymusic|Decky Music|v1.0.0|Decky.Music.zip|https://github.com/jinzhongjia/decky-music/releases/download/v1.0.0/Decky.Music.zip|ec2956bbee1d84b25b7f8749f06794b54014828a04707beccd06feb5d49dfa53|
 tomoon|ToMoon|v0.2.8|tomoon-v0.2.8.zip|https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip|5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6|
 deckrecall|DeckRecall|v0.2.8|DeckRecall.zip|https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.8/DeckRecall.zip|360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4|
 unifideck|Unifideck|Release-0.7.2|unifideck.prod.v0.7.2.zip|https://github.com/mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip|a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59366936de|

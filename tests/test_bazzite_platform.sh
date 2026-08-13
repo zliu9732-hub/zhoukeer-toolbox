@@ -124,7 +124,7 @@ grep -Fq 'Decky Loader 安装完成' "$TMP_ROOT/decky.out" || fail "Decky 安装
 # Bazzite 已安装官方 Decky 后，汉化功能插件必须通过平台门禁；测试仅在临时
 # HOME 中放置完整文件桩，不下载、不提权，也不接触真实 Decky 服务。
 BAZZITE_PLUGIN_ROOT="$DECKY_HOME/homebrew/plugins"
-for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck; do
+for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck decky-steamgriddb SDH-CssLoader Friendeck-plugin "Decky Music"; do
     mkdir -p "$BAZZITE_PLUGIN_ROOT/$plugin_dir/dist"
     printf 'test bundle\n' > "$BAZZITE_PLUGIN_ROOT/$plugin_dir/dist/index.js"
 done
@@ -136,11 +136,21 @@ printf '{"name":"Decky-Framegen"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky-Framegen/plug
 printf '{"version":"0.17.0"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky-Framegen/package.json"
 printf '{"name":"CheatDeck"}\n' > "$BAZZITE_PLUGIN_ROOT/CheatDeck/plugin.json"
 printf '{"version":"2.0.0"}\n' > "$BAZZITE_PLUGIN_ROOT/CheatDeck/package.json"
+printf '{"name":"游戏封面更换"}\n' > "$BAZZITE_PLUGIN_ROOT/decky-steamgriddb/plugin.json"
+printf '{"version":"1.7.1"}\n' > "$BAZZITE_PLUGIN_ROOT/decky-steamgriddb/package.json"
+printf '{"name":"主题美化"}\n' > "$BAZZITE_PLUGIN_ROOT/SDH-CssLoader/plugin.json"
+printf '{"version":"2.1.2"}\n' > "$BAZZITE_PLUGIN_ROOT/SDH-CssLoader/package.json"
+cp "$PROJECT_ROOT/third_party/cssloader-zh-v2.1.2/dist/index.js" \
+    "$BAZZITE_PLUGIN_ROOT/SDH-CssLoader/dist/index.js"
+printf '{"name":"文件传输助手"}\n' > "$BAZZITE_PLUGIN_ROOT/Friendeck-plugin/plugin.json"
+printf '{"version":"0.7.5"}\n' > "$BAZZITE_PLUGIN_ROOT/Friendeck-plugin/package.json"
+printf '{"name":"音乐播放器"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky Music/plugin.json"
+printf '{"version":"1.0.0"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky Music/package.json"
 HOME="$DECKY_HOME" PATH="$DECKY_BIN:/usr/bin:/bin" \
 DECKY_PLUGIN_DIR="$BAZZITE_PLUGIN_ROOT" ZHOUKEER_TEST_MODE=1 \
 ZHOUKEER_OS_RELEASE_FILE="$BAZZITE_RELEASE" \
     bash "$PROJECT_ROOT/modules/plugin_store.sh" features > "$TMP_ROOT/bazzite-features.out"
-grep -Fq '三款常用功能插件已全部安装' "$TMP_ROOT/bazzite-features.out" || \
+grep -Fq '七款常用功能插件已全部安装' "$TMP_ROOT/bazzite-features.out" || \
     fail "Bazzite 汉化功能插件仍被 SteamOS 平台门禁拦截"
 
 if rg -n 'modules/(todesk|memory_tuning|dual_system)' "$PROJECT_ROOT/main-bazzite.sh"; then
@@ -161,7 +171,7 @@ grep -Fq 'DECKY_BUNDLE_INCLUDE_CUSTOM=0' "$PROJECT_ROOT/main-bazzite.sh" || fail
 grep -Fq 'modules/plugin_store.sh" features' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 汉化功能插件组合入口缺失"
 grep -Fq 'modules/plugin_store.sh" lsfg-zh-gitee' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 小黄鸭入口缺失"
 grep -Fq 'modules/plugin_store.sh" fsr4-zh-gitee' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite FSR4 入口缺失"
-for plugin_action in cheatdeck deckrecall freedeck newfreedeck tomoon unifideck \
+for plugin_action in cheatdeck deckrecall savepulse freedeck newfreedeck tomoon unifideck \
     simpledeckytdp-zh-gitee allycenter huesync legiongo-remapper gpd-control lego-vibe lego2-fan \
     onexplayer-apex; do
     grep -Fq "modules/plugin_store.sh\" $plugin_action" "$PROJECT_ROOT/main-bazzite.sh" || \

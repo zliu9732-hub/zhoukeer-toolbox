@@ -1,0 +1,688 @@
+# OptiScaler 官方 Wiki 已测试兼容游戏
+# 来源：https://github.com/optiscaler/OptiScaler/wiki/Compatibility-List
+# 上游更新时间：2026-08-07；抓取提交：d0049f52e99e65fe7b36baeacf615533b9ceb073
+# 上游统计：685 个可工作条目（其中 2 个仅单一操作系统可用）；去重并按既有要求排除 Monster Hunter Wilds 后，本文件 683 款。
+# 具体注入方式、Linux 状态与限制以官方 Wiki 的对应游戏条目为准。
+007 First Light
+1666: Amsterdam (Prologue)
+171
+7 Days To Die
+63 Days
+687 Days on Mars Demo
+Achilles: Legends Untold
+Ad Infinitum
+AI Limit
+Airborne Empire
+AirportSim
+Akimbot
+Alan Wake Remastered
+Alan Wake 2
+Alien: Rogue Incursion Evolved Edition
+Alien Agent X
+Alone in the Dark (2024)
+Ambulance Life: A Paramedic Simulator
+Amid Evil
+Anchor Quest for Atlantis
+Aphelion
+A Plague Tale: Requiem
+Apocalypse 2.0
+A Quiet Place: The Road Ahead
+Arcadegeddon
+Ark: Survival Ascended
+Arknights: Endfield
+Armatus Demo
+Arons Adventure
+Ascend to ZERO
+Ashgard: Infinity Mask
+ASKA
+Assassin's Creed Black Flag Resynced
+Assassin’s Creed Mirage
+Assassin’s Creed Shadows
+Assetto Corsa Competizione
+Assetto Corsa EVO
+Assetto Corsa Rally
+Asterigos: Curse of the Stars
+Astrobotanica
+Atelier Yumia: The Alchemist of Memories & the Envisioned Land
+Atomic Heart
+Automate It: Factory Puzzle
+Automation - The Car Company Tycoon Game
+Avatar: Frontiers of Pandora
+Avowed
+Backrooms Lost Runners Demo
+Baldur’s Gate 3
+Ballads of Hongye
+Ballex 2: The Hanging Gardens
+Banishers: Ghosts of New Eden
+Batora: Lost Haven
+Bears in Space
+BEAST: False Prophet
+Beast of Reincarnation
+Bellwright
+Beyond Hanwell
+Black Myth: Wukong
+Black One: Blood Brothers
+Blacktail
+Blades of Fire
+Bleak Faith: Forsaken
+Bleak Haven
+Blind Fate: Edo no Yami
+Bloodhound
+Blue Protocol: Star Resonance
+Boba Cafe Simulator
+Borderlands 4
+Bottle Pilgrim Redux
+Brawlers of the West
+Break Arts III
+Bright Memory
+Bright Memory: Infinite
+Broken Pieces
+Brothers: A Tale of Two Sons Remake
+Burning Sword: Death
+Bus Simulator 21
+Capes
+Car Dealer Simulator
+Caravan SandWitch
+Carmageddon: Rogue Shift
+Car Mechanic Simulator 2026 - Single Player Demo
+Celestial Empire
+Chernobylite
+Chernobylite 2: Exclusion Zone
+Chionophile
+Chip 'n Clawz vs The Brainioids
+Choo Choo Charles
+Chorus
+Chronicles of Sagrea
+Cions of Vega
+Cities: Skylines II
+City of Springs
+Clair Obscur: Expedition 33
+Clash: Artifacts of Chaos
+CODE EXIT Demo
+CODE VEIN II
+Commandos: Origins
+Company of Heroes 3
+Conan Exiles Enhanced
+Control Ultimate Edition
+CoopRooms Demo
+Corsair Cove
+Creatures of Ava
+Crime Boss: Rockay City
+Crimson Desert
+Crisol: Theater of Idols
+Cronos: The New Dawn
+Crysis Remastered
+Crysis 2 Remastered
+Crysis 3 Remastered
+Cthulhu: The Cosmic Abyss
+Cursed Deal
+Cyberpunk 2077
+Daemon x Machina Titanic Scion
+Dakar Desert Rally
+Darkwatch
+Darwin's Paradox
+Dawn Break Demo
+Daydream: Forgotten Sorrow
+Daymare - 1994 Sandcastle
+DCS World
+DDoD
+Dead as Disco
+Dead Island 2
+Deadlink
+DEAD OR ALIVE 6 Last Round
+Dead Rising Deluxe Remaster
+Dead Signal
+Dead Space (2023)
+Dead Take
+Deadzone Rogue
+Deathbound
+Deathloop
+Death Stranding: Director’s Cut
+DEATH STRANDING 2: ON THE BEACH
+Deconstruction Simulator
+Deep Rock Galactic
+Deep Rock Galactic: Rogue Core
+Deep Space 7
+Deliver Us Mars
+Deliver Us the Moon
+Demonologist
+Demon Tides Demo
+Desordre
+Descenders Next
+Destroy All Humans! 2 – Reprobed
+Devil May Cry 5
+Diablo II: Resurrected
+Diablo IV
+Dinoblade
+Directive 8020
+Directorate Novitiate Demo
+Dishonored 2
+Dolmen
+Doom Eternal
+Doom: The Dark Ages
+Dragon Age: The Veilguard
+Dragon’s Dogma II
+Dragonkin: The Banished
+DragonSword : Awakening
+Dream Cycle
+Dream Eaters.exe
+Dreams Far Away
+Duskfade Demo
+Dying Light 2
+Dying Light The Beast
+DYNASTY WARRIORS: ORIGINS
+Eastern Era
+Echo 91
+Echoes of the End
+Echoes of Yi: Samsara
+Echo Point Nova
+Edge of Eternity
+Elden Ring
+Emissary Zero
+Empire of the Ants
+Empyreal
+Enshrouded
+Enotria: The Last Song
+Entity: The Black Day
+Epic Mickey: Rebrushed
+Ereban: Shadow Legacy
+Ertugrul of Ulukayin
+Escape from Naraka
+Escape from Tarkov – SPT
+Escape Simulator 2 Demo
+Eternal Strands
+Europa Universalis V
+EVERSPACE 2
+Everwind Demo
+Evil West
+EVOTINCTION
+F1 2020
+F1 22
+F1 24
+F1 25
+F1 Manager 2024
+Fairy Tail 2
+Faraday Protocol
+Far Far West
+Farming Simulator 22
+Farming Simulator 25
+FATAL FRAME II: Crimson Butterfly REMAKE
+Ferocious
+Fight or Flight
+FINAL FANTASY VII REBIRTH
+FINAL FANTASY VII REMAKE INTERGRADE
+FINAL FANTASY XIV: Dawntrail
+FINAL FANTASY XVI
+Finnish Cottage Simulator
+Firefighting Simulator: Ignite
+Firmament
+F.I.S.T.: Forged In Shadow Torch
+Fishing: North Atlantic Edition
+FixForce
+Flipscapes
+Flintlock: The Siege of Dawn
+Fobia – St. Dinfna Hotel
+Forgive me Father 2
+Forspoken
+Fort Solis
+Forza Horizon 5
+Forza Horizon 6
+Forza Motorsport
+Five Nights at Freddy’s: Security Breach
+Frostpunk 2
+Frozenheim
+Funko Fusion
+Gaming Cafe Simulator
+Gangs of Sherwood
+Ghostbusters: Spirits Unleashed
+Ghost of Tsushima DIRECTOR'S CUT
+Ghostrunner
+Ghostrunner 2
+Ghostwire: Tokyo
+Glaciered Demo
+GOALS
+God of War (2018)
+God of War Ragnarok
+Gotham Knights
+Gord
+Gori: Cuddly Carnage
+Gothic 1 Remake
+Grand Theft Auto: San Andreas – Definitive Edition
+Grand Theft Auto: Vice City – Definitive Edition
+Grand Theft Auto III – Definitive Edition
+Grand Theft Auto V Enhanced
+GreedFall - The Dying World
+Greedland
+Grid Legends
+Gripper
+Grounded 2
+Guardians of the Galaxy
+Gungrave G.O.R.E
+Gun Jam
+GYLT
+Half Sword
+Halo: Campaign Evolved
+Haste
+Hellblade: Senua’s Sacrifice
+Hellbreak
+Hell is Us
+Hell Pie
+Hello Neighbor 2
+Hi-Fi RUSH
+High on Life
+High On Life 2
+Highrise City
+HITMAN World of Assassination
+Hogwarts Legacy
+Hold Your Own
+Homeworld 3
+Horizon Forbidden West Complete Edition
+Horizon Zero Dawn Complete Edition
+Horizon Zero Dawn Remastered
+HOT WHEELS UNLEASHED
+House Flipper 2
+Hydroneer
+I Am Jesus Christ
+ICARUS
+Ikonei Island: An Earthlock Adventure
+Immortals of Aveum
+Indiana Jones and the Great Circle
+INDIKA
+INDUSTRIA
+INDUSTRIA 2
+Industry Giant 4
+Infinity Nikki
+Influx Redux
+Into the Dead: Our Darkest Days
+InZOI
+It Reaches
+Jagged Alliance 3
+JDM: Japanese Drift Master
+Jotunnslayer - Hordes of Hel
+Judgment
+Jump Space (formerly Jump Ship)
+Jurassic World Evolution 2
+Jurassic World Evolution 3
+Jusant
+KARMA: The Dark World
+Keeper
+Kena: Bridge of Spirits
+Kiborg
+Kiln
+Kingdom Come: Deliverance II
+Kitten Burst
+Kunitsu-Gami: Path of the Goddess
+Land of the Vikings
+LANESPLIT Demo
+Last Train Home
+Layers of Fear (2023)
+LEGO Batman : Legacy of the Dark Knight
+LEGO Builder’s Journey
+LEGO Harry Potter Collection
+LEGO Horizon Adventures
+Lies of P
+Lightyear Frontier
+Like A Dragon: Infinite Wealth
+Like a Dragon: Ishin!
+Like a Dragon: Pirate Yakuza in Hawaii
+Like a Dragon Gaiden: The Man Who Erased His Name
+Liminalcore
+Little Nightmares III
+Loopmancer
+Lost Judgment
+Lost Records: Bloom and Rage
+Lost Skies
+Lost Soul Aside
+Lords of the Fallen (2023)
+Lumina Veil Demo
+Luna Abyss
+Lunacy: Saint Rhodes
+Luto
+Mafia: The Old Country
+Mandragora: Whispers of the Witch Tree
+Manor Lords
+Martha is Dead
+Marvel’s Avengers
+Marvel's Guardians of the Galaxy
+Marvel's Midnight Suns
+Marvel's Spider‐Man 2
+Marvel's Spider-Man: Miles Morales
+Marvel’s Spider-Man Remastered
+Matcho Demo
+MAVRIX by Matt Jones
+MechWarrior 5: Mercenaries
+Medieval Dynasty
+Memory’s Reach Demo
+Menace
+METAL EDEN
+METAL GEAR SOLID DELTA: SNAKE EATER
+Metro Exodus: Enhanced Edition
+Microsoft Flight Simulator 2020
+Microsoft Flight Simulator 2024
+MindsEye
+Minecraft RTX
+MINOS Demo
+MONGIL: STAR DIVE
+Monster Hunter Rise
+Monster Hunter Stories 3: Twisted Reflection
+Morbid Metal
+Moroi
+Mortal Kombat 1
+Mortal Shell
+Mortal Shell II - Open Beta
+Mount & Blade II Bannerlord
+MOUSE: P.I. For Hire
+Mr. Photographer - Into The Light
+Myst (2021)
+Need For Speed Unbound
+Necromunda: Hired Gun
+Necrophosis
+Neverness to Everness (NTE)
+Nightingale
+NINJA GAIDEN 2 Black
+NINJA GAIDEN 4
+Nioh 2
+Nioh 3
+Nobody Wants To Die
+No Man’s Sky
+No Rest For The Wicked
+NORSE: Oath of Blood Demo
+Observer: System Redux
+ODDRoom
+Oddsparks: An Automation Adventure
+Of Ash and Steel Demo
+Once Alive
+Onimusha: Way of the Sword DEMO
+Online: 404 Demo
+Only Climb: Better Together
+Orbit.Industries
+Otherskin
+Outcast: A New Beginning
+Outriders
+Outpost: Infinity Siege
+over the hill Demo
+Pacific Drive
+Painkiller Demo
+Palworld
+Panicore
+Paradise Killer
+Paresis II Demo
+Party Animals
+Path of Exile 2
+Pax Autocratica: Prologue
+PAYDAY 3
+PC Building Simulator 2
+Perceptum Playtest
+Persona 5 Royal
+Pizzapocalypse
+Planet Coaster 2
+POLYARIS Demo
+POOLS
+Portal: Prelude RTX
+POSTAL 4: No Regerts
+PRAGMATA
+Prey (2017)
+Project Borealis: Prologue
+Project Songbird Teaser: Faceless
+Project: Station Demo
+Promise Mascot Agency
+Protocol:Terminate Demo
+Psalm 2
+Psycho Fear
+Pumpkin Jack
+Quantum Break
+Quarantine Zone: The Last Check
+Q.U.B.E. 10th Anniversary
+Raji: An Ancient Epic
+Ranch Simulator
+Ratchet & Clank: Rift Apart
+Ready or Not
+RealmWalker
+REANIMAL
+Red Dead Redemption
+Red Dead Redemption 2
+Redfall
+Redout: Space Assault
+Redout 2
+Red Souls Demo
+Remnant II
+Resident Evil 2 (2019)
+Resident Evil 3 (2020)
+Resident Evil 4 (2023)
+Resident Evil 7 Biohazard
+Resident Evil 8 Village
+Resident Evil 9 Requiem
+Returnal
+Revenge of the Savage Planet
+Ripout
+Rise of the Ronin
+Rise of the Tomb Raider
+Riven (2024)
+Roadcraft
+RoboCop: Rogue City
+RoboCop: Rogue City – Unfinished Business
+Robots at Midnight
+Romancelvania
+ROMEO IS A DEAD MAN
+Roundtrip
+ROUTINE
+Rune Factory Guardians of Azuma
+Runescape: Dragonwilds
+RV There Yet?
+[REDACTED]
+Sackboy: A Big Adventure
+Sagas of Lumin
+Saints Row
+Samson
+Sands of Aura
+Satisfactory
+Scathe
+Scorn
+SCP: Secret Files
+Season: A Letter to the Future
+Sekiro: Shadows Die Twice
+Sengoku Dynasty
+Senua’s Saga: Hellblade II
+Severed Steel
+Shadow of the Tomb Raider
+Shadowgunners
+Shadows of Doubt
+Shadow Project Demo
+Shadow Warrior 3
+Shatterline
+Sherlock Holmes: The Awakened
+SHROT Demo
+Sifu
+SILENT HILL 2 (2024)
+SILENT HILL f
+Simulakros
+SlavicPunk: Oldtimer
+Slender: The Arrival
+Smalland: Survive the Wilds
+Smile Protocol Demo
+Solasta II
+Sons of the Forest
+Soulmask
+Soulslinger: Envoy of Death
+Soulstice
+South of Midnight
+Spirit of the North 2
+Spirit X Strike
+Split Fiction
+SpongeBob SquarePants: Titans of the Tide
+SPRAWL
+STALKER: Call of Prypiat Enhanced Edition
+STALKER: Clear Sky Enhanced Edition
+STALKER: Shadow of Chornobyl Enhanced Edition
+STALKER 2: Heart of Chornobyl
+Starfield
+Star Overdrive
+Star Trek: Voyager - Across the Unknown
+STAR WARS Jedi: Survivor
+Star Wars Outlaws
+Stay in the Light
+Steel Seed
+Steelrising
+Stellar Blade
+Still Wakes the Deep
+Storage Hunter Simulator
+Stranger of Paradise: Final Fantasy Origin
+Stranded: Alien Dawn
+Strayed Lights
+Stygion: Outer Gods
+Styx: Blades of Greed
+Subliminal
+Subnautica 2
+Suicide Squad: Kill the Justice League
+Sumerian Six
+Super Meat Boy 3D
+Supraland
+Supraland Six Inches Under
+Supraworld
+SYNTHETIK 2
+System Shock (2023)
+Tainted Grail: The Fall of Avalon
+Tales of Kenzera: ZAU
+Tankhead
+Tchia
+Technofumer
+TEKKEN 8
+Tempest Rising
+TerraTech Legion
+Test Drive Unlimited Solar Crown
+Testament: The Order of High Human
+The Alley Demo
+The Alters
+The Ascent
+The Axis Unseen
+The Black Ice
+The Callisto Protocol
+The Casting of Frank Stone
+The Chant
+The DioField Chronicle
+The Elder Scrolls IV: Oblivion Remastered
+The Elder Scrolls V: Skyrim Special Edition
+The First Berserker: Khazan
+The Hollow Complex Demo
+The Invincible
+THE JOY OF CREATION
+The Killing Antidote
+The Last Caretaker
+The Last of Us Part I
+The Last of Us Part II Remastered
+The Last Oricru
+The Legend of Heroes: Trails through Daybreak II
+The Lord of the Rings: Gollum
+The Lord of the Rings: Return to Moria
+The Medium
+The Midnight Walk
+The Mound: Omen of Cthulhu
+The Occultist
+The Orville – Interactive Fan Experience
+The Other Side
+The Outer Worlds: Spacer's Choice Edition
+The Outer Worlds 2
+The Path into the Abyss
+The Persistence
+THE RIFT Demo
+The Riftbreaker
+The RPG
+The Seven Deadly Sins: Origin
+The Sinking City 2 Demo
+The Sinking City Remastered
+The Talos Principle: Reawakened
+The Talos Principle 2
+The Thaumaturge
+The Witcher 3: Wild Hunt
+Thief's Shelter
+Thymesia
+Time Breaker
+Tiny Tina’s Wonderlands
+Titan Station
+Titan Quest II
+Togges
+Tokyo Xtreme Racer
+Tony Hawk's Pro Skater 3 + 4
+Tormented Souls 2
+Trail Out
+Trails in the Sky 1st Chapter
+Trepang2
+Trine 5
+Troublemaker 2 - Beyond Dream
+Turbo Sloths
+Twin Stones: The Journey of Bukka
+UBOAT
+Undertaker
+UNCHARTED: Legacy of Thieves Collection
+Unholy
+Unknown 9: Awakening
+Until Dawn
+Valkyrie Elysium
+Valor Mortis Playtest
+Vampire: The Masquerade - Bloodlines 2
+VEIN
+Venus Vacation PRISM - DEAD OR ALIVE Xtreme
+Vindictus: Defying Fate
+Virtua Fighter 5 R.E.V.O. World Stage
+Visions of Mana
+VLADiK BRUTAL
+VOID/BREAKER
+Voidtrain
+VOIN
+Voodoo Fishin'
+Voyagers of Nera
+Wanted: Dead
+Warhammer 40,000: Darktide
+Warhammer 40,000: Space Marine 2
+Watch Dogs: Legion
+Way of the Hunter
+Wayfinder
+Welcome to ParadiZe
+Welcome to the Game III
+Werewolf: The Inner Beast
+We Were Here Tomorrow Demo
+Where Winds Meet
+Whiskerwood
+Wild Hearts
+WILL: Follow the Light
+Windrose
+Winemaker Simulator
+Witchfire
+Wo Long: Fallen Dynasty
+Wolfenstein: Youngblood
+Wonderball
+World War Z
+WRC Generations
+Wreckfest 2
+Wrench
+WUCHANG: Fallen Feathers
+Wuthering Waves
+Xuan-Yuan Sword VII
+Yet Another Zombie Survivors
+Yooka-Replaylee
+Zenless Zone Zero
+Zombieville USA 3D
+Zoochosis
+Zouhri: The Cursed Blood Demo
+Aliens: Fireteam Elite
+Bloodstained: Ritual of the Night
+Breathedge
+Crash Bandicoot 4: It’s About Time
+Darksiders III
+GUILTY GEAR -STRIVE-
+Life is Strange 2
+Little Nightmares
+Little Nightmares II
+MOTHERGUNSHIP
+Psychonauts 2
+Redeemer Enhanced Edition
+Redout Enhanced Edition
+Remnant: From the Ashes
+Roboquest
+RUINER
+Spyro Reignited Trilogy
+STAR WARS Jedi: Fallen Order
+Stray
+Styx: Shards of Darkness
+Trek to Yomi
+Vampyr

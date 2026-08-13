@@ -54,6 +54,12 @@ SIMPLEDECKYTDP_OFFICIAL_DIRECTORY="SimpleDeckyTDP"
 SIMPLEDECKYTDP_OFFICIAL_VERSION="1.0.5"
 SIMPLEDECKYTDP_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5"
 SIMPLEDECKYTDP_ZH_INDEX_SHA256="fff7ef99f9fe8811f412836c97021bc369a10283ccc461969b4fc55cfe41c040"
+STEAMGRIDDB_OFFICIAL_DIRECTORY="decky-steamgriddb"
+STEAMGRIDDB_OFFICIAL_VERSION="1.7.1"
+CSSLOADER_OFFICIAL_DIRECTORY="SDH-CssLoader"
+CSSLOADER_OFFICIAL_VERSION="2.1.2"
+CSSLOADER_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/cssloader-zh-v2.1.2"
+CSSLOADER_ZH_INDEX_SHA256="38ec628efcc1238247e0cf771bde98b26be49349dca9c2d7de4270ad242a2567"
 
 # 独立插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
@@ -63,12 +69,26 @@ DECKY_FSR4_SHA256="3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc
 DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v2.0.0/CheatDeck.zip"
 DECKY_CHEATDECK_SHA256="32e2931f9ca8083c1605f04b4ed089b0bf210f79db236a7fd34f02c519e902d9"
 DECKY_CHEATDECK_VERSION="2.0.0"
+DECKY_STEAMGRIDDB_URL="https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3.zip"
+DECKY_STEAMGRIDDB_SHA256="6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3"
+DECKY_CSSLOADER_URL="https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip"
+DECKY_CSSLOADER_SHA256="1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350"
+DECKY_FRIENDECK_URL="https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip"
+DECKY_FRIENDECK_SHA256="65465ff115e105912adf72b5461e17b697ac07100ce7061de2e962851e41c653"
+DECKY_FRIENDECK_RELEASE_VERSION="0.7.7"
+DECKY_FRIENDECK_PACKAGE_VERSION="0.7.5"
+DECKY_DECKYMUSIC_URL="https://github.com/jinzhongjia/decky-music/releases/download/v1.0.0/Decky.Music.zip"
+DECKY_DECKYMUSIC_SHA256="ec2956bbee1d84b25b7f8749f06794b54014828a04707beccd06feb5d49dfa53"
+DECKY_DECKYMUSIC_VERSION="1.0.0"
 DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip"
 DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
-DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.8/DeckRecall.zip"
-DECKY_DECKRECALL_SHA256="360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4"
+DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.3.2/DeckRecall.zip"
+DECKY_DECKRECALL_SHA256="a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c"
+DECKY_DECKRECALL_VERSION="0.3.2"
 DECKY_DECKRECALL_AUTO_UPDATE="${ZHOUKEER_DECKY_DECKRECALL_AUTO_UPDATE:-1}"
-DECKY_DECKRECALL_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
+DECKY_SAVEPULSE_URL="${DECKY_SAVEPULSE_URL:-https://github.com/Ren-Amamiya-pixle/SavePulse/releases/download/v0.1.0-alpha.1/SavePulse.zip}"
+DECKY_SAVEPULSE_SHA256="${DECKY_SAVEPULSE_SHA256:-28c150fc7639c51ed7b3b28b70b6a3cd3cbe92b5ac683917129661a1e02b8b1f}"
+DECKY_SAVEPULSE_VERSION="${DECKY_SAVEPULSE_VERSION:-0.1.0-alpha.1}"
 DECKY_LATEST_GITHUB_VERSION=""
 DECKY_LATEST_GITHUB_URL=""
 DECKY_LATEST_GITHUB_SHA256=""
@@ -150,10 +170,26 @@ resolve_deckrecall_latest() {
         '^DeckRecall[.]zip$' "DeckRecall"; then
         DECKY_DECKRECALL_URL="$_LATEST_RELEASE_URL"
         DECKY_DECKRECALL_SHA256="$_LATEST_RELEASE_SHA256"
+        DECKY_DECKRECALL_VERSION="${_LATEST_RELEASE_TAG#v}"
         log "DeckRecall 自动检测最新版本: $_LATEST_RELEASE_TAG"
     else
         echo "自动检测最新 DeckRecall 失败，继续使用固定版本。"
     fi
+}
+
+deckrecall_version_is_older() {
+    local installed="$1"
+    local latest="$2"
+    local installed_major installed_minor installed_patch
+    local latest_major latest_minor latest_patch
+
+    [[ "$installed" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || return 1
+    [[ "$latest" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || return 1
+    IFS=. read -r installed_major installed_minor installed_patch <<< "$installed"
+    IFS=. read -r latest_major latest_minor latest_patch <<< "$latest"
+    [ "$installed_major" -lt "$latest_major" ] || \
+        { [ "$installed_major" -eq "$latest_major" ] && [ "$installed_minor" -lt "$latest_minor" ]; } || \
+        { [ "$installed_major" -eq "$latest_major" ] && [ "$installed_minor" -eq "$latest_minor" ] && [ "$installed_patch" -lt "$latest_patch" ]; }
 }
 
 resolve_plugin_latest() {
@@ -184,6 +220,30 @@ resolve_plugin_latest() {
                 DECKY_CHEATDECK_SHA256="$_LATEST_RELEASE_SHA256"
                 DECKY_CHEATDECK_VERSION="${_LATEST_RELEASE_TAG#v}"
             fi
+            ;;
+        steamgriddb)
+            ensure_rename_only_plugin_current \
+                "游戏封面更换（SteamGridDB）" \
+                "$STEAMGRIDDB_OFFICIAL_DIRECTORY" "$STEAMGRIDDB_OFFICIAL_VERSION" \
+                "SteamGridDB" "游戏封面更换" \
+                "$DECKY_STEAMGRIDDB_URL" "$DECKY_STEAMGRIDDB_SHA256"
+            ;;
+        cssloader)
+            ensure_cssloader_chinese_current
+            ;;
+        friendeck)
+            ensure_rename_only_plugin_current \
+                "文件传输助手（Friendeck $DECKY_FRIENDECK_RELEASE_VERSION）" \
+                "Friendeck-plugin" "$DECKY_FRIENDECK_PACKAGE_VERSION" \
+                "Friendeck" "文件传输助手" \
+                "$DECKY_FRIENDECK_URL" "$DECKY_FRIENDECK_SHA256"
+            ;;
+        deckymusic)
+            ensure_rename_only_plugin_current \
+                "音乐播放器（Decky Music）" \
+                "Decky Music" "$DECKY_DECKYMUSIC_VERSION" \
+                "Decky Music" "音乐播放器" \
+                "$DECKY_DECKYMUSIC_URL" "$DECKY_DECKYMUSIC_SHA256"
             ;;
         tomoon)
             [ -z "${ZHOUKEER_DECKY_TOMOON_URL:-}" ] || return 0
@@ -1410,6 +1470,7 @@ patch_deckrecall_steam_browser() {
     local temporary
     local staged
     local index_size
+    local installed_version
     local patched_marker='steamBrowser.OpenUrl("https://flingtrainer.com/");'
 
     [ -d "$plugin_dir" ] && [ ! -L "$plugin_dir" ] && \
@@ -1428,6 +1489,12 @@ patch_deckrecall_steam_browser() {
     if [ "$index_size" -le 0 ] || [ "$index_size" -gt 4194304 ]; then
         echo "DeckRecall 前端文件大小异常，未修改浏览器调用。"
         return 1
+    fi
+    installed_version="$(decky_plugin_version "$plugin_dir" || true)"
+    if [[ "$installed_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
+        ! deckrecall_version_is_older "$installed_version" "0.3.1"; then
+        echo "[已内置] DeckRecall $installed_version 已使用新版下载与浏览器处理，无需兼容补丁。"
+        return 0
     fi
     if grep -Fq -- "$patched_marker" "$index_file"; then
         echo "[已修复] DeckRecall 已直接调用 Steam 浏览器打开风灵月影网站。"
@@ -1563,6 +1630,129 @@ install_decky_zip() {
     PLUGIN_INSTALL_CHANGED=1
     cleanup_decky_tmp
     trap - EXIT INT TERM
+}
+
+rename_decky_plugin_display_name() {
+    local directory_name="$1" official_name="$2" localized_name="$3"
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local plugin_json="$plugin_root/$directory_name/plugin.json"
+    local actual_name temporary staged
+
+    [ -f "$plugin_json" ] && [ ! -L "$plugin_json" ] || {
+        echo "$localized_name 的 plugin.json 不完整，未修改插件。"
+        return 1
+    }
+    actual_name="$(sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+        "$plugin_json" | head -n 1)"
+    if [ "$actual_name" = "$localized_name" ]; then
+        return 0
+    fi
+    [ "$actual_name" = "$official_name" ] || {
+        echo "$localized_name 的官方名称校验失败，原文件保持不变。"
+        return 1
+    }
+    [ "$(grep -Ec '^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"' "$plugin_json")" -eq 1 ] || {
+        echo "$localized_name 的名称字段数量异常，原文件保持不变。"
+        return 1
+    }
+    prepare_plugin_root "$plugin_root" || return 1
+    temporary="$(mktemp "${TMPDIR:-/tmp}/renkit-plugin-name.XXXXXX")" || return 1
+    if ! sed -E \
+        "s/^([[:space:]]*\"name\"[[:space:]]*:[[:space:]]*)\"${official_name}\"/\\1\"${localized_name}\"/" \
+        "$plugin_json" > "$temporary" || \
+       [ "$(sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+            "$temporary" | head -n 1)" != "$localized_name" ]; then
+        rm -f -- "$temporary"
+        echo "$localized_name 的名称替换校验失败，原文件保持不变。"
+        return 1
+    fi
+    chmod 0644 "$temporary" || { rm -f -- "$temporary"; return 1; }
+    staged="$plugin_root/$directory_name/.plugin.json.renkit-new.$$"
+    if ! run_plugin_file_operation cp -- "$temporary" "$staged" || \
+       ! run_plugin_file_operation chmod 0644 "$staged" || \
+       ! run_plugin_file_operation mv -- "$staged" "$plugin_json"; then
+        run_plugin_file_operation rm -f -- "$staged" >/dev/null 2>&1 || true
+        rm -f -- "$temporary"
+        echo "$localized_name 的名称写入失败，原插件保持不变。"
+        return 1
+    fi
+    rm -f -- "$temporary"
+    PLUGIN_INSTALL_CHANGED=1
+    echo "${official_name} 已仅修改插件显示名称为“${localized_name}”。"
+}
+
+ensure_rename_only_plugin_current() {
+    local display_name="$1" directory_name="$2" package_version="$3"
+    local official_name="$4" localized_name="$5" url="$6" sha256="$7"
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local installed_version
+
+    if feature_plugin_is_current "$plugin_root" "$directory_name" "$package_version" \
+        "$localized_name"; then
+        echo "[已安装] $display_name v$package_version 已存在且显示名称正确，无需重复安装。"
+        PLUGIN_INSTALL_CHANGED=0
+        return 0
+    fi
+    installed_version="$(decky_plugin_version "$plugin_root/$directory_name" || true)"
+    if [ "$installed_version" != "$package_version" ] || \
+       ! feature_plugin_is_present "$plugin_root" "$directory_name" \
+            "$official_name" "$localized_name"; then
+        install_decky_zip "$display_name" "$url" "$sha256" "$directory_name" 0 || return 1
+    else
+        PLUGIN_INSTALL_CHANGED=0
+    fi
+    rename_decky_plugin_display_name "$directory_name" "$official_name" "$localized_name"
+}
+
+ensure_cssloader_chinese_current() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local installed_version actual_sha256 work_dir staged_source
+
+    installed_version="$(decky_plugin_version "$plugin_root/$CSSLOADER_OFFICIAL_DIRECTORY" || true)"
+    actual_sha256="$(calculate_decky_sha256 \
+        "$plugin_root/$CSSLOADER_OFFICIAL_DIRECTORY/dist/index.js" 2>/dev/null || true)"
+    if feature_plugin_is_current "$plugin_root" "$CSSLOADER_OFFICIAL_DIRECTORY" \
+        "$CSSLOADER_OFFICIAL_VERSION" "主题美化" && \
+       [ "$actual_sha256" = "$CSSLOADER_ZH_INDEX_SHA256" ]; then
+        echo "[已安装] 主题美化 v$CSSLOADER_OFFICIAL_VERSION 中文版已存在且校验通过。"
+        PLUGIN_INSTALL_CHANGED=0
+        return 0
+    fi
+    if [ "$installed_version" != "$CSSLOADER_OFFICIAL_VERSION" ] || \
+       ! feature_plugin_is_present "$plugin_root" "$CSSLOADER_OFFICIAL_DIRECTORY" \
+            "CSS Loader" "主题美化"; then
+        install_decky_zip "主题美化（CSS Loader 中文版）" \
+            "$DECKY_CSSLOADER_URL" "$DECKY_CSSLOADER_SHA256" \
+            "$CSSLOADER_OFFICIAL_DIRECTORY" 0 || return 1
+    fi
+    if [ -L "$CSSLOADER_ZH_SOURCE_DIR" ] || \
+       [ ! -f "$CSSLOADER_ZH_SOURCE_DIR/plugin.json" ] || \
+       [ ! -s "$CSSLOADER_ZH_SOURCE_DIR/dist/index.js" ] || \
+       [ ! -f "$CSSLOADER_ZH_SOURCE_DIR/LICENSE" ] || \
+       [ "$(calculate_decky_sha256 "$CSSLOADER_ZH_SOURCE_DIR/dist/index.js" || true)" \
+            != "$CSSLOADER_ZH_INDEX_SHA256" ]; then
+        echo "主题美化中文组件不完整或校验失败，官方后端保持不变。"
+        return 1
+    fi
+    prepare_plugin_root "$plugin_root" || return 1
+    work_dir="$(mktemp -d)" || return 1
+    staged_source="$work_dir/$CSSLOADER_OFFICIAL_DIRECTORY"
+    if ! cp -a -- "$plugin_root/$CSSLOADER_OFFICIAL_DIRECTORY" "$staged_source" || \
+       ! cp -- "$CSSLOADER_ZH_SOURCE_DIR/dist/index.js" "$staged_source/dist/index.js" || \
+       ! cp -- "$CSSLOADER_ZH_SOURCE_DIR/plugin.json" "$staged_source/plugin.json"; then
+        rm -rf -- "$work_dir"
+        echo "主题美化中文前端准备失败，官方插件保持不变。"
+        return 1
+    fi
+    install_tree_atomically "$staged_source" "$plugin_root" \
+        "$CSSLOADER_OFFICIAL_DIRECTORY" || {
+        rm -rf -- "$work_dir"
+        echo "主题美化中文前端安装失败，已尽量保留官方版本。"
+        return 1
+    }
+    rm -rf -- "$work_dir"
+    PLUGIN_INSTALL_CHANGED=1
+    echo "CSS Loader v$CSSLOADER_OFFICIAL_VERSION 已完成中文化并显示为“主题美化”；官方后端未改动。"
 }
 
 install_decky_tar_gz() {
@@ -3128,112 +3318,48 @@ EOF
 }
 
 create_fsr4_supported_games_guide() {
-    local desktop_dir target temporary
+    local desktop_dir target temporary tested_games
 
     desktop_dir="$(feature_guide_desktop_dir)" || return 1
     target="$desktop_dir/FSR4支持游戏名单.txt"
+    tested_games="$PROJECT_ROOT/data/fsr4_optiscaler_tested_games_2026-08-07.txt"
+    if [ ! -f "$tested_games" ] || \
+       [ "$(grep -vc '^#' "$tested_games" 2>/dev/null || true)" -ne 683 ]; then
+        echo "FSR4 官方兼容游戏清单缺失或条目数异常，请先更新Renkit。"
+        return 1
+    fi
     prepare_managed_guide_target "$target" || return 1
     temporary="$(mktemp "$desktop_dir/.zhoukeer-fsr4-guide.XXXXXX")" || return 1
     if ! cat > "$temporary" <<'EOF'
 由Renkit管理
-FSR4 支持游戏名单（依据用户提供截图整理）
+FSR4 / OptiScaler 官方兼容游戏清单
 
-【重要】FSR/FSR4 不适合所有游戏。本名单只用于判断是否值得尝试，不代表每台设备、每个游戏版本都能正常工作。出现黑屏、闪退、花屏、画面变差或帧数下降时，立即关闭并恢复原设置。名单已按要求排除指定游戏。
+资料来源：OptiScaler 官方 Wiki
+兼容表：https://github.com/optiscaler/OptiScaler/wiki/Compatibility-List
+FSR4 与 Linux 说明：https://github.com/optiscaler/OptiScaler/wiki/FSR4-Compatibility-List
+资料日期：2026-08-07
 
-寂静之地：前方之路
-暗区突围：无限
-方舟：生存升级
-刺客信条：影
-颂钟长鸣
-烈焰之刃
-使命召唤：黑色行动 6
-使命召唤：战争地带
-生灵之境：亚娃
-时间旅者：重生曙光
-赛博朋克 2077
-Deadzone: Rogue
-龙裔：被放逐者
-真·三国无双：起源
-艾诺提亚：失落之歌
-EVERSPACE 2
-F1 25
-堕落之主
-文明 7
-Fort Solis
-蜘蛛侠：迈尔斯·莫拉莱斯
-星球大战：亡命之徒
-权力的游戏：王者之路
-对马岛之魂：导演剪辑版
-战神：诸神黄昏
-侠盗猎车手 5 增强版
-灰区战争
-地狱即我们
-霍格沃兹之遗
-地平线西之绝境完整版
-地平线零之曙光重制版
-猎杀：对决 1896
-红河行动
-Influx 重制版
-inZOI
-天国：拯救 2
-Kristala
-遗产：钢铁与巫术
-匹诺曹的谎言
-如龙 8：Pirate Yakuza in Hawaii
-Ships At Sea
-最终幻想 16
-漫威蜘蛛侠重制版
-双影奇境
-Funko Fusion
-机甲战士 5：氏族
-真人快打 1
-永劫无间
-夜莺传说
-忍者龙剑传 2 黑之章
-地狱已满 2
-恐慌核心
-Planetaries
-铁血战士：狩猎场
-QANGA
-瑞奇与叮当：时空跳转
-Rem Survival
-遗迹 2
-RoadCraft
-符文世界：龙之荒野
-潜行者 2：切尔诺贝利之心
-Satisfactory
-FBC: Firebreak
-漫威争锋
-SMITE 2
-冰汽时代 2
-解限机
-剑星
-多重人生
-无形轴心
-上古卷轴 4：湮灭重制版
-最终决战
-第一狂战士：卡赞
-第一后裔
-最后生还者第一部
-最后生还者 2 重制版
-泰坦之旅 2
-直到黎明
-Virtua Fighter 5 R.E.V.O.
-战锤 40K：暗潮
-战锤 40K：星际战士 2
-兽猎突袭
-撞车嘉年华 2
-明末：渊虚之羽
-模拟农场 25
-四海兄弟：故乡
-寂静岭 2
-界外狂潮
-漫威蜘蛛侠 2
+【结论】上游统计为 685 个可工作条目（其中 2 个仅单一操作系统可用）；按游戏名去重并按既有要求排除《怪物猎人：荒野》后，下方列出 683 款。
+这不是全部理论支持范围。OptiScaler 官方说明，多数带 DLSS 2+、FSR 2+ 或 XeSS 的游戏都可能兼容；下方只列社区已经测试并标记可工作的项目。
+
+【Steam Deck / SteamOS 必看】
+1. 官方 FSR4 当前只正式支持 RDNA3/RDNA4；Steam Deck 是 RDNA2，Renkit 提供的是社区验证的 Valve/RDNA2 兼容路径，不等于 AMD 官方支持。
+2. Linux 使用 FSR 4.1.1 需要包含新版 VKD3D 的较新 Proton；FSR4 帧生成还要求 Mesa 25.2+，并可能需要把单个游戏的 Proton 前缀设为 Windows 11。
+3. FSR4 官方仍不支持 Vulkan 或 DX11；相关游戏可能通过社区转换层运行，稳定性不能按原生 DX12 理解。
+4. 不要在带反作弊的联网/竞技模式注入。上游明确列为不可用：EA Sports WRC、Gears of War: Reloaded；Atlas Fallen: Reign of Sand 也无法挂接输入。
+5. Minecraft RTX 仅 Windows 可用；Wolfenstein: Youngblood 是仅 Linux 路径可用的特殊项。
+6. 出现黑屏、闪退、花屏、画质下降或帧数下降，立即撤销修补；每款游戏的代理 DLL、输入方式和特殊参数请查上方官方兼容表。
 
 添加方法：目标游戏页面 → 齿轮 → CheatDeck → 高级 → 打开 OptiScaler → 保存。
-再次提醒：FSR/FSR4 不适合所有游戏，使用前先看桌面的总教程。
+再次提醒：FSR/FSR4 不适合所有游戏，名单也不代表每台设备、每个游戏版本都一定正常。
+
+====== 官方 Wiki 已测试可工作的游戏（排除指定游戏后 683 款）======
 EOF
     then
+        rm -f -- "$temporary"
+        return 1
+    fi
+    if ! grep -v '^#' "$tested_games" >> "$temporary"; then
         rm -f -- "$temporary"
         return 1
     fi
@@ -3325,15 +3451,47 @@ install_configured_plugin() {
             ;;
         deckrecall)
             resolve_plugin_latest deckrecall
-            GITEE_MIRROR_REPO="$DECKY_DECKRECALL_MIRROR_REPO" install_decky_zip \
-                "DeckRecall（添加启动项及恢复游戏可玩状态）" \
-                "${DECKY_DECKRECALL_URL:-}" \
-                "${DECKY_DECKRECALL_SHA256:-}" \
-                "DeckRecall"
+            installed_version="$(decky_plugin_version \
+                "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/DeckRecall" || true)"
+            if feature_plugin_is_present \
+                "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "DeckRecall" "DeckRecall" && \
+                [[ "$installed_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
+                ! deckrecall_version_is_older "$installed_version" "$DECKY_DECKRECALL_VERSION"; then
+                echo "[已安装] DeckRecall $installed_version 已是最新正式版，无需重复下载。"
+                PLUGIN_INSTALL_CHANGED=0
+            else
+                [ -z "$installed_version" ] || \
+                    echo "检测到 DeckRecall 已安装版本 $installed_version，最新正式版 $DECKY_DECKRECALL_VERSION。"
+                GITHUB_RETRIES=1 GITHUB_MIN_SPEED_TIME=15 install_decky_zip \
+                    "DeckRecall（添加启动项及恢复游戏可玩状态）" \
+                    "${DECKY_DECKRECALL_URL:-}" \
+                    "${DECKY_DECKRECALL_SHA256:-}" \
+                    "DeckRecall" \
+                    0
+            fi
             patch_deckrecall_steam_browser || return 1
             if decky_plugin_directory_is_complete \
                 "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "DeckRecall"; then
                 deckrecall_ready=1
+            fi
+            ;;
+        savepulse)
+            if feature_plugin_is_current \
+                "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
+                "SavePulse" "$DECKY_SAVEPULSE_VERSION" "SavePulse"; then
+                echo "[已安装] SavePulse $DECKY_SAVEPULSE_VERSION 已存在且文件完整，无需重复安装。"
+                PLUGIN_INSTALL_CHANGED=0
+            else
+                installed_version="$(decky_plugin_version \
+                    "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/SavePulse" || true)"
+                [ -z "$installed_version" ] || \
+                    echo "检测到 SavePulse 已安装版本 $installed_version，将更新到 $DECKY_SAVEPULSE_VERSION。"
+                GITHUB_RETRIES=1 GITHUB_MIN_SPEED_TIME=15 install_decky_zip \
+                    "SavePulse（自动存档与加密 WebDAV 换机恢复）" \
+                    "$DECKY_SAVEPULSE_URL" \
+                    "$DECKY_SAVEPULSE_SHA256" \
+                    "SavePulse" \
+                    0
             fi
             ;;
         freedeck)
@@ -3491,7 +3649,7 @@ feature_plugin_is_present() {
 print_feature_plugin_status() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local missing=0
-    local lsfg_version fsr4_version cheatdeck_version
+    local lsfg_version fsr4_version cheatdeck_version plugin_version
 
     echo ""
     echo "========== 常用功能插件状态 =========="
@@ -3532,6 +3690,37 @@ print_feature_plugin_status() {
         echo "✗ CheatDeck：未找到完整插件文件"
         missing=1
     fi
+    if feature_plugin_is_current "$plugin_root" "$STEAMGRIDDB_OFFICIAL_DIRECTORY" \
+        "$STEAMGRIDDB_OFFICIAL_VERSION" "游戏封面更换"; then
+        echo "✓ 游戏封面更换（SteamGridDB）：官方版本 $STEAMGRIDDB_OFFICIAL_VERSION，中文名称正确"
+    else
+        echo "✗ 游戏封面更换（SteamGridDB）：缺失、版本不符或名称未应用"
+        missing=1
+    fi
+    plugin_version="$(decky_plugin_version "$plugin_root/$CSSLOADER_OFFICIAL_DIRECTORY" || true)"
+    if feature_plugin_is_current "$plugin_root" "$CSSLOADER_OFFICIAL_DIRECTORY" \
+        "$CSSLOADER_OFFICIAL_VERSION" "主题美化" && \
+       [ "$(calculate_decky_sha256 "$plugin_root/$CSSLOADER_OFFICIAL_DIRECTORY/dist/index.js" \
+            2>/dev/null || true)" = "$CSSLOADER_ZH_INDEX_SHA256" ]; then
+        echo "✓ 主题美化（CSS Loader）：官方后端 $plugin_version，中文前端校验通过"
+    else
+        echo "✗ 主题美化（CSS Loader）：缺失、版本不符或中文前端校验失败"
+        missing=1
+    fi
+    if feature_plugin_is_current "$plugin_root" "Friendeck-plugin" \
+        "$DECKY_FRIENDECK_PACKAGE_VERSION" "文件传输助手"; then
+        echo "✓ 文件传输助手（Friendeck）：Release $DECKY_FRIENDECK_RELEASE_VERSION，名称正确"
+    else
+        echo "✗ 文件传输助手（Friendeck）：缺失、版本不符或名称未应用"
+        missing=1
+    fi
+    if feature_plugin_is_current "$plugin_root" "Decky Music" \
+        "$DECKY_DECKYMUSIC_VERSION" "音乐播放器"; then
+        echo "✓ 音乐播放器（Decky Music）：官方版本 $DECKY_DECKYMUSIC_VERSION，名称正确"
+    else
+        echo "✗ 音乐播放器（Decky Music）：缺失、版本不符或名称未应用"
+        missing=1
+    fi
     echo ""
     echo "说明：插件侧栏中的 Decky-Framegen 就是 FSR4。"
     echo "CheatDeck 安装完成后可在 Decky 右侧栏显示。"
@@ -3551,24 +3740,39 @@ install_feature_plugins() {
 
     ensure_plugin_store_ready || return 1
 
-    # 先检测三件套是否都已安装，是则跳过
+    # 先检测整组是否都已安装且本地名称/中文前端正确，是则跳过。
     local _all_installed=1
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "$LSFG_OFFICIAL_VERSION" "Decky LSFG-VK" "小黄鸭"; then _all_installed=0; fi
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$FSR4_OFFICIAL_DIRECTORY" "$FSR4_OFFICIAL_VERSION" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)"; then _all_installed=0; fi
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
         "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then _all_installed=0; fi
+    if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
+        "$STEAMGRIDDB_OFFICIAL_DIRECTORY" "$STEAMGRIDDB_OFFICIAL_VERSION" \
+        "游戏封面更换"; then _all_installed=0; fi
+    if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
+        "$CSSLOADER_OFFICIAL_DIRECTORY" "$CSSLOADER_OFFICIAL_VERSION" \
+        "主题美化" || \
+       [ "$(calculate_decky_sha256 \
+            "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/$CSSLOADER_OFFICIAL_DIRECTORY/dist/index.js" \
+            2>/dev/null || true)" != "$CSSLOADER_ZH_INDEX_SHA256" ]; then _all_installed=0; fi
+    if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
+        "Friendeck-plugin" "$DECKY_FRIENDECK_PACKAGE_VERSION" \
+        "文件传输助手"; then _all_installed=0; fi
+    if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
+        "Decky Music" "$DECKY_DECKYMUSIC_VERSION" \
+        "音乐播放器"; then _all_installed=0; fi
     if [ "$_all_installed" = "1" ]; then
-        echo "三款常用功能插件已全部安装，无需重复安装。"
+        echo "七款常用功能插件已全部安装且校验通过，无需重复安装。"
         write_flingtrainer_desktop_note || \
-            echo "三件套已存在，但未能在桌面生成风灵月影网址.txt。"
+            echo "常用插件已存在，但未能在桌面生成风灵月影网址.txt。"
         refresh_feature_usage_guides || true
         print_cef_remote_debugging_tip
         print_feature_plugin_status
         return 0
     fi
 
-    echo "将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。"
-    for plugin in lsfg fsr4 cheatdeck; do
+    echo "将依次安装：小黄鸭、FSR4、CheatDeck、游戏封面更换、主题美化、文件传输助手、音乐播放器。"
+    for plugin in lsfg fsr4 cheatdeck steamgriddb cssloader friendeck deckymusic; do
         echo ""
         case "$plugin" in
             lsfg)
@@ -3600,6 +3804,22 @@ install_feature_plugins() {
                     echo "该插件未完成，继续尝试其余插件。"
                 }
                 ;;
+            steamgriddb)
+                echo "========== 游戏封面更换（SteamGridDB） =========="
+                install_configured_plugin steamgriddb 0 0 || failed=1
+                ;;
+            cssloader)
+                echo "========== 主题美化（CSS Loader 中文版） =========="
+                install_configured_plugin cssloader 0 0 || failed=1
+                ;;
+            friendeck)
+                echo "========== 文件传输助手（Friendeck） =========="
+                install_configured_plugin friendeck 0 0 || failed=1
+                ;;
+            deckymusic)
+                echo "========== 音乐播放器（Decky Music） =========="
+                install_configured_plugin deckymusic 0 0 || failed=1
+                ;;
         esac
     done
 
@@ -3609,7 +3829,7 @@ install_feature_plugins() {
         echo "至少有一项插件文件未写入完成，请单独重试对应项目。"
     fi
 
-    reload_decky_plugins         "Decky 已重新加载；返回游戏模式后，三款插件会出现在插头菜单中。"
+    reload_decky_plugins "Decky 已重新加载；返回游戏模式后，七款常用插件会出现在插头菜单中。"
 
     # 整组安装全部处理完后再打开正版页面，避免 Steam 窗口打断后两项插件。
     if feature_plugin_is_present         "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "Decky LSFG-VK" "小黄鸭"; then
@@ -3617,7 +3837,7 @@ install_feature_plugins() {
     fi
 
     if [ "$failed" -eq 0 ]; then
-        echo "三款常用功能插件已全部安装完成，文件已确认并已通知 Decky 重新扫描。"
+        echo "七款常用功能插件已全部安装完成，名称、版本和关键文件均已确认。"
         print_cef_remote_debugging_tip
         log "常用功能插件整组安装完成"
         return 0
@@ -3628,12 +3848,12 @@ install_feature_plugins() {
 }
 
 install_all_plugin_packages() {
-    echo "将依次处理 3款独立功能插件和27款精选插件，其中包括SimpleDeckyTDP与Unifideck。"
+    echo "将依次处理七款常用功能插件和27款精选插件，其中包括SimpleDeckyTDP与Unifideck。"
     echo "官方推荐插件仍由 Decky 内置安装器在 Steam 界面中确认。"
 
     install_feature_plugins || return 1
 
-    # 等待 Decky Loader 就绪（安装三件套可能重启了服务）
+    # 等待 Decky Loader 就绪（安装常用插件组合可能重启了服务）
     local _dw_i
     for _dw_i in 1 2 3 4 5; do
         if curl -s --connect-timeout 2 --max-time 4             "$DECKY_API_BASE/auth/token" >/dev/null 2>&1; then
@@ -3643,7 +3863,7 @@ install_all_plugin_packages() {
     done
 
     if ! bash "$PROJECT_ROOT/modules/decky_bundle.sh" install; then
-        echo "官方推荐插件清单未完成提交；小黄鸭、FSR4 和 CheatDeck 的结果请查看上方提示。"
+        echo "官方推荐插件清单未完成提交；七款常用插件的结果请查看上方提示。"
         return 1
     fi
 
@@ -3687,8 +3907,13 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         lsfg-import-select) select_and_import_lossless_backup ;;
         fsr4) show_plugin_download_speed_tip; install_configured_plugin fsr4 ;;
         cheatdeck) show_plugin_download_speed_tip; install_configured_plugin cheatdeck ;;
+        steamgriddb) show_plugin_download_speed_tip; install_configured_plugin steamgriddb ;;
+        cssloader) show_plugin_download_speed_tip; install_configured_plugin cssloader ;;
+        friendeck) show_plugin_download_speed_tip; install_configured_plugin friendeck ;;
+        deckymusic) show_plugin_download_speed_tip; install_configured_plugin deckymusic ;;
         tomoon) show_plugin_download_speed_tip; install_configured_plugin tomoon ;;
         deckrecall) show_plugin_download_speed_tip; install_configured_plugin deckrecall ;;
+        savepulse) show_plugin_download_speed_tip; install_configured_plugin savepulse ;;
         freedeck) show_plugin_download_speed_tip; install_configured_plugin freedeck ;;
         newfreedeck) show_plugin_download_speed_tip; install_configured_plugin newfreedeck ;;
         allycenter) show_plugin_download_speed_tip; install_configured_plugin allycenter ;;

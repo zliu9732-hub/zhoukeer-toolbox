@@ -1,0 +1,10 @@
+{
+  "name": "主题美化",
+  "author": "DeckThemes",
+  "flags": [],
+  "publish": {
+    "tags": ["style"],
+    "description": "将 CSS 主题动态加载到 Steam 界面。更多主题请访问 deckthemes.com。",
+    "image": "https://raw.githubusercontent.com/suchmememanyskill/SDH-CssLoader/main/assets/css-store-preview.png"
+  }
+}

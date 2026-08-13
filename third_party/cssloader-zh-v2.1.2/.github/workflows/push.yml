@@ -1,0 +1,76 @@
+name: Builder
+
+on: ["push", "pull_request", "workflow_dispatch"]
+
+jobs:
+  build:
+    name: Build SDH-CSSLoader for Decky
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set up NodeJS 18
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+  
+    - name: Install JS dependencies
+      run: |
+        npm i -g pnpm
+        pnpm install
+      
+    - name: Build Frontend
+      run: |
+        pnpm run build
+      
+    - name: Package Release
+      run: |
+        mkdir "SDH-CssLoader"
+        cp *.py "./SDH-CssLoader"
+        cp *.json "./SDH-CssLoader"
+        cp LICENSE "./SDH-CssLoader"
+        cp README.md "./SDH-CssLoader"
+        cp -r dist "./SDH-CssLoader"
+        mkdir upload
+        mv "./SDH-CssLoader" ./upload
+    
+    - name: Upload package artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: SDH-CSSLoader-Decky
+        path: ./upload
+  
+  build-standalone-win:
+    name: Build SDH-CSSLoader Standalone for Windows
+    runs-on: windows-2022
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set up Python 3.10.2
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10.2"
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller==5.5
+        pip install -r requirements.txt
+
+    - name: Build Python Backend
+      run: pyinstaller --noconfirm --onefile --add-data "./assets;/assets" --name "CssLoader-Standalone" ./main.py ./css_win_tray.py
+
+    - name: Build Python Backend Headless
+      run: pyinstaller --noconfirm --noconsole --onefile --add-data "./assets;/assets" --name "CssLoader-Standalone-Headless" ./main.py ./css_win_tray.py
+
+    - name: Upload package artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: SDH-CSSLoader-Win-Standalone
+        path: |
+          ./dist/CssLoader-Standalone.exe
+          ./dist/CssLoader-Standalone-Headless.exe

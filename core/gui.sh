@@ -245,25 +245,27 @@ game_environment_gui_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
-            features "常用插件组合｜安装小黄鸭等三款插件" \
-            all "常用插件加27款精选插件｜优先安装三件套，已装则跳过；再补27款精选" \
+            features "常用插件组合｜小黄鸭、FSR4、封面、主题等七款插件" \
+            all "常用插件加27款精选插件｜优先安装七款常用插件，已装则跳过；再补27款精选" \
             lsfg "小黄鸭｜插帧神器（必装）" \
             fsr4 "FSR4｜画质补丁（阅读桌面文档慎用）" \
+            browse "浏览官方插件｜逐个查看插件作用" \
             freedeck "Freedeck｜选择 0.6 稳定版或 NewFreedeck" \
             handheld-plugins "掌机控制插件｜掌机功耗控制与 ROG Ally Center" \
-            browse "浏览官方插件｜逐个查看插件作用" \
             ge-proton "安装 GE 兼容层｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
             tomoon "ToMoon｜网络工具" \
             battlenet "战网启动器｜自动下载预装客户端并绑定 Proton 10.0-4" \
             ubisoft "育碧｜安装育碧游戏平台并添加到 Steam" \
             repair "修复启动器封面｜重写 Steam 库封面并重启 Steam" \
+            deckrecall "DeckRecall｜添加启动项及恢复游戏可玩状态" \
+            savepulse "SavePulse｜自动版本存档、个人 WebDAV 云备份与换机恢复" \
             decky-install "安装插件商城｜稳定版国内失败自动切换官方源｜可选测试版｜高级操作" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
         case "$choice" in
             features)
-                gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。未安装插件商城时会先安装插件商城，再继续安装三款插件；会使用管理员权限。是否继续？" && \
+                gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。未安装插件商城时会先安装插件商城，再继续安装七款常用插件；会使用管理员权限。是否继续？" && \
                     run_gui_action "安装常用插件组合" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" features
                 ;;
@@ -281,6 +283,14 @@ game_environment_gui_menu() {
                 run_gui_action "安装 FSR4（画质补丁）" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee
+                ;;
+            deckrecall)
+                run_gui_action "安装 DeckRecall" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" deckrecall
+                ;;
+            savepulse)
+                run_gui_action "安装 SavePulse" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" savepulse
                 ;;
             freedeck)
                 freedeck_choice="$(gui_dialog --menu "Freedeck 版本选择" \
@@ -807,7 +817,7 @@ new_machine_gui_menu() {
         case "$choice" in
             recommended) software_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             advanced-init)
-                gui_confirm "新机初始化会完整更新系统组件、配置国内源，再安装多项常用软件、Decky 和 ToDesk。请先在游戏模式开启“启用开发者模式”“使用旧版X11桌面模式”和“CEF远程调试”，再确认继续。" && \
+                gui_confirm "新机初始化会完整更新系统组件、配置国内源，再安装常用软件、Decky、FreeDeck、修改器兼容层和 Epic。请先在游戏模式开启“启用开发者模式”和“CEF远程调试”，再确认继续。" && \
                     run_gui_action "新机初始化" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/new_machine.sh"
                 ;;

@@ -86,6 +86,18 @@ esac
 mirror_id="$(gitee_mirror_id_for_url \
     'https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip')"
 [ "$mirror_id" = "lsfg" ] || FAIL "LSFG 镜像标识映射错误"
+for mapping in \
+    'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3.zip|steamgriddb' \
+    'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip|cssloader' \
+    'https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip|friendeck' \
+    'https://github.com/jinzhongjia/decky-music/releases/download/v1.0.0/Decky.Music.zip|deckymusic'; do
+    mapping_url="${mapping%%|*}"
+    mapping_id="${mapping##*|}"
+    [ "$(gitee_mirror_id_for_url "$mapping_url")" = "$mapping_id" ] || \
+        FAIL "$mapping_id 镜像标识映射错误"
+    grep -Fq "$mapping_id|" "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || \
+        FAIL "$mapping_id 缺少 Gitee 固定镜像清单"
+done
 allycenter_mirror_id="$(gitee_mirror_id_for_url \
     'https://github.com/PixelAddictUnlocked/allycenter/releases/download/v1.2.0/allycenter-v1.2.0.zip')"
 [ "$allycenter_mirror_id" = "allycenter" ] || FAIL "Ally Center 镜像标识映射错误"
@@ -93,11 +105,11 @@ grep -Fq 'allycenter|Ally Center|v1.2.0|allycenter-v1.2.0.zip|' \
     "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || FAIL "Ally Center 缺少 Gitee 固定镜像清单"
 grep -Fq '| Ally Center |' "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" || \
     FAIL "License 清单缺少 Ally Center"
-deckrecall_mirror_id="$(gitee_mirror_id_for_url \
-    'https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.8/DeckRecall.zip')"
-[ "$deckrecall_mirror_id" = "deckrecall" ] || FAIL "DeckRecall 作者授权后的镜像标识映射错误"
-grep -Fq 'deckrecall|DeckRecall|v0.2.8|DeckRecall.zip|' \
-    "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || FAIL "DeckRecall 缺少 Gitee 固定镜像清单"
+if gitee_mirror_id_for_url \
+    'https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.3.2/DeckRecall.zip' \
+    >/dev/null 2>&1; then
+    FAIL "DeckRecall v0.3.2 仍被路由到过期 Gitee v0.2.8 镜像清单"
+fi
 grep -Fq '作者授权 Renkit 镜像分发 | 是' "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" || \
     FAIL "DeckRecall 作者镜像授权未写入 License 清单"
 onexplayer_mirror_id="$(gitee_mirror_id_for_url \

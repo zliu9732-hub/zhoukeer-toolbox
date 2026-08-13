@@ -108,14 +108,78 @@ grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$PROJECT_R
 grep -Fq 'Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CheatDeck/releases/download/v2.0.0/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'Ren-Amamiya-pixle/DeckRecall/releases/download/v0.2.8/DeckRecall.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'DECKY_DECKRECALL_SHA256="360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4"' \
+grep -Fq 'Ren-Amamiya-pixle/DeckRecall/releases/download/v0.3.2/DeckRecall.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'Ren-Amamiya-pixle/SavePulse/releases/download/v0.1.0-alpha.1/SavePulse.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '28c150fc7639c51ed7b3b28b70b6a3cd3cbe92b5ac683917129661a1e02b8b1f' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'DECKY_DECKRECALL_SHA256="a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c"' \
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'resolve_deckrecall_latest' "$PROJECT_ROOT/modules/plugin_store.sh"
 deckrecall_install="$(sed -n '/^[[:space:]]*deckrecall)/,/^[[:space:]]*;;/p' "$PROJECT_ROOT/modules/plugin_store.sh")"
 printf '%s\n' "$deckrecall_install" | grep -Fq '"DeckRecall"' || {
     echo "FAIL: DeckRecall 未校验发布包插件目录" >&2
+    exit 1
+}
+printf '%s\n' "$deckrecall_install" | grep -Fq 'DeckRecall $installed_version 已是最新正式版，无需重复下载' || {
+    echo "FAIL: DeckRecall 同版仍会重复下载" >&2
+    exit 1
+}
+printf '%s\n' "$deckrecall_install" | grep -Fq 'GITHUB_MIN_SPEED_TIME=15' || {
+    echo "FAIL: DeckRecall 下载低速切换时间过长" >&2
+    exit 1
+}
+savepulse_install="$(sed -n '/^[[:space:]]*savepulse)/,/^[[:space:]]*;;/p' "$PROJECT_ROOT/modules/plugin_store.sh")"
+printf '%s\n' "$savepulse_install" | grep -Fq '"SavePulse"' || {
+    echo "FAIL: SavePulse 未校验发布包插件目录" >&2
+    exit 1
+}
+printf '%s\n' "$savepulse_install" | grep -Fq 'DECKY_SAVEPULSE_SHA256' || {
+    echo "FAIL: SavePulse 未使用固定 SHA256" >&2
+    exit 1
+}
+
+# SavePulse 公开 Release 为单一顶层目录；使用本地 ZIP 桩验证固定版本安装、
+# 目录检查、原子替换及 Decky 重载，不发起网络请求。
+SAVEPULSE_ARCHIVE="$TMP_ROOT/SavePulse.zip"
+SAVEPULSE_BUILD="$TMP_ROOT/savepulse-build/SavePulse"
+SAVEPULSE_PLUGIN_ROOT="$TMP_ROOT/savepulse-plugins"
+mkdir -p "$SAVEPULSE_BUILD/dist" "$SAVEPULSE_BUILD/backend" "$SAVEPULSE_PLUGIN_ROOT"
+printf '{"name":"SavePulse","flags":["root"],"api_version":1}\n' > "$SAVEPULSE_BUILD/plugin.json"
+printf '{"version":"0.1.0-alpha.1"}\n' > "$SAVEPULSE_BUILD/package.json"
+printf 'test bundle\n' > "$SAVEPULSE_BUILD/dist/index.js"
+printf '# backend fixture\n' > "$SAVEPULSE_BUILD/main.py"
+printf '# package fixture\n' > "$SAVEPULSE_BUILD/backend/main.py"
+(
+    cd "$(dirname "$SAVEPULSE_BUILD")"
+    zip -qr "$SAVEPULSE_ARCHIVE" SavePulse
+)
+savepulse_install_output="$(
+    SAVEPULSE_ARCHIVE="$SAVEPULSE_ARCHIVE" \
+    DECKY_PLUGIN_DIR="$SAVEPULSE_PLUGIN_ROOT" \
+    PROJECT_ROOT="$PROJECT_ROOT" \
+    ZHOUKEER_TEST_MODE=1 \
+    bash -c '
+        source "$PROJECT_ROOT/modules/plugin_store.sh"
+        detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
+        download_verified_package() { cp -- "$SAVEPULSE_ARCHIVE" "$4"; }
+        reload_decky_plugins() { echo "TEST_RELOAD: SavePulse"; }
+        install_configured_plugin savepulse
+    '
+)"
+printf '%s\n' "$savepulse_install_output" | grep -Fq 'SavePulse（自动存档与加密 WebDAV 换机恢复） 安装成功。'
+printf '%s\n' "$savepulse_install_output" | grep -Fq 'TEST_RELOAD: SavePulse'
+[ -s "$SAVEPULSE_PLUGIN_ROOT/SavePulse/plugin.json" ] || {
+    echo "FAIL: SavePulse 未安装到预期目录" >&2
+    exit 1
+}
+(
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    deckrecall_version_is_older 0.2.8 0.3.1
+    ! deckrecall_version_is_older 0.3.1 0.3.1
+    ! deckrecall_version_is_older 0.10.0 0.9.0
+) || {
+    echo "FAIL: DeckRecall 未正确使用三段语义版本比较" >&2
     exit 1
 }
 grep -Fq 'mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip' \
@@ -218,16 +282,20 @@ feature_install="$(sed -n '/^install_feature_plugins()/,/^}/p' "$PROJECT_ROOT/mo
 for install_call in \
     'install_lsfg_zh_from_gitee 0' \
     'install_fsr4_zh_from_gitee 0' \
-    'install_configured_plugin cheatdeck 0 0'; do
+    'install_configured_plugin cheatdeck 0 0' \
+    'install_configured_plugin steamgriddb 0 0' \
+    'install_configured_plugin cssloader 0 0' \
+    'install_configured_plugin friendeck 0 0' \
+    'install_configured_plugin deckymusic 0 0'; do
     printf '%s\n' "$feature_install" | grep -Fq "$install_call" || {
-        echo "FAIL: 三件套缺少下载调用：$install_call" >&2
+        echo "FAIL: 七款常用插件缺少下载调用：$install_call" >&2
         exit 1
     }
 done
 store_line="$(printf '%s\n' "$feature_install" | grep -n 'check_lossless_scaling_installation' | tail -n 1 | cut -d: -f1)"
 loop_line="$(printf '%s\n' "$feature_install" | grep -n 'done' | head -n 1 | cut -d: -f1)"
 [ -n "$store_line" ] && [ -n "$loop_line" ] && [ "$store_line" -gt "$loop_line" ] || {
-    echo "FAIL: 小黄鸭正版页面仍在三件套安装中途打开" >&2
+    echo "FAIL: 小黄鸭正版页面仍在常用插件组合安装中途打开" >&2
     exit 1
 }
 grep -Fq 'check_lossless_scaling_installation' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -250,7 +318,7 @@ printf '%s\n' "$feature_install_function" | grep -Fq 'ensure_plugin_store_ready 
 }
 printf '%s\n' "$feature_install_function" | grep -Fq '小黄鸭（LSFG-VK）'
 printf '%s\n' "$feature_install_function" | grep -Fq 'reload_decky_plugins'
-printf '%s\n' "$feature_install_function" | grep -Fq '三款插件会出现在插头菜单中'
+printf '%s\n' "$feature_install_function" | grep -Fq '七款常用插件会出现在插头菜单中'
 grep -Fq 'CheatDeck 安装完成后可在 Decky 右侧栏显示' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '风灵月影网址.txt' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '若返回游戏模式后没有看到 Decky 的插头图标' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -380,8 +448,8 @@ grep -Fq 'features) show_plugin_download_speed_tip; install_feature_plugins' "$P
 grep -Fq 'tomoon) show_plugin_download_speed_tip; install_configured_plugin tomoon' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'deckrecall) show_plugin_download_speed_tip; install_configured_plugin deckrecall' "$PROJECT_ROOT/modules/plugin_store.sh"
 
-# DeckRecall 的镜像变量不能通过子 shell 隔离，否则安装完成标记会丢失，
-# Decky 不会重载；已写入完整文件的旧安装再次执行也必须补做重载。
+# DeckRecall 不再走过期 Gitee 清单；安装完成标记仍不能被子 Shell 隔离，
+# Decky 才能在新安装或旧安装修复后正确重载。
 DECKRECALL_RELOAD_LOG="$TMP_ROOT/deckrecall-reload.log"
 DECKRECALL_MIRROR_LOG="$TMP_ROOT/deckrecall-mirror.log"
 (
@@ -413,10 +481,14 @@ DECKRECALL_MIRROR_LOG="$TMP_ROOT/deckrecall-mirror.log"
     echo "FAIL: DeckRecall 新安装或已有文件修复后没有重载 Decky" >&2
     exit 1
 }
-[ "$(grep -c '^zhoukeer-toolbox-mirror-3$' "$DECKRECALL_MIRROR_LOG")" -eq 2 ] || {
-    echo "FAIL: DeckRecall 没有使用指定 Gitee 镜像仓库" >&2
+[ "$(grep -c '^zhoukeer-toolbox-mirror$' "$DECKRECALL_MIRROR_LOG")" -eq 2 ] || {
+    echo "FAIL: DeckRecall 安装被注入了非默认镜像仓库" >&2
     exit 1
 }
+if printf '%s\n' "$deckrecall_install" | grep -Fq 'GITEE_MIRROR_REPO='; then
+    echo "FAIL: DeckRecall 仍被强制注入 Gitee 镜像仓库" >&2
+    exit 1
+fi
 
 # DeckRecall 必须对齐桌面模式已验证可下载的 Steam 浏览器调用，不能改用
 # 系统浏览器；重复修复必须保持幂等，并能迁移 1.4.1 的错误补丁。
@@ -490,7 +562,7 @@ grep -Fq '不会删除 Decky Loader 本体' "$PROJECT_ROOT/modules/plugin_store.
 grep -Fq 'all) show_plugin_download_speed_tip; install_all_plugin_packages' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '正在安装小黄鸭' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '正在安装 FSR4' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '将依次安装：小黄鸭（LSFG-VK）、FSR4（Decky Framegen）、CheatDeck。' \
+grep -Fq '将依次安装：小黄鸭、FSR4、CheatDeck、游戏封面更换、主题美化、文件传输助手、音乐播放器。' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Fq 'Lossless Scaling.rar' "$PROJECT_ROOT/modules/plugin_store.sh" || \
     grep -Eq 'https?://[^[:space:]]*Lossless' "$PROJECT_ROOT/modules/plugin_store.sh"; then
@@ -514,7 +586,7 @@ printf '%s\n' "$allycenter_output" | grep -Fq 'Decky 插件安装仅支持 Steam
 # 小黄鸭官方 v0.12.5 使用 Decky LSFG-VK，旧汉化包使用“小黄鸭”；
 # 状态检查必须同时兼容官方名和旧中文名。
 PLUGIN_ROOT="$TMP_ROOT/plugins"
-for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck; do
+for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck decky-steamgriddb SDH-CssLoader Friendeck-plugin "Decky Music"; do
     mkdir -p "$PLUGIN_ROOT/$plugin_dir/dist"
     printf 'bundle\n' > "$PLUGIN_ROOT/$plugin_dir/dist/index.js"
 done
@@ -524,11 +596,25 @@ printf '{ "name": "Decky-Framegen" }\n' > "$PLUGIN_ROOT/Decky-Framegen/plugin.js
 printf '{"version":"0.17.0"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
 printf '{"name": "CheatDeck"}\n' > "$PLUGIN_ROOT/CheatDeck/plugin.json"
 printf '{"version":"2.0.0"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
+printf '{"name": "游戏封面更换"}\n' > "$PLUGIN_ROOT/decky-steamgriddb/plugin.json"
+printf '{"version":"1.7.1"}\n' > "$PLUGIN_ROOT/decky-steamgriddb/package.json"
+printf '{"name": "主题美化"}\n' > "$PLUGIN_ROOT/SDH-CssLoader/plugin.json"
+printf '{"version":"2.1.2"}\n' > "$PLUGIN_ROOT/SDH-CssLoader/package.json"
+cp "$PROJECT_ROOT/third_party/cssloader-zh-v2.1.2/dist/index.js" \
+    "$PLUGIN_ROOT/SDH-CssLoader/dist/index.js"
+printf '{"name": "文件传输助手"}\n' > "$PLUGIN_ROOT/Friendeck-plugin/plugin.json"
+printf '{"version":"0.7.5"}\n' > "$PLUGIN_ROOT/Friendeck-plugin/package.json"
+printf '{"name": "音乐播放器"}\n' > "$PLUGIN_ROOT/Decky Music/plugin.json"
+printf '{"version":"1.0.0"}\n' > "$PLUGIN_ROOT/Decky Music/package.json"
 status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
     bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"
 printf '%s\n' "$status_output" | grep -Fq '✓ 小黄鸭（LSFG-VK）：已写入 Decky'
 printf '%s\n' "$status_output" | grep -Fq '✓ FSR4（Decky-Framegen）：已写入 Decky，官方版本 0.17.0'
 printf '%s\n' "$status_output" | grep -Fq '✓ CheatDeck：已写入 Decky，官方版本 2.0.0'
+printf '%s\n' "$status_output" | grep -Fq '✓ 游戏封面更换（SteamGridDB）'
+printf '%s\n' "$status_output" | grep -Fq '✓ 主题美化（CSS Loader）'
+printf '%s\n' "$status_output" | grep -Fq '✓ 文件传输助手（Friendeck）'
+printf '%s\n' "$status_output" | grep -Fq '✓ 音乐播放器（Decky Music）'
 
 printf '{"name":"小黄鸭"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
 legacy_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
@@ -583,13 +669,19 @@ update_output="$(
             echo "TEST_UPDATE: FSR4"
         }
         install_configured_plugin() {
-            if [ "$1" = "cheatdeck" ]; then
-                printf '\''{"version":"%s"}\n'\'' "$DECKY_CHEATDECK_VERSION" > \
-                    "$DECKY_PLUGIN_DIR/CheatDeck/package.json"
-                echo "TEST_UPDATE: CheatDeck"
-                return 0
-            fi
-            return 1
+            case "$1" in
+                cheatdeck)
+                    printf '\''{"version":"%s"}\n'\'' "$DECKY_CHEATDECK_VERSION" > \
+                        "$DECKY_PLUGIN_DIR/CheatDeck/package.json"
+                    echo "TEST_UPDATE: CheatDeck"
+                    ;;
+                steamgriddb) echo "TEST_UPDATE: SteamGridDB" ;;
+                cssloader) echo "TEST_UPDATE: CSS Loader" ;;
+                friendeck) echo "TEST_UPDATE: Friendeck" ;;
+                deckymusic) echo "TEST_UPDATE: Decky Music" ;;
+                *) return 1 ;;
+            esac
+            return 0
         }
         refresh_feature_usage_guides() { return 0; }
         reload_decky_plugins() { return 0; }
@@ -602,6 +694,10 @@ update_output="$(
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: LSFG'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: FSR4'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: CheatDeck'
+printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: SteamGridDB'
+printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: CSS Loader'
+printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: Friendeck'
+printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: Decky Music'
 printf '%s\n' "$update_output" | grep -Fq '官方版本 0.12.5'
 printf '%s\n' "$update_output" | grep -Fq '官方版本 0.17.0'
 
