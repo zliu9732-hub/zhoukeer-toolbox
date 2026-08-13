@@ -388,10 +388,40 @@ grep -Fq 'git clone --depth 1 --filter=blob:none --sparse' "$SYNC_WORKFLOW" || \
     fail "Decky 自动镜像未基于 Gitee 当前历史创建普通提交"
 grep -Fq 'sparse-checkout set decky-installer-cn' "$SYNC_WORKFLOW" || \
     fail "Decky 自动镜像未限制为 Decky 目录"
+grep -Fq 'GITHUB_TOKEN: ${{ github.token }}' "$SYNC_WORKFLOW" || \
+    fail "Decky 自动镜像未使用 GitHub Actions 令牌降低 API 限流"
+grep -Fq -- '--retry "$CURL_RETRIES"' "$PROJECT_ROOT/scripts/sync_decky_gitee.sh" || \
+    fail "Decky 自动镜像未对上游临时 5xx 执行重试"
+grep -Fq 'keep_existing_mirror' "$PROJECT_ROOT/scripts/sync_decky_gitee.sh" || \
+    fail "Decky 上游暂时不可用时不会保留现有镜像"
+grep -Fq 'STAGED_DECKY_DIR' "$PROJECT_ROOT/scripts/sync_decky_gitee.sh" || \
+    fail "Decky 自动镜像没有先完成双通道暂存校验"
 if grep -Fq 'zhoukeer-toolbox.git"' "$SYNC_WORKFLOW" || \
    grep -Fq 'git push gitee main' "$SYNC_WORKFLOW"; then
     fail "Decky 自动镜像仍直接推送旧 Gitee 仓库或分叉历史"
 fi
+
+# 上游持续 5xx 时工作流应成功保留现有镜像，不得清空或改写已有文件。
+SYNC_FAIL_BIN="$TMP_ROOT/sync-fail-bin"
+SYNC_FAIL_DIR="$TMP_ROOT/sync-existing"
+SYNC_FAIL_LOG="$TMP_ROOT/sync-fail.output"
+mkdir -p "$SYNC_FAIL_BIN" "$SYNC_FAIL_DIR"
+cat > "$SYNC_FAIL_BIN/curl" <<'SCRIPT'
+#!/bin/bash
+exit 22
+SCRIPT
+chmod +x "$SYNC_FAIL_BIN/curl"
+printf 'existing verified mirror\n' > "$SYNC_FAIL_DIR/latest.txt"
+PATH="$SYNC_FAIL_BIN:$PATH" \
+ZHOUKEER_DECKY_SYNC_DIR="$SYNC_FAIL_DIR" \
+ZHOUKEER_DECKY_SYNC_CURL_RETRIES=1 \
+ZHOUKEER_DECKY_SYNC_CURL_RETRY_DELAY=0 \
+    bash "$PROJECT_ROOT/scripts/sync_decky_gitee.sh" > "$SYNC_FAIL_LOG" 2>&1 || \
+    fail "Decky 上游持续 5xx 时工作流仍返回失败"
+grep -Fq '保留现有已校验 Decky 镜像' "$SYNC_FAIL_LOG" || \
+    fail "Decky 上游持续 5xx 时未明确说明保留现有镜像"
+grep -Fxq 'existing verified mirror' "$SYNC_FAIL_DIR/latest.txt" || \
+    fail "Decky 上游持续 5xx 时破坏了现有镜像"
 
 # Gitee 镜像不可用时，必须回退到原有国内/官方线路。
 : > "$CALLS"
