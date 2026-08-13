@@ -108,11 +108,11 @@ grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$PROJECT_R
 grep -Fq 'Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CheatDeck/releases/download/v2.0.0/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.1/DeckRecall.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '3fabe4ea5ff616c0771629d86159a5cb64f2686454550dcad04924785c6db54b' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.2/DeckRecall.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '38cbbaa94f39bbe7231f490fd3826f1347ce8c0acb53aa69c784d8511cc058fd' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Ren-Amamiya-pixle/SavePulse/releases/download/v0.2.0-alpha.1/SavePulse.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'e0680fc3995b8bbb2971673db43d5e9459d8fa8e4a1b431a1f5d4edad19a35ad' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'DECKY_DECKRECALL_SHA256="3fabe4ea5ff616c0771629d86159a5cb64f2686454550dcad04924785c6db54b"' \
+grep -Fq 'DECKY_DECKRECALL_SHA256="38cbbaa94f39bbe7231f490fd3826f1347ce8c0acb53aa69c784d8511cc058fd"' \
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'resolve_deckrecall_latest' "$PROJECT_ROOT/modules/plugin_store.sh"
 deckrecall_install="$(sed -n '/^[[:space:]]*deckrecall)/,/^[[:space:]]*;;/p' "$PROJECT_ROOT/modules/plugin_store.sh")"
@@ -448,7 +448,7 @@ grep -Fq 'features) show_plugin_download_speed_tip; install_feature_plugins' "$P
 grep -Fq 'tomoon) show_plugin_download_speed_tip; install_configured_plugin tomoon' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'deckrecall) show_plugin_download_speed_tip; install_configured_plugin deckrecall' "$PROJECT_ROOT/modules/plugin_store.sh"
 
-# DeckRecall 不再走过期 Gitee 清单；安装完成标记仍不能被子 Shell 隔离，
+# DeckRecall 使用专用 mirror-3；安装完成标记仍不能被子 Shell 隔离，
 # Decky 才能在新安装或旧安装修复后正确重载。
 DECKRECALL_RELOAD_LOG="$TMP_ROOT/deckrecall-reload.log"
 DECKRECALL_MIRROR_LOG="$TMP_ROOT/deckrecall-mirror.log"
@@ -481,14 +481,14 @@ DECKRECALL_MIRROR_LOG="$TMP_ROOT/deckrecall-mirror.log"
     echo "FAIL: DeckRecall 新安装或已有文件修复后没有重载 Decky" >&2
     exit 1
 }
-[ "$(grep -c '^zhoukeer-toolbox-mirror$' "$DECKRECALL_MIRROR_LOG")" -eq 2 ] || {
-    echo "FAIL: DeckRecall 安装被注入了非默认镜像仓库" >&2
+[ "$(grep -c '^zhoukeer-toolbox-mirror-3$' "$DECKRECALL_MIRROR_LOG")" -eq 2 ] || {
+    echo "FAIL: DeckRecall 安装未使用专用 mirror-3" >&2
     exit 1
 }
-if printf '%s\n' "$deckrecall_install" | grep -Fq 'GITEE_MIRROR_REPO='; then
-    echo "FAIL: DeckRecall 仍被强制注入 Gitee 镜像仓库" >&2
+printf '%s\n' "$deckrecall_install" | grep -Fq 'GITEE_MIRROR_REPO="$DECKY_DECKRECALL_MIRROR_REPO"' || {
+    echo "FAIL: DeckRecall 缺少专用 mirror-3 注入" >&2
     exit 1
-fi
+}
 
 # DeckRecall 必须对齐桌面模式已验证可下载的 Steam 浏览器调用，不能改用
 # 系统浏览器；重复修复必须保持幂等，并能迁移 1.4.1 的错误补丁。

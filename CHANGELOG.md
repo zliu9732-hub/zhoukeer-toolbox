@@ -1,3 +1,9 @@
+## Renkit 1.5.2 DeckRecall 下载运行时修复 — 2026-08-13
+
+- DeckRecall 固定版本更新到 v0.4.2，修复 Decky Loader 的 PyInstaller 临时 OpenSSL 环境污染系统 `curl`，导致小黄鸭、FSR4 与 GE-Proton 下载后统一显示失败的问题。
+- DeckRecall 安装固定使用已验证的 Gitee `zhoukeer-toolbox-mirror-3` 镜像，失败仍回退作者 GitHub Release；版本、大小与 SHA256 校验保持不变。
+- 已安装 Renkit 1.5.1 的 DeckRecall v0.4.1 默认配置会安全迁移到 v0.4.2；其他插件、菜单与安装逻辑不变。
+
 ## Renkit 1.5.1 多源更新链修复 — 2026-08-13
 
 - `jktool.icu` 现在默认参与版本比较并选择最高可用版本，避免 Gitee 主仓库因历史体积超额停留在旧版本时阻断后续更新；其他更新逻辑保持不变。

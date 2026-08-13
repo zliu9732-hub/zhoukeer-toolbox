@@ -82,9 +82,10 @@ DECKY_DECKYMUSIC_SHA256="ec2956bbee1d84b25b7f8749f06794b54014828a04707beccd06feb
 DECKY_DECKYMUSIC_VERSION="1.0.0"
 DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip"
 DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
-DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.1/DeckRecall.zip"
-DECKY_DECKRECALL_SHA256="3fabe4ea5ff616c0771629d86159a5cb64f2686454550dcad04924785c6db54b"
-DECKY_DECKRECALL_VERSION="0.4.1"
+DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.2/DeckRecall.zip"
+DECKY_DECKRECALL_SHA256="38cbbaa94f39bbe7231f490fd3826f1347ce8c0acb53aa69c784d8511cc058fd"
+DECKY_DECKRECALL_VERSION="0.4.2"
+DECKY_DECKRECALL_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_DECKRECALL_AUTO_UPDATE="${ZHOUKEER_DECKY_DECKRECALL_AUTO_UPDATE:-1}"
 DECKY_SAVEPULSE_URL="${DECKY_SAVEPULSE_URL:-https://github.com/Ren-Amamiya-pixle/SavePulse/releases/download/v0.2.0-alpha.1/SavePulse.zip}"
 DECKY_SAVEPULSE_SHA256="${DECKY_SAVEPULSE_SHA256:-e0680fc3995b8bbb2971673db43d5e9459d8fa8e4a1b431a1f5d4edad19a35ad}"
@@ -3462,7 +3463,8 @@ install_configured_plugin() {
             else
                 [ -z "$installed_version" ] || \
                     echo "检测到 DeckRecall 已安装版本 $installed_version，最新正式版 $DECKY_DECKRECALL_VERSION。"
-                GITHUB_RETRIES=1 GITHUB_MIN_SPEED_TIME=15 install_decky_zip \
+                GITEE_MIRROR_REPO="$DECKY_DECKRECALL_MIRROR_REPO" \
+                    GITHUB_RETRIES=1 GITHUB_MIN_SPEED_TIME=15 install_decky_zip \
                     "DeckRecall（添加启动项及恢复游戏可玩状态）" \
                     "${DECKY_DECKRECALL_URL:-}" \
                     "${DECKY_DECKRECALL_SHA256:-}" \

@@ -139,8 +139,8 @@ assignment_is_retired_deckrecall_default() {
     local assignment="$2"
 
     case "$key:$assignment" in
-        DECKY_DECKRECALL_URL:*releases/download/v0.2.8/DeckRecall.zip*|DECKY_DECKRECALL_URL:*releases/download/v0.3.1/DeckRecall.zip*|DECKY_DECKRECALL_URL:*releases/download/v0.3.2/DeckRecall.zip*) return 0 ;;
-        DECKY_DECKRECALL_SHA256:*360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4*|DECKY_DECKRECALL_SHA256:*b17b484569b34811991392bef245101b6b5790a9f00634cd90d6d7550be5612c*|DECKY_DECKRECALL_SHA256:*a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c*) return 0 ;;
+        DECKY_DECKRECALL_URL:*releases/download/v0.2.8/DeckRecall.zip*|DECKY_DECKRECALL_URL:*releases/download/v0.3.1/DeckRecall.zip*|DECKY_DECKRECALL_URL:*releases/download/v0.3.2/DeckRecall.zip*|DECKY_DECKRECALL_URL:*releases/download/v0.4.1/DeckRecall.zip*) return 0 ;;
+        DECKY_DECKRECALL_SHA256:*360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4*|DECKY_DECKRECALL_SHA256:*b17b484569b34811991392bef245101b6b5790a9f00634cd90d6d7550be5612c*|DECKY_DECKRECALL_SHA256:*a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c*|DECKY_DECKRECALL_SHA256:*3fabe4ea5ff616c0771629d86159a5cb64f2686454550dcad04924785c6db54b*) return 0 ;;
         *) return 1 ;;
     esac
 }
