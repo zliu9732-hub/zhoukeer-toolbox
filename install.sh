@@ -139,8 +139,20 @@ assignment_is_retired_deckrecall_default() {
     local assignment="$2"
 
     case "$key:$assignment" in
-        DECKY_DECKRECALL_URL:*releases/download/v0.2.8/DeckRecall.zip*|DECKY_DECKRECALL_URL:*releases/download/v0.3.1/DeckRecall.zip*) return 0 ;;
-        DECKY_DECKRECALL_SHA256:*360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4*|DECKY_DECKRECALL_SHA256:*b17b484569b34811991392bef245101b6b5790a9f00634cd90d6d7550be5612c*) return 0 ;;
+        DECKY_DECKRECALL_URL:*releases/download/v0.2.8/DeckRecall.zip*|DECKY_DECKRECALL_URL:*releases/download/v0.3.1/DeckRecall.zip*|DECKY_DECKRECALL_URL:*releases/download/v0.3.2/DeckRecall.zip*) return 0 ;;
+        DECKY_DECKRECALL_SHA256:*360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4*|DECKY_DECKRECALL_SHA256:*b17b484569b34811991392bef245101b6b5790a9f00634cd90d6d7550be5612c*|DECKY_DECKRECALL_SHA256:*a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+assignment_is_retired_savepulse_default() {
+    local key="$1"
+    local assignment="$2"
+
+    case "$key:$assignment" in
+        DECKY_SAVEPULSE_URL:*releases/download/v0.1.0-alpha.1/SavePulse.zip*) return 0 ;;
+        DECKY_SAVEPULSE_SHA256:*28c150fc7639c51ed7b3b28b70b6a3cd3cbe92b5ac683917129661a1e02b8b1f*) return 0 ;;
+        DECKY_SAVEPULSE_VERSION:*0.1.0-alpha.1*) return 0 ;;
         *) return 1 ;;
     esac
 }
@@ -204,6 +216,12 @@ prepare_config_migration() {
         fi
 
         if assignment_is_retired_deckrecall_default "$key" "$current_assignment"; then
+            CONFIG_MIGRATION_KEYS+=("$key")
+            CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
+            continue
+        fi
+
+        if assignment_is_retired_savepulse_default "$key" "$current_assignment"; then
             CONFIG_MIGRATION_KEYS+=("$key")
             CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
         fi

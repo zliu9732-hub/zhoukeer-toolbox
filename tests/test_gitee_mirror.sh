@@ -106,12 +106,19 @@ grep -Fq 'allycenter|Ally Center|v1.2.0|allycenter-v1.2.0.zip|' \
 grep -Fq '| Ally Center |' "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" || \
     FAIL "License 清单缺少 Ally Center"
 if gitee_mirror_id_for_url \
-    'https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.3.2/DeckRecall.zip' \
+    'https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.0/DeckRecall.zip' \
     >/dev/null 2>&1; then
-    FAIL "DeckRecall v0.3.2 仍被路由到过期 Gitee v0.2.8 镜像清单"
+    FAIL "DeckRecall v0.4.0 仍被路由到过期 Gitee v0.2.8 镜像清单"
 fi
 grep -Fq '作者授权 Renkit 镜像分发 | 是' "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" || \
     FAIL "DeckRecall 作者镜像授权未写入 License 清单"
+savepulse_mirror_id="$(gitee_mirror_id_for_url \
+    'https://github.com/Ren-Amamiya-pixle/SavePulse/releases/download/v0.2.0-alpha.1/SavePulse.zip')"
+[ "$savepulse_mirror_id" = "savepulse" ] || FAIL "SavePulse 未路由到 Gitee 分块镜像"
+grep -Fq 'savepulse|SavePulse|v0.2.0-alpha.1|SavePulse.zip|' \
+    "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || FAIL "SavePulse 缺少固定镜像清单"
+grep -Fq '| SavePulse |' "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" || \
+    FAIL "License 清单缺少 SavePulse"
 onexplayer_mirror_id="$(gitee_mirror_id_for_url \
     'https://github.com/srsholmes/onexplayer-apex-bazzite-fixes/releases/download/build-b696161/OneXPlayer_Apex_Tools.zip')"
 [ "$onexplayer_mirror_id" = "onexplayer-apex" ] || FAIL "OneXPlayer Apex 镜像标识映射错误"

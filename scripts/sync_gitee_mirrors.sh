@@ -166,6 +166,10 @@ sync_plugin deckymusic "jinzhongjia/decky-music" '^Decky[.]Music[.]zip$' "Decky 
     "https://github.com/jinzhongjia/decky-music/releases/download/v1.0.0/Decky.Music.zip" \
     "ec2956bbee1d84b25b7f8749f06794b54014828a04707beccd06feb5d49dfa53"
 sync_plugin tomoon "YukiCoco/ToMoon" '^tomoon-v[0-9.]+[.]zip$' "ToMoon"
+sync_plugin savepulse "Ren-Amamiya-pixle/SavePulse" '^SavePulse[.]zip$' "SavePulse" \
+    "v0.2.0-alpha.1" "SavePulse.zip" \
+    "https://github.com/Ren-Amamiya-pixle/SavePulse/releases/download/v0.2.0-alpha.1/SavePulse.zip" \
+    "e0680fc3995b8bbb2971673db43d5e9459d8fa8e4a1b431a1f5d4edad19a35ad"
 sync_plugin unifideck "mubaraknumann/unifideck" '^unifideck[.]prod[.]v[0-9.]+[.]zip$' "Unifideck"
 sync_plugin freedeck "panyiwei-home/Freedeck" '^freedeck[.]v[0-9.]+[.]zip$' "Freedeck"
 sync_plugin simpledeckytdp "aarron-lee/SimpleDeckyTDP" '^SimpleDeckyTDP[.]zip$' "SimpleDeckyTDP"
@@ -178,7 +182,7 @@ for repo in "$MIRROR1" "$MIRROR2"; do
     if git -C "$repo" diff --cached --quiet; then
         echo "No changes in $(basename "$repo")"
     else
-        git -C "$repo" commit -q -m "Sync Gitee mirror assets"
+        git -C "$repo" -c commit.gpgsign=false commit -q -m "Sync Gitee mirror assets"
         git -C "$repo" push -q origin main
         echo "Pushed $(basename "$repo")"
     fi

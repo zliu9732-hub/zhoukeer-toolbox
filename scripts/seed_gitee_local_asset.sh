@@ -63,6 +63,7 @@ if git -C "$TMP/mirror" diff --cached --quiet; then
 else
     git -C "$TMP/mirror" -c user.name="zhoukeer-toolbox[bot]" \
         -c user.email="bot@users.noreply.github.com" \
+        -c commit.gpgsign=false \
         commit -q -m "Mirror $id $version"
     git -C "$TMP/mirror" push -q origin "$BRANCH"
     echo "已推送 $id/$version 到 Gitee 镜像仓库 $OWNER/$REPO"

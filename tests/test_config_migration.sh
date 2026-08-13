@@ -97,10 +97,10 @@ test_blank_config_migration() {
     assert_value "$config_file" DECKY_TOMOON_SHA256 \
         "5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
     assert_value "$config_file" DECKY_DECKRECALL_SHA256 \
-        "a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c"
+        "38a4265f9fc0f98c137a016bce6b7474f0b20e3aa9391be3e79987bafeab29d1"
     assert_value "$config_file" DECKY_SAVEPULSE_SHA256 \
-        "28c150fc7639c51ed7b3b28b70b6a3cd3cbe92b5ac683917129661a1e02b8b1f"
-    assert_value "$config_file" DECKY_SAVEPULSE_VERSION "0.1.0-alpha.1"
+        "e0680fc3995b8bbb2971673db43d5e9459d8fa8e4a1b431a1f5d4edad19a35ad"
+    assert_value "$config_file" DECKY_SAVEPULSE_VERSION "0.2.0-alpha.1"
 
     backup_count="$(find "$install_dir/config" -maxdepth 1 -type f \
         -name 'settings.conf.bak.*' | wc -l | tr -d ' ')"
@@ -212,16 +212,38 @@ test_retired_deckrecall_default_migrated() {
     mkdir -p "$(dirname "$config_file")"
     cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
     sed -i.bak \
-        -e 's|releases/download/v0.3.2/DeckRecall.zip|releases/download/v0.2.8/DeckRecall.zip|' \
-        -e 's/a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c/360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4/' \
+        -e 's|releases/download/v0.4.0/DeckRecall.zip|releases/download/v0.2.8/DeckRecall.zip|' \
+        -e 's/38a4265f9fc0f98c137a016bce6b7474f0b20e3aa9391be3e79987bafeab29d1/360dfc3897a00ceee8c31492e0a36428da956fdbe0cbd185cd8d52b58df67ac4/' \
         "$config_file"
 
     run_installer "$case_root/home" "$install_dir"
 
     assert_value "$config_file" DECKY_DECKRECALL_URL \
-        "https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.3.2/DeckRecall.zip"
+        "https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.0/DeckRecall.zip"
     assert_value "$config_file" DECKY_DECKRECALL_SHA256 \
-        "a460f06f2ff812ad075886728c2140ebbedbcf9db7d6e078eee25a4b058f950c"
+        "38a4265f9fc0f98c137a016bce6b7474f0b20e3aa9391be3e79987bafeab29d1"
+}
+
+test_retired_savepulse_default_migrated() {
+    local case_root="$TMP_ROOT/retired-savepulse"
+    local install_dir="$case_root/install"
+    local config_file="$install_dir/config/settings.conf"
+
+    mkdir -p "$(dirname "$config_file")"
+    cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
+    sed -i.bak \
+        -e 's|releases/download/v0.2.0-alpha.1/SavePulse.zip|releases/download/v0.1.0-alpha.1/SavePulse.zip|' \
+        -e 's/e0680fc3995b8bbb2971673db43d5e9459d8fa8e4a1b431a1f5d4edad19a35ad/28c150fc7639c51ed7b3b28b70b6a3cd3cbe92b5ac683917129661a1e02b8b1f/' \
+        -e 's/DECKY_SAVEPULSE_VERSION="0.2.0-alpha.1"/DECKY_SAVEPULSE_VERSION="0.1.0-alpha.1"/' \
+        "$config_file"
+
+    run_installer "$case_root/home" "$install_dir"
+
+    assert_value "$config_file" DECKY_SAVEPULSE_URL \
+        "https://github.com/Ren-Amamiya-pixle/SavePulse/releases/download/v0.2.0-alpha.1/SavePulse.zip"
+    assert_value "$config_file" DECKY_SAVEPULSE_SHA256 \
+        "e0680fc3995b8bbb2971673db43d5e9459d8fa8e4a1b431a1f5d4edad19a35ad"
+    assert_value "$config_file" DECKY_SAVEPULSE_VERSION "0.2.0-alpha.1"
 }
 
 test_custom_unifideck_version_preserved() {
@@ -399,6 +421,7 @@ test_chinese_plugin_v504_hashes_migrated
 test_retired_freedeck_url_migrated
 test_retired_unifideck_default_migrated
 test_retired_deckrecall_default_migrated
+test_retired_savepulse_default_migrated
 test_custom_unifideck_version_preserved
 test_retired_rustdesk_config_removed_app_preserved
 test_retired_decky_installer_config_removed

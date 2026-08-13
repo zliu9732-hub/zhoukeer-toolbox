@@ -1,3 +1,9 @@
+## Renkit 1.4.9 DeckRecall EXE 入库与 SavePulse 自动识别 — 2026-08-13
+
+- DeckRecall 固定回退更新到 v0.4.0：可选择 Windows 安装 EXE，借助 Steam Proton 完成安装后识别主程序并入库，也可选择已解压的非 Steam 游戏目录，自动排序候选游戏 EXE、设置 Proton 并创建桌面快捷方式；不自动套用不可信封面。
+- SavePulse 更新到 v0.2.0-alpha.1：补接管所有正在运行的 Steam 会话，集成 Ludusavi 社区清单识别 19,000 多款游戏的存档路径，支持非 Steam 游戏稳定身份、加密 WebDAV 换机恢复、删除状态版本和写入重试；14.6 MB 作者包使用 Gitee 分块镜像优先，失败才回退 GitHub Release。
+- 自动迁移 Renkit 旧版内置的 DeckRecall v0.3.2 与 SavePulse v0.1 Alpha 固定配置；两项插件仍位于插件第二页，固定 Release 包继续执行 SHA256 与 ZIP 结构校验。
+
 ## Renkit 1.4.8 SavePulse 与插件菜单排序 — 2026-08-13
 
 - 新增 SavePulse 安装入口，固定使用作者公开 GitHub Release v0.1.0-alpha.1，并校验 SHA256、ZIP 安全路径与插件目录后原子安装；SteamOS 与 Bazzite 均可使用。
