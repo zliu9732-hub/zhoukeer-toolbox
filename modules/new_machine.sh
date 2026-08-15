@@ -112,7 +112,7 @@ show_initialization_plan() {
     echo "【02-03】更新必要组件并初始化国内软件源"
     echo "【04】安装 Fcitx5 中文输入法和中文插件"
     echo "【05-06】安装微信、QQ、Firefox并创建桌面图标"
-    echo "【07】安装 Decky Loader、FreeDeck、七款常用插件和精选官方插件"
+    echo "【07】安装 Decky Loader、FreeDeck、七款常用插件"
     echo "【08】识别机器型号，仅应用匹配且低风险的插件配置"
     echo "【09】安装修改器常用兼容层：GE-Proton 7-55、8-25、9-27、10-29"
     echo "【10】按物理内存设置 zram、8-16GB swap 和 swappiness"
@@ -242,7 +242,7 @@ apply_machine_profile() {
     echo "机器识别：${identity:-未提供 DMI 型号}"
     case "$identity" in
         *steam*deck*|*jupiter*|*galileo*)
-            echo "已选择 Steam Deck 通用配置；精选插件和内存参数由各模块按当前系统处理。"
+            echo "已选择 Steam Deck 通用配置；内存参数由各模块按当前系统处理。"
             ;;
         *rog*ally*)
             echo "检测到 ROG Ally 系列，正在安装匹配的 Ally 控制中心。"
@@ -374,8 +374,6 @@ run_new_machine_initialization() {
         bash "$PROJECT_ROOT/modules/plugin_store.sh" store-auto
     run_step "【07】FreeDeck 稳定版" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck
-    run_step "【07】Decky 精选官方插件" env ZHOUKEER_AUTO_CONFIRM=1 \
-        DECKY_BUNDLE_INCLUDE_CUSTOM=0 bash "$PROJECT_ROOT/modules/decky_bundle.sh" install
     run_step "【07】七款常用插件（含主题美化汉化）" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" features
     run_step "【08】按机器型号应用安全配置" apply_machine_profile

@@ -2,7 +2,7 @@
 
 Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装命令会自动选择独立版本：SteamOS 保留完整原版功能，Bazzite 使用单独菜单，仅开放已适配的常用软件、Decky、兼容层、启动器、模拟器和诊断功能。
 
-当前正式版：Renkit 1.4.9；从 Renkit 1.0 起按语义化版本递增。
+当前正式版：Renkit 1.5.4；从 Renkit 1.0 起按语义化版本递增。
 
 - SteamOS 版：继续使用原有 `main.sh`，系统初始化、国内源、插件与高级功能保持原逻辑。
 - Bazzite 版：使用独立 `main-bazzite.sh`；Decky 通过官方 `ujust setup-decky` 安装，并可整组或逐个安装官方商店插件；Flatpak 默认使用带 GPG 验证的官方 Flathub，国内镜像仅在用户确认风险后以用户级远程启用，并可恢复官方源；提供用户级软件、启动器、模拟器与 GE-Proton 安装/卸载，以及 Yuzu 自备密钥、诊断、攻略和快捷方式维护；不调用 pacman、steamos-readonly、ToDesk、AnyDesk或内存调优。Clover 双系统引导作为独立高风险入口开放，动态识别 Bazzite EFI，并提供状态检查和恢复。
@@ -211,6 +211,6 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 
 ## 当前版本与维护
 
-当前正式版为 Renkit 1.4.9，后续版本从 1.0 起按语义化版本递增。后续维护同时覆盖 SteamOS 与 Bazzite 的独立菜单；rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
+当前正式版为 Renkit 1.5.4，后续版本从 1.0 起按语义化版本递增。后续维护同时覆盖 SteamOS 与 Bazzite 的独立菜单；rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。
