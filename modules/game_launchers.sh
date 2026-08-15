@@ -99,10 +99,12 @@ launcher_details() {
             LAUNCHER_MIN_BYTES=10000000
             LAUNCHER_MAGIC="504b0304"
             LAUNCHER_TARGET_RELATIVES=$'HMCL.jar'
+            LAUNCHER_HMCL_MIRROR_ID="hmcl"
             LAUNCHER_HMCL_JAVA_URL="${ZHOUKEER_HMCL_JAVA_URL:-https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jre_x64_linux_hotspot_21.0.12_8.tar.gz}"
             LAUNCHER_HMCL_JAVA_SHA256="${ZHOUKEER_HMCL_JAVA_SHA256:-8a379a67c91a3ae61ffb33d46e0a40c7ba35e70713c4db31cfca30492f792eff}"
             LAUNCHER_HMCL_JAVA_MIN_BYTES=40000000
             LAUNCHER_HMCL_JAVA_MAGIC="1f8b"
+            LAUNCHER_HMCL_JAVA_MIRROR_ID="temurin21-jre"
             ;;
         *)
             echo "未知启动器: $1"
@@ -154,8 +156,15 @@ hmcl_artifact_valid() {
 
 download_hmcl_artifact() {
     local url="$1" expected_sha="$2" output="$3" min_bytes="$4" magic_prefix="$5" name="$6"
+    local mirror_id="${7:-}"
 
-    # 走统一下载链路：GitHub 加速代理/镜像按实际测速排序，官方源兜底，SHA256 由调用方核验。
+    # Gitee 分块镜像优先；镜像缺失或校验失败时回退统一下载链路（GitHub 加速代理/镜像 + 官方源）。
+    if [ -n "$mirror_id" ] && \
+        download_gitee_mirror_file "$mirror_id" "$output" "$expected_sha" "$name" && \
+        hmcl_artifact_valid "$output" "$min_bytes" "$magic_prefix"; then
+        return 0
+    fi
+    rm -f -- "$output"
     download_github_file "$url" "$output" "$expected_sha" "$name" || return 1
     hmcl_artifact_valid "$output" "$min_bytes" "$magic_prefix" || {
         rm -f -- "$output"
@@ -1460,7 +1469,8 @@ install_hmcl_jar() {
     temporary="$hmcl_base/.HMCL.jar.new.$$"
     rm -f -- "$temporary"
     download_hmcl_artifact "$LAUNCHER_URL" "$LAUNCHER_SHA256" "$temporary" \
-        "$LAUNCHER_MIN_BYTES" "$LAUNCHER_MAGIC" "$LAUNCHER_NAME" || return 1
+        "$LAUNCHER_MIN_BYTES" "$LAUNCHER_MAGIC" "$LAUNCHER_NAME" \
+        "$LAUNCHER_HMCL_MIRROR_ID" || return 1
     mv -f -- "$temporary" "$hmcl_base/HMCL.jar" || {
         rm -f -- "$temporary"
         return 1
@@ -1480,7 +1490,8 @@ install_hmcl_java() {
     rm -rf -- "$download" "$stage" "$new_root"
     mkdir -p "$stage" || return 1
     if ! download_hmcl_artifact "$LAUNCHER_HMCL_JAVA_URL" "$LAUNCHER_HMCL_JAVA_SHA256" "$download" \
-        "$LAUNCHER_HMCL_JAVA_MIN_BYTES" "$LAUNCHER_HMCL_JAVA_MAGIC" "HMCL Java 运行环境"; then
+        "$LAUNCHER_HMCL_JAVA_MIN_BYTES" "$LAUNCHER_HMCL_JAVA_MAGIC" "HMCL Java 运行环境" \
+        "$LAUNCHER_HMCL_JAVA_MIRROR_ID"; then
         rm -rf -- "$download" "$stage"
         return 1
     fi

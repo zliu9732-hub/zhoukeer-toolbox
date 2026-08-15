@@ -1,3 +1,8 @@
+## Renkit 1.5.7 HMCL 改用 Gitee 分块镜像下载 — 2026-08-15
+
+- HMCL 启动器与 Temurin JRE 21 下载改为项目原有 Gitee 分块镜像优先，镜像缺失或校验失败才回退 GitHub 加速链路与官方源。
+- 新增 HMCL 与 Temurin JRE 的 Gitee 镜像清单和定时同步条目，后续镜像工作流会自动更新分块。
+
 ## Renkit 1.5.6 HMCL 下载接入 GitHub 加速链路 — 2026-08-15
 
 - HMCL 启动器安装不再直连 GitHub 官方下载，改为复用 Renkit 统一下载链路：按实际测速优先使用 GitHub 加速代理/国内镜像，官方源兜底，SHA256 与文件格式校验不变。

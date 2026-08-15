@@ -1459,8 +1459,20 @@ grep -Fq 'install_hmcl_launcher' "$MODULE" || {
     echo "FAIL: HMCL 启动器安装函数缺失" >&2
     exit 1
 }
+grep -Fq 'download_gitee_mirror_file "$mirror_id" "$output" "$expected_sha" "$name"' "$MODULE" || {
+    echo "FAIL: HMCL 下载未使用 Gitee 分块镜像" >&2
+    exit 1
+}
 grep -Fq 'download_github_file "$url" "$output" "$expected_sha" "$name"' "$MODULE" || {
-    echo "FAIL: HMCL 下载未使用 GitHub 加速链路" >&2
+    echo "FAIL: HMCL 下载缺少 GitHub 回退链路" >&2
+    exit 1
+}
+grep -Fq 'LAUNCHER_HMCL_MIRROR_ID="hmcl"' "$MODULE" || {
+    echo "FAIL: HMCL 缺少 Gitee 镜像标识" >&2
+    exit 1
+}
+grep -Fq 'LAUNCHER_HMCL_JAVA_MIRROR_ID="temurin21-jre"' "$MODULE" || {
+    echo "FAIL: HMCL Java 缺少 Gitee 镜像标识" >&2
     exit 1
 }
 

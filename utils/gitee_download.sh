@@ -416,6 +416,8 @@ gitee_mirror_id_for_url() {
         *'/Rodpad/LeGo2-Fan-Control/releases/download/'*) printf '%s\n' lego2-fan ;;
         *'/srsholmes/onexplayer-apex-bazzite-fixes/releases/download/'*) printf '%s\n' onexplayer-apex ;;
         *'/aarron-lee/SimpleDeckyTDP/releases/download/'*) printf '%s\n' simpledeckytdp ;;
+        *'/HMCL-dev/HMCL/releases/download/'*) printf '%s\n' hmcl ;;
+        *'/adoptium/temurin21-binaries/releases/download/'*) printf '%s\n' temurin21-jre ;;
         *'/SteamDeckHomebrew/decky-loader/releases/download/v3.2.6/'*) printf '%s\n' decky-loader-stable ;;
         *'/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8-pre1/'*) printf '%s\n' decky-loader-prerelease ;;
         *'/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton'*) printf '%s\n' ge-proton ;;

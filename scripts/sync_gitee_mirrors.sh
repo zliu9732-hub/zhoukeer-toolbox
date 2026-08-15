@@ -173,6 +173,16 @@ sync_plugin savepulse "Ren-Amamiya-pixle/SavePulse" '^SavePulse[.]zip$' "SavePul
 sync_plugin unifideck "mubaraknumann/unifideck" '^unifideck[.]prod[.]v[0-9.]+[.]zip$' "Unifideck"
 sync_plugin freedeck "panyiwei-home/Freedeck" '^freedeck[.]v[0-9.]+[.]zip$' "Freedeck"
 sync_plugin simpledeckytdp "aarron-lee/SimpleDeckyTDP" '^SimpleDeckyTDP[.]zip$' "SimpleDeckyTDP"
+# HMCL 启动器固定版本，镜像必须与Renkit内置版本一致，否则 SHA 校验会拒绝。
+sync_plugin hmcl "HMCL-dev/HMCL" '^HMCL-[0-9.]+[.]jar$' "HMCL" \
+    "v3.16.3" "HMCL-3.16.3.jar" \
+    "https://github.com/HMCL-dev/HMCL/releases/download/v3.16.3/HMCL-3.16.3.jar" \
+    "5d02f4d04d9442116354ecfccf679910cca371d00a23cd5d6b16558c20a73dd3"
+sync_plugin temurin21-jre "adoptium/temurin21-binaries" \
+    '^OpenJDK21U-jre_x64_linux_hotspot_[0-9._]+[.]tar[.]gz$' "Temurin JRE 21" \
+    "jdk-21.0.12+8" "OpenJDK21U-jre_x64_linux_hotspot_21.0.12_8.tar.gz" \
+    "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jre_x64_linux_hotspot_21.0.12_8.tar.gz" \
+    "8a379a67c91a3ae61ffb33d46e0a40c7ba35e70713c4db31cfca30492f792eff"
 sync_ge_proton
 
 for repo in "$MIRROR1" "$MIRROR2"; do

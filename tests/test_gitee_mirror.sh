@@ -90,7 +90,9 @@ for mapping in \
     'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3.zip|steamgriddb' \
     'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip|cssloader' \
     'https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip|friendeck' \
-    'https://github.com/jinzhongjia/decky-music/releases/download/v1.0.0/Decky.Music.zip|deckymusic'; do
+    'https://github.com/jinzhongjia/decky-music/releases/download/v1.0.0/Decky.Music.zip|deckymusic' \
+    'https://github.com/HMCL-dev/HMCL/releases/download/v3.16.3/HMCL-3.16.3.jar|hmcl' \
+    'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jre_x64_linux_hotspot_21.0.12_8.tar.gz|temurin21-jre'; do
     mapping_url="${mapping%%|*}"
     mapping_id="${mapping##*|}"
     [ "$(gitee_mirror_id_for_url "$mapping_url")" = "$mapping_id" ] || \

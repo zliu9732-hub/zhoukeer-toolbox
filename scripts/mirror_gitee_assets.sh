@@ -455,6 +455,8 @@ duckstation|DuckStation（PS1 模拟器）|emulator-assets-v1|DuckStation.AppIma
 pcsx2|PCSX2（PS2 模拟器）|emulator-assets-v1|pcsx2-Qt.AppImage|https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/pcsx2-Qt.AppImage|227c8f5a38bd0ae9c565b9350868b4f4bd27ae00cde0a598738c2bdd8ca97e88|
 rpcs3|RPCS3（PS3 模拟器）|emulator-assets-v1|rpcs3.AppImage|https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/rpcs3.AppImage|2d258b557c17ebba4bea927be4032cfcbc230c26b8f090b796daa5935faa4a8b|
 shadps4|ShadPS4（PS4 模拟器）|emulator-assets-v1|Shadps4-qt.AppImage|https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/Shadps4-qt.AppImage|17385fa479d2b810c3837e162e418c9d0f7c3c32018d3dfb2ef81e8defb611e2|
+hmcl|HMCL 启动器|v3.16.3|HMCL-3.16.3.jar|https://github.com/HMCL-dev/HMCL/releases/download/v3.16.3/HMCL-3.16.3.jar|5d02f4d04d9442116354ecfccf679910cca371d00a23cd5d6b16558c20a73dd3|
+temurin21-jre|Temurin JRE 21|jdk-21.0.12+8|OpenJDK21U-jre_x64_linux_hotspot_21.0.12_8.tar.gz|https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jre_x64_linux_hotspot_21.0.12_8.tar.gz|8a379a67c91a3ae61ffb33d46e0a40c7ba35e70713c4db31cfca30492f792eff|
 EOF
 }
 
