@@ -154,34 +154,14 @@ hmcl_artifact_valid() {
 
 download_hmcl_artifact() {
     local url="$1" expected_sha="$2" output="$3" min_bytes="$4" magic_prefix="$5" name="$6"
-    local temporary="$output.new.$$"
 
-    require_command curl || return 1
-    download_policy_url_allowed "$url" || {
-        echo "$name 下载地址不在受控来源清单中。"
+    # 走统一下载链路：GitHub 加速代理/镜像按实际测速排序，官方源兜底，SHA256 由调用方核验。
+    download_github_file "$url" "$output" "$expected_sha" "$name" || return 1
+    hmcl_artifact_valid "$output" "$min_bytes" "$magic_prefix" || {
+        rm -f -- "$output"
+        echo "$name 下载响应格式或大小校验失败。"
         return 1
     }
-    rm -f -- "$temporary"
-    echo "正在下载 $name..."
-    if ! curl --fail --location --progress-meter --proto '=https' --proto-redir '=https' \
-        --connect-timeout 15 --max-time "$DOWNLOAD_TIMEOUT" --retry 3 --retry-delay 2 \
-        --retry-connrefused --retry-all-errors --speed-limit 65536 --speed-time 60 \
-        --max-filesize "$(download_policy_max_bytes "$url")" \
-        --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36' \
-        --compressed --output "$temporary" "$url" \
-        2> >(download_progress_filter "$name" >&2); then
-        rm -f -- "$temporary"
-        echo "$name 下载失败，旧版本保持不变。"
-        return 1
-    fi
-    if ! download_policy_response_is_safe "$url" "$temporary" || \
-        ! hmcl_artifact_valid "$temporary" "$min_bytes" "$magic_prefix" || \
-        [ "$(launcher_file_sha256 "$temporary")" != "$expected_sha" ]; then
-        rm -f -- "$temporary"
-        echo "$name 下载响应格式或 SHA256 校验失败。"
-        return 1
-    fi
-    mv -f -- "$temporary" "$output" || return 1
 }
 
 launcher_file_sha256() {

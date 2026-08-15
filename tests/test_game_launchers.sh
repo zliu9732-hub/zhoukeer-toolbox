@@ -1459,5 +1459,9 @@ grep -Fq 'install_hmcl_launcher' "$MODULE" || {
     echo "FAIL: HMCL 启动器安装函数缺失" >&2
     exit 1
 }
+grep -Fq 'download_github_file "$url" "$output" "$expected_sha" "$name"' "$MODULE" || {
+    echo "FAIL: HMCL 下载未使用 GitHub 加速链路" >&2
+    exit 1
+}
 
 echo "PASS: Steam条目写入、启动器安装和战网分步Steam流程测试通过"
