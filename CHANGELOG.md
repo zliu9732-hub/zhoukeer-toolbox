@@ -1,3 +1,9 @@
+## Renkit 1.5.5 游戏与插件新增 Linux 原生 HMCL 启动器 — 2026-08-15
+
+- 游戏与插件新增“HMCL 启动器”：自动下载官方 HMCL 与 Temurin JRE 21，校验 SHA256 后安装到用户目录，创建桌面入口并加入 Steam 库；全程无需管理员权限。
+- HMCL 为 Linux 原生 Minecraft 启动器，中文界面；首次运行登录 Microsoft 账号并安装对应版本后即可游玩。
+- 同步更新下载白名单：HMCL 官方 GitHub Release 与 Temurin JRE 官方 Release 均纳入受控来源。
+
 ## Renkit 1.5.4 新机初始化不再批量安装精选插件 — 2026-08-14
 
 - 新机初始化移除“Decky 精选官方插件”批量安装步骤，不再自动安装 27 款精选插件；Decky Loader、FreeDeck 与七款常用插件仍按原流程安装。

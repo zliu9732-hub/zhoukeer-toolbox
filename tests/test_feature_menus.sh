@@ -131,7 +131,7 @@ gui_games="$(function_source "$GUI_FILE" game_environment_gui_menu)"
 for menu in "$touch_games" "$gui_games"; do
     assert_contains "$menu" '游戏与插件｜插件商城' "插件商城页面标题不统一"
     assert_not_contains "$menu" '游戏与插件｜Decky 插件商城' "插件商城页面仍显示英文标题"
-    for item in '常用插件组合' '浏览官方插件' 'Epic 游戏启动器' '安装插件商城'; do
+    for item in '常用插件组合' '浏览官方插件' 'Epic 游戏启动器' '安装插件商城' 'HMCL 启动器'; do
         assert_contains "$menu" "$item" "游戏环境缺少：$item"
     done
     assert_contains "$menu" '黑盒工坊' "战网子菜单缺少黑盒工坊"
@@ -139,6 +139,7 @@ for menu in "$touch_games" "$gui_games"; do
     assert_contains "$gui_games" '常用插件加27款精选插件' "GUI 缺少常用加精选插件入口"
     assert_contains "$menu" '插帧神器（必装）' "小黄鸭缺少功能说明"
     assert_contains "$menu" '画质补丁（阅读桌面文档慎用）' "FSR4 缺少功能说明"
+    assert_contains "$menu" 'Linux 原生' "HMCL 启动器入口缺少 Linux 原生说明"
     assert_not_contains "$menu" 'Gitee' "小黄鸭/FSR4 仍显示 Gitee 入口说明"
     assert_contains "$menu" '国内失败自动切换官方源' "插件商城缺少国内到官方源的自动回退说明"
     assert_contains "$menu" '高级操作' "Decky Loader 缺少高级说明"

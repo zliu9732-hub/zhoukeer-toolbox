@@ -648,15 +648,17 @@ launcher_tools_menu() {
         ui_touch_button 7 '\033[1;97;48;5;24m' "战网与黑盒工坊" "进入战网安装子菜单"
         ui_touch_button 9 '\033[1;97;48;5;24m' "育碧" "安装并添加到 Steam"
         ui_touch_button 11 '\033[1;97;48;5;24m' "重新应用启动器封面" "重写 Steam 库封面，不依赖 Decky"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "HMCL 启动器" "Linux 原生 Minecraft 启动器 · 中文界面"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件第二页"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:epic right:7-8:battlenet right:9-10:ubisoft right:11-12:repair right:19-20:back right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:epic right:7-8:battlenet right:9-10:ubisoft right:11-12:repair right:13-14:hmcl right:19-20:back right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             epic) confirm_and_run "安装 Epic 游戏启动器" "安装并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
             battlenet) NEXT_CATEGORY="battlenet_submenu"; return 0 ;;
             ubisoft) confirm_and_run "安装育碧" "自动安装育碧游戏平台、创建桌面入口并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft ;;
+            hmcl) confirm_and_run "安装 HMCL 启动器" "Linux 原生 Minecraft 启动器；自动下载 HMCL 与 Java 运行环境并校验 SHA256，加入 Steam 与桌面" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" hmcl ;;
             repair) NEXT_CATEGORY="launcher_repair"; return 0 ;;
             back) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;

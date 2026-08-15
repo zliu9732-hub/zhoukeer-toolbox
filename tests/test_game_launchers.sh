@@ -1422,4 +1422,42 @@ assert "Epic Games 启动器".encode() not in data
 PY
 rm -rf -- "$UNINSTALL_ROOT"
 
+# HMCL：Linux 原生 Minecraft 启动器，自动下载官方 jar 与 Temurin JRE 并校验 SHA256。
+HMCL_ART="$TMP_ROOT/HMCL.jar"
+printf 'PK\x03\x04' > "$HMCL_ART"
+dd if=/dev/zero bs=1048574 count=1 >> "$HMCL_ART" 2>/dev/null
+if ! MODULE="$MODULE" HMCL_ART="$HMCL_ART" bash -c '
+    source "$MODULE"
+    launcher_details hmcl
+    hmcl_artifact_valid "$HMCL_ART" 1048576 504b0304
+'; then
+    echo "FAIL: 有效的 HMCL jar 未被识别" >&2
+    exit 1
+fi
+printf '<html>\n' > "$HMCL_ART"
+if MODULE="$MODULE" HMCL_ART="$HMCL_ART" bash -c '
+    source "$MODULE"
+    launcher_details hmcl
+    hmcl_artifact_valid "$HMCL_ART" 1048576 504b0304
+'; then
+    echo "FAIL: HTML 文件被误认为 HMCL jar" >&2
+    exit 1
+fi
+grep -Fq 'HMCL-dev/HMCL/releases/download/v3.16.3/HMCL-3.16.3.jar' "$MODULE" || {
+    echo "FAIL: HMCL 官方 jar 地址缺失" >&2
+    exit 1
+}
+grep -Fq '5d02f4d04d9442116354ecfccf679910cca371d00a23cd5d6b16558c20a73dd3' "$MODULE" || {
+    echo "FAIL: HMCL 官方 jar SHA256 缺失" >&2
+    exit 1
+}
+grep -Fq 'adoptium/temurin21-binaries' "$MODULE" || {
+    echo "FAIL: HMCL Temurin JRE 官方地址缺失" >&2
+    exit 1
+}
+grep -Fq 'install_hmcl_launcher' "$MODULE" || {
+    echo "FAIL: HMCL 启动器安装函数缺失" >&2
+    exit 1
+}
+
 echo "PASS: Steam条目写入、启动器安装和战网分步Steam流程测试通过"

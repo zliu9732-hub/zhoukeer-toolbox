@@ -257,6 +257,7 @@ game_environment_gui_menu() {
             tomoon "ToMoon｜网络工具" \
             battlenet "战网启动器｜自动下载预装客户端并绑定 Proton 10.0-4" \
             ubisoft "育碧｜安装育碧游戏平台并添加到 Steam" \
+            hmcl "HMCL 启动器｜Linux 原生 Minecraft 启动器，中文界面" \
             repair "修复启动器封面｜重写 Steam 库封面并重启 Steam" \
             deckrecall "DeckRecall｜添加启动项及恢复游戏可玩状态" \
             savepulse "SavePulse｜自动版本存档、个人 WebDAV 云备份与换机恢复" \
@@ -405,6 +406,10 @@ game_environment_gui_menu() {
                 run_gui_action "安装育碧并自动入库" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft
+                ;;
+            hmcl)
+                run_gui_action "安装 HMCL 启动器" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/game_launchers.sh" hmcl
                 ;;
             repair)
                 repair_choice="$(gui_dialog --menu "修复启动器封面｜选择启动器" \

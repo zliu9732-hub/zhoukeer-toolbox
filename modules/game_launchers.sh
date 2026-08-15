@@ -91,6 +91,19 @@ launcher_details() {
             LAUNCHER_MAGIC="4d5a"
             LAUNCHER_TARGET_RELATIVES=$'Program Files (x86)/Qingfeng/HeyboxWow/heyboxwow.exe\nProgram Files (x86)/Qingfeng/HeyboxWow/HeyboxWow.exe\nProgram Files/Qingfeng/HeyboxWow/heyboxwow.exe\nProgram Files/Qingfeng/HeyboxWow/HeyboxWow.exe\nProgram Files (x86)/HeyboxWow/heyboxwow.exe\nProgram Files (x86)/HeyboxWow/HeyboxWow.exe\nProgram Files/HeyboxWow/heyboxwow.exe\nProgram Files/HeyboxWow/HeyboxWow.exe\nAppData/Local/Programs/Qingfeng/HeyboxWow/heyboxwow.exe\nAppData/Local/Programs/Qingfeng/HeyboxWow/HeyboxWow.exe\nAppData/Local/Programs/HeyboxWow/heyboxwow.exe\nAppData/Local/Programs/HeyboxWow/HeyboxWow.exe\nProgram Files (x86)/黑盒工坊/黑盒工坊.exe\nProgram Files (x86)/HeiHe/HeiHe.exe'
             ;;
+        hmcl)
+            LAUNCHER_NAME="HMCL 启动器"
+            LAUNCHER_FILE_NAME="HMCL.jar"
+            LAUNCHER_URL="https://github.com/HMCL-dev/HMCL/releases/download/v3.16.3/HMCL-3.16.3.jar"
+            LAUNCHER_SHA256="5d02f4d04d9442116354ecfccf679910cca371d00a23cd5d6b16558c20a73dd3"
+            LAUNCHER_MIN_BYTES=10000000
+            LAUNCHER_MAGIC="504b0304"
+            LAUNCHER_TARGET_RELATIVES=$'HMCL.jar'
+            LAUNCHER_HMCL_JAVA_URL="${ZHOUKEER_HMCL_JAVA_URL:-https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jre_x64_linux_hotspot_21.0.12_8.tar.gz}"
+            LAUNCHER_HMCL_JAVA_SHA256="${ZHOUKEER_HMCL_JAVA_SHA256:-8a379a67c91a3ae61ffb33d46e0a40c7ba35e70713c4db31cfca30492f792eff}"
+            LAUNCHER_HMCL_JAVA_MIN_BYTES=40000000
+            LAUNCHER_HMCL_JAVA_MAGIC="1f8b"
+            ;;
         *)
             echo "未知启动器: $1"
             return 1
@@ -121,6 +134,54 @@ verify_installer() {
         echo "下载文件格式不正确，已保留原有安装包。"
         return 1
     fi
+}
+
+hmcl_artifact_valid() {
+    local file="$1" min_bytes="$2" magic_prefix="$3" size magic
+
+    [ -f "$file" ] && [ ! -L "$file" ] || return 1
+    size="$(wc -c < "$file" | tr -d ' ')"
+    case "$size" in
+        ''|*[!0-9]*) return 1 ;;
+    esac
+    [ "$size" -ge "$min_bytes" ] || return 1
+    magic="$(od -An -tx1 -N4 "$file" 2>/dev/null | tr -d ' \n')"
+    case "$magic" in
+        "$magic_prefix"*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+download_hmcl_artifact() {
+    local url="$1" expected_sha="$2" output="$3" min_bytes="$4" magic_prefix="$5" name="$6"
+    local temporary="$output.new.$$"
+
+    require_command curl || return 1
+    download_policy_url_allowed "$url" || {
+        echo "$name 下载地址不在受控来源清单中。"
+        return 1
+    }
+    rm -f -- "$temporary"
+    echo "正在下载 $name..."
+    if ! curl --fail --location --progress-meter --proto '=https' --proto-redir '=https' \
+        --connect-timeout 15 --max-time "$DOWNLOAD_TIMEOUT" --retry 3 --retry-delay 2 \
+        --retry-connrefused --retry-all-errors --speed-limit 65536 --speed-time 60 \
+        --max-filesize "$(download_policy_max_bytes "$url")" \
+        --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36' \
+        --compressed --output "$temporary" "$url" \
+        2> >(download_progress_filter "$name" >&2); then
+        rm -f -- "$temporary"
+        echo "$name 下载失败，旧版本保持不变。"
+        return 1
+    fi
+    if ! download_policy_response_is_safe "$url" "$temporary" || \
+        ! hmcl_artifact_valid "$temporary" "$min_bytes" "$magic_prefix" || \
+        [ "$(launcher_file_sha256 "$temporary")" != "$expected_sha" ]; then
+        rm -f -- "$temporary"
+        echo "$name 下载响应格式或 SHA256 校验失败。"
+        return 1
+    fi
+    mv -f -- "$temporary" "$output" || return 1
 }
 
 launcher_file_sha256() {
@@ -961,6 +1022,7 @@ create_launcher_desktop_shortcut() {
         battlenet) name="战网启动器"; icon="$(launcher_cover_file "$target" "battlenet.png" || true)" ;;
         ubisoft|uplay) name="育碧"; icon="$(launcher_cover_file "$target" "ubisoft.png" || true)" ;;
         heihe) name="黑盒工坊"; icon="$(launcher_cover_file "$target" "heihe.png" || true)" ;;
+        hmcl) name="HMCL 启动器"; icon="$PROJECT_ROOT/assets/icon-toolbox-deck.png" ;;
         *) return 1 ;;
     esac
     [ -s "$icon" ] || icon="$PROJECT_ROOT/assets/icon-toolbox-deck.png"
@@ -1406,6 +1468,134 @@ finish_battlenet_steam_entry() {
     finish_launcher_steam_entry battlenet "$@"
 }
 
+install_hmcl_jar() {
+    local hmcl_base="$1" temporary
+
+    mkdir -p "$hmcl_base" || return 1
+    if [ -f "$hmcl_base/HMCL.jar" ] && [ ! -L "$hmcl_base/HMCL.jar" ] && \
+        [ "$(launcher_file_sha256 "$hmcl_base/HMCL.jar")" = "$LAUNCHER_SHA256" ]; then
+        echo "[已安装] HMCL 主程序已存在且校验通过，无需重复下载。"
+        return 0
+    fi
+    temporary="$hmcl_base/.HMCL.jar.new.$$"
+    rm -f -- "$temporary"
+    download_hmcl_artifact "$LAUNCHER_URL" "$LAUNCHER_SHA256" "$temporary" \
+        "$LAUNCHER_MIN_BYTES" "$LAUNCHER_MAGIC" "$LAUNCHER_NAME" || return 1
+    mv -f -- "$temporary" "$hmcl_base/HMCL.jar" || {
+        rm -f -- "$temporary"
+        return 1
+    }
+}
+
+install_hmcl_java() {
+    local hmcl_base="$1" download stage new_root jre_dir backup
+
+    if [ -x "$hmcl_base/java/bin/java" ]; then
+        echo "[已安装] HMCL Java 运行环境已存在，无需重复下载。"
+        return 0
+    fi
+    download="$hmcl_base/.java-download.$$"
+    stage="$hmcl_base/.java-stage.$$"
+    new_root="$hmcl_base/.java-new.$$"
+    rm -rf -- "$download" "$stage" "$new_root"
+    mkdir -p "$stage" || return 1
+    if ! download_hmcl_artifact "$LAUNCHER_HMCL_JAVA_URL" "$LAUNCHER_HMCL_JAVA_SHA256" "$download" \
+        "$LAUNCHER_HMCL_JAVA_MIN_BYTES" "$LAUNCHER_HMCL_JAVA_MAGIC" "HMCL Java 运行环境"; then
+        rm -rf -- "$download" "$stage"
+        return 1
+    fi
+    if ! tar --no-same-owner --no-same-permissions --no-acls --no-xattrs \
+        -xzf "$download" -C "$stage"; then
+        rm -rf -- "$download" "$stage"
+        echo "HMCL Java 运行环境解压失败，旧版本保持不变。"
+        return 1
+    fi
+    jre_dir="$(find "$stage" -mindepth 1 -maxdepth 1 -type d -print -quit 2>/dev/null)"
+    [ -n "$jre_dir" ] && [ -x "$jre_dir/bin/java" ] || {
+        rm -rf -- "$download" "$stage"
+        echo "HMCL Java 运行环境缺少 bin/java。"
+        return 1
+    }
+    mkdir -p "$new_root" || { rm -rf -- "$download" "$stage"; return 1; }
+    if ! cp -R -- "$jre_dir/." "$new_root/"; then
+        rm -rf -- "$download" "$stage" "$new_root"
+        echo "HMCL Java 运行环境写入失败，旧版本保持不变。"
+        return 1
+    fi
+    rm -rf -- "$download" "$stage"
+    if [ -e "$hmcl_base/java" ]; then
+        backup="$hmcl_base/.java-backup.$$"
+        rm -rf -- "$backup"
+        mv -- "$hmcl_base/java" "$backup" || { rm -rf -- "$new_root"; return 1; }
+        if ! mv -- "$new_root" "$hmcl_base/java"; then
+            mv -- "$backup" "$hmcl_base/java" 2>/dev/null || true
+            rm -rf -- "$new_root"
+            return 1
+        fi
+        rm -rf -- "$backup"
+    else
+        mv -- "$new_root" "$hmcl_base/java" || { rm -rf -- "$new_root"; return 1; }
+    fi
+    [ -x "$hmcl_base/java/bin/java" ] || return 1
+    echo "HMCL Java 运行环境已就绪：$hmcl_base/java"
+}
+
+install_hmcl_launcher() {
+    local steam_root hmcl_base jar_path wrapper shortcut_file icon_path
+    local app_id artwork_alt_app_id game_id
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "HMCL 启动器安装仅支持 SteamOS 或 Bazzite。"
+        return 1
+    fi
+    launcher_details hmcl || return 1
+    steam_root="$(find_steam_root)" || return 1
+    hmcl_base="$LAUNCHER_BASE/hmcl"
+    mkdir -p "$hmcl_base" || return 1
+    install_hmcl_jar "$hmcl_base" || return 1
+    install_hmcl_java "$hmcl_base" || return 1
+    jar_path="$hmcl_base/HMCL.jar"
+    wrapper="$APP_DIR/game-launchers/hmcl/launch-hmcl.sh"
+    mkdir -p "$(dirname "$wrapper")" || return 1
+    cat > "$wrapper" <<EOF
+#!/bin/bash
+JAVA_BIN=$(shell_quote "$hmcl_base/java/bin/java")
+HMCL_JAR=$(shell_quote "$jar_path")
+exec "\$JAVA_BIN" -jar "\$HMCL_JAR"
+EOF
+    chmod +x "$wrapper" || return 1
+    shortcut_file="$(find_shortcut_file "$steam_root")" || return 1
+    icon_path="$PROJECT_ROOT/assets/icon-toolbox-deck.png"
+    stop_steam_for_vdf || return 1
+    ZHOUKEER_STEAM_STOPPED=1
+    trap 'if [ "${ZHOUKEER_STEAM_STOPPED:-0}" = "1" ]; then ZHOUKEER_STEAM_STOPPED=0; start_steam >/dev/null 2>&1 || true; fi' RETURN
+    python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" add \
+        --name "$LAUNCHER_NAME" --exe "$wrapper" --start-dir "$hmcl_base" \
+        >/dev/null || return 1
+    python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" set-icon \
+        --name "$LAUNCHER_NAME" --exe "$wrapper" --icon "$icon_path" >/dev/null || return 1
+    python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" verify \
+        --name "$LAUNCHER_NAME" --exe "$wrapper" --icon "$icon_path" \
+        >/dev/null || {
+            echo "$LAUNCHER_NAME 的 Steam 条目写入后校验失败，桌面图标仍可使用。"
+            return 1
+        }
+    app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" find-appid \
+        --name "$LAUNCHER_NAME" --exe "$wrapper")" || return 1
+    artwork_alt_app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" appid-raw \
+        --name "$LAUNCHER_NAME" --exe "$wrapper")" || return 1
+    game_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" gameid \
+        --name "$LAUNCHER_NAME" --exe "$wrapper")" || return 1
+    create_launcher_desktop_shortcut hmcl "$wrapper" || return 1
+    echo "正在启动 Steam..."
+    start_steam
+    ZHOUKEER_STEAM_STOPPED=0
+    echo "Steam 已启动；$LAUNCHER_NAME 已添加到 Steam 库与桌面。"
+    echo "首次运行请用 Microsoft 账号登录，并在 HMCL 中安装 Java/Minecraft 后游玩。"
+    log "HMCL 启动器安装完成"
+}
+
 install_launcher() {
     local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file app_id artwork_alt_app_id game_id icon_path workdir platform_drive_c grid_dir grid_icon visible_exe
     detect_platform
@@ -1597,6 +1787,7 @@ launcher_steam_exe_basenames() {
         battlenet) printf '%s\n' "Battle.net-Setup.exe" "Battle.net Launcher.exe" "Battle.net.exe" "launch-battlenet.sh" ;;
         ubisoft|uplay) printf '%s\n' "UbisoftConnectInstaller.exe" "UbisoftConnect.exe" "upc.exe" "launch-ubisoft.sh" "launch-uplay.sh" ;;
         heihe) printf '%s\n' "wow_installer_1.9.51.0.exe" "heyboxwow.exe" "HeyboxWow.exe" "黑盒工坊.exe" "HeiHe.exe" "launch-heihe.sh" ;;
+        hmcl) printf '%s\n' "HMCL.jar" "launch-hmcl.sh" ;;
     esac
 }
 
@@ -1656,6 +1847,7 @@ uninstall_launcher() {
         battlenet) desktop_name="战网启动器" ;;
         ubisoft|uplay) desktop_name="育碧" ;;
         heihe) desktop_name="黑盒工坊" ;;
+        hmcl) desktop_name="HMCL 启动器" ;;
     esac
     remove_launcher_desktop_file "$HOME/Desktop/$desktop_name.desktop" || return 1
     case "$target" in
@@ -1729,6 +1921,7 @@ repair_launcher_artwork() {
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         epic|battlenet|ubisoft|uplay|heihe) install_launcher "$1" ;;
+        hmcl) install_hmcl_launcher ;;
         uninstall)
             [ -n "${2:-}" ] || { echo "用法: $0 uninstall 目标"; exit 1; }
             uninstall_launcher "$2"
@@ -1737,6 +1930,6 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
             [ -n "${2:-}" ] || { echo "用法: $0 apply-artwork 目标"; exit 1; }
             repair_launcher_artwork "$2"
             ;;
-        *) echo "用法: $0 {epic|battlenet|ubisoft|heihe|uninstall 目标|apply-artwork 目标}"; exit 1 ;;
+        *) echo "用法: $0 {epic|battlenet|ubisoft|heihe|hmcl|uninstall 目标|apply-artwork 目标}"; exit 1 ;;
     esac
 fi

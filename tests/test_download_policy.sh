@@ -19,6 +19,8 @@ download_policy_url_allowed 'https://github.com/zliu9732-hub/zhoukeer-toolbox/re
 download_policy_url_allowed 'https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip' || fail "Friendeck 官方 Release 被拒绝"
 download_policy_url_allowed 'https://github.com/jinzhongjia/decky-music/releases/download/v1.0.0/Decky.Music.zip' || fail "Decky Music 官方 Release 被拒绝"
 download_policy_url_allowed 'https://github.com/Ren-Amamiya-pixle/SavePulse/releases/download/v0.2.0-alpha.1/SavePulse.zip' || fail "SavePulse 作者 Release 被拒绝"
+download_policy_url_allowed 'https://github.com/HMCL-dev/HMCL/releases/download/v3.16.3/HMCL-3.16.3.jar' || fail "HMCL 官方 Release 被拒绝"
+download_policy_url_allowed 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jre_x64_linux_hotspot_21.0.12_8.tar.gz' || fail "Temurin JRE 官方 Release 被拒绝"
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/savepulse/v0.2.0-alpha.1/part.0001' || fail "SavePulse Gitee 分块被拒绝"
 download_policy_url_allowed 'https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Windows/EpicInstaller-20.1.4.msi?launcherfilename=EpicInstaller-20.1.4.msi' || fail "Epic Akamai CDN 备用地址被拒绝"
 download_policy_url_allowed 'https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Windows/EpicInstaller-20.1.4.exe' || fail "Epic Akamai EXE 地址被拒绝"
