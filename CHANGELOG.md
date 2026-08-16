@@ -1,3 +1,7 @@
+## Renkit 1.6.6 修复 Clover 背景目录未找到 — 2026-08-16
+
+- “应用 Renkit 开机背景”自动查找已存在的 Apocalypse 主题目录（不区分大小写）；找不到时只创建该目录并放入背景图，不修改其他 Clover 文件。
+
 ## Renkit 1.6.5 恢复应用 Renkit 开机背景入口 — 2026-08-16
 
 - 重新加入独立入口“应用 Renkit 开机背景”，仅替换已存在的 `esp/efi/clover/themes/Apocalypse/background.png`，不创建目录、不修改其他 Clover 文件。
