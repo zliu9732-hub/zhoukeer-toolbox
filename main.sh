@@ -951,12 +951,11 @@ dual_system_menu() {
             ui_touch_button 9 '\033[1;97;48;5;160m' "清理第三方引导项" "仅删选定 NVRAM，保留 EFI 文件"
             ui_touch_button 11 '\033[1;97;48;5;24m' "修复双系统引导" "补齐缺失引导项并恢复启动顺序"
             ui_touch_button 13 '\033[1;97;48;5;24m' "创建切换至 Windows 快捷方式" "仅创建桌面图标，本次不会重启"
-            ui_touch_button 15 '\033[1;97;48;5;24m' "应用 Renkit 开机背景" "替换 Clover Apocalypse 主题背景"
             ui_touch_button 19 '\033[1;97;48;5;24m' "返回常用工具" "回到双系统常用功能"
             ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
             ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
             ui_prompt
-            choice="$(read_touch_menu right:5-6:health right:7-8:unprotect right:9-10:cleanup-boot right:11-12:repair-boot right:13-14:switch-to-windows right:15-16:clover-background right:19-20:previous right:21-22:advanced right:23-24:home)"
+            choice="$(read_touch_menu right:5-6:health right:7-8:unprotect right:9-10:cleanup-boot right:11-12:repair-boot right:13-14:switch-to-windows right:19-20:previous right:21-22:advanced right:23-24:home)"
         fi
         if apply_navigation "$choice"; then return 0; fi
 
@@ -993,10 +992,6 @@ dual_system_menu() {
             switch-to-windows)
                 confirm_and_run "创建切换至 Windows 快捷方式" "只在桌面创建图标；本次不会设置 BootNext，也不会重启" \
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-shortcut
-                ;;
-            clover-background)
-                confirm_and_run "应用 Renkit 开机背景" "仅替换 esp/efi/clover/themes/Apocalypse/background.png，不修改其他 Clover 文件" \
-                    bash "$PROJECT_ROOT/modules/clover_boot.sh" apply-background
                 ;;
             next) page=1; continue ;;
             previous) page=0; continue ;;

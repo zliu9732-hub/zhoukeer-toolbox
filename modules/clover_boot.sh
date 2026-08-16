@@ -1459,7 +1459,7 @@ clover_status() {
 }
 
 clover_apply_renkit_background() {
-    local target
+    local target theme_dir
 
     require_supported_gaming_os || return 1
     for command_name in findmnt lsblk sudo; do
@@ -1468,12 +1468,16 @@ clover_apply_renkit_background() {
     clover_prepare_admin_access || return 1
     clover_find_esp || return 1
     CLOVER_ESP="$CLOVER_ESP_FOUND"
-    target="$CLOVER_ESP/EFI/CLOVER/themes/Apocalypse/background.png"
+    theme_dir="$CLOVER_ESP/EFI/CLOVER/themes/Apocalypse"
+    target="$theme_dir/background.png"
+    [ -d "$theme_dir" ] || {
+        echo "未找到 Clover Apocalypse 主题目录，仅替换现有背景，未创建任何文件。" >&2
+        return 1
+    }
     [ -f "$CLOVER_THEME_SOURCE/background.png" ] || {
         echo "Renkit缺少 Clover 主题背景：$CLOVER_THEME_SOURCE/background.png" >&2
         return 1
     }
-    toolbox_sudo mkdir -p -- "$(dirname "$target")" || return 1
     toolbox_sudo cp -- "$CLOVER_THEME_SOURCE/background.png" "$target" || return 1
     echo "Renkit 开机背景已应用到 Clover Apocalypse 主题：$target"
     log "Renkit开机背景已应用: $target"

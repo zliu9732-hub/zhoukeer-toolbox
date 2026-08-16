@@ -569,7 +569,6 @@ dual_system_menu() {
             cleanup-boot "清理第三方引导项｜保护 SteamOS / Windows｜保留 EFI 文件" \
             repair-boot "修复双系统引导｜补齐缺失的 SteamOS / Windows / Clover 引导项｜高级操作" \
             switch-to-windows "创建切换至 Windows 快捷方式｜仅创建桌面图标｜本次不重启" \
-            clover-background "应用 Renkit 开机背景｜仅替换 Clover Apocalypse 主题背景" \
             back "返回系统设置" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
@@ -613,11 +612,6 @@ dual_system_menu() {
             switch-to-windows)
                 run_gui_action "创建切换至 Windows 快捷方式" \
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-shortcut
-                ;;
-            clover-background)
-                gui_confirm "仅替换 esp/efi/clover/themes/Apocalypse/background.png，不修改其他 Clover 文件。是否继续？" && \
-                    run_gui_action "应用 Renkit 开机背景" \
-                    bash "$PROJECT_ROOT/modules/clover_boot.sh" apply-background
                 ;;
             back) return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
