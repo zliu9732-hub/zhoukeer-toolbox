@@ -1,3 +1,7 @@
+## Renkit 1.6.8 ROG White 修复游戏内菜单黑色栏 — 2026-08-16
+
+- ROG White 升级到 v1.4.4：改用 `mainmenuapprunning_*`、`mainpanelapprunning_*` 当前精确类名强制白色背景，修复“继续游戏 / 控制器详情 / 查看游戏详情”栏目仍为黑色的问题。
+
 ## Renkit 1.6.7 更换 Renkit 圆角图标 — 2026-08-16
 
 - 使用桌面 `image.png` 生成新的圆角 Renkit 图标，替换 `assets/icon.png`、`assets/icon-round.png` 与 `assets/icon-toolbox-deck.png`。

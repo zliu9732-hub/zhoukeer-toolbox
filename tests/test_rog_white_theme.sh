@@ -52,7 +52,7 @@ output="$(rog_white_install 2>&1)"
 printf '%s\n' "$output" | grep -Fq '无需重复安装' || fail "重复安装未跳过"
 
 status_output="$(rog_white_print_status)"
-printf '%s\n' "$status_output" | grep -Fq '已安装 v1.4.3' || fail "状态未显示已安装版本"
+printf '%s\n' "$status_output" | grep -Fq '已安装 v1.4.4' || fail "状态未显示已安装版本"
 printf '%s\n' "$status_output" | grep -Fq 'CSS Loader：已安装' || fail "状态未显示 CSS Loader 已安装"
 
 rog_white_uninstall >/dev/null || fail "ROG White 卸载失败"

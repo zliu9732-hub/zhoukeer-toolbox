@@ -1077,6 +1077,74 @@ img[src="/steaminputglyphs/ps_button_triangle.svg"] {
 }
 
 /* ============================================================
+   In-game Steam menu: exact current class coverage
+
+   Wildcard prefixes are not always translated by CSS Loader.
+   Use the current stable class names directly so the
+   “继续游戏 / 控制器详情 / 查看游戏详情” column is forced white.
+   ============================================================ */
+
+.mainmenuapprunning_MainMenuAppRunning_1wiEs,
+.mainmenuapprunning_NavigationColumn_27FEg,
+.mainmenuapprunning_NavigationBox_36vNU,
+.mainmenuapprunning_NavigationMenuItem_1G0K4,
+.mainmenuapprunning_AppColumn_3FAI9,
+.mainmenuapprunning_AppColumnContent_2P4E7,
+.mainmenuapprunning_ActiveContent_3cU2E,
+.mainmenuapprunning_CurrentGameBackground_2Jbd_,
+.mainmenuapprunning_CurrentGameLogo_3V3VK,
+.mainmenuapprunning_OverlayGuides_bqMkR,
+.mainmenuapprunning_OverlayNotes_3UmDR,
+.mainmenuapprunning_OverlayInplaceBrowser_1b6yD,
+.mainpanelapprunning_MainPanelAppRunning_3x-nj,
+.gamepaduiappoverlay_OverlayPosition_2D-LG,
+.gamepaduiappoverlay_DarkBackground_EZCFR {
+  background: #ffffff !important;
+  color: var(--rw-text) !important;
+}
+
+.mainmenuapprunning_MainMenuAppRunning_1wiEs *,
+.mainmenuapprunning_NavigationColumn_27FEg *,
+.mainmenuapprunning_NavigationBox_36vNU *,
+.mainmenuapprunning_AppColumn_3FAI9 *,
+.mainmenuapprunning_AppColumnContent_2P4E7 *,
+.mainmenuapprunning_ActiveContent_3cU2E *,
+.mainmenuapprunning_CurrentGameBackground_2Jbd_ *,
+.mainpanelapprunning_MainPanelAppRunning_3x-nj *,
+.gamepaduiappoverlay_OverlayPosition_2D-LG *,
+.gamepaduiappoverlay_DarkBackground_EZCFR * {
+  background: #ffffff !important;
+  color: var(--rw-text) !important;
+}
+
+.mainmenuapprunning_MainMenuAppRunning_1wiEs svg,
+.mainmenuapprunning_MainMenuAppRunning_1wiEs svg *,
+.mainmenuapprunning_NavigationColumn_27FEg svg,
+.mainmenuapprunning_NavigationColumn_27FEg svg *,
+.mainmenuapprunning_NavigationBox_36vNU svg,
+.mainmenuapprunning_NavigationBox_36vNU svg *,
+.mainmenuapprunning_AppColumn_3FAI9 svg,
+.mainmenuapprunning_AppColumn_3FAI9 svg *,
+.mainmenuapprunning_AppColumnContent_2P4E7 svg,
+.mainmenuapprunning_AppColumnContent_2P4E7 svg *,
+.mainpanelapprunning_MainPanelAppRunning_3x-nj svg,
+.mainpanelapprunning_MainPanelAppRunning_3x-nj svg *,
+.gamepaduiappoverlay_OverlayPosition_2D-LG svg,
+.gamepaduiappoverlay_OverlayPosition_2D-LG svg * {
+  fill: var(--rw-text) !important;
+  stroke: var(--rw-text) !important;
+  color: var(--rw-text) !important;
+  filter: none !important;
+}
+
+.mainmenuapprunning_MainMenuAppRunning_1wiEs img[src*="/steaminputglyphs/"],
+.mainmenuapprunning_MainMenuAppRunning_1wiEs ._3Jfd85nK4bKoNf_gCSTX6U,
+.mainpanelapprunning_MainPanelAppRunning_3x-nj img[src*="/steaminputglyphs/"],
+.mainpanelapprunning_MainPanelAppRunning_3x-nj ._3Jfd85nK4bKoNf_gCSTX6U {
+  filter: brightness(0) !important;
+}
+
+/* ============================================================
    Decky plug icon guard
 
    Decky renders its Quick Access plug icon with react-icons
