@@ -1,0 +1,17 @@
+{
+  "name": "ROG White",
+  "display_name": "ROG White",
+  "author": "RenAmamia",
+  "version": "v1.4.0",
+  "description": "Clean white theme inspired by the ASUS ROG Ally. Dark text, light gray surfaces, and ROG red accents for SteamOS game mode.",
+  "target": "System-Wide",
+  "manifest_version": 8,
+  "inject": {
+    "shared.css": [
+      "bigpicture",
+      "QuickAccess",
+      "MainMenu",
+      "notificationtoasts.*"
+    ]
+  }
+}

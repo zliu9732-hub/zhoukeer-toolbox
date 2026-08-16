@@ -145,11 +145,15 @@ for menu in "$touch_games" "$gui_games"; do
     assert_contains "$menu" '高级操作' "Decky Loader 缺少高级说明"
     assert_contains "$menu" '安装测试版插件商城' "Decky Loader 缺少测试版入口"
     assert_contains "$menu" '测试或预览' "Decky 测试版入口缺少系统通道说明"
+    assert_contains "$menu" 'ROG White 白色主题' "Decky Loader 子菜单缺少 ROG White 白色主题"
     assert_not_contains "$menu" '25 个精选插件' "plugin_store all 仍被错误描述为 25 个精选插件"
     assert_not_contains "$menu" '兼容层管理' "不存在的兼容层管理仍可见"
 done
 assert_contains "$touch_games" '根据系统版本安装' "Decky Loader 子菜单缺少自动安装入口"
 assert_contains "$gui_games" '根据系统版本安装' "GUI 插件商城缺少自动安装入口"
+assert_contains "$touch_games" 'right:12-13:rog-white-install' "Decky Loader 子菜单缺少 ROG White 安装坐标"
+assert_contains "$gui_games" 'rog-white-install' "GUI 插件商城缺少 ROG White 白色主题入口"
+assert_contains "$gui_games" 'modules/rog_white_theme.sh" install' "GUI ROG White 白色主题动作错误"
 
 touch_maintenance="$(function_source "$MAIN_FILE" maintenance_menu)"
 gui_maintenance="$(function_source "$GUI_FILE" maintenance_gui_menu)"

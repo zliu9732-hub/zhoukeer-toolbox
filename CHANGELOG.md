@@ -1,3 +1,8 @@
+## Renkit 1.5.9 新增 ROG White 白色主题 — 2026-08-16
+
+- 游戏与插件新增“安装 ROG White 白色主题”：Renkit 内置 ROG White v1.4.0，安装时只把 `theme.json` 与 `shared.css` 放入 CSS Loader 的 `themes` 目录，SHA256 校验后原子替换；启用仍在 CSS Loader 中完成。
+- Decky Loader 触控与 GUI 子菜单同步新增入口，并提供 `install`、`status`、`uninstall` 子命令；重复执行幂等，带 SteamOS/Bazzite 平台保护与 CSS Loader 依赖检测。
+
 ## Renkit 1.5.8 修复“仅改名”插件空白页与功能失效 — 2026-08-16
 
 - 修复 SteamGridDB（游戏封面更换）、Friendeck（文件传输助手）、Decky Music（音乐播放器）打开空白页、无法传文件、播放异常的问题。

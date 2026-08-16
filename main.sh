@@ -580,10 +580,11 @@ decky_loader_menu() {
         ui_touch_button 5 '\033[1;97;48;5;24m' "安装稳定版插件商城" "国内失败自动切换 Decky 官方 Release"
         ui_touch_button 7 '\033[1;97;48;5;160m' "安装测试版插件商城" "仅用于 SteamOS 测试或预览通道 · 国内源优先"
         ui_touch_button 9 '\033[1;97;48;5;24m' "根据系统版本安装" "自动检测正式或测试通道并安装对应版本"
+        ui_touch_button 12 '\033[1;97;48;5;24m' "安装 ROG White 白色主题" "白色主题美化 · 需先安装主题美化（CSS Loader）"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "不进行安装"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:stable right:7-8:test right:9-10:auto right:19-20:back right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:stable right:7-8:test right:9-10:auto right:12-13:rog-white-install right:19-20:back right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -598,6 +599,10 @@ decky_loader_menu() {
             test)
                 confirm_and_run "安装测试版插件商城" "仅当 SteamOS 使用测试或预览通道、稳定版 Decky 明确不兼容时使用；优先从国内镜像下载，失败自动回退 Decky 官方 prerelease Release；已有插件和设置保留" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store-test
+                ;;
+            rog-white-install)
+                confirm_and_run "安装 ROG White 白色主题" "将 Renkit 内置的 ROG White v1.4.0 白色主题放入 CSS Loader 主题目录；安装后请在 CSS Loader 中开启该主题" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/rog_white_theme.sh" install
                 ;;
             back) NEXT_CATEGORY="games"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;

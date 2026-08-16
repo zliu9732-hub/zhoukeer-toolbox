@@ -430,6 +430,7 @@ game_environment_gui_menu() {
                     stable "安装稳定版｜适合 SteamOS 正式系统" \
                     test "安装测试版｜仅适合 SteamOS 测试或预览系统｜国内源优先" \
                     auto "根据系统版本安装｜自动检测稳定版或测试版" \
+                    rog-white-install "安装 ROG White 白色主题｜需先安装主题美化（CSS Loader）" \
                     back "返回插件列表")" || continue
                 case "$decky_choice" in
                     auto)
@@ -446,6 +447,11 @@ game_environment_gui_menu() {
                         gui_confirm "仅当 SteamOS 使用测试或预览通道、稳定版 Decky 明确不兼容时使用。优先从国内镜像下载，失败自动回退 Decky 官方 prerelease Release；已有插件和设置保留。是否继续？" && \
                             run_gui_action "安装测试版插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
                             bash "$PROJECT_ROOT/modules/plugin_store.sh" store-test
+                        ;;
+                    rog-white-install)
+                        gui_confirm "将 Renkit 内置的 ROG White v1.4.0 白色主题放入 CSS Loader 主题目录。需要已安装主题美化（CSS Loader），安装后请在 CSS Loader 中开启。是否继续？" && \
+                            run_gui_action "安装 ROG White 白色主题" env ZHOUKEER_AUTO_CONFIRM=1 \
+                            bash "$PROJECT_ROOT/modules/rog_white_theme.sh" install
                         ;;
                 esac
                 ;;
