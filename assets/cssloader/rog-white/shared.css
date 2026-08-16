@@ -929,5 +929,30 @@ img[src="/steaminputglyphs/ps_button_triangle.svg"] {
 }
 
 /* ============================================================
+   Decky plug icon guard
+
+   Decky renders its Quick Access plug icon with react-icons
+   FaPlug (viewBox 0 0 384 512) using currentColor. On the white
+   ROG White panel it must stay dark and never be filtered out.
+   ============================================================ */
+
+.quickaccessmenu_QuickAccessMenu_V0cr- svg[viewBox="0 0 384 512"],
+.quickaccessmenu_QuickAccessMenu_V0cr- svg[viewBox="0 0 384 512"] *,
+.quickaccessmenu_Tab_1S76C svg[viewBox="0 0 384 512"],
+.quickaccessmenu_Tab_1S76C svg[viewBox="0 0 384 512"] * {
+  fill: var(--rw-text) !important;
+  stroke: var(--rw-text) !important;
+  color: var(--rw-text) !important;
+  filter: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.quickaccessmenu_QuickAccessMenu_V0cr- img,
+.quickaccessmenu_Tab_1S76C img {
+  filter: brightness(0) !important;
+}
+
+/* ============================================================
    End of ROG White
    ============================================================ */

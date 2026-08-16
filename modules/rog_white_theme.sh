@@ -11,10 +11,10 @@ source "$PROJECT_ROOT/core/platform.sh"
 source "$PROJECT_ROOT/core/logger.sh"
 
 ROG_WHITE_NAME="ROG White"
-ROG_WHITE_VERSION="v1.4.0"
+ROG_WHITE_VERSION="v1.4.1"
 ROG_WHITE_SOURCE_DIR="$PROJECT_ROOT/assets/cssloader/rog-white"
-ROG_WHITE_THEME_JSON_SHA256="2fb087b1dc83b0955025d9e286391e7aab3cc149ef5f59224519d4e7c33c809e"
-ROG_WHITE_SHARED_CSS_SHA256="53252f8c2cde275426a0cc76335b7d00318df2e945f9bde05be38d787e52b1e3"
+ROG_WHITE_THEME_JSON_SHA256="c4210d626092d8c2a6eeea20c4c2b2da11b9b76bcbd0c9097208660607430b06"
+ROG_WHITE_SHARED_CSS_SHA256="5cd8120196b3fcd03348a42d5627fc11a14e5b938dc870d9ef1ee4c23da15351"
 
 rog_white_decky_home() {
     printf '%s' "${DECKY_HOME:-${ZHOUKEER_DECKY_HOMEBREW_DIR:-$HOME/homebrew}}"
@@ -212,6 +212,7 @@ rog_white_install() {
     log "ROG White 白色主题已安装到 $theme_dir"
     echo "ROG White $ROG_WHITE_VERSION 已放入 CSS Loader 主题目录。"
     echo "请进入 CSS Loader 开启 ROG White；若主题未出现，请完全退出并重新进入 Steam。"
+    echo "若启用后 Decky 插头或插件商城消失，请完全退出并重新进入 Steam；这是 Decky Loader 已知的 QAM 标签丢失问题。"
     return 0
 }
 

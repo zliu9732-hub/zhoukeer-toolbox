@@ -1,3 +1,8 @@
+## Renkit 1.6.0 修复 ROG White 启用后 Decky 插头消失 — 2026-08-16
+
+- ROG White 升级到 v1.4.1：新增 Decky 插头图标保护规则，白色主题下强制把 Quick Access 中的 FaPlug 图标恢复为深色，并清除可能隐藏图标的滤镜。
+- 安装完成提示补充说明：若启用主题后 Decky 插头或插件商城消失，请完全退出并重新进入 Steam，这是 Decky Loader 已知的 QAM 标签丢失问题。
+
 ## Renkit 1.5.9 新增 ROG White 白色主题 — 2026-08-16
 
 - 游戏与插件新增“安装 ROG White 白色主题”：Renkit 内置 ROG White v1.4.0，安装时只把 `theme.json` 与 `shared.css` 放入 CSS Loader 的 `themes` 目录，SHA256 校验后原子替换；启用仍在 CSS Loader 中完成。
