@@ -1,3 +1,7 @@
+## Renkit 1.6.5 恢复应用 Renkit 开机背景入口 — 2026-08-16
+
+- 重新加入独立入口“应用 Renkit 开机背景”，仅替换已存在的 `esp/efi/clover/themes/Apocalypse/background.png`，不创建目录、不修改其他 Clover 文件。
+
 ## Renkit 1.6.4 仅安全替换 Clover 背景图 — 2026-08-16
 
 - 修正 Clover 背景替换：只在已存在的 `Apocalypse` 主题目录中替换 `background.png`，不创建目录、不修改其他 Clover 文件。
