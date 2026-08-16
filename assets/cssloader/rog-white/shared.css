@@ -939,6 +939,7 @@ img[src="/steaminputglyphs/ps_button_triangle.svg"] {
 
 [class*="gamepaduiappoverlay_"],
 [class*="mainmenuapprunning_"],
+[class*="mainpanelapprunning_"],
 [class*="steamdesktopoverlay_"],
 [class*="overlayguides_"],
 [class*="screenshotmanagerdialog_"],
@@ -946,31 +947,51 @@ img[src="/steaminputglyphs/ps_button_triangle.svg"] {
 [class*="gamepadtabbedpage_OverlayPinnedView"],
 [class*="controllerconfiguratorsummary_Overlay"],
 [class*="controllerconfigurator_"],
-[class*="controllerconfiguratorsummary_"] {
+[class*="controllerconfiguratorsummary_"],
+[class*="gamelaunchingdialog_"],
+[class*="loadingthrobber_"],
+[class*="steamtemplates_"],
+[class*="standardtemplates_"],
+[class*="shorttemplates_"],
+[class*="applaunchingdetails_"] {
   background: #ffffff !important;
 }
 
 [class*="gamepaduiappoverlay_"] div,
 [class*="mainmenuapprunning_"] div,
+[class*="mainpanelapprunning_"] div,
 [class*="steamdesktopoverlay_"] div,
 [class*="overlayguides_"] div,
 [class*="screenshotmanagerdialog_"] div,
 [class*="gamepaduiappoverlayvirtualmenucontainer_"] div,
 [class*="gamepadtabbedpage_OverlayPinnedView"] div,
 [class*="controllerconfigurator_"] div,
-[class*="controllerconfiguratorsummary_"] div {
+[class*="controllerconfiguratorsummary_"] div,
+[class*="gamelaunchingdialog_"] div,
+[class*="loadingthrobber_"] div,
+[class*="steamtemplates_"] div,
+[class*="standardtemplates_"] div,
+[class*="shorttemplates_"] div,
+[class*="applaunchingdetails_"] div {
   background: #ffffff !important;
 }
 
 [class*="gamepaduiappoverlay_"] button,
 [class*="mainmenuapprunning_"] button,
+[class*="mainpanelapprunning_"] button,
 [class*="steamdesktopoverlay_"] button,
 [class*="overlayguides_"] button,
 [class*="screenshotmanagerdialog_"] button,
 [class*="gamepaduiappoverlayvirtualmenucontainer_"] button,
 [class*="gamepadtabbedpage_OverlayPinnedView"] button,
 [class*="controllerconfigurator_"] button,
-[class*="controllerconfiguratorsummary_"] button {
+[class*="controllerconfiguratorsummary_"] button,
+[class*="gamelaunchingdialog_"] button,
+[class*="loadingthrobber_"] button,
+[class*="steamtemplates_"] button,
+[class*="standardtemplates_"] button,
+[class*="shorttemplates_"] button,
+[class*="applaunchingdetails_"] button {
   background: #ffffff !important;
   color: var(--rw-text) !important;
 }
@@ -979,6 +1000,8 @@ img[src="/steaminputglyphs/ps_button_triangle.svg"] {
 [class*="gamepaduiappoverlay_"] svg *,
 [class*="mainmenuapprunning_"] svg,
 [class*="mainmenuapprunning_"] svg *,
+[class*="mainpanelapprunning_"] svg,
+[class*="mainpanelapprunning_"] svg *,
 [class*="steamdesktopoverlay_"] svg,
 [class*="steamdesktopoverlay_"] svg *,
 [class*="overlayguides_"] svg,
@@ -992,25 +1015,64 @@ img[src="/steaminputglyphs/ps_button_triangle.svg"] {
 [class*="controllerconfigurator_"] svg,
 [class*="controllerconfigurator_"] svg *,
 [class*="controllerconfiguratorsummary_"] svg,
-[class*="controllerconfiguratorsummary_"] svg * {
+[class*="controllerconfiguratorsummary_"] svg *,
+[class*="gamelaunchingdialog_"] svg,
+[class*="gamelaunchingdialog_"] svg *,
+[class*="loadingthrobber_"] svg,
+[class*="loadingthrobber_"] svg *,
+[class*="steamtemplates_"] svg,
+[class*="steamtemplates_"] svg *,
+[class*="standardtemplates_"] svg,
+[class*="standardtemplates_"] svg *,
+[class*="shorttemplates_"] svg,
+[class*="shorttemplates_"] svg *,
+[class*="applaunchingdetails_"] svg,
+[class*="applaunchingdetails_"] svg * {
   fill: var(--rw-text) !important;
   stroke: var(--rw-text) !important;
   color: var(--rw-text) !important;
   filter: none !important;
 }
 
+[class*="gamepaduiappoverlay_"] *,
+[class*="mainmenuapprunning_"] *,
+[class*="mainpanelapprunning_"] *,
+[class*="steamdesktopoverlay_"] *,
+[class*="overlayguides_"] *,
+[class*="screenshotmanagerdialog_"] *,
+[class*="gamepaduiappoverlayvirtualmenucontainer_"] *,
+[class*="gamepadtabbedpage_OverlayPinnedView"] *,
+[class*="controllerconfigurator_"] *,
+[class*="controllerconfiguratorsummary_"] *,
+[class*="gamelaunchingdialog_"] *,
+[class*="loadingthrobber_"] *,
+[class*="steamtemplates_"] *,
+[class*="standardtemplates_"] *,
+[class*="shorttemplates_"] *,
+[class*="applaunchingdetails_"] * {
+  background: #ffffff !important;
+}
+
 [class*="gamepaduiappoverlay_"] img[src*="/steaminputglyphs/"],
 [class*="mainmenuapprunning_"] img[src*="/steaminputglyphs/"],
+[class*="mainpanelapprunning_"] img[src*="/steaminputglyphs/"],
 [class*="steamdesktopoverlay_"] img[src*="/steaminputglyphs/"],
 [class*="gamepaduiappoverlayvirtualmenucontainer_"] img[src*="/steaminputglyphs/"],
 [class*="controllerconfigurator_"] img[src*="/steaminputglyphs/"],
 [class*="controllerconfiguratorsummary_"] img[src*="/steaminputglyphs/"],
 [class*="gamepaduiappoverlay_"] ._3Jfd85nK4bKoNf_gCSTX6U,
 [class*="mainmenuapprunning_"] ._3Jfd85nK4bKoNf_gCSTX6U,
+[class*="mainpanelapprunning_"] ._3Jfd85nK4bKoNf_gCSTX6U,
 [class*="steamdesktopoverlay_"] ._3Jfd85nK4bKoNf_gCSTX6U,
 [class*="gamepaduiappoverlayvirtualmenucontainer_"] ._3Jfd85nK4bKoNf_gCSTX6U,
 [class*="controllerconfigurator_"] ._3Jfd85nK4bKoNf_gCSTX6U,
-[class*="controllerconfiguratorsummary_"] ._3Jfd85nK4bKoNf_gCSTX6U {
+[class*="controllerconfiguratorsummary_"] ._3Jfd85nK4bKoNf_gCSTX6U,
+[class*="gamelaunchingdialog_"] img,
+[class*="loadingthrobber_"] img,
+[class*="steamtemplates_"] img,
+[class*="standardtemplates_"] img,
+[class*="shorttemplates_"] img,
+[class*="applaunchingdetails_"] img {
   filter: brightness(0) !important;
 }
 
