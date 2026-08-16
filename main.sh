@@ -601,7 +601,7 @@ decky_loader_menu() {
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store-test
                 ;;
             rog-white-install)
-                confirm_and_run "安装 ROG White 白色主题" "将 Renkit 内置的 ROG White v1.4.1 白色主题放入 CSS Loader 主题目录；安装后请在 CSS Loader 中开启该主题" \
+                confirm_and_run "安装 ROG White 白色主题" "将 Renkit 内置的 ROG White v1.4.2 白色主题放入 CSS Loader 主题目录；安装后请在 CSS Loader 中开启该主题" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/rog_white_theme.sh" install
                 ;;
             back) NEXT_CATEGORY="games"; return 0 ;;

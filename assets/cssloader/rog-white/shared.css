@@ -929,6 +929,92 @@ img[src="/steaminputglyphs/ps_button_triangle.svg"] {
 }
 
 /* ============================================================
+   Steam overlay / in-game Steam menu: force white everywhere
+
+   The in-game Steam button menu and its controller/keybind
+   screens use separate overlay class families. The global dark
+   text rule would turn them unreadable on dark backgrounds, so
+   force white surfaces and dark glyphs here.
+   ============================================================ */
+
+[class*="gamepaduiappoverlay_"],
+[class*="mainmenuapprunning_"],
+[class*="steamdesktopoverlay_"],
+[class*="overlayguides_"],
+[class*="screenshotmanagerdialog_"],
+[class*="gamepaduiappoverlayvirtualmenucontainer_"],
+[class*="gamepadtabbedpage_OverlayPinnedView"],
+[class*="controllerconfiguratorsummary_Overlay"],
+[class*="controllerconfigurator_"],
+[class*="controllerconfiguratorsummary_"] {
+  background: #ffffff !important;
+}
+
+[class*="gamepaduiappoverlay_"] div,
+[class*="mainmenuapprunning_"] div,
+[class*="steamdesktopoverlay_"] div,
+[class*="overlayguides_"] div,
+[class*="screenshotmanagerdialog_"] div,
+[class*="gamepaduiappoverlayvirtualmenucontainer_"] div,
+[class*="gamepadtabbedpage_OverlayPinnedView"] div,
+[class*="controllerconfigurator_"] div,
+[class*="controllerconfiguratorsummary_"] div {
+  background: #ffffff !important;
+}
+
+[class*="gamepaduiappoverlay_"] button,
+[class*="mainmenuapprunning_"] button,
+[class*="steamdesktopoverlay_"] button,
+[class*="overlayguides_"] button,
+[class*="screenshotmanagerdialog_"] button,
+[class*="gamepaduiappoverlayvirtualmenucontainer_"] button,
+[class*="gamepadtabbedpage_OverlayPinnedView"] button,
+[class*="controllerconfigurator_"] button,
+[class*="controllerconfiguratorsummary_"] button {
+  background: #ffffff !important;
+  color: var(--rw-text) !important;
+}
+
+[class*="gamepaduiappoverlay_"] svg,
+[class*="gamepaduiappoverlay_"] svg *,
+[class*="mainmenuapprunning_"] svg,
+[class*="mainmenuapprunning_"] svg *,
+[class*="steamdesktopoverlay_"] svg,
+[class*="steamdesktopoverlay_"] svg *,
+[class*="overlayguides_"] svg,
+[class*="overlayguides_"] svg *,
+[class*="screenshotmanagerdialog_"] svg,
+[class*="screenshotmanagerdialog_"] svg *,
+[class*="gamepaduiappoverlayvirtualmenucontainer_"] svg,
+[class*="gamepaduiappoverlayvirtualmenucontainer_"] svg *,
+[class*="gamepadtabbedpage_OverlayPinnedView"] svg,
+[class*="gamepadtabbedpage_OverlayPinnedView"] svg *,
+[class*="controllerconfigurator_"] svg,
+[class*="controllerconfigurator_"] svg *,
+[class*="controllerconfiguratorsummary_"] svg,
+[class*="controllerconfiguratorsummary_"] svg * {
+  fill: var(--rw-text) !important;
+  stroke: var(--rw-text) !important;
+  color: var(--rw-text) !important;
+  filter: none !important;
+}
+
+[class*="gamepaduiappoverlay_"] img[src*="/steaminputglyphs/"],
+[class*="mainmenuapprunning_"] img[src*="/steaminputglyphs/"],
+[class*="steamdesktopoverlay_"] img[src*="/steaminputglyphs/"],
+[class*="gamepaduiappoverlayvirtualmenucontainer_"] img[src*="/steaminputglyphs/"],
+[class*="controllerconfigurator_"] img[src*="/steaminputglyphs/"],
+[class*="controllerconfiguratorsummary_"] img[src*="/steaminputglyphs/"],
+[class*="gamepaduiappoverlay_"] ._3Jfd85nK4bKoNf_gCSTX6U,
+[class*="mainmenuapprunning_"] ._3Jfd85nK4bKoNf_gCSTX6U,
+[class*="steamdesktopoverlay_"] ._3Jfd85nK4bKoNf_gCSTX6U,
+[class*="gamepaduiappoverlayvirtualmenucontainer_"] ._3Jfd85nK4bKoNf_gCSTX6U,
+[class*="controllerconfigurator_"] ._3Jfd85nK4bKoNf_gCSTX6U,
+[class*="controllerconfiguratorsummary_"] ._3Jfd85nK4bKoNf_gCSTX6U {
+  filter: brightness(0) !important;
+}
+
+/* ============================================================
    Decky plug icon guard
 
    Decky renders its Quick Access plug icon with react-icons
