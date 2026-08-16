@@ -223,7 +223,7 @@ resolve_plugin_latest() {
             fi
             ;;
         steamgriddb)
-            ensure_rename_only_plugin_current \
+            ensure_official_plugin_current \
                 "游戏封面更换（SteamGridDB）" \
                 "$STEAMGRIDDB_OFFICIAL_DIRECTORY" "$STEAMGRIDDB_OFFICIAL_VERSION" \
                 "SteamGridDB" "游戏封面更换" \
@@ -233,14 +233,14 @@ resolve_plugin_latest() {
             ensure_cssloader_chinese_current
             ;;
         friendeck)
-            ensure_rename_only_plugin_current \
+            ensure_official_plugin_current \
                 "文件传输助手（Friendeck $DECKY_FRIENDECK_RELEASE_VERSION）" \
                 "Friendeck-plugin" "$DECKY_FRIENDECK_PACKAGE_VERSION" \
                 "Friendeck" "文件传输助手" \
                 "$DECKY_FRIENDECK_URL" "$DECKY_FRIENDECK_SHA256"
             ;;
         deckymusic)
-            ensure_rename_only_plugin_current \
+            ensure_official_plugin_current \
                 "音乐播放器（Decky Music）" \
                 "Decky Music" "$DECKY_DECKYMUSIC_VERSION" \
                 "Decky Music" "音乐播放器" \
@@ -1633,76 +1633,35 @@ install_decky_zip() {
     trap - EXIT INT TERM
 }
 
-rename_decky_plugin_display_name() {
-    local directory_name="$1" official_name="$2" localized_name="$3"
+ensure_official_plugin_current() {
+    local display_name="$1" directory_name="$2" package_version="$3"
+    local legacy_localized_name="$4" official_name="$5" url="$6" sha256="$7"
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
-    local plugin_json="$plugin_root/$directory_name/plugin.json"
-    local actual_name temporary staged
+    local installed_version actual_name
 
-    [ -f "$plugin_json" ] && [ ! -L "$plugin_json" ] || {
-        echo "$localized_name 的 plugin.json 不完整，未修改插件。"
-        return 1
-    }
     actual_name="$(sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
-        "$plugin_json" | head -n 1)"
-    if [ "$actual_name" = "$localized_name" ]; then
+        "$plugin_root/$directory_name/plugin.json" 2>/dev/null | head -n 1)"
+    # 旧版把 plugin.json name 改成了中文，会让 Decky 身份不匹配导致空白页/功能失效；
+    # 检测到旧问题安装时直接重新安装官方包，原子替换整个插件目录，清理问题文件。
+    if [ "$actual_name" = "$legacy_localized_name" ]; then
+        echo "检测到旧版中文名插件，正在重新安装官方版本以清理问题文件。"
+        install_decky_zip "$display_name" "$url" "$sha256" "$directory_name" 0 || return 1
         return 0
     fi
-    [ "$actual_name" = "$official_name" ] || {
-        echo "$localized_name 的官方名称校验失败，原文件保持不变。"
-        return 1
-    }
-    [ "$(grep -Ec '^[[:space:]]*"name"[[:space:]]*:[[:space:]]*"' "$plugin_json")" -eq 1 ] || {
-        echo "$localized_name 的名称字段数量异常，原文件保持不变。"
-        return 1
-    }
-    prepare_plugin_root "$plugin_root" || return 1
-    temporary="$(mktemp "${TMPDIR:-/tmp}/renkit-plugin-name.XXXXXX")" || return 1
-    if ! sed -E \
-        "s/^([[:space:]]*\"name\"[[:space:]]*:[[:space:]]*)\"${official_name}\"/\\1\"${localized_name}\"/" \
-        "$plugin_json" > "$temporary" || \
-       [ "$(sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
-            "$temporary" | head -n 1)" != "$localized_name" ]; then
-        rm -f -- "$temporary"
-        echo "$localized_name 的名称替换校验失败，原文件保持不变。"
-        return 1
-    fi
-    chmod 0644 "$temporary" || { rm -f -- "$temporary"; return 1; }
-    staged="$plugin_root/$directory_name/.plugin.json.renkit-new.$$"
-    if ! run_plugin_file_operation cp -- "$temporary" "$staged" || \
-       ! run_plugin_file_operation chmod 0644 "$staged" || \
-       ! run_plugin_file_operation mv -- "$staged" "$plugin_json"; then
-        run_plugin_file_operation rm -f -- "$staged" >/dev/null 2>&1 || true
-        rm -f -- "$temporary"
-        echo "$localized_name 的名称写入失败，原插件保持不变。"
-        return 1
-    fi
-    rm -f -- "$temporary"
-    PLUGIN_INSTALL_CHANGED=1
-    echo "${official_name} 已仅修改插件显示名称为“${localized_name}”。"
-}
-
-ensure_rename_only_plugin_current() {
-    local display_name="$1" directory_name="$2" package_version="$3"
-    local official_name="$4" localized_name="$5" url="$6" sha256="$7"
-    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
-    local installed_version
-
     if feature_plugin_is_current "$plugin_root" "$directory_name" "$package_version" \
-        "$localized_name"; then
-        echo "[已安装] $display_name v$package_version 已存在且显示名称正确，无需重复安装。"
+        "$official_name"; then
+        echo "[已安装] $display_name v$package_version 已存在且官方名称正确，无需重复安装。"
         PLUGIN_INSTALL_CHANGED=0
         return 0
     fi
     installed_version="$(decky_plugin_version "$plugin_root/$directory_name" || true)"
     if [ "$installed_version" != "$package_version" ] || \
        ! feature_plugin_is_present "$plugin_root" "$directory_name" \
-            "$official_name" "$localized_name"; then
+            "$official_name"; then
         install_decky_zip "$display_name" "$url" "$sha256" "$directory_name" 0 || return 1
     else
         PLUGIN_INSTALL_CHANGED=0
     fi
-    rename_decky_plugin_display_name "$directory_name" "$official_name" "$localized_name"
 }
 
 ensure_cssloader_chinese_current() {
@@ -3705,10 +3664,10 @@ print_feature_plugin_status() {
         missing=1
     fi
     if feature_plugin_is_current "$plugin_root" "$STEAMGRIDDB_OFFICIAL_DIRECTORY" \
-        "$STEAMGRIDDB_OFFICIAL_VERSION" "游戏封面更换"; then
-        echo "✓ 游戏封面更换（SteamGridDB）：官方版本 $STEAMGRIDDB_OFFICIAL_VERSION，中文名称正确"
+        "$STEAMGRIDDB_OFFICIAL_VERSION" "SteamGridDB"; then
+        echo "✓ 游戏封面更换（SteamGridDB）：官方版本 $STEAMGRIDDB_OFFICIAL_VERSION，官方名称正确"
     else
-        echo "✗ 游戏封面更换（SteamGridDB）：缺失、版本不符或名称未应用"
+        echo "✗ 游戏封面更换（SteamGridDB）：缺失、版本不符或官方名称未恢复"
         missing=1
     fi
     plugin_version="$(decky_plugin_version "$plugin_root/$CSSLOADER_OFFICIAL_DIRECTORY" || true)"
@@ -3722,17 +3681,17 @@ print_feature_plugin_status() {
         missing=1
     fi
     if feature_plugin_is_current "$plugin_root" "Friendeck-plugin" \
-        "$DECKY_FRIENDECK_PACKAGE_VERSION" "文件传输助手"; then
-        echo "✓ 文件传输助手（Friendeck）：Release $DECKY_FRIENDECK_RELEASE_VERSION，名称正确"
+        "$DECKY_FRIENDECK_PACKAGE_VERSION" "Friendeck"; then
+        echo "✓ 文件传输助手（Friendeck）：Release $DECKY_FRIENDECK_RELEASE_VERSION，官方名称正确"
     else
-        echo "✗ 文件传输助手（Friendeck）：缺失、版本不符或名称未应用"
+        echo "✗ 文件传输助手（Friendeck）：缺失、版本不符或官方名称未恢复"
         missing=1
     fi
     if feature_plugin_is_current "$plugin_root" "Decky Music" \
-        "$DECKY_DECKYMUSIC_VERSION" "音乐播放器"; then
-        echo "✓ 音乐播放器（Decky Music）：官方版本 $DECKY_DECKYMUSIC_VERSION，名称正确"
+        "$DECKY_DECKYMUSIC_VERSION" "Decky Music"; then
+        echo "✓ 音乐播放器（Decky Music）：官方版本 $DECKY_DECKYMUSIC_VERSION，官方名称正确"
     else
-        echo "✗ 音乐播放器（Decky Music）：缺失、版本不符或名称未应用"
+        echo "✗ 音乐播放器（Decky Music）：缺失、版本不符或官方名称未恢复"
         missing=1
     fi
     echo ""
@@ -3762,7 +3721,7 @@ install_feature_plugins() {
         "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then _all_installed=0; fi
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
         "$STEAMGRIDDB_OFFICIAL_DIRECTORY" "$STEAMGRIDDB_OFFICIAL_VERSION" \
-        "游戏封面更换"; then _all_installed=0; fi
+        "SteamGridDB"; then _all_installed=0; fi
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
         "$CSSLOADER_OFFICIAL_DIRECTORY" "$CSSLOADER_OFFICIAL_VERSION" \
         "主题美化" || \
@@ -3771,10 +3730,10 @@ install_feature_plugins() {
             2>/dev/null || true)" != "$CSSLOADER_ZH_INDEX_SHA256" ]; then _all_installed=0; fi
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
         "Friendeck-plugin" "$DECKY_FRIENDECK_PACKAGE_VERSION" \
-        "文件传输助手"; then _all_installed=0; fi
+        "Friendeck"; then _all_installed=0; fi
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
         "Decky Music" "$DECKY_DECKYMUSIC_VERSION" \
-        "音乐播放器"; then _all_installed=0; fi
+        "Decky Music"; then _all_installed=0; fi
     if [ "$_all_installed" = "1" ]; then
         echo "七款常用功能插件已全部安装且校验通过，无需重复安装。"
         write_flingtrainer_desktop_note || \

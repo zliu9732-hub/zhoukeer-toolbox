@@ -596,15 +596,15 @@ printf '{ "name": "Decky-Framegen" }\n' > "$PLUGIN_ROOT/Decky-Framegen/plugin.js
 printf '{"version":"0.17.0"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
 printf '{"name": "CheatDeck"}\n' > "$PLUGIN_ROOT/CheatDeck/plugin.json"
 printf '{"version":"2.0.0"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
-printf '{"name": "游戏封面更换"}\n' > "$PLUGIN_ROOT/decky-steamgriddb/plugin.json"
+printf '{"name": "SteamGridDB"}\n' > "$PLUGIN_ROOT/decky-steamgriddb/plugin.json"
 printf '{"version":"1.7.1"}\n' > "$PLUGIN_ROOT/decky-steamgriddb/package.json"
 printf '{"name": "主题美化"}\n' > "$PLUGIN_ROOT/SDH-CssLoader/plugin.json"
 printf '{"version":"2.1.2"}\n' > "$PLUGIN_ROOT/SDH-CssLoader/package.json"
 cp "$PROJECT_ROOT/third_party/cssloader-zh-v2.1.2/dist/index.js" \
     "$PLUGIN_ROOT/SDH-CssLoader/dist/index.js"
-printf '{"name": "文件传输助手"}\n' > "$PLUGIN_ROOT/Friendeck-plugin/plugin.json"
+printf '{"name": "Friendeck"}\n' > "$PLUGIN_ROOT/Friendeck-plugin/plugin.json"
 printf '{"version":"0.7.5"}\n' > "$PLUGIN_ROOT/Friendeck-plugin/package.json"
-printf '{"name": "音乐播放器"}\n' > "$PLUGIN_ROOT/Decky Music/plugin.json"
+printf '{"name": "Decky Music"}\n' > "$PLUGIN_ROOT/Decky Music/plugin.json"
 printf '{"version":"1.0.0"}\n' > "$PLUGIN_ROOT/Decky Music/package.json"
 status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
     bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"

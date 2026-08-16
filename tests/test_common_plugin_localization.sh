@@ -23,6 +23,15 @@ DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
         printf '\''official backend\n'\'' > "$DECKY_PLUGIN_DIR/$directory/main.py"
     }
 
+    install_decky_zip() {
+        local display_name="$1" url="$2" sha256="$3" expected_dir="$4"
+        printf '\''{\n  "name": "%s",\n  "author": "upstream"\n}\n'\'' "$DECKY_PLUGIN_TEST_OFFICIAL" > \
+            "$DECKY_PLUGIN_DIR/$expected_dir/plugin.json"
+        : > "$DECKY_PLUGIN_TEST_MARKER"
+    }
+
+    # 旧版把 plugin.json 名称改成中文，导致 Decky 前端身份不匹配；新逻辑检测到
+    # 旧问题安装时必须重新安装官方包，原子替换整个目录，并保持官方后端/版本/前端不变。
     for entry in \
         "decky-steamgriddb|SteamGridDB|1.7.1|游戏封面更换" \
         "Friendeck-plugin|Friendeck|0.7.5|文件传输助手" \
@@ -33,15 +42,48 @@ DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
         rest="${rest#*|}"
         version="${rest%%|*}"
         localized="${rest##*|}"
-        make_plugin "$directory" "$official" "$version"
+        make_plugin "$directory" "$localized" "$version"
         backend_hash="$(calculate_decky_sha256 "$DECKY_PLUGIN_DIR/$directory/main.py")"
         package_hash="$(calculate_decky_sha256 "$DECKY_PLUGIN_DIR/$directory/package.json")"
         frontend_hash="$(calculate_decky_sha256 "$DECKY_PLUGIN_DIR/$directory/dist/index.js")"
-        rename_decky_plugin_display_name "$directory" "$official" "$localized"
-        grep -Fq "\"name\": \"$localized\"" "$DECKY_PLUGIN_DIR/$directory/plugin.json"
+        marker="$DECKY_PLUGIN_DIR/$directory/.renkit-reinstalled"
+        rm -f -- "$marker"
+        DECKY_PLUGIN_TEST_OFFICIAL="$official" DECKY_PLUGIN_TEST_MARKER="$marker" \
+            ensure_official_plugin_current \
+            "测试菜单名" "$directory" "$version" "$localized" "$official" \
+            "https://test.invalid/pkg.zip" \
+            "0000000000000000000000000000000000000000000000000000000000000000" >/dev/null
+        [ -f "$marker" ] || {
+            echo "FAIL: 旧版中文名插件没有触发重新安装：$directory" >&2
+            exit 1
+        }
+        grep -Fq "\"name\": \"$official\"" "$DECKY_PLUGIN_DIR/$directory/plugin.json"
         [ "$(calculate_decky_sha256 "$DECKY_PLUGIN_DIR/$directory/main.py")" = "$backend_hash" ]
         [ "$(calculate_decky_sha256 "$DECKY_PLUGIN_DIR/$directory/package.json")" = "$package_hash" ]
         [ "$(calculate_decky_sha256 "$DECKY_PLUGIN_DIR/$directory/dist/index.js")" = "$frontend_hash" ]
+    done
+
+    # 官方名称且版本正确时直接跳过，不重复下载。
+    for entry in \
+        "decky-steamgriddb|SteamGridDB|1.7.1" \
+        "Friendeck-plugin|Friendeck|0.7.5" \
+        "Decky Music|Decky Music|1.0.0"; do
+        directory="${entry%%|*}"
+        rest="${entry#*|}"
+        official="${rest%%|*}"
+        version="${rest##*|}"
+        make_plugin "$directory" "$official" "$version"
+        marker="$DECKY_PLUGIN_DIR/$directory/.renkit-reinstalled"
+        rm -f -- "$marker"
+        DECKY_PLUGIN_TEST_OFFICIAL="$official" DECKY_PLUGIN_TEST_MARKER="$marker" \
+            ensure_official_plugin_current \
+            "测试菜单名" "$directory" "$version" "中文旧名" "$official" \
+            "https://test.invalid/pkg.zip" \
+            "0000000000000000000000000000000000000000000000000000000000000000" >/dev/null
+        [ ! -e "$marker" ] || {
+            echo "FAIL: 官方名称正确时不应重新安装：$directory" >&2
+            exit 1
+        }
     done
 
     make_plugin "$CSSLOADER_OFFICIAL_DIRECTORY" "CSS Loader" "$CSSLOADER_OFFICIAL_VERSION"

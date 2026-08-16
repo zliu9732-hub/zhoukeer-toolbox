@@ -136,15 +136,15 @@ printf '{"name":"Decky-Framegen"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky-Framegen/plug
 printf '{"version":"0.17.0"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky-Framegen/package.json"
 printf '{"name":"CheatDeck"}\n' > "$BAZZITE_PLUGIN_ROOT/CheatDeck/plugin.json"
 printf '{"version":"2.0.0"}\n' > "$BAZZITE_PLUGIN_ROOT/CheatDeck/package.json"
-printf '{"name":"游戏封面更换"}\n' > "$BAZZITE_PLUGIN_ROOT/decky-steamgriddb/plugin.json"
+printf '{"name":"SteamGridDB"}\n' > "$BAZZITE_PLUGIN_ROOT/decky-steamgriddb/plugin.json"
 printf '{"version":"1.7.1"}\n' > "$BAZZITE_PLUGIN_ROOT/decky-steamgriddb/package.json"
 printf '{"name":"主题美化"}\n' > "$BAZZITE_PLUGIN_ROOT/SDH-CssLoader/plugin.json"
 printf '{"version":"2.1.2"}\n' > "$BAZZITE_PLUGIN_ROOT/SDH-CssLoader/package.json"
 cp "$PROJECT_ROOT/third_party/cssloader-zh-v2.1.2/dist/index.js" \
     "$BAZZITE_PLUGIN_ROOT/SDH-CssLoader/dist/index.js"
-printf '{"name":"文件传输助手"}\n' > "$BAZZITE_PLUGIN_ROOT/Friendeck-plugin/plugin.json"
+printf '{"name":"Friendeck"}\n' > "$BAZZITE_PLUGIN_ROOT/Friendeck-plugin/plugin.json"
 printf '{"version":"0.7.5"}\n' > "$BAZZITE_PLUGIN_ROOT/Friendeck-plugin/package.json"
-printf '{"name":"音乐播放器"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky Music/plugin.json"
+printf '{"name":"Decky Music"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky Music/plugin.json"
 printf '{"version":"1.0.0"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky Music/package.json"
 HOME="$DECKY_HOME" PATH="$DECKY_BIN:/usr/bin:/bin" \
 DECKY_PLUGIN_DIR="$BAZZITE_PLUGIN_ROOT" ZHOUKEER_TEST_MODE=1 \
