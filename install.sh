@@ -750,6 +750,9 @@ fi
 rm -f "$HOME/Desktop/周克儿工具箱.desktop" \
     "$HOME/.local/share/applications/周克儿工具箱.desktop" 2>/dev/null || true
 
+# 更新后强制重建 Renkit 快捷方式，避免桌面继续缓存旧图标。
+rm -f "$DESKTOP_FILE" "$APPLICATION_FILE" 2>/dev/null || true
+
 # Renkit专用 Konsole 别名：让窗口使用独立名称，便于 Plasma 按 StartupWMClass
 # 只把Renkit窗口匹配成Renkit图标，而不影响其他 Konsole 窗口。
 KONSOLE_BIN="$(command -v konsole 2>/dev/null || true)"

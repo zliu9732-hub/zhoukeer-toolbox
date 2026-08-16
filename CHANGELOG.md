@@ -1,3 +1,8 @@
+## Renkit 1.6.7 更换 Renkit 圆角图标 — 2026-08-16
+
+- 使用桌面 `image.png` 生成新的圆角 Renkit 图标，替换 `assets/icon.png`、`assets/icon-round.png` 与 `assets/icon-toolbox-deck.png`。
+- 更新后强制重建桌面与应用菜单快捷方式，避免继续显示旧图标。
+
 ## Renkit 1.6.6 修复 Clover 背景目录未找到 — 2026-08-16
 
 - “应用 Renkit 开机背景”自动查找已存在的 Apocalypse 主题目录（不区分大小写）；找不到时只创建该目录并放入背景图，不修改其他 Clover 文件。
