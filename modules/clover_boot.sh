@@ -1458,6 +1458,27 @@ clover_status() {
     return 1
 }
 
+clover_apply_renkit_background() {
+    local target
+
+    require_supported_gaming_os || return 1
+    for command_name in findmnt lsblk sudo; do
+        require_command "$command_name" || return 1
+    done
+    clover_prepare_admin_access || return 1
+    clover_find_esp || return 1
+    CLOVER_ESP="$CLOVER_ESP_FOUND"
+    target="$CLOVER_ESP/EFI/CLOVER/themes/Apocalypse/background.png"
+    [ -f "$CLOVER_THEME_SOURCE/background.png" ] || {
+        echo "Renkit缺少 Clover 主题背景：$CLOVER_THEME_SOURCE/background.png" >&2
+        return 1
+    }
+    toolbox_sudo mkdir -p -- "$(dirname "$target")" || return 1
+    toolbox_sudo cp -- "$CLOVER_THEME_SOURCE/background.png" "$target" || return 1
+    echo "Renkit 开机背景已应用到 Clover Apocalypse 主题：$target"
+    log "Renkit开机背景已应用: $target"
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     trap clover_release_esp_mount EXIT
     case "${1:-status}" in
@@ -1465,6 +1486,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         restore) clover_restore ;;
         delete) clover_delete ;;
         status) clover_status ;;
-        *) echo "用法: $0 {install|restore|delete|status}"; exit 1 ;;
+        apply-background) clover_apply_renkit_background ;;
+        *) echo "用法: $0 {install|restore|delete|status|apply-background}"; exit 1 ;;
     esac
 fi
