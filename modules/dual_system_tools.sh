@@ -328,7 +328,6 @@ create_windows_switch_shortcut() {
     {
         printf '%s\n' '#!/bin/bash'
         printf '%s\n' 'set -euo pipefail'
-        printf '%s\n' 'unset ZHOUKEER_AUTO_CONFIRM'
         printf 'exec bash %q switch-to-windows\n' "$module_path"
     } > "$WINDOWS_SWITCH_LAUNCHER" || return 1
     chmod 0700 "$WINDOWS_SWITCH_LAUNCHER" || return 1
@@ -343,7 +342,7 @@ create_windows_switch_shortcut() {
         printf '%s\n' '[Desktop Entry]'
         printf '%s\n' 'Type=Application'
         printf '%s\n' 'Name=切换至 Windows'
-        printf '%s\n' 'Comment=确认后让下一次启动进入 Windows'
+        printf '%s\n' 'Comment=双击后立即重启进入 Windows'
         printf 'Exec=%s\n' "$launcher_exec"
         printf 'Icon=%s\n' "$icon_value"
         printf '%s\n' 'Terminal=true'
@@ -358,7 +357,7 @@ create_windows_switch_shortcut() {
 
     echo "已创建桌面快捷方式：$WINDOWS_SWITCH_DESKTOP"
     echo "本次操作没有设置 BootNext，也没有重启。"
-    echo "以后主动打开该图标并输入 WINDOWS 确认后，才会切换并重启进入 Windows。"
+    echo "以后双击该图标，立即切换并重启进入 Windows。"
     log "已创建Windows切换桌面快捷方式"
 }
 
@@ -457,19 +456,6 @@ repair_boot_confirm() {
     fi
     read -r -p "确认修复请输入 REPAIR：" answer
     [ "$answer" = "REPAIR" ]
-}
-
-switch_windows_confirm() {
-    local boot_number="$1"
-    local answer
-
-    echo "将设置 BootNext=${boot_number}，并在确认后立即重启进入 Windows。"
-    echo "请先保存所有工作；重启后不会自动返回 SteamOS 菜单。"
-    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
-        return 0
-    fi
-    read -r -p "确认重启进入 Windows 请输入 WINDOWS：" answer
-    [ "$answer" = "WINDOWS" ]
 }
 
 resolve_esp_repair_device() {
@@ -716,10 +702,8 @@ switch_to_windows() {
         [0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]) ;;
         *) echo "无法识别 Windows 启动编号。"; return 1 ;;
     esac
-    switch_windows_confirm "$boot_number" || {
-        echo "已取消 Windows 一键切换。"
-        return 0
-    }
+    echo "将设置 BootNext=${boot_number}，随后立即重启进入 Windows。"
+    echo "请先保存所有工作；重启后不会自动返回 SteamOS 菜单。"
     toolbox_sudo true || {
         echo "管理员权限验证失败，未设置 BootNext。"
         return 1

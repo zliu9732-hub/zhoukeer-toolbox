@@ -1,3 +1,7 @@
+## Renkit 1.7.1 切换 Windows 一键直达 — 2026-08-17
+
+- “切换至 Windows”桌面快捷方式不再要求输入 `WINDOWS` 二次确认，双击后直接设置 BootNext 并重启进入 Windows；仅保留终端中的风险提示。
+
 ## Renkit 1.7.0 切换至 Windows 图标改为圆形 — 2026-08-17
 
 - “切换至 Windows”快捷方式图标由桌面 `switchtowin.png` 生成圆形版本，替换 `assets/windows-switch.png`；功能与操作逻辑不变。

@@ -183,7 +183,9 @@ create_windows_switch_shortcut >/dev/null || fail "Windows 桌面快捷方式创
 [ -x "$WINDOWS_SWITCH_LAUNCHER" ] || fail "Windows 切换脚本未创建或不可执行"
 [ -x "$WINDOWS_SWITCH_DESKTOP" ] || fail "Windows 桌面快捷方式未创建或不可执行"
 grep -Fq 'switch-to-windows' "$WINDOWS_SWITCH_LAUNCHER" || fail "桌面快捷方式没有绑定 Windows 切换动作"
-grep -Fq 'unset ZHOUKEER_AUTO_CONFIRM' "$WINDOWS_SWITCH_LAUNCHER" || fail "桌面快捷方式没有强制开启二次确认"
+if grep -Fq 'unset ZHOUKEER_AUTO_CONFIRM' "$WINDOWS_SWITCH_LAUNCHER"; then
+    fail "桌面快捷方式仍要求二次确认"
+fi
 grep -Fq 'Terminal=true' "$WINDOWS_SWITCH_DESKTOP" || fail "桌面快捷方式无法显示二次确认终端"
 [ ! -f "$STATE/bootnext" ] || fail "创建桌面快捷方式时错误设置了 BootNext"
 if grep -Fq 'systemctl reboot' "$CALLS"; then
