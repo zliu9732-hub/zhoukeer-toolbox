@@ -431,6 +431,7 @@ game_environment_gui_menu() {
                     test "安装测试版｜仅适合 SteamOS 测试或预览系统｜国内源优先" \
                     auto "根据系统版本安装｜自动检测稳定版或测试版" \
                     rog-white-install "安装 ROG White 白色主题｜需先安装主题美化（CSS Loader）" \
+                    handheld-pink-install "安装 掌机 Pink 粉色主题｜需先安装主题美化（CSS Loader）" \
                     back "返回插件列表")" || continue
                 case "$decky_choice" in
                     auto)
@@ -452,6 +453,11 @@ game_environment_gui_menu() {
                         gui_confirm "将 Renkit 内置的 ROG White v1.4.5 白色主题放入 CSS Loader 主题目录。需要已安装主题美化（CSS Loader），安装后请在 CSS Loader 中开启。是否继续？" && \
                             run_gui_action "安装 ROG White 白色主题" env ZHOUKEER_AUTO_CONFIRM=1 \
                             bash "$PROJECT_ROOT/modules/rog_white_theme.sh" install
+                        ;;
+                    handheld-pink-install)
+                        gui_confirm "将 Renkit 内置的 Handheld Pink v1.0.0 粉色主题放入 CSS Loader 主题目录。需要已安装主题美化（CSS Loader），安装后请在 CSS Loader 中开启。是否继续？" && \
+                            run_gui_action "安装 掌机 Pink 粉色主题" env ZHOUKEER_AUTO_CONFIRM=1 \
+                            bash "$PROJECT_ROOT/modules/handheld_pink_theme.sh" install
                         ;;
                 esac
                 ;;

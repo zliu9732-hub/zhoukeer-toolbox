@@ -1,3 +1,7 @@
+## Renkit 1.7.4 新增 掌机 Pink 粉色主题 — 2026-08-17
+
+- 新增 Handheld Pink 粉色主题：基于 ROG White，白底全部替换为粉色，其余布局与规则不变；在 Decky Loader 子菜单提供独立安装入口。
+
 ## Renkit 1.7.3 ROG White 修复 logo/头像/手柄图消失 — 2026-08-17
 
 - ROG White 升级到 v1.4.5：Steam logo、右上角头像、游戏 logo 与手柄/控制器图片保持原色且背景透明，不再被白色规则遮盖；键位小图标仍为黑色。
