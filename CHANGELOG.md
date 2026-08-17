@@ -1,3 +1,7 @@
+## Renkit 1.7.7 全面修复主题菜单黑色残留 — 2026-08-17
+
+- 三个主题统一扩大修复：所有菜单表面强制使用主题底色，所有 Logo/HeaderLogo/Steam 相关 SVG 强制白色，不再出现左下角黑色或 steam 字母变黑。
+
 ## Renkit 1.7.6 独立粉白渐变主题与 Steam logo 修复 — 2026-08-17
 
 - 独立出“粉白渐变”（Pink White Gradient）主题，保留 1.7.4 的浅粉白渐变效果；Handheld Pink 保持深粉版。

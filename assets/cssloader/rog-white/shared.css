@@ -1225,6 +1225,36 @@ body,
   filter: brightness(0) invert(1) !important;
 }
 
+/* Broad menu/logo rescue: make every menu surface use the theme
+   background and keep Steam wordmarks white, never black. */
+html,
+body,
+#root,
+[class*="Menu"],
+[class*="menu"] {
+  background-color: var(--rw-bg) !important;
+}
+
+[class*="Menu"] *,
+[class*="menu"] * {
+  color: var(--rw-text) !important;
+  background-color: transparent !important;
+}
+
+[class*="Logo"] svg,
+[class*="Logo"] svg *,
+[class*="logo"] svg,
+[class*="logo"] svg *,
+[class*="SteamLogo"] svg,
+[class*="SteamLogo"] svg *,
+[class*="HeaderLogo"] svg,
+[class*="HeaderLogo"] svg * {
+  fill: #ffffff !important;
+  stroke: none !important;
+  color: #ffffff !important;
+  filter: brightness(0) invert(1) !important;
+}
+
 /* ============================================================
    Decky plug icon guard
 
