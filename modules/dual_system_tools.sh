@@ -690,7 +690,13 @@ switch_to_windows() {
         echo "无法读取 UEFI NVRAM 启动项，无法一键切换。"
         return 1
     }
-    line="$(printf '%s\n' "$entries" | awk '/Windows Boot Manager/ { print; exit }')"
+    line="$(printf '%s\n' "$entries" | awk '
+        index(tolower($0), "windows boot manager") &&
+        index(tolower($0), "microsoft\\boot\\bootmgfw.efi") { print; exit }
+    ')"
+    if [ -z "$line" ]; then
+        line="$(printf '%s\n' "$entries" | awk '/Windows Boot Manager/ { print; exit }')"
+    fi
     if [ -z "$line" ]; then
         echo "未找到 Windows Boot Manager，无法一键切换。"
         return 1
@@ -702,6 +708,7 @@ switch_to_windows() {
         [0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]) ;;
         *) echo "无法识别 Windows 启动编号。"; return 1 ;;
     esac
+    echo "Windows 启动项：${line##* } (Boot${boot_number})"
     echo "将设置 BootNext=${boot_number}，随后立即重启进入 Windows。"
     echo "请先保存所有工作；重启后不会自动返回 SteamOS 菜单。"
     toolbox_sudo true || {

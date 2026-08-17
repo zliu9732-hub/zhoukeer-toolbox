@@ -1,3 +1,7 @@
+## Renkit 1.7.2 一键切换 Windows 优先选择官方启动项 — 2026-08-17
+
+- 一键切换 Windows 时优先选择路径为 `\EFI\Microsoft\Boot\bootmgfw.efi` 的官方 Windows Boot Manager 启动项，避免误选到 Clover 相关入口后仍进入 Clover。
+
 ## Renkit 1.7.1 切换 Windows 一键直达 — 2026-08-17
 
 - “切换至 Windows”桌面快捷方式不再要求输入 `WINDOWS` 二次确认，双击后直接设置 BootNext 并重启进入 Windows；仅保留终端中的风险提示。
