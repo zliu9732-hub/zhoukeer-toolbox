@@ -1186,6 +1186,46 @@ img[class*="avatar"] {
 }
 
 /* ============================================================
+   Steam UI background + Steam wordmark fix
+   ============================================================ */
+
+html,
+body,
+#root,
+.BasicUI,
+.GamepadMode {
+  background-color: var(--rw-bg) !important;
+}
+
+[class*="SteamPageHeaderShortLogo"],
+[class*="LogoGlobal"],
+[class*="rootmenu_Logo"],
+[class*="SteamLogo"],
+.main_SteamPageHeaderShortLogo_1jVtO,
+.main_LogoGlobal_1qNfh,
+.rootmenu_Logo_GG9wV {
+  filter: brightness(0) invert(1) !important;
+}
+
+[class*="SteamPageHeaderShortLogo"] svg,
+[class*="SteamPageHeaderShortLogo"] svg *,
+[class*="LogoGlobal"] svg,
+[class*="LogoGlobal"] svg *,
+[class*="rootmenu_Logo"] svg,
+[class*="rootmenu_Logo"] svg *,
+.main_SteamPageHeaderShortLogo_1jVtO svg,
+.main_SteamPageHeaderShortLogo_1jVtO svg *,
+.main_LogoGlobal_1qNfh svg,
+.main_LogoGlobal_1qNfh svg *,
+.rootmenu_Logo_GG9wV svg,
+.rootmenu_Logo_GG9wV svg * {
+  fill: #ffffff !important;
+  stroke: none !important;
+  color: #ffffff !important;
+  filter: brightness(0) invert(1) !important;
+}
+
+/* ============================================================
    Decky plug icon guard
 
    Decky renders its Quick Access plug icon with react-icons

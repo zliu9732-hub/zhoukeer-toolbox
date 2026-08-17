@@ -432,6 +432,7 @@ game_environment_gui_menu() {
                     auto "根据系统版本安装｜自动检测稳定版或测试版" \
                     rog-white-install "安装 ROG White 白色主题｜需先安装主题美化（CSS Loader）" \
                     handheld-pink-install "安装 掌机 Pink 粉色主题｜需先安装主题美化（CSS Loader）" \
+                    pink-white-gradient-install "安装 粉白渐变 粉色主题｜需先安装主题美化（CSS Loader）" \
                     back "返回插件列表")" || continue
                 case "$decky_choice" in
                     auto)
@@ -458,6 +459,11 @@ game_environment_gui_menu() {
                         gui_confirm "将 Renkit 内置的 Handheld Pink v1.0.1 粉色主题放入 CSS Loader 主题目录。需要已安装主题美化（CSS Loader），安装后请在 CSS Loader 中开启。是否继续？" && \
                             run_gui_action "安装 掌机 Pink 粉色主题" env ZHOUKEER_AUTO_CONFIRM=1 \
                             bash "$PROJECT_ROOT/modules/handheld_pink_theme.sh" install
+                        ;;
+                    pink-white-gradient-install)
+                        gui_confirm "将 Renkit 内置的 Pink White Gradient v1.0.0 浅粉渐变主题放入 CSS Loader 主题目录。需要已安装主题美化（CSS Loader），安装后请在 CSS Loader 中开启。是否继续？" && \
+                            run_gui_action "安装 粉白渐变 粉色主题" env ZHOUKEER_AUTO_CONFIRM=1 \
+                            bash "$PROJECT_ROOT/modules/pink_white_gradient_theme.sh" install
                         ;;
                 esac
                 ;;

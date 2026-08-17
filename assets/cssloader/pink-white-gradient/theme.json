@@ -1,0 +1,17 @@
+{
+  "name": "Pink White Gradient",
+  "display_name": "Pink White Gradient",
+  "author": "RenAmamia",
+  "version": "v1.0.0",
+  "description": "Clean pink theme inspired by the ASUS ROG Ally. Dark text, soft pink surfaces, and pink accents for SteamOS game mode.",
+  "target": "System-Wide",
+  "manifest_version": 8,
+  "inject": {
+    "shared.css": [
+      "bigpicture",
+      "QuickAccess",
+      "MainMenu",
+      "notificationtoasts.*"
+    ]
+  }
+}

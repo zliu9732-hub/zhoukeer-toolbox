@@ -1,3 +1,8 @@
+## Renkit 1.7.6 独立粉白渐变主题与 Steam logo 修复 — 2026-08-17
+
+- 独立出“粉白渐变”（Pink White Gradient）主题，保留 1.7.4 的浅粉白渐变效果；Handheld Pink 保持深粉版。
+- 三个主题统一修复 Steam 菜单左下角 “steam” 字母变黑的问题，并强制 UI 根背景使用主题底色，避免黑色残留。
+
 ## Renkit 1.7.5 粉色主题加深与 Steam logo 修复 — 2026-08-17
 
 - Handheld Pink 粉色加深并扩大粉色覆盖面，保留渐变观感；ROG White 与 Handheld Pink 同步修复左下角 Steam logo 被压黑的问题。

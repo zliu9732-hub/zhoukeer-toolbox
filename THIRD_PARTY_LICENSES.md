@@ -36,6 +36,7 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | CSS Loader 中文前端组件 | CSS Loader v2.1.2 中文界面 | https://github.com/DeckThemes/SDH-CssLoader/tree/v2.1.2 | GPL-2.0-or-later | 否（Renkit 内置组件） | 随附对应源码、上游 LICENSE 与构建产物；安装时仅覆盖前端和 plugin.json |
 | ROG White 白色主题 | SteamOS 游戏模式白色主题 | 原创（RenAmamia） | 原创随 Renkit 分发 | 否（Renkit 内置组件） | 仅包含 theme.json 与 shared.css；安装到 CSS Loader themes 目录后由用户在 CSS Loader 中开启 |
 | Handheld Pink 粉色主题 | SteamOS 游戏模式粉色主题 | 原创（RenAmamia） | 原创随 Renkit 分发 | 否（Renkit 内置组件） | 基于 ROG White 改色；仅包含 theme.json 与 shared.css |
+| Pink White Gradient 粉白渐变主题 | SteamOS 游戏模式浅粉渐变主题 | 原创（RenAmamia） | 原创随 Renkit 分发 | 否（Renkit 内置组件） | 独立保留浅粉白渐变版本 |
 | RustDesk | RustDesk AppImage | https://github.com/rustdesk/rustdesk | AGPL-3.0 | 否（官方源） | AppImage 走作者 GitHub Release，用户可另行提供安装包 |
 | GE-Proton | Steam 兼容层 | https://github.com/GloriousEggroll/proton-ge-custom | Proton 顶层 BSD-3-Clause，组件各自许可 | 是 | 镜像包含上游 LICENSE.proton 说明 |
 | ToDesk | ToDesk 官方安装包 | https://www.todesk.com/ | 专有软件 | 是 | 维护者确认仅用于非商业装机工具，保持官方包原样并保留官网回退 |
