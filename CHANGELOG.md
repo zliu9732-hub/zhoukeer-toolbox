@@ -1,3 +1,7 @@
+## Renkit 1.6.9 更换切换至 Windows 快捷方式图标 — 2026-08-17
+
+- 将桌面的 `switchtowin.png` 替换为 `assets/windows-switch.png`；“切换至 Windows”桌面快捷方式图标更新，功能与操作逻辑不变。
+
 ## Renkit 1.6.8 ROG White 修复游戏内菜单黑色栏 — 2026-08-16
 
 - ROG White 升级到 v1.4.4：改用 `mainmenuapprunning_*`、`mainpanelapprunning_*` 当前精确类名强制白色背景，修复“继续游戏 / 控制器详情 / 查看游戏详情”栏目仍为黑色的问题。
