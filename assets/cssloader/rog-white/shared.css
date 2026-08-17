@@ -1144,6 +1144,25 @@ img[src="/steaminputglyphs/ps_button_triangle.svg"] {
   filter: brightness(0) !important;
 }
 
+/* Keep Steam logos, avatars and controller/game images visible on white
+   surfaces. Only the small keybinding glyphs above are forced black. */
+[class*="mainmenuapprunning_"] img:not([src*="/steaminputglyphs/"]),
+[class*="mainpanelapprunning_"] img:not([src*="/steaminputglyphs/"]),
+[class*="gamepaduiappoverlay_"] img:not([src*="/steaminputglyphs/"]),
+[class*="mainmenuapprunning_"] svg,
+[class*="mainpanelapprunning_"] svg,
+[class*="gamepaduiappoverlay_"] svg,
+[class*="Logo"] img,
+[class*="logo"] img,
+[class*="Avatar"] img,
+[class*="avatar"] img,
+img[class*="Avatar"],
+img[class*="avatar"] {
+  filter: none !important;
+  background: transparent !important;
+  opacity: 1 !important;
+}
+
 /* ============================================================
    Decky plug icon guard
 

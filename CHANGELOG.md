@@ -1,3 +1,7 @@
+## Renkit 1.7.3 ROG White 修复 logo/头像/手柄图消失 — 2026-08-17
+
+- ROG White 升级到 v1.4.5：Steam logo、右上角头像、游戏 logo 与手柄/控制器图片保持原色且背景透明，不再被白色规则遮盖；键位小图标仍为黑色。
+
 ## Renkit 1.7.2 一键切换 Windows 优先选择官方启动项 — 2026-08-17
 
 - 一键切换 Windows 时优先选择路径为 `\EFI\Microsoft\Boot\bootmgfw.efi` 的官方 Windows Boot Manager 启动项，避免误选到 Clover 相关入口后仍进入 Clover。
