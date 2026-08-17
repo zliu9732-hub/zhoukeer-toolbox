@@ -1163,6 +1163,28 @@ img[class*="avatar"] {
   opacity: 1 !important;
 }
 
+/* Bottom-left Steam logo / main menu logo keeps its original white look. */
+.main_SteamPageHeaderShortLogo_1jVtO,
+.main_LogoGlobal_1qNfh,
+.rootmenu_Logo_GG9wV,
+[class*="SteamPageHeaderShortLogo"],
+[class*="LogoGlobal"],
+[class*="rootmenu_Logo"] {
+  background: transparent !important;
+  filter: none !important;
+}
+
+.main_SteamPageHeaderShortLogo_1jVtO svg,
+.main_SteamPageHeaderShortLogo_1jVtO svg *,
+.main_LogoGlobal_1qNfh svg,
+.main_LogoGlobal_1qNfh svg *,
+.rootmenu_Logo_GG9wV svg,
+.rootmenu_Logo_GG9wV svg * {
+  fill: #ffffff !important;
+  stroke: none !important;
+  color: #ffffff !important;
+}
+
 /* ============================================================
    Decky plug icon guard
 

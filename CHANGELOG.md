@@ -1,3 +1,7 @@
+## Renkit 1.7.5 粉色主题加深与 Steam logo 修复 — 2026-08-17
+
+- Handheld Pink 粉色加深并扩大粉色覆盖面，保留渐变观感；ROG White 与 Handheld Pink 同步修复左下角 Steam logo 被压黑的问题。
+
 ## Renkit 1.7.4 新增 掌机 Pink 粉色主题 — 2026-08-17
 
 - 新增 Handheld Pink 粉色主题：基于 ROG White，白底全部替换为粉色，其余布局与规则不变；在 Decky Loader 子菜单提供独立安装入口。

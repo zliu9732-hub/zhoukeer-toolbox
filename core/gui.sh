@@ -450,12 +450,12 @@ game_environment_gui_menu() {
                             bash "$PROJECT_ROOT/modules/plugin_store.sh" store-test
                         ;;
                     rog-white-install)
-                        gui_confirm "将 Renkit 内置的 ROG White v1.4.5 白色主题放入 CSS Loader 主题目录。需要已安装主题美化（CSS Loader），安装后请在 CSS Loader 中开启。是否继续？" && \
+                        gui_confirm "将 Renkit 内置的 ROG White v1.4.6 白色主题放入 CSS Loader 主题目录。需要已安装主题美化（CSS Loader），安装后请在 CSS Loader 中开启。是否继续？" && \
                             run_gui_action "安装 ROG White 白色主题" env ZHOUKEER_AUTO_CONFIRM=1 \
                             bash "$PROJECT_ROOT/modules/rog_white_theme.sh" install
                         ;;
                     handheld-pink-install)
-                        gui_confirm "将 Renkit 内置的 Handheld Pink v1.0.0 粉色主题放入 CSS Loader 主题目录。需要已安装主题美化（CSS Loader），安装后请在 CSS Loader 中开启。是否继续？" && \
+                        gui_confirm "将 Renkit 内置的 Handheld Pink v1.0.1 粉色主题放入 CSS Loader 主题目录。需要已安装主题美化（CSS Loader），安装后请在 CSS Loader 中开启。是否继续？" && \
                             run_gui_action "安装 掌机 Pink 粉色主题" env ZHOUKEER_AUTO_CONFIRM=1 \
                             bash "$PROJECT_ROOT/modules/handheld_pink_theme.sh" install
                         ;;
