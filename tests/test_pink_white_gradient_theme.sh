@@ -52,7 +52,7 @@ output="$(pink_white_gradient_install 2>&1)"
 printf '%s\n' "$output" | grep -Fq '无需重复安装' || fail "重复安装未跳过"
 
 status_output="$(pink_white_gradient_print_status)"
-printf '%s\n' "$status_output" | grep -Fq '已安装 v1.0.1' || fail "状态未显示已安装版本"
+printf '%s\n' "$status_output" | grep -Fq '已安装 v1.0.2' || fail "状态未显示已安装版本"
 printf '%s\n' "$status_output" | grep -Fq 'CSS Loader：已安装' || fail "状态未显示 CSS Loader 已安装"
 
 pink_white_gradient_uninstall >/dev/null || fail "Pink White Gradient 卸载失败"

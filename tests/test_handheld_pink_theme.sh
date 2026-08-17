@@ -52,7 +52,7 @@ output="$(handheld_pink_install 2>&1)"
 printf '%s\n' "$output" | grep -Fq '无需重复安装' || fail "重复安装未跳过"
 
 status_output="$(handheld_pink_print_status)"
-printf '%s\n' "$status_output" | grep -Fq '已安装 v1.0.2' || fail "状态未显示已安装版本"
+printf '%s\n' "$status_output" | grep -Fq '已安装 v1.0.3' || fail "状态未显示已安装版本"
 printf '%s\n' "$status_output" | grep -Fq 'CSS Loader：已安装' || fail "状态未显示 CSS Loader 已安装"
 
 handheld_pink_uninstall >/dev/null || fail "Handheld Pink 卸载失败"

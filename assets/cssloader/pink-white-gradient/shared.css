@@ -1233,6 +1233,36 @@ body,
   filter: brightness(0) invert(1) !important;
 }
 
+/* Bottom-left Steam menu wordmark: white letters with a black edge. */
+[class*="mainmenu_"] [class*="Logo"],
+[class*="rootmenu_"] [class*="Logo"],
+[class*="main_"] [class*="Logo"],
+[class*="Menu"] [class*="Logo"] {
+  filter: brightness(0) invert(1) !important;
+  background: transparent !important;
+}
+
+[class*="mainmenu_"] [class*="Logo"] svg,
+[class*="mainmenu_"] [class*="Logo"] svg *,
+[class*="rootmenu_"] [class*="Logo"] svg,
+[class*="rootmenu_"] [class*="Logo"] svg *,
+[class*="main_"] [class*="Logo"] svg,
+[class*="main_"] [class*="Logo"] svg *,
+[class*="Menu"] [class*="Logo"] svg,
+[class*="Menu"] [class*="Logo"] svg * {
+  fill: #ffffff !important;
+  stroke: #000000 !important;
+  stroke-width: 1px !important;
+  color: #ffffff !important;
+}
+
+[class*="mainmenu_"] [class*="Logo"] img,
+[class*="rootmenu_"] [class*="Logo"] img,
+[class*="main_"] [class*="Logo"] img,
+[class*="Menu"] [class*="Logo"] img {
+  filter: brightness(0) invert(1) !important;
+}
+
 /* ============================================================
    Decky plug icon guard
 
