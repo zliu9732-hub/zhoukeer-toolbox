@@ -1,3 +1,7 @@
+## Renkit 1.7.0 切换至 Windows 图标改为圆形 — 2026-08-17
+
+- “切换至 Windows”快捷方式图标由桌面 `switchtowin.png` 生成圆形版本，替换 `assets/windows-switch.png`；功能与操作逻辑不变。
+
 ## Renkit 1.6.9 更换切换至 Windows 快捷方式图标 — 2026-08-17
 
 - 将桌面的 `switchtowin.png` 替换为 `assets/windows-switch.png`；“切换至 Windows”桌面快捷方式图标更新，功能与操作逻辑不变。
