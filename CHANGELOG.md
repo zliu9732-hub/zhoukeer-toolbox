@@ -1,12 +1,20 @@
+## Renkit 1.8.8 小黄鸭/FSR4 完整署名包固定 Gitee 分块 — 2026-08-19
+
+- 小黄鸭改用上游 0.12.8 新 i18n 架构重新汉化，补齐中文词条，不再使用 0.12.5 前端只改版本号。
+- 小黄鸭与 FSR4 均改为带 `RenAmamiya` 署名的完整 Decky ZIP，固定从 Gitee mirror-3 分块下载；镜像失败时保留现有插件，不回退 GitHub 或本地覆盖层。
+- 清理发布包中的小黄鸭 0.12.5 与 FSR4 旧本地覆盖源码，并补充严格 Gitee 失败返回非零的模拟测试。
+- 独立完整中文插件的公开仓库与 Renkit 署名发布完全隔离，公开文案只描述完整插件，不标注署名状态或双方关系。
+- 修复 `jktool.icu/i` 短安装入口：默认补齐 GitHub Raw 与域名自身回退，并在逐源尝试时拒绝 HTML、超大响应和 Shell 语法错误。
+- 工具箱背景改为与红色桌面图标呼应的黑红极简几何设计，移除灰原哀及其他人物元素，并保留菜单文字所需的低对比留白。
+
 ## Renkit 1.8.7 小黄鸭 0.12.8 镜像切换 mirror-3 — 2026-08-19
 
 - 小黄鸭官方 v0.12.8 分块镜像上传到 `zhoukeer-toolbox-mirror-3`，安装不再出现“镜像清单校验值与当前固定版本不一致”。
 - 删除 Gitee 旧版 v0.12.5 小黄鸭镜像，安装流程完全使用 v0.12.8。
-- 小号中文组件仓库只保留组件，说明中不再标注“未署名”。
 
 ## Renkit 1.8.6 小黄鸭更新 0.12.8 并拆分中文组件仓库 — 2026-08-19
 
-- 小黄鸭官方升级到 v0.12.8；工具箱署名版改为从 `zliu9732-hub/decky-lsfg-vk-zh` 拉取，同仓库提供未署名版。
+- 小黄鸭官方升级到 v0.12.8；工具箱开始拆分独立中文组件。
 - Decky-Framegen 中文组件独立到 `zliu9732-hub/decky-framegen-zh`，版本号和原作者信息与上游一致。
 - 安装流程改为官方原版 + 独立中文组件叠加，不改变菜单入口和新机初始化流程。
 
@@ -33,12 +41,12 @@
 ## Renkit 1.8.0 MAKO 尝鲜版修复与独立汉化 — 2026-08-19
 
 - 修正 MAKO 安装包来源为 `eugeniosegala/MAKO`，资产名匹配 `MAKO-Decky-v*.zip`，解决“最新 Release 元数据获取失败”。
-- MAKO 安装到独立 `Mako` 目录，不再覆盖旧版小黄鸭；安装后注入完整简体中文词条，并在界面顶部保留 Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化署名。
+- MAKO 安装到独立 `Mako` 目录，不再覆盖旧版小黄鸭；安装后注入完整简体中文词条，并在界面顶部保留 RenAmamiya汉化署名。
 - Gitee 分块镜像同步同步改为 MAKO 官方仓库，更新版本后自动上传分块镜像。
 
 ## Renkit 1.7.9 小黄鸭新增 MAKO 尝鲜版 — 2026-08-19
 
-- 小黄鸭安装改为版本选择子菜单：保留 v0.12.5 旧版汉化，新增 eugeniosegala/MAKO 的 MAKO 尝鲜版；尝鲜版安装官方运行核心后叠加 Renkit 汉化，顶部署名沿用 Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）。
+- 小黄鸭安装改为版本选择子菜单：保留 v0.12.5 旧版汉化，新增 eugeniosegala/MAKO 的 MAKO 尝鲜版；尝鲜版安装官方运行核心后叠加 Renkit 汉化，顶部署名沿用 RenAmamiya。
 - MAKO 尝鲜版继续走 Gitee 分块镜像优先、GitHub Release 回退，并在上游更新版本后由同步流程上传分块镜像。
 
 ## Renkit 1.7.8 左下角 Steam 菜单白字黑边 — 2026-08-17
@@ -152,7 +160,7 @@
 
 ## Renkit 1.5.3 汉化署名补全 — 2026-08-14
 
-- 工具箱内置的汉化插件统一恢复大号与闲鱼署名：`Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）`。
+- 工具箱内置的汉化插件统一恢复大号与闲鱼署名：`RenAmamiya`。
 - 覆盖小黄鸭、FSR4、掌机功耗控制、Ally Center、CSS Loader 中文前端及五款掌机插件的前端与描述。
 - 原作者、许可证和硬件后端保持不变；同时修复常用功能插件组合中 SteamGridDB、CSS Loader、Friendeck、Decky Music 单独安装入口静默失败的问题。
 
@@ -172,7 +180,7 @@
 - “切换至 Windows”入口改为只创建桌面快捷方式，本次操作绝不设置 BootNext 或重启；用户以后主动打开桌面图标、输入 `WINDOWS` 二次确认后，才会切换并重启。
 - 插件第一页收紧布局，FSR4 与 Freedeck 连续显示，不再空一行；DeckRecall 与 SavePulse 仍位于第二页。
 - DeckRecall 固定回退更新到 v0.4.1：绕过 SteamOS Python 证书链故障，下载和 API 请求改用严格 TLS 的系统 curl；接入 Gitee 分块镜像、最新版 GE-Proton，并修复 EXE/目录选择无反应。
-- Renkit 汉化插件的公开署名统一为 `Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）`，保留原作者与开源许可证。
+- Renkit 汉化插件的公开署名统一为 `RenAmamiya`，保留原作者与开源许可证。
 
 ## Renkit 1.4.9 DeckRecall EXE 入库与 SavePulse 自动识别 — 2026-08-13
 
@@ -401,7 +409,7 @@
 ## Renkit 1.1.6 掌机控制插件中文套装 — 2026-08-09
 
 - “掌机控制插件”扩充为七项：新增通用掌机 RGB、Legion Go 控制中心、GPD 控制中心、Legion Go 震动控制和 Legion Go 2 风扇控制，并统一使用中文插件名。
-- HueSync 沿用上游完整简体中文；其余四款完成中文前端并加入 Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）署名，保留原作者信息和官方硬件控制后端。
+- HueSync 沿用上游完整简体中文；其余四款完成中文前端并加入 RenAmamiya署名，保留原作者信息和官方硬件控制后端。
 - 五款插件均使用 Gitee mirror-3 静默分块下载、固定 SHA256 与 GitHub Release 回退；新增 tar.gz 安全解压支持、机型限制和风扇控制风险提示。
 - 安装器白名单与发布包校验显式包含全部五套前端组件，并新增官方后端保留、重复安装幂等、ZIP/tar.gz 分支及防漏打包测试。
 
@@ -469,7 +477,7 @@
 ## Renkit 1.0.3 SimpleDeckyTDP 完整汉化 — 2026-08-08
 
 - SimpleDeckyTDP 插件完整汉化：修复 Steam 中文语言码未命中导致瓦数、滑块等界面回退英文的问题，补齐 GPU 模式、EPP/调频选项、TDP 范围等界面中文。
-- 汉化组件内置并带 Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）署名，安装复用 Gitee 镜像优先、GitHub Release 回退并校验 SHA256。
+- 汉化组件内置并带 RenAmamiya署名，安装复用 Gitee 镜像优先、GitHub Release 回退并校验 SHA256。
 
 ## Renkit 1.0.2 修复虚拟内存撤销与启动器封面 — 2026-08-08
 

@@ -4,7 +4,7 @@
   "flags": [],
   "publish": {
     "tags": ["style"],
-    "description": "将 CSS 主题动态加载到 Steam 界面。更多主题请访问 deckthemes.com。中文汉化：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）。",
+    "description": "将 CSS 主题动态加载到 Steam 界面。更多主题请访问 deckthemes.com。中文汉化：RenAmamiya。",
     "image": "https://raw.githubusercontent.com/suchmememanyskill/SDH-CssLoader/main/assets/css-store-preview.png"
   }
 }

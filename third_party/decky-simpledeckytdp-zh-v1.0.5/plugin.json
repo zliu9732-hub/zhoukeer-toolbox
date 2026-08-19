@@ -5,7 +5,7 @@
   "api_version": 1,
   "publish": {
     "tags": ["tdp", "root"],
-    "description": "掌机硬件控制插件，支持 TDP、GPU 等。中文汉化：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）。",
+    "description": "掌机硬件控制插件，支持 TDP、GPU 等。中文汉化：RenAmamiya。",
     "image": "https://raw.githubusercontent.com/aarron-lee/SimpleDeckyTDP/refs/heads/main/img/plugin-image.jpg"
   }
 }

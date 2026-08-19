@@ -30,20 +30,20 @@ check_overlay() {
     [ "$actual_sha256" = "$expected_sha256" ] || fail "$relative_dir 前端 SHA256 不一致"
     grep -Fq "$expected_name" "$root/dist/index.js" || fail "$relative_dir 前端缺少中文插件名"
     if [ "$attribution" = "1" ]; then
-        grep -Fq 'Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）' "$root/dist/index.js" || fail "$relative_dir 前端缺少汉化署名"
+        grep -Fq 'RenAmamiya' "$root/dist/index.js" || fail "$relative_dir 前端缺少汉化署名"
     fi
 }
 
 check_overlay third_party/huesync-cn-v3.9.0 "通用掌机 RGB" \
     8af434b51c39f054b94ff71a39798569dc58b0fff36c74a5282edcb89e7bd0c5 0
 check_overlay third_party/legion-go-remapper-zh-v0.3.0 "Legion Go 控制中心" \
-    829abcdfa0a1610af2768b017adef33c59fa57913423b6953ba94ff25dd01dd0 1
+    8cc9faf4d5022be3e6584343dbc8cc9a70ce2d50fb7869efffd9ca96a24b40c6 1
 check_overlay third_party/gpd-control-zh-v0.0.2 "GPD 控制中心" \
-    06670b3f3956e9b8d8b88aa78fa27b7f7e12c5c6de2d9f551cee0029b2925e6f 1
+    3de06452b88959ab1cf828acfccaabf1f2c402de85ec0fcedcaa1385e2f3d505 1
 check_overlay third_party/lego-vibe-control-zh-v1.5.0 "Legion Go 震动控制" \
-    735e958bcf4434ec4b20b33e6dc0c9c6d39a82a8136d9f28d902816f9e9ea77c 1
+    e8c285a05f975bbf7cede8e43f48bbb49854c37e60b173e4045df84e01b9c49e 1
 check_overlay third_party/lego2-fan-control-zh-v0.260430 "Legion Go 2 风扇控制" \
-    2324d3fe7daf66224fed41db321d41ee181305c824f9342a1bc89e02c3ccf3d2 1
+    9d93837925ccb2e95bf94942b291664f1cf645362d0f6b9972a03face0bb22d4 1
 
 # 用假的官方后端验证覆盖过程只替换前端和清单，后端字节保持不变且重复执行幂等。
 PLUGIN_ROOT="$TMP_ROOT/plugins"

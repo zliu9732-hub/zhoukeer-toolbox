@@ -85,7 +85,7 @@ test_blank_config_migration() {
         fail "空配置迁移后仍包含退役的 ToDesk 第三方来源"
     fi
     assert_value "$config_file" DECKY_LSFG_SHA256 \
-        "13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
+        "322f6eec21a489ef9f12938ea2ec4e43c234093876f95b7245fbd260f882ce9c"
     assert_value "$config_file" DECKY_LOADER_SHA256 \
         "30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e"
     assert_value "$config_file" DECKY_SERVICE_SHA256 \
@@ -123,46 +123,6 @@ test_retired_todesk_config_removed() {
     if grep -Eq 'TODESK_|mclanbai/archtodesk|custom\.example/todesk' "$config_file"; then
         fail "升级后仍保留退役的 ToDesk 第三方配置"
     fi
-}
-
-test_chinese_plugin_hashes_migrated() {
-    local case_root="$TMP_ROOT/chinese-plugin-hashes"
-    local install_dir="$case_root/install"
-    local config_file="$install_dir/config/settings.conf"
-
-    mkdir -p "$(dirname "$config_file")"
-    cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
-    sed -i.bak \
-        -e 's/11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277/9eed12dc0bb0ca1967e57d55c230e6522c9b8c70d1b8337929d5ec0066c2a4cd/' \
-        -e 's/dde3fe2d77f3021f2841d9dba31b5fa6a741fc08ba9639508787b20054268608/4b9c8939028919e8bcb76c37c75b9dfc2e84d4fd1d2534521606dc70f0789ad0/' \
-        "$config_file"
-
-    run_installer "$case_root/home" "$install_dir"
-
-    assert_value "$config_file" DECKY_LSFG_ZH_SHA256 \
-        "11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"
-    assert_value "$config_file" DECKY_FSR4_ZH_SHA256 \
-        "dde3fe2d77f3021f2841d9dba31b5fa6a741fc08ba9639508787b20054268608"
-}
-
-test_chinese_plugin_v504_hashes_migrated() {
-    local case_root="$TMP_ROOT/chinese-plugin-v504-hashes"
-    local install_dir="$case_root/install"
-    local config_file="$install_dir/config/settings.conf"
-
-    mkdir -p "$(dirname "$config_file")"
-    cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
-    sed -i.bak \
-        -e 's/11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277/d1dbe2cdc83cdf846a12fb2a33e96f8a08e52fd5b05e0305c05c82c288b9c0d4/' \
-        -e 's/dde3fe2d77f3021f2841d9dba31b5fa6a741fc08ba9639508787b20054268608/09148bd445abb713278151f3a9e142f5bb8227704163b8f272e41c44e0e71d50/' \
-        "$config_file"
-
-    run_installer "$case_root/home" "$install_dir"
-
-    assert_value "$config_file" DECKY_LSFG_ZH_SHA256 \
-        "11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"
-    assert_value "$config_file" DECKY_FSR4_ZH_SHA256 \
-        "dde3fe2d77f3021f2841d9dba31b5fa6a741fc08ba9639508787b20054268608"
 }
 
 test_retired_freedeck_url_migrated() {
@@ -342,22 +302,6 @@ test_dry_run_has_no_side_effects() {
         fail "dry-run 缺少无副作用提示"
 }
 
-test_lsfg_chinese_runtime_files_packaged() {
-    local case_root="$TMP_ROOT/lsfg-chinese"
-    local install_dir="$case_root/install"
-    local plugin_dir="$install_dir/third_party/decky-lsfg-vk-zh-v0.12.5"
-
-    run_installer "$case_root/home" "$install_dir"
-
-    [ -s "$plugin_dir/plugin.json" ] || fail "更新包缺少小黄鸭清单"
-    [ -s "$plugin_dir/package.json" ] || fail "更新包缺少小黄鸭模块声明"
-    [ -s "$plugin_dir/LICENSE" ] || fail "更新包缺少小黄鸭原始许可证"
-    [ -s "$plugin_dir/dist/index.js" ] || fail "更新包缺少小黄鸭运行文件"
-    [ ! -e "$plugin_dir/dist/index.js.map" ] || fail "更新包不应包含小黄鸭调试映射"
-    [ -d "$plugin_dir/py_modules/lsfg_vk" ] || fail "更新包缺少小黄鸭后端模块"
-    [ ! -e "$plugin_dir/node_modules" ] || fail "更新包不应包含小黄鸭开发依赖"
-}
-
 test_runtime_scripts_packaged() {
     local case_root="$TMP_ROOT/runtime-scripts"
     local install_dir="$case_root/install"
@@ -416,8 +360,6 @@ test_install_from_replaced_workdir() {
 
 test_blank_config_migration
 test_retired_todesk_config_removed
-test_chinese_plugin_hashes_migrated
-test_chinese_plugin_v504_hashes_migrated
 test_retired_freedeck_url_migrated
 test_retired_unifideck_default_migrated
 test_retired_deckrecall_default_migrated
@@ -427,7 +369,6 @@ test_retired_rustdesk_config_removed_app_preserved
 test_retired_decky_installer_config_removed
 test_missing_config_created
 test_dry_run_has_no_side_effects
-test_lsfg_chinese_runtime_files_packaged
 test_runtime_scripts_packaged
 test_fsr4_list_and_cssloader_overlay_packaged
 test_install_from_replaced_workdir

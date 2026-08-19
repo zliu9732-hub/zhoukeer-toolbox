@@ -300,7 +300,7 @@ const Content = () => {
     if (isCompatible === false) {
         return (SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsxs("div", { style: { textAlign: 'center', padding: '20px 0', color: '#FFF' }, children: [SP_JSX.jsx("div", { style: { marginBottom: '8px' }, children: "\u6B64\u63D2\u4EF6\u4EC5\u517C\u5BB9 Lenovo Legion Go 2\u3002" }), SP_JSX.jsx("div", { style: { fontSize: '12px', color: '#888' }, children: "\uFF08\u672A\u627E\u5230 8ASP2 \u6216 8AHP2 \u578B\u53F7\uFF09" })] }) }) }));
     }
-    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx("div", { style: { color: "#d9a441", fontSize: "12px", padding: "4px 12px" }, children: "\u4E2D\u6587\u6C49\u5316\uFF1ARen-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）" }), SP_JSX.jsx("div", { ref: topRef }), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: SP_JSX.jsx("span", { style: { fontWeight: 'bold' }, children: "\u542F\u7528 Legion Go 2 \u98CE\u6247\u63A7\u5236" }), checked: curveEnabled, onChange: (v) => {
+    return (SP_JSX.jsxs(SP_JSX.Fragment, { children: [SP_JSX.jsx("div", { style: { color: "#d9a441", fontSize: "12px", padding: "4px 12px" }, children: "\u4E2D\u6587\u6C49\u5316\uFF1ARenAmamiya" }), SP_JSX.jsx("div", { ref: topRef }), SP_JSX.jsx(DFL.PanelSection, { children: SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ToggleField, { label: SP_JSX.jsx("span", { style: { fontWeight: 'bold' }, children: "\u542F\u7528 Legion Go 2 \u98CE\u6247\u63A7\u5236" }), checked: curveEnabled, onChange: (v) => {
                             setCurveEnabled(v);
                             if (v)
                                 setManualEnabled(false);

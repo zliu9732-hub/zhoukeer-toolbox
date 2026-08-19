@@ -39,10 +39,6 @@ CONFIG_MIGRATION_VARIABLES=(
     DECKY_SAVEPULSE_URL
     DECKY_SAVEPULSE_SHA256
     DECKY_SAVEPULSE_VERSION
-    DECKY_LSFG_ZH_URL
-    DECKY_LSFG_ZH_SHA256
-    DECKY_FSR4_ZH_URL
-    DECKY_FSR4_ZH_SHA256
     DECKY_SIMPLE_TDP_URL
     DECKY_SIMPLE_TDP_VERSION
     DECKY_SIMPLE_TDP_SHA256
@@ -92,22 +88,6 @@ assignment_is_empty() {
         *)
             return 1
             ;;
-    esac
-}
-
-# 汉化插件 ZIP 随Renkit更新后，其校验值必须与新包同步。旧的Renkit默认值
-# 不再对应当前仓库中的包，保留会使用户更新后始终校验失败；只迁移这两个已知
-# 的历史默认值，不覆盖用户自行设置的其他下载地址或校验值。
-assignment_is_retired_chinese_plugin_hash() {
-    local key="$1"
-    local assignment="$2"
-
-    case "$key:$assignment" in
-        DECKY_LSFG_ZH_SHA256:*9eed12dc0bb0ca1967e57d55c230e6522c9b8c70d1b8337929d5ec0066c2a4cd*) return 0 ;;
-        DECKY_LSFG_ZH_SHA256:*d1dbe2cdc83cdf846a12fb2a33e96f8a08e52fd5b05e0305c05c82c288b9c0d4*) return 0 ;;
-        DECKY_FSR4_ZH_SHA256:*4b9c8939028919e8bcb76c37c75b9dfc2e84d4fd1d2534521606dc70f0789ad0*) return 0 ;;
-        DECKY_FSR4_ZH_SHA256:*09148bd445abb713278151f3a9e142f5bb8227704163b8f272e41c44e0e71d50*) return 0 ;;
-        *) return 1 ;;
     esac
 }
 
@@ -192,12 +172,6 @@ prepare_config_migration() {
 
         # 示例默认值同样为空时，现有空赋值已经与默认配置一致，无需反复迁移。
         if assignment_is_empty "$current_assignment" && ! assignment_is_empty "$default_assignment"; then
-            CONFIG_MIGRATION_KEYS+=("$key")
-            CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
-            continue
-        fi
-
-        if assignment_is_retired_chinese_plugin_hash "$key" "$current_assignment"; then
             CONFIG_MIGRATION_KEYS+=("$key")
             CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
             continue
@@ -521,40 +495,6 @@ copy_zhoukeer_localizer() {
     done
 }
 
-copy_lsfg_chinese() {
-    local source_dir="$SOURCE_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5"
-    local relative_file
-
-    # 只携带 Decky 运行小黄鸭所需的已构建文件和后端，开发源码与依赖不进入安装目录。
-    for relative_file in plugin.json package.json LICENSE main.py shared_config.py; do
-        if [ -f "$source_dir/$relative_file" ]; then
-            copy_file "$source_dir/$relative_file" \
-                "$STAGING_DIR/third_party/decky-lsfg-vk-zh-v0.12.5/$relative_file"
-        fi
-    done
-    copy_file "$source_dir/dist/index.js" \
-        "$STAGING_DIR/third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js"
-    copy_dir_files third_party/decky-lsfg-vk-zh-v0.12.5/dist/assets
-    copy_dir_files third_party/decky-lsfg-vk-zh-v0.12.5/py_modules
-}
-
-copy_fsr4_chinese() {
-    local source_dir="$SOURCE_ROOT/third_party/decky-framegen-zh-v0.17"
-    local relative_file
-
-    # 只携带 Decky 运行 FSR4 中文界面所需的已构建文件、后端与默认资源。
-    for relative_file in plugin.json package.json LICENSE main.py; do
-        if [ -f "$source_dir/$relative_file" ]; then
-            copy_file "$source_dir/$relative_file" \
-                "$STAGING_DIR/third_party/decky-framegen-zh-v0.17/$relative_file"
-        fi
-    done
-    copy_file "$source_dir/dist/index.js" \
-        "$STAGING_DIR/third_party/decky-framegen-zh-v0.17/dist/index.js"
-    copy_dir_files third_party/decky-framegen-zh-v0.17/dist/assets
-    copy_dir_files third_party/decky-framegen-zh-v0.17/defaults
-}
-
 copy_cssloader_chinese() {
     local source_dir="$SOURCE_ROOT/third_party/cssloader-zh-v2.1.2"
     local relative_file
@@ -634,8 +574,6 @@ copy_dir_files config
 copy_dir_files assets
 copy_dir_files scripts
 copy_dir_files data
-copy_lsfg_chinese
-copy_fsr4_chinese
 copy_cssloader_chinese
 copy_simpledeckytdp_chinese
 copy_allycenter_chinese

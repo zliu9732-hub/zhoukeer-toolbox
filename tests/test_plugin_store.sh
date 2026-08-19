@@ -228,14 +228,14 @@ grep -Fq 'DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'allycenter) show_plugin_download_speed_tip; install_configured_plugin allycenter' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'ALLYCENTER_ZH_INDEX_SHA256="b259747035cd0308b6776311a94a98ab01b37493d667746f641982968b14ca25"' \
+grep -Fq 'ALLYCENTER_ZH_INDEX_SHA256="72bb93d1f1a2a02fbbf670661d7f76f324d8f7d2077d3e763559f03332332031"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）' \
+grep -Fq 'RenAmamiya' \
     "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js" || {
     echo "FAIL: Ally Center 中文构建缺少与小黄鸭一致的汉化署名" >&2
     exit 1
 }
-grep -Fq '中文汉化：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）' \
+grep -Fq '中文汉化：RenAmamiya' \
     "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/src/index.tsx" || {
     echo "FAIL: Ally Center 中文源码缺少完整汉化署名" >&2
     exit 1
@@ -252,17 +252,15 @@ grep -Fq 'RGB 灯光' \
 }
 allycenter_zh_actual_sha256="$(shasum -a 256 \
     "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js" | awk '{print $1}')"
-[ "$allycenter_zh_actual_sha256" = "b259747035cd0308b6776311a94a98ab01b37493d667746f641982968b14ca25" ] || {
+[ "$allycenter_zh_actual_sha256" = "72bb93d1f1a2a02fbbf670661d7f76f324d8f7d2077d3e763559f03332332031" ] || {
     echo "FAIL: Ally Center 中文构建文件校验值不匹配" >&2
     exit 1
 }
-grep -Fq 'decky-lsfg-vk-zh/releases/download/v0.12.8/lsfg-zh-signed-v0.12.8.zip' \
+grep -Fq 'LSFG_ZH_MIRROR_ID="lsfg-zh-signed"' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'LSFG_ZH_PACKAGE_SHA256="702f705e31d5ec88d844be4f9d16e34f9fcb96efed40e9f110d898d55c380084"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'decky-framegen-zh/releases/download/v0.17/framegen-zh-signed-v0.17.zip' \
-    "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'DECKY_LSFG_ZH_SHA256="8945e6c6a4d65e4b0d2e5cd238a8f1cb48851387820dda6b70e7305dba1b4cd7"' \
-    "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'DECKY_FSR4_ZH_SHA256="c0c002c968b3cccaf2bf974ffe1333689523afd8661de18249a9a09ecba108ac"' \
+grep -Fq 'FSR4_ZH_MIRROR_ID="fsr4-zh-signed"' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'FSR4_ZH_PACKAGE_SHA256="b392ea5c850c76a9b230e0028dd5b37e5a5c38759918beba4a01714735eb0ebf"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_github_file "$url" "$output" "$expected_sha256" "$name"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -343,41 +341,17 @@ grep -Fq '英文搜索并下载对应游戏的最新修改器' "$NOTE_DESKTOP/�
 grep -Fq 'install_all_plugin_packages()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'decky_plugin_store_is_installed()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '未检测到插件商城，先安装插件商城。' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'install_lsfg_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'FSR4_RUNTIME_ARCHIVE="Optiscaler_0.9.4-final.20260718._MM.7z"' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'FSR4 运行核心缺失' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'cp -a -- "$official_bin_dir" "$staged_source/bin"' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'cp -a -- "$official_assets_dir" "$staged_source/assets"' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '小黄鸭运行核心缺失' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'cp -a -- "$official_runtime" "$staged_source/bin/$LSFG_RUNTIME_ARCHIVE"' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'install_fsr4_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'restore_lsfg_official()' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'LSFG_ZH_INDEX_SHA256="c823b4b7b1a0123db75af6f24368cee2f0642964f7e994278ab94839ecd42bbe"' \
+grep -Fq 'LSFG_ZH_INDEX_SHA256="366c87e2e59b01f4f895d4930ee07dd7ccd5e4c1ab30e60965086aec9c641d7a"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '中文汉化：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）' \
-    "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/src/components/Content.tsx"
-[ "$(grep -Fc 'Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）汉化' "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/src/components/Content.tsx")" -ge 1 ] || {
-    echo "FAIL: 小黄鸭插件打开后缺少可见汉化署名" >&2
-    exit 1
-}
-grep -Fq '"name": "小黄鸭"' \
-    "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/plugin.json"
-grep -Fq '"name": "Decky-Framegen(FSR4)"' \
-    "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17/plugin.json"
-grep -Fq 'Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）' \
-    "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17/plugin.json"
-grep -Fq 'Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）汉化' \
-    "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17/src/components/OptiScalerControls.tsx"
-[ "$(grep -Fc 'Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）汉化' "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17/src/components/OptiScalerControls.tsx")" -ge 2 ] || {
-    echo "FAIL: FSR4 插件打开后缺少单独可见的汉化署名" >&2
-    exit 1
-}
-fsr4_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17/dist/index.js" | awk '{print $1}')"
-[ "$fsr4_actual_sha256" = "8f8068a18e03110db3c00938c5523e7db1d79118e5200844fc3a145542eb70c9" ] || {
-    echo "FAIL: FSR4 中文构建文件校验值不匹配" >&2
-    exit 1
-}
+grep -Fq 'FSR4_ZH_INDEX_SHA256="eeefdd00815c6158768c94985e4deaa4cf52eab5f80e5f553f09aac20db5b7d4"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '小黄鸭署名包的 Gitee 分块镜像不可用，已保留现有插件。' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'FSR4 署名包的 Gitee 分块镜像不可用，已保留现有插件。' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '"name": "掌机功耗控制"' \
     "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/plugin.json"
 grep -Fq 'const manifest = {"name":"掌机功耗控制"' \
@@ -387,11 +361,11 @@ grep -Fq 'const manifest = {"name":"掌机功耗控制"' \
 }
 grep -Fq '"version": "1.0.5"' \
     "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/package.json"
-[ "$(grep -Fc 'Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）汉化' "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js")" -ge 1 ] || {
+[ "$(grep -Fc 'RenAmamiya汉化' "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js")" -ge 1 ] || {
     echo "FAIL: SimpleDeckyTDP 插件打开后缺少可见汉化署名" >&2
     exit 1
 }
-grep -Fq '中文汉化：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya） · 原插件作者：Aarron Lee' \
+grep -Fq '中文汉化：RenAmamiya · 原插件作者：Aarron Lee' \
     "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js" || {
     echo "FAIL: SimpleDeckyTDP 缺少与小黄鸭一致的作者署名行" >&2
     exit 1
@@ -402,11 +376,11 @@ grep -Fq 'color: "#ffcc66"' \
     exit 1
 }
 simpledeckytdp_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js" | awk '{print $1}')"
-[ "$simpledeckytdp_actual_sha256" = "9e9a80bca6ac0e47c46fdc13be34b412944b1d74fc892b2963671d7e6bb36f38" ] || {
+[ "$simpledeckytdp_actual_sha256" = "22dccfb29db66eeca399246eba07942ad0ca7b9d89334801def256c76d4d2a38" ] || {
     echo "FAIL: SimpleDeckyTDP 中文构建文件校验值不匹配" >&2
     exit 1
 }
-grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="9e9a80bca6ac0e47c46fdc13be34b412944b1d74fc892b2963671d7e6bb36f38"' \
+grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="22dccfb29db66eeca399246eba07942ad0ca7b9d89334801def256c76d4d2a38"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_simpledeckytdp_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'simpledeckytdp_chinese_is_current()' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -420,18 +394,15 @@ grep -Fq 'simpledeckytdp-zh-gitee) ensure_simpledeckytdp_chinese_current' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'cp -a -- "$official_bin_dir" "$staged_source/bin"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '"version": "0.12.5"' \
-    "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/package.json"
-zh_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5/dist/index.js" | awk '{print $1}')"
-[ "$zh_actual_sha256" = "c823b4b7b1a0123db75af6f24368cee2f0642964f7e994278ab94839ecd42bbe" ] || {
-    echo "FAIL: 小黄鸭中文构建文件校验值不匹配" >&2
-    exit 1
-}
 if grep -Eq '^copy_zhoukeer_localizer$' "$PROJECT_ROOT/install.sh"; then
     echo "FAIL: 已停用的扫描式汉化不应继续随安装器复制" >&2
     exit 1
 fi
-grep -Fq 'copy_lsfg_chinese' "$PROJECT_ROOT/install.sh"
+if rg -n 'copy_lsfg_chinese|copy_fsr4_chinese|decky-lsfg-vk-zh-v0[.]12[.]5|decky-framegen-zh-v0[.]17' \
+    "$PROJECT_ROOT/install.sh" "$PROJECT_ROOT/scripts/package_release.sh"; then
+    echo "FAIL: 安装或发布脚本仍携带旧本地中文覆盖层" >&2
+    exit 1
+fi
 grep -Fq 'copy_allycenter_chinese()' "$PROJECT_ROOT/install.sh" || {
     echo "FAIL: 主安装器未复制 Ally Center 中文组件" >&2
     exit 1
@@ -632,7 +603,7 @@ done
 printf '{"name":"Decky LSFG-VK"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
 printf '{"version":"0.12.8"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
 printf '{ "name": "Decky-Framegen" }\n' > "$PLUGIN_ROOT/Decky-Framegen/plugin.json"
-printf '{"version":"0.17.0"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
+printf '{"version":"0.17"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
 printf '{"name": "CheatDeck"}\n' > "$PLUGIN_ROOT/CheatDeck/plugin.json"
 printf '{"version":"2.0.0"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
 printf '{"name": "SteamGridDB"}\n' > "$PLUGIN_ROOT/decky-steamgriddb/plugin.json"
@@ -648,7 +619,7 @@ printf '{"version":"1.0.0"}\n' > "$PLUGIN_ROOT/Decky Music/package.json"
 status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
     bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"
 printf '%s\n' "$status_output" | grep -Fq '✓ 小黄鸭（LSFG-VK）：已写入 Decky'
-printf '%s\n' "$status_output" | grep -Fq '✓ FSR4（Decky-Framegen）：已写入 Decky，官方版本 0.17.0'
+printf '%s\n' "$status_output" | grep -Fq '✓ FSR4（Decky-Framegen）：已写入 Decky，官方版本 0.17'
 printf '%s\n' "$status_output" | grep -Fq '✓ CheatDeck：已写入 Decky，官方版本 2.0.0'
 printf '%s\n' "$status_output" | grep -Fq '✓ 游戏封面更换（SteamGridDB）'
 printf '%s\n' "$status_output" | grep -Fq '✓ 主题美化（CSS Loader）'
@@ -674,11 +645,11 @@ printf '{"version":"0.12.8"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
 printf '{"version":"0.16.9"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
 if stale_fsr4_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
     bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"; then
-    echo "FAIL: 旧版 FSR4 不应被识别为官方 0.17.0" >&2
+    echo "FAIL: 旧版 FSR4 不应被识别为官方 0.17" >&2
     exit 1
 fi
 printf '%s\n' "$stale_fsr4_status_output" | \
-    grep -Fq '检测到版本 0.16.9，请更新到 0.17.0'
+    grep -Fq '检测到版本 0.16.9，请更新到 0.17'
 
 printf '{"version":"1.2.1"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
 if stale_cheatdeck_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
@@ -738,7 +709,7 @@ printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: CSS Loader'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: Friendeck'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: Decky Music'
 printf '%s\n' "$update_output" | grep -Fq '官方版本 0.12.8'
-printf '%s\n' "$update_output" | grep -Fq '官方版本 0.17.0'
+printf '%s\n' "$update_output" | grep -Fq '官方版本 0.17'
 
 # Ally Center 官方包的 plugin.json 位于 ZIP 根目录；使用全临时目录和下载桩
 # 验证同一套校验、解压、原子替换流程可正确安装，且再次执行会幂等跳过。

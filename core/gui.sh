@@ -248,8 +248,8 @@ game_environment_gui_menu() {
         choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
             features "常用插件组合｜小黄鸭、FSR4、封面、主题等七款插件" \
             all "常用插件加27款精选插件｜优先安装七款常用插件，已装则跳过；再补27款精选" \
-            lsfg "小黄鸭｜插帧神器（必装）" \
-            fsr4 "FSR4｜画质补丁（阅读桌面文档慎用）" \
+            lsfg "小黄鸭｜插帧神器（必装）｜Gitee mirror-3 署名完整包｜汉化：RenAmamiya" \
+            fsr4 "FSR4｜画质补丁（阅读桌面文档慎用）｜Gitee mirror-3 署名完整包｜汉化：RenAmamiya" \
             browse "浏览官方插件｜逐个查看插件作用" \
             freedeck "Freedeck｜选择 0.6 稳定版或 NewFreedeck" \
             handheld-plugins "掌机控制插件｜掌机功耗控制与 ROG Ally Center" \
@@ -288,7 +288,7 @@ game_environment_gui_menu() {
                             bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                         ;;
                     mako)
-                        gui_confirm "MAKO 小黄鸭来自 eugeniosegala/MAKO 尝鲜仓库，功能尚未稳定；将安装官方运行核心后叠加 Renkit 汉化，顶部署名沿用 Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化；将优先使用国内分块镜像并校验 SHA256。是否继续？" && \
+                        gui_confirm "MAKO 小黄鸭来自 eugeniosegala/MAKO 尝鲜仓库，功能尚未稳定；将安装官方运行核心后叠加 Renkit 汉化，顶部署名沿用 RenAmamiya汉化；将优先使用国内分块镜像并校验 SHA256。是否继续？" && \
                             run_gui_action "安装 MAKO 小黄鸭（尝鲜版）" \
                                 env ZHOUKEER_AUTO_CONFIRM=1 \
                                 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako

@@ -456,7 +456,7 @@ bazzite_feature_plugins_menu() {
         case "$choice" in
             all) confirm_and_run "安装三款汉化功能插件" "使用 Gitee 分块镜像并校验 SHA256；插件目录不可写时可能请求管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
             lsfg) bazzite_lsfg_versions_menu || return 1 ;;
-            fsr4) confirm_and_run "安装 FSR4" "Gitee 分块镜像优先并校验 SHA256，保留官方运行核心后叠加 Renkit 汉化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
+            fsr4) confirm_and_run "安装 FSR4" "仅从 Gitee mirror-3 分块安装署名完整包并校验 SHA256；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             cheatdeck) confirm_and_run "安装 CheatDeck" "Gitee 分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             more) bazzite_extra_plugins_menu || return 1 ;;
             back) return 0 ;;
@@ -477,11 +477,11 @@ bazzite_lsfg_versions_menu() {
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
             stable)
-                confirm_and_run "安装旧版小黄鸭" "v0.12.8 汉化版；国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" \
+                confirm_and_run "安装旧版小黄鸭" "v0.12.8 汉化版；仅从 Gitee mirror-3 分块安装署名完整包；汉化：RenAmamiya" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                 ;;
             mako)
-                confirm_and_run "安装 MAKO 小黄鸭（尝鲜版）" "来自 eugeniosegala/MAKO 尝鲜仓库；功能尚未稳定，安装官方运行核心后叠加 Renkit 汉化；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" \
+                confirm_and_run "安装 MAKO 小黄鸭（尝鲜版）" "来自 eugeniosegala/MAKO 尝鲜仓库；功能尚未稳定，安装官方运行核心后叠加 Renkit 汉化；汉化作者：RenAmamiya" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako
                 ;;
             back) return 0 ;;

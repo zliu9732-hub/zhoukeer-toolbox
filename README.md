@@ -2,7 +2,7 @@
 
 Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装命令会自动选择独立版本：SteamOS 保留完整原版功能，Bazzite 使用单独菜单，仅开放已适配的常用软件、Decky、兼容层、启动器、模拟器和诊断功能。
 
-当前正式版：Renkit 1.8.7；从 Renkit 1.0 起按语义化版本递增。
+当前正式版：Renkit 1.8.8；从 Renkit 1.0 起按语义化版本递增。
 
 - SteamOS 版：继续使用原有 `main.sh`，系统初始化、国内源、插件与高级功能保持原逻辑。
 - Bazzite 版：使用独立 `main-bazzite.sh`；Decky 通过官方 `ujust setup-decky` 安装，并可整组或逐个安装官方商店插件；Flatpak 默认使用带 GPG 验证的官方 Flathub，国内镜像仅在用户确认风险后以用户级远程启用，并可恢复官方源；提供用户级软件、启动器、模拟器与 GE-Proton 安装/卸载，以及 Yuzu 自备密钥、诊断、攻略和快捷方式维护；不调用 pacman、steamos-readonly、ToDesk、AnyDesk或内存调优。Clover 双系统引导作为独立高风险入口开放，动态识别 Bazzite EFI，并提供状态检查和恢复。
@@ -17,7 +17,7 @@ Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装�
 
 ## 使用说明与免责声明
 
-本脚本由“Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）”制作。个人玩家可免费使用；禁止商业使用、销售、转卖或二次盈利发布，详细条款见仓库根目录 `LICENSE`。Renkit内收录的下载内容均为官方免费发布或开源内容，不包含付费软件本体、破解内容或商业授权；第三方软件和插件仍以各自许可证及使用条款为准。第三方下载均从作者或官方发布页获取；喜欢本工具，欢迎支持作者。若有侵权，请及时联系作者删除。启动Renkit后须点击“知悉并开始使用”方可进入首页。
+本脚本由“RenAmamiya”制作。个人玩家可免费使用；禁止商业使用、销售、转卖或二次盈利发布，详细条款见仓库根目录 `LICENSE`。Renkit内收录的下载内容均为官方免费发布或开源内容，不包含付费软件本体、破解内容或商业授权；第三方软件和插件仍以各自许可证及使用条款为准。第三方下载均从作者或官方发布页获取；喜欢本工具，欢迎支持作者。若有侵权，请及时联系作者删除。启动Renkit后须点击“知悉并开始使用”方可进入首页。
 
 ## 功能
 
@@ -42,7 +42,7 @@ Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装�
 - 一键修复模式：执行网络检测、Steam 下载缓存清理建议和 DNS 处理提示。
 - 一键体检：检查 SteamOS、剩余空间、网络与 Steam 域名解析、Decky、Flatpak 软件源和常用软件状态；不修改系统，并把报告保存到桌面。
 - 游戏启动诊断：检查 Steam 游戏库、可用空间、Steam 运行状态、兼容数据、自定义 Proton / GE 和日志目录；不删除游戏、兼容数据或缓存。
-- 游戏与掌机助手：一键下载 Epic、战网和育碧官方 Windows 安装包，自动创建带Renkit标识的桌面入口，并写入当前 Steam 账号的非 Steam 游戏库及完整封面。Windows 虚拟目录默认放在用户可见的 `~/游戏启动器`，Steam 条目直接绑定真实 EXE 与 Proton 10.0-4，并把 Steam compatdata 的 drive_c 链接到同一份目录，便于黑盒工坊等插件定位游戏文件。Epic 安装包先走 Gitee 分块镜像，失败后回退官方源与官方 CDN 固定版；小黄鸭和 FSR4 使用 Gitee 国内归档优先、GitHub Release 回退的双源下载，Gitee 失败后自动切换 GitHub。战网由 Steam 原生条目配合 Proton Experimental 完成安装并复用同一兼容环境；Epic 与育碧继续由Renkit自动准备兼容层，缺少时通过 Steam 补齐官方 Proton。
+- 游戏与掌机助手：一键下载 Epic、战网和育碧官方 Windows 安装包，自动创建带Renkit标识的桌面入口，并写入当前 Steam 账号的非 Steam 游戏库及完整封面。Windows 虚拟目录默认放在用户可见的 `~/游戏启动器`，Steam 条目直接绑定真实 EXE 与 Proton 10.0-4，并把 Steam compatdata 的 drive_c 链接到同一份目录，便于黑盒工坊等插件定位游戏文件。Epic 安装包先走 Gitee 分块镜像，失败后回退官方源与官方 CDN 固定版；小黄鸭和 FSR4 固定使用 Gitee mirror-3 分块下载带 `RenAmamiya` 署名的完整插件包，镜像失败时保留现有插件且不回退 GitHub。战网由 Steam 原生条目配合 Proton Experimental 完成安装并复用同一兼容环境；Epic 与育碧继续由Renkit自动准备兼容层，缺少时通过 Steam 补齐官方 Proton。
 - 实用指南：独立提供启动器、Proton、手柄、反作弊和性能空间的中文兼容攻略；可查看常用快捷键、外接设备状态、高风险操作说明，并将最近 80 条Renkit操作记录导出到桌面。
 - 更新日志：可在Renkit内用触屏查看当前版本的主要改动。
 - 自动更新Renkit：每次启动会快速检测版本，发现新版本后自动下载并校验更新；优先使用Gitee，失败后切换GitHub，断网或更新失败时继续启动现有版本。
@@ -55,12 +55,18 @@ Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装�
 
 ## 一行命令安装（推荐）
 
-### Gitee 国内源
+### 短域名入口
 
-国内网络优先使用下面的命令：
+推荐使用短域名入口；入口会依次尝试 Gitee、GitHub Raw 和域名自身的安装器，并在执行前拒绝 HTML、超大文件和语法错误响应：
 
 ```bash
-curl -L https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/i|sh
+curl -fsSL https://jktool.icu/i | bash
+```
+
+Gitee 完整地址仍可作为手动备用：
+
+```bash
+curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/i | bash
 ```
 
 ## 三款核心插件独立安装
@@ -211,6 +217,6 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 
 ## 当前版本与维护
 
-当前正式版为 Renkit 1.8.7，后续版本从 1.0 起按语义化版本递增。后续维护同时覆盖 SteamOS 与 Bazzite 的独立菜单；rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
+当前正式版为 Renkit 1.8.8，后续版本从 1.0 起按语义化版本递增。后续维护同时覆盖 SteamOS 与 Bazzite 的独立菜单；rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。

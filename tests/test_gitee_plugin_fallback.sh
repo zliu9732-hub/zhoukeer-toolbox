@@ -62,41 +62,33 @@ mkdir -p "$PLUGIN_ROOT"
         fail "静默下载后插件未安装"
 )
 
-CALLS="$TMP_ROOT/fallback.calls"
+CALLS="$TMP_ROOT/strict-gitee.calls"
+detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
+calculate_decky_sha256() { return 1; }
+feature_plugin_is_current() { return 1; }
 feature_plugin_is_present() { return 1; }
-install_decky_zip() { printf 'github:%s\n' "$1" >> "$CALLS"; return "${GITHUB_RESULT:-1}"; }
 install_decky_zip_from_mirror() { printf 'gitee:%s\n' "$1" >> "$CALLS"; return "${GITEE_RESULT:-1}"; }
-install_lsfg_bundle() { printf 'lsfg-overlay\n' >> "$CALLS"; return 0; }
-install_lsfg_chinese() { printf 'lsfg-zh\n' >> "$CALLS"; return 0; }
-install_configured_plugin() { printf 'fsr4-overlay:%s\n' "$1" >> "$CALLS"; return 0; }
-install_fsr4_chinese() { printf 'fsr4-zh\n' >> "$CALLS"; return 0; }
 remove_legacy_lsfg_directories() { return 0; }
 log() { return 0; }
 
-GITHUB_RESULT=0
 GITEE_RESULT=0
 : > "$CALLS"
-install_lsfg_zh_from_gitee 0 || fail "小黄鸭没有优先从 Gitee 国内源安装"
-install_fsr4_zh_from_gitee 0 || fail "FSR4 没有优先从 Gitee 国内源安装"
-[ "$(grep -c '^gitee:' "$CALLS")" -eq 2 ] || fail "两个插件没有先尝试 Gitee"
-[ "$(grep -c '^github:' "$CALLS")" -eq 0 ] || fail "Gitee 可用时不应再尝试 GitHub Release"
+install_lsfg_zh_from_gitee 0 || fail "小黄鸭没有从 Gitee 分块镜像安装"
+install_fsr4_zh_from_gitee 0 || fail "FSR4 没有从 Gitee 分块镜像安装"
+grep -Fq 'gitee:小黄鸭（LSFG-VK）' "$CALLS" || fail "小黄鸭未使用专用镜像"
+grep -Fq 'gitee:FSR4（Decky Framegen）' "$CALLS" || fail "FSR4 未使用专用镜像"
 
 GITEE_RESULT=1
-GITHUB_RESULT=0
 : > "$CALLS"
-install_lsfg_zh_from_gitee 0 || fail "小黄鸭 Gitee 失败后没有继续安装"
-install_fsr4_zh_from_gitee 0 || fail "FSR4 Gitee 失败后没有继续安装"
-[ "$(grep -c '^gitee:' "$CALLS")" -eq 2 ] || fail "两个插件没有先尝试 Gitee"
-grep -Fq 'lsfg-overlay' "$CALLS" || fail "小黄鸭 Gitee 失败后没有回退原版叠加"
-grep -Fq 'fsr4-overlay' "$CALLS" || fail "FSR4 Gitee 失败后没有回退原版叠加"
-[ "$(grep -c '^github:' "$CALLS")" -eq 0 ] || fail "镜像失败后不应再尝试失效的 GitHub 汉化完整包"
+if install_lsfg_zh_from_gitee 0; then
+    fail "小黄鸭镜像失败后错误返回成功"
+fi
+if install_fsr4_zh_from_gitee 0; then
+    fail "FSR4 镜像失败后错误返回成功"
+fi
+[ "$(grep -c '^gitee:' "$CALLS")" -eq 2 ] || fail "镜像失败时没有各尝试一次"
+if grep -Eq 'github|overlay' "$CALLS"; then
+    fail "镜像失败后仍回退 GitHub 或本地覆盖层"
+fi
 
-GITHUB_RESULT=1
-GITEE_RESULT=1
-: > "$CALLS"
-install_lsfg_zh_from_gitee 0 || fail "小黄鸭双源失败后没有回退原版叠加"
-install_fsr4_zh_from_gitee 0 || fail "FSR4 双源失败后没有回退原版叠加"
-grep -Fq 'lsfg-overlay' "$CALLS" || fail "小黄鸭没有执行原版叠加回退"
-grep -Fq 'fsr4-overlay' "$CALLS" || fail "FSR4 没有执行原版叠加回退"
-
-echo "PASS: 小黄鸭与 FSR4 的 Gitee→GitHub Release 回退及归档校验通过"
+echo "PASS: 小黄鸭与 FSR4 仅使用 Gitee 分块镜像且失败返回非零"

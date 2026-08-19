@@ -396,6 +396,8 @@ download_with_gitee_mirror_fallback() {
 
 gitee_mirror_id_for_url() {
     case "$1" in
+        *'/zliu9732-hub/decky-lsfg-vk-zh/releases/download/'*) printf '%s\n' lsfg-zh-signed ;;
+        *'/zliu9732-hub/decky-framegen-zh/releases/download/'*) printf '%s\n' fsr4-zh-signed ;;
         *'/eugeniosegala/MAKO/releases/download/'*) printf '%s\n' lsfg-mako ;;
         *'/eugeniosegala/decky-lsfg-vk-experimental/releases/download/'*) printf '%s\n' lsfg-mako ;;
         *'/xXJSONDeruloXx/decky-lsfg-vk/releases/download/'*) printf '%s\n' lsfg ;;

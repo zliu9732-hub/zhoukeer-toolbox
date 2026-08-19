@@ -46,19 +46,21 @@ LSFG_MAKO_ZH_JSON="$PROJECT_ROOT/data/mako_zh.json"
 LSFG_MAKO_ZH_EN_JSON="$PROJECT_ROOT/data/mako_zh_en.json"
 DECKY_LSFG_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_MAKO_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
-LSFG_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5"
-LSFG_ZH_INDEX_SHA256="c823b4b7b1a0123db75af6f24368cee2f0642964f7e994278ab94839ecd42bbe"
+LSFG_ZH_MIRROR_ID="lsfg-zh-signed"
+LSFG_ZH_PACKAGE_SHA256="702f705e31d5ec88d844be4f9d16e34f9fcb96efed40e9f110d898d55c380084"
+LSFG_ZH_INDEX_SHA256="366c87e2e59b01f4f895d4930ee07dd7ccd5e4c1ab30e60965086aec9c641d7a"
 FSR4_OFFICIAL_DIRECTORY="Decky-Framegen"
-FSR4_OFFICIAL_VERSION="0.17.0"
-FSR4_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-framegen-zh-v0.17"
-FSR4_ZH_INDEX_SHA256="8f8068a18e03110db3c00938c5523e7db1d79118e5200844fc3a145542eb70c9"
+FSR4_OFFICIAL_VERSION="0.17"
+FSR4_ZH_MIRROR_ID="fsr4-zh-signed"
+FSR4_ZH_PACKAGE_SHA256="b392ea5c850c76a9b230e0028dd5b37e5a5c38759918beba4a01714735eb0ebf"
+FSR4_ZH_INDEX_SHA256="eeefdd00815c6158768c94985e4deaa4cf52eab5f80e5f553f09aac20db5b7d4"
 FSR4_RUNTIME_ARCHIVE="Optiscaler_0.9.4-final.20260718._MM.7z"
 FSR4_RUNTIME_UPSCALER="amd_fidelityfx_upscaler_dx12.dll"
 FSR4_RUNTIME_PATCHER="OptiPatcher_rolling.asi"
 SIMPLEDECKYTDP_OFFICIAL_DIRECTORY="SimpleDeckyTDP"
 SIMPLEDECKYTDP_OFFICIAL_VERSION="1.0.5"
 SIMPLEDECKYTDP_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5"
-SIMPLEDECKYTDP_ZH_INDEX_SHA256="9e9a80bca6ac0e47c46fdc13be34b412944b1d74fc892b2963671d7e6bb36f38"
+SIMPLEDECKYTDP_ZH_INDEX_SHA256="22dccfb29db66eeca399246eba07942ad0ca7b9d89334801def256c76d4d2a38"
 STEAMGRIDDB_OFFICIAL_DIRECTORY="decky-steamgriddb"
 STEAMGRIDDB_OFFICIAL_VERSION="1.7.1"
 CSSLOADER_OFFICIAL_DIRECTORY="SDH-CssLoader"
@@ -119,7 +121,7 @@ DECKY_ALLYCENTER_SHA256="${ZHOUKEER_DECKY_ALLYCENTER_SHA256:-a1059534de2a0e95566
 DECKY_ALLYCENTER_VERSION="1.2.0"
 DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 ALLYCENTER_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0"
-ALLYCENTER_ZH_INDEX_SHA256="b259747035cd0308b6776311a94a98ab01b37493d667746f641982968b14ca25"
+ALLYCENTER_ZH_INDEX_SHA256="72bb93d1f1a2a02fbbf670661d7f76f324d8f7d2077d3e763559f03332332031"
 DECKY_HUESYNC_URL="${ZHOUKEER_DECKY_HUESYNC_URL:-https://github.com/honjow/HueSync/releases/download/v3.9.0/huesync.zip}"
 DECKY_HUESYNC_SHA256="${ZHOUKEER_DECKY_HUESYNC_SHA256:-7510c96ed22278a914a3aae591c2393ff4e25812a765d1d633f77baa8a593e1f}"
 DECKY_HUESYNC_VERSION="3.9.0"
@@ -130,33 +132,30 @@ DECKY_LEGIONGO_REMAPPER_URL="${ZHOUKEER_DECKY_LEGIONGO_REMAPPER_URL:-https://git
 DECKY_LEGIONGO_REMAPPER_SHA256="${ZHOUKEER_DECKY_LEGIONGO_REMAPPER_SHA256:-b89084ece2df8854a732239043484f510a2384d01221441e3a4242fc85b6d9e1}"
 DECKY_LEGIONGO_REMAPPER_VERSION="0.3.0"
 LEGIONGO_REMAPPER_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/legion-go-remapper-zh-v0.3.0"
-LEGIONGO_REMAPPER_ZH_INDEX_SHA256="829abcdfa0a1610af2768b017adef33c59fa57913423b6953ba94ff25dd01dd0"
+LEGIONGO_REMAPPER_ZH_INDEX_SHA256="8cc9faf4d5022be3e6584343dbc8cc9a70ce2d50fb7869efffd9ca96a24b40c6"
 DECKY_GPD_CONTROL_URL="${ZHOUKEER_DECKY_GPD_CONTROL_URL:-https://github.com/aarron-lee/GpdControl/releases/download/v0.0.2/GpdControl.tar.gz}"
 DECKY_GPD_CONTROL_SHA256="${ZHOUKEER_DECKY_GPD_CONTROL_SHA256:-3efc5694234fb7f2ae1131fd9dec9e342c1fee7c4a804e4f910920d327ae7fb4}"
 DECKY_GPD_CONTROL_VERSION="0.0.2"
 GPD_CONTROL_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/gpd-control-zh-v0.0.2"
-GPD_CONTROL_ZH_INDEX_SHA256="06670b3f3956e9b8d8b88aa78fa27b7f7e12c5c6de2d9f551cee0029b2925e6f"
+GPD_CONTROL_ZH_INDEX_SHA256="3de06452b88959ab1cf828acfccaabf1f2c402de85ec0fcedcaa1385e2f3d505"
 DECKY_LEGO_VIBE_URL="${ZHOUKEER_DECKY_LEGO_VIBE_URL:-https://github.com/Rayekkk/LeGo-Vibe-Control/releases/download/1.5.0/LeGo-Vibe-Control-1.5.0.zip}"
 DECKY_LEGO_VIBE_SHA256="${ZHOUKEER_DECKY_LEGO_VIBE_SHA256:-adda3be351c14d1c8899fb0997565aa67e7439b988112340fad707cfe6be28b7}"
 DECKY_LEGO_VIBE_VERSION="1.5.0"
 LEGO_VIBE_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/lego-vibe-control-zh-v1.5.0"
-LEGO_VIBE_ZH_INDEX_SHA256="735e958bcf4434ec4b20b33e6dc0c9c6d39a82a8136d9f28d902816f9e9ea77c"
+LEGO_VIBE_ZH_INDEX_SHA256="e8c285a05f975bbf7cede8e43f48bbb49854c37e60b173e4045df84e01b9c49e"
 DECKY_LEGO2_FAN_URL="${ZHOUKEER_DECKY_LEGO2_FAN_URL:-https://github.com/Rodpad/LeGo2-Fan-Control/releases/download/Decky/LeGo2FanControl_Decky.zip}"
 DECKY_LEGO2_FAN_SHA256="${ZHOUKEER_DECKY_LEGO2_FAN_SHA256:-a46af0c53eef63b1ad77fff567a120784b6736686565a761524882d011cc6d3e}"
 DECKY_LEGO2_FAN_VERSION="0.260430"
 LEGO2_FAN_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/lego2-fan-control-zh-v0.260430"
-LEGO2_FAN_ZH_INDEX_SHA256="2324d3fe7daf66224fed41db321d41ee181305c824f9342a1bc89e02c3ccf3d2"
+LEGO2_FAN_ZH_INDEX_SHA256="9d93837925ccb2e95bf94942b291664f1cf645362d0f6b9972a03face0bb22d4"
 # OneXPlayer Apex Tools 只适用于 Apex（Strix Halo）；上游包会操作 HHD、睡眠和内核模块。
 DECKY_ONEXPLAYER_APEX_URL="https://github.com/srsholmes/onexplayer-apex-bazzite-fixes/releases/download/build-b696161/OneXPlayer_Apex_Tools.zip"
 DECKY_ONEXPLAYER_APEX_SHA256="7c522bc8145697d78d6165f7f97671d4d67a5bf4f9e4ed5e6feccbb1154acb91"
 DECKY_ONEXPLAYER_APEX_VERSION="build-b696161"
 DECKY_ONEXPLAYER_APEX_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_HANDHELD_PLUGIN_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
-# 汉化完整包固定使用Renkit GitHub Release 资产，避免原始文件下载过慢。
-DECKY_LSFG_ZH_URL="https://github.com/zliu9732-hub/decky-lsfg-vk-zh/releases/download/v0.12.8/lsfg-zh-signed-v0.12.8.zip"
-DECKY_LSFG_ZH_SHA256="8945e6c6a4d65e4b0d2e5cd238a8f1cb48851387820dda6b70e7305dba1b4cd7"
-DECKY_FSR4_ZH_URL="https://github.com/zliu9732-hub/decky-framegen-zh/releases/download/v0.17/framegen-zh-signed-v0.17.zip"
-DECKY_FSR4_ZH_SHA256="c0c002c968b3cccaf2bf974ffe1333689523afd8661de18249a9a09ecba108ac"
+# 小黄鸭与 FSR4 的署名完整包只允许从 mirror-3 分块镜像下载。
+# 不配置 GitHub 回退地址，避免工具箱与其他账号仓库形成下载关联。
 # Gitee 归档必须指向包含当前 dist 汉化包的稳定标签，避免旧归档校验失败。
 DECKY_GITEE_ARCHIVE_URL="https://gitee.com/zliu9732-hub/zhoukeer-toolbox/repository/archive/v6.0.4.zip"
 DECKY_GITEE_ARCHIVE_SHA256="cbe50c9dcd64bba1433713c1945ec73de2fa1cc51f8a8327ef0f9cdd0ace147a"
@@ -1807,7 +1806,7 @@ extract_gitee_plugin_archive() {
     esac
     archive_paths_are_safe "$repository_archive" zip || return 1
     unzip -Z1 "$repository_archive" | grep -Fxq -- "$archive_member" || {
-        echo "下载失败，切换备用源。"
+        echo "Gitee 镜像下载失败。"
         return 1
     }
     if ! unzip -p "$repository_archive" "$archive_member" > "$output"; then
@@ -2505,81 +2504,14 @@ install_lsfg_bundle() {
         "$skip_existing" || return 1
     remove_legacy_lsfg_directories "$plugin_root"
 
-    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
+    echo "汉化：RenAmamiya"
     if [ "$open_store_after" = "1" ]; then
         check_lossless_scaling_installation
     fi
 }
 
 install_lsfg_chinese() {
-    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
-    local actual_sha256
-    local bundled_version
-    local reload_after="${1:-1}"
-    local force="${2:-0}"
-    local official_runtime
-    local work_dir
-    local staged_source
-
-    detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
-        echo "小黄鸭仅支持 SteamOS 或 Bazzite。"
-        return 1
-    fi
-    if [ "$force" = "0" ] && \
-       feature_plugin_is_current "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" \
-        "$LSFG_OFFICIAL_VERSION" "小黄鸭"; then
-        echo "[已安装] 小黄鸭 v$LSFG_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
-        return 0
-    fi
-    if [ -L "$LSFG_ZH_SOURCE_DIR" ] || \
-       [ ! -f "$LSFG_ZH_SOURCE_DIR/plugin.json" ] || \
-       [ ! -f "$LSFG_ZH_SOURCE_DIR/package.json" ] || \
-       [ ! -s "$LSFG_ZH_SOURCE_DIR/dist/index.js" ] || \
-       [ ! -f "$LSFG_ZH_SOURCE_DIR/LICENSE" ]; then
-        echo "小黄鸭 v$LSFG_OFFICIAL_VERSION 中文组件不完整，请更新Renkit后再试。"
-        return 1
-    fi
-    bundled_version="$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
-        "$LSFG_ZH_SOURCE_DIR/package.json" | head -n 1)"
-    if [ "$bundled_version" != "$LSFG_OFFICIAL_VERSION" ]; then
-        echo "中文组件版本 $bundled_version 与目标 v$LSFG_OFFICIAL_VERSION 不一致，已停止覆盖。"
-        return 1
-    fi
-    actual_sha256="$(calculate_decky_sha256 "$LSFG_ZH_SOURCE_DIR/dist/index.js")" || return 1
-    if [ "$actual_sha256" != "$LSFG_ZH_INDEX_SHA256" ]; then
-        echo "小黄鸭中文组件校验失败，已停止覆盖。"
-        return 1
-    fi
-    official_runtime="$plugin_root/$LSFG_OFFICIAL_DIRECTORY/bin/$LSFG_RUNTIME_ARCHIVE"
-    if [ ! -f "$official_runtime" ] || [ ! -s "$official_runtime" ]; then
-        echo "小黄鸭运行核心缺失，请从“常用插件组合”重新安装小黄鸭。"
-        return 1
-    fi
-    prepare_plugin_root "$plugin_root" || return 1
-    work_dir="$(mktemp -d)" || return 1
-    staged_source="$work_dir/$LSFG_OFFICIAL_DIRECTORY"
-    if ! cp -a -- "$LSFG_ZH_SOURCE_DIR" "$staged_source" || \
-       ! mkdir -p "$staged_source/bin" || \
-       ! cp -a -- "$official_runtime" "$staged_source/bin/$LSFG_RUNTIME_ARCHIVE"; then
-        rm -rf -- "$work_dir"
-        echo "小黄鸭中文组件准备失败，原版未改动。"
-        return 1
-    fi
-    install_tree_atomically "$staged_source" "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" || {
-        rm -rf -- "$work_dir"
-        echo "小黄鸭安装失败，已尽量保留原版。"
-        return 1
-    }
-    rm -rf -- "$work_dir"
-    echo "小黄鸭 v$LSFG_OFFICIAL_VERSION 已安装。"
-    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
-    echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
-    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
-    if [ "$reload_after" = "1" ]; then
-        reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可使用。"
-    fi
-    log "小黄鸭 v$LSFG_OFFICIAL_VERSION 安装完成"
+    install_lsfg_zh_from_gitee "${1:-1}"
 }
 
 apply_mako_zh_patch() {
@@ -2631,7 +2563,7 @@ if "const lang = \"zh\";" not in content:
 for english, chinese in replacements.items():
     content = content.replace(json.dumps(english, ensure_ascii=False), json.dumps(chinese, ensure_ascii=False))
 
-attribution = "Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化"
+attribution = "RenAmamiya汉化"
 if attribution not in content:
     theme_marker = "window.SP_REACT.createElement(MakoButtonTheme, null),"
     if theme_marker not in content:
@@ -2642,7 +2574,7 @@ if attribution not in content:
         "window.SP_REACT.createElement(DFL.PanelSectionRow, null,"
         ' window.SP_REACT.createElement("div", { style: { padding: "8px 12px", width: "100%",'
         ' boxSizing: "border-box", textAlign: "center", fontSize: "13px", color: "#ffcc66" } },'
-        ' "Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化")),\n            '
+        ' "RenAmamiya汉化")),\n            '
     )
     content = content[:local_pos] + attribution_row + content[local_pos:]
 
@@ -2668,69 +2600,22 @@ PY
     echo "MAKO 小黄鸭中文界面已写入，顶部署名已保留。"
 }
 
-apply_zh_overlay_zip() {
-    local display_name="$1"
-    local url="$2"
-    local expected_sha256="$3"
-    local plugin_dir="$4"
-    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
-    local tmp_dir archive extract_dir overlay_source staged_source
-
-    [ -n "$url" ] && [ -n "$expected_sha256" ] || {
-        echo "$display_name 中文组件配置不完整，请更新Renkit后再试。"
-        return 1
-    }
-    [ -d "$plugin_root/$plugin_dir" ] && \
-        [ -f "$plugin_root/$plugin_dir/plugin.json" ] || {
-        echo "$display_name 官方插件未安装，无法叠加中文组件。"
-        return 1
-    }
-    prepare_plugin_root "$plugin_root" || return 1
-    tmp_dir="$(mktemp -d)" || return 1
-    DECKY_TMP_DIR="$tmp_dir"
-    archive="$tmp_dir/overlay.zip"
-    extract_dir="$tmp_dir/extracted"
-    mkdir -p "$extract_dir"
-    trap cleanup_decky_tmp EXIT INT TERM
-    if ! download_verified_package "$display_name 中文组件" \
-        "$url" "$expected_sha256" "$archive"; then
-        bash "$PROJECT_ROOT/modules/steam_accelerator.sh" ensure || true
-        download_verified_package "$display_name 中文组件" \
-            "$url" "$expected_sha256" "$archive" || return 1
-    fi
-    archive_paths_are_safe "$archive" zip || return 1
-    unzip -q "$archive" -d "$extract_dir" || {
-        echo "$display_name 中文组件解压失败。"
-        return 1
-    }
-    overlay_source="$(find_plugin_source "$extract_dir")" || {
-        echo "$display_name 中文组件缺少 plugin.json。"
-        return 1
-    }
-    staged_source="$tmp_dir/$plugin_dir"
-    if ! cp -a -- "$plugin_root/$plugin_dir" "$staged_source" || \
-        ! cp -a -- "$overlay_source/." "$staged_source/"; then
-        echo "$display_name 中文组件准备失败。"
-        return 1
-    fi
-    install_tree_atomically "$staged_source" "$plugin_root" "$plugin_dir" || {
-        echo "$display_name 中文组件安装失败，原插件未改动。"
-        return 1
-    }
-    PLUGIN_INSTALL_CHANGED=1
-    cleanup_decky_tmp
-    trap - EXIT INT TERM
-    echo "$display_name 中文组件已应用。"
-}
-
-# 优先使用 Gitee 国内源，失败后回退 GitHub Release，最后才回退原版叠加。
+# 署名完整包只从 Gitee mirror-3 下载；镜像失败时保留现有插件并返回失败。
 install_lsfg_zh_from_gitee() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local reload_after="${1:-1}"
-    local installed_version
+    local installed_version actual_sha256
 
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "小黄鸭仅支持 SteamOS 或 Bazzite。"
+        return 1
+    fi
+    actual_sha256="$(calculate_decky_sha256 \
+        "$plugin_root/$LSFG_OFFICIAL_DIRECTORY/dist/index.js" 2>/dev/null || true)"
     if feature_plugin_is_current "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" \
-        "$LSFG_OFFICIAL_VERSION" "小黄鸭"; then
+        "$LSFG_OFFICIAL_VERSION" "Decky LSFG-VK" && \
+        [ "$actual_sha256" = "$LSFG_ZH_INDEX_SHA256" ]; then
         echo "[已安装] 小黄鸭 v$LSFG_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
         return 0
     fi
@@ -2741,13 +2626,16 @@ install_lsfg_zh_from_gitee() {
     fi
 
     echo "正在安装小黄鸭..."
-    install_lsfg_bundle "$reload_after" || return 1
-    apply_zh_overlay_zip "小黄鸭（LSFG-VK）" \
-        "$DECKY_LSFG_ZH_URL" "$DECKY_LSFG_ZH_SHA256" \
-        "$LSFG_OFFICIAL_DIRECTORY" || return 1
+    GITEE_MIRROR_REPO="$DECKY_LSFG_MIRROR_REPO" \
+        install_decky_zip_from_mirror "小黄鸭（LSFG-VK）" \
+        "$LSFG_ZH_MIRROR_ID" "$LSFG_ZH_PACKAGE_SHA256" \
+        "$LSFG_OFFICIAL_DIRECTORY" || {
+            echo "小黄鸭署名包的 Gitee 分块镜像不可用，已保留现有插件。"
+            return 1
+        }
     remove_legacy_lsfg_directories "$plugin_root"
     echo "小黄鸭安装成功。"
-    echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
+    echo "汉化：RenAmamiya"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可使用。"
     fi
@@ -2755,84 +2643,25 @@ install_lsfg_zh_from_gitee() {
 }
 
 install_fsr4_chinese() {
+    install_fsr4_zh_from_gitee "${1:-1}"
+}
+
+# 署名完整包只从 Gitee mirror-3 下载；镜像失败时保留现有插件并返回失败。
+install_fsr4_zh_from_gitee() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
-    local actual_sha256 bundled_version
     local reload_after="${1:-1}"
-    local official_bin_dir official_assets_dir work_dir staged_source
+    local installed_version actual_sha256
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
         echo "FSR4 中文界面仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
+    actual_sha256="$(calculate_decky_sha256 \
+        "$plugin_root/$FSR4_OFFICIAL_DIRECTORY/dist/index.js" 2>/dev/null || true)"
     if feature_plugin_is_current "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" \
-        "$FSR4_OFFICIAL_VERSION" "Decky-Framegen(FSR4)"; then
-        echo "[已安装] FSR4 v$FSR4_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
-        return 0
-    fi
-    if [ -L "$FSR4_ZH_SOURCE_DIR" ] || \
-       [ ! -f "$FSR4_ZH_SOURCE_DIR/plugin.json" ] || \
-       [ ! -f "$FSR4_ZH_SOURCE_DIR/package.json" ] || \
-       [ ! -s "$FSR4_ZH_SOURCE_DIR/dist/index.js" ] || \
-       [ ! -f "$FSR4_ZH_SOURCE_DIR/LICENSE" ]; then
-        echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文组件不完整，请更新Renkit后再试。"
-        return 1
-    fi
-    bundled_version="$(sed -n 's/.*\"version\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p' "$FSR4_ZH_SOURCE_DIR/package.json" | head -n 1)"
-    if [ "$bundled_version" != "$FSR4_OFFICIAL_VERSION" ]; then
-        echo "FSR4 中文组件版本 $bundled_version 与目标 v$FSR4_OFFICIAL_VERSION 不一致，已停止覆盖。"
-        return 1
-    fi
-    actual_sha256="$(calculate_decky_sha256 "$FSR4_ZH_SOURCE_DIR/dist/index.js")" || return 1
-    if [ "$actual_sha256" != "$FSR4_ZH_INDEX_SHA256" ]; then
-        echo "FSR4 中文组件校验失败，已停止覆盖。"
-        return 1
-    fi
-    official_bin_dir="$plugin_root/$FSR4_OFFICIAL_DIRECTORY/bin"
-    official_assets_dir="$plugin_root/$FSR4_OFFICIAL_DIRECTORY/assets"
-    if [ ! -s "$official_bin_dir/$FSR4_RUNTIME_ARCHIVE" ] || \
-       [ ! -s "$official_bin_dir/$FSR4_RUNTIME_UPSCALER" ] || \
-       [ ! -s "$official_bin_dir/$FSR4_RUNTIME_PATCHER" ] || \
-       [ ! -f "$official_assets_dir/fgmod.sh" ] || \
-       [ ! -f "$official_assets_dir/fgmod-uninstaller.sh" ] || \
-       [ ! -f "$official_assets_dir/update-optiscaler-config.py" ]; then
-        echo "FSR4 运行核心缺失，请从“常用插件组合”重新安装 FSR4。"
-        return 1
-    fi
-    prepare_plugin_root "$plugin_root" || return 1
-    work_dir="$(mktemp -d)" || return 1
-    staged_source="$work_dir/$FSR4_OFFICIAL_DIRECTORY"
-    if ! cp -a -- "$FSR4_ZH_SOURCE_DIR" "$staged_source" || \
-       ! cp -a -- "$official_bin_dir" "$staged_source/bin" || \
-       ! cp -a -- "$official_assets_dir" "$staged_source/assets"; then
-        rm -rf -- "$work_dir"
-        echo "FSR4 中文组件准备失败，原版未改动。"
-        return 1
-    fi
-    install_tree_atomically "$staged_source" "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" || {
-        rm -rf -- "$work_dir"
-        echo "FSR4 中文界面安装失败，已尽量保留原版。"
-        return 1
-    }
-    rm -rf -- "$work_dir"
-    echo "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面已安装（Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）汉化）。"
-    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
-    echo "原作者：Kurt Himebauch（xXJSONDeruloXx）；许可证：BSD 3-Clause。"
-    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
-    if [ "$reload_after" = "1" ]; then
-        reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 FSR4 插帧即可看到中文界面。"
-    fi
-    log "FSR4 v$FSR4_OFFICIAL_VERSION 中文界面安装完成"
-}
-
-# 优先使用 Gitee 国内源，失败后回退 GitHub Release，最后才回退原版叠加。
-install_fsr4_zh_from_gitee() {
-    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
-    local reload_after="${1:-1}"
-    local installed_version
-
-    if feature_plugin_is_current "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" \
-        "$FSR4_OFFICIAL_VERSION" "Decky-Framegen(FSR4)"; then
+        "$FSR4_OFFICIAL_VERSION" "Decky-Framegen" && \
+        [ "$actual_sha256" = "$FSR4_ZH_INDEX_SHA256" ]; then
         echo "[已安装] FSR4 v$FSR4_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
         return 0
     fi
@@ -2843,12 +2672,15 @@ install_fsr4_zh_from_gitee() {
     fi
 
     echo "正在安装 FSR4..."
-    install_configured_plugin fsr4 0 0 || return 1
-    apply_zh_overlay_zip "FSR4（Decky Framegen）" \
-        "$DECKY_FSR4_ZH_URL" "$DECKY_FSR4_ZH_SHA256" \
-        "$FSR4_OFFICIAL_DIRECTORY" || return 1
+    GITEE_MIRROR_REPO="zhoukeer-toolbox-mirror-3" \
+        install_decky_zip_from_mirror "FSR4（Decky Framegen）" \
+        "$FSR4_ZH_MIRROR_ID" "$FSR4_ZH_PACKAGE_SHA256" \
+        "$FSR4_OFFICIAL_DIRECTORY" || {
+            echo "FSR4 署名包的 Gitee 分块镜像不可用，已保留现有插件。"
+            return 1
+        }
     echo "FSR4 安装成功。"
-    echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
+    echo "汉化：RenAmamiya"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 FSR4 插帧即可看到中文界面。"
     fi
@@ -2925,8 +2757,8 @@ install_simpledeckytdp_chinese() {
         return 1
     }
     rm -rf -- "$work_dir"
-    echo "SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文界面已安装（Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya）汉化）。"
-    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
+    echo "SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文界面已安装（RenAmamiya汉化）。"
+    echo "汉化作者：RenAmamiya，感谢支持！"
     echo "原作者：Aarron Lee；许可证：BSD 3-Clause。"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 SimpleDeckyTDP 即可看到中文界面。"
@@ -2971,7 +2803,7 @@ install_simpledeckytdp_zh_from_gitee() {
         return $?
     fi
     echo "SimpleDeckyTDP 安装成功。"
-    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
+    echo "汉化作者：RenAmamiya，感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 SimpleDeckyTDP 即可看到中文界面。"
     fi
@@ -3070,7 +2902,7 @@ install_allycenter_chinese() {
     }
     rm -rf -- "$work_dir"
     echo "Ally Center v$DECKY_ALLYCENTER_VERSION 中文版已安装。"
-    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
+    echo "汉化作者：RenAmamiya，感谢支持！"
     echo "原作者：Keith Baker（Pixel Addict Games）；许可证：MIT。"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 Ally Center 即可看到中文界面。"
@@ -3188,7 +3020,7 @@ install_handheld_frontend_overlay() {
     rm -rf -- "$work_dir"
     echo "$display_name v$expected_version 已安装。"
     if [ "$translated" = "1" ]; then
-        echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
+        echo "汉化作者：RenAmamiya，感谢支持！"
     else
         echo "该插件由上游自带简体中文；Renkit 仅适配中文显示名。"
     fi
@@ -3234,14 +3066,8 @@ ensure_handheld_overlay_current() {
 }
 
 restore_lsfg_official() {
-    detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ]; then
-        echo "恢复小黄鸭原版仅支持真实 SteamOS 环境。"
-        return 1
-    fi
-    install_lsfg_bundle 0 0 || return 1
-    reload_decky_plugins "小黄鸭官方 v$LSFG_OFFICIAL_VERSION 已恢复。"
-    log "小黄鸭官方 v$LSFG_OFFICIAL_VERSION 已恢复"
+    echo "Renkit 只提供带 RenAmamiya 署名的 Gitee 分块版本。"
+    install_lsfg_zh_from_gitee 1
 }
 
 remove_legacy_lsfg_directories() {
@@ -4003,18 +3829,18 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         store-test) show_plugin_download_speed_tip; install_plugin_store prerelease ;;
         store-auto) show_plugin_download_speed_tip; install_plugin_store_auto ;;
         store-uninstall) uninstall_plugin_store ;;
-        lsfg) show_plugin_download_speed_tip; install_configured_plugin lsfg ;;
+        lsfg) install_lsfg_zh_from_gitee && refresh_feature_usage_guides ;;
         lsfg-mako) show_plugin_download_speed_tip; install_configured_plugin lsfg-mako ;;
-        lsfg-zh) install_lsfg_chinese && refresh_feature_usage_guides ;;
+        lsfg-zh) install_lsfg_zh_from_gitee && refresh_feature_usage_guides ;;
         lsfg-zh-gitee) install_lsfg_zh_from_gitee && refresh_feature_usage_guides ;;
-        fsr4-zh) install_fsr4_chinese && refresh_feature_usage_guides ;;
+        fsr4-zh) install_fsr4_zh_from_gitee && refresh_feature_usage_guides ;;
         fsr4-zh-gitee) install_fsr4_zh_from_gitee && refresh_feature_usage_guides ;;
         simpledeckytdp-zh) install_simpledeckytdp_chinese ;;
         simpledeckytdp-zh-gitee) ensure_simpledeckytdp_chinese_current ;;
         lsfg-restore) show_plugin_download_speed_tip; restore_lsfg_official ;;
         lsfg-store) open_lossless_store ;;
         lsfg-import-select) select_and_import_lossless_backup ;;
-        fsr4) show_plugin_download_speed_tip; install_configured_plugin fsr4 ;;
+        fsr4) install_fsr4_zh_from_gitee && refresh_feature_usage_guides ;;
         cheatdeck) show_plugin_download_speed_tip; install_configured_plugin cheatdeck ;;
         steamgriddb) show_plugin_download_speed_tip; install_configured_plugin steamgriddb ;;
         cssloader) show_plugin_download_speed_tip; install_configured_plugin cssloader ;;

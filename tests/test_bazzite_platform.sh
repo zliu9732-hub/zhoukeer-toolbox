@@ -133,7 +133,7 @@ grep -Fq 'OneXPlayer Apex 工具仅支持 Bazzite' "$PROJECT_ROOT/modules/plugin
 printf '{"name":"Decky LSFG-VK"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
 printf '{"version":"0.12.8"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky LSFG-VK/package.json"
 printf '{"name":"Decky-Framegen"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky-Framegen/plugin.json"
-printf '{"version":"0.17.0"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky-Framegen/package.json"
+printf '{"version":"0.17"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky-Framegen/package.json"
 printf '{"name":"CheatDeck"}\n' > "$BAZZITE_PLUGIN_ROOT/CheatDeck/plugin.json"
 printf '{"version":"2.0.0"}\n' > "$BAZZITE_PLUGIN_ROOT/CheatDeck/package.json"
 printf '{"name":"SteamGridDB"}\n' > "$BAZZITE_PLUGIN_ROOT/decky-steamgriddb/plugin.json"

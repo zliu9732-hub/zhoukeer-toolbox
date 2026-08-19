@@ -146,6 +146,12 @@ sync_plugin lsfg "xXJSONDeruloXx/decky-lsfg-vk" '^Decky[.]LSFG-VK[.]zip$' "Decky
     "v0.12.8" "Decky.LSFG-VK.zip" \
     "https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip" \
     "322f6eec21a489ef9f12938ea2ec4e43c234093876f95b7245fbd260f882ce9c" "$MIRROR3"
+# Renkit 安装只使用署名完整包；官方原包镜像仅保留给历史兼容流程。
+sync_plugin lsfg-zh-signed "zliu9732-hub/decky-lsfg-vk-zh" \
+    '^Decky[.]LSFG-VK-zh-signed-v0[.]12[.]8[.]zip$' "Decky LSFG-VK 署名中文插件" \
+    "v0.12.8" "Decky.LSFG-VK-zh-signed-v0.12.8.zip" \
+    "https://github.com/zliu9732-hub/decky-lsfg-vk-zh/releases/download/v0.12.8/Decky.LSFG-VK-zh-signed-v0.12.8.zip" \
+    "702f705e31d5ec88d844be4f9d16e34f9fcb96efed40e9f110d898d55c380084" "$MIRROR3"
 # MAKO 尝鲜版跟随上游最新 Release 同步，上传前必须解析到带 SHA256 digest 的 ZIP。
 sync_plugin lsfg-mako "eugeniosegala/MAKO" \
     '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO LSFG-VK" "" "" "" "" "$MIRROR3"
@@ -154,6 +160,11 @@ sync_plugin fsr4 "xXJSONDeruloXx/Decky-Framegen" '^Decky-Framegen[.]zip$' "Decky
     "v0.17" "Decky-Framegen.zip" \
     "https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip" \
     "3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f"
+sync_plugin fsr4-zh-signed "zliu9732-hub/decky-framegen-zh" \
+    '^Decky-Framegen-zh-signed-v0[.]17[.]zip$' "Decky-Framegen 署名中文插件" \
+    "v0.17" "Decky-Framegen-zh-signed-v0.17.zip" \
+    "https://github.com/zliu9732-hub/decky-framegen-zh/releases/download/v0.17/Decky-Framegen-zh-signed-v0.17.zip" \
+    "b392ea5c850c76a9b230e0028dd5b37e5a5c38759918beba4a01714735eb0ebf" "$MIRROR3"
 sync_plugin cheatdeck "SheffeyG/CheatDeck" '^CheatDeck[.]zip$' "CheatDeck"
 sync_plugin steamgriddb "SteamGridDB/decky-steamgriddb" '^$' "SteamGridDB" \
     "v1.7.1" "steamgriddb-v1.7.1.zip" \
