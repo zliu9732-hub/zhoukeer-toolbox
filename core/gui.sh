@@ -288,7 +288,7 @@ game_environment_gui_menu() {
                             bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                         ;;
                     mako)
-                        gui_confirm "MAKO 小黄鸭来自 eugeniosegala 的 decky-lsfg-vk-experimental 尝鲜仓库，功能尚未稳定；将安装官方运行核心后叠加 Renkit 汉化，顶部署名沿用 Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化；将优先使用国内分块镜像并校验 SHA256。是否继续？" && \
+                        gui_confirm "MAKO 小黄鸭来自 eugeniosegala/MAKO 尝鲜仓库，功能尚未稳定；将安装官方运行核心后叠加 Renkit 汉化，顶部署名沿用 Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化；将优先使用国内分块镜像并校验 SHA256。是否继续？" && \
                             run_gui_action "安装 MAKO 小黄鸭（尝鲜版）" \
                                 env ZHOUKEER_AUTO_CONFIRM=1 \
                                 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako

@@ -41,6 +41,8 @@ PLUGIN_INSTALL_CHANGED=0
 LSFG_OFFICIAL_DIRECTORY="Decky LSFG-VK"
 LSFG_OFFICIAL_VERSION="0.12.5"
 LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"
+LSFG_MAKO_DIRECTORY="Mako"
+LSFG_MAKO_ZH_JSON="$PROJECT_ROOT/data/mako_zh.json"
 LSFG_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5"
 LSFG_ZH_INDEX_SHA256="c823b4b7b1a0123db75af6f24368cee2f0642964f7e994278ab94839ecd42bbe"
 FSR4_OFFICIAL_DIRECTORY="Decky-Framegen"
@@ -64,8 +66,8 @@ CSSLOADER_ZH_INDEX_SHA256="38ec628efcc1238247e0cf771bde98b26be49349dca9c2d7de427
 # 独立插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
 DECKY_LSFG_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
-DECKY_LSFG_MAKO_URL=""
-DECKY_LSFG_MAKO_SHA256=""
+DECKY_LSFG_MAKO_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/MAKO-Decky-v2.0.0.zip"
+DECKY_LSFG_MAKO_SHA256="5a801dab4d0171a8b50fcb032479aedc644efebe684c4dd984e86fd5e7fec3f1"
 DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip"
 DECKY_FSR4_SHA256="3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f"
 DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v2.0.0/CheatDeck.zip"
@@ -208,8 +210,9 @@ resolve_plugin_latest() {
             fi
             ;;
         lsfg-mako)
-            if resolve_latest_github_release "eugeniosegala/decky-lsfg-vk-experimental" \
-                '^Decky[.]LSFG-VK[.]zip$' "MAKO 小黄鸭"; then
+            [ -n "$DECKY_LSFG_MAKO_URL" ] && [ -n "$DECKY_LSFG_MAKO_SHA256" ] && return 0
+            if resolve_latest_github_release "eugeniosegala/MAKO" \
+                '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO 小黄鸭"; then
                 DECKY_LSFG_MAKO_URL="$_LATEST_RELEASE_URL"
                 DECKY_LSFG_MAKO_SHA256="$_LATEST_RELEASE_SHA256"
             fi
@@ -2576,6 +2579,79 @@ install_lsfg_chinese() {
     log "小黄鸭 v$LSFG_OFFICIAL_VERSION 安装完成"
 }
 
+apply_mako_zh_patch() {
+    local dist_file="$1"
+    local zh_json="${2:-$LSFG_MAKO_ZH_JSON}"
+    local temporary
+
+    [ -f "$dist_file" ] && [ ! -L "$dist_file" ] || {
+        echo "MAKO 前端文件不存在，未应用汉化。"
+        return 1
+    }
+    [ -f "$zh_json" ] && [ ! -L "$zh_json" ] || {
+        echo "MAKO 汉化词条缺失，请更新Renkit后再试。"
+        return 1
+    }
+    require_command python3 || return 1
+    temporary="$(mktemp "${dist_file}.zh.XXXXXX" 2>/dev/null)" || return 1
+    if ! python3 - "$dist_file" "$zh_json" "$temporary" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+source_path = Path(sys.argv[1])
+json_path = Path(sys.argv[2])
+output_path = Path(sys.argv[3])
+translations = json.loads(json_path.read_text(encoding="utf-8"))
+content = source_path.read_text(encoding="utf-8")
+
+marker = "var languages = {\n\tja: ja,"
+if "var zh = {" not in content:
+    if marker not in content:
+        raise SystemExit(2)
+    zh_block = "var zh = " + json.dumps(translations, ensure_ascii=False, indent="\t") + ";\n"
+    content = content.replace(marker, zh_block + "var languages = {\n\tzh: zh,\n\tja: ja,", 1)
+
+attribution = "Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化"
+if attribution not in content:
+    theme_marker = "window.SP_REACT.createElement(MakoButtonTheme, null),"
+    panel_marker = "window.SP_REACT.createElement(DFL.PanelSection, null,"
+    if theme_marker not in content or panel_marker not in content:
+        raise SystemExit(2)
+    pos = content.index(theme_marker)
+    panel_pos = content.index(panel_marker, pos)
+    attribution_row = (
+        "window.SP_REACT.createElement(DFL.PanelSection, null,"
+        " window.SP_REACT.createElement(DFL.PanelSectionRow, null,"
+        ' window.SP_REACT.createElement("div", { style: { padding: "8px 12px", width: "100%",'
+        ' boxSizing: "border-box", textAlign: "center", fontSize: "13px", color: "#ffcc66" } },'
+        ' "Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化")),'
+        " window.SP_REACT.createElement(DFL.PanelSection, null,"
+    )
+    content = content[:panel_pos] + attribution_row + content[panel_pos + len(panel_marker):]
+
+if "var zh =" not in content or attribution not in content:
+    raise SystemExit(2)
+output_path.write_text(content, encoding="utf-8")
+PY
+    then
+        rm -f -- "$temporary"
+        echo "MAKO 汉化补丁失败，原前端未改动。"
+        return 1
+    fi
+    chmod 0644 "$temporary" || {
+        rm -f -- "$temporary"
+        return 1
+    }
+    if ! run_plugin_file_operation cp -- "$temporary" "$dist_file"; then
+        rm -f -- "$temporary"
+        echo "MAKO 汉化前端写入失败，原前端未改动。"
+        return 1
+    fi
+    rm -f -- "$temporary"
+    echo "MAKO 小黄鸭中文界面已写入，顶部署名已保留。"
+}
+
 # 优先使用 Gitee 国内源，失败后回退 GitHub Release，最后才回退原版叠加。
 install_lsfg_zh_from_gitee() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
@@ -3383,9 +3459,11 @@ install_configured_plugin() {
                 "MAKO 小黄鸭（尝鲜版）" \
                 "$DECKY_LSFG_MAKO_URL" \
                 "$DECKY_LSFG_MAKO_SHA256" \
-                "$LSFG_OFFICIAL_DIRECTORY" \
+                "$LSFG_MAKO_DIRECTORY" \
                 0 || return 1
-            install_lsfg_chinese 0 1 || return 1
+            apply_mako_zh_patch \
+                "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/$LSFG_MAKO_DIRECTORY/dist/index.js" \
+                || return 1
             remove_legacy_lsfg_directories "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
             ;;
         fsr4)

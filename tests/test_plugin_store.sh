@@ -562,8 +562,8 @@ grep -Fq '不会删除 Decky Loader 本体' "$PROJECT_ROOT/modules/plugin_store.
 grep -Fq 'all) show_plugin_download_speed_tip; install_all_plugin_packages' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'lsfg-mako) show_plugin_download_speed_tip; install_configured_plugin lsfg-mako' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'eugeniosegala/decky-lsfg-vk-experimental' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'install_lsfg_chinese 0 1' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'eugeniosegala/MAKO' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'LSFG_MAKO_DIRECTORY="Mako"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '正在安装小黄鸭' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '正在安装 FSR4' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '将依次安装：小黄鸭、FSR4、CheatDeck、游戏封面更换、主题美化、文件传输助手、音乐播放器。' \
@@ -595,20 +595,20 @@ MAKO_CALLS="$TMP_ROOT/mako.calls"
     source "$PROJECT_ROOT/modules/plugin_store.sh"
     detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
     resolve_plugin_latest() {
-        DECKY_LSFG_MAKO_URL="https://github.com/eugeniosegala/decky-lsfg-vk-experimental/releases/download/v0.13.0/Decky.LSFG-VK.zip"
-        DECKY_LSFG_MAKO_SHA256="0000000000000000000000000000000000000000000000000000000000000000"
+        DECKY_LSFG_MAKO_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/MAKO-Decky-v2.0.0.zip"
+        DECKY_LSFG_MAKO_SHA256="5a801dab4d0171a8b50fcb032479aedc644efebe684c4dd984e86fd5e7fec3f1"
     }
     install_decky_zip() {
         printf '%s\n' "$2" > "$MAKO_CALLS"
         PLUGIN_INSTALL_CHANGED=1
     }
-    install_lsfg_chinese() { printf 'zh\n' >> "$MAKO_CALLS"; }
+    apply_mako_zh_patch() { printf 'zh\n' >> "$MAKO_CALLS"; }
     remove_legacy_lsfg_directories() { return 0; }
     refresh_feature_usage_guides() { return 0; }
     reload_decky_plugins() { return 0; }
     install_configured_plugin lsfg-mako
 )
-grep -Fq 'eugeniosegala/decky-lsfg-vk-experimental' "$MAKO_CALLS" || {
+grep -Fq 'eugeniosegala/MAKO' "$MAKO_CALLS" || {
     echo "FAIL: MAKO 小黄鸭没有解析实验仓库 Release" >&2
     exit 1
 }

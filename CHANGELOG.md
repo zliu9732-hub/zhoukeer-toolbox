@@ -1,6 +1,12 @@
+## Renkit 1.8.0 MAKO 尝鲜版修复与独立汉化 — 2026-08-19
+
+- 修正 MAKO 安装包来源为 `eugeniosegala/MAKO`，资产名匹配 `MAKO-Decky-v*.zip`，解决“最新 Release 元数据获取失败”。
+- MAKO 安装到独立 `Mako` 目录，不再覆盖旧版小黄鸭；安装后注入完整简体中文词条，并在界面顶部保留 Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化署名。
+- Gitee 分块镜像同步同步改为 MAKO 官方仓库，更新版本后自动上传分块镜像。
+
 ## Renkit 1.7.9 小黄鸭新增 MAKO 尝鲜版 — 2026-08-19
 
-- 小黄鸭安装改为版本选择子菜单：保留 v0.12.5 旧版汉化，新增 eugeniosegala/decky-lsfg-vk-experimental 的 MAKO 尝鲜版；尝鲜版安装官方运行核心后叠加 Renkit 汉化，顶部署名沿用 Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）。
+- 小黄鸭安装改为版本选择子菜单：保留 v0.12.5 旧版汉化，新增 eugeniosegala/MAKO 的 MAKO 尝鲜版；尝鲜版安装官方运行核心后叠加 Renkit 汉化，顶部署名沿用 Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）。
 - MAKO 尝鲜版继续走 Gitee 分块镜像优先、GitHub Release 回退，并在上游更新版本后由同步流程上传分块镜像。
 
 ## Renkit 1.7.8 左下角 Steam 菜单白字黑边 — 2026-08-17

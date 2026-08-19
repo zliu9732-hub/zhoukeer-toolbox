@@ -562,7 +562,7 @@ lsfg_versions_menu() {
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                 ;;
             mako)
-                confirm_and_run "安装 MAKO 小黄鸭（尝鲜版）" "来自 eugeniosegala 实验仓库；功能尚未稳定，安装官方运行核心后叠加 Renkit 汉化；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" \
+                confirm_and_run "安装 MAKO 小黄鸭（尝鲜版）" "来自 eugeniosegala/MAKO 尝鲜仓库；功能尚未稳定，安装官方运行核心后叠加 Renkit 汉化；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako
                 ;;
             back) NEXT_CATEGORY="games"; return 0 ;;
