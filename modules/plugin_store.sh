@@ -44,6 +44,7 @@ LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"
 LSFG_MAKO_DIRECTORY="Mako"
 LSFG_MAKO_ZH_JSON="$PROJECT_ROOT/data/mako_zh.json"
 LSFG_MAKO_ZH_EN_JSON="$PROJECT_ROOT/data/mako_zh_en.json"
+DECKY_LSFG_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_MAKO_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 LSFG_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5"
 LSFG_ZH_INDEX_SHA256="c823b4b7b1a0123db75af6f24368cee2f0642964f7e994278ab94839ecd42bbe"
@@ -2496,7 +2497,7 @@ install_lsfg_bundle() {
         skip_existing=0
     fi
 
-    install_decky_zip \
+    GITEE_MIRROR_REPO="$DECKY_LSFG_MIRROR_REPO" install_decky_zip \
         "小黄鸭（LSFG-VK）" \
         "${DECKY_LSFG_URL:-}" \
         "${DECKY_LSFG_SHA256:-}" \

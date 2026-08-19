@@ -145,7 +145,7 @@ sync_ge_proton() {
 sync_plugin lsfg "xXJSONDeruloXx/decky-lsfg-vk" '^Decky[.]LSFG-VK[.]zip$' "Decky LSFG-VK" \
     "v0.12.8" "Decky.LSFG-VK.zip" \
     "https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip" \
-    "322f6eec21a489ef9f12938ea2ec4e43c234093876f95b7245fbd260f882ce9c"
+    "322f6eec21a489ef9f12938ea2ec4e43c234093876f95b7245fbd260f882ce9c" "$MIRROR3"
 # MAKO 尝鲜版跟随上游最新 Release 同步，上传前必须解析到带 SHA256 digest 的 ZIP。
 sync_plugin lsfg-mako "eugeniosegala/MAKO" \
     '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO LSFG-VK" "" "" "" "" "$MIRROR3"
