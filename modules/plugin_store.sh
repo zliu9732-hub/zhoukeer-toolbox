@@ -43,6 +43,7 @@ LSFG_OFFICIAL_VERSION="0.12.5"
 LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"
 LSFG_MAKO_DIRECTORY="Mako"
 LSFG_MAKO_ZH_JSON="$PROJECT_ROOT/data/mako_zh.json"
+LSFG_MAKO_ZH_EN_JSON="$PROJECT_ROOT/data/mako_zh_en.json"
 DECKY_MAKO_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 LSFG_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5"
 LSFG_ZH_INDEX_SHA256="c823b4b7b1a0123db75af6f24368cee2f0642964f7e994278ab94839ecd42bbe"
@@ -2583,6 +2584,7 @@ install_lsfg_chinese() {
 apply_mako_zh_patch() {
     local dist_file="$1"
     local zh_json="${2:-$LSFG_MAKO_ZH_JSON}"
+    local en_json="${3:-$LSFG_MAKO_ZH_EN_JSON}"
     local temporary
 
     [ -f "$dist_file" ] && [ ! -L "$dist_file" ] || {
@@ -2593,17 +2595,23 @@ apply_mako_zh_patch() {
         echo "MAKO 汉化词条缺失，请更新Renkit后再试。"
         return 1
     }
+    [ -f "$en_json" ] && [ ! -L "$en_json" ] || {
+        echo "MAKO 英文替换表缺失，请更新Renkit后再试。"
+        return 1
+    }
     require_command python3 || return 1
     temporary="$(mktemp "${dist_file}.zh.XXXXXX" 2>/dev/null)" || return 1
-    if ! python3 - "$dist_file" "$zh_json" "$temporary" <<'PY'
+    if ! python3 - "$dist_file" "$zh_json" "$en_json" "$temporary" <<'PY'
 import json
 import sys
 from pathlib import Path
 
 source_path = Path(sys.argv[1])
 json_path = Path(sys.argv[2])
-output_path = Path(sys.argv[3])
+en_path = Path(sys.argv[3])
+output_path = Path(sys.argv[4])
 translations = json.loads(json_path.read_text(encoding="utf-8"))
+replacements = json.loads(en_path.read_text(encoding="utf-8"))
 content = source_path.read_text(encoding="utf-8")
 
 marker = "var languages = {\n\tja: ja,"
@@ -2618,6 +2626,9 @@ if "const lang = \"zh\";" not in content:
     if language_marker not in content:
         raise SystemExit(2)
     content = content.replace(language_marker, 'const lang = "zh";', 1)
+
+for english, chinese in replacements.items():
+    content = content.replace(json.dumps(english, ensure_ascii=False), json.dumps(chinese, ensure_ascii=False))
 
 attribution = "Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化"
 if attribution not in content:
