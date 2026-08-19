@@ -15,8 +15,8 @@ PASSWORD_RECORD="${ZHOUKEER_PASSWORD_RECORD:-$HOME/Desktop/管理员密码.txt}"
 case "$PLUGIN_ID" in
     lsfg)
         PLUGIN_NAME="Decky LSFG-VK（小黄鸭）"
-        PLUGIN_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
-        PLUGIN_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
+        PLUGIN_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip"
+        PLUGIN_SHA256="322f6eec21a489ef9f12938ea2ec4e43c234093876f95b7245fbd260f882ce9c"
         PLUGIN_MIRROR_ID="lsfg"
         PLUGIN_DIRECTORY="Decky LSFG-VK"
         PLUGIN_AUTHOR="xXJSONDeruloXx"

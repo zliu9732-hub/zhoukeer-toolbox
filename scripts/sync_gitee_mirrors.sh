@@ -141,11 +141,11 @@ sync_ge_proton() {
     echo "Synced GE-Proton $version"
 }
 
-# 小黄鸭汉化叠加固定 v0.12.5，镜像必须与Renkit内置版本一致，否则 SHA 校验会拒绝。
+# 小黄鸭汉化叠加固定 v0.12.8，镜像必须与Renkit内置版本一致，否则 SHA 校验会拒绝。
 sync_plugin lsfg "xXJSONDeruloXx/decky-lsfg-vk" '^Decky[.]LSFG-VK[.]zip$' "Decky LSFG-VK" \
-    "v0.12.5" "Decky.LSFG-VK.zip" \
-    "https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip" \
-    "13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
+    "v0.12.8" "Decky.LSFG-VK.zip" \
+    "https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip" \
+    "322f6eec21a489ef9f12938ea2ec4e43c234093876f95b7245fbd260f882ce9c"
 # MAKO 尝鲜版跟随上游最新 Release 同步，上传前必须解析到带 SHA256 digest 的 ZIP。
 sync_plugin lsfg-mako "eugeniosegala/MAKO" \
     '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO LSFG-VK" "" "" "" "" "$MIRROR3"

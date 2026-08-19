@@ -77,14 +77,14 @@ resolve_latest_gitee_mirror test '^payload[.]bin$' "测试镜像" >/dev/null
 [ "$_GITEE_MIRROR_LATEST_URL" = "https://github.com/example/test/releases/download/v1/payload.bin" ] || \
     FAIL "Gitee 镜像最新源地址未使用上游 source_url"
 
-mirror_url="$(gitee_mirror_direct_url lsfg v0.12.5 Decky.LSFG-VK.zip)"
+mirror_url="$(gitee_mirror_direct_url lsfg v0.12.8 Decky.LSFG-VK.zip)"
 case "$mirror_url" in
-    https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/lsfg/v0.12.5/Decky.LSFG-VK.zip) ;;
+    https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/lsfg/v0.12.8/Decky.LSFG-VK.zip) ;;
     *) FAIL "Gitee 直接镜像 URL 格式错误：$mirror_url" ;;
 esac
 
 mirror_id="$(gitee_mirror_id_for_url \
-    'https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip')"
+    'https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip')"
 [ "$mirror_id" = "lsfg" ] || FAIL "LSFG 镜像标识映射错误"
 mako_mirror_id="$(gitee_mirror_id_for_url \
     'https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/MAKO-Decky-v2.0.0.zip')"

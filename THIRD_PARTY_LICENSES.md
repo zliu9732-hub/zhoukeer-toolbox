@@ -30,8 +30,8 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | LeGo2 Fan Control | Legion Go 2 风扇曲线控制 | https://github.com/Rodpad/LeGo2-Fan-Control | GPL-3.0 | 是 | 仅适用于 Legion Go 2；提供不受限风扇控制 |
 | OneXPlayer Apex Tools | OneXPlayer Apex 的 HHD、睡眠、风扇和按键修复 | https://github.com/srsholmes/onexplayer-apex-bazzite-fixes | MIT | 是 | 仅适用于 OneXPlayer Apex（Strix Halo），包含机型专用内核模块和系统修复 |
 | SimpleDeckyTDP | SimpleDeckyTDP 插件 | https://github.com/aarron-lee/SimpleDeckyTDP | BSD-3-Clause | 是 | |
-| 小黄鸭汉化完整包 | LSFG 汉化包 | https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/tag/v6.0.9 | 同 Decky LSFG-VK（BSD-3-Clause） | 否（既有仓库归档） | 汉化包已在 Gitee 仓库归档中，不重复分块镜像 |
-| FSR4 汉化完整包 | FSR4 汉化包 | https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/tag/v1.2.2 | 同 Decky-Framegen（BSD-3-Clause） | 否（既有仓库归档） | 汉化包已在 Gitee 仓库归档中，不重复分块镜像 |
+| 小黄鸭中文组件 | LSFG 汉化包（署名版/未署名版） | https://github.com/zliu9732-hub/decky-lsfg-vk-zh | 同 Decky LSFG-VK（BSD-3-Clause） | 否（独立组件仓库） | 版本与原作者信息与上游 v0.12.8 一致 |
+| Decky-Framegen 中文组件 | FSR4 汉化包 | https://github.com/zliu9732-hub/decky-framegen-zh | 同 Decky-Framegen（BSD-3-Clause） | 否（独立组件仓库） | 版本与原作者信息与上游 v0.17 一致 |
 | SimpleDeckyTDP 汉化完整包 | SimpleDeckyTDP 汉化包 | https://github.com/aarron-lee/SimpleDeckyTDP | 同 SimpleDeckyTDP（BSD-3-Clause） | 否（Renkit 内置组件） | 中文组件随 Renkit 内置，下载复用官方 simpledeckytdp 镜像 |
 | 掌机插件中文前端组件 | 上述五款掌机插件的中文名称与汉化前端 | https://github.com/zliu9732-hub/zhoukeer-toolbox | 分别沿用各上游许可证 | 否（Renkit 内置组件） | 仅覆盖 plugin.json 与 dist/index.js；HueSync 自带简中，其余四款由 Renkit 汉化并保留原作者署名 |
 | CSS Loader 中文前端组件 | CSS Loader v2.1.2 中文界面 | https://github.com/DeckThemes/SDH-CssLoader/tree/v2.1.2 | GPL-2.0-or-later | 否（Renkit 内置组件） | 随附对应源码、上游 LICENSE 与构建产物；安装时仅覆盖前端和 plugin.json |

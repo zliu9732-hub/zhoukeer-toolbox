@@ -549,7 +549,7 @@ lsfg_versions_menu() {
 
     while true; do
         draw_category_frame games "小黄鸭版本选择" "旧版稳定汉化 · MAKO 实验尝鲜" 0
-        ui_touch_button 5 '\033[1;97;48;5;24m' "旧版小黄鸭" "v0.12.5 汉化版·稳定"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "旧版小黄鸭" "v0.12.8 汉化版·稳定"
         ui_touch_button 9 '\033[1;97;48;5;160m' "MAKO 小黄鸭" "实验仓库尝鲜版·Renkit 汉化"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -558,7 +558,7 @@ lsfg_versions_menu() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             stable)
-                confirm_and_run "安装旧版小黄鸭" "v0.12.5 汉化版；国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" \
+                confirm_and_run "安装旧版小黄鸭" "v0.12.8 汉化版；国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                 ;;
             mako)

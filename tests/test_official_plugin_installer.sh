@@ -11,7 +11,7 @@ if bash "$INSTALLER" unknown >/dev/null 2>&1; then
     exit 1
 fi
 
-grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$INSTALLER"
+grep -Fq 'decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip' "$INSTALLER"
 grep -Fq 'Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip' "$INSTALLER"
 grep -Fq 'SheffeyG/CheatDeck/releases/download/v2.0.0/CheatDeck.zip' "$INSTALLER"
 grep -Fq 'PLUGIN_SHA256' "$INSTALLER"

@@ -61,7 +61,7 @@ download_progress_filter() {
 
 download_policy_github_repo_allowed() {
     case "$1" in
-        SteamDeckHomebrew/decky-loader|xXJSONDeruloXx/decky-lsfg-vk|eugeniosegala/decky-lsfg-vk-experimental|eugeniosegala/MAKO|xXJSONDeruloXx/Decky-Framegen|SheffeyG/CheatDeck|YukiCoco/ToMoon|Ren-Amamiya-pixle/DeckRecall|Ren-Amamiya-pixle/SavePulse|aarron-lee/SimpleDeckyTDP|mubaraknumann/unifideck|panyiwei-home/Freedeck|panyiwei-home/Friendeck|jinzhongjia/decky-music|GloriousEggroll/proton-ge-custom|rustdesk/rustdesk|zliu9732-hub/zhoukeer-toolbox|HMCL-dev/HMCL|adoptium/temurin21-binaries) return 0 ;;
+        SteamDeckHomebrew/decky-loader|xXJSONDeruloXx/decky-lsfg-vk|eugeniosegala/decky-lsfg-vk-experimental|eugeniosegala/MAKO|xXJSONDeruloXx/Decky-Framegen|SheffeyG/CheatDeck|YukiCoco/ToMoon|Ren-Amamiya-pixle/DeckRecall|Ren-Amamiya-pixle/SavePulse|aarron-lee/SimpleDeckyTDP|mubaraknumann/unifideck|panyiwei-home/Freedeck|panyiwei-home/Friendeck|jinzhongjia/decky-music|GloriousEggroll/proton-ge-custom|rustdesk/rustdesk|zliu9732-hub/zhoukeer-toolbox|zliu9732-hub/decky-lsfg-vk-zh|zliu9732-hub/decky-framegen-zh|HMCL-dev/HMCL|adoptium/temurin21-binaries) return 0 ;;
         *) return 1 ;;
     esac
 }

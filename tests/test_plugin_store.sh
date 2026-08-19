@@ -96,7 +96,7 @@ if grep -Fq 'https://www.mhhf.com/Deck/install.sh' "$PROJECT_ROOT/modules/plugin
     echo "FAIL: 不应继续下载或执行Decky外层安装脚本"
     exit 1
 fi
-grep -Fq 'DECKY_LSFG_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"' \
+grep -Fq 'DECKY_LSFG_SHA256="322f6eec21a489ef9f12938ea2ec4e43c234093876f95b7245fbd260f882ce9c"' \
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'DECKY_FSR4_SHA256="3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f"' \
     "$PROJECT_ROOT/config/settings.example.conf"
@@ -104,7 +104,7 @@ grep -Fq 'DECKY_CHEATDECK_SHA256="32e2931f9ca8083c1605f04b4ed089b0bf210f79db236a
     "$PROJECT_ROOT/config/settings.example.conf"
 grep -Fq 'DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"' \
     "$PROJECT_ROOT/config/settings.example.conf"
-grep -Fq 'decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CheatDeck/releases/download/v2.0.0/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -256,13 +256,13 @@ allycenter_zh_actual_sha256="$(shasum -a 256 \
     echo "FAIL: Ally Center 中文构建文件校验值不匹配" >&2
     exit 1
 }
-grep -Fq 'releases/download/v6.0.9/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip' \
+grep -Fq 'decky-lsfg-vk-zh/releases/download/v0.12.8/lsfg-zh-signed-v0.12.8.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'releases/download/v1.2.2/Decky-Framegen-FSR4-v0.17.zip' \
+grep -Fq 'decky-framegen-zh/releases/download/v0.17/framegen-zh-signed-v0.17.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'DECKY_LSFG_ZH_SHA256="11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"' \
+grep -Fq 'DECKY_LSFG_ZH_SHA256="8945e6c6a4d65e4b0d2e5cd238a8f1cb48851387820dda6b70e7305dba1b4cd7"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'DECKY_FSR4_ZH_SHA256="dde3fe2d77f3021f2841d9dba31b5fa6a741fc08ba9639508787b20054268608"' \
+grep -Fq 'DECKY_FSR4_ZH_SHA256="c0c002c968b3cccaf2bf974ffe1333689523afd8661de18249a9a09ecba108ac"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_github_file "$url" "$output" "$expected_sha256" "$name"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -622,7 +622,7 @@ grep -Fxq 'zh' "$MAKO_CALLS" || {
     exit 1
 }
 
-# 小黄鸭官方 v0.12.5 使用 Decky LSFG-VK，旧汉化包使用“小黄鸭”；
+# 小黄鸭官方 v0.12.8 使用 Decky LSFG-VK，旧汉化包使用“小黄鸭”；
 # 状态检查必须同时兼容官方名和旧中文名。
 PLUGIN_ROOT="$TMP_ROOT/plugins"
 for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck decky-steamgriddb SDH-CssLoader Friendeck-plugin "Decky Music"; do
@@ -630,7 +630,7 @@ for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck decky-steamgriddb SDH
     printf 'bundle\n' > "$PLUGIN_ROOT/$plugin_dir/dist/index.js"
 done
 printf '{"name":"Decky LSFG-VK"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
-printf '{"version":"0.12.5"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
+printf '{"version":"0.12.8"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
 printf '{ "name": "Decky-Framegen" }\n' > "$PLUGIN_ROOT/Decky-Framegen/plugin.json"
 printf '{"version":"0.17.0"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
 printf '{"name": "CheatDeck"}\n' > "$PLUGIN_ROOT/CheatDeck/plugin.json"
@@ -664,13 +664,13 @@ printf '%s\n' "$legacy_status_output" | \
 printf '{"version":"0.12.1"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
 if stale_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
     bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"; then
-    echo "FAIL: 旧版小黄鸭不应被识别为官方 0.12.5" >&2
+    echo "FAIL: 旧版小黄鸭不应被识别为官方 0.12.8" >&2
     exit 1
 fi
 printf '%s\n' "$stale_status_output" | \
-    grep -Fq '检测到版本 0.12.1，请更新到 0.12.5'
+    grep -Fq '检测到版本 0.12.1，请更新到 0.12.8'
 
-printf '{"version":"0.12.5"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
+printf '{"version":"0.12.8"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
 printf '{"version":"0.16.9"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
 if stale_fsr4_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
     bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"; then
@@ -737,7 +737,7 @@ printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: SteamGridDB'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: CSS Loader'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: Friendeck'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: Decky Music'
-printf '%s\n' "$update_output" | grep -Fq '官方版本 0.12.5'
+printf '%s\n' "$update_output" | grep -Fq '官方版本 0.12.8'
 printf '%s\n' "$update_output" | grep -Fq '官方版本 0.17.0'
 
 # Ally Center 官方包的 plugin.json 位于 ZIP 根目录；使用全临时目录和下载桩

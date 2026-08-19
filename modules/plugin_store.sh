@@ -39,7 +39,7 @@ DECKY_SERVICE_NAME="plugin_loader.service"
 DECKY_TMP_DIR=""
 PLUGIN_INSTALL_CHANGED=0
 LSFG_OFFICIAL_DIRECTORY="Decky LSFG-VK"
-LSFG_OFFICIAL_VERSION="0.12.5"
+LSFG_OFFICIAL_VERSION="0.12.8"
 LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"
 LSFG_MAKO_DIRECTORY="Mako"
 LSFG_MAKO_ZH_JSON="$PROJECT_ROOT/data/mako_zh.json"
@@ -66,8 +66,8 @@ CSSLOADER_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/cssloader-zh-v2.1.2"
 CSSLOADER_ZH_INDEX_SHA256="38ec628efcc1238247e0cf771bde98b26be49349dca9c2d7de4270ad242a2567"
 
 # 独立插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
-DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
-DECKY_LSFG_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
+DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip"
+DECKY_LSFG_SHA256="322f6eec21a489ef9f12938ea2ec4e43c234093876f95b7245fbd260f882ce9c"
 DECKY_LSFG_MAKO_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/MAKO-Decky-v2.0.0.zip"
 DECKY_LSFG_MAKO_SHA256="5a801dab4d0171a8b50fcb032479aedc644efebe684c4dd984e86fd5e7fec3f1"
 DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip"
@@ -152,10 +152,10 @@ DECKY_ONEXPLAYER_APEX_VERSION="build-b696161"
 DECKY_ONEXPLAYER_APEX_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_HANDHELD_PLUGIN_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 # 汉化完整包固定使用Renkit GitHub Release 资产，避免原始文件下载过慢。
-DECKY_LSFG_ZH_URL="https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.9/Decky-LSFG-VK-XiaoHuangYa-v0.12.5.zip"
-DECKY_LSFG_ZH_SHA256="11e3c13673e19662364cd86d77d6df7bf636c026ccaa2842421c37b982f73277"
-DECKY_FSR4_ZH_URL="https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v1.2.2/Decky-Framegen-FSR4-v0.17.zip"
-DECKY_FSR4_ZH_SHA256="dde3fe2d77f3021f2841d9dba31b5fa6a741fc08ba9639508787b20054268608"
+DECKY_LSFG_ZH_URL="https://github.com/zliu9732-hub/decky-lsfg-vk-zh/releases/download/v0.12.8/lsfg-zh-signed-v0.12.8.zip"
+DECKY_LSFG_ZH_SHA256="8945e6c6a4d65e4b0d2e5cd238a8f1cb48851387820dda6b70e7305dba1b4cd7"
+DECKY_FSR4_ZH_URL="https://github.com/zliu9732-hub/decky-framegen-zh/releases/download/v0.17/framegen-zh-signed-v0.17.zip"
+DECKY_FSR4_ZH_SHA256="c0c002c968b3cccaf2bf974ffe1333689523afd8661de18249a9a09ecba108ac"
 # Gitee 归档必须指向包含当前 dist 汉化包的稳定标签，避免旧归档校验失败。
 DECKY_GITEE_ARCHIVE_URL="https://gitee.com/zliu9732-hub/zhoukeer-toolbox/repository/archive/v6.0.4.zip"
 DECKY_GITEE_ARCHIVE_SHA256="cbe50c9dcd64bba1433713c1945ec73de2fa1cc51f8a8327ef0f9cdd0ace147a"
@@ -2667,6 +2667,61 @@ PY
     echo "MAKO 小黄鸭中文界面已写入，顶部署名已保留。"
 }
 
+apply_zh_overlay_zip() {
+    local display_name="$1"
+    local url="$2"
+    local expected_sha256="$3"
+    local plugin_dir="$4"
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local tmp_dir archive extract_dir overlay_source staged_source
+
+    [ -n "$url" ] && [ -n "$expected_sha256" ] || {
+        echo "$display_name 中文组件配置不完整，请更新Renkit后再试。"
+        return 1
+    }
+    [ -d "$plugin_root/$plugin_dir" ] && \
+        [ -f "$plugin_root/$plugin_dir/plugin.json" ] || {
+        echo "$display_name 官方插件未安装，无法叠加中文组件。"
+        return 1
+    }
+    prepare_plugin_root "$plugin_root" || return 1
+    tmp_dir="$(mktemp -d)" || return 1
+    DECKY_TMP_DIR="$tmp_dir"
+    archive="$tmp_dir/overlay.zip"
+    extract_dir="$tmp_dir/extracted"
+    mkdir -p "$extract_dir"
+    trap cleanup_decky_tmp EXIT INT TERM
+    if ! download_verified_package "$display_name 中文组件" \
+        "$url" "$expected_sha256" "$archive"; then
+        bash "$PROJECT_ROOT/modules/steam_accelerator.sh" ensure || true
+        download_verified_package "$display_name 中文组件" \
+            "$url" "$expected_sha256" "$archive" || return 1
+    fi
+    archive_paths_are_safe "$archive" zip || return 1
+    unzip -q "$archive" -d "$extract_dir" || {
+        echo "$display_name 中文组件解压失败。"
+        return 1
+    }
+    overlay_source="$(find_plugin_source "$extract_dir")" || {
+        echo "$display_name 中文组件缺少 plugin.json。"
+        return 1
+    }
+    staged_source="$tmp_dir/$plugin_dir"
+    if ! cp -a -- "$plugin_root/$plugin_dir" "$staged_source" || \
+        ! cp -a -- "$overlay_source/." "$staged_source/"; then
+        echo "$display_name 中文组件准备失败。"
+        return 1
+    fi
+    install_tree_atomically "$staged_source" "$plugin_root" "$plugin_dir" || {
+        echo "$display_name 中文组件安装失败，原插件未改动。"
+        return 1
+    }
+    PLUGIN_INSTALL_CHANGED=1
+    cleanup_decky_tmp
+    trap - EXIT INT TERM
+    echo "$display_name 中文组件已应用。"
+}
+
 # 优先使用 Gitee 国内源，失败后回退 GitHub Release，最后才回退原版叠加。
 install_lsfg_zh_from_gitee() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
@@ -2685,30 +2740,13 @@ install_lsfg_zh_from_gitee() {
     fi
 
     echo "正在安装小黄鸭..."
-    if [ -z "${DECKY_GITEE_ARCHIVE_URL:-}" ] || [ -z "${DECKY_GITEE_ARCHIVE_SHA256:-}" ]; then
-        log "小黄鸭汉化包配置不完整，切换为原版叠加流程"
-        install_lsfg_bundle "$reload_after" || return 1
-        install_lsfg_chinese "$reload_after" || return 1
-        return 0
-    fi
-
-    if install_decky_zip_from_mirror \
-        "小黄鸭（LSFG-VK）" \
-        "lsfg" \
-        "${DECKY_LSFG_SHA256:-}" \
-        "$LSFG_OFFICIAL_DIRECTORY"; then
-        install_lsfg_chinese "$reload_after" || return 1
-    else
-        cleanup_decky_tmp
-        trap - EXIT INT TERM
-        log "小黄鸭 Gitee 镜像不可用，切换原版叠加"
-        install_lsfg_bundle "$reload_after" || return 1
-        install_lsfg_chinese "$reload_after"
-        return $?
-    fi
+    install_lsfg_bundle "$reload_after" || return 1
+    apply_zh_overlay_zip "小黄鸭（LSFG-VK）" \
+        "$DECKY_LSFG_ZH_URL" "$DECKY_LSFG_ZH_SHA256" \
+        "$LSFG_OFFICIAL_DIRECTORY" || return 1
     remove_legacy_lsfg_directories "$plugin_root"
     echo "小黄鸭安装成功。"
-    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
+    echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭即可使用。"
     fi
@@ -2804,36 +2842,12 @@ install_fsr4_zh_from_gitee() {
     fi
 
     echo "正在安装 FSR4..."
-    if [ -z "${DECKY_GITEE_ARCHIVE_URL:-}" ] || [ -z "${DECKY_GITEE_ARCHIVE_SHA256:-}" ]; then
-        log "FSR4汉化包配置不完整，切换为原版叠加流程"
-        install_configured_plugin fsr4 0 0 || return 1
-        install_fsr4_chinese "$reload_after" || return 1
-        return 0
-    fi
-
-    previous_mirror_repo="${GITEE_MIRROR_REPO:-zhoukeer-toolbox-mirror}"
-    GITEE_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
-    export GITEE_MIRROR_REPO
-    if install_decky_zip_from_mirror \
-        "FSR4（Decky Framegen 汉化完整包）" \
-        "fsr4-zh" \
-        "${DECKY_FSR4_ZH_SHA256:-}" \
-        "$FSR4_OFFICIAL_DIRECTORY"; then
-        GITEE_MIRROR_REPO="$previous_mirror_repo"
-        export GITEE_MIRROR_REPO
-        install_fsr4_chinese "$reload_after" || return 1
-    else
-        GITEE_MIRROR_REPO="$previous_mirror_repo"
-        export GITEE_MIRROR_REPO
-        cleanup_decky_tmp
-        trap - EXIT INT TERM
-        log "FSR4 Gitee 汉化完整包不可用，切换原版叠加"
-        install_configured_plugin fsr4 0 0 || return 1
-        install_fsr4_chinese "$reload_after"
-        return $?
-    fi
+    install_configured_plugin fsr4 0 0 || return 1
+    apply_zh_overlay_zip "FSR4（Decky Framegen）" \
+        "$DECKY_FSR4_ZH_URL" "$DECKY_FSR4_ZH_SHA256" \
+        "$FSR4_OFFICIAL_DIRECTORY" || return 1
     echo "FSR4 安装成功。"
-    echo "汉化作者：Ren-Amamiya-pixle / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
+    echo "汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya），感谢支持！"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 FSR4 插帧即可看到中文界面。"
     fi

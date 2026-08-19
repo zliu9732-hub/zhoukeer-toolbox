@@ -278,7 +278,7 @@ game_environment_gui_menu() {
                 ;;
             lsfg)
                 lsfg_choice="$(gui_dialog --menu "小黄鸭版本选择" \
-                    stable "旧版小黄鸭｜v0.12.5 汉化版·稳定" \
+                    stable "旧版小黄鸭｜v0.12.8 汉化版·稳定" \
                     mako "MAKO 小黄鸭｜实验仓库尝鲜版·Renkit 汉化" \
                     back "返回游戏与插件")" || continue
                 case "$lsfg_choice" in
