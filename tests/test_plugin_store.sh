@@ -257,10 +257,10 @@ allycenter_zh_actual_sha256="$(shasum -a 256 \
     exit 1
 }
 grep -Fq 'LSFG_ZH_MIRROR_ID="lsfg-zh-signed"' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'LSFG_ZH_PACKAGE_SHA256="04831a87e676606947c09e824a0612a2c792c72cd6b98f918e0b28f5af684aba"' \
+grep -Fq 'LSFG_ZH_PACKAGE_SHA256="b5e022ed2ba852297653d82f319ca500f9fb12fb52fc35e0d79ba676287a301c"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'FSR4_ZH_MIRROR_ID="fsr4-zh-signed"' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'FSR4_ZH_PACKAGE_SHA256="b392ea5c850c76a9b230e0028dd5b37e5a5c38759918beba4a01714735eb0ebf"' \
+grep -Fq 'FSR4_ZH_PACKAGE_SHA256="7744c0217b53fc1b95edc7a482532de664ed29ae13f70f329dca88383f2062c4"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_github_file "$url" "$output" "$expected_sha256" "$name"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -344,9 +344,9 @@ grep -Fq '未检测到插件商城，先安装插件商城。' "$PROJECT_ROOT/mo
 grep -Fq 'LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'FSR4_RUNTIME_ARCHIVE="Optiscaler_0.9.4-final.20260718._MM.7z"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'restore_lsfg_official()' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'LSFG_ZH_INDEX_SHA256="79a2e67b79d8f4184e83f32528452f9b672138e34fe52a2ee5188ae07d271082"' \
+grep -Fq 'LSFG_ZH_INDEX_SHA256="33e39a393d43480efa6bf0df0e47912983bbbe6788727b69e4291fd0dfa2f4d2"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'FSR4_ZH_INDEX_SHA256="eeefdd00815c6158768c94985e4deaa4cf52eab5f80e5f553f09aac20db5b7d4"' \
+grep -Fq 'FSR4_ZH_INDEX_SHA256="02f680c4ae34dec3fedbf7a2cd4eaafc44e49adb2c12e9f405680a489842a947"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '小黄鸭署名包的 Gitee 分块镜像不可用，已保留现有插件。' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
