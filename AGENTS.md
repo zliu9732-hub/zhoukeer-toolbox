@@ -34,3 +34,13 @@
 2. 修改 Shell 文件后必须运行全部 `bash -n` 和相关测试。
 3. 在 macOS 上运行测试前，必须先确认测试完全使用模拟命令，不会联网、提权或执行真实系统操作。
 4. 功能修改完成并通过规定检查后，应完成 commit、push 和常规发布；禁止 force push、修改 Git 历史或执行真实系统操作。
+
+## 发布前验证
+
+1. 发布完成的标准是 Gitee v2 更新源可访问、可校验；GitHub 推送成功不等于发布完成。
+2. 推送 `main` 后必须实际请求以下 Gitee v2 地址，并确认版本号、SHA256 和更新包均与本次发布一致：
+   - `https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/VERSION`
+   - `https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/SHA256SUMS`
+   - `https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/renkit.tar.gz`
+3. Gitee v2 历史不一致时，只能通过新增同步提交或其他非 force push 方式补齐；在 Gitee v2 校验通过前不得宣布发布成功。
+4. 出现更新失败时，必须记录根因并在发布前复验对应更新源，避免同一类发布遗漏再次发生。
