@@ -19,8 +19,10 @@ WORK="$(mktemp -d)"
 trap 'rm -rf -- "$WORK"' EXIT
 MIRROR1="$WORK/mirror1"
 MIRROR2="$WORK/mirror2"
+MIRROR3="$WORK/mirror3"
 git clone -q "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
 git clone -q "$BASE/zhoukeer-toolbox-mirror-2.git" "$MIRROR2"
+git clone -q "$BASE/zhoukeer-toolbox-mirror-3.git" "$MIRROR3"
 
 sha_of() {
     sha256sum -- "$1" | awk '{print $1}'
@@ -49,6 +51,7 @@ write_manifest() {
 sync_plugin() {
     local id="$1" repo="$2" pattern="$3" name="$4"
     local pinned_version="${5:-}" pinned_file="${6:-}" pinned_url="${7:-}" pinned_sha="${8:-}"
+    local mirror_repo="${9:-$MIRROR1}"
     local version file url sha size chunks target_dir
 
     if [ -n "$pinned_version" ]; then
@@ -75,9 +78,9 @@ sync_plugin() {
         exit 1
     }
     size="$(wc -c < "$WORK/$file" | tr -d ' ')"
-    target_dir="$MIRROR1/$id/$version"
+    target_dir="$mirror_repo/$id/$version"
     mkdir -p "$target_dir"
-    rm -f -- "$MIRROR1/$id/$version"/*
+    rm -f -- "$mirror_repo/$id/$version"/*
 
     if [ "$size" -le 9437184 ]; then
         cp -- "$WORK/$file" "$target_dir/$file"
@@ -87,7 +90,7 @@ sync_plugin() {
             "$WORK/$file" "$target_dir/part."
         chunks="$(find "$target_dir" -maxdepth 1 -name 'part.*' | wc -l | tr -d ' ')"
     fi
-    write_manifest "$MIRROR1" "$id" "$name" "$version" "$file" \
+    write_manifest "$mirror_repo" "$id" "$name" "$version" "$file" \
         "$url" "$sha" "$size" "$chunks" 8388608
     echo "Synced $id $version"
 }
@@ -145,7 +148,7 @@ sync_plugin lsfg "xXJSONDeruloXx/decky-lsfg-vk" '^Decky[.]LSFG-VK[.]zip$' "Decky
     "13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
 # MAKO 尝鲜版跟随上游最新 Release 同步，上传前必须解析到带 SHA256 digest 的 ZIP。
 sync_plugin lsfg-mako "eugeniosegala/MAKO" \
-    '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO LSFG-VK"
+    '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO LSFG-VK" "" "" "" "" "$MIRROR3"
 # FSR4 汉化叠加固定 v0.17，镜像必须与Renkit内置版本一致，否则 SHA 校验会拒绝。
 sync_plugin fsr4 "xXJSONDeruloXx/Decky-Framegen" '^Decky-Framegen[.]zip$' "Decky-Framegen" \
     "v0.17" "Decky-Framegen.zip" \
@@ -188,7 +191,7 @@ sync_plugin temurin21-jre "adoptium/temurin21-binaries" \
     "8a379a67c91a3ae61ffb33d46e0a40c7ba35e70713c4db31cfca30492f792eff"
 sync_ge_proton
 
-for repo in "$MIRROR1" "$MIRROR2"; do
+for repo in "$MIRROR1" "$MIRROR2" "$MIRROR3"; do
     git -C "$repo" config user.name "zhoukeer-toolbox[bot]"
     git -C "$repo" config user.email "bot@users.noreply.github.com"
     git -C "$repo" add -A

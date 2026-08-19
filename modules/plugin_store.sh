@@ -43,6 +43,7 @@ LSFG_OFFICIAL_VERSION="0.12.5"
 LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"
 LSFG_MAKO_DIRECTORY="Mako"
 LSFG_MAKO_ZH_JSON="$PROJECT_ROOT/data/mako_zh.json"
+DECKY_MAKO_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 LSFG_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-lsfg-vk-zh-v0.12.5"
 LSFG_ZH_INDEX_SHA256="c823b4b7b1a0123db75af6f24368cee2f0642964f7e994278ab94839ecd42bbe"
 FSR4_OFFICIAL_DIRECTORY="Decky-Framegen"
@@ -3455,7 +3456,7 @@ install_configured_plugin() {
                 echo "MAKO 小黄鸭尝鲜版暂未获取到可校验的最新 Release，请稍后重试或更新Renkit。"
                 return 1
             fi
-            install_decky_zip \
+            GITEE_MIRROR_REPO="$DECKY_MAKO_MIRROR_REPO" install_decky_zip \
                 "MAKO 小黄鸭（尝鲜版）" \
                 "$DECKY_LSFG_MAKO_URL" \
                 "$DECKY_LSFG_MAKO_SHA256" \

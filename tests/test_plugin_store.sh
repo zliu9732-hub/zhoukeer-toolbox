@@ -600,6 +600,7 @@ MAKO_CALLS="$TMP_ROOT/mako.calls"
     }
     install_decky_zip() {
         printf '%s\n' "$2" > "$MAKO_CALLS"
+        printf '%s\n' "${GITEE_MIRROR_REPO:-missing}" >> "$MAKO_CALLS"
         PLUGIN_INSTALL_CHANGED=1
     }
     apply_mako_zh_patch() { printf 'zh\n' >> "$MAKO_CALLS"; }
@@ -610,6 +611,10 @@ MAKO_CALLS="$TMP_ROOT/mako.calls"
 )
 grep -Fq 'eugeniosegala/MAKO' "$MAKO_CALLS" || {
     echo "FAIL: MAKO 小黄鸭没有解析实验仓库 Release" >&2
+    exit 1
+}
+grep -Fq 'zhoukeer-toolbox-mirror-3' "$MAKO_CALLS" || {
+    echo "FAIL: MAKO 小黄鸭没有使用 mirror-3 分块镜像" >&2
     exit 1
 }
 grep -Fxq 'zh' "$MAKO_CALLS" || {

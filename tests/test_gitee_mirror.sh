@@ -92,6 +92,9 @@ mako_mirror_id="$(gitee_mirror_id_for_url \
 grep -Fq 'sync_plugin lsfg-mako' \
     "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
     FAIL "MAKO LSFG 缺少 Gitee 分块镜像同步入口"
+grep -Fq 'zhoukeer-toolbox-mirror-3' \
+    "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
+    FAIL "MAKO LSFG 同步未使用 mirror-3"
 for mapping in \
     'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3.zip|steamgriddb' \
     'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip|cssloader' \

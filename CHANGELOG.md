@@ -1,3 +1,7 @@
+## Renkit 1.8.1 MAKO 分块镜像固定 mirror-3 — 2026-08-19
+
+- MAKO 安装与自动同步固定使用 `zhoukeer-toolbox-mirror-3`，避免主镜像仓库超配额后回退 GitHub 慢速下载。
+
 ## Renkit 1.8.0 MAKO 尝鲜版修复与独立汉化 — 2026-08-19
 
 - 修正 MAKO 安装包来源为 `eugeniosegala/MAKO`，资产名匹配 `MAKO-Decky-v*.zip`，解决“最新 Release 元数据获取失败”。
