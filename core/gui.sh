@@ -241,6 +241,7 @@ game_environment_gui_menu() {
     local battlenet_choice
     local freedeck_choice
     local handheld_plugin_choice
+    local lsfg_choice
     local repair_choice
 
     while true; do
@@ -276,9 +277,23 @@ game_environment_gui_menu() {
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" all
                 ;;
             lsfg)
-                run_gui_action "安装小黄鸭（插帧神器）" \
-                    env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
+                lsfg_choice="$(gui_dialog --menu "小黄鸭版本选择" \
+                    stable "旧版小黄鸭｜v0.12.5 汉化版·稳定" \
+                    mako "MAKO 小黄鸭｜实验仓库尝鲜版·Renkit 汉化" \
+                    back "返回游戏与插件")" || continue
+                case "$lsfg_choice" in
+                    stable)
+                        run_gui_action "安装旧版小黄鸭" \
+                            env ZHOUKEER_AUTO_CONFIRM=1 \
+                            bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
+                        ;;
+                    mako)
+                        gui_confirm "MAKO 小黄鸭来自 eugeniosegala 的 decky-lsfg-vk-experimental 尝鲜仓库，功能尚未稳定；将安装官方运行核心后叠加 Renkit 汉化，顶部署名沿用 Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化；将优先使用国内分块镜像并校验 SHA256。是否继续？" && \
+                            run_gui_action "安装 MAKO 小黄鸭（尝鲜版）" \
+                                env ZHOUKEER_AUTO_CONFIRM=1 \
+                                bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako
+                        ;;
+                esac
                 ;;
             fsr4)
                 run_gui_action "安装 FSR4（画质补丁）" \

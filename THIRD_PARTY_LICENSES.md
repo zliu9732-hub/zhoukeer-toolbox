@@ -10,6 +10,7 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | --- | --- | --- | --- | --- | --- |
 | Decky Loader | Decky 插件商城加载器 | https://github.com/SteamDeckHomebrew/decky-loader | GPL-2.0 | 是 | 稳定版与测试版均来自同一上游 |
 | Decky LSFG-VK | 小黄鸭插件 | https://github.com/xXJSONDeruloXx/decky-lsfg-vk | BSD-3-Clause | 是 | 上游 License 明确允许再分发 |
+| Decky LSFG-VK（MAKO 尝鲜版） | 小黄鸭实验版插件 | https://github.com/eugeniosegala/decky-lsfg-vk-experimental | BSD-3-Clause（fork 沿用上游） | 是 | 尝鲜版进入 Gitee 分块镜像，叠加 Renkit 汉化并保留顶部署名 |
 | Decky-Framegen | FSR4 插件 | https://github.com/xXJSONDeruloXx/Decky-Framegen | BSD-3-Clause | 是 | 基于 Decky 模板并保留 BSD-3 声明 |
 | CheatDeck | CheatDeck 插件 | https://github.com/SheffeyG/CheatDeck | GPL-3.0 | 是 | |
 | SteamGridDB | Steam 游戏封面管理插件 | https://github.com/SteamGridDB/decky-steamgriddb | GPL-3.0-or-later | 是 | 使用 Decky 官方商店 v1.7.1 原包；安装后仅改 `plugin.json` 显示名称 |

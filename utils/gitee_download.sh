@@ -396,6 +396,7 @@ download_with_gitee_mirror_fallback() {
 
 gitee_mirror_id_for_url() {
     case "$1" in
+        *'/eugeniosegala/decky-lsfg-vk-experimental/releases/download/'*) printf '%s\n' lsfg-mako ;;
         *'/xXJSONDeruloXx/decky-lsfg-vk/releases/download/'*) printf '%s\n' lsfg ;;
         *'/xXJSONDeruloXx/Decky-Framegen/releases/download/'*) printf '%s\n' fsr4 ;;
         *'/SheffeyG/CheatDeck/releases/download/'*) printf '%s\n' cheatdeck ;;

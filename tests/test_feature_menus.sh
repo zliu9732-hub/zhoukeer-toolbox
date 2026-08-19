@@ -113,6 +113,12 @@ for menu in "$touch_freedeck" "$gui_games"; do
     assert_contains "$menu" 'NewFreedeck v0.1' "Freedeck 版本菜单缺少重构版"
     assert_contains "$menu" '部分功能' "NewFreedeck 入口缺少上游未完成提示"
 done
+touch_lsfg="$(function_source "$MAIN_FILE" lsfg_versions_menu)"
+for menu in "$touch_lsfg" "$gui_games"; do
+    assert_contains "$menu" '旧版小黄鸭' "小黄鸭版本菜单缺少旧版"
+    assert_contains "$menu" 'MAKO 小黄鸭' "小黄鸭版本菜单缺少 MAKO 尝鲜版"
+    assert_contains "$menu" 'Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）' "MAKO 入口缺少既有汉化署名"
+done
 touch_software_buttons="$(printf '%s\n' "$touch_software" | grep 'ui_touch_button')"
 gui_software_entries="$(printf '%s\n' "$gui_software" | sed -n '/choice="$(gui_dialog --menu/,/)" || return 0/p')"
 for obsolete_hint in '安装适合 SteamOS 的微信' '安装适合 SteamOS 的 QQ' \

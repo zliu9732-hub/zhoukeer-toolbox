@@ -86,6 +86,12 @@ esac
 mirror_id="$(gitee_mirror_id_for_url \
     'https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip')"
 [ "$mirror_id" = "lsfg" ] || FAIL "LSFG 镜像标识映射错误"
+mako_mirror_id="$(gitee_mirror_id_for_url \
+    'https://github.com/eugeniosegala/decky-lsfg-vk-experimental/releases/download/v0.13.0/Decky.LSFG-VK.zip')"
+[ "$mako_mirror_id" = "lsfg-mako" ] || FAIL "MAKO LSFG 镜像标识映射错误"
+grep -Fq 'sync_plugin lsfg-mako' \
+    "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
+    FAIL "MAKO LSFG 缺少 Gitee 分块镜像同步入口"
 for mapping in \
     'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3.zip|steamgriddb' \
     'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip|cssloader' \

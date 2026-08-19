@@ -170,6 +170,8 @@ grep -Fq 'modules/decky_bundle.sh" plugin' "$PROJECT_ROOT/main-bazzite.sh" || fa
 grep -Fq 'DECKY_BUNDLE_INCLUDE_CUSTOM=0' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite Decky 推荐安装未禁用自定义插件"
 grep -Fq 'modules/plugin_store.sh" features' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 汉化功能插件组合入口缺失"
 grep -Fq 'modules/plugin_store.sh" lsfg-zh-gitee' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 小黄鸭入口缺失"
+grep -Fq 'modules/plugin_store.sh" lsfg-mako' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite MAKO 小黄鸭入口缺失"
+grep -Fq 'bazzite_lsfg_versions_menu' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 小黄鸭版本子菜单缺失"
 grep -Fq 'modules/plugin_store.sh" fsr4-zh-gitee' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite FSR4 入口缺失"
 for plugin_action in cheatdeck deckrecall savepulse freedeck newfreedeck tomoon unifideck \
     simpledeckytdp-zh-gitee allycenter huesync legiongo-remapper gpd-control lego-vibe lego2-fan \

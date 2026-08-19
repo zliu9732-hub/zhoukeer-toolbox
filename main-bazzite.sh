@@ -445,7 +445,7 @@ bazzite_feature_plugins_menu() {
     while true; do
         draw_category_frame games "汉化功能插件" "Gitee 分块镜像优先 · 安装后核对真实插件文件"
         ui_touch_button 4 '\033[1;97;48;5;24m' "一键安装三款" "小黄鸭、FSR4 与 CheatDeck"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "安装小黄鸭" "LSFG-VK 汉化版"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "小黄鸭版本选择" "旧版稳定汉化 · MAKO 尝鲜版"
         ui_touch_button 10 '\033[1;97;48;5;24m' "安装 FSR4" "Decky-Framegen 汉化版"
         ui_touch_button 13 '\033[1;97;48;5;24m' "安装 CheatDeck" "修改器启动插件"
         ui_touch_button 16 '\033[1;97;48;5;24m' "更多功能插件" "Freedeck、ToMoon、Unifideck 与掌机控制"
@@ -455,11 +455,37 @@ bazzite_feature_plugins_menu() {
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
             all) confirm_and_run "安装三款汉化功能插件" "使用 Gitee 分块镜像并校验 SHA256；插件目录不可写时可能请求管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
-            lsfg) confirm_and_run "安装小黄鸭" "Gitee 分块镜像优先并校验 SHA256，保留官方运行核心后叠加 Renkit 汉化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee ;;
+            lsfg) bazzite_lsfg_versions_menu || return 1 ;;
             fsr4) confirm_and_run "安装 FSR4" "Gitee 分块镜像优先并校验 SHA256，保留官方运行核心后叠加 Renkit 汉化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             cheatdeck) confirm_and_run "安装 CheatDeck" "Gitee 分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             more) bazzite_extra_plugins_menu || return 1 ;;
             back) return 0 ;;
+        esac
+    done
+}
+
+bazzite_lsfg_versions_menu() {
+    local choice
+    while true; do
+        draw_category_frame games "小黄鸭版本选择" "旧版稳定汉化 · MAKO 实验尝鲜"
+        ui_touch_button 4 '\033[1;97;48;5;24m' "旧版小黄鸭" "v0.12.5 汉化版·稳定"
+        ui_touch_button 7 '\033[1;97;48;5;160m' "MAKO 小黄鸭" "实验仓库尝鲜版·Renkit 汉化"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回汉化功能插件" "查看其他功能插件"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:4-5:stable right:7-8:mako right:19-20:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 1; fi
+        case "$choice" in
+            stable)
+                confirm_and_run "安装旧版小黄鸭" "v0.12.5 汉化版；国内源优先，失败自动改用 GitHub Release；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
+                ;;
+            mako)
+                confirm_and_run "安装 MAKO 小黄鸭（尝鲜版）" "来自 eugeniosegala 实验仓库；功能尚未稳定，安装官方运行核心后叠加 Renkit 汉化；汉化作者：Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako
+                ;;
+            back) return 0 ;;
+            home) NEXT_CATEGORY="home"; return 1 ;;
         esac
     done
 }

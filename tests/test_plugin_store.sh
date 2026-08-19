@@ -560,6 +560,10 @@ grep -Fq 'feature-status) print_feature_plugin_status' "$PROJECT_ROOT/modules/pl
 grep -Fq 'uninstall) uninstall_all_decky_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '不会删除 Decky Loader 本体' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'all) show_plugin_download_speed_tip; install_all_plugin_packages' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'lsfg-mako) show_plugin_download_speed_tip; install_configured_plugin lsfg-mako' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'eugeniosegala/decky-lsfg-vk-experimental' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'install_lsfg_chinese 0 1' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '正在安装小黄鸭' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '正在安装 FSR4' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '将依次安装：小黄鸭、FSR4、CheatDeck、游戏封面更换、主题美化、文件传输助手、音乐播放器。' \
@@ -582,6 +586,36 @@ printf '%s\n' "$simpledeckytdp_output" | grep -Fq '仅支持 SteamOS 或 Bazzite
 
 allycenter_output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter || true)"
 printf '%s\n' "$allycenter_output" | grep -Fq 'Decky 插件安装仅支持 SteamOS 或 Bazzite'
+
+MAKO_CALLS="$TMP_ROOT/mako.calls"
+(
+    export DECKY_PLUGIN_DIR="$TMP_ROOT/mako-plugins"
+    export MAKO_CALLS
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
+    resolve_plugin_latest() {
+        DECKY_LSFG_MAKO_URL="https://github.com/eugeniosegala/decky-lsfg-vk-experimental/releases/download/v0.13.0/Decky.LSFG-VK.zip"
+        DECKY_LSFG_MAKO_SHA256="0000000000000000000000000000000000000000000000000000000000000000"
+    }
+    install_decky_zip() {
+        printf '%s\n' "$2" > "$MAKO_CALLS"
+        PLUGIN_INSTALL_CHANGED=1
+    }
+    install_lsfg_chinese() { printf 'zh\n' >> "$MAKO_CALLS"; }
+    remove_legacy_lsfg_directories() { return 0; }
+    refresh_feature_usage_guides() { return 0; }
+    reload_decky_plugins() { return 0; }
+    install_configured_plugin lsfg-mako
+)
+grep -Fq 'eugeniosegala/decky-lsfg-vk-experimental' "$MAKO_CALLS" || {
+    echo "FAIL: MAKO 小黄鸭没有解析实验仓库 Release" >&2
+    exit 1
+}
+grep -Fxq 'zh' "$MAKO_CALLS" || {
+    echo "FAIL: MAKO 小黄鸭安装后没有叠加汉化" >&2
+    exit 1
+}
 
 # 小黄鸭官方 v0.12.5 使用 Decky LSFG-VK，旧汉化包使用“小黄鸭”；
 # 状态检查必须同时兼容官方名和旧中文名。

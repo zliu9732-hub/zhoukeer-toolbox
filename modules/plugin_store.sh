@@ -64,6 +64,8 @@ CSSLOADER_ZH_INDEX_SHA256="38ec628efcc1238247e0cf771bde98b26be49349dca9c2d7de427
 # 独立插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.5/Decky.LSFG-VK.zip"
 DECKY_LSFG_SHA256="13b8c8de5744a4fcf300e85971cb0c110f0734cb2db508c8de6309bbf8298a07"
+DECKY_LSFG_MAKO_URL=""
+DECKY_LSFG_MAKO_SHA256=""
 DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip"
 DECKY_FSR4_SHA256="3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f"
 DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v2.0.0/CheatDeck.zip"
@@ -203,6 +205,13 @@ resolve_plugin_latest() {
                 '^Decky[.]LSFG-VK[.]zip$' "Decky LSFG-VK"; then
                 DECKY_LSFG_URL="$_LATEST_RELEASE_URL"
                 DECKY_LSFG_SHA256="$_LATEST_RELEASE_SHA256"
+            fi
+            ;;
+        lsfg-mako)
+            if resolve_latest_github_release "eugeniosegala/decky-lsfg-vk-experimental" \
+                '^Decky[.]LSFG-VK[.]zip$' "MAKO 小黄鸭"; then
+                DECKY_LSFG_MAKO_URL="$_LATEST_RELEASE_URL"
+                DECKY_LSFG_MAKO_SHA256="$_LATEST_RELEASE_SHA256"
             fi
             ;;
         fsr4)
@@ -2501,6 +2510,7 @@ install_lsfg_chinese() {
     local actual_sha256
     local bundled_version
     local reload_after="${1:-1}"
+    local force="${2:-0}"
     local official_runtime
     local work_dir
     local staged_source
@@ -2510,7 +2520,8 @@ install_lsfg_chinese() {
         echo "小黄鸭仅支持 SteamOS 或 Bazzite。"
         return 1
     fi
-    if feature_plugin_is_current "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" \
+    if [ "$force" = "0" ] && \
+       feature_plugin_is_current "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" \
         "$LSFG_OFFICIAL_VERSION" "小黄鸭"; then
         echo "[已安装] 小黄鸭 v$LSFG_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
         return 0
@@ -3361,6 +3372,22 @@ install_configured_plugin() {
             resolve_plugin_latest lsfg
             install_lsfg_bundle "$open_lsfg_store"
             ;;
+        lsfg-mako)
+            resolve_plugin_latest lsfg-mako
+            if [ -z "${DECKY_LSFG_MAKO_URL:-}" ] || \
+                [ -z "${DECKY_LSFG_MAKO_SHA256:-}" ]; then
+                echo "MAKO 小黄鸭尝鲜版暂未获取到可校验的最新 Release，请稍后重试或更新Renkit。"
+                return 1
+            fi
+            install_decky_zip \
+                "MAKO 小黄鸭（尝鲜版）" \
+                "$DECKY_LSFG_MAKO_URL" \
+                "$DECKY_LSFG_MAKO_SHA256" \
+                "$LSFG_OFFICIAL_DIRECTORY" \
+                0 || return 1
+            install_lsfg_chinese 0 1 || return 1
+            remove_legacy_lsfg_directories "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+            ;;
         fsr4)
             resolve_plugin_latest fsr4
             if feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
@@ -3562,7 +3589,7 @@ install_configured_plugin() {
     esac || return 1
 
     case "$action" in
-        lsfg|fsr4|cheatdeck) refresh_feature_usage_guides || true ;;
+        lsfg|lsfg-mako|fsr4|cheatdeck) refresh_feature_usage_guides || true ;;
     esac
     if [ "$action" = "cheatdeck" ]; then
         write_flingtrainer_desktop_note || \
@@ -3869,6 +3896,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         store-auto) show_plugin_download_speed_tip; install_plugin_store_auto ;;
         store-uninstall) uninstall_plugin_store ;;
         lsfg) show_plugin_download_speed_tip; install_configured_plugin lsfg ;;
+        lsfg-mako) show_plugin_download_speed_tip; install_configured_plugin lsfg-mako ;;
         lsfg-zh) install_lsfg_chinese && refresh_feature_usage_guides ;;
         lsfg-zh-gitee) install_lsfg_zh_from_gitee && refresh_feature_usage_guides ;;
         fsr4-zh) install_fsr4_chinese && refresh_feature_usage_guides ;;
