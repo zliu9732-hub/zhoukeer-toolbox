@@ -1100,6 +1100,9 @@ install_plugin_store() (
             "$loader_sha256" \
             "$loader_download" || return 1
     fi
+    # 分块下载函数会静默每个分块；进入服务模板阶段后恢复进度输出。
+    GITHUB_QUIET=0
+    echo "正在下载 Decky systemd 服务模板..."
     if [ "$gitee_meta_ok" -eq 1 ] && download_decky_gitee_service "$channel" "$service_template"; then
         echo "Decky systemd服务模板 已从国内镜像下载。"
         log "Decky下载成功: Decky systemd服务模板 source=gitee"
@@ -2920,6 +2923,14 @@ ensure_allycenter_chinese_current() {
     if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
         echo "Ally Center 中文版仅支持 SteamOS 或 Bazzite。"
         return 1
+    fi
+    # 新机流程中若前一步 Decky 尚未完成，先补装 Loader 和插件目录，
+    # 避免硬件配置步骤只报告 homebrew/plugins 不存在。
+    if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
+        ensure_plugin_store_ready || {
+            echo "Decky Loader 未安装完成，Ally Center 暂未开始安装。"
+            return 1
+        }
     fi
     if allycenter_chinese_is_current "$plugin_root"; then
         echo "[已检测] Ally Center 已是最新汉化版 v${DECKY_ALLYCENTER_VERSION}，无需处理。"

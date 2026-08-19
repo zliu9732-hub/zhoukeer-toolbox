@@ -229,6 +229,7 @@ sanitize_retired_decky_installer_config() {
     sanitized_file="$(mktemp "$config_file.sanitize.XXXXXX")" || return 1
     awk '
         /^[[:space:]]*(export[[:space:]]+)?DECKY_INSTALLER_(URL|SHA256)[[:space:]]*=/ { next }
+        /^[[:space:]]*(export[[:space:]]+)?DECKY_(LSFG|FSR4)_ZH_(URL|SHA256)[[:space:]]*=/ { next }
         /Decky Loader 国内安装器/ { next }
         { print }
     ' "$config_file" > "$sanitized_file" || {

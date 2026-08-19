@@ -17,9 +17,19 @@ NETWORK_FAIL=0
 NETWORK_WARN=0
 NETWORK_REMOTE_OK=0
 NETWORK_LOCAL_READY=0
+NETWORK_PROBE_PIDS=""
 
 network_cleanup() {
+    local pid
+    for pid in $NETWORK_PROBE_PIDS; do
+        kill "$pid" >/dev/null 2>&1 || true
+    done
+    for pid in $NETWORK_PROBE_PIDS; do
+        wait "$pid" >/dev/null 2>&1 || true
+    done
+    NETWORK_PROBE_PIDS=""
     [ -z "$NETWORK_TMP_DIR" ] || rm -rf -- "$NETWORK_TMP_DIR"
+    NETWORK_TMP_DIR=""
 }
 
 network_record_line() {
@@ -75,11 +85,12 @@ network_probe() {
                 --range 0-0 --max-filesize 1048576 --output /dev/null "$url"
         fi
         if [ "$?" -eq 0 ]; then
-            printf 'ok\t%s\t连接正常\n' "$label" > "$result"
+            [ -d "$NETWORK_TMP_DIR" ] && printf 'ok\t%s\t连接正常\n' "$label" > "$result"
         else
-            printf 'fail\t%s\t连接超时或被拒绝\n' "$label" > "$result"
+            [ -d "$NETWORK_TMP_DIR" ] && printf 'fail\t%s\t连接超时或被拒绝\n' "$label" > "$result"
         fi
     ) &
+    NETWORK_PROBE_PIDS="$NETWORK_PROBE_PIDS $!"
 }
 
 network_check_time() {
@@ -109,7 +120,9 @@ network_check_proxy() {
 run_network_diagnostics() {
     local result id state label detail
     NETWORK_TMP_DIR="$(mktemp -d)" || return 1
-    trap network_cleanup EXIT INT TERM
+    NETWORK_PROBE_PIDS=""
+    trap network_cleanup EXIT
+    trap 'network_cleanup; exit 130' INT TERM
     [ -z "$NETWORK_COLLECT_FILE" ] || : > "$NETWORK_COLLECT_FILE"
 
     if network_has_default_route; then
@@ -146,7 +159,11 @@ run_network_diagnostics() {
         network_probe update-gitee "Renkit更新国内线路" "https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/VERSION"
         network_probe update-github "Renkit更新备用线路" "https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/VERSION"
         network_probe update-domain "Renkit更新域名线路" "https://jktool.icu/VERSION"
-        wait
+        local probe_pid
+        for probe_pid in $NETWORK_PROBE_PIDS; do
+            wait "$probe_pid" || true
+        done
+        NETWORK_PROBE_PIDS=""
         for result in "$NETWORK_TMP_DIR"/*; do
             [ -f "$result" ] || continue
             id="${result##*/}"
