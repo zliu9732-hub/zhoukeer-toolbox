@@ -1,3 +1,8 @@
+## Renkit 1.7.9 小黄鸭新增 MAKO 尝鲜版 — 2026-08-19
+
+- 小黄鸭安装改为版本选择子菜单：保留 v0.12.5 旧版汉化，新增 eugeniosegala/decky-lsfg-vk-experimental 的 MAKO 尝鲜版；尝鲜版安装官方运行核心后叠加 Renkit 汉化，顶部署名沿用 Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）。
+- MAKO 尝鲜版继续走 Gitee 分块镜像优先、GitHub Release 回退，并在上游更新版本后由同步流程上传分块镜像。
+
 ## Renkit 1.7.8 左下角 Steam 菜单白字黑边 — 2026-08-17
 
 - 三个主题针对左下角 Steam 菜单 Logo：字母强制白色、黑色描边，菜单背景使用主题底色，不再出现黑色残留。
