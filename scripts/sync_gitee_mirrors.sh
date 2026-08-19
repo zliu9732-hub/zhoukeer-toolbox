@@ -148,10 +148,10 @@ sync_plugin lsfg "xXJSONDeruloXx/decky-lsfg-vk" '^Decky[.]LSFG-VK[.]zip$' "Decky
     "322f6eec21a489ef9f12938ea2ec4e43c234093876f95b7245fbd260f882ce9c" "$MIRROR3"
 # Renkit 安装只使用署名完整包；官方原包镜像仅保留给历史兼容流程。
 sync_plugin lsfg-zh-signed "zliu9732-hub/decky-lsfg-vk-zh" \
-    '^Decky[.]LSFG-VK-zh-signed-v0[.]12[.]8[.]zip$' "Decky LSFG-VK 署名中文插件" \
-    "v0.12.8" "Decky.LSFG-VK-zh-signed-v0.12.8.zip" \
-    "https://github.com/zliu9732-hub/decky-lsfg-vk-zh/releases/download/v0.12.8/Decky.LSFG-VK-zh-signed-v0.12.8.zip" \
-    "702f705e31d5ec88d844be4f9d16e34f9fcb96efed40e9f110d898d55c380084" "$MIRROR3"
+    '^Decky[.]LSFG-VK-zh-signed-v0[.]12[.]8-r2[.]zip$' "Decky LSFG-VK 署名中文插件" \
+    "v0.12.8" "Decky.LSFG-VK-zh-signed-v0.12.8-r2.zip" \
+    "https://github.com/zliu9732-hub/decky-lsfg-vk-zh/releases/download/v0.12.8/Decky.LSFG-VK-zh-signed-v0.12.8-r2.zip" \
+    "04831a87e676606947c09e824a0612a2c792c72cd6b98f918e0b28f5af684aba" "$MIRROR3"
 # MAKO 尝鲜版跟随上游最新 Release 同步，上传前必须解析到带 SHA256 digest 的 ZIP。
 sync_plugin lsfg-mako "eugeniosegala/MAKO" \
     '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO LSFG-VK" "" "" "" "" "$MIRROR3"

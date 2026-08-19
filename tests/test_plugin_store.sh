@@ -257,7 +257,7 @@ allycenter_zh_actual_sha256="$(shasum -a 256 \
     exit 1
 }
 grep -Fq 'LSFG_ZH_MIRROR_ID="lsfg-zh-signed"' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'LSFG_ZH_PACKAGE_SHA256="702f705e31d5ec88d844be4f9d16e34f9fcb96efed40e9f110d898d55c380084"' \
+grep -Fq 'LSFG_ZH_PACKAGE_SHA256="04831a87e676606947c09e824a0612a2c792c72cd6b98f918e0b28f5af684aba"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'FSR4_ZH_MIRROR_ID="fsr4-zh-signed"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'FSR4_ZH_PACKAGE_SHA256="b392ea5c850c76a9b230e0028dd5b37e5a5c38759918beba4a01714735eb0ebf"' \
@@ -344,7 +344,7 @@ grep -Fq '未检测到插件商城，先安装插件商城。' "$PROJECT_ROOT/mo
 grep -Fq 'LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'FSR4_RUNTIME_ARCHIVE="Optiscaler_0.9.4-final.20260718._MM.7z"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'restore_lsfg_official()' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'LSFG_ZH_INDEX_SHA256="366c87e2e59b01f4f895d4930ee07dd7ccd5e4c1ab30e60965086aec9c641d7a"' \
+grep -Fq 'LSFG_ZH_INDEX_SHA256="79a2e67b79d8f4184e83f32528452f9b672138e34fe52a2ee5188ae07d271082"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'FSR4_ZH_INDEX_SHA256="eeefdd00815c6158768c94985e4deaa4cf52eab5f80e5f553f09aac20db5b7d4"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
