@@ -2613,6 +2613,12 @@ if "var zh = {" not in content:
     zh_block = "var zh = " + json.dumps(translations, ensure_ascii=False, indent="\t") + ";\n"
     content = content.replace(marker, zh_block + "var languages = {\n\tzh: zh,\n\tja: ja,", 1)
 
+language_marker = "const lang = normalizeLanguage(window.LocalizationManager.m_rgLocalesToUse[0]);"
+if "const lang = \"zh\";" not in content:
+    if language_marker not in content:
+        raise SystemExit(2)
+    content = content.replace(language_marker, 'const lang = "zh";', 1)
+
 attribution = "Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化"
 if attribution not in content:
     theme_marker = "window.SP_REACT.createElement(MakoButtonTheme, null),"
