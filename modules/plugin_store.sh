@@ -2616,20 +2616,17 @@ if "var zh = {" not in content:
 attribution = "Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化"
 if attribution not in content:
     theme_marker = "window.SP_REACT.createElement(MakoButtonTheme, null),"
-    panel_marker = "window.SP_REACT.createElement(DFL.PanelSection, null,"
-    if theme_marker not in content or panel_marker not in content:
+    if theme_marker not in content:
         raise SystemExit(2)
     pos = content.index(theme_marker)
-    panel_pos = content.index(panel_marker, pos)
+    local_pos = content.index("localDevelopmentBuildInfo", pos)
     attribution_row = (
-        "window.SP_REACT.createElement(DFL.PanelSection, null,"
-        " window.SP_REACT.createElement(DFL.PanelSectionRow, null,"
+        "window.SP_REACT.createElement(DFL.PanelSectionRow, null,"
         ' window.SP_REACT.createElement("div", { style: { padding: "8px 12px", width: "100%",'
         ' boxSizing: "border-box", textAlign: "center", fontSize: "13px", color: "#ffcc66" } },'
-        ' "Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化")),'
-        " window.SP_REACT.createElement(DFL.PanelSection, null,"
+        ' "Ren-Amamiya-pixie / zliu9732-hub（闲鱼RenAmamiya）汉化")),\n            '
     )
-    content = content[:panel_pos] + attribution_row + content[panel_pos + len(panel_marker):]
+    content = content[:local_pos] + attribution_row + content[local_pos:]
 
 if "var zh =" not in content or attribution not in content:
     raise SystemExit(2)

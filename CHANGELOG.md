@@ -1,3 +1,7 @@
+## Renkit 1.8.2 修复 MAKO 汉化前端异常 — 2026-08-19
+
+- 修复 MAKO 汉化补丁插入 React 元素后导致插件加载异常的问题；署名改为在现有面板内追加，并通过 `node --check` 验证前端语法。
+
 ## Renkit 1.8.1 MAKO 分块镜像固定 mirror-3 — 2026-08-19
 
 - MAKO 安装与自动同步固定使用 `zhoukeer-toolbox-mirror-3`，避免主镜像仓库超配额后回退 GitHub 慢速下载。
