@@ -463,6 +463,35 @@ gh release create v1.4.8 \
 - GitHub 与 Gitee v2 对齐时，以文件内容审计和普通提交保留差异，不以某个旧分支名或旧聊天中的提交号为准。
 - 仅更新交接文档不需要为了凑版本发布运行包；任何运行代码、包内容或用户可见功能变化才进入正常升版/发布流程。
 
+## 19.1 2026-08-19 小黄鸭/FSR4 中文组件与仓库交接
+
+本段记录当天已经完成和明确未完成的事项，供下一位接手者直接续做，不要重新猜方向。
+
+### 已完成
+
+- Renkit 已发布 `1.8.7`，GitHub `main` 与标签 `v1.8.7`、Gitee v2 `VERSION=1.8.7` 均已推送并核验。
+- 小黄鸭官方版本已从 `0.12.5` 切到 `0.12.8`，工具箱安装改为“官方原版 + 独立中文组件叠加”：
+  - 官方原版：`xXJSONDeruloXx/decky-lsfg-vk` 的 `v0.12.8/Decky.LSFG-VK.zip`。
+  - 署名中文组件：`zliu9732-hub/decky-lsfg-vk-zh` 的 `v0.12.8/lsfg-zh-signed-v0.12.8.zip`。
+  - 未署名组件由小号仓库承载，但仓库说明和 Release 文案不出现“未署名”字样。
+- Decky-Framegen 中文组件已拆分到独立仓库：
+  - 主号：`zliu9732-hub/decky-framegen-zh` 的 `v0.17/framegen-zh-signed-v0.17.zip`。
+  - 小号：`Ren-Amamiya-pixle/decky-framegen-zh` 的 `v0.17/framegen-zh-v0.17.zip`。
+- Gitee 小黄鸭官方镜像已上传 `zhoukeer-toolbox-mirror-3` 的 `lsfg/v0.12.8`，并删除 Gitee 主镜像中的旧 `lsfg/v0.12.5`。
+- `modules/plugin_store.sh` 新增 `apply_zh_overlay_zip`，小黄鸭/FSR4 安装会先装官方原版，再叠加独立中文组件；菜单入口和新机初始化流程未改变。
+
+### 未完成/接手必做
+
+1. 小号仓库目前上传的是“中文覆盖组件 zip”，不是用户要求的完整 Decky 插件 zip。用户明确要求小号 `decky-lsfg-vk-zh` 和 `decky-framegen-zh` 提供可直接从 Decky Loader 解压安装的完整 zip。
+   - 需要从官方 Release 下载完整包，用已生成的未署名中文组件覆盖 `dist/index.js`、`plugin.json`、`package.json` 等文件，保留官方 `bin/`、`py_modules/`、`assets/` 等运行文件，再重新打包上传。
+   - 上传后应删除小号仓库 Release 中的旧覆盖组件资产，避免用户下错。
+2. 主号仓库目前也只上传了署名覆盖组件，不是完整 zip；是否也要改成完整 zip 需要用户确认，但小号已经明确必须完整。
+3. 当前中文前端仍基于 `0.12.5` 汉化构建、仅把 `package.json` 版本改成 `0.12.8`。若上游 `0.12.8` 有新增英文文案或界面变化，需要从 `0.12.8` 源码重新汉化后再打包。
+4. 旧本地 `third_party/decky-lsfg-vk-zh-v0.12.5` 仍存在，且 `install.sh`、`scripts/package_release.sh` 和部分测试仍引用它；用户要求“完全替代 0.12.5”，后续应清理旧目录和旧引用，只保留 `0.12.8` 相关流程。
+5. `tests/test_gitee_plugin_fallback.sh` 仍按旧“Gitee 汉化完整包”流程 mock，新的 `apply_zh_overlay_zip` 流程尚未补对应测试。
+6. FSR4/中文组件尚未接入 Gitee 分块镜像；当前组件从 GitHub 独立仓库直接拉取。如果用户要求国内加速，需要把新组件镜像上传到 mirror-3 并接入 `gitee_mirror_id_for_url`。
+7. 真机仍需验证：SteamOS/Bazzite 安装小黄鸭 `0.12.8`、FSR4 中文组件、Decky 重载、旧版卸载、新机初始化流程。
+
 ## 20. 最后检查清单
 
 新账号开始实际改代码前，应能回答：
