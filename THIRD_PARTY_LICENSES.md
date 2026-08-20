@@ -13,7 +13,7 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | MAKO（小黄鸭尝鲜版） | MAKO 帧生成插件 | https://github.com/eugeniosegala/MAKO | GPL-3.0-or-later | 是 | 尝鲜版进入 Gitee 分块镜像，叠加 Renkit 汉化并保留顶部署名 |
 | Decky-Framegen | FSR4 插件 | https://github.com/xXJSONDeruloXx/Decky-Framegen | BSD-3-Clause | 是 | 基于 Decky 模板并保留 BSD-3 声明 |
 | SteamDB Decky Button | 游戏模式查看 SteamDB 价格史低与在线峰值 | https://github.com/kedMertens/steamdbDeckyButton | BSD-3-Clause | 是 | v0.0.1 源码构建，增加中文双入口并保留上游许可证 |
-| Decky Translator | 游戏模式屏幕文字与兼容性评价翻译 | https://github.com/cat-in-a-box/Decky-Translator | GPL-3.0 | 是 | 基于官方商店 v0.8.0 完整包叠加中文前端，源码随仓库保留 |
+| Decky Translator | 游戏模式屏幕文字与兼容性评价翻译 | https://github.com/cat-in-a-box/Decky-Translator | GPL-3.0 | 是 | 基于官方 v0.9.1 完整包叠加中文前端与官方依赖，源码随仓库保留 |
 | CheatDeck | CheatDeck 插件 | https://github.com/SheffeyG/CheatDeck | GPL-3.0 | 是 | |
 | SteamGridDB | Steam 游戏封面管理插件 | https://github.com/SteamGridDB/decky-steamgriddb | GPL-3.0-or-later | 是 | 使用 Decky 官方商店 v1.7.1 原包；安装后仅改 `plugin.json` 显示名称 |
 | CSS Loader | Steam CSS 主题插件 | https://github.com/DeckThemes/SDH-CssLoader | GPL-2.0-or-later | 是 | 使用 Decky 官方商店 v2.1.2 原包并叠加中文前端；后端保持原包 |

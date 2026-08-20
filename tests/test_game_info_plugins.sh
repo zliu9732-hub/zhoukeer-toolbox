@@ -44,7 +44,7 @@ install_decky_zip_from_mirror() {
     [ "${SIMULATE_MIRROR_FAILURE:-0}" != "1" ] || return 1
     case "$directory" in
         SteamDBButton) source_dir="$PROJECT_ROOT/third_party/steamdb-button-zh-v0.0.1" ;;
-        decky-translator) source_dir="$PROJECT_ROOT/third_party/decky-translator-zh-v0.8.0" ;;
+        decky-translator) source_dir="$PROJECT_ROOT/third_party/decky-translator-zh-v0.9.1" ;;
         *) return 1 ;;
     esac
     rm -rf -- "$PLUGIN_ROOT/$directory"
@@ -65,7 +65,7 @@ install_game_info_plugin_from_gitee decky-translator
 [ "$(wc -l < "$RELOAD_LOG" | tr -d ' ')" = "2" ] || fail "安装后未各重载一次 Decky"
 grep -Fq 'zhoukeer-toolbox-mirror-3|SteamDB 游戏数据|steamdb-game-info-zh|cb072edfbed3e30abec76fc25ce74653380594feecba81e61284d72563b082bf|SteamDBButton' "$CALL_LOG" || \
     fail "SteamDB 未固定使用 mirror-3 分块包"
-grep -Fq 'zhoukeer-toolbox-mirror-3|沉浸式翻译|decky-translator-zh|a9e63de07bf01dcf27f8292cd5bb2b6488d08205d94ae323730a070f4b3002cd|decky-translator' "$CALL_LOG" || \
+grep -Fq 'zhoukeer-toolbox-mirror-3|沉浸式翻译|decky-translator-zh|586d690001e72bb0a98a67a0493f253dda07666dc9498d6884958117258646cd|decky-translator' "$CALL_LOG" || \
     fail "沉浸式翻译未固定使用 mirror-3 分块包"
 
 # 第二次执行必须通过版本、名称和前端哈希直接跳过。
@@ -95,7 +95,7 @@ if printf '%s\n' "$function_text" | grep -Eq 'github[.]com|plugins[.]deckbrew|cd
 fi
 
 node --check "$PROJECT_ROOT/third_party/steamdb-button-zh-v0.0.1/dist/index.js"
-node --check "$PROJECT_ROOT/third_party/decky-translator-zh-v0.8.0/dist/index.js"
+node --check "$PROJECT_ROOT/third_party/decky-translator-zh-v0.9.1/dist/index.js"
 grep -Fq '价格史低' "$PROJECT_ROOT/third_party/steamdb-button-zh-v0.0.1/dist/index.js" || \
     fail "SteamDB 构建缺少价格史低入口"
 grep -Fq '在线峰值' "$PROJECT_ROOT/third_party/steamdb-button-zh-v0.0.1/dist/index.js" || \
@@ -103,9 +103,9 @@ grep -Fq '在线峰值' "$PROJECT_ROOT/third_party/steamdb-button-zh-v0.0.1/dist
 grep -Fq 'import decky_plugin as decky' \
     "$PROJECT_ROOT/third_party/steamdb-button-zh-v0.0.1/main.py" || \
     fail "SteamDB 后端仍使用旧版 decky 模块名"
-grep -Fq '汉化：RenAmamiya' "$PROJECT_ROOT/third_party/decky-translator-zh-v0.8.0/dist/index.js" || \
+grep -Fq '汉化：RenAmamiya' "$PROJECT_ROOT/third_party/decky-translator-zh-v0.9.1/dist/index.js" || \
     fail "沉浸式翻译构建缺少汉化署名"
-grep -Fq '原文语言' "$PROJECT_ROOT/third_party/decky-translator-zh-v0.8.0/dist/index.js" || \
+grep -Fq '原文语言' "$PROJECT_ROOT/third_party/decky-translator-zh-v0.9.1/dist/index.js" || \
     fail "沉浸式翻译构建缺少中文界面词条"
 
 # 同版本但缺失后端依赖的坏包必须触发重装，避免 Decky 后端反复崩溃重启。
