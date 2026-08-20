@@ -38,7 +38,6 @@ for plugin in \
     "Storage Cleaner" \
     "AutoFlatpaks" \
     "Bluetooth" \
-    "ProtonDB Badges" \
     "Deck Settings" \
     "HLTB for Deck" \
     "PlayCount" \
@@ -57,6 +56,9 @@ done
 
 if printf '%s\n' "$DECKY_OFFICIAL_PLUGIN_NAMES" | grep -Fq 'Game Theme Music'; then
     fail "报错的 Game Theme Music 仍在官方推荐清单"
+fi
+if printf '%s\n' "$DECKY_OFFICIAL_PLUGIN_NAMES" | grep -Fq 'ProtonDB Badges'; then
+    fail "已停用的 ProtonDB Badges 仍在官方推荐清单"
 fi
 
 javascript="$(build_decky_bundle_javascript "")"

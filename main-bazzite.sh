@@ -46,14 +46,14 @@ NEXT_CATEGORY="home"
 
 DECKY_OFFICIAL_PLUGIN_NAMES=(
     "CSS Loader" "vibrantDeck" "Animation Changer" "Audio Loader" "SteamGridDB"
-    "PowerTools" "Storage Cleaner" "AutoFlatpaks" "Bluetooth" "ProtonDB Badges"
+    "PowerTools" "Storage Cleaner" "AutoFlatpaks" "Bluetooth"
     "Deck Settings" "HLTB for Deck" "PlayCount" "TabMaster"
     "Wine Cellar" "Pause Games" "Controller Tools" "Volume Mixer" "Battery Tracker"
     "PlayTime" "Free Loader" "DeckMTP" "MangoPeel"
 )
 DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "自定义界面样式" "调整界面配色" "更换开机动画" "更换系统音效" "自动补游戏封面"
-    "性能与功耗控制" "清理游戏缓存" "自动更新应用" "管理蓝牙设备" "显示兼容性评分"
+    "性能与功耗控制" "清理游戏缓存" "自动更新应用" "管理蓝牙设备"
     "更多 Deck 设置" "显示通关时长" "记录游玩次数" "整理游戏库标签"
     "管理 Wine 与 Proton" "后台自动暂停游戏" "手柄辅助工具" "分应用调节音量" "查看电池状态"
     "记录游戏时长" "下载功能扩展" "USB 文件传输" "优化 Steam 界面"

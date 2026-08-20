@@ -21,7 +21,7 @@ cd "$HOME" 2>/dev/null || cd / || exit 1
 # Decky 官方商店插件：保留英文官方名，后面附小白可理解的中文作用。
 DECKY_OFFICIAL_PLUGIN_NAMES=(
     "CSS Loader" "vibrantDeck" "Animation Changer" "Audio Loader" "SteamGridDB"
-    "PowerTools" "Storage Cleaner" "AutoFlatpaks" "Bluetooth" "ProtonDB Badges"
+    "PowerTools" "Storage Cleaner" "AutoFlatpaks" "Bluetooth"
     "Deck Settings" "HLTB for Deck" "PlayCount" "TabMaster"
     "Wine Cellar" "Pause Games" "Controller Tools" "Volume Mixer" "Battery Tracker"
     "PlayTime" "Free Loader" "DeckMTP" "MangoPeel"
@@ -29,7 +29,7 @@ DECKY_OFFICIAL_PLUGIN_NAMES=(
 )
 DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "自定义界面样式" "调整界面配色" "更换开机动画" "更换系统音效" "自动补游戏封面"
-    "性能与功耗控制" "清理游戏缓存" "自动更新应用" "管理蓝牙设备" "显示兼容性评分"
+    "性能与功耗控制" "清理游戏缓存" "自动更新应用" "管理蓝牙设备"
     "更多 Deck 设置" "显示通关时长" "记录游玩次数" "整理游戏库标签"
     "管理 Wine 与 Proton" "后台自动暂停游戏" "手柄辅助工具" "分应用调节音量" "查看电池状态"
     "下载游戏和模拟器游戏"
@@ -294,7 +294,7 @@ game_environment_gui_menu() {
             repair "修复启动器封面｜重写 Steam 库封面并重启 Steam" \
             deckrecall "DeckRecall｜添加启动项及恢复游戏可玩状态" \
             savepulse "SavePulse｜自动版本存档、个人 WebDAV 云备份与换机恢复" \
-            game-info-tools "游戏数据与翻译｜SteamDB 史低/在线峰值与兼容性评价翻译" \
+            game-info-tools "SteamDB 游戏数据｜价格史低与在线峰值" \
             decky-install "安装插件商城｜稳定版国内失败自动切换官方源｜可选测试版｜高级操作" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
@@ -342,20 +342,14 @@ game_environment_gui_menu() {
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" savepulse
                 ;;
             game-info-tools)
-                game_info_choice="$(gui_dialog --menu "游戏数据与翻译" \
+                game_info_choice="$(gui_dialog --menu "SteamDB 游戏数据" \
                     steamdb-info "SteamDB 游戏数据｜商店页显示价格史低与在线峰值｜中文版" \
-                    decky-translator "沉浸式翻译｜翻译兼容性评价与屏幕文字｜中文版" \
                     back "返回游戏与插件")" || continue
                 case "$game_info_choice" in
                     steamdb-info)
                         gui_confirm "仅从 Gitee mirror-3 分块安装完整汉化包；在游戏模式 Steam 商店详情页显示价格史低和在线峰值入口，需要开启 CEF 远程调试。是否继续？" && \
                             run_gui_action "安装 SteamDB 游戏数据" env ZHOUKEER_AUTO_CONFIRM=1 \
                                 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamdb-info
-                        ;;
-                    decky-translator)
-                        gui_confirm "仅从 Gitee mirror-3 分块安装完整汉化包；可识别并翻译兼容性评价和其它屏幕文字。免费在线翻译需要网络，API 密钥功能由用户自行配置。是否继续？" && \
-                            run_gui_action "安装沉浸式翻译" env ZHOUKEER_AUTO_CONFIRM=1 \
-                                bash "$PROJECT_ROOT/modules/plugin_store.sh" decky-translator
                         ;;
                 esac
                 ;;
