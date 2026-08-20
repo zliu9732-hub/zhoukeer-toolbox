@@ -838,12 +838,37 @@ find_proton_runner() {
     return 1
 }
 
-find_proton_experimental_runner() {
+steam_library_roots() {
     local steam_root="$1"
+    local vdf="$steam_root/steamapps/libraryfolders.vdf"
     local candidate
 
+    [ -d "$steam_root/steamapps" ] && printf '%s\n' "$steam_root"
+    [ -f "$vdf" ] && [ ! -L "$vdf" ] || return 0
+    while IFS= read -r candidate; do
+        candidate="${candidate//\\\\/\\}"
+        case "$candidate" in
+            /*) ;;
+            *) continue ;;
+        esac
+        [ -d "$candidate/steamapps" ] || continue
+        [ "$candidate" = "$steam_root" ] || printf '%s\n' "$candidate"
+    done < <(sed -n 's/^[[:space:]]*"path"[[:space:]]*"\([^"]*\)".*/\1/p' "$vdf")
+}
+
+find_proton_experimental_runner() {
+    local steam_root="$1"
+    local library_root candidate
+
+    while IFS= read -r library_root; do
+        [ -n "$library_root" ] || continue
+        candidate="$library_root/steamapps/common/Proton - Experimental/proton"
+        if [ -x "$candidate" ]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done < <(steam_library_roots "$steam_root")
     for candidate in \
-        "$steam_root/steamapps/common/Proton - Experimental/proton" \
         "$HOME/.steam/root/compatibilitytools.d/Proton - Experimental/proton"; do
         if [ -x "$candidate" ]; then
             printf '%s\n' "$candidate"
@@ -855,20 +880,23 @@ find_proton_experimental_runner() {
 
 find_proton_10_runner() {
     local steam_root="$1"
-    local candidate version_file
+    local library_root candidate version_file
 
-    candidate="$steam_root/steamapps/common/Proton 10.0-4/proton"
-    if [ -x "$candidate" ]; then
-        printf '%s\n' "$candidate"
-        return 0
-    fi
-    candidate="$steam_root/steamapps/common/Proton 10.0/proton"
-    version_file="$(dirname "$candidate")/version"
-    if [ -x "$candidate" ] && [ -f "$version_file" ] && [ ! -L "$version_file" ] && \
-       grep -Eqi '(^|[^0-9])10\.0-4([^0-9]|$)' "$version_file"; then
-        printf '%s\n' "$candidate"
-        return 0
-    fi
+    while IFS= read -r library_root; do
+        [ -n "$library_root" ] || continue
+        candidate="$library_root/steamapps/common/Proton 10.0-4/proton"
+        if [ -x "$candidate" ]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+        candidate="$library_root/steamapps/common/Proton 10.0/proton"
+        version_file="$(dirname "$candidate")/version"
+        if [ -x "$candidate" ] && [ -f "$version_file" ] && [ ! -L "$version_file" ] && \
+           grep -Eqi '(^|[^0-9])10\.0-4([^0-9]|$)' "$version_file"; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done < <(steam_library_roots "$steam_root")
     return 1
 }
 

@@ -173,12 +173,32 @@ for mapping in 'right:7-8:qiyou' 'right:10-11:xunyou' 'right:13-14:uu'; do
 done
 touch_ge_proton="$(function_source "$MAIN_FILE" ge_proton_menu)"
 gui_ge_proton="$(function_source "$GUI_FILE" ge_proton_gui_menu)"
+touch_trainer_ge_proton="$(function_source "$MAIN_FILE" trainer_ge_proton_menu)"
+gui_trainer_ge_proton="$(function_source "$GUI_FILE" trainer_ge_proton_gui_menu)"
 for menu in "$touch_ge_proton" "$gui_ge_proton"; do
     assert_contains "$menu" '安装最新 GE 兼容层' "GE 兼容层子菜单缺少最新版入口"
     assert_contains "$menu" '安装修改器所需常用兼容层' "GE 兼容层子菜单缺少修改器常用入口"
 done
 assert_contains "$touch_ge_proton" 'right:5-6:latest' "GE 兼容层最新版坐标错误"
 assert_contains "$touch_ge_proton" 'right:9-10:trainer' "GE 兼容层修改器常用坐标错误"
+assert_contains "$touch_ge_proton" 'trainer_ge_proton_menu' "修改器兼容层未进入独立子菜单"
+assert_contains "$gui_ge_proton" 'trainer_ge_proton_gui_menu' "GUI 修改器兼容层未进入独立子菜单"
+for menu in "$touch_trainer_ge_proton" "$gui_trainer_ge_proton"; do
+    for version in 7-55 8-25 9-27 10-29; do
+        assert_contains "$menu" "安装 GE-Proton $version" "修改器兼容层子菜单缺少 $version"
+        assert_contains "$menu" "install-trainer-one \"\$version\"" "修改器兼容层 $version 未接单版本动作"
+    done
+    assert_contains "$menu" '安装全部四个兼容层' "修改器兼容层子菜单缺少第五项全部安装"
+    assert_contains "$menu" 'install-trainer' "修改器兼容层全部安装动作缺失"
+done
+for mapping in \
+    'right:3-4:trainer-7-55' \
+    'right:6-7:trainer-8-25' \
+    'right:9-10:trainer-9-27' \
+    'right:12-13:trainer-10-29' \
+    'right:15-16:trainer-all'; do
+    assert_contains "$touch_trainer_ge_proton" "$mapping" "修改器兼容层触控坐标错误：$mapping"
+done
 touch_uninstall="$(function_source "$MAIN_FILE" uninstall_software_menu)"
 assert_contains "$touch_uninstall" 'right:18-19:next' "卸载第一页缺少下一页"
 assert_contains "$touch_uninstall" 'right:20-21:home' "卸载第一页缺少返回首页"

@@ -207,6 +207,38 @@ remote_menu() {
     done
 }
 
+trainer_ge_proton_gui_menu() {
+    local choice version
+
+    while true; do
+        choice="$(gui_dialog --menu "修改器兼容层｜选择单个版本或全部安装" \
+            trainer-7-55 "安装 GE-Proton 7-55｜只安装此版本" \
+            trainer-8-25 "安装 GE-Proton 8-25｜只安装此版本" \
+            trainer-9-27 "安装 GE-Proton 9-27｜只安装此版本" \
+            trainer-10-29 "安装 GE-Proton 10-29｜只安装此版本" \
+            trainer-all "安装全部四个兼容层｜原一键安装功能，约1.72GB" \
+            back "返回 GE 兼容层" \
+            home "返回首页" \
+            nav-exit "退出Renkit")" || return 0
+        case "$choice" in
+            trainer-7-55|trainer-8-25|trainer-9-27|trainer-10-29)
+                version="${choice#trainer-}"
+                gui_confirm "将只安装 GE-Proton $version，不下载其他三个修改器兼容层。是否继续？" && \
+                    run_gui_action "安装 GE-Proton $version" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer-one "$version"
+                ;;
+            trainer-all)
+                gui_confirm "将安装 GE-Proton 7-55、8-25、9-27、10-29 四个修改器常用兼容层；合计约1.72GB，下载较慢为正常现象。是否继续？" && \
+                    run_gui_action "安装全部四个修改器兼容层" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer
+                ;;
+            back) return 0 ;;
+            home) GUI_NAV_HOME=1; return 0 ;;
+            nav-exit) exit 0 ;;
+        esac
+    done
+}
+
 ge_proton_gui_menu() {
     local choice
 
@@ -224,9 +256,8 @@ ge_proton_gui_menu() {
                     bash "$PROJECT_ROOT/modules/ge_proton.sh" install
                 ;;
             trainer)
-                gui_confirm "将安装 GE-Proton 7-55、8-25、9-27、10-29 四个修改器常用兼容层；合计约1.72GB，下载较慢为正常现象。是否继续？" && \
-                    run_gui_action "安装修改器所需常用兼容层" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer
+                trainer_ge_proton_gui_menu
+                [ "$GUI_NAV_HOME" -eq 0 ] || return 0
                 ;;
             back) return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;

@@ -342,6 +342,36 @@ launcher_repair_menu() {
     done
 }
 
+bazzite_trainer_ge_proton_menu() {
+    local choice version
+    while true; do
+        draw_category_frame games "修改器兼容层" "单独安装一个版本，或一次安装全部四个"
+        ui_touch_button 3 '\033[1;97;48;5;24m' "安装 GE-Proton 7-55" "只下载并安装此版本"
+        ui_touch_button 6 '\033[1;97;48;5;24m' "安装 GE-Proton 8-25" "只下载并安装此版本"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "安装 GE-Proton 9-27" "只下载并安装此版本"
+        ui_touch_button 12 '\033[1;97;48;5;24m' "安装 GE-Proton 10-29" "只下载并安装此版本"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "安装全部四个兼容层" "原一键安装功能；合计约 1.72GB"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回 GE-Proton 兼容层"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页"
+        ui_prompt
+        choice="$(read_touch_menu right:3-4:trainer-7-55 right:6-7:trainer-8-25 right:9-10:trainer-9-27 right:12-13:trainer-10-29 right:15-16:trainer-all right:19-20:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 1; fi
+        case "$choice" in
+            trainer-7-55|trainer-8-25|trainer-9-27|trainer-10-29)
+                version="${choice#trainer-}"
+                confirm_and_run "安装 GE-Proton $version" "只安装 GE-Proton $version，不下载其他三个修改器兼容层" \
+                    bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer-one "$version"
+                ;;
+            trainer-all)
+                confirm_and_run "安装全部四个修改器兼容层" "安装 GE-Proton 7-55、8-25、9-27、10-29；约 1.72GB" \
+                    bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer
+                ;;
+            back) return 0 ;;
+            home) NEXT_CATEGORY="home"; return 1 ;;
+        esac
+    done
+}
+
 bazzite_ge_proton_menu() {
     local choice
     while true; do
@@ -355,7 +385,7 @@ bazzite_ge_proton_menu() {
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
             latest) confirm_and_run "安装最新版 GE-Proton" "自动检测最新版并保留现有兼容层" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
-            trainer) confirm_and_run "安装修改器常用兼容层" "安装 GE-Proton 7-55、8-25、9-27、10-29；约 1.72GB" bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer ;;
+            trainer) bazzite_trainer_ge_proton_menu || return 1 ;;
             back) return 0 ;;
             home) NEXT_CATEGORY="home"; return 1 ;;
         esac

@@ -406,6 +406,51 @@ install_trainer_ge_proton() {
     echo "修改器所需常用兼容层安装完成。"
 }
 
+install_single_trainer_ge_proton() {
+    local requested_version="${1:-}"
+    local expected_version
+    local compatibility_dir
+    local item
+    local mirror_id
+    local mirror_repo
+    local version
+    local sha256
+    local matched=0
+
+    case "$requested_version" in
+        7-55|8-25|9-27|10-29) expected_version="GE-Proton$requested_version" ;;
+        *)
+            echo "修改器兼容层版本无效，可选：7-55、8-25、9-27、10-29。"
+            return 1
+            ;;
+    esac
+
+    compatibility_dir="$(resolve_compatibilitytools_dir)" || return 1
+    mkdir -p "$compatibility_dir" || return 1
+    for item in "${GE_PROTON_TRAINER_ITEMS[@]}"; do
+        IFS='|' read -r mirror_id mirror_repo version sha256 <<< "$item"
+        [ "$version" = "$expected_version" ] || continue
+        matched=1
+        GE_PROTON_VERSION="$version"
+        GE_PROTON_SHA256="$sha256"
+        if ge_proton_is_installed "$compatibility_dir"; then
+            echo "[已安装] $version 已存在且文件完整，无需重复安装。"
+            return 0
+        fi
+        echo "正在单独安装 ${version}，不会下载其他三个修改器兼容层。"
+        install_ge_proton_package "$mirror_id" "$mirror_repo" \
+            "mirror" "$compatibility_dir" || return 1
+        restart_steam_after_ge_proton
+        echo "${version} 修改器兼容层安装完成。"
+        return 0
+    done
+
+    [ "$matched" -eq 1 ] || {
+        echo "没有找到 $expected_version 的固定下载配置，请更新Renkit。"
+        return 1
+    }
+}
+
 uninstall_ge_proton() {
     local compatibility_dir target_dir answer
 
@@ -439,7 +484,8 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
         install) install_ge_proton ;;
         install-trainer) install_trainer_ge_proton ;;
+        install-trainer-one) install_single_trainer_ge_proton "${2:-}" ;;
         uninstall) uninstall_ge_proton ;;
-        *) echo "用法：bash ge_proton.sh {install|install-trainer|uninstall}"; exit 1 ;;
+        *) echo "用法：bash ge_proton.sh {install|install-trainer|install-trainer-one 7-55|8-25|9-27|10-29|uninstall}"; exit 1 ;;
     esac
 fi

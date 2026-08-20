@@ -110,6 +110,10 @@ grep -Fq 'install-trainer' "$MODULE" || {
     echo "FAIL: ge_proton.sh 缺少 install-trainer 子命令"
     exit 1
 }
+grep -Fq 'install-trainer-one' "$MODULE" || {
+    echo "FAIL: ge_proton.sh 缺少单版本修改器兼容层子命令"
+    exit 1
+}
 grep -Fq 'mktemp -d "${compatibility_dir}/.ge-proton-tmp.XXXXXX"' "$MODULE" || {
     echo "FAIL: GE-Proton 临时目录没有放在兼容层所在磁盘" >&2
     exit 1
@@ -203,6 +207,40 @@ printf '%s\n' "$trainer_output" | grep -Fq '修改器所需常用兼容层安装
     echo "FAIL: 修改器常用兼容层缺少完成提示"
     exit 1
 }
+
+# 单版本入口只允许四个固定版本，并且只把所选镜像交给既有安全安装函数。
+SINGLE_LOG="$TMP_ROOT/single-trainer.log"
+(
+    source "$MODULE"
+    resolve_compatibilitytools_dir() { printf "%s\n" "$TARGET_ROOT"; }
+    ge_proton_is_installed() { return 1; }
+    install_ge_proton_package() {
+        printf "%s|%s|%s|%s|%s|%s\n" \
+            "$1" "$2" "$3" "$4" "$GE_PROTON_VERSION" "$GE_PROTON_SHA256" > "$SINGLE_LOG"
+    }
+    restart_steam_after_ge_proton() { printf "%s\n" restart >> "$SINGLE_LOG"; }
+    install_single_trainer_ge_proton 9-27
+)
+grep -Fq 'ge-proton-trainer-9-27|zhoukeer-toolbox-mirror-6|mirror|' "$SINGLE_LOG" || {
+    echo "FAIL: 单独安装 9-27 没有使用对应固定 Gitee 镜像"
+    exit 1
+}
+grep -Fq '|GE-Proton9-27|bbd3108ba8dcf173dd2a60ef4eb1b8d07e0fb3c9a1061b5b9310c5355c151937' "$SINGLE_LOG" || {
+    echo "FAIL: 单独安装 9-27 没有使用固定版本和 SHA256"
+    exit 1
+}
+grep -Fxq 'restart' "$SINGLE_LOG" || {
+    echo "FAIL: 单版本安装成功后没有重启 Steam"
+    exit 1
+}
+if (
+    source "$MODULE"
+    resolve_compatibilitytools_dir() { printf "%s\n" "$TARGET_ROOT"; }
+    install_single_trainer_ge_proton 11-99
+) >/dev/null 2>&1; then
+    echo "FAIL: 单版本入口接受了白名单外版本"
+    exit 1
+fi
 
 # 安装前必须清理 /tmp 与兼容层目录里的旧 GE-Proton 缓存。
 TMP_BASE="$TMP_ROOT/tmp-base"

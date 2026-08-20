@@ -163,6 +163,11 @@ grep -Fq 'modules/domestic_source.sh" enable' "$PROJECT_ROOT/main-bazzite.sh" ||
 grep -Fq 'modules/domestic_source.sh" restore' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 官方 Flatpak 源恢复入口缺失"
 grep -Fq 'localsend) title="LocalSend"' "$PROJECT_ROOT/main-bazzite.sh" || fail "LocalSend 菜单动作缺失"
 grep -Fq 'modules/ge_proton.sh" install-trainer' "$PROJECT_ROOT/main-bazzite.sh" || fail "修改器常用 GE-Proton 入口缺失"
+grep -Fq 'modules/ge_proton.sh" install-trainer-one "$version"' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 单版本修改器兼容层入口缺失"
+for version in 7-55 8-25 9-27 10-29; do
+    grep -Fq "安装 GE-Proton $version" "$PROJECT_ROOT/main-bazzite.sh" || \
+        fail "Bazzite 修改器兼容层子菜单缺少 $version"
+done
 grep -Fq 'modules/emulators.sh" yuzu-keys' "$PROJECT_ROOT/main-bazzite.sh" || fail "Yuzu 自备密钥导入入口缺失"
 grep -Fq 'modules/emulators.sh" yuzu-keys-status' "$PROJECT_ROOT/main-bazzite.sh" || fail "Yuzu 密钥状态入口缺失"
 grep -Fq 'modules/emulators.sh" install-all' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 一键安装模拟器入口缺失"

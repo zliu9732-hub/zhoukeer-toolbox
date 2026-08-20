@@ -906,6 +906,23 @@ epic_runner="$(MODULE="$MODULE" STEAM_ROOT="$TMP_ROOT/steam" bash -c '
     echo "FAIL: Epic 没有优先使用 Proton Experimental" >&2
     exit 1
 }
+# Steam 把兼容工具安装到自定义库时，也必须立即识别，不能再次打开安装页并等待。
+CUSTOM_PROTON_STEAM="$TMP_ROOT/custom-proton-steam"
+CUSTOM_PROTON_LIBRARY="$TMP_ROOT/custom proton library"
+CUSTOM_PE_RUNNER="$CUSTOM_PROTON_LIBRARY/steamapps/common/Proton - Experimental/proton"
+mkdir -p "$CUSTOM_PROTON_STEAM/steamapps" "$(dirname "$CUSTOM_PE_RUNNER")"
+printf '#!/bin/bash\nexit 0\n' > "$CUSTOM_PE_RUNNER"
+chmod +x "$CUSTOM_PE_RUNNER"
+printf '"libraryfolders"\n{\n    "1"\n    {\n        "path"    "%s"\n    }\n}\n' \
+    "$CUSTOM_PROTON_LIBRARY" > "$CUSTOM_PROTON_STEAM/steamapps/libraryfolders.vdf"
+(
+    source "$MODULE"
+    custom_runner="$(ensure_launcher_proton_runner epic "$CUSTOM_PROTON_STEAM")"
+    [ "$custom_runner" = "$CUSTOM_PE_RUNNER" ] || {
+        echo "FAIL: Epic 没有识别自定义 Steam 库中的 Proton Experimental" >&2
+        exit 1
+    }
+)
 ubisoft_runner="$(MODULE="$MODULE" STEAM_ROOT="$TMP_ROOT/steam" bash -c '
     source "$MODULE"
     ensure_launcher_proton_runner ubisoft "$STEAM_ROOT"
