@@ -154,6 +154,17 @@ DECKY_ONEXPLAYER_APEX_SHA256="7c522bc8145697d78d6165f7f97671d4d67a5bf4f9e4ed5e6f
 DECKY_ONEXPLAYER_APEX_VERSION="build-b696161"
 DECKY_ONEXPLAYER_APEX_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_HANDHELD_PLUGIN_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
+DECKY_GAME_INFO_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
+STEAMDB_INFO_DIRECTORY="SteamDBButton"
+STEAMDB_INFO_VERSION="0.0.1"
+STEAMDB_INFO_MIRROR_ID="steamdb-game-info-zh"
+STEAMDB_INFO_PACKAGE_SHA256="f7eb84a3e2a9c41de373d4a97c1a28269378fc72de05a0c2df06aeb148ed8618"
+STEAMDB_INFO_INDEX_SHA256="871586c9867bcc621b38618c52de884202eb72a66828ff447e0891327ae2b607"
+DECKY_TRANSLATOR_DIRECTORY="decky-translator"
+DECKY_TRANSLATOR_VERSION="0.8.0"
+DECKY_TRANSLATOR_MIRROR_ID="decky-translator-zh"
+DECKY_TRANSLATOR_PACKAGE_SHA256="2daf88f9806c8c702e7dd149ce65a2e2199eeccb869d043416e7dca54c7704b1"
+DECKY_TRANSLATOR_INDEX_SHA256="765a4d4d3f5d68053419123cbd8b4e0305639a3bf052af66274b57236a018669"
 # 小黄鸭与 FSR4 的署名完整包只允许从 mirror-3 分块镜像下载。
 # 不配置 GitHub 回退地址，避免工具箱与其他账号仓库形成下载关联。
 # Gitee 归档必须指向包含当前 dist 汉化包的稳定标签，避免旧归档校验失败。
@@ -3447,6 +3458,9 @@ install_configured_plugin() {
                     "NewFreedeck"
             )
             ;;
+        steamdb-info|decky-translator)
+            install_game_info_plugin_from_gitee "$action"
+            ;;
         allycenter)
             ensure_allycenter_chinese_current
             ;;
@@ -3589,6 +3603,87 @@ feature_plugin_is_present() {
         [ "$actual_name" = "$expected_name" ] && return 0
     done
     return 1
+}
+
+# SteamDB 游戏数据与沉浸式翻译均使用 mirror-3 上的固定完整汉化包。
+# 不配置其它来源；清单、分块或整包校验失败时，原子安装尚未开始，旧插件会保留。
+install_game_info_plugin_from_gitee() {
+    local action="$1"
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local directory version mirror_id package_sha256 index_sha256 display_name manifest_name author_line
+    local actual_sha256 installed_version
+
+    case "$action" in
+        steamdb-info)
+            directory="$STEAMDB_INFO_DIRECTORY"
+            version="$STEAMDB_INFO_VERSION"
+            mirror_id="$STEAMDB_INFO_MIRROR_ID"
+            package_sha256="$STEAMDB_INFO_PACKAGE_SHA256"
+            index_sha256="$STEAMDB_INFO_INDEX_SHA256"
+            display_name="SteamDB 游戏数据"
+            manifest_name="SteamDB 游戏数据"
+            author_line="原作者：kedMertens；许可证：BSD 3-Clause。"
+            ;;
+        decky-translator)
+            directory="$DECKY_TRANSLATOR_DIRECTORY"
+            version="$DECKY_TRANSLATOR_VERSION"
+            mirror_id="$DECKY_TRANSLATOR_MIRROR_ID"
+            package_sha256="$DECKY_TRANSLATOR_PACKAGE_SHA256"
+            index_sha256="$DECKY_TRANSLATOR_INDEX_SHA256"
+            display_name="沉浸式翻译"
+            manifest_name="沉浸式翻译"
+            author_line="原作者：cat-in-a-box；许可证：GPL-3.0。"
+            ;;
+        *)
+            echo "未知游戏信息插件：$action"
+            return 1
+            ;;
+    esac
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "$display_name 仅支持 SteamOS 或 Bazzite。"
+        return 1
+    fi
+    if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
+        ensure_plugin_store_ready || {
+            echo "Decky Loader 未安装完成，$display_name 暂未开始安装。"
+            return 1
+        }
+    fi
+
+    actual_sha256="$(calculate_decky_sha256 \
+        "$plugin_root/$directory/dist/index.js" 2>/dev/null || true)"
+    if feature_plugin_is_current "$plugin_root" "$directory" "$version" "$manifest_name" && \
+        [ "$actual_sha256" = "$index_sha256" ]; then
+        echo "[已安装] $display_name v$version 已存在且校验通过，无需重复安装。"
+        return 0
+    fi
+    if [ -d "$plugin_root/$directory" ]; then
+        installed_version="$(decky_plugin_version "$plugin_root/$directory" || true)"
+        echo "检测到 $display_name 版本 ${installed_version:-未知}，将通过 Gitee 分块更新到 v${version}。"
+    else
+        echo "正在通过 Gitee mirror-3 分块安装 $display_name v$version..."
+    fi
+
+    GITEE_MIRROR_REPO="$DECKY_GAME_INFO_MIRROR_REPO" \
+        install_decky_zip_from_mirror "$display_name" "$mirror_id" \
+        "$package_sha256" "$directory" || {
+            echo "$display_name 的 Gitee 分块镜像不可用，已保留现有插件。"
+            return 1
+        }
+
+    actual_sha256="$(calculate_decky_sha256 \
+        "$plugin_root/$directory/dist/index.js" 2>/dev/null || true)"
+    if ! feature_plugin_is_current "$plugin_root" "$directory" "$version" "$manifest_name" || \
+        [ "$actual_sha256" != "$index_sha256" ]; then
+        echo "$display_name 安装后校验失败，请更新Renkit后重试。"
+        return 1
+    fi
+    echo "$display_name v$version 已安装；汉化：RenAmamiya。"
+    echo "$author_line"
+    reload_decky_plugins "Decky 已重新加载；返回游戏模式即可打开 ${display_name}。"
+    log "$display_name v$version 通过 mirror-3 分块安装完成"
 }
 
 print_feature_plugin_status() {
@@ -3862,6 +3957,8 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         savepulse) show_plugin_download_speed_tip; install_configured_plugin savepulse ;;
         freedeck) show_plugin_download_speed_tip; install_configured_plugin freedeck ;;
         newfreedeck) show_plugin_download_speed_tip; install_configured_plugin newfreedeck ;;
+        steamdb-info) install_configured_plugin steamdb-info ;;
+        decky-translator) install_configured_plugin decky-translator ;;
         allycenter) show_plugin_download_speed_tip; install_configured_plugin allycenter ;;
         huesync) show_plugin_download_speed_tip; install_configured_plugin huesync ;;
         legiongo-remapper) show_plugin_download_speed_tip; install_configured_plugin legiongo-remapper ;;

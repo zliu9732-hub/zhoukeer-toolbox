@@ -661,10 +661,11 @@ plugin_page_2_menu() {
         ui_touch_button 13 '\033[1;97;48;5;24m' "ToMoon" "网络工具"
         ui_touch_button 15 '\033[1;97;48;5;24m' "安装 GE 兼容层" "提高 Windows 游戏兼容性"
         ui_touch_button 17 '\033[1;97;48;5;24m' "启动器与封面" "Epic、战网、育碧及封面修复"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "游戏数据与翻译" "SteamDB 史低/在线峰值 · 翻译兼容性评价"
         ui_touch_button 21 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:deckrecall right:7-8:savepulse right:9-10:handheld-plugins right:11-12:unifideck right:13-14:tomoon right:15-16:ge-proton right:17-18:launchers right:21-22:previous right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:deckrecall right:7-8:savepulse right:9-10:handheld-plugins right:11-12:unifideck right:13-14:tomoon right:15-16:ge-proton right:17-18:launchers right:19-20:game-info-tools right:21-22:previous right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -675,10 +676,39 @@ plugin_page_2_menu() {
             tomoon) confirm_and_run "安装 ToMoon" "网络工具插件，下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon ;;
             ge-proton) ge_proton_menu ;;
             launchers) NEXT_CATEGORY="launcher_tools"; return 0 ;;
+            game-info-tools) NEXT_CATEGORY="game_info_plugins"; return 0 ;;
             previous) NEXT_CATEGORY="games"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "plugin_page_2" ] || return 0
+    done
+}
+
+game_info_plugins_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame games "游戏数据与翻译" "游戏模式直接查看数据或翻译屏幕文字" 0
+        ui_touch_button 6 '\033[1;97;48;5;24m' "SteamDB 游戏数据" "商店页显示价格史低与在线峰值按钮 · 中文版"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "沉浸式翻译" "翻译游戏兼容性评价和屏幕文字 · 中文版"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件第二页" "查看其他插件"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:6-7:steamdb-info right:10-11:decky-translator right:19-20:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            steamdb-info)
+                confirm_and_run "安装 SteamDB 游戏数据" "仅从 Gitee mirror-3 分块安装完整汉化包；在游戏模式 Steam 商店详情页显示价格史低和在线峰值入口；需要开启 CEF 远程调试；汉化：RenAmamiya" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamdb-info
+                ;;
+            decky-translator)
+                confirm_and_run "安装沉浸式翻译" "仅从 Gitee mirror-3 分块安装完整汉化包；可识别并翻译兼容性评价和其它屏幕文字；免费在线翻译需要网络，API 密钥功能由用户自行配置；汉化：RenAmamiya" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" decky-translator
+                ;;
+            back) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = "game_info_plugins" ] || return 0
     done
 }
 
@@ -1626,6 +1656,7 @@ while true; do
         freedeck_versions) freedeck_versions_menu ;;
         decky_loader) decky_loader_menu ;;
         plugin_page_2) plugin_page_2_menu ;;
+        game_info_plugins) game_info_plugins_menu ;;
         launcher_tools) launcher_tools_menu ;;
         handheld_plugins) handheld_plugins_menu ;;
         battlenet_submenu) battlenet_submenu ;;

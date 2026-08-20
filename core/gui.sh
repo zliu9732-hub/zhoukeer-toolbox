@@ -272,6 +272,7 @@ game_environment_gui_menu() {
     local battlenet_choice
     local freedeck_choice
     local handheld_plugin_choice
+    local game_info_choice
     local lsfg_choice
     local repair_choice
 
@@ -293,6 +294,7 @@ game_environment_gui_menu() {
             repair "修复启动器封面｜重写 Steam 库封面并重启 Steam" \
             deckrecall "DeckRecall｜添加启动项及恢复游戏可玩状态" \
             savepulse "SavePulse｜自动版本存档、个人 WebDAV 云备份与换机恢复" \
+            game-info-tools "游戏数据与翻译｜SteamDB 史低/在线峰值与兼容性评价翻译" \
             decky-install "安装插件商城｜稳定版国内失败自动切换官方源｜可选测试版｜高级操作" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
@@ -338,6 +340,24 @@ game_environment_gui_menu() {
             savepulse)
                 run_gui_action "安装 SavePulse" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" savepulse
+                ;;
+            game-info-tools)
+                game_info_choice="$(gui_dialog --menu "游戏数据与翻译" \
+                    steamdb-info "SteamDB 游戏数据｜商店页显示价格史低与在线峰值｜中文版" \
+                    decky-translator "沉浸式翻译｜翻译兼容性评价与屏幕文字｜中文版" \
+                    back "返回游戏与插件")" || continue
+                case "$game_info_choice" in
+                    steamdb-info)
+                        gui_confirm "仅从 Gitee mirror-3 分块安装完整汉化包；在游戏模式 Steam 商店详情页显示价格史低和在线峰值入口，需要开启 CEF 远程调试。是否继续？" && \
+                            run_gui_action "安装 SteamDB 游戏数据" env ZHOUKEER_AUTO_CONFIRM=1 \
+                                bash "$PROJECT_ROOT/modules/plugin_store.sh" steamdb-info
+                        ;;
+                    decky-translator)
+                        gui_confirm "仅从 Gitee mirror-3 分块安装完整汉化包；可识别并翻译兼容性评价和其它屏幕文字。免费在线翻译需要网络，API 密钥功能由用户自行配置。是否继续？" && \
+                            run_gui_action "安装沉浸式翻译" env ZHOUKEER_AUTO_CONFIRM=1 \
+                                bash "$PROJECT_ROOT/modules/plugin_store.sh" decky-translator
+                        ;;
+                esac
                 ;;
             freedeck)
                 freedeck_choice="$(gui_dialog --menu "Freedeck 版本选择" \

@@ -1,0 +1,10 @@
+{
+  "name": "SteamDB 游戏数据",
+  "author": "kedMertens",
+  "flags": [],
+  "api_version": 1,
+  "publish": {
+    "tags": ["steamdb", "price history"],
+    "description": "在游戏模式商店页打开 SteamDB 价格史低与在线峰值。汉化：RenAmamiya。"
+  }
+}

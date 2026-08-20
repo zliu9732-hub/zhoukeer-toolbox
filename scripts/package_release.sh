@@ -50,6 +50,7 @@ cd "$PROJECT_ROOT" || exit 1
 while IFS= read -r -d '' source_path; do
     case "$source_path" in
         dist/*|mirrors/*|launcher-covers/*|decky-installer-cn/*|decky-plugins/zhoukeer-localizer/*|assets/background.png|assets/welcome.png|assets/disclaimer-usage.png|assets/game-launchers/*|website/*|index.html|todesk.html) continue ;;
+        third_party/steamdb-button-zh-v0.0.1/*|third_party/decky-translator-zh-v0.8.0/*) continue ;;
         third_party/cssloader-zh-v2.1.2/*)
             case "$source_path" in
                 third_party/cssloader-zh-v2.1.2/plugin.json|\
