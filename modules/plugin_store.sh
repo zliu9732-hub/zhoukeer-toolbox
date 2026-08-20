@@ -158,13 +158,16 @@ DECKY_GAME_INFO_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 STEAMDB_INFO_DIRECTORY="SteamDBButton"
 STEAMDB_INFO_VERSION="0.0.1"
 STEAMDB_INFO_MIRROR_ID="steamdb-game-info-zh"
-STEAMDB_INFO_PACKAGE_SHA256="f7eb84a3e2a9c41de373d4a97c1a28269378fc72de05a0c2df06aeb148ed8618"
+STEAMDB_INFO_PACKAGE_SHA256="cb072edfbed3e30abec76fc25ce74653380594feecba81e61284d72563b082bf"
 STEAMDB_INFO_INDEX_SHA256="871586c9867bcc621b38618c52de884202eb72a66828ff447e0891327ae2b607"
+STEAMDB_INFO_BACKEND_SHA256="9abcb7350ea051c8caa3d6a5d01632b6a3fb2165a0467f1fe0ee2b1cf8cb0f57"
 DECKY_TRANSLATOR_DIRECTORY="decky-translator"
 DECKY_TRANSLATOR_VERSION="0.8.0"
 DECKY_TRANSLATOR_MIRROR_ID="decky-translator-zh"
-DECKY_TRANSLATOR_PACKAGE_SHA256="2daf88f9806c8c702e7dd149ce65a2e2199eeccb869d043416e7dca54c7704b1"
+DECKY_TRANSLATOR_PACKAGE_SHA256="a9e63de07bf01dcf27f8292cd5bb2b6488d08205d94ae323730a070f4b3002cd"
 DECKY_TRANSLATOR_INDEX_SHA256="765a4d4d3f5d68053419123cbd8b4e0305639a3bf052af66274b57236a018669"
+DECKY_TRANSLATOR_BACKEND_SHA256="f3a50b71fb6e35c5cb265a209a09cd07906389cd5e28802b118be566b86536db"
+DECKY_TRANSLATOR_DEPENDENCIES_SHA256="3112dc9541e84d958670755a0a7f47d5a933368e4d48acebac3793834354fdd2"
 # 小黄鸭与 FSR4 的署名完整包只允许从 mirror-3 分块镜像下载。
 # 不配置 GitHub 回退地址，避免工具箱与其他账号仓库形成下载关联。
 # Gitee 归档必须指向包含当前 dist 汉化包的稳定标签，避免旧归档校验失败。
@@ -3610,8 +3613,8 @@ feature_plugin_is_present() {
 install_game_info_plugin_from_gitee() {
     local action="$1"
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
-    local directory version mirror_id package_sha256 index_sha256 display_name manifest_name author_line
-    local actual_sha256 installed_version
+    local directory version mirror_id package_sha256 index_sha256 backend_sha256 dependencies_sha256 display_name manifest_name author_line
+    local actual_sha256 actual_backend_sha256 actual_dependencies_sha256 installed_version
 
     case "$action" in
         steamdb-info)
@@ -3620,6 +3623,7 @@ install_game_info_plugin_from_gitee() {
             mirror_id="$STEAMDB_INFO_MIRROR_ID"
             package_sha256="$STEAMDB_INFO_PACKAGE_SHA256"
             index_sha256="$STEAMDB_INFO_INDEX_SHA256"
+            backend_sha256="$STEAMDB_INFO_BACKEND_SHA256"
             display_name="SteamDB 游戏数据"
             manifest_name="SteamDB 游戏数据"
             author_line="原作者：kedMertens；许可证：BSD 3-Clause。"
@@ -3630,6 +3634,8 @@ install_game_info_plugin_from_gitee() {
             mirror_id="$DECKY_TRANSLATOR_MIRROR_ID"
             package_sha256="$DECKY_TRANSLATOR_PACKAGE_SHA256"
             index_sha256="$DECKY_TRANSLATOR_INDEX_SHA256"
+            backend_sha256="$DECKY_TRANSLATOR_BACKEND_SHA256"
+            dependencies_sha256="$DECKY_TRANSLATOR_DEPENDENCIES_SHA256"
             display_name="沉浸式翻译"
             manifest_name="沉浸式翻译"
             author_line="原作者：cat-in-a-box；许可证：GPL-3.0。"
@@ -3654,8 +3660,19 @@ install_game_info_plugin_from_gitee() {
 
     actual_sha256="$(calculate_decky_sha256 \
         "$plugin_root/$directory/dist/index.js" 2>/dev/null || true)"
+    actual_backend_sha256="$(calculate_decky_sha256 \
+        "$plugin_root/$directory/main.py" 2>/dev/null || true)"
+    actual_dependencies_sha256=""
+    if [ -n "${dependencies_sha256:-}" ] && \
+       [ -s "$plugin_root/$directory/bin/plugin-dependencies.tar.gz" ]; then
+        actual_dependencies_sha256="$(calculate_decky_sha256 \
+            "$plugin_root/$directory/bin/plugin-dependencies.tar.gz" 2>/dev/null || true)"
+    fi
     if feature_plugin_is_current "$plugin_root" "$directory" "$version" "$manifest_name" && \
-        [ "$actual_sha256" = "$index_sha256" ]; then
+        [ "$actual_sha256" = "$index_sha256" ] && \
+        [ "$actual_backend_sha256" = "$backend_sha256" ] && \
+        { [ -z "${dependencies_sha256:-}" ] || \
+          [ "$actual_dependencies_sha256" = "$dependencies_sha256" ]; }; then
         echo "[已安装] $display_name v$version 已存在且校验通过，无需重复安装。"
         return 0
     fi
@@ -3675,8 +3692,19 @@ install_game_info_plugin_from_gitee() {
 
     actual_sha256="$(calculate_decky_sha256 \
         "$plugin_root/$directory/dist/index.js" 2>/dev/null || true)"
+    actual_backend_sha256="$(calculate_decky_sha256 \
+        "$plugin_root/$directory/main.py" 2>/dev/null || true)"
+    actual_dependencies_sha256=""
+    if [ -n "${dependencies_sha256:-}" ] && \
+       [ -s "$plugin_root/$directory/bin/plugin-dependencies.tar.gz" ]; then
+        actual_dependencies_sha256="$(calculate_decky_sha256 \
+            "$plugin_root/$directory/bin/plugin-dependencies.tar.gz" 2>/dev/null || true)"
+    fi
     if ! feature_plugin_is_current "$plugin_root" "$directory" "$version" "$manifest_name" || \
-        [ "$actual_sha256" != "$index_sha256" ]; then
+        [ "$actual_sha256" != "$index_sha256" ] || \
+        [ "$actual_backend_sha256" != "$backend_sha256" ] || \
+        { [ -n "${dependencies_sha256:-}" ] && \
+          [ "$actual_dependencies_sha256" != "$dependencies_sha256" ]; }; then
         echo "$display_name 安装后校验失败，请更新Renkit后重试。"
         return 1
     fi
