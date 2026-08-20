@@ -151,7 +151,7 @@ sync_plugin lsfg-zh-signed "zliu9732-hub/decky-lsfg-vk-zh" \
     '^Decky[.]LSFG-VK-zh-signed-v0[.]12[.]8-r3[.]zip$' "Decky LSFG-VK 署名中文插件" \
     "v0.12.8" "Decky.LSFG-VK-zh-signed-v0.12.8-r3.zip" \
     "https://github.com/zliu9732-hub/decky-lsfg-vk-zh/releases/download/v0.12.8/Decky.LSFG-VK-zh-signed-v0.12.8-r3.zip" \
-    "b5e022ed2ba852297653d82f319ca500f9fb12fb52fc35e0d79ba676287a301c" "$MIRROR3"
+    "5f23593e94e10d453c583e4b9f66b0a454754619a81e52dcadb21610b9ed4deb" "$MIRROR3"
 # MAKO 尝鲜版跟随上游最新 Release 同步，上传前必须解析到带 SHA256 digest 的 ZIP。
 sync_plugin lsfg-mako "eugeniosegala/MAKO" \
     '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO LSFG-VK" "" "" "" "" "$MIRROR3"
@@ -164,7 +164,7 @@ sync_plugin fsr4-zh-signed "zliu9732-hub/decky-framegen-zh" \
     '^Decky-Framegen-zh-signed-v0[.]17-r2[.]zip$' "Decky-Framegen 署名中文插件" \
     "v0.17" "Decky-Framegen-zh-signed-v0.17-r2.zip" \
     "https://github.com/zliu9732-hub/decky-framegen-zh/releases/download/v0.17/Decky-Framegen-zh-signed-v0.17-r2.zip" \
-    "7744c0217b53fc1b95edc7a482532de664ed29ae13f70f329dca88383f2062c4" "$MIRROR3"
+    "2972ecfcebb6b4544116d215d1ae9647ba7dc3fc15627cba9303cfb014ce6632" "$MIRROR3"
 sync_plugin cheatdeck "SheffeyG/CheatDeck" '^CheatDeck[.]zip$' "CheatDeck"
 sync_plugin steamgriddb "SteamGridDB/decky-steamgriddb" '^$' "SteamGridDB" \
     "v1.7.1" "steamgriddb-v1.7.1.zip" \

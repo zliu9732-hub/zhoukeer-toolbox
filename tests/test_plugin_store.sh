@@ -257,10 +257,10 @@ allycenter_zh_actual_sha256="$(shasum -a 256 \
     exit 1
 }
 grep -Fq 'LSFG_ZH_MIRROR_ID="lsfg-zh-signed"' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'LSFG_ZH_PACKAGE_SHA256="b5e022ed2ba852297653d82f319ca500f9fb12fb52fc35e0d79ba676287a301c"' \
+grep -Fq 'LSFG_ZH_PACKAGE_SHA256="5f23593e94e10d453c583e4b9f66b0a454754619a81e52dcadb21610b9ed4deb"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'FSR4_ZH_MIRROR_ID="fsr4-zh-signed"' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'FSR4_ZH_PACKAGE_SHA256="7744c0217b53fc1b95edc7a482532de664ed29ae13f70f329dca88383f2062c4"' \
+grep -Fq 'FSR4_ZH_PACKAGE_SHA256="2972ecfcebb6b4544116d215d1ae9647ba7dc3fc15627cba9303cfb014ce6632"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_github_file "$url" "$output" "$expected_sha256" "$name"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
