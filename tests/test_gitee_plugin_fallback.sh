@@ -64,12 +64,26 @@ mkdir -p "$PLUGIN_ROOT"
 
 CALLS="$TMP_ROOT/strict-gitee.calls"
 detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
-calculate_decky_sha256() { return 1; }
-feature_plugin_is_current() { return 1; }
-feature_plugin_is_present() { return 1; }
+calculate_decky_sha256() {
+    case "$1" in
+        *'/Decky LSFG-VK/dist/index.js') printf '%s\n' "$LSFG_ZH_INDEX_SHA256" ;;
+        *'/Decky-Framegen/dist/index.js') printf '%s\n' "$FSR4_ZH_INDEX_SHA256" ;;
+        *) return 1 ;;
+    esac
+}
 install_decky_zip_from_mirror() { printf 'gitee:%s\n' "$1" >> "$CALLS"; return "${GITEE_RESULT:-1}"; }
 remove_legacy_lsfg_directories() { return 0; }
 log() { return 0; }
+
+mkdir -p "$PLUGIN_ROOT/Decky LSFG-VK/dist" "$PLUGIN_ROOT/Decky-Framegen/dist"
+DECKY_PLUGIN_DIR="$PLUGIN_ROOT"
+export DECKY_PLUGIN_DIR
+printf '{"version":"0.12.8"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
+printf '{"version":"0.17"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
+printf 'bundle\n' > "$PLUGIN_ROOT/Decky LSFG-VK/dist/index.js"
+printf 'bundle\n' > "$PLUGIN_ROOT/Decky-Framegen/dist/index.js"
+printf '{"name":"Decky LSFG-VK"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
+printf '{"name":"Decky-Framegen"}\n' > "$PLUGIN_ROOT/Decky-Framegen/plugin.json"
 
 GITEE_RESULT=0
 : > "$CALLS"
@@ -78,7 +92,16 @@ install_fsr4_zh_from_gitee 0 || fail "FSR4 没有从 Gitee 分块镜像安装"
 grep -Fq 'gitee:小黄鸭（LSFG-VK）' "$CALLS" || fail "小黄鸭未使用专用镜像"
 grep -Fq 'gitee:FSR4（Decky Framegen）' "$CALLS" || fail "FSR4 未使用专用镜像"
 
+printf '{"name":"小黄鸭"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
+printf '{"name":"Decky-Framegen（FSR4）"}\n' > "$PLUGIN_ROOT/Decky-Framegen/plugin.json"
+: > "$CALLS"
+install_lsfg_zh_from_gitee 0 || fail "新小黄鸭名称未被识别为当前版本"
+install_fsr4_zh_from_gitee 0 || fail "新 FSR4 名称未被识别为当前版本"
+[ ! -s "$CALLS" ] || fail "正确外显名仍触发了重复下载"
+
 GITEE_RESULT=1
+printf '{"name":"Decky LSFG-VK"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
+printf '{"name":"Decky-Framegen"}\n' > "$PLUGIN_ROOT/Decky-Framegen/plugin.json"
 : > "$CALLS"
 if install_lsfg_zh_from_gitee 0; then
     fail "小黄鸭镜像失败后错误返回成功"
