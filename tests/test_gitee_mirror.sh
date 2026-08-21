@@ -115,6 +115,9 @@ grep -Fq 'deckymusic|Decky Music 完整包|v1.0.2|Decky.Music.full.zip|' \
 grep -Fq "'^Decky[.]Music[.]full[.]zip$'" \
     "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
     FAIL "Decky Music 同步入口未固定完整包资产"
+grep -Fq 'DECKY_DECKYMUSIC_MIRROR_REPO="zhoukeer-toolbox-mirror-4"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh" || \
+    FAIL "Decky Music 未迁移到 mirror-4"
 allycenter_mirror_id="$(gitee_mirror_id_for_url \
     'https://github.com/PixelAddictUnlocked/allycenter/releases/download/v1.2.0/allycenter-v1.2.0.zip')"
 [ "$allycenter_mirror_id" = "allycenter" ] || FAIL "Ally Center 镜像标识映射错误"

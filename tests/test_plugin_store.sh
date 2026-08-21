@@ -113,6 +113,8 @@ grep -Fq 'jinzhongjia/decky-music/releases/download/v1.0.2/Decky.Music.full.zip'
 grep -Fq '37b79e28e54691f9c7e301aaa83823e20f6cffc8948d312b7398dcc87e466e11' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'ensure_deckymusic_full_current' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'DECKY_DECKYMUSIC_MIRROR_REPO="zhoukeer-toolbox-mirror-4"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.2/DeckRecall.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '38cbbaa94f39bbe7231f490fd3826f1347ce8c0acb53aa69c784d8511cc058fd' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Ren-Amamiya-pixle/SavePulse/releases/download/v0.2.0-alpha.1/SavePulse.zip' "$PROJECT_ROOT/modules/plugin_store.sh"

@@ -89,6 +89,7 @@ DECKY_FRIENDECK_PACKAGE_VERSION="0.7.5"
 DECKY_DECKYMUSIC_URL="https://github.com/jinzhongjia/decky-music/releases/download/v1.0.2/Decky.Music.full.zip"
 DECKY_DECKYMUSIC_SHA256="37b79e28e54691f9c7e301aaa83823e20f6cffc8948d312b7398dcc87e466e11"
 DECKY_DECKYMUSIC_VERSION="1.0.2"
+DECKY_DECKYMUSIC_MIRROR_REPO="zhoukeer-toolbox-mirror-4"
 DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip"
 DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
 DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.2/DeckRecall.zip"
@@ -3626,6 +3627,7 @@ ensure_deckymusic_full_current() {
         return 0
     fi
     echo "正在安装 Decky Music v$DECKY_DECKYMUSIC_VERSION 完整包；播放器和 QQ/网易云音乐源已内置，无需首次启动再下载。"
+    GITEE_MIRROR_REPO="$DECKY_DECKYMUSIC_MIRROR_REPO" \
     install_decky_zip "音乐播放器（Decky Music 完整包）" \
         "$DECKY_DECKYMUSIC_URL" "$DECKY_DECKYMUSIC_SHA256" \
         "Decky Music" 0 || return 1
