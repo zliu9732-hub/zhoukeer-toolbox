@@ -78,6 +78,7 @@ for menu in "$touch_remote" "$gui_remote"; do
 done
 
 touch_plugin_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
+touch_feature_singles="$(function_source "$MAIN_FILE" feature_plugin_singles_menu)"
 touch_launcher_tools="$(function_source "$MAIN_FILE" launcher_tools_menu)"
 gui_games="$(function_source "$GUI_FILE" game_environment_gui_menu)"
 touch_freedeck="$(function_source "$MAIN_FILE" freedeck_versions_menu)"
@@ -87,6 +88,15 @@ assert_contains "$touch_launcher_tools" '战网与黑盒工坊' "启动器与封
 assert_contains "$gui_games" '战网启动器' "GUI 游戏与插件缺少战网启动器"
 assert_contains "$touch_plugin_page_2" 'ToMoon' "插件第二页缺少 ToMoon"
 assert_contains "$gui_games" 'ToMoon' "GUI 游戏与插件缺少 ToMoon"
+for menu in "$touch_feature_singles" "$gui_games"; do
+    for item in '游戏封面更换' '主题美化' '文件传输助手' '音乐播放器'; do
+        assert_contains "$menu" "$item" "其余常用插件缺少独立入口：$item"
+    done
+    for action in steamgriddb cssloader friendeck deckymusic; do
+        assert_contains "$menu" "modules/plugin_store.sh\" $action" "其余常用插件动作错误：$action"
+    done
+    assert_contains "$menu" 'Decky Music v1.0.2 完整包' "音乐播放器入口未说明完整包版本"
+done
 assert_not_contains "$touch_plugin_page_2" '安装模拟器' "插件第二页仍显示模拟器入口"
 assert_not_contains "$gui_games" '安装模拟器' "GUI 游戏与插件仍显示模拟器入口"
 assert_contains "$touch_launcher_tools" 'right:11-12:repair' "启动器与封面子菜单缺少修复封面坐标"
@@ -128,6 +138,7 @@ for obsolete_hint in '安装适合 SteamOS 的微信' '安装适合 SteamOS 的 
 done
 
 touch_games="$(function_source "$MAIN_FILE" game_environment_menu)
+$(function_source "$MAIN_FILE" feature_plugin_singles_menu)
 $(function_source "$MAIN_FILE" decky_loader_menu)
 $(function_source "$MAIN_FILE" plugin_page_2_menu)
 $(function_source "$MAIN_FILE" launcher_tools_menu)

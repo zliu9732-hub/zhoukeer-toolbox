@@ -99,7 +99,7 @@ for mapping in \
     'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3.zip|steamgriddb' \
     'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip|cssloader' \
     'https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip|friendeck' \
-    'https://github.com/jinzhongjia/decky-music/releases/download/v1.0.0/Decky.Music.zip|deckymusic' \
+    'https://github.com/jinzhongjia/decky-music/releases/download/v1.0.2/Decky.Music.full.zip|deckymusic' \
     'https://github.com/HMCL-dev/HMCL/releases/download/v3.16.3/HMCL-3.16.3.jar|hmcl' \
     'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jre_x64_linux_hotspot_21.0.12_8.tar.gz|temurin21-jre'; do
     mapping_url="${mapping%%|*}"
@@ -109,6 +109,12 @@ for mapping in \
     grep -Fq "$mapping_id|" "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || \
         FAIL "$mapping_id 缺少 Gitee 固定镜像清单"
 done
+grep -Fq 'deckymusic|Decky Music 完整包|v1.0.2|Decky.Music.full.zip|' \
+    "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || \
+    FAIL "Decky Music v1.0.2 完整包缺少 Gitee 固定分块清单"
+grep -Fq "'^Decky[.]Music[.]full[.]zip$'" \
+    "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
+    FAIL "Decky Music 同步入口未固定完整包资产"
 allycenter_mirror_id="$(gitee_mirror_id_for_url \
     'https://github.com/PixelAddictUnlocked/allycenter/releases/download/v1.2.0/allycenter-v1.2.0.zip')"
 [ "$allycenter_mirror_id" = "allycenter" ] || FAIL "Ally Center 镜像标识映射错误"

@@ -271,6 +271,7 @@ game_environment_gui_menu() {
     local decky_choice
     local battlenet_choice
     local freedeck_choice
+    local feature_choice
     local handheld_plugin_choice
     local game_info_choice
     local lsfg_choice
@@ -280,6 +281,7 @@ game_environment_gui_menu() {
         choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
             features "常用插件组合｜小黄鸭、FSR4、封面、主题等七款插件" \
             all "常用插件加27款精选插件｜优先安装七款常用插件，已装则跳过；再补27款精选" \
+            feature-singles "其余常用插件｜封面、主题、文件传输与音乐播放器单独安装" \
             lsfg "小黄鸭｜插帧神器（必装）｜Gitee mirror-3 署名完整包｜汉化：RenAmamiya" \
             fsr4 "FSR4｜画质补丁（阅读桌面文档慎用）｜Gitee mirror-3 署名完整包｜汉化：RenAmamiya" \
             browse "浏览官方插件｜逐个查看插件作用" \
@@ -308,6 +310,20 @@ game_environment_gui_menu() {
                 gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。未安装插件商城时会先安装插件商城，再继续安装常用与精选插件；会使用管理员权限。是否继续？" && \
                     run_gui_action "安装常用插件加27款精选插件" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" all
+                ;;
+            feature-singles)
+                feature_choice="$(gui_dialog --menu "其余常用插件｜可分别安装" \
+                    steamgriddb "游戏封面更换｜SteamGridDB｜Gitee 分块优先" \
+                    cssloader "主题美化｜CSS Loader 中文版｜Gitee 分块优先" \
+                    friendeck "文件传输助手｜Friendeck｜Gitee 分块优先" \
+                    deckymusic "音乐播放器｜Decky Music v1.0.2 完整包｜音乐源已内置" \
+                    back "返回游戏与插件")" || continue
+                case "$feature_choice" in
+                    steamgriddb) run_gui_action "安装游戏封面更换" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
+                    cssloader) run_gui_action "安装主题美化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
+                    friendeck) run_gui_action "安装文件传输助手" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
+                    deckymusic) run_gui_action "安装音乐播放器" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
+                esac
                 ;;
             lsfg)
                 lsfg_choice="$(gui_dialog --menu "小黄鸭版本选择" \

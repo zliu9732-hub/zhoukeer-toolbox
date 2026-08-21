@@ -523,10 +523,11 @@ game_environment_menu() {
         ui_touch_button 13 '\033[1;97;48;5;24m' "小黄鸭" "插帧神器（必装）·旧版汉化稳定，MAKO 尝鲜版来自实验仓库"
         ui_touch_button 15 '\033[1;97;48;5;24m' "FSR4" "画质补丁（阅读桌面文档慎用）·汉化：RenAmamiya"
         ui_touch_button 17 '\033[1;97;48;5;24m' "Freedeck 版本选择" "0.6 稳定版或 NewFreedeck 重构版"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "其余常用插件" "封面、主题、文件传输与音乐播放器单独安装"
         ui_touch_button 21 '\033[1;97;48;5;238m' "下一页…" "查看剩余插件"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:decky-install right:7-8:features right:9-10:browse right:11-12:cheatdeck right:13-14:lsfg right:15-16:fsr4 right:17-18:freedeck right:21-22:next right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:decky-install right:7-8:features right:9-10:browse right:11-12:cheatdeck right:13-14:lsfg right:15-16:fsr4 right:17-18:freedeck right:19-20:feature-singles right:21-22:next right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -537,10 +538,36 @@ game_environment_menu() {
             lsfg) NEXT_CATEGORY="lsfg_versions"; return 0 ;;
             fsr4) confirm_and_run "安装 FSR4" "画质补丁（阅读桌面文档慎用）·仅从 Gitee mirror-3 分块安装署名完整包；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             freedeck) NEXT_CATEGORY="freedeck_versions"; return 0 ;;
+            feature-singles) feature_plugin_singles_menu ;;
             next) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "game_environment" ] || return 0
+    done
+}
+
+feature_plugin_singles_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame games "其余常用插件" "组合安装中的四款插件也可分别安装" 0
+        ui_touch_button 5 '\033[1;97;48;5;24m' "游戏封面更换" "SteamGridDB · Gitee 分块优先"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "主题美化" "CSS Loader 中文版 · Gitee 分块优先"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "文件传输助手" "Friendeck · Gitee 分块优先"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "音乐播放器" "Decky Music v1.0.2 完整包 · 音乐源已内置"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "不进行安装"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:5-6:steamgriddb right:8-9:cssloader right:11-12:friendeck right:14-15:deckymusic right:19-20:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            steamgriddb) confirm_and_run "安装游戏封面更换" "安装 SteamGridDB；Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
+            cssloader) confirm_and_run "安装主题美化" "安装 CSS Loader 中文版；Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
+            friendeck) confirm_and_run "安装文件传输助手" "安装 Friendeck；Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
+            deckymusic) confirm_and_run "安装音乐播放器" "安装 Decky Music v1.0.2 完整包；播放器和 QQ/网易云音乐源已内置，使用 Gitee 分块并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
+            back) return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
     done
 }
 

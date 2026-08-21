@@ -108,6 +108,11 @@ grep -Fq 'decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip' "$PROJECT_R
 grep -Fq 'Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CheatDeck/releases/download/v2.0.0/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'jinzhongjia/decky-music/releases/download/v1.0.2/Decky.Music.full.zip' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '37b79e28e54691f9c7e301aaa83823e20f6cffc8948d312b7398dcc87e466e11' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'ensure_deckymusic_full_current' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.2/DeckRecall.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '38cbbaa94f39bbe7231f490fd3826f1347ce8c0acb53aa69c784d8511cc058fd' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Ren-Amamiya-pixle/SavePulse/releases/download/v0.2.0-alpha.1/SavePulse.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -615,7 +620,11 @@ cp "$PROJECT_ROOT/third_party/cssloader-zh-v2.1.2/dist/index.js" \
 printf '{"name": "Friendeck"}\n' > "$PLUGIN_ROOT/Friendeck-plugin/plugin.json"
 printf '{"version":"0.7.5"}\n' > "$PLUGIN_ROOT/Friendeck-plugin/package.json"
 printf '{"name": "Decky Music"}\n' > "$PLUGIN_ROOT/Decky Music/plugin.json"
-printf '{"version":"1.0.0"}\n' > "$PLUGIN_ROOT/Decky Music/package.json"
+printf '{"version":"1.0.2"}\n' > "$PLUGIN_ROOT/Decky Music/package.json"
+mkdir -p "$PLUGIN_ROOT/Decky Music/bin"
+for binary in player qq-provider ncm-provider; do
+    printf 'binary fixture\n' > "$PLUGIN_ROOT/Decky Music/bin/$binary"
+done
 status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
     bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"
 printf '%s\n' "$status_output" | grep -Fq '✓ 小黄鸭（LSFG-VK）：已写入 Decky'
@@ -625,6 +634,16 @@ printf '%s\n' "$status_output" | grep -Fq '✓ 游戏封面更换（SteamGridDB�
 printf '%s\n' "$status_output" | grep -Fq '✓ 主题美化（CSS Loader）'
 printf '%s\n' "$status_output" | grep -Fq '✓ 文件传输助手（Friendeck）'
 printf '%s\n' "$status_output" | grep -Fq '✓ 音乐播放器（Decky Music）'
+
+rm -f -- "$PLUGIN_ROOT/Decky Music/bin/ncm-provider"
+if incomplete_music_status="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
+    bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"; then
+    echo "FAIL: Decky Music 缺少音乐源时不应通过状态检查" >&2
+    exit 1
+fi
+printf '%s\n' "$incomplete_music_status" | \
+    grep -Fq '音乐源文件不完整'
+printf 'binary fixture\n' > "$PLUGIN_ROOT/Decky Music/bin/ncm-provider"
 
 printf '{"name":"小黄鸭"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
 legacy_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \

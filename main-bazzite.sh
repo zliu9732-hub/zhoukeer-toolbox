@@ -479,9 +479,10 @@ bazzite_feature_plugins_menu() {
         ui_touch_button 10 '\033[1;97;48;5;24m' "安装 FSR4" "Decky-Framegen 汉化版"
         ui_touch_button 13 '\033[1;97;48;5;24m' "安装 CheatDeck" "修改器启动插件"
         ui_touch_button 16 '\033[1;97;48;5;24m' "更多功能插件" "Freedeck、ToMoon、Unifideck 与掌机控制"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "其余常用插件" "封面、主题、文件传输与音乐播放器单独安装"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回 Decky 插件"
         ui_prompt
-        choice="$(read_touch_menu right:4-5:all right:7-8:lsfg right:10-11:fsr4 right:13-14:cheatdeck right:16-17:more right:22-23:back)"
+        choice="$(read_touch_menu right:4-5:all right:7-8:lsfg right:10-11:fsr4 right:13-14:cheatdeck right:16-17:more right:19-20:feature-singles right:22-23:back)"
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
             all) confirm_and_run "安装三款汉化功能插件" "使用 Gitee 分块镜像并校验 SHA256；插件目录不可写时可能请求管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
@@ -489,7 +490,32 @@ bazzite_feature_plugins_menu() {
             fsr4) confirm_and_run "安装 FSR4" "仅从 Gitee mirror-3 分块安装署名完整包并校验 SHA256；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             cheatdeck) confirm_and_run "安装 CheatDeck" "Gitee 分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             more) bazzite_extra_plugins_menu || return 1 ;;
+            feature-singles) bazzite_common_feature_singles_menu || return 1 ;;
             back) return 0 ;;
+        esac
+    done
+}
+
+bazzite_common_feature_singles_menu() {
+    local choice
+    while true; do
+        draw_category_frame games "其余常用插件" "组合安装中的四款插件也可分别安装"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "游戏封面更换" "SteamGridDB · Gitee 分块优先"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "主题美化" "CSS Loader 中文版 · Gitee 分块优先"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "文件传输助手" "Friendeck · Gitee 分块优先"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "音乐播放器" "Decky Music v1.0.2 完整包 · 音乐源已内置"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回功能插件"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页"
+        ui_prompt
+        choice="$(read_touch_menu right:5-6:steamgriddb right:8-9:cssloader right:11-12:friendeck right:14-15:deckymusic right:19-20:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 1; fi
+        case "$choice" in
+            steamgriddb) confirm_and_run "安装游戏封面更换" "Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
+            cssloader) confirm_and_run "安装主题美化" "CSS Loader 中文版；Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
+            friendeck) confirm_and_run "安装文件传输助手" "Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
+            deckymusic) confirm_and_run "安装音乐播放器" "Decky Music v1.0.2 完整包；播放器和 QQ/网易云音乐源已内置，使用 Gitee 分块并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
+            back) return 0 ;;
+            home) NEXT_CATEGORY="home"; return 1 ;;
         esac
     done
 }

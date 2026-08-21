@@ -178,10 +178,10 @@ sync_plugin friendeck "panyiwei-home/Friendeck" '^Friendeck[.]v[.]0[.]7[.]7[.]zi
     "0.7.7" "Friendeck.v.0.7.7.zip" \
     "https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip" \
     "65465ff115e105912adf72b5461e17b697ac07100ce7061de2e962851e41c653"
-sync_plugin deckymusic "jinzhongjia/decky-music" '^Decky[.]Music[.]zip$' "Decky Music" \
-    "v1.0.0" "Decky.Music.zip" \
-    "https://github.com/jinzhongjia/decky-music/releases/download/v1.0.0/Decky.Music.zip" \
-    "ec2956bbee1d84b25b7f8749f06794b54014828a04707beccd06feb5d49dfa53"
+sync_plugin deckymusic "jinzhongjia/decky-music" '^Decky[.]Music[.]full[.]zip$' "Decky Music 完整包" \
+    "v1.0.2" "Decky.Music.full.zip" \
+    "https://github.com/jinzhongjia/decky-music/releases/download/v1.0.2/Decky.Music.full.zip" \
+    "37b79e28e54691f9c7e301aaa83823e20f6cffc8948d312b7398dcc87e466e11"
 sync_plugin tomoon "YukiCoco/ToMoon" '^tomoon-v[0-9.]+[.]zip$' "ToMoon"
 sync_plugin savepulse "Ren-Amamiya-pixle/SavePulse" '^SavePulse[.]zip$' "SavePulse" \
     "v0.2.0-alpha.1" "SavePulse.zip" \

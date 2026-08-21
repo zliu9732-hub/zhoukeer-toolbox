@@ -35,7 +35,7 @@ DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
     for entry in \
         "decky-steamgriddb|SteamGridDB|1.7.1|游戏封面更换" \
         "Friendeck-plugin|Friendeck|0.7.5|文件传输助手" \
-        "Decky Music|Decky Music|1.0.0|音乐播放器"; do
+        "Decky Music|Decky Music|1.0.2|音乐播放器"; do
         directory="${entry%%|*}"
         rest="${entry#*|}"
         official="${rest%%|*}"
@@ -67,7 +67,7 @@ DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
     for entry in \
         "decky-steamgriddb|SteamGridDB|1.7.1" \
         "Friendeck-plugin|Friendeck|0.7.5" \
-        "Decky Music|Decky Music|1.0.0"; do
+        "Decky Music|Decky Music|1.0.2"; do
         directory="${entry%%|*}"
         rest="${entry#*|}"
         official="${rest%%|*}"
@@ -101,7 +101,7 @@ DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
 
 grep -Fq 'DECKY_FRIENDECK_SHA256="65465ff115e105912adf72b5461e17b697ac07100ce7061de2e962851e41c653"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'DECKY_DECKYMUSIC_SHA256="ec2956bbee1d84b25b7f8749f06794b54014828a04707beccd06feb5d49dfa53"' \
+grep -Fq 'DECKY_DECKYMUSIC_SHA256="37b79e28e54691f9c7e301aaa83823e20f6cffc8948d312b7398dcc87e466e11"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CSSLOADER_ZH_INDEX_SHA256="38ec628efcc1238247e0cf771bde98b26be49349dca9c2d7de4270ad242a2567"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"

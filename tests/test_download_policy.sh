@@ -18,7 +18,7 @@ download_policy_url_allowed 'https://raw.githubusercontent.com/SteamDeckHomebrew
 download_policy_url_allowed 'https://dl.todesk.com/linux/todesk-v4.8.6.2-amd64.deb' || fail "ToDesk 官方 DEB 被拒绝"
 download_policy_url_allowed 'https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.25/todesk-v4.8.6.2-amd64.deb' || fail "ToDesk Release 镜像被拒绝"
 download_policy_url_allowed 'https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip' || fail "Friendeck 官方 Release 被拒绝"
-download_policy_url_allowed 'https://github.com/jinzhongjia/decky-music/releases/download/v1.0.0/Decky.Music.zip' || fail "Decky Music 官方 Release 被拒绝"
+download_policy_url_allowed 'https://github.com/jinzhongjia/decky-music/releases/download/v1.0.2/Decky.Music.full.zip' || fail "Decky Music 完整包官方 Release 被拒绝"
 download_policy_url_allowed 'https://github.com/Ren-Amamiya-pixle/SavePulse/releases/download/v0.2.0-alpha.1/SavePulse.zip' || fail "SavePulse 作者 Release 被拒绝"
 download_policy_url_allowed 'https://github.com/HMCL-dev/HMCL/releases/download/v3.16.3/HMCL-3.16.3.jar' || fail "HMCL 官方 Release 被拒绝"
 download_policy_url_allowed 'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jre_x64_linux_hotspot_21.0.12_8.tar.gz' || fail "Temurin JRE 官方 Release 被拒绝"

@@ -86,9 +86,9 @@ DECKY_FRIENDECK_URL="https://github.com/panyiwei-home/Friendeck/releases/downloa
 DECKY_FRIENDECK_SHA256="65465ff115e105912adf72b5461e17b697ac07100ce7061de2e962851e41c653"
 DECKY_FRIENDECK_RELEASE_VERSION="0.7.7"
 DECKY_FRIENDECK_PACKAGE_VERSION="0.7.5"
-DECKY_DECKYMUSIC_URL="https://github.com/jinzhongjia/decky-music/releases/download/v1.0.0/Decky.Music.zip"
-DECKY_DECKYMUSIC_SHA256="ec2956bbee1d84b25b7f8749f06794b54014828a04707beccd06feb5d49dfa53"
-DECKY_DECKYMUSIC_VERSION="1.0.0"
+DECKY_DECKYMUSIC_URL="https://github.com/jinzhongjia/decky-music/releases/download/v1.0.2/Decky.Music.full.zip"
+DECKY_DECKYMUSIC_SHA256="37b79e28e54691f9c7e301aaa83823e20f6cffc8948d312b7398dcc87e466e11"
+DECKY_DECKYMUSIC_VERSION="1.0.2"
 DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip"
 DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
 DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.2/DeckRecall.zip"
@@ -268,11 +268,7 @@ resolve_plugin_latest() {
                 "$DECKY_FRIENDECK_URL" "$DECKY_FRIENDECK_SHA256"
             ;;
         deckymusic)
-            ensure_official_plugin_current \
-                "音乐播放器（Decky Music）" \
-                "Decky Music" "$DECKY_DECKYMUSIC_VERSION" \
-                "Decky Music" "音乐播放器" \
-                "$DECKY_DECKYMUSIC_URL" "$DECKY_DECKYMUSIC_SHA256"
+            ensure_deckymusic_full_current
             ;;
         tomoon)
             [ -z "${ZHOUKEER_DECKY_TOMOON_URL:-}" ] || return 0
@@ -3608,6 +3604,37 @@ feature_plugin_is_present() {
     return 1
 }
 
+deckymusic_full_is_current() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local binary
+
+    feature_plugin_is_current "$plugin_root" "Decky Music" \
+        "$DECKY_DECKYMUSIC_VERSION" "Decky Music" || return 1
+    for binary in player qq-provider ncm-provider; do
+        [ -f "$plugin_root/Decky Music/bin/$binary" ] && \
+            [ ! -L "$plugin_root/Decky Music/bin/$binary" ] && \
+            [ -s "$plugin_root/Decky Music/bin/$binary" ] || return 1
+    done
+}
+
+ensure_deckymusic_full_current() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+
+    if deckymusic_full_is_current; then
+        echo "[已安装] 音乐播放器（Decky Music）v$DECKY_DECKYMUSIC_VERSION 完整包已存在，无需重复安装。"
+        PLUGIN_INSTALL_CHANGED=0
+        return 0
+    fi
+    echo "正在安装 Decky Music v$DECKY_DECKYMUSIC_VERSION 完整包；播放器和 QQ/网易云音乐源已内置，无需首次启动再下载。"
+    install_decky_zip "音乐播放器（Decky Music 完整包）" \
+        "$DECKY_DECKYMUSIC_URL" "$DECKY_DECKYMUSIC_SHA256" \
+        "Decky Music" 0 || return 1
+    deckymusic_full_is_current || {
+        echo "Decky Music 安装后缺少播放器或音乐源文件，安装已判定失败。"
+        return 1
+    }
+}
+
 # SteamDB 游戏数据与沉浸式翻译均使用 mirror-3 上的固定完整汉化包。
 # 不配置其它来源；清单、分块或整包校验失败时，原子安装尚未开始，旧插件会保留。
 install_game_info_plugin_from_gitee() {
@@ -3782,11 +3809,10 @@ print_feature_plugin_status() {
         echo "✗ 文件传输助手（Friendeck）：缺失、版本不符或官方名称未恢复"
         missing=1
     fi
-    if feature_plugin_is_current "$plugin_root" "Decky Music" \
-        "$DECKY_DECKYMUSIC_VERSION" "Decky Music"; then
-        echo "✓ 音乐播放器（Decky Music）：官方版本 $DECKY_DECKYMUSIC_VERSION，官方名称正确"
+    if deckymusic_full_is_current; then
+        echo "✓ 音乐播放器（Decky Music）：官方版本 $DECKY_DECKYMUSIC_VERSION，完整包音乐源文件齐全"
     else
-        echo "✗ 音乐播放器（Decky Music）：缺失、版本不符或官方名称未恢复"
+        echo "✗ 音乐播放器（Decky Music）：缺失、版本不符或音乐源文件不完整"
         missing=1
     fi
     echo ""
@@ -3826,9 +3852,7 @@ install_feature_plugins() {
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
         "Friendeck-plugin" "$DECKY_FRIENDECK_PACKAGE_VERSION" \
         "Friendeck"; then _all_installed=0; fi
-    if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
-        "Decky Music" "$DECKY_DECKYMUSIC_VERSION" \
-        "Decky Music"; then _all_installed=0; fi
+    if ! deckymusic_full_is_current; then _all_installed=0; fi
     if [ "$_all_installed" = "1" ]; then
         echo "七款常用功能插件已全部安装且校验通过，无需重复安装。"
         write_flingtrainer_desktop_note || \
