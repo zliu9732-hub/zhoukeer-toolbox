@@ -9,6 +9,7 @@ set -u
 
 BASE="${ZHOUKEER_STANDALONE_BASE:-https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main}"
 TARGET_DIR="${ZHOUKEER_STANDALONE_DIR:-$HOME/zhoukeer-battlenet-heihe}"
+VERSION="${ZHOUKEER_STANDALONE_VERSION:-2.0.1}"
 TMP_DIR="$(mktemp -d)" || exit 1
 trap 'rm -rf -- "$TMP_DIR"' EXIT
 
@@ -37,13 +38,6 @@ command -v tar >/dev/null 2>&1 || {
     exit 1
 }
 
-VERSION_FILE="$TMP_DIR/VERSION"
-curl -fsSL --proto '=https' --connect-timeout 10 --max-time 30 \
-    -o "$VERSION_FILE" "$BASE/VERSION" || {
-    echo "无法获取版本信息，请检查网络后重试。"
-    exit 1
-}
-VERSION="$(tr -d '\r\n' < "$VERSION_FILE")"
 case "$VERSION" in
     ''|*[!A-Za-z0-9._+-]*)
         echo "远程版本格式无效。"

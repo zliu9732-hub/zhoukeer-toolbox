@@ -1,3 +1,10 @@
+## Renkit 2.0.2 MAKO 自动跟随上游更新 — 2026-08-22
+
+- MAKO 小黄鸭改为安装前检测 `eugeniosegala/MAKO` 最新正式 Release，动态采用作者资产版本、下载地址和 SHA256；检测失败时继续使用 v2.1.0 安全基线。
+- MAKO 复用 CheatDeck 的下载链路：优先使用 Gitee mirror-3 中 SHA256 完全匹配的作者原包，镜像尚未同步时回退作者 GitHub Release，失败时保留现有插件。
+- Gitee 定时同步与手动镜像流程均改为跟随 MAKO 最新正式插件包；继续保留 Eugenio Segala、GPL-3.0-or-later 许可证和作者官方简体中文，不注入 Renkit 汉化或署名。
+- 战网/黑盒独立工具版本固定为其现有 `2.0.1`，不再随 Renkit 主版本重复打包或作为每次主版本发布附件；主工具箱发布只生成 Renkit 更新包。
+
 ## Renkit 2.0.1 MAKO 官方中文原包 — 2026-08-22
 
 - MAKO 小黄鸭升级到上游官方 v2.1.0，直接使用作者 Release 原始 ZIP；该版本已自带简体中文、Renderer v2.1.0 和完整 GPL-3.0-or-later 许可证。

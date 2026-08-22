@@ -520,7 +520,7 @@ game_environment_menu() {
         ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭、FSR4、封面、主题等七款插件"
         ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
         ui_touch_button 11 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "小黄鸭" "插帧神器（必装）·旧版汉化或 MAKO v2.1.0 官方中文"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "小黄鸭" "插帧神器（必装）·旧版汉化或 MAKO 官方最新版"
         ui_touch_button 15 '\033[1;97;48;5;24m' "FSR4" "画质补丁（阅读桌面文档慎用）·汉化：RenAmamiya"
         ui_touch_button 17 '\033[1;97;48;5;24m' "Freedeck 版本选择" "0.6 稳定版或 NewFreedeck 重构版"
         ui_touch_button 19 '\033[1;97;48;5;24m' "其余常用插件" "封面、主题、文件传输与音乐播放器单独安装"
@@ -577,7 +577,7 @@ lsfg_versions_menu() {
     while true; do
         draw_category_frame games "小黄鸭版本选择" "旧版稳定汉化 · MAKO 官方最新版" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "旧版小黄鸭" "v0.12.8 汉化版·稳定"
-        ui_touch_button 9 '\033[1;97;48;5;160m' "MAKO 小黄鸭" "上游 v2.1.0 · 官方简体中文"
+        ui_touch_button 9 '\033[1;97;48;5;160m' "MAKO 小黄鸭" "跟随上游最新版 · 官方简体中文"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -589,7 +589,7 @@ lsfg_versions_menu() {
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                 ;;
             mako)
-                confirm_and_run "安装 MAKO 小黄鸭 v2.1.0" "使用 eugeniosegala/MAKO 上游官方原包与官方简体中文；保留作者 Eugenio Segala 和 GPL-3.0-or-later 许可证；仅从 Gitee mirror-3 分块下载并校验官方 SHA256" \
+                confirm_and_run "安装或更新 MAKO 小黄鸭" "跟随 eugeniosegala/MAKO 最新正式版；优先从 Gitee mirror-3 下载，镜像尚未同步时回退作者 GitHub Release；全程校验作者 SHA256，保留作者与 GPL-3.0-or-later 许可证" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako
                 ;;
             back) NEXT_CATEGORY="games"; return 0 ;;

@@ -328,7 +328,7 @@ game_environment_gui_menu() {
             lsfg)
                 lsfg_choice="$(gui_dialog --menu "小黄鸭版本选择" \
                     stable "旧版小黄鸭｜v0.12.8 汉化版·稳定" \
-                    mako "MAKO 小黄鸭｜上游 v2.1.0｜官方简体中文" \
+                    mako "MAKO 小黄鸭｜跟随上游最新版｜官方简体中文" \
                     back "返回游戏与插件")" || continue
                 case "$lsfg_choice" in
                     stable)
@@ -337,8 +337,8 @@ game_environment_gui_menu() {
                             bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                         ;;
                     mako)
-                        gui_confirm "MAKO 小黄鸭将使用 eugeniosegala/MAKO 上游 v2.1.0 官方原包和官方简体中文，保留作者 Eugenio Segala 与 GPL-3.0-or-later 许可证；仅从 Gitee mirror-3 分块下载并校验官方 SHA256。是否继续？" && \
-                            run_gui_action "安装 MAKO 小黄鸭 v2.1.0" \
+                        gui_confirm "MAKO 小黄鸭将跟随 eugeniosegala/MAKO 最新正式版，优先从 Gitee mirror-3 下载，镜像尚未同步时回退作者 GitHub Release；全程校验作者 SHA256，并保留作者与 GPL-3.0-or-later 许可证。是否继续？" && \
+                            run_gui_action "安装或更新 MAKO 小黄鸭" \
                                 env ZHOUKEER_AUTO_CONFIRM=1 \
                                 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako
                         ;;

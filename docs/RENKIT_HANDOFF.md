@@ -333,8 +333,9 @@ git diff --check
 
 ```bash
 bash scripts/deploy_release.sh
-bash scripts/package_battlenet_heihe.sh
 ```
+
+战网/黑盒独立工具已固定在自己的 `2.0.1` 版本，不再随 Renkit 主版本重复打包；只有独立工具本身发生修改并决定单独发布时，才运行 `scripts/package_battlenet_heihe.sh`。
 
 `deploy_release.sh` 只生成和检查包，不会自动提交。`scripts/package_release.sh` 只打包 Git 已跟踪文件，这一点非常重要：
 
@@ -358,7 +359,7 @@ tar -tzf dist/renkit.tar.gz | rg '(^|/)\._' && echo '错误：含 AppleDouble'
 2. 获取 GitHub/Gitee v2 最新状态并确认没有版本分叉。
 3. 最小修改，更新版本和 CHANGELOG。
 4. 跑全部 Bash 语法、相关测试和 `tests/run.sh`。
-5. 生成 Renkit包与战网/黑盒独立包，核对版本、SHA、体积和必要文件。
+5. 生成 Renkit 包，核对版本、SHA、体积和必要文件；不再为每个 Renkit 版本重复生成战网/黑盒独立包。
 6. `git status`/`git diff` 人工复核；只 `git add` 本次文件。
 7. 提交后推 GitHub `main`；禁止 force push、rebase 已发布历史或 `git push --tags`。
 8. 只创建当前版本的 annotated tag 并单独推送，例如 `git push origin v1.4.8`。
@@ -376,8 +377,6 @@ GitHub Release 示例：
 gh release create v1.4.8 \
   dist/renkit-1.4.8.tar.gz \
   dist/renkit-1.4.8.tar.gz.sha256 \
-  dist/zhoukeer-battlenet-heihe-1.4.8.tar.gz \
-  dist/zhoukeer-battlenet-heihe-1.4.8.tar.gz.sha256 \
   --repo zliu9732-hub/zhoukeer-toolbox \
   --title 'Renkit 1.4.8' \
   --notes '一句面向用户的变更说明'

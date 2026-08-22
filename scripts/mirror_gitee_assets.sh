@@ -419,6 +419,22 @@ mirror_ge_proton_latest() {
     printf '%s|%s|%s\n' "$version" "$url" "$sha256"
 }
 
+mirror_mako_latest() {
+    local version="plugin-v2.1.0"
+    local file="MAKO-Decky-v2.1.0.zip"
+    local url="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.1.0/MAKO-Decky-v2.1.0.zip"
+    local sha256="75836617713893ec48e18fcd37c7b3af4dd7f6b0a05cdcaebcb7e941ed1677d6"
+
+    if resolve_latest_github_release "eugeniosegala/MAKO" \
+        '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO 小黄鸭" >/dev/null 2>&1; then
+        version="$_LATEST_RELEASE_TAG"
+        file="$_LATEST_RELEASE_ASSET"
+        url="$_LATEST_RELEASE_URL"
+        sha256="$_LATEST_RELEASE_SHA256"
+    fi
+    printf '%s|%s|%s|%s\n' "$version" "$file" "$url" "$sha256"
+}
+
 mirror_entries() {
     cat <<'EOF'
 decky-loader-stable|Decky Loader 稳定版|v3.2.6|PluginLoader|https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.6/PluginLoader|30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e|
@@ -466,6 +482,7 @@ EOF
 mirror_main() {
     local only_id="${1:-}" entry
     local ge_latest ge_version ge_url ge_sha256
+    local mako_latest mako_version mako_file mako_url mako_sha256
 
     mkdir -p "$MIRROR_ROOT" "$CACHE_ROOT" || return 1
     if [ "$only_id" = "ge-proton" ]; then
@@ -482,6 +499,14 @@ mirror_main() {
         [ -n "$id" ] || continue
         if [ -n "$only_id" ] && [ "$id" != "$only_id" ]; then
             continue
+        fi
+        if [ "$id" = "lsfg-mako" ]; then
+            mako_latest="$(mirror_mako_latest)" || return 1
+            IFS='|' read -r mako_version mako_file mako_url mako_sha256 <<< "$mako_latest"
+            version="$mako_version"
+            file="$mako_file"
+            url="$mako_url"
+            sha256="$mako_sha256"
         fi
         mirror_process_entry "$id" "$name" "$version" "$file" \
             "$url" "$sha256" "$md5" || return 1

@@ -95,12 +95,12 @@ grep -Fq 'sync_plugin lsfg-mako' \
 grep -Fq 'zhoukeer-toolbox-mirror-3' \
     "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
     FAIL "MAKO LSFG 同步未使用 mirror-3"
-grep -Fq 'MAKO-Decky-v2.1.0.zip' \
+grep -Fq "'^MAKO-Decky-v[0-9.]+[.]zip$'" \
     "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
-    FAIL "MAKO LSFG 同步未固定上游 v2.1.0 原包"
-grep -Fq '75836617713893ec48e18fcd37c7b3af4dd7f6b0a05cdcaebcb7e941ed1677d6' \
+    FAIL "MAKO LSFG 同步未跟随上游最新正式插件包"
+grep -Fq 'mirror_mako_latest()' \
     "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || \
-    FAIL "MAKO LSFG 镜像清单缺少官方 SHA256"
+    FAIL "MAKO LSFG 手动镜像流程未复用最新 Release 解析"
 for mapping in \
     'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3.zip|steamgriddb' \
     'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip|cssloader' \

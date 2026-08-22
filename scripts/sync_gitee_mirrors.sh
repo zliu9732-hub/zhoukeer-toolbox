@@ -152,12 +152,10 @@ sync_plugin lsfg-zh-signed "zliu9732-hub/decky-lsfg-vk-zh" \
     "v0.12.8" "Decky.LSFG-VK-zh-signed-v0.12.8-r4.zip" \
     "https://github.com/zliu9732-hub/decky-lsfg-vk-zh/releases/download/v0.12.8/Decky.LSFG-VK-zh-signed-v0.12.8-r4.zip" \
     "7f846c28bf5f9d08f6589a618c4e0c4ee4dffb05ad15938c39359c6460f1157b" "$MIRROR3"
-# MAKO 固定同步上游 v2.1.0 官方中文原包，镜像与安装器共用官方 SHA256。
+# MAKO 跟随上游最新正式 Release，镜像与安装器共用 GitHub 提供的 SHA256。
 sync_plugin lsfg-mako "eugeniosegala/MAKO" \
-    '^MAKO-Decky-v2[.]1[.]0[.]zip$' "MAKO LSFG-VK" \
-    "plugin-v2.1.0" "MAKO-Decky-v2.1.0.zip" \
-    "https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.1.0/MAKO-Decky-v2.1.0.zip" \
-    "75836617713893ec48e18fcd37c7b3af4dd7f6b0a05cdcaebcb7e941ed1677d6" "$MIRROR3"
+    '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO LSFG-VK" \
+    "" "" "" "" "$MIRROR3"
 # FSR4 汉化叠加固定 v0.17，镜像必须与Renkit内置版本一致，否则 SHA 校验会拒绝。
 sync_plugin fsr4 "xXJSONDeruloXx/Decky-Framegen" '^Decky-Framegen[.]zip$' "Decky-Framegen" \
     "v0.17" "Decky-Framegen.zip" \

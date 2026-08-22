@@ -565,6 +565,26 @@ printf '%s\n' "$simpledeckytdp_output" | grep -Fq '仅支持 SteamOS 或 Bazzite
 allycenter_output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter || true)"
 printf '%s\n' "$allycenter_output" | grep -Fq 'Decky 插件安装仅支持 SteamOS 或 Bazzite'
 
+(
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    resolve_latest_github_release() {
+        _LATEST_RELEASE_TAG="plugin-v2.2.0"
+        _LATEST_RELEASE_ASSET="MAKO-Decky-v2.2.0.zip"
+        _LATEST_RELEASE_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.2.0/MAKO-Decky-v2.2.0.zip"
+        _LATEST_RELEASE_SHA256="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+    resolve_plugin_latest lsfg-mako
+    [ "$LSFG_MAKO_VERSION" = "2.2.0" ] || {
+        echo "FAIL: MAKO 没有从最新 Release 资产名更新版本" >&2
+        exit 1
+    }
+    [ "$DECKY_LSFG_MAKO_SHA256" = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" ] || {
+        echo "FAIL: MAKO 没有采用最新 Release SHA256" >&2
+        exit 1
+    }
+)
+
 MAKO_CALLS="$TMP_ROOT/mako.calls"
 (
     export DECKY_PLUGIN_DIR="$TMP_ROOT/mako-plugins"
@@ -573,18 +593,20 @@ MAKO_CALLS="$TMP_ROOT/mako.calls"
     source "$PROJECT_ROOT/modules/plugin_store.sh"
     detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
     resolve_plugin_latest() {
-        DECKY_LSFG_MAKO_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.1.0/MAKO-Decky-v2.1.0.zip"
-        DECKY_LSFG_MAKO_SHA256="75836617713893ec48e18fcd37c7b3af4dd7f6b0a05cdcaebcb7e941ed1677d6"
+        LSFG_MAKO_VERSION="2.2.0"
+        DECKY_LSFG_MAKO_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.2.0/MAKO-Decky-v2.2.0.zip"
+        DECKY_LSFG_MAKO_SHA256="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     }
     MAKO_CHECKS=0
     mako_official_is_current() {
         MAKO_CHECKS=$((MAKO_CHECKS + 1))
         [ "$MAKO_CHECKS" -ge 2 ]
     }
-    install_decky_zip_from_mirror() {
+    install_decky_zip() {
         printf '%s\n' "$2" > "$MAKO_CALLS"
         printf '%s\n' "$3" >> "$MAKO_CALLS"
         printf '%s\n' "${GITEE_MIRROR_REPO:-missing}" >> "$MAKO_CALLS"
+        printf '%s\n' "$5" >> "$MAKO_CALLS"
         PLUGIN_INSTALL_CHANGED=1
     }
     remove_legacy_lsfg_directories() { return 0; }
@@ -592,16 +614,20 @@ MAKO_CALLS="$TMP_ROOT/mako.calls"
     reload_decky_plugins() { return 0; }
     install_configured_plugin lsfg-mako
 )
-grep -Fxq 'lsfg-mako' "$MAKO_CALLS" || {
-    echo "FAIL: MAKO 小黄鸭没有使用固定 Gitee 分块标识" >&2
+grep -Fxq 'https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.2.0/MAKO-Decky-v2.2.0.zip' "$MAKO_CALLS" || {
+    echo "FAIL: MAKO 小黄鸭没有把作者最新 Release 交给统一下载器" >&2
     exit 1
 }
-grep -Fxq '75836617713893ec48e18fcd37c7b3af4dd7f6b0a05cdcaebcb7e941ed1677d6' "$MAKO_CALLS" || {
-    echo "FAIL: MAKO 小黄鸭没有校验 v2.1.0 官方 SHA256" >&2
+grep -Fxq 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' "$MAKO_CALLS" || {
+    echo "FAIL: MAKO 小黄鸭没有校验最新官方 SHA256" >&2
     exit 1
 }
 grep -Fq 'zhoukeer-toolbox-mirror-3' "$MAKO_CALLS" || {
     echo "FAIL: MAKO 小黄鸭没有使用 mirror-3 分块镜像" >&2
+    exit 1
+}
+grep -Fxq '0' "$MAKO_CALLS" || {
+    echo "FAIL: MAKO 更新没有强制替换旧版本" >&2
     exit 1
 }
 if rg -n 'apply_mako_zh_patch|LSFG_MAKO_ZH_(JSON|EN_JSON)' \

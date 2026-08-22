@@ -216,6 +216,7 @@ deckrecall_version_is_older() {
 
 resolve_plugin_latest() {
     local action="$1"
+    local latest_version
 
     case "$action" in
         lsfg)
@@ -227,11 +228,17 @@ resolve_plugin_latest() {
             fi
             ;;
         lsfg-mako)
-            [ -n "$DECKY_LSFG_MAKO_URL" ] && [ -n "$DECKY_LSFG_MAKO_SHA256" ] && return 0
             if resolve_latest_github_release "eugeniosegala/MAKO" \
                 '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO 小黄鸭"; then
-                DECKY_LSFG_MAKO_URL="$_LATEST_RELEASE_URL"
-                DECKY_LSFG_MAKO_SHA256="$_LATEST_RELEASE_SHA256"
+                latest_version="${_LATEST_RELEASE_ASSET#MAKO-Decky-v}"
+                latest_version="${latest_version%.zip}"
+                if [[ "$latest_version" =~ ^[0-9]+([.][0-9]+)+$ ]]; then
+                    DECKY_LSFG_MAKO_URL="$_LATEST_RELEASE_URL"
+                    DECKY_LSFG_MAKO_SHA256="$_LATEST_RELEASE_SHA256"
+                    LSFG_MAKO_VERSION="$latest_version"
+                else
+                    echo "MAKO 小黄鸭最新版本号格式异常，继续使用固定版本。"
+                fi
             fi
             ;;
         fsr4)
@@ -2531,15 +2538,18 @@ install_lsfg_chinese() {
 mako_official_is_current() {
     local plugin_root="$1"
     local plugin_dir="$plugin_root/$LSFG_MAKO_DIRECTORY"
-    local actual_sha256
+    local actual_sha256 renderer_archive
 
     feature_plugin_is_current "$plugin_root" "$LSFG_MAKO_DIRECTORY" \
         "$LSFG_MAKO_VERSION" "MAKO - Frame Generation" || return 1
     [ -f "$plugin_dir/LICENSE.md" ] && [ ! -L "$plugin_dir/LICENSE.md" ] || return 1
-    [ -f "$plugin_dir/bin/MAKO-Renderer-v2.1.0-linux.tar.xz" ] && \
-        [ ! -L "$plugin_dir/bin/MAKO-Renderer-v2.1.0-linux.tar.xz" ] || return 1
-    actual_sha256="$(calculate_decky_sha256 "$plugin_dir/dist/index.js" 2>/dev/null || true)"
-    [ "$actual_sha256" = "$LSFG_MAKO_INDEX_SHA256" ] || return 1
+    renderer_archive="$(find "$plugin_dir/bin" -maxdepth 1 -type f \
+        -name 'MAKO-Renderer-v*-linux.tar.xz' -print -quit 2>/dev/null || true)"
+    [ -n "$renderer_archive" ] || return 1
+    if [ "$LSFG_MAKO_VERSION" = "2.1.0" ]; then
+        actual_sha256="$(calculate_decky_sha256 "$plugin_dir/dist/index.js" 2>/dev/null || true)"
+        [ "$actual_sha256" = "$LSFG_MAKO_INDEX_SHA256" ] || return 1
+    fi
     ! grep -Fq 'RenAmamiya' "$plugin_dir/dist/index.js"
 }
 
@@ -3259,7 +3269,7 @@ install_configured_plugin() {
             resolve_plugin_latest lsfg-mako
             if [ -z "${DECKY_LSFG_MAKO_URL:-}" ] || \
                 [ -z "${DECKY_LSFG_MAKO_SHA256:-}" ]; then
-                echo "MAKO 小黄鸭 v2.1.0 官方包配置不完整，请更新Renkit后再试。"
+                echo "MAKO 小黄鸭官方包配置不完整，请更新Renkit后再试。"
                 return 1
             fi
             if mako_official_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"; then
@@ -3268,12 +3278,12 @@ install_configured_plugin() {
             else
                 echo "正在安装 MAKO 小黄鸭 v$LSFG_MAKO_VERSION 官方中文原包..."
                 GITEE_MIRROR_REPO="$DECKY_MAKO_MIRROR_REPO" \
-                    install_decky_zip_from_mirror \
+                    install_decky_zip \
                     "MAKO 小黄鸭 v$LSFG_MAKO_VERSION" \
-                    "lsfg-mako" \
+                    "$DECKY_LSFG_MAKO_URL" \
                     "$DECKY_LSFG_MAKO_SHA256" \
-                    "$LSFG_MAKO_DIRECTORY" || {
-                        echo "MAKO 的 Gitee 分块镜像不可用，已保留现有插件。"
+                    "$LSFG_MAKO_DIRECTORY" 0 || {
+                        echo "MAKO 的 Gitee 镜像和作者 GitHub Release 均不可用，已保留现有插件。"
                         return 1
                     }
                 mako_official_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" || {

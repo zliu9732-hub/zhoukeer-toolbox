@@ -25,8 +25,6 @@ while [ "$#" -gt 0 ]; do
 done
 clean_url="${url%%\?*}"
 case "$clean_url" in
-    "$FAKE_BASE/VERSION")
-        cp "$PROJECT_ROOT/VERSION" "$output" ;;
     "$FAKE_BASE/dist/zhoukeer-battlenet-heihe-"*.tar.gz.sha256)
         cp "$PROJECT_ROOT/dist/$(basename "$clean_url")" "$output" ;;
     "$FAKE_BASE/dist/zhoukeer-battlenet-heihe-"*.tar.gz)
@@ -57,6 +55,10 @@ if run_bootstrap > "$TMP_ROOT/run.out" 2>&1; then
 fi
 grep -Fq '仅支持 SteamOS' "$TMP_ROOT/run.out" || {
     echo "FAIL: 一行引导没有把平台提示透传出来" >&2
+    exit 1
+}
+grep -Fq 'V2.0.1' "$TMP_ROOT/run.out" || {
+    echo "FAIL: 独立工具没有与 Renkit 主版本解耦" >&2
     exit 1
 }
 [ -x "$TMP_ROOT/tool/install.sh" ] || {
