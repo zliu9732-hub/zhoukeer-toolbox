@@ -1,3 +1,9 @@
+## Renkit 2.0.1 MAKO 官方中文原包 — 2026-08-22
+
+- MAKO 小黄鸭升级到上游官方 v2.1.0，直接使用作者 Release 原始 ZIP；该版本已自带简体中文、Renderer v2.1.0 和完整 GPL-3.0-or-later 许可证。
+- 移除 MAKO 安装后的 Renkit 汉化注入与 `RenAmamiya` 署名，保留上游作者 Eugenio Segala 的原始包信息，ZIP 不修改、不重打。
+- 官方原包固定通过 Gitee mirror-3 分块下载，重组后校验官方 SHA256；镜像失败时保留现有插件且不回退 GitHub。
+
 ## Renkit 2.0.0 Decky Music 镜像迁移 — 2026-08-21
 
 - Decky Music v1.0.2 作者原版完整包迁移到 Gitee `zhoukeer-toolbox-mirror-4`，避开已超配额的主镜像仓库；包内容、分块和官方 SHA256 均不变。

@@ -130,9 +130,9 @@ for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck decky-steamgriddb SDH
 done
 grep -Fq 'OneXPlayer Apex 工具仅支持 Bazzite' "$PROJECT_ROOT/modules/plugin_store.sh" || \
     fail "OneXPlayer Apex 插件缺少 Bazzite 平台隔离"
-printf '{"name":"Decky LSFG-VK"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
+printf '{"name":"小黄鸭"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
 printf '{"version":"0.12.8"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky LSFG-VK/package.json"
-printf '{"name":"Decky-Framegen"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky-Framegen/plugin.json"
+printf '{"name":"Decky-Framegen（FSR4）"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky-Framegen/plugin.json"
 printf '{"version":"0.17"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky-Framegen/package.json"
 printf '{"name":"CheatDeck"}\n' > "$BAZZITE_PLUGIN_ROOT/CheatDeck/plugin.json"
 printf '{"version":"2.0.0"}\n' > "$BAZZITE_PLUGIN_ROOT/CheatDeck/package.json"

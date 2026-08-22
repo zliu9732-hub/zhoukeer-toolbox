@@ -11,7 +11,7 @@ source "$PROJECT_ROOT/core/download_policy.sh"
 fail() { echo "FAIL: $*" >&2; exit 1; }
 
 download_policy_url_allowed 'https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-x86_64.AppImage' || fail "固定 GitHub Release 被拒绝"
-download_policy_url_allowed 'https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/MAKO-Decky-v2.0.0.zip' || fail "MAKO 尝鲜版 GitHub Release 被拒绝"
+download_policy_url_allowed 'https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.1.0/MAKO-Decky-v2.1.0.zip' || fail "MAKO v2.1.0 官方 GitHub Release 被拒绝"
 download_policy_url_allowed 'https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.6/PluginLoader' || fail "Decky 官方 Loader 被拒绝"
 download_policy_url_allowed 'https://api.github.com/repos/GloriousEggroll/proton-ge-custom/releases/latest' || fail "GitHub 最新 Release API 被拒绝"
 download_policy_url_allowed 'https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service' || fail "Decky 官方服务模板被拒绝"

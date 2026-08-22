@@ -10,7 +10,7 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | --- | --- | --- | --- | --- | --- |
 | Decky Loader | Decky 插件商城加载器 | https://github.com/SteamDeckHomebrew/decky-loader | GPL-2.0 | 是 | 稳定版与测试版均来自同一上游 |
 | Decky LSFG-VK | 小黄鸭插件 | https://github.com/xXJSONDeruloXx/decky-lsfg-vk | BSD-3-Clause | 是 | 上游 License 明确允许再分发 |
-| MAKO（小黄鸭尝鲜版） | MAKO 帧生成插件 | https://github.com/eugeniosegala/MAKO | GPL-3.0-or-later | 是 | 尝鲜版进入 Gitee 分块镜像，叠加 Renkit 汉化并保留顶部署名 |
+| MAKO（小黄鸭） | MAKO 帧生成插件 | https://github.com/eugeniosegala/MAKO | GPL-3.0-or-later | 是 | v2.1.0 上游官方原包已自带简体中文；保留 Eugenio Segala 与许可证，不叠加 Renkit 汉化或署名 |
 | Decky-Framegen | FSR4 插件 | https://github.com/xXJSONDeruloXx/Decky-Framegen | BSD-3-Clause | 是 | 基于 Decky 模板并保留 BSD-3 声明 |
 | SteamDB Decky Button | 游戏模式查看 SteamDB 价格史低与在线峰值 | https://github.com/kedMertens/steamdbDeckyButton | BSD-3-Clause | 是 | v0.0.1 源码构建，增加中文双入口并保留上游许可证 |
 | Decky Translator | 游戏模式屏幕文字与兼容性评价翻译 | https://github.com/cat-in-a-box/Decky-Translator | GPL-3.0 | 是 | 基于官方 v0.9.1 完整包叠加中文前端与官方依赖，源码随仓库保留 |

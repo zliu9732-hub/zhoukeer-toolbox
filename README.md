@@ -2,7 +2,7 @@
 
 Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装命令会自动选择独立版本：SteamOS 保留完整原版功能，Bazzite 使用单独菜单，仅开放已适配的常用软件、Decky、兼容层、启动器、模拟器和诊断功能。
 
-当前正式版：Renkit 1.9.4；从 Renkit 1.0 起按语义化版本递增。
+当前正式版：Renkit 2.0.1；从 Renkit 1.0 起按语义化版本递增。
 
 - SteamOS 版：继续使用原有 `main.sh`，系统初始化、国内源、插件与高级功能保持原逻辑。
 - Bazzite 版：使用独立 `main-bazzite.sh`；Decky 通过官方 `ujust setup-decky` 安装，并可整组或逐个安装官方商店插件；Flatpak 默认使用带 GPG 验证的官方 Flathub，国内镜像仅在用户确认风险后以用户级远程启用，并可恢复官方源；提供用户级软件、启动器、模拟器与 GE-Proton 安装/卸载，以及 Yuzu 自备密钥、诊断、攻略和快捷方式维护；不调用 pacman、steamos-readonly、ToDesk、AnyDesk或内存调优。Clover 双系统引导作为独立高风险入口开放，动态识别 Bazzite EFI，并提供状态检查和恢复。
@@ -42,7 +42,7 @@ Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装�
 - 一键修复模式：执行网络检测、Steam 下载缓存清理建议和 DNS 处理提示。
 - 一键体检：检查 SteamOS、剩余空间、网络与 Steam 域名解析、Decky、Flatpak 软件源和常用软件状态；不修改系统，并把报告保存到桌面。
 - 游戏启动诊断：检查 Steam 游戏库、可用空间、Steam 运行状态、兼容数据、自定义 Proton / GE 和日志目录；不删除游戏、兼容数据或缓存。
-- 游戏与掌机助手：一键下载 Epic、战网和育碧官方 Windows 安装包，自动创建带Renkit标识的桌面入口，并写入当前 Steam 账号的非 Steam 游戏库及完整封面。Windows 虚拟目录默认放在用户可见的 `~/游戏启动器`，Steam 条目直接绑定真实 EXE 与 Proton 10.0-4，并把 Steam compatdata 的 drive_c 链接到同一份目录，便于黑盒工坊等插件定位游戏文件。Epic 安装包先走 Gitee 分块镜像，失败后回退官方源与官方 CDN 固定版；小黄鸭和 FSR4 固定使用 Gitee mirror-3 分块下载带 `RenAmamiya` 署名的完整插件包，镜像失败时保留现有插件且不回退 GitHub。战网由 Steam 原生条目配合 Proton Experimental 完成安装并复用同一兼容环境；Epic 与育碧继续由Renkit自动准备兼容层，缺少时通过 Steam 补齐官方 Proton。
+- 游戏与掌机助手：一键下载 Epic、战网和育碧官方 Windows 安装包，自动创建带Renkit标识的桌面入口，并写入当前 Steam 账号的非 Steam 游戏库及完整封面。Windows 虚拟目录默认放在用户可见的 `~/游戏启动器`，Steam 条目直接绑定真实 EXE 与 Proton 10.0-4，并把 Steam compatdata 的 drive_c 链接到同一份目录，便于黑盒工坊等插件定位游戏文件。Epic 安装包先走 Gitee 分块镜像，失败后回退官方源与官方 CDN 固定版；MAKO 小黄鸭固定使用 Gitee mirror-3 分块下载上游 v2.1.0 官方中文原包，保留 Eugenio Segala 与 GPL-3.0-or-later 许可证，不添加 Renkit 汉化署名；FSR4 仍使用 Gitee mirror-3 分块署名中文包。镜像失败时保留现有插件且不回退 GitHub。战网由 Steam 原生条目配合 Proton Experimental 完成安装并复用同一兼容环境；Epic 与育碧继续由Renkit自动准备兼容层，缺少时通过 Steam 补齐官方 Proton。
 - 实用指南：独立提供启动器、Proton、手柄、反作弊和性能空间的中文兼容攻略；可查看常用快捷键、外接设备状态、高风险操作说明，并将最近 80 条Renkit操作记录导出到桌面。
 - 更新日志：可在Renkit内用触屏查看当前版本的主要改动。
 - 自动更新Renkit：每次启动会快速检测版本，发现新版本后自动下载并校验更新；优先使用Gitee，失败后切换GitHub，断网或更新失败时继续启动现有版本。

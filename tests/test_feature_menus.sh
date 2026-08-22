@@ -126,9 +126,12 @@ done
 touch_lsfg="$(function_source "$MAIN_FILE" lsfg_versions_menu)"
 for menu in "$touch_lsfg" "$gui_games"; do
     assert_contains "$menu" '旧版小黄鸭' "小黄鸭版本菜单缺少旧版"
-    assert_contains "$menu" 'MAKO 小黄鸭' "小黄鸭版本菜单缺少 MAKO 尝鲜版"
-    assert_contains "$menu" 'RenAmamiya' "MAKO 入口缺少既有汉化署名"
+    assert_contains "$menu" 'MAKO 小黄鸭' "小黄鸭版本菜单缺少 MAKO"
+    assert_contains "$menu" 'v2.1.0' "MAKO 入口缺少官方版本号"
+    assert_contains "$menu" '官方简体中文' "MAKO 入口缺少上游中文说明"
 done
+assert_not_contains "$touch_lsfg" 'MAKO 小黄鸭" "实验仓库尝鲜版·Renkit 汉化' "MAKO 触控入口仍标注 Renkit 汉化"
+assert_not_contains "$gui_games" 'MAKO 小黄鸭｜实验仓库尝鲜版·Renkit 汉化' "MAKO GUI 入口仍标注 Renkit 汉化"
 touch_software_buttons="$(printf '%s\n' "$touch_software" | grep 'ui_touch_button')"
 gui_software_entries="$(printf '%s\n' "$gui_software" | sed -n '/choice="$(gui_dialog --menu/,/)" || return 0/p')"
 for obsolete_hint in '安装适合 SteamOS 的微信' '安装适合 SteamOS 的 QQ' \

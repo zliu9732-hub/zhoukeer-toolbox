@@ -475,7 +475,7 @@ bazzite_feature_plugins_menu() {
     while true; do
         draw_category_frame games "汉化功能插件" "Gitee 分块镜像优先 · 安装后核对真实插件文件"
         ui_touch_button 4 '\033[1;97;48;5;24m' "一键安装三款" "小黄鸭、FSR4 与 CheatDeck"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "小黄鸭版本选择" "旧版稳定汉化 · MAKO 尝鲜版"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "小黄鸭版本选择" "旧版稳定汉化 · MAKO v2.1.0 官方中文"
         ui_touch_button 10 '\033[1;97;48;5;24m' "安装 FSR4" "Decky-Framegen 汉化版"
         ui_touch_button 13 '\033[1;97;48;5;24m' "安装 CheatDeck" "修改器启动插件"
         ui_touch_button 16 '\033[1;97;48;5;24m' "更多功能插件" "Freedeck、ToMoon、Unifideck 与掌机控制"
@@ -523,9 +523,9 @@ bazzite_common_feature_singles_menu() {
 bazzite_lsfg_versions_menu() {
     local choice
     while true; do
-        draw_category_frame games "小黄鸭版本选择" "旧版稳定汉化 · MAKO 实验尝鲜"
+        draw_category_frame games "小黄鸭版本选择" "旧版稳定汉化 · MAKO 官方最新版"
         ui_touch_button 4 '\033[1;97;48;5;24m' "旧版小黄鸭" "v0.12.8 汉化版·稳定"
-        ui_touch_button 7 '\033[1;97;48;5;160m' "MAKO 小黄鸭" "实验仓库尝鲜版·Renkit 汉化"
+        ui_touch_button 7 '\033[1;97;48;5;160m' "MAKO 小黄鸭" "上游 v2.1.0 · 官方简体中文"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回汉化功能插件" "查看其他功能插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -537,7 +537,7 @@ bazzite_lsfg_versions_menu() {
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                 ;;
             mako)
-                confirm_and_run "安装 MAKO 小黄鸭（尝鲜版）" "来自 eugeniosegala/MAKO 尝鲜仓库；功能尚未稳定，安装官方运行核心后叠加 Renkit 汉化；汉化作者：RenAmamiya" \
+                confirm_and_run "安装 MAKO 小黄鸭 v2.1.0" "使用 eugeniosegala/MAKO 上游官方原包与官方简体中文；保留作者 Eugenio Segala 和 GPL-3.0-or-later 许可证；仅从 Gitee mirror-3 分块下载并校验官方 SHA256" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako
                 ;;
             back) return 0 ;;

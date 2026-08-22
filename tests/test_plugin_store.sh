@@ -573,32 +573,42 @@ MAKO_CALLS="$TMP_ROOT/mako.calls"
     source "$PROJECT_ROOT/modules/plugin_store.sh"
     detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
     resolve_plugin_latest() {
-        DECKY_LSFG_MAKO_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/MAKO-Decky-v2.0.0.zip"
-        DECKY_LSFG_MAKO_SHA256="5a801dab4d0171a8b50fcb032479aedc644efebe684c4dd984e86fd5e7fec3f1"
+        DECKY_LSFG_MAKO_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.1.0/MAKO-Decky-v2.1.0.zip"
+        DECKY_LSFG_MAKO_SHA256="75836617713893ec48e18fcd37c7b3af4dd7f6b0a05cdcaebcb7e941ed1677d6"
     }
-    install_decky_zip() {
+    MAKO_CHECKS=0
+    mako_official_is_current() {
+        MAKO_CHECKS=$((MAKO_CHECKS + 1))
+        [ "$MAKO_CHECKS" -ge 2 ]
+    }
+    install_decky_zip_from_mirror() {
         printf '%s\n' "$2" > "$MAKO_CALLS"
+        printf '%s\n' "$3" >> "$MAKO_CALLS"
         printf '%s\n' "${GITEE_MIRROR_REPO:-missing}" >> "$MAKO_CALLS"
         PLUGIN_INSTALL_CHANGED=1
     }
-    apply_mako_zh_patch() { printf 'zh\n' >> "$MAKO_CALLS"; }
     remove_legacy_lsfg_directories() { return 0; }
     refresh_feature_usage_guides() { return 0; }
     reload_decky_plugins() { return 0; }
     install_configured_plugin lsfg-mako
 )
-grep -Fq 'eugeniosegala/MAKO' "$MAKO_CALLS" || {
-    echo "FAIL: MAKO 小黄鸭没有解析实验仓库 Release" >&2
+grep -Fxq 'lsfg-mako' "$MAKO_CALLS" || {
+    echo "FAIL: MAKO 小黄鸭没有使用固定 Gitee 分块标识" >&2
+    exit 1
+}
+grep -Fxq '75836617713893ec48e18fcd37c7b3af4dd7f6b0a05cdcaebcb7e941ed1677d6' "$MAKO_CALLS" || {
+    echo "FAIL: MAKO 小黄鸭没有校验 v2.1.0 官方 SHA256" >&2
     exit 1
 }
 grep -Fq 'zhoukeer-toolbox-mirror-3' "$MAKO_CALLS" || {
     echo "FAIL: MAKO 小黄鸭没有使用 mirror-3 分块镜像" >&2
     exit 1
 }
-grep -Fxq 'zh' "$MAKO_CALLS" || {
-    echo "FAIL: MAKO 小黄鸭安装后没有叠加汉化" >&2
+if rg -n 'apply_mako_zh_patch|LSFG_MAKO_ZH_(JSON|EN_JSON)' \
+    "$PROJECT_ROOT/modules/plugin_store.sh" >/dev/null; then
+    echo "FAIL: MAKO 官方中文原包仍会调用 Renkit 汉化覆盖层" >&2
     exit 1
-}
+fi
 
 # 小黄鸭官方 v0.12.8 使用 Decky LSFG-VK，旧汉化包使用“小黄鸭”；
 # 状态检查必须同时兼容官方名和旧中文名。

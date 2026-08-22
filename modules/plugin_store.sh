@@ -42,8 +42,8 @@ LSFG_OFFICIAL_DIRECTORY="Decky LSFG-VK"
 LSFG_OFFICIAL_VERSION="0.12.8"
 LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"
 LSFG_MAKO_DIRECTORY="Mako"
-LSFG_MAKO_ZH_JSON="$PROJECT_ROOT/data/mako_zh.json"
-LSFG_MAKO_ZH_EN_JSON="$PROJECT_ROOT/data/mako_zh_en.json"
+LSFG_MAKO_VERSION="2.1.0"
+LSFG_MAKO_INDEX_SHA256="1811514778b964a04ab2757b32ea9375f133518ead9263378645979ca537da96"
 DECKY_LSFG_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_MAKO_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 LSFG_ZH_MIRROR_ID="lsfg-zh-signed"
@@ -71,8 +71,8 @@ CSSLOADER_ZH_INDEX_SHA256="38ec628efcc1238247e0cf771bde98b26be49349dca9c2d7de427
 # 独立插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip"
 DECKY_LSFG_SHA256="322f6eec21a489ef9f12938ea2ec4e43c234093876f95b7245fbd260f882ce9c"
-DECKY_LSFG_MAKO_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.0.0/MAKO-Decky-v2.0.0.zip"
-DECKY_LSFG_MAKO_SHA256="5a801dab4d0171a8b50fcb032479aedc644efebe684c4dd984e86fd5e7fec3f1"
+DECKY_LSFG_MAKO_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.1.0/MAKO-Decky-v2.1.0.zip"
+DECKY_LSFG_MAKO_SHA256="75836617713893ec48e18fcd37c7b3af4dd7f6b0a05cdcaebcb7e941ed1677d6"
 DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip"
 DECKY_FSR4_SHA256="3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f"
 DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v2.0.0/CheatDeck.zip"
@@ -2528,90 +2528,19 @@ install_lsfg_chinese() {
     install_lsfg_zh_from_gitee "${1:-1}"
 }
 
-apply_mako_zh_patch() {
-    local dist_file="$1"
-    local zh_json="${2:-$LSFG_MAKO_ZH_JSON}"
-    local en_json="${3:-$LSFG_MAKO_ZH_EN_JSON}"
-    local temporary
+mako_official_is_current() {
+    local plugin_root="$1"
+    local plugin_dir="$plugin_root/$LSFG_MAKO_DIRECTORY"
+    local actual_sha256
 
-    [ -f "$dist_file" ] && [ ! -L "$dist_file" ] || {
-        echo "MAKO 前端文件不存在，未应用汉化。"
-        return 1
-    }
-    [ -f "$zh_json" ] && [ ! -L "$zh_json" ] || {
-        echo "MAKO 汉化词条缺失，请更新Renkit后再试。"
-        return 1
-    }
-    [ -f "$en_json" ] && [ ! -L "$en_json" ] || {
-        echo "MAKO 英文替换表缺失，请更新Renkit后再试。"
-        return 1
-    }
-    require_command python3 || return 1
-    temporary="$(mktemp "${dist_file}.zh.XXXXXX" 2>/dev/null)" || return 1
-    if ! python3 - "$dist_file" "$zh_json" "$en_json" "$temporary" <<'PY'
-import json
-import sys
-from pathlib import Path
-
-source_path = Path(sys.argv[1])
-json_path = Path(sys.argv[2])
-en_path = Path(sys.argv[3])
-output_path = Path(sys.argv[4])
-translations = json.loads(json_path.read_text(encoding="utf-8"))
-replacements = json.loads(en_path.read_text(encoding="utf-8"))
-content = source_path.read_text(encoding="utf-8")
-
-marker = "var languages = {\n\tja: ja,"
-if "var zh = {" not in content:
-    if marker not in content:
-        raise SystemExit(2)
-    zh_block = "var zh = " + json.dumps(translations, ensure_ascii=False, indent="\t") + ";\n"
-    content = content.replace(marker, zh_block + "var languages = {\n\tzh: zh,\n\tja: ja,", 1)
-
-language_marker = "const lang = normalizeLanguage(window.LocalizationManager.m_rgLocalesToUse[0]);"
-if "const lang = \"zh\";" not in content:
-    if language_marker not in content:
-        raise SystemExit(2)
-    content = content.replace(language_marker, 'const lang = "zh";', 1)
-
-for english, chinese in replacements.items():
-    content = content.replace(json.dumps(english, ensure_ascii=False), json.dumps(chinese, ensure_ascii=False))
-
-attribution = "RenAmamiya汉化"
-if attribution not in content:
-    theme_marker = "window.SP_REACT.createElement(MakoButtonTheme, null),"
-    if theme_marker not in content:
-        raise SystemExit(2)
-    pos = content.index(theme_marker)
-    local_pos = content.index("localDevelopmentBuildInfo", pos)
-    attribution_row = (
-        "window.SP_REACT.createElement(DFL.PanelSectionRow, null,"
-        ' window.SP_REACT.createElement("div", { style: { padding: "8px 12px", width: "100%",'
-        ' boxSizing: "border-box", textAlign: "center", fontSize: "13px", color: "#ffcc66" } },'
-        ' "RenAmamiya汉化")),\n            '
-    )
-    content = content[:local_pos] + attribution_row + content[local_pos:]
-
-if "var zh =" not in content or attribution not in content:
-    raise SystemExit(2)
-output_path.write_text(content, encoding="utf-8")
-PY
-    then
-        rm -f -- "$temporary"
-        echo "MAKO 汉化补丁失败，原前端未改动。"
-        return 1
-    fi
-    chmod 0644 "$temporary" || {
-        rm -f -- "$temporary"
-        return 1
-    }
-    if ! run_plugin_file_operation cp -- "$temporary" "$dist_file"; then
-        rm -f -- "$temporary"
-        echo "MAKO 汉化前端写入失败，原前端未改动。"
-        return 1
-    fi
-    rm -f -- "$temporary"
-    echo "MAKO 小黄鸭中文界面已写入，顶部署名已保留。"
+    feature_plugin_is_current "$plugin_root" "$LSFG_MAKO_DIRECTORY" \
+        "$LSFG_MAKO_VERSION" "MAKO - Frame Generation" || return 1
+    [ -f "$plugin_dir/LICENSE.md" ] && [ ! -L "$plugin_dir/LICENSE.md" ] || return 1
+    [ -f "$plugin_dir/bin/MAKO-Renderer-v2.1.0-linux.tar.xz" ] && \
+        [ ! -L "$plugin_dir/bin/MAKO-Renderer-v2.1.0-linux.tar.xz" ] || return 1
+    actual_sha256="$(calculate_decky_sha256 "$plugin_dir/dist/index.js" 2>/dev/null || true)"
+    [ "$actual_sha256" = "$LSFG_MAKO_INDEX_SHA256" ] || return 1
+    ! grep -Fq 'RenAmamiya' "$plugin_dir/dist/index.js"
 }
 
 # 署名完整包只从 Gitee mirror-3 下载；镜像失败时保留现有插件并返回失败。
@@ -3330,19 +3259,30 @@ install_configured_plugin() {
             resolve_plugin_latest lsfg-mako
             if [ -z "${DECKY_LSFG_MAKO_URL:-}" ] || \
                 [ -z "${DECKY_LSFG_MAKO_SHA256:-}" ]; then
-                echo "MAKO 小黄鸭尝鲜版暂未获取到可校验的最新 Release，请稍后重试或更新Renkit。"
+                echo "MAKO 小黄鸭 v2.1.0 官方包配置不完整，请更新Renkit后再试。"
                 return 1
             fi
-            GITEE_MIRROR_REPO="$DECKY_MAKO_MIRROR_REPO" install_decky_zip \
-                "MAKO 小黄鸭（尝鲜版）" \
-                "$DECKY_LSFG_MAKO_URL" \
-                "$DECKY_LSFG_MAKO_SHA256" \
-                "$LSFG_MAKO_DIRECTORY" \
-                0 || return 1
-            apply_mako_zh_patch \
-                "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/$LSFG_MAKO_DIRECTORY/dist/index.js" \
-                || return 1
+            if mako_official_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"; then
+                echo "[已安装] MAKO 小黄鸭 v$LSFG_MAKO_VERSION 官方中文原包完整，无需重复安装。"
+                PLUGIN_INSTALL_CHANGED=0
+            else
+                echo "正在安装 MAKO 小黄鸭 v$LSFG_MAKO_VERSION 官方中文原包..."
+                GITEE_MIRROR_REPO="$DECKY_MAKO_MIRROR_REPO" \
+                    install_decky_zip_from_mirror \
+                    "MAKO 小黄鸭 v$LSFG_MAKO_VERSION" \
+                    "lsfg-mako" \
+                    "$DECKY_LSFG_MAKO_SHA256" \
+                    "$LSFG_MAKO_DIRECTORY" || {
+                        echo "MAKO 的 Gitee 分块镜像不可用，已保留现有插件。"
+                        return 1
+                    }
+                mako_official_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" || {
+                    echo "MAKO 官方包安装后完整性校验失败，请重新安装。"
+                    return 1
+                }
+            fi
             remove_legacy_lsfg_directories "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+            echo "上游作者：Eugenio Segala；许可证：GPL-3.0-or-later。"
             ;;
         fsr4)
             resolve_plugin_latest fsr4
