@@ -360,34 +360,34 @@ grep -Fq '小黄鸭署名包的 Gitee 分块镜像不可用，已保留现有插
 grep -Fq 'FSR4 署名包的 Gitee 分块镜像不可用，已保留现有插件。' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '"name": "掌机功耗控制"' \
-    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/plugin.json"
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.6/plugin.json"
 grep -Fq 'const manifest = {"name":"掌机功耗控制"' \
-    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js" || {
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.6/dist/index.js" || {
     echo "FAIL: SimpleDeckyTDP 前端 API 身份名与插件清单不一致" >&2
     exit 1
 }
-grep -Fq '"version": "1.0.5"' \
-    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/package.json"
-[ "$(grep -Fc 'RenAmamiya汉化' "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js")" -ge 1 ] || {
+grep -Fq '"version": "1.0.6"' \
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.6/package.json"
+[ "$(grep -Fc 'RenAmamiya汉化' "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.6/dist/index.js")" -ge 1 ] || {
     echo "FAIL: SimpleDeckyTDP 插件打开后缺少可见汉化署名" >&2
     exit 1
 }
 grep -Fq '中文汉化：RenAmamiya · 原插件作者：Aarron Lee' \
-    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js" || {
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.6/dist/index.js" || {
     echo "FAIL: SimpleDeckyTDP 缺少与小黄鸭一致的作者署名行" >&2
     exit 1
 }
 grep -Fq 'color: "#ffcc66"' \
-    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js" || {
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.6/dist/index.js" || {
     echo "FAIL: SimpleDeckyTDP 缺少与小黄鸭一致的突出汉化署名" >&2
     exit 1
 }
-simpledeckytdp_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js" | awk '{print $1}')"
-[ "$simpledeckytdp_actual_sha256" = "22dccfb29db66eeca399246eba07942ad0ca7b9d89334801def256c76d4d2a38" ] || {
+simpledeckytdp_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.6/dist/index.js" | awk '{print $1}')"
+[ "$simpledeckytdp_actual_sha256" = "e1d6a325a0587c9972e649cb18440e316d303049843691ce8f6d678dd53f1d1e" ] || {
     echo "FAIL: SimpleDeckyTDP 中文构建文件校验值不匹配" >&2
     exit 1
 }
-grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="22dccfb29db66eeca399246eba07942ad0ca7b9d89334801def256c76d4d2a38"' \
+grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="e1d6a325a0587c9972e649cb18440e316d303049843691ce8f6d678dd53f1d1e"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_simpledeckytdp_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'simpledeckytdp_chinese_is_current()' "$PROJECT_ROOT/modules/plugin_store.sh"

@@ -510,20 +510,20 @@ copy_cssloader_chinese() {
 }
 
 copy_simpledeckytdp_chinese() {
-    local source_dir="$SOURCE_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.5"
+    local source_dir="$SOURCE_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.6"
     local relative_file
 
     # 只携带 Decky 运行 SimpleDeckyTDP 中文界面所需的已构建文件、后端与词库。
     for relative_file in plugin.json package.json LICENSE main.py; do
         if [ -f "$source_dir/$relative_file" ]; then
             copy_file "$source_dir/$relative_file" \
-                "$STAGING_DIR/third_party/decky-simpledeckytdp-zh-v1.0.5/$relative_file"
+                "$STAGING_DIR/third_party/decky-simpledeckytdp-zh-v1.0.6/$relative_file"
         fi
     done
     copy_file "$source_dir/dist/index.js" \
-        "$STAGING_DIR/third_party/decky-simpledeckytdp-zh-v1.0.5/dist/index.js"
-    copy_dir_files third_party/decky-simpledeckytdp-zh-v1.0.5/py_modules
-    copy_dir_files third_party/decky-simpledeckytdp-zh-v1.0.5/i18n
+        "$STAGING_DIR/third_party/decky-simpledeckytdp-zh-v1.0.6/dist/index.js"
+    copy_dir_files third_party/decky-simpledeckytdp-zh-v1.0.6/py_modules
+    copy_dir_files third_party/decky-simpledeckytdp-zh-v1.0.6/i18n
 }
 
 copy_allycenter_chinese() {

@@ -20,10 +20,10 @@ DECKY_BUNDLE_TMP_DIR=""
 
 # 这两款不在官方数据库中的插件固定使用作者 Release，避免旧安装保留的
 # 配置继续把客户导向已退役的第三方下载地址。
-DECKY_SIMPLE_TDP_URL="${ZHOUKEER_DECKY_SIMPLE_TDP_URL:-https://github.com/aarron-lee/SimpleDeckyTDP/releases/download/v1.0.5/SimpleDeckyTDP.zip}"
-DECKY_SIMPLE_TDP_VERSION="${ZHOUKEER_DECKY_SIMPLE_TDP_VERSION:-v1.0.5}"
-DECKY_SIMPLE_TDP_SHA256="${ZHOUKEER_DECKY_SIMPLE_TDP_SHA256:-ebf1c68147b6300ee17c2d7ea00a9cfe9ac1c78af78d364d9d306ac64a2cc057}"
-DECKY_SIMPLE_TDP_MIRROR_URL="$(gitee_mirror_direct_url simpledeckytdp v1.0.5 SimpleDeckyTDP.zip)"
+DECKY_SIMPLE_TDP_URL="${ZHOUKEER_DECKY_SIMPLE_TDP_URL:-https://github.com/aarron-lee/SimpleDeckyTDP/releases/download/v1.0.6/SimpleDeckyTDP.zip}"
+DECKY_SIMPLE_TDP_VERSION="${ZHOUKEER_DECKY_SIMPLE_TDP_VERSION:-v1.0.6}"
+DECKY_SIMPLE_TDP_SHA256="${ZHOUKEER_DECKY_SIMPLE_TDP_SHA256:-a033de51bbf861fd4b5c61da14ec09adad22d96867425bcb09740c3bbdaafc2a}"
+DECKY_SIMPLE_TDP_MIRROR_URL="$(gitee_mirror_direct_url simpledeckytdp v1.0.6 SimpleDeckyTDP.zip)"
 DECKY_UNIFIDECK_URL="${ZHOUKEER_DECKY_UNIFIDECK_URL:-https://github.com/mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip}"
 DECKY_UNIFIDECK_VERSION="${ZHOUKEER_DECKY_UNIFIDECK_VERSION:-0.7.2}"
 DECKY_UNIFIDECK_SHA256="${ZHOUKEER_DECKY_UNIFIDECK_SHA256:-a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59366936de}"

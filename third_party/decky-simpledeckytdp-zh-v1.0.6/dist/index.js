@@ -286,7 +286,7 @@ var ServerAPIMethods;
     ServerAPIMethods["CHECK_RYZENADJ_COALL"] = "check_ryzenadj_coall";
 })(ServerAPIMethods || (ServerAPIMethods = {}));
 const getSettings = callable(ServerAPIMethods.GET_SETTINGS);
-const setSetting = ({ name, value }) => {
+const setSetting = ({ name, value, }) => {
     return call(ServerAPIMethods.SET_SETTING, name, value);
 };
 const onSuspend$1 = callable(ServerAPIMethods.ON_SUSPEND);
@@ -19260,8 +19260,11 @@ const suspendAction = createAction("suspendAction");
 const resumeAction = createAction("resumeAction");
 createAction("noop");
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let store$1;
-const initializePollingStore = (s) => (store$1 = s);
+const initializePollingStore = (s) => {
+    store$1 = s;
+};
 let pollIntervalId;
 const DEBOUNCE_TIME = 1000; // milliseconds
 const debouncedSetPollTdp = lodashExports.debounce(setPollTdp, DEBOUNCE_TIME);
@@ -19301,6 +19304,7 @@ const persistGpu = ({ state, activeGameId, advancedState }) => {
     });
 };
 const debouncedPersistGpu = lodashExports.debounce(persistGpu, 1000);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const settingsMiddleware = (store) => (dispatch) => (action) => {
     const result = dispatch(action);
     const state = store.getState();
@@ -19320,7 +19324,10 @@ const settingsMiddleware = (store) => (dispatch) => (action) => {
         });
     }
     if (action.type === setReduxTdp.type) {
-        debouncedPersistTdp({ tdp: action.payload, gameId: activeGameId });
+        debouncedPersistTdp({
+            tdp: action.payload,
+            gameId: activeGameId,
+        });
     }
     if (action.type === updatePollRate.type) {
         // action.type == number (rate in ms)
@@ -19347,6 +19354,7 @@ const settingsMiddleware = (store) => (dispatch) => (action) => {
     return result;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const commonMiddleware = (store) => (dispatch) => (action) => {
     const result = dispatch(action);
     const state = store.getState();
@@ -19373,7 +19381,10 @@ const commonMiddleware = (store) => (dispatch) => (action) => {
         });
     }
     if (action.type === updateEpp.type) {
-        setEpp({ eppInfo: action.payload, gameId: activeGameId });
+        setEpp({
+            eppInfo: action.payload,
+            gameId: activeGameId,
+        });
     }
     if (action.type === updateMaxTdp.type) {
         setSetting({
@@ -19392,7 +19403,10 @@ const commonMiddleware = (store) => (dispatch) => (action) => {
         persistSmt({ smt: action.payload, gameId: activeGameId });
     }
     if (action.type === setCpuBoost.type) {
-        persistCpuBoost({ cpuBoost: action.payload, gameId: activeGameId });
+        persistCpuBoost({
+            cpuBoost: action.payload,
+            gameId: activeGameId,
+        });
     }
     return result;
 };
@@ -19469,14 +19483,19 @@ function getMobxObservable(steamObject, keyToObserve) {
     return steamUiStoreObservable.values_.get(keyToObserve);
 }
 
-function getSuspendObservable() {
+function getSuspendResumeObservable() {
     const suspendingMobXObservable = getMobxObservable(SuspendResumeStore, "m_bSuspending");
     return suspendingMobXObservable;
 }
-function getResumeObservable() {
-    const resumingMobXObservable = getMobxObservable(SuspendResumeStore, "m_bResuming");
-    return resumingMobXObservable;
-}
+// m_bResuming seems to be removed on July 22 2026 Steam Client Stable Update.
+// source: https://github.com/wynn1212/SDH-PauseGames/commit/642a0ebe089eeaccc10b64af0eb2fc3912da128a
+// export function getResumeObservable() {
+//   const resumingMobXObservable = getMobxObservable(
+//     SuspendResumeStore,
+//     "m_bResuming",
+//   );
+//   return resumingMobXObservable;
+// }
 
 let currentGameInfoListenerIntervalId;
 let previousIsAcPower;
@@ -19543,9 +19562,10 @@ const suspendEventListener = () => {
     }
     // try mobx suspend observable
     try {
-        const suspendObservable = getSuspendObservable();
+        const suspendObservable = getSuspendResumeObservable();
         if (suspendObservable) {
             const unregister = suspendObservable.observe_((change) => {
+                // Note: If newValue is TRUE then it's suspending, otherwise it's resuming.
                 const { newValue } = change;
                 logInfo({ info: `mobX suspend triggered with ${newValue}` });
                 if (!newValue) {
@@ -19617,12 +19637,13 @@ const resumeFromSuspendEventListener = () => {
     }
     // try mobx resume observable
     try {
-        const resumeObservable = getResumeObservable();
+        const resumeObservable = getSuspendResumeObservable();
         if (resumeObservable) {
             const unregister = resumeObservable.observe_((change) => {
+                // Note: If newValue is TRUE then it's suspending, otherwise it's resuming.
                 const { newValue } = change;
                 logInfo({ info: `mobX resume triggered with ${newValue}` });
-                if (!newValue) {
+                if (newValue) {
                     return;
                 }
                 onResume();
