@@ -20,7 +20,14 @@ PROTON_INSTALL_TIMEOUT="${ZHOUKEER_PROTON_INSTALL_TIMEOUT:-900}"
 PROTON_INSTALL_INTERVAL="${ZHOUKEER_PROTON_INSTALL_INTERVAL:-5}"
 LAUNCHER_PREINSTALLED_BASE="${ZHOUKEER_LAUNCHER_PREINSTALLED_BASE:-https://gitee.com/easylife2025/battle/releases/download/v1.0.0}"
 # Windows 虚拟 C 盘放在用户可见目录，避免隐藏目录导致战网插件、黑盒工坊等找不到游戏文件。
+if [ -n "${ZHOUKEER_LAUNCHER_BASE+x}" ]; then
+    LAUNCHER_BASE_IS_EXPLICIT=1
+else
+    LAUNCHER_BASE_IS_EXPLICIT=0
+fi
 LAUNCHER_BASE="${ZHOUKEER_LAUNCHER_BASE:-$HOME/游戏启动器}"
+LAUNCHER_SHARED_DRIVE_LINK="${ZHOUKEER_SHARED_DRIVE_LINK:-$HOME/互通盘}"
+LAUNCHER_TF_CARD_LINK="${ZHOUKEER_TF_CARD_LINK:-$HOME/双系统TF卡}"
 LAUNCHER_COVER_MIRROR_ID="${ZHOUKEER_LAUNCHER_COVER_MIRROR_ID:-launcher-covers}"
 LAUNCHER_COVER_BUNDLE_NAME="启动器封面素材"
 LAUNCHER_COVER_CACHE_ROOT="${ZHOUKEER_LAUNCHER_COVER_CACHE_DIR:-$APP_DIR/game-launchers/covers}"
@@ -856,6 +863,156 @@ steam_library_roots() {
     done < <(sed -n 's/^[[:space:]]*"path"[[:space:]]*"\([^"]*\)".*/\1/p' "$vdf")
 }
 
+launcher_canonical_directory() {
+    local directory="$1"
+
+    [ -d "$directory" ] || return 1
+    (cd "$directory" 2>/dev/null && pwd -P)
+}
+
+launcher_storage_free_space() {
+    local directory="$1" available
+
+    available="$(df -hP "$directory" 2>/dev/null | awk 'NR == 2 { print $4 }')"
+    printf '%s\n' "${available:-未知}"
+}
+
+launcher_storage_candidates() {
+    local steam_root="$1" root canonical candidate_id label filesystem source
+    local seen="" library_index=0 internal_steam shared_canonical="" tf_canonical=""
+
+    canonical="$(launcher_canonical_directory "$HOME" || true)"
+    [ -n "$canonical" ] || return 1
+    seen="|$canonical|"
+    internal_steam="$(launcher_canonical_directory "$steam_root" || true)"
+    printf 'internal\t内部存储\t%s\t%s\n' \
+        "$HOME/游戏启动器" "$(launcher_storage_free_space "$canonical")"
+
+    for candidate_id in shared tf; do
+        case "$candidate_id" in
+            shared) root="$LAUNCHER_SHARED_DRIVE_LINK"; label="互通盘" ;;
+            tf) root="$LAUNCHER_TF_CARD_LINK"; label="TF 卡" ;;
+        esac
+        canonical="$(launcher_canonical_directory "$root" || true)"
+        [ -n "$canonical" ] && [ -w "$canonical" ] || continue
+        case "$canonical" in *$'\n'*|*$'\t'*) continue ;; esac
+        case "$seen" in *"|$canonical|"*) continue ;; esac
+        seen="${seen}${canonical}|"
+        case "$candidate_id" in
+            shared) shared_canonical="$canonical" ;;
+            tf) tf_canonical="$canonical" ;;
+        esac
+        printf '%s\t%s\t%s\t%s\n' "$candidate_id" "$label" \
+            "$canonical/游戏启动器" "$(launcher_storage_free_space "$canonical")"
+    done
+
+    while IFS= read -r root; do
+        [ -n "$root" ] || continue
+        canonical="$(launcher_canonical_directory "$root" || true)"
+        [ -n "$canonical" ] && [ -w "$canonical" ] || continue
+        [ "$canonical" != "$internal_steam" ] || continue
+        if [ -n "$shared_canonical" ]; then
+            case "$canonical/" in "$shared_canonical/"*) continue ;; esac
+        fi
+        if [ -n "$tf_canonical" ]; then
+            case "$canonical/" in "$tf_canonical/"*) continue ;; esac
+        fi
+        case "$canonical" in *$'\n'*|*$'\t'*) continue ;; esac
+        case "$seen" in *"|$canonical|"*) continue ;; esac
+        seen="${seen}${canonical}|"
+        filesystem="$(findmnt -rn -T "$canonical" -o FSTYPE 2>/dev/null | head -n 1)"
+        source="$(findmnt -rn -T "$canonical" -o SOURCE 2>/dev/null | head -n 1)"
+        case "$filesystem:$source:$canonical" in
+            ntfs:*|ntfs3:*|exfat:*) label="互通盘" ;;
+            *:*mmcblk*:*|*:*:*/mmcblk*|*:*:*TF*) label="TF 卡" ;;
+            *) label="其他 Steam 库" ;;
+        esac
+        library_index=$((library_index + 1))
+        printf 'library_%s\t%s\t%s\t%s\n' "$library_index" "$label" \
+            "$canonical/游戏启动器" "$(launcher_storage_free_space "$canonical")"
+    done < <(steam_library_roots "$steam_root")
+}
+
+prepare_launcher_storage_base() {
+    local base="$1" resolved
+
+    case "$base" in
+        /*) ;;
+        *) echo "启动器安装位置不是绝对路径，已停止。" >&2; return 1 ;;
+    esac
+    mkdir -p -- "$base" || {
+        echo "无法创建启动器安装位置：$base" >&2
+        return 1
+    }
+    [ -d "$base" ] && [ -w "$base" ] || {
+        echo "启动器安装位置不可写：$base" >&2
+        return 1
+    }
+    resolved="$(launcher_canonical_directory "$base" || true)"
+    [ -n "$resolved" ] || return 1
+    printf '%s\n' "$resolved"
+}
+
+select_launcher_storage_base() {
+    local target="$1" steam_root="$2" selected="" selection_status=0 line id label path free index=0
+    local -a ids=() labels=() paths=() menu_args=()
+
+    if [ "$LAUNCHER_BASE_IS_EXPLICIT" -eq 1 ]; then
+        prepare_launcher_storage_base "$LAUNCHER_BASE"
+        return
+    fi
+    while IFS=$'\t' read -r id label path free; do
+        [ -n "$id" ] && [ -n "$path" ] || continue
+        ids+=("$id")
+        labels+=("$label")
+        paths+=("$path")
+        menu_args+=("$id" "${label}｜可用 ${free:-未知}｜${path}")
+    done < <(launcher_storage_candidates "$steam_root")
+    [ "${#ids[@]}" -gt 0 ] || {
+        echo "没有检测到可写的启动器安装位置。" >&2
+        return 1
+    }
+    if [ "${#ids[@]}" -eq 1 ]; then
+        selected="${ids[0]}"
+    elif [ -n "${ZHOUKEER_LAUNCHER_STORAGE_SELECTION:-}" ]; then
+        selected="$ZHOUKEER_LAUNCHER_STORAGE_SELECTION"
+    elif command -v kdialog >/dev/null 2>&1 && \
+         { [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; }; then
+        selected="$(kdialog --title "选择${LAUNCHER_NAME}安装位置" --menu \
+            "请选择启动器、账号数据和游戏默认目录的保存位置。不会格式化或清空磁盘。" \
+            "${menu_args[@]}")" || selection_status=$?
+        if [ "$selection_status" -ne 0 ]; then
+            echo "已取消选择，未创建安装环境。" >&2
+            return 2
+        fi
+    elif [ -r /dev/tty ]; then
+        echo "请选择 $LAUNCHER_NAME 安装位置：" >/dev/tty
+        for ((index = 0; index < ${#ids[@]}; index++)); do
+            printf '  %d. %s｜%s\n' "$((index + 1))" "${labels[$index]}" "${paths[$index]}" >/dev/tty
+        done
+        read -r -p "请输入序号（直接回车取消）：" line </dev/tty
+        case "$line" in
+            ''|*[!0-9]*) echo "已取消选择，未创建安装环境。" >&2; return 2 ;;
+        esac
+        [ "$line" -ge 1 ] && [ "$line" -le "${#ids[@]}" ] 2>/dev/null || {
+            echo "安装位置序号无效，已取消。" >&2
+            return 2
+        }
+        selected="${ids[$((line - 1))]}"
+    else
+        echo "当前终端无法显示安装位置选择窗口，已停止。" >&2
+        return 1
+    fi
+    for ((index = 0; index < ${#ids[@]}; index++)); do
+        if [ "$selected" = "${ids[$index]}" ]; then
+            prepare_launcher_storage_base "${paths[$index]}"
+            return
+        fi
+    done
+    echo "选择的安装位置不在可用列表中，已停止。" >&2
+    return 1
+}
+
 find_proton_experimental_runner() {
     local steam_root="$1"
     local library_root candidate
@@ -1616,7 +1773,7 @@ EOF
 }
 
 install_launcher() {
-    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file app_id artwork_alt_app_id game_id icon_path workdir platform_drive_c grid_dir grid_icon visible_exe
+    local target="$1" steam_root launcher_exe runner app_dir prefix wrapper shortcut_file installer_file app_id artwork_alt_app_id game_id icon_path workdir platform_drive_c grid_dir grid_icon visible_exe selected_launcher_base selection_status
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
         echo "游戏启动器安装仅支持 SteamOS 或 Bazzite。"
@@ -1628,6 +1785,17 @@ install_launcher() {
     mkdir -p "$app_dir" || return 1
     prefix="$app_dir/compatdata"
     launcher_exe="$(find_launcher_in_prefix "$prefix" || find_installed_launcher "$steam_root" || true)"
+    if [ -z "$launcher_exe" ]; then
+        if selected_launcher_base="$(select_launcher_storage_base "$target" "$steam_root")"; then
+            LAUNCHER_BASE="$selected_launcher_base"
+            echo "$LAUNCHER_NAME 安装位置：$LAUNCHER_BASE"
+            log "$LAUNCHER_NAME 安装位置已选择: $LAUNCHER_BASE"
+        else
+            selection_status=$?
+            [ "$selection_status" -eq 2 ] && return 0
+            return 1
+        fi
+    fi
     runner="$(ensure_launcher_proton_runner "$target" "$steam_root")" || return 1
 
     if [ "$target" = "battlenet" ] || [ "$target" = "heihe" ]; then

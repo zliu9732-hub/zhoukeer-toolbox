@@ -40,6 +40,85 @@ FAKE_HOME="$TMP_ROOT/home"
 AUTO_STEAM_ROOT="$TMP_ROOT/auto-steam"
 FAKE_STEAM="$TMP_ROOT/fake-steam"
 
+# 多存储设备机器在准备 Proton 之前先由 Konsole 弹出安装位置窗口；
+# 本测试用本地 kdialog 桩和临时挂载目录验证，不访问真实磁盘或 Steam。
+STORAGE_HOME="$TMP_ROOT/storage-home"
+STORAGE_STEAM="$STORAGE_HOME/.local/share/Steam"
+STORAGE_SHARED="$TMP_ROOT/shared-drive"
+STORAGE_TF="$TMP_ROOT/tf-card"
+STORAGE_BIN="$TMP_ROOT/storage-bin"
+STORAGE_DIALOG_LOG="$TMP_ROOT/storage-dialog.log"
+mkdir -p "$STORAGE_STEAM/steamapps" "$STORAGE_SHARED" "$STORAGE_TF" "$STORAGE_BIN"
+ln -s -- "$STORAGE_SHARED" "$STORAGE_HOME/互通盘"
+ln -s -- "$STORAGE_TF" "$STORAGE_HOME/双系统TF卡"
+cat > "$STORAGE_BIN/kdialog" <<'SCRIPT'
+#!/bin/bash
+printf '%s\n' "$*" > "${STORAGE_DIALOG_LOG:?}"
+[ "${STORAGE_DIALOG_CANCEL:-0}" != "1" ] || exit 1
+printf '%s\n' tf
+SCRIPT
+chmod +x "$STORAGE_BIN/kdialog"
+STORAGE_SHARED_REAL="$(cd "$STORAGE_SHARED" && pwd -P)"
+STORAGE_TF_REAL="$(cd "$STORAGE_TF" && pwd -P)"
+selected_storage="$(
+    env -u ZHOUKEER_LAUNCHER_BASE \
+        HOME="$STORAGE_HOME" PATH="$STORAGE_BIN:$PATH" DISPLAY=:99 \
+        STORAGE_DIALOG_LOG="$STORAGE_DIALOG_LOG" MODULE="$MODULE" \
+        bash -c '
+            source "$MODULE"
+            launcher_details epic
+            select_launcher_storage_base epic "$HOME/.local/share/Steam"
+        '
+)"
+[ "$selected_storage" = "$STORAGE_TF_REAL/游戏启动器" ] || {
+    echo "FAIL: 图形安装位置选择没有返回 TF 卡目录" >&2
+    exit 1
+}
+[ -d "$STORAGE_TF/游戏启动器" ] || {
+    echo "FAIL: TF 卡上的启动器目录没有在选择后创建" >&2
+    exit 1
+}
+grep -Fq '选择Epic Games 启动器安装位置' "$STORAGE_DIALOG_LOG" || {
+    echo "FAIL: Konsole 未弹出带启动器名称的安装位置窗口" >&2
+    exit 1
+}
+for storage_label in '内部存储' '互通盘' 'TF 卡'; do
+    grep -Fq "$storage_label" "$STORAGE_DIALOG_LOG" || {
+        echo "FAIL: 安装位置窗口缺少 ${storage_label}" >&2
+        exit 1
+    }
+done
+shared_storage="$(
+    env -u ZHOUKEER_LAUNCHER_BASE \
+        HOME="$STORAGE_HOME" ZHOUKEER_LAUNCHER_STORAGE_SELECTION=shared \
+        MODULE="$MODULE" bash -c '
+            source "$MODULE"
+            launcher_details battlenet
+            select_launcher_storage_base battlenet "$HOME/.local/share/Steam"
+        '
+)"
+[ "$shared_storage" = "$STORAGE_SHARED_REAL/游戏启动器" ] || {
+    echo "FAIL: 互通盘安装位置没有正确解析" >&2
+    exit 1
+}
+if env -u ZHOUKEER_LAUNCHER_BASE \
+    HOME="$STORAGE_HOME" PATH="$STORAGE_BIN:$PATH" DISPLAY=:99 \
+    STORAGE_DIALOG_LOG="$STORAGE_DIALOG_LOG" STORAGE_DIALOG_CANCEL=1 \
+    MODULE="$MODULE" bash -c '
+        source "$MODULE"
+        launcher_details ubisoft
+        select_launcher_storage_base ubisoft "$HOME/.local/share/Steam"
+    ' >/dev/null 2>&1; then
+    echo "FAIL: 取消安装位置窗口后仍继续准备环境" >&2
+    exit 1
+else
+    storage_cancel_status=$?
+    [ "$storage_cancel_status" -eq 2 ] || {
+        echo "FAIL: 取消安装位置窗口没有返回安全取消状态" >&2
+        exit 1
+    }
+fi
+
 python3 "$HELPER" --help >/dev/null
 python3 "$COMPAT_HELPER" --help >/dev/null
 
