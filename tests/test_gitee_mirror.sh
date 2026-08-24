@@ -106,7 +106,7 @@ grep -Fq 'zhoukeer-toolbox-mirror-8' \
 grep -Fq -- '--only-ge-proton' \
     "$PROJECT_ROOT/.github/workflows/sync-ge-proton-gitee.yml" || \
     FAIL "GE-Proton 专用定时同步工作流缺失"
-grep -Fq 'GE_PUSH_BATCH_SIZE=4' \
+grep -Fq 'GE_PUSH_BATCH_SIZE=1' \
     "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
     FAIL "GE-Proton 专用镜像未按小批次推送"
 grep -Fq 'push_main_with_retry' \

@@ -28,7 +28,7 @@ MIRROR3="$WORK/mirror3"
 MIRROR8="$WORK/mirror8"
 GE_PROTON_VERSION=""
 GE_PROTON_CHUNKS=0
-GE_PUSH_BATCH_SIZE=4
+GE_PUSH_BATCH_SIZE=1
 
 prepare_empty_main() {
     local repo="$1"
@@ -167,7 +167,7 @@ push_main_with_retry() {
 
     while [ "$attempt" -le 3 ]; do
         echo "Uploading $label (attempt $attempt/3)..."
-        if timeout 900 git -C "$repo" push --progress -u origin main; then
+        if timeout 300 git -C "$repo" push --progress -u origin main; then
             return 0
         fi
         echo "Upload failed or timed out for $label"
