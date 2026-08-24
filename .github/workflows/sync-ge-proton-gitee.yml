@@ -1,0 +1,17 @@
+name: Sync GE-Proton Gitee mirror
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 */6 * * *'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync latest GE-Proton to dedicated Gitee mirror
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+        run: bash scripts/sync_gitee_mirrors.sh --only-ge-proton

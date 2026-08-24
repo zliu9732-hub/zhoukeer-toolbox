@@ -2,7 +2,7 @@
 
 Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装命令会自动选择独立版本：SteamOS 保留完整原版功能，Bazzite 使用单独菜单，仅开放已适配的常用软件、Decky、兼容层、启动器、模拟器和诊断功能。
 
-当前正式版：Renkit 2.0.5；从 Renkit 1.0 起按语义化版本递增。
+当前正式版：Renkit 2.0.6；从 Renkit 1.0 起按语义化版本递增。
 
 - SteamOS 版：继续使用原有 `main.sh`，系统初始化、国内源、插件与高级功能保持原逻辑。
 - Bazzite 版：使用独立 `main-bazzite.sh`；Decky 通过官方 `ujust setup-decky` 安装，并可整组或逐个安装官方商店插件；Flatpak 默认使用带 GPG 验证的官方 Flathub，国内镜像仅在用户确认风险后以用户级远程启用，并可恢复官方源；提供用户级软件、启动器、模拟器与 GE-Proton 安装/卸载，以及 Yuzu 自备密钥、诊断、攻略和快捷方式维护；不调用 pacman、steamos-readonly、ToDesk、AnyDesk或内存调优。Clover 双系统引导作为独立高风险入口开放，动态识别 Bazzite EFI，并提供状态检查和恢复。
@@ -27,7 +27,7 @@ Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装�
 使用小黄鸭前，安装完成后请在 Steam 正版页面打开游戏右侧齿轮，进入“属性 → 测试版”，选择名称以 Linux 开头的可用版本；随后进入游戏模式，按 Steam Deck 机身右下角的“三个点（…）”按钮，在打开的菜单中依次点击插头图标 → 小黄鸭 → 安装 LSFG。
 - 常用软件与远程协助：微信使用腾讯官网官方 AppImage；QQ、Chrome、Edge、AnyDesk、百度网盘、LibreOffice、VLC、OBS Studio、LocalSend、PeaZip、WiliWili、QQ音乐、网易云音乐、YesPlayMusic、qBittorrent、Motrix、Free Download Manager、Media Downloader、Flameshot、OnlyOffice、Joplin、Protontricks、Bottles 通过上海交大和中科大 Flathub 国内缓存安装；Xbox 云游戏通过 Flathub 安装 Greenlight，云游戏需 Xbox 账号；Heroic、Lutris、Chiaki4Deck、Parsec 通过 Flathub 安装并自动加入 Steam 库；WiliWili 也会同步加入 Steam 库；Firefox 使用官方 Flathub 的 `org.mozilla.firefox`；RustDesk 使用作者 GitHub Release 提供的 AppImage。安装成功后会创建桌面快捷方式，不修改 SteamOS 只读分区。
 - 安装与卸载：软件、兼容层和插件会先检测现有完整安装，已安装时不重复下载；独立的七页卸载菜单可逐项移除，启动器卸载保留游戏与下载文件，模拟器卸载保留存档与配置，系统组件和全部插件仍需风险确认。
-- GE-Proton兼容层：安装入口提供“最新 GE 兼容层”和“修改器所需常用兼容层”两个选项；修改器兼容层子菜单可分别安装 GE-Proton 7-55、8-25、9-27、10-29，第五项保留四个版本全部安装。最新版安装不再删除旧版。下载后校验 SHA256，安装到 Steam 用户的 `compatibilitytools.d` 目录，不需要管理员权限；安装完成后自动重启 Steam 使其生效。
+- GE-Proton兼容层：安装入口提供“最新 GE 兼容层”和“修改器所需常用兼容层”两个选项；最新版通过专用 Gitee mirror-8 自动检测并分块下载，修改器兼容层仍沿用原仓库，可分别安装 GE-Proton 7-55、8-25、9-27、10-29。最新版安装不会删除本机已有旧版。下载后校验 SHA256，安装到 Steam 用户的 `compatibilitytools.d` 目录，不需要管理员权限；安装完成后自动重启 Steam 使其生效。
 - 飞行家 F1 适配：保留屏幕方向修复，并为 ONEXPLAYER F1 / ONEXFLY 7840U 普通黑白版提供 V1.14 BIOS 文件准备入口。Renkit 只校验官方 ZIP 与九个原厂文件并复制到名称不区分大小写的 Game 互通盘，不会在 SteamOS 下刷写 BIOS；8840U、EVA、F1 Pro 和其他机型会被拒绝。
 - ToDesk：使用固定的第三方SteamOS适配包并校验SHA256，安装完成后恢复只读保护。
 - Steam Deck 优化：清理 Steam 下载缓存、着色器缓存，并提供性能模式提示。
@@ -218,6 +218,6 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 
 ## 当前版本与维护
 
-当前正式版为 Renkit 2.0.5，后续版本从 1.0 起按语义化版本递增。后续维护同时覆盖 SteamOS 与 Bazzite 的独立菜单；rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
+当前正式版为 Renkit 2.0.6，后续版本从 1.0 起按语义化版本递增。后续维护同时覆盖 SteamOS 与 Bazzite 的独立菜单；rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。

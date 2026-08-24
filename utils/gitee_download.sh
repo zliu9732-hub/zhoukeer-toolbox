@@ -10,6 +10,7 @@ ZHOUKEER_GITEE_DOWNLOAD_LOADED=1
 
 GITEE_MIRROR_OWNER="${ZHOUKEER_GITEE_MIRROR_OWNER:-zliu9732-hub}"
 GITEE_MIRROR_REPO="${ZHOUKEER_GITEE_MIRROR_REPO:-zhoukeer-toolbox-mirror}"
+GITEE_GE_PROTON_MIRROR_REPO="${ZHOUKEER_GE_PROTON_GITEE_MIRROR_REPO:-zhoukeer-toolbox-mirror-8}"
 GITEE_MIRROR_BRANCH="${ZHOUKEER_GITEE_MIRROR_BRANCH:-main}"
 GITEE_MIRROR_CHUNK_BYTES="${ZHOUKEER_GITEE_MIRROR_CHUNK_BYTES:-8388608}"
 GITEE_MIRROR_DIRECT_MAX_BYTES="${ZHOUKEER_GITEE_MIRROR_DIRECT_MAX_BYTES:-9437184}"
@@ -47,8 +48,17 @@ gitee_mirror_id_is_valid() {
 }
 
 gitee_mirror_raw_base() {
+    local repo="${1:-$GITEE_MIRROR_REPO}"
+
     printf 'https://gitee.com/%s/%s/raw/%s' \
-        "$GITEE_MIRROR_OWNER" "$GITEE_MIRROR_REPO" "$GITEE_MIRROR_BRANCH"
+        "$GITEE_MIRROR_OWNER" "$repo" "$GITEE_MIRROR_BRANCH"
+}
+
+gitee_mirror_manifest_repo() {
+    case "$1" in
+        ge-proton) printf '%s\n' "$GITEE_GE_PROTON_MIRROR_REPO" ;;
+        *) printf '%s\n' "$GITEE_MIRROR_REPO" ;;
+    esac
 }
 
 gitee_mirror_direct_url() {
@@ -134,12 +144,13 @@ _gitee_mirror_setting() {
 
 download_gitee_mirror_manifest() {
     local id="$1" output="$2"
-    local manifest_url temp_file
+    local manifest_url manifest_repo temp_file
     local connect_timeout max_time retries
 
     gitee_mirror_id_is_valid "$id" || return 1
     [ "$GITEE_MIRROR_ENABLED" = "1" ] || return 1
-    manifest_url="$(gitee_mirror_raw_base)/$id/latest.txt"
+    manifest_repo="$(gitee_mirror_manifest_repo "$id")"
+    manifest_url="$(gitee_mirror_raw_base "$manifest_repo")/$id/latest.txt"
     if declare -F download_policy_url_allowed >/dev/null 2>&1 && \
         ! download_policy_url_allowed "$manifest_url"; then
         return 1
@@ -262,7 +273,7 @@ download_gitee_mirror_file() {
         ''|*'/'*|*'..'*) echo "$name 镜像文件名不安全。"; return 1 ;;
     esac
 
-    base_url="$(gitee_mirror_raw_base)/$id/$_GITEE_MIRROR_VERSION"
+    base_url="$(gitee_mirror_raw_base "$(gitee_mirror_manifest_repo "$id")")/$id/$_GITEE_MIRROR_VERSION"
     temp_file="$(mktemp "${output}.part.XXXXXX" 2>/dev/null)" || {
         echo "$name 无法创建临时下载文件。"
         return 1
@@ -301,7 +312,7 @@ download_gitee_mirror_file() {
                     part_repo="$_GITEE_MIRROR_REPO2"
                 fi
             fi
-            file_url="https://gitee.com/zliu9732-hub/$part_repo/raw/main/$id/$_GITEE_MIRROR_VERSION/$part_name"
+            file_url="$(gitee_mirror_raw_base "$part_repo")/$id/$_GITEE_MIRROR_VERSION/$part_name"
             if ! _gitee_mirror_download_one "$file_url" "$part_file" \
                 "$_GITEE_MIRROR_CHUNK_SIZE"; then
                 rm -rf -- "$temp_dir"
@@ -379,7 +390,7 @@ resolve_latest_gitee_mirror() {
     if [ -n "$_GITEE_MIRROR_SOURCE_URL" ]; then
         _GITEE_MIRROR_LATEST_URL="$_GITEE_MIRROR_SOURCE_URL"
     else
-        base_url="$(gitee_mirror_raw_base)/$id/$_GITEE_MIRROR_VERSION"
+        base_url="$(gitee_mirror_raw_base "$(gitee_mirror_manifest_repo "$id")")/$id/$_GITEE_MIRROR_VERSION"
         _GITEE_MIRROR_LATEST_URL="$base_url/$_GITEE_MIRROR_FILE"
     fi
     echo "$name 镜像最新版本: $_GITEE_MIRROR_LATEST_VERSION"

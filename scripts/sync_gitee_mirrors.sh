@@ -9,6 +9,11 @@ load_config
 
 OWNER="zliu9732-hub"
 TOKEN="${GITEE_TOKEN:-}"
+MODE="${1:-}"
+case "$MODE" in
+    ''|--only-ge-proton) ;;
+    *) echo "Usage: $0 [--only-ge-proton]"; exit 2 ;;
+esac
 [ -n "$TOKEN" ] || {
     echo "GITEE_TOKEN secret is missing"
     exit 1
@@ -20,9 +25,22 @@ trap 'rm -rf -- "$WORK"' EXIT
 MIRROR1="$WORK/mirror1"
 MIRROR2="$WORK/mirror2"
 MIRROR3="$WORK/mirror3"
-git clone -q "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
-git clone -q "$BASE/zhoukeer-toolbox-mirror-2.git" "$MIRROR2"
-git clone -q "$BASE/zhoukeer-toolbox-mirror-3.git" "$MIRROR3"
+MIRROR8="$WORK/mirror8"
+
+prepare_empty_main() {
+    local repo="$1"
+    if ! git -C "$repo" rev-parse --verify HEAD >/dev/null 2>&1; then
+        git -C "$repo" switch -q -C main
+    fi
+}
+
+if [ "$MODE" != "--only-ge-proton" ]; then
+    git clone -q "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
+    git clone -q "$BASE/zhoukeer-toolbox-mirror-2.git" "$MIRROR2"
+    git clone -q "$BASE/zhoukeer-toolbox-mirror-3.git" "$MIRROR3"
+fi
+git clone -q "$BASE/zhoukeer-toolbox-mirror-8.git" "$MIRROR8"
+prepare_empty_main "$MIRROR8"
 
 sha_of() {
     sha256sum -- "$1" | awk '{print $1}'
@@ -96,7 +114,7 @@ sync_plugin() {
 }
 
 sync_ge_proton() {
-    local version file url sha size chunks target1 target2 i part
+    local version file url sha size chunks target i part
 
     version="GE-Proton11-5"
     file="GE-Proton11-5-x86_64.tar.gz"
@@ -120,30 +138,45 @@ sync_ge_proton() {
     }
     size="$(wc -c < "$WORK/$file" | tr -d ' ')"
     chunks=$(( (size + 8388607) / 8388608 ))
-    target1="$MIRROR1/ge-proton/$version"
-    target2="$MIRROR2/ge-proton/$version"
-    mkdir -p "$target1" "$target2"
-    rm -f -- "$MIRROR1/ge-proton"/*/part.* "$MIRROR2/ge-proton"/*/part.*
+    target="$MIRROR8/ge-proton/$version"
+    mkdir -p "$target"
+    rm -f -- "$MIRROR8/ge-proton"/*/part.*
 
     split -b 8388608 --numeric-suffixes=1 -a 4 \
         "$WORK/$file" "$WORK/ge-proton.part."
     i=1
-    while [ "$i" -le 8 ]; do
-        part="$(printf 'part.%04d' "$i")"
-        cp -- "$WORK/ge-proton.$part" "$target1/$part"
-        i=$((i + 1))
-    done
     while [ "$i" -le "$chunks" ]; do
         part="$(printf 'part.%04d' "$i")"
-        cp -- "$WORK/ge-proton.$part" "$target2/$part"
+        cp -- "$WORK/ge-proton.$part" "$target/$part"
         i=$((i + 1))
     done
 
-    write_manifest "$MIRROR1" "ge-proton" "GE-Proton" "$version" "$file" \
+    write_manifest "$MIRROR8" "ge-proton" "GE-Proton" "$version" "$file" \
         "$url" "$sha" "$size" "$chunks" 8388608 \
-        "zhoukeer-toolbox-mirror" "zhoukeer-toolbox-mirror-2" 8
+        "zhoukeer-toolbox-mirror-8" "zhoukeer-toolbox-mirror-8" "$chunks"
     echo "Synced GE-Proton $version"
 }
+
+commit_and_push() {
+    local repo="$1"
+
+    git -C "$repo" config user.name "zhoukeer-toolbox[bot]"
+    git -C "$repo" config user.email "bot@users.noreply.github.com"
+    git -C "$repo" add -A
+    if git -C "$repo" diff --cached --quiet; then
+        echo "No changes in $(basename "$repo")"
+    else
+        git -C "$repo" -c commit.gpgsign=false commit -q -m "Sync Gitee mirror assets"
+        git -C "$repo" push -q -u origin main
+        echo "Pushed $(basename "$repo")"
+    fi
+}
+
+if [ "$MODE" = "--only-ge-proton" ]; then
+    sync_ge_proton
+    commit_and_push "$MIRROR8"
+    exit 0
+fi
 
 # 小黄鸭汉化叠加固定 v0.12.8，镜像必须与Renkit内置版本一致，否则 SHA 校验会拒绝。
 sync_plugin lsfg "xXJSONDeruloXx/decky-lsfg-vk" '^Decky[.]LSFG-VK[.]zip$' "Decky LSFG-VK" \
@@ -207,15 +240,6 @@ sync_plugin temurin21-jre "adoptium/temurin21-binaries" \
     "8a379a67c91a3ae61ffb33d46e0a40c7ba35e70713c4db31cfca30492f792eff"
 sync_ge_proton
 
-for repo in "$MIRROR1" "$MIRROR2" "$MIRROR3"; do
-    git -C "$repo" config user.name "zhoukeer-toolbox[bot]"
-    git -C "$repo" config user.email "bot@users.noreply.github.com"
-    git -C "$repo" add -A
-    if git -C "$repo" diff --cached --quiet; then
-        echo "No changes in $(basename "$repo")"
-    else
-        git -C "$repo" -c commit.gpgsign=false commit -q -m "Sync Gitee mirror assets"
-        git -C "$repo" push -q origin main
-        echo "Pushed $(basename "$repo")"
-    fi
+for repo in "$MIRROR8" "$MIRROR1" "$MIRROR2" "$MIRROR3"; do
+    commit_and_push "$repo"
 done

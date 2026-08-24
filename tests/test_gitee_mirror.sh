@@ -56,6 +56,11 @@ curl() {
     esac
 }
 
+[ "$(gitee_mirror_manifest_repo ge-proton)" = "zhoukeer-toolbox-mirror-8" ] || \
+    FAIL "GE-Proton 最新清单未迁移到 mirror-8"
+[ "$(gitee_mirror_manifest_repo test)" = "zhoukeer-toolbox-mirror" ] || \
+    FAIL "其他镜像清单仓库被 GE-Proton 专用路由影响"
+
 mirror_output="$(download_gitee_mirror_file test "$TMP_ROOT/out.bin" "$FULL_SHA" "测试镜像")"
 printf '%s\n' "$mirror_output" | grep -Fq '正在下载 测试镜像' || \
     FAIL "Gitee 镜像下载提示没有使用 正在下载"
@@ -95,6 +100,12 @@ grep -Fq 'sync_plugin lsfg-mako' \
 grep -Fq 'zhoukeer-toolbox-mirror-3' \
     "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
     FAIL "MAKO LSFG 同步未使用 mirror-3"
+grep -Fq 'zhoukeer-toolbox-mirror-8' \
+    "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
+    FAIL "GE-Proton 同步未使用专用 mirror-8"
+grep -Fq -- '--only-ge-proton' \
+    "$PROJECT_ROOT/.github/workflows/sync-ge-proton-gitee.yml" || \
+    FAIL "GE-Proton 专用定时同步工作流缺失"
 grep -Fq "'^MAKO-Decky-v[0-9.]+[.]zip$'" \
     "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
     FAIL "MAKO LSFG 同步未跟随上游最新正式插件包"
