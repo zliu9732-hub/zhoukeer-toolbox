@@ -26,6 +26,9 @@ MIRROR1="$WORK/mirror1"
 MIRROR2="$WORK/mirror2"
 MIRROR3="$WORK/mirror3"
 MIRROR8="$WORK/mirror8"
+GE_PROTON_VERSION=""
+GE_PROTON_CHUNKS=0
+GE_PUSH_BATCH_SIZE=4
 
 prepare_empty_main() {
     local repo="$1"
@@ -154,7 +157,68 @@ sync_ge_proton() {
     write_manifest "$MIRROR8" "ge-proton" "GE-Proton" "$version" "$file" \
         "$url" "$sha" "$size" "$chunks" 8388608 \
         "zhoukeer-toolbox-mirror-8" "zhoukeer-toolbox-mirror-8" "$chunks"
+    GE_PROTON_VERSION="$version"
+    GE_PROTON_CHUNKS="$chunks"
     echo "Synced GE-Proton $version"
+}
+
+push_main_with_retry() {
+    local repo="$1" label="$2" attempt=1
+
+    while [ "$attempt" -le 3 ]; do
+        echo "Uploading $label (attempt $attempt/3)..."
+        if timeout 900 git -C "$repo" push --progress -u origin main; then
+            return 0
+        fi
+        echo "Upload failed or timed out for $label"
+        attempt=$((attempt + 1))
+    done
+    return 1
+}
+
+commit_and_push_ge_proton_batches() {
+    local repo="$1" first last i part
+    local -a paths=()
+
+    [ -n "$GE_PROTON_VERSION" ] && [ "$GE_PROTON_CHUNKS" -gt 0 ] || {
+        echo "GE-Proton batch metadata is missing"
+        return 1
+    }
+    git -C "$repo" config user.name "zhoukeer-toolbox[bot]"
+    git -C "$repo" config user.email "bot@users.noreply.github.com"
+
+    first=1
+    while [ "$first" -le "$GE_PROTON_CHUNKS" ]; do
+        last=$((first + GE_PUSH_BATCH_SIZE - 1))
+        [ "$last" -le "$GE_PROTON_CHUNKS" ] || last="$GE_PROTON_CHUNKS"
+        paths=()
+        i="$first"
+        while [ "$i" -le "$last" ]; do
+            part="$(printf 'part.%04d' "$i")"
+            paths+=("ge-proton/$GE_PROTON_VERSION/$part")
+            i=$((i + 1))
+        done
+        git -C "$repo" add -- "${paths[@]}"
+        if git -C "$repo" diff --cached --quiet; then
+            echo "GE-Proton chunks $first-$last already uploaded"
+        else
+            git -C "$repo" -c commit.gpgsign=false commit -q \
+                -m "Sync GE-Proton $GE_PROTON_VERSION chunks $first-$last"
+            push_main_with_retry "$repo" "GE-Proton chunks $first-$last/$GE_PROTON_CHUNKS"
+        fi
+        first=$((last + 1))
+    done
+
+    # 最后发布清单，避免客户端在所有分块上传完成前读到不完整版本。
+    git -C "$repo" add -- ge-proton/latest.txt
+    if git -C "$repo" diff --cached --quiet; then
+        echo "GE-Proton manifest already published"
+    else
+        git -C "$repo" -c commit.gpgsign=false commit -q \
+            -m "Publish GE-Proton $GE_PROTON_VERSION manifest"
+        push_main_with_retry "$repo" "GE-Proton manifest"
+    fi
+    echo "Pushed GE-Proton $GE_PROTON_VERSION in resumable batches"
 }
 
 commit_and_push() {
@@ -174,7 +238,7 @@ commit_and_push() {
 
 if [ "$MODE" = "--only-ge-proton" ]; then
     sync_ge_proton
-    commit_and_push "$MIRROR8"
+    commit_and_push_ge_proton_batches "$MIRROR8"
     exit 0
 fi
 
