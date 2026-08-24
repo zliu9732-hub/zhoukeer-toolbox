@@ -244,11 +244,13 @@ done
 touch_f1="$(function_source "$MAIN_FILE" f1_handheld_menu)"
 gui_f1="$(function_source "$GUI_FILE" f1_screen_fix_gui_menu)"
 for menu in "$touch_f1" "$gui_f1"; do
-    for item in '安装修复' '检查状态' '卸载修复' '立即重启 SteamOS' 'ONEXPLAYER F1' '不使用 sudo'; do
+    for item in '安装修复' '检查状态' '卸载修复' '准备 V1.14 BIOS' '立即重启 SteamOS' 'ONEXPLAYER F1' '不使用 sudo'; do
         assert_contains "$menu" "$item" "飞行家 F1 子菜单缺少：$item"
     done
     assert_contains "$touch_f1" 'right:7-8:install' "飞行家 F1 安装坐标错误"
-    assert_contains "$touch_f1" 'right:13-14:reboot' "飞行家 F1 重启坐标错误"
+    assert_contains "$touch_f1" 'right:13-14:bios' "飞行家 F1 BIOS 坐标错误"
+    assert_contains "$touch_f1" 'right:15-16:reboot' "飞行家 F1 重启坐标错误"
+    assert_contains "$menu" 'modules/f1_bios_prepare.sh" prepare' "飞行家 F1 BIOS 准备动作错误"
 done
 
 touch_uninstall="$(function_source "$MAIN_FILE" uninstall_software_menu)"

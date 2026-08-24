@@ -98,15 +98,19 @@ sync_plugin() {
 sync_ge_proton() {
     local version file url sha size chunks target1 target2 i part
 
-    if ! resolve_latest_github_release "GloriousEggroll/proton-ge-custom" \
-        '^GE-Proton[0-9]+-[0-9]+[.]tar[.]gz$' "GE-Proton"; then
-        echo "Skip GE-Proton: latest release lookup failed"
-        return 0
+    version="GE-Proton11-5"
+    file="GE-Proton11-5-x86_64.tar.gz"
+    url="https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-5/GE-Proton11-5-x86_64.tar.gz"
+    sha="de43c4b25f3c047db49b96c44d84759952c5a01332a68805a09e69f95dc38a75"
+    if resolve_latest_github_release "GloriousEggroll/proton-ge-custom" \
+        '^GE-Proton[0-9]+-[0-9]+(-x86_64)?[.]tar[.]gz$' "GE-Proton"; then
+        version="$_LATEST_RELEASE_TAG"
+        file="$_LATEST_RELEASE_ASSET"
+        url="$_LATEST_RELEASE_URL"
+        sha="$_LATEST_RELEASE_SHA256"
+    else
+        echo "GE-Proton latest release lookup failed; using pinned $version"
     fi
-    version="$_LATEST_RELEASE_TAG"
-    file="$_LATEST_RELEASE_ASSET"
-    url="$_LATEST_RELEASE_URL"
-    sha="$_LATEST_RELEASE_SHA256"
 
     curl -fsSL --proto '=https' --proto-redir '=https' \
         --connect-timeout 15 --max-time 1800 -o "$WORK/$file" "$url"

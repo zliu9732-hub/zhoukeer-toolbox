@@ -1030,10 +1030,11 @@ f1_screen_fix_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "掌机适配｜飞行家 F1 屏幕方向修复" \
+        choice="$(gui_dialog --menu "掌机适配｜飞行家 F1 问题" \
             install "安装修复｜仅适用于 ONEXPLAYER F1｜不使用 sudo" \
             status "检查状态｜查看修复文件和 systemd override" \
             uninstall "卸载修复｜删除用户级修复并恢复原始启动方式" \
+            bios "准备 V1.14 BIOS｜仅 7840U 普通黑白版｜复制到互通盘" \
             reboot "立即重启 SteamOS｜重启后生效｜请先保存工作" \
             back "返回更多设置" \
             home "返回首页" \
@@ -1051,6 +1052,11 @@ f1_screen_fix_gui_menu() {
             uninstall)
                 gui_confirm "将删除用户级修复文件并刷新 systemd，不使用 sudo；重启后恢复原始启动方式。确认继续？" && \
                     run_gui_action "卸载飞行家 F1 屏幕方向修复" bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" uninstall
+                return 0
+                ;;
+            bios)
+                gui_confirm "仅适用于 ONEXPLAYER F1/ONEXFLY 7840U 普通黑白版，不适用于 8840U、EVA、F1 Pro。Renkit 只校验并复制 BIOS 到互通盘；必须进入 Windows 后手动运行 OXF.bat，刷写期间严禁断电。确认继续？" && \
+                    run_gui_action "准备飞行家 F1 V1.14 BIOS" bash "$PROJECT_ROOT/modules/f1_bios_prepare.sh" prepare
                 return 0
                 ;;
             reboot)
@@ -1075,7 +1081,7 @@ advanced_tools_gui_menu() {
             memory "虚拟内存｜设置 zram、swap 或撤销｜高级操作" \
             change-password "修改管理员密码｜会更换 SteamOS 管理密码｜高级操作" \
             dual "双系统与互通盘｜管理磁盘和开机菜单｜高级操作" \
-            handheld "掌机适配｜飞行家 F1 屏幕方向修复｜不使用 sudo" \
+            handheld "掌机适配｜飞行家 F1 屏幕与 BIOS｜屏幕修复不使用 sudo" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
         case "$choice" in

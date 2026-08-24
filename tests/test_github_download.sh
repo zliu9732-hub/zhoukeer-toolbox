@@ -201,17 +201,17 @@ find "$TEST_ROOT" -maxdepth 1 -name 'output.zip.part.*' | grep -q . && {
 
 cat > "$TEST_ROOT/latest.json" <<'EOF'
 {
-  "tag_name": "GE-Proton11-3",
+  "tag_name": "GE-Proton11-5",
   "assets": [
     {
-      "name": "GE-Proton11-3-aarch64.tar.gz",
+      "name": "GE-Proton11-5-aarch64.tar.gz",
       "digest": "sha256:143a5e8593bd07600674da65cfaa0a64a50beeba116c14b2df21585a94877c37",
-      "browser_download_url": "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-3/GE-Proton11-3-aarch64.tar.gz"
+      "browser_download_url": "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-5/GE-Proton11-5-aarch64.tar.gz"
     },
     {
-      "name": "GE-Proton11-3.tar.gz",
-      "digest": "sha256:861c2edc8d40d051fb1e7a692deb953be52bd339c46d90f2b7dde50ddad91266",
-      "browser_download_url": "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-3/GE-Proton11-3.tar.gz"
+      "name": "GE-Proton11-5-x86_64.tar.gz",
+      "digest": "sha256:de43c4b25f3c047db49b96c44d84759952c5a01332a68805a09e69f95dc38a75",
+      "browser_download_url": "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-5/GE-Proton11-5-x86_64.tar.gz"
     }
   ]
 }
@@ -233,17 +233,17 @@ curl() {
     cp "$GITHUB_TEST_API_JSON" "$output"
 }
 resolve_latest_github_release "GloriousEggroll/proton-ge-custom" \
-    '^GE-Proton[0-9]+-[0-9]+[.]tar[.]gz$' "GE-Proton" >/dev/null
+    '^GE-Proton[0-9]+-[0-9]+(-x86_64)?[.]tar[.]gz$' "GE-Proton" >/dev/null
 unset -f curl
-[ "$_LATEST_RELEASE_TAG" = "GE-Proton11-3" ] || {
+[ "$_LATEST_RELEASE_TAG" = "GE-Proton11-5" ] || {
     echo "FAIL: 最新 Release 标签解析错误" >&2
     exit 1
 }
-[ "$_LATEST_RELEASE_ASSET" = "GE-Proton11-3.tar.gz" ] || {
+[ "$_LATEST_RELEASE_ASSET" = "GE-Proton11-5-x86_64.tar.gz" ] || {
     echo "FAIL: 最新 Release 资产解析错误" >&2
     exit 1
 }
-[ "$_LATEST_RELEASE_SHA256" = "861c2edc8d40d051fb1e7a692deb953be52bd339c46d90f2b7dde50ddad91266" ] || {
+[ "$_LATEST_RELEASE_SHA256" = "de43c4b25f3c047db49b96c44d84759952c5a01332a68805a09e69f95dc38a75" ] || {
     echo "FAIL: 最新 Release SHA256 解析错误" >&2
     exit 1
 }

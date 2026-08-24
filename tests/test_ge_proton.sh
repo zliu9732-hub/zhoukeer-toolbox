@@ -52,10 +52,13 @@ exit 0
 SCRIPT
 chmod +x "$BIN_DIR"/*
 
-mkdir -p "$TARGET_ROOT/GE-Proton8-1"
-printf '%s\n' 'compatibility tool' > "$TARGET_ROOT/GE-Proton8-1/compatibilitytool.vdf"
-printf '%s\n' '#!/bin/bash' > "$TARGET_ROOT/GE-Proton8-1/proton"
-printf '%s\n' 'manifest' > "$TARGET_ROOT/GE-Proton8-1/toolmanifest.vdf"
+for version in GE-Proton8-1 GE-Proton11-3; do
+    mkdir -p "$TARGET_ROOT/$version"
+    printf '%s\n' 'compatibility tool' > "$TARGET_ROOT/$version/compatibilitytool.vdf"
+    printf '%s\n' '#!/bin/bash' > "$TARGET_ROOT/$version/proton"
+    printf '%s\n' 'manifest' > "$TARGET_ROOT/$version/toolmanifest.vdf"
+    chmod +x "$TARGET_ROOT/$version/proton"
+done
 mkdir -p "$TARGET_ROOT/GE-Proton10-1" "$TARGET_ROOT/GE-Proton-custom"
 printf '%s\n' 'newer version' > "$TARGET_ROOT/GE-Proton10-1/marker.txt"
 printf '%s\n' 'custom tool' > "$TARGET_ROOT/GE-Proton-custom/marker.txt"
@@ -90,6 +93,10 @@ fi
 grep -Fq 'https://download.example/GE-Proton9-99.tar.gz' "$CURL_LOG"
 test -d "$TARGET_ROOT/GE-Proton8-1" || {
     echo "FAIL: 安装最新版本后旧版 GE-Proton 被删除"
+    exit 1
+}
+test -x "$TARGET_ROOT/GE-Proton11-3/proton" || {
+    echo "FAIL: 安装 GE-Proton 时删除了原有 GE-Proton11-3"
     exit 1
 }
 test -f "$TARGET_ROOT/GE-Proton10-1/marker.txt" || {
@@ -132,7 +139,7 @@ for sha in \
         exit 1
     }
 done
-if grep -Fq 'cleanup_older_ge_proton_versions' "$MODULE"; then
+if grep -Eq 'cleanup_(older|superseded)_ge_proton' "$MODULE"; then
     echo "FAIL: 模块仍包含删除旧版 GE-Proton 的逻辑"
     exit 1
 fi
@@ -270,5 +277,63 @@ MODULE="$MODULE" TARGET_ROOT="$TARGET_ROOT" \
     echo "FAIL: GE-Proton 临时解压目录没有被清理" >&2
     exit 1
 }
+
+# 上游 11-5 起使用 -x86_64 资产名；过期的 Gitee 11-3 镜像不能造成降级。
+auto_result="$(MODULE="$MODULE" bash -c '
+    source "$MODULE"
+    GE_PROTON_URL="https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-5/GE-Proton11-5-x86_64.tar.gz"
+    GE_PROTON_VERSION="GE-Proton11-5"
+    GE_PROTON_SHA256="de43c4b25f3c047db49b96c44d84759952c5a01332a68805a09e69f95dc38a75"
+    GE_PROTON_AUTO_UPDATE=1
+    unset ZHOUKEER_GE_PROTON_URL ZHOUKEER_GE_PROTON_VERSION ZHOUKEER_GE_PROTON_SHA256
+    resolve_latest_github_release() {
+        _LATEST_RELEASE_TAG="GE-Proton11-5"
+        _LATEST_RELEASE_ASSET="GE-Proton11-5-x86_64.tar.gz"
+        _LATEST_RELEASE_SHA256="de43c4b25f3c047db49b96c44d84759952c5a01332a68805a09e69f95dc38a75"
+        _LATEST_RELEASE_URL="https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-5/GE-Proton11-5-x86_64.tar.gz"
+        return 0
+    }
+    resolve_latest_gitee_mirror() {
+        _GITEE_MIRROR_LATEST_VERSION="GE-Proton11-3"
+        _GITEE_MIRROR_LATEST_FILE="GE-Proton11-3.tar.gz"
+        _GITEE_MIRROR_LATEST_SHA256="861c2edc8d40d051fb1e7a692deb953be52bd339c46d90f2b7dde50ddad91266"
+        _GITEE_MIRROR_LATEST_URL="https://gitee.example/GE-Proton11-3.tar.gz"
+        return 0
+    }
+    log() { :; }
+    resolve_ge_proton_latest
+    ge_proton_version_is_at_least GE-Proton11-5 GE-Proton11-3 || exit 91
+    if ge_proton_version_is_at_least GE-Proton11-3 GE-Proton11-5; then exit 92; fi
+    printf "%s|%s|%s\n" "$GE_PROTON_VERSION" "$GE_PROTON_URL" "$GE_PROTON_SHA256"
+')"
+case "$auto_result" in
+    'GE-Proton11-5|https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-5/GE-Proton11-5-x86_64.tar.gz|de43c4b25f3c047db49b96c44d84759952c5a01332a68805a09e69f95dc38a75') ;;
+    *) echo "FAIL: GE-Proton 自动检测未选择官方 11-5 x86_64 资产：$auto_result" >&2; exit 1 ;;
+esac
+
+# Gitee 分块镜像已经同步到 11-5 时必须优先使用，不再访问 GitHub 元数据。
+gitee_result="$(MODULE="$MODULE" bash -c '
+    source "$MODULE"
+    GE_PROTON_URL="https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-5/GE-Proton11-5-x86_64.tar.gz"
+    GE_PROTON_VERSION="GE-Proton11-5"
+    GE_PROTON_SHA256="de43c4b25f3c047db49b96c44d84759952c5a01332a68805a09e69f95dc38a75"
+    GE_PROTON_AUTO_UPDATE=1
+    unset ZHOUKEER_GE_PROTON_URL ZHOUKEER_GE_PROTON_VERSION ZHOUKEER_GE_PROTON_SHA256
+    resolve_latest_gitee_mirror() {
+        _GITEE_MIRROR_LATEST_VERSION="GE-Proton11-5"
+        _GITEE_MIRROR_LATEST_FILE="GE-Proton11-5-x86_64.tar.gz"
+        _GITEE_MIRROR_LATEST_SHA256="de43c4b25f3c047db49b96c44d84759952c5a01332a68805a09e69f95dc38a75"
+        _GITEE_MIRROR_LATEST_URL="https://gitee.example/GE-Proton11-5-x86_64.tar.gz"
+        return 0
+    }
+    resolve_latest_github_release() { exit 93; }
+    log() { :; }
+    resolve_ge_proton_latest
+    printf "%s|%s|%s\n" "$GE_PROTON_VERSION" "$GE_PROTON_URL" "$GE_PROTON_SHA256"
+')"
+case "$gitee_result" in
+    'GE-Proton11-5|https://gitee.example/GE-Proton11-5-x86_64.tar.gz|de43c4b25f3c047db49b96c44d84759952c5a01332a68805a09e69f95dc38a75') ;;
+    *) echo "FAIL: GE-Proton 11-5 没有优先使用 Gitee 分块镜像：$gitee_result" >&2; exit 1 ;;
+esac
 
 echo "PASS: GE-Proton目录解析、校验、原子安装、多版本共存和修改器兼容层测试通过"

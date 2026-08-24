@@ -243,6 +243,7 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_contains "$source_text" 'modules/f1_screen_fix.sh" status' "飞行家 F1 修复状态动作错误：$file"
     assert_contains "$source_text" 'modules/f1_screen_fix.sh" uninstall' "飞行家 F1 修复卸载动作错误：$file"
     assert_contains "$source_text" 'modules/f1_screen_fix.sh" reboot' "飞行家 F1 立即重启动作错误：$file"
+    assert_contains "$source_text" 'modules/f1_bios_prepare.sh" prepare' "飞行家 F1 BIOS 准备动作错误：$file"
     assert_contains "$source_text" 'modules/domestic_source.sh" init' "国内软件源动作错误：$file"
     assert_contains "$source_text" 'modules/domestic_source.sh" restore' "恢复官方源动作错误：$file"
     assert_contains "$source_text" 'core/detect.sh" --health' "系统健康检查动作错误：$file"

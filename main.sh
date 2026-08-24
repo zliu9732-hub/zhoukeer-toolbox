@@ -1203,15 +1203,16 @@ f1_handheld_menu() {
     local choice
 
     while true; do
-        draw_category_frame advanced "掌机适配" "飞行家 F1 屏幕方向修复 · 不使用 sudo"
+        draw_category_frame advanced "掌机适配" "飞行家 F1 问题 · 屏幕方向与 BIOS 声音修复"
         ui_touch_button 7 '\033[1;97;48;5;24m' "安装修复" "仅适用于 ONEXPLAYER F1"
         ui_touch_button 9 '\033[1;97;48;5;24m' "检查状态" "查看修复文件和 systemd override"
         ui_touch_button 11 '\033[1;97;48;5;160m' "卸载修复" "删除用户级修复并恢复原始启动方式"
-        ui_touch_button 13 '\033[1;97;48;5;160m' "立即重启 SteamOS" "重启后生效 · 请先保存工作"
+        ui_touch_button 13 '\033[1;97;48;5;160m' "准备 V1.14 BIOS" "仅 F1/ONEXFLY 7840U 普通版 · 复制到互通盘"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "立即重启 SteamOS" "重启后生效 · 请先保存工作"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回更多设置" "查看其他系统功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:install right:9-10:status right:11-12:uninstall right:13-14:reboot right:19-20:advanced right:22-23:home)"
+        choice="$(read_touch_menu right:7-8:install right:9-10:status right:11-12:uninstall right:13-14:bios right:15-16:reboot right:19-20:advanced right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             install)
@@ -1226,6 +1227,11 @@ f1_handheld_menu() {
             uninstall)
                 confirm_and_run "卸载飞行家 F1 屏幕方向修复" "将删除用户级修复文件并刷新 systemd，不使用 sudo" \
                     bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" uninstall
+                return 0
+                ;;
+            bios)
+                confirm_and_run "准备飞行家 F1 V1.14 BIOS" "仅适用于 ONEXPLAYER F1/ONEXFLY 7840U 普通黑白版；不适用于 8840U、EVA、F1 Pro。Renkit 只校验并复制到互通盘，必须进入 Windows 后手动运行 OXF.bat，刷写期间严禁断电" \
+                    bash "$PROJECT_ROOT/modules/f1_bios_prepare.sh" prepare
                 return 0
                 ;;
             reboot)
@@ -1249,7 +1255,7 @@ advanced_tools_menu() {
         ui_touch_button 11 '\033[1;97;48;5;160m' "虚拟内存" "设置 zram、swap 或撤销 · 高级操作"
         ui_touch_button 13 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
         ui_touch_button 15 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单 · 高级操作"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "掌机适配" "飞行家 F1 屏幕方向修复 · 不使用 sudo"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "掌机适配" "飞行家 F1 屏幕与 BIOS · 屏幕修复不使用 sudo"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:memory right:13-14:change-password right:15-16:dual right:17-18:handheld right:22-23:home)"

@@ -335,7 +335,7 @@ git diff --check
 bash scripts/deploy_release.sh
 ```
 
-战网/黑盒独立工具已固定在自己的 `2.0.1` 版本，不再随 Renkit 主版本重复打包；只有独立工具本身发生修改并决定单独发布时，才运行 `scripts/package_battlenet_heihe.sh`。
+战网/黑盒独立一行引导与独立打包流程已在 Renkit 2.0.5 退役；主工具箱内原有战网和黑盒工坊功能保持不变。
 
 `deploy_release.sh` 只生成和检查包，不会自动提交。`scripts/package_release.sh` 只打包 Git 已跟踪文件，这一点非常重要：
 
@@ -359,11 +359,11 @@ tar -tzf dist/renkit.tar.gz | rg '(^|/)\._' && echo '错误：含 AppleDouble'
 2. 获取 GitHub/Gitee v2 最新状态并确认没有版本分叉。
 3. 最小修改，更新版本和 CHANGELOG。
 4. 跑全部 Bash 语法、相关测试和 `tests/run.sh`。
-5. 生成 Renkit 包，核对版本、SHA、体积和必要文件；不再为每个 Renkit 版本重复生成战网/黑盒独立包。
+5. 生成 Renkit 包，核对版本、SHA、体积和必要文件；不生成已退役的战网/黑盒独立包。
 6. `git status`/`git diff` 人工复核；只 `git add` 本次文件。
 7. 提交后推 GitHub `main`；禁止 force push、rebase 已发布历史或 `git push --tags`。
 8. 只创建当前版本的 annotated tag 并单独推送，例如 `git push origin v1.4.8`。
-9. 创建 GitHub Release，上传版本化 Renkit 包、`.sha256`、战网/黑盒包及其 `.sha256`。
+9. 创建 GitHub Release，只上传版本化 Renkit 包及其 `.sha256`。
 10. 在临时 Gitee v2 clone 中，用 GitHub 已提交树替换 v2 跟踪树并普通提交；禁止 force push。
 11. 如果只更新 Decky 分块，使用现有 sparse 单目录工作流，不做全树快照。
 12. 公网回读 `VERSION`、`dist/SHA256SUMS`、`dist/renkit.tar.gz`、`decky-installer-cn/latest.txt` 和 `launcher-covers/latest.txt`。
