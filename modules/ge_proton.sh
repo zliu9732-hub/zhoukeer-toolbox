@@ -13,6 +13,7 @@ GE_PROTON_VERSION="${ZHOUKEER_GE_PROTON_VERSION:-GE-Proton11-5}"
 GE_PROTON_SHA256="${ZHOUKEER_GE_PROTON_SHA256:-de43c4b25f3c047db49b96c44d84759952c5a01332a68805a09e69f95dc38a75}"
 GE_PROTON_AUTO_UPDATE="${ZHOUKEER_GE_PROTON_AUTO_UPDATE:-1}"
 GE_PROTON_TMP_DIR=""
+GE_PROTON_ARCHIVE_DIR=""
 GE_PROTON_STAGE_DIR=""
 GE_PROTON_BACKUP_DIR=""
 GE_PROTON_TARGET_DIR=""
@@ -140,8 +141,10 @@ resolve_ge_proton_latest() {
 validate_archive_members() {
     local archive="$1"
     local member
+    local member_root
     local members
 
+    GE_PROTON_ARCHIVE_DIR=""
     members="$(LC_ALL=C tar -tzf "$archive" 2>/dev/null)" || {
         echo "GE-Proton压缩包无法读取或不是tar.gz格式。"
         return 1
@@ -154,12 +157,24 @@ validate_archive_members() {
     while IFS= read -r member; do
         member="${member#./}"
         case "$member" in
-            ""|"$GE_PROTON_VERSION"|"$GE_PROTON_VERSION/"*) ;;
+            "") continue ;;
+            "$GE_PROTON_VERSION"|"$GE_PROTON_VERSION/"*)
+                member_root="$GE_PROTON_VERSION"
+                ;;
+            "${GE_PROTON_VERSION}-x86_64"|"${GE_PROTON_VERSION}-x86_64/"*)
+                member_root="${GE_PROTON_VERSION}-x86_64"
+                ;;
             *)
                 echo "压缩包包含预期目录之外的文件：$member"
                 return 1
                 ;;
         esac
+        if [ -n "$GE_PROTON_ARCHIVE_DIR" ] && \
+            [ "$GE_PROTON_ARCHIVE_DIR" != "$member_root" ]; then
+            echo "GE-Proton压缩包包含多个顶层版本目录，已拒绝解压。"
+            return 1
+        fi
+        GE_PROTON_ARCHIVE_DIR="$member_root"
         case "/$member/" in
             */../*|*/./*)
                 echo "压缩包包含不安全路径，已拒绝解压。"
@@ -167,6 +182,11 @@ validate_archive_members() {
                 ;;
         esac
     done <<< "$members"
+
+    [ -n "$GE_PROTON_ARCHIVE_DIR" ] || {
+        echo "无法解析GE-Proton压缩包顶层目录。"
+        return 1
+    }
 }
 
 validate_extracted_tool() {
@@ -326,7 +346,7 @@ install_ge_proton_package() {
         return 1
     fi
 
-    source_dir="$extract_dir/$GE_PROTON_VERSION"
+    source_dir="$extract_dir/$GE_PROTON_ARCHIVE_DIR"
     validate_extracted_tool "$source_dir" || return 1
 
     GE_PROTON_TARGET_DIR="$compatibility_dir/$GE_PROTON_VERSION"

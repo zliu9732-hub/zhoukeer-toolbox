@@ -11,6 +11,8 @@ HOME_DIR="$TMP_ROOT/home"
 BIN_DIR="$TMP_ROOT/bin"
 SOURCE_DIR="$TMP_ROOT/source/GE-Proton9-99"
 ARCHIVE="$TMP_ROOT/GE-Proton9-99.tar.gz"
+SUFFIX_SOURCE_DIR="$TMP_ROOT/suffix-source/GE-Proton11-5-x86_64"
+SUFFIX_ARCHIVE="$TMP_ROOT/GE-Proton11-5.tar.gz"
 TARGET_ROOT="$HOME_DIR/.steam/root/compatibilitytools.d"
 CURL_LOG="$TMP_ROOT/curl.log"
 mkdir -p "$BIN_DIR" "$SOURCE_DIR" "$HOME_DIR/.steam/root"
@@ -21,6 +23,14 @@ printf '%s\n' 'manifest' > "$SOURCE_DIR/toolmanifest.vdf"
 chmod +x "$SOURCE_DIR/proton"
 tar -czf "$ARCHIVE" -C "$TMP_ROOT/source" GE-Proton9-99
 ARCHIVE_SHA="$(shasum -a 256 "$ARCHIVE" | awk '{print $1}')"
+
+mkdir -p "$SUFFIX_SOURCE_DIR"
+printf '%s\n' 'compatibility tool' > "$SUFFIX_SOURCE_DIR/compatibilitytool.vdf"
+printf '%s\n' '#!/bin/bash' > "$SUFFIX_SOURCE_DIR/proton"
+printf '%s\n' 'manifest' > "$SUFFIX_SOURCE_DIR/toolmanifest.vdf"
+chmod +x "$SUFFIX_SOURCE_DIR/proton"
+tar -czf "$SUFFIX_ARCHIVE" -C "$TMP_ROOT/suffix-source" GE-Proton11-5-x86_64
+SUFFIX_ARCHIVE_SHA="$(shasum -a 256 "$SUFFIX_ARCHIVE" | awk '{print $1}')"
 
 cat > "$BIN_DIR/curl" <<'SCRIPT'
 #!/bin/bash
@@ -77,6 +87,20 @@ run_install() {
         bash "$MODULE" install
 }
 
+run_suffix_install() {
+    HOME="$HOME_DIR" \
+    PATH="$BIN_DIR:/usr/bin:/bin" \
+    FAKE_CURL_LOG="$CURL_LOG" \
+    FAKE_GE_ARCHIVE="$SUFFIX_ARCHIVE" \
+    FAKE_STEAM_LOG="$TMP_ROOT/steam.log" \
+    FAKE_STEAM_RUNNING="$TMP_ROOT/steam-running" \
+    ZHOUKEER_GE_PROTON_URL="https://download.example/GE-Proton11-5.tar.gz" \
+    ZHOUKEER_GE_PROTON_VERSION="GE-Proton11-5" \
+    ZHOUKEER_GE_PROTON_SHA256="$SUFFIX_ARCHIVE_SHA" \
+    ZHOUKEER_TEST_MODE=1 \
+        bash "$MODULE" install
+}
+
 printf 'running\n' > "$TMP_ROOT/steam-running"
 run_install "$ARCHIVE_SHA" > "$TMP_ROOT/install.output"
 test -x "$TARGET_ROOT/GE-Proton9-99/proton" || {
@@ -111,6 +135,34 @@ if grep -Fq '已清理' "$TMP_ROOT/install.output"; then
     echo "FAIL: 安装最新版本仍会清理旧版 GE-Proton"
     exit 1
 fi
+
+# 新版官方包使用“版本-x86_64”顶层目录，安装时仍规范化为版本目录。
+run_suffix_install > "$TMP_ROOT/suffix-install.output"
+test -x "$TARGET_ROOT/GE-Proton11-5/proton" || {
+    echo "FAIL: x86_64 顶层目录的 GE-Proton 官方包未成功安装"
+    exit 1
+}
+[ ! -e "$TARGET_ROOT/GE-Proton11-5-x86_64" ] || {
+    echo "FAIL: GE-Proton 安装目录未规范化为版本名称"
+    exit 1
+}
+grep -Fq 'GE-Proton11-5 安装完成' "$TMP_ROOT/suffix-install.output"
+
+# 只兼容官方 x86_64 命名，其他意外顶层目录仍必须被安全校验拒绝。
+mkdir -p "$TMP_ROOT/bad-source/GE-Proton11-5-aarch64"
+printf '%s\n' 'unexpected architecture' > \
+    "$TMP_ROOT/bad-source/GE-Proton11-5-aarch64/proton"
+tar -czf "$TMP_ROOT/bad-archive.tar.gz" -C "$TMP_ROOT/bad-source" \
+    GE-Proton11-5-aarch64
+if (
+    source "$MODULE"
+    GE_PROTON_VERSION="GE-Proton11-5"
+    validate_archive_members "$TMP_ROOT/bad-archive.tar.gz"
+) > "$TMP_ROOT/bad-archive.output" 2>&1; then
+    echo "FAIL: GE-Proton 安全校验接受了非 x86_64 的意外顶层目录"
+    exit 1
+fi
+grep -Fq '预期目录之外' "$TMP_ROOT/bad-archive.output"
 
 # 修改器常用兼容层：固定四个版本、自有镜像和校验值必须写死在模块中。
 grep -Fq 'install-trainer' "$MODULE" || {
