@@ -112,9 +112,9 @@ DECKY_FREEDECK_URL="https://github.com/panyiwei-home/Freedeck/releases/download/
 DECKY_FREEDECK_SHA256="04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62"
 DECKY_FREEDECK_VERSION="0.6"
 # NewFreedeck 是作者独立重构版，与 Freedeck 0.6 使用不同插件目录。
-DECKY_NEWFREEDECK_URL="https://github.com/panyiwei-home/Freedeck/releases/download/New-0.1/NewFreedeck.v.0.1.zip"
-DECKY_NEWFREEDECK_SHA256="60c9832a5808941d0940caef7fecfe6058532d6cdc52e0002463a5a512be0823"
-DECKY_NEWFREEDECK_VERSION="0.1"
+DECKY_NEWFREEDECK_URL="https://github.com/panyiwei-home/Freedeck/releases/download/N0.2/NewFreedeck.v.0.2.zip"
+DECKY_NEWFREEDECK_SHA256="74988f2da1a0d63394f9b7d968df32fd34f1dba8b3ba7736b31e7c8b452a293a"
+DECKY_NEWFREEDECK_VERSION="0.2.0"
 DECKY_NEWFREEDECK_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 # Ally Center 固定使用作者 v1.2.0 正式版；国内镜像与 NewFreedeck 共用 mirror-3。
 DECKY_ALLYCENTER_URL="${ZHOUKEER_DECKY_ALLYCENTER_URL:-https://github.com/PixelAddictUnlocked/allycenter/releases/download/v1.2.0/allycenter-v1.2.0.zip}"
@@ -305,6 +305,26 @@ resolve_plugin_latest() {
                 DECKY_FREEDECK_URL="$_LATEST_RELEASE_URL"
                 DECKY_FREEDECK_SHA256="$_LATEST_RELEASE_SHA256"
                 DECKY_FREEDECK_VERSION="$_LATEST_RELEASE_TAG"
+            fi
+            ;;
+        newfreedeck)
+            if resolve_latest_github_release "panyiwei-home/Freedeck" \
+                '^NewFreedeck[.]v[.][0-9]+[.][0-9]+([.][0-9]+)?[.]zip$' \
+                "NewFreedeck" >/dev/null 2>&1; then
+                DECKY_NEWFREEDECK_URL="$_LATEST_RELEASE_URL"
+                DECKY_NEWFREEDECK_SHA256="$_LATEST_RELEASE_SHA256"
+                DECKY_NEWFREEDECK_VERSION="${_LATEST_RELEASE_ASSET#NewFreedeck.v.}"
+                DECKY_NEWFREEDECK_VERSION="${DECKY_NEWFREEDECK_VERSION%.zip}"
+                case "$DECKY_NEWFREEDECK_VERSION" in
+                    [0-9]*.[0-9]*.[0-9]*) ;;
+                    [0-9]*.[0-9]*) DECKY_NEWFREEDECK_VERSION="${DECKY_NEWFREEDECK_VERSION}.0" ;;
+                    *)
+                        echo "NewFreedeck 最新版本号格式异常，继续使用安全基线 0.2.0。"
+                        DECKY_NEWFREEDECK_URL="https://github.com/panyiwei-home/Freedeck/releases/download/N0.2/NewFreedeck.v.0.2.zip"
+                        DECKY_NEWFREEDECK_SHA256="74988f2da1a0d63394f9b7d968df32fd34f1dba8b3ba7736b31e7c8b452a293a"
+                        DECKY_NEWFREEDECK_VERSION="0.2.0"
+                        ;;
+                esac
             fi
             ;;
         simpledeckytdp)
@@ -3397,16 +3417,25 @@ install_configured_plugin() {
                 "freedeck-plugin"
             ;;
         newfreedeck)
-            (
-                GITEE_MIRROR_REPO="$DECKY_NEWFREEDECK_MIRROR_REPO"
-                export GITEE_MIRROR_REPO
-                echo "提示：NewFreedeck v$DECKY_NEWFREEDECK_VERSION 为作者重构版，上游注明部分功能尚未完成。"
-                install_decky_zip \
-                    "NewFreedeck（重构测试版）" \
+            resolve_plugin_latest newfreedeck
+            if feature_plugin_is_current \
+                "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
+                "NewFreedeck" "$DECKY_NEWFREEDECK_VERSION" "NewFreedeck"; then
+                echo "[已安装] NewFreedeck v$DECKY_NEWFREEDECK_VERSION 已存在且文件完整，无需重复安装。"
+                PLUGIN_INSTALL_CHANGED=0
+            else
+                installed_version="$(decky_plugin_version \
+                    "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/NewFreedeck" || true)"
+                [ -z "$installed_version" ] || \
+                    echo "检测到 NewFreedeck 旧版本 ${installed_version}，将更新到 ${DECKY_NEWFREEDECK_VERSION}。"
+                echo "提示：NewFreedeck v$DECKY_NEWFREEDECK_VERSION 为作者重构版，上游注明个别模拟器仍不可用。"
+                GITEE_MIRROR_REPO="$DECKY_NEWFREEDECK_MIRROR_REPO" \
+                    install_decky_zip \
+                    "NewFreedeck（重构版）" \
                     "$DECKY_NEWFREEDECK_URL" \
                     "$DECKY_NEWFREEDECK_SHA256" \
-                    "NewFreedeck"
-            )
+                    "NewFreedeck" 0
+            fi
             ;;
         steamdb-info|decky-translator)
             install_game_info_plugin_from_gitee "$action"

@@ -422,6 +422,7 @@ gitee_mirror_id_for_url() {
         *'/Ren-Amamiya-pixle/DeckRecall/releases/download/'*) printf '%s\n' deckrecall ;;
         *'/Ren-Amamiya-pixle/SavePulse/releases/download/'*) printf '%s\n' savepulse ;;
         *'/mubaraknumann/unifideck/releases/download/'*) printf '%s\n' unifideck ;;
+        *'/panyiwei-home/Freedeck/releases/download/'*'/NewFreedeck.v.'*.zip) printf '%s\n' newfreedeck ;;
         *'/panyiwei-home/Freedeck/releases/download/'*) printf '%s\n' freedeck ;;
         *'/PixelAddictUnlocked/allycenter/releases/download/'*) printf '%s\n' allycenter ;;
         *'/honjow/HueSync/releases/download/'*) printf '%s\n' huesync ;;

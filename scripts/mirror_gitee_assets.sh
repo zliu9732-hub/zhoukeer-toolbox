@@ -456,6 +456,7 @@ deckrecall|DeckRecall|v0.4.2|DeckRecall.zip|https://github.com/Ren-Amamiya-pixle
 savepulse|SavePulse|v0.2.0-alpha.1|SavePulse.zip|https://github.com/Ren-Amamiya-pixle/SavePulse/releases/download/v0.2.0-alpha.1/SavePulse.zip|e0680fc3995b8bbb2971673db43d5e9459d8fa8e4a1b431a1f5d4edad19a35ad|
 unifideck|Unifideck|Release-0.7.2|unifideck.prod.v0.7.2.zip|https://github.com/mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip|a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59366936de|
 freedeck|Freedeck|0.6|freedeck.v.0.6.zip|https://github.com/panyiwei-home/Freedeck/releases/download/0.6/freedeck.v.0.6.zip|04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62|
+newfreedeck|NewFreedeck|0.2.0|NewFreedeck.v.0.2.zip|https://github.com/panyiwei-home/Freedeck/releases/download/N0.2/NewFreedeck.v.0.2.zip|74988f2da1a0d63394f9b7d968df32fd34f1dba8b3ba7736b31e7c8b452a293a|
 allycenter|Ally Center|v1.2.0|allycenter-v1.2.0.zip|https://github.com/PixelAddictUnlocked/allycenter/releases/download/v1.2.0/allycenter-v1.2.0.zip|a1059534de2a0e9556669adff3d933bcde802101faae7558f9b33db3a8e51bc7|
 huesync|HueSync|v3.9.0|huesync.zip|https://github.com/honjow/HueSync/releases/download/v3.9.0/huesync.zip|7510c96ed22278a914a3aae591c2393ff4e25812a765d1d633f77baa8a593e1f|
 legiongo-remapper|LegionGoRemapper|v0.3.0|LegionGoRemapper.tar.gz|https://github.com/aarron-lee/LegionGoRemapper/releases/download/v0.3.0/LegionGoRemapper.tar.gz|b89084ece2df8854a732239043484f510a2384d01221441e3a4242fc85b6d9e1|

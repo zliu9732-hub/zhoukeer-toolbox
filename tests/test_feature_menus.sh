@@ -120,8 +120,9 @@ for menu in "$touch_handheld_plugins" "$gui_games"; do
 done
 for menu in "$touch_freedeck" "$gui_games"; do
     assert_contains "$menu" 'Freedeck 0.6 稳定版' "Freedeck 版本菜单缺少稳定版"
-    assert_contains "$menu" 'NewFreedeck v0.1' "Freedeck 版本菜单缺少重构版"
-    assert_contains "$menu" '部分功能' "NewFreedeck 入口缺少上游未完成提示"
+    assert_contains "$menu" 'NewFreedeck' "Freedeck 版本菜单缺少重构版"
+    assert_contains "$menu" '自动检测最新版' "NewFreedeck 入口缺少自动更新说明"
+    assert_contains "$menu" '个别模拟器仍不可用' "NewFreedeck 入口缺少上游状态提示"
 done
 touch_lsfg="$(function_source "$MAIN_FILE" lsfg_versions_menu)"
 for menu in "$touch_lsfg" "$gui_games"; do

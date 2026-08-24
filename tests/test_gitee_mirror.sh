@@ -94,6 +94,15 @@ mirror_id="$(gitee_mirror_id_for_url \
 mako_mirror_id="$(gitee_mirror_id_for_url \
     'https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.1.0/MAKO-Decky-v2.1.0.zip')"
 [ "$mako_mirror_id" = "lsfg-mako" ] || FAIL "MAKO LSFG 镜像标识映射错误"
+newfreedeck_mirror_id="$(gitee_mirror_id_for_url \
+    'https://github.com/panyiwei-home/Freedeck/releases/download/N0.3/NewFreedeck.v.0.3.zip')"
+[ "$newfreedeck_mirror_id" = "newfreedeck" ] || \
+    FAIL "NewFreedeck 0.2.0 未使用独立 Gitee 镜像标识"
+grep -Fq 'sync_plugin newfreedeck' "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
+    FAIL "NewFreedeck 0.2.0 缺少 Gitee 分块同步入口"
+grep -Fq 'newfreedeck|NewFreedeck|0.2.0|NewFreedeck.v.0.2.zip|' \
+    "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || \
+    FAIL "NewFreedeck 0.2.0 缺少固定镜像清单"
 grep -Fq 'sync_plugin lsfg-mako' \
     "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
     FAIL "MAKO LSFG 缺少 Gitee 分块镜像同步入口"

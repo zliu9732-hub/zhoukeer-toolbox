@@ -219,14 +219,109 @@ grep -Fq '"Freedeck" >/dev/null 2>&1; then' "$PROJECT_ROOT/modules/plugin_store.
     echo "FAIL: Freedeck 可用固定版本回退时仍会显示最新 Release 探测错误" >&2
     exit 1
 }
-grep -Fq 'Freedeck/releases/download/New-0.1/NewFreedeck.v.0.1.zip' \
+grep -Fq 'Freedeck/releases/download/N0.2/NewFreedeck.v.0.2.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '60c9832a5808941d0940caef7fecfe6058532d6cdc52e0002463a5a512be0823' \
+grep -Fq '74988f2da1a0d63394f9b7d968df32fd34f1dba8b3ba7736b31e7c8b452a293a' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'DECKY_NEWFREEDECK_VERSION="0.2.0"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_NEWFREEDECK_MIRROR_REPO="zhoukeer-toolbox-mirror-3"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
+newfreedeck_install="$(sed -n '/^install_configured_plugin()/,/^decky_plugin_version()/p' \
+    "$PROJECT_ROOT/modules/plugin_store.sh" | \
+    sed -n '/^[[:space:]]*newfreedeck)/,/^[[:space:]]*;;/p')"
+printf '%s\n' "$newfreedeck_install" | grep -Fq 'feature_plugin_is_current' || {
+    echo "FAIL: NewFreedeck 未检测已安装版本" >&2
+    exit 1
+}
+printf '%s\n' "$newfreedeck_install" | grep -Fq 'resolve_plugin_latest newfreedeck' || {
+    echo "FAIL: NewFreedeck 安装前未自动检测作者最新 Release" >&2
+    exit 1
+}
+printf '%s\n' "$newfreedeck_install" | grep -Fq '"NewFreedeck" 0' || {
+    echo "FAIL: NewFreedeck 旧版本不会被原子替换" >&2
+    exit 1
+}
 grep -Fq 'newfreedeck) show_plugin_download_speed_tip; install_configured_plugin newfreedeck' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
+
+# NewFreedeck 与 CheatDeck 一样在安装前读取最新 Release，并从资产名规范化三段版本号。
+newfreedeck_latest="$(
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    resolve_latest_github_release() {
+        _LATEST_RELEASE_URL="https://github.com/panyiwei-home/Freedeck/releases/download/N0.3/NewFreedeck.v.0.3.zip"
+        _LATEST_RELEASE_SHA256="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        _LATEST_RELEASE_ASSET="NewFreedeck.v.0.3.zip"
+        return 0
+    }
+    resolve_plugin_latest newfreedeck
+    printf '%s|%s|%s\n' "$DECKY_NEWFREEDECK_VERSION" \
+        "$DECKY_NEWFREEDECK_URL" "$DECKY_NEWFREEDECK_SHA256"
+)"
+[ "$newfreedeck_latest" = \
+    '0.3.0|https://github.com/panyiwei-home/Freedeck/releases/download/N0.3/NewFreedeck.v.0.3.zip|aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' ] || {
+    echo "FAIL: NewFreedeck 未正确解析作者最新 Release：$newfreedeck_latest" >&2
+    exit 1
+}
+
+# 本地 ZIP 桩验证 0.1 会原子升级到 0.2.0，同版再次执行不会重复下载。
+NEWFREEDECK_ARCHIVE="$TMP_ROOT/NewFreedeck.v.0.2.zip"
+NEWFREEDECK_BUILD="$TMP_ROOT/newfreedeck-build/NewFreedeck"
+NEWFREEDECK_PLUGIN_ROOT="$TMP_ROOT/newfreedeck-plugins"
+mkdir -p "$NEWFREEDECK_BUILD/dist" "$NEWFREEDECK_PLUGIN_ROOT/NewFreedeck/dist"
+printf '{"name":"NewFreedeck","flags":[],"api_version":1}\n' > \
+    "$NEWFREEDECK_BUILD/plugin.json"
+printf '{"name":"Newfreedeck","version":"0.2.0"}\n' > \
+    "$NEWFREEDECK_BUILD/package.json"
+printf 'new bundle\n' > "$NEWFREEDECK_BUILD/dist/index.js"
+printf '{"name":"NewFreedeck","flags":[],"api_version":1}\n' > \
+    "$NEWFREEDECK_PLUGIN_ROOT/NewFreedeck/plugin.json"
+printf '{"name":"Newfreedeck","version":"0.1"}\n' > \
+    "$NEWFREEDECK_PLUGIN_ROOT/NewFreedeck/package.json"
+printf 'old bundle\n' > "$NEWFREEDECK_PLUGIN_ROOT/NewFreedeck/dist/index.js"
+printf 'remove on update\n' > "$NEWFREEDECK_PLUGIN_ROOT/NewFreedeck/old-marker.txt"
+(
+    cd "$(dirname "$NEWFREEDECK_BUILD")"
+    zip -qr "$NEWFREEDECK_ARCHIVE" NewFreedeck
+)
+newfreedeck_upgrade_output="$(
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
+    resolve_plugin_latest() { :; }
+    download_verified_package() { cp -- "$NEWFREEDECK_ARCHIVE" "$4"; }
+    reload_decky_plugins() { echo "TEST_RELOAD: NewFreedeck"; }
+    DECKY_PLUGIN_DIR="$NEWFREEDECK_PLUGIN_ROOT"
+    ZHOUKEER_TEST_MODE=1
+    install_configured_plugin newfreedeck
+)"
+printf '%s\n' "$newfreedeck_upgrade_output" | \
+    grep -Fq '检测到 NewFreedeck 旧版本 0.1，将更新到 0.2.0。'
+printf '%s\n' "$newfreedeck_upgrade_output" | grep -Fq 'TEST_RELOAD: NewFreedeck'
+installed_newfreedeck_version="$(sed -n \
+    's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+    "$NEWFREEDECK_PLUGIN_ROOT/NewFreedeck/package.json")"
+[ "$installed_newfreedeck_version" = "0.2.0" ] || {
+    echo "FAIL: NewFreedeck 旧版本未升级到 0.2.0" >&2
+    exit 1
+}
+[ ! -e "$NEWFREEDECK_PLUGIN_ROOT/NewFreedeck/old-marker.txt" ] || {
+    echo "FAIL: NewFreedeck 原子更新后仍残留旧文件" >&2
+    exit 1
+}
+newfreedeck_repeat_output="$(
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
+    resolve_plugin_latest() { :; }
+    download_verified_package() { echo 'FAIL: 同版仍触发下载' >&2; return 1; }
+    reload_decky_plugins() { echo 'FAIL: 同版仍触发重载' >&2; return 1; }
+    DECKY_PLUGIN_DIR="$NEWFREEDECK_PLUGIN_ROOT"
+    ZHOUKEER_TEST_MODE=1
+    install_configured_plugin newfreedeck
+)"
+printf '%s\n' "$newfreedeck_repeat_output" | \
+    grep -Fq '[已安装] NewFreedeck v0.2.0 已存在且文件完整，无需重复安装。'
 grep -Fq 'PixelAddictUnlocked/allycenter/releases/download/v1.2.0/allycenter-v1.2.0.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'a1059534de2a0e9556669adff3d933bcde802101faae7558f9b33db3a8e51bc7' \

@@ -167,7 +167,7 @@ assert_contains "$touch_freedeck" 'right:5-6:stable' "Freedeck 子菜单缺少 0
 assert_contains "$touch_freedeck" 'right:9-10:new' "Freedeck 子菜单缺少 NewFreedeck 动作"
 assert_contains "$touch_freedeck" 'modules/plugin_store.sh" freedeck' "Freedeck 稳定版动作错误"
 assert_contains "$touch_freedeck" 'modules/plugin_store.sh" newfreedeck' "NewFreedeck 动作错误"
-assert_contains "$touch_freedeck" '部分功能尚未完成' "NewFreedeck 缺少上游状态提示"
+assert_contains "$touch_freedeck" '个别模拟器仍不可用' "NewFreedeck 缺少上游状态提示"
 touch_emulators="$(function_source "$MAIN_FILE" emulator_menu)"
 for mapping in 'right:2-3:install-all' 'right:5-6:yuzu' 'right:7-8:cemu' 'right:9-10:duckstation' 'right:11-12:pcsx2' 'right:13-14:rpcs3' 'right:15-16:shadps4' 'right:17-18:ppsspp' 'right:19-20:mgba' 'right:21-22:azahar' 'right:23-24:home'; do
     assert_contains "$touch_emulators" "$mapping" "模拟器触控坐标错误：$mapping"

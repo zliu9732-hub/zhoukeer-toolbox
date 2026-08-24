@@ -605,7 +605,7 @@ freedeck_versions_menu() {
     while true; do
         draw_category_frame games "Freedeck 版本选择" "稳定版与独立重构版" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "Freedeck 0.6 稳定版" "现有稳定版本·感谢作者b站一苇Isidf"
-        ui_touch_button 9 '\033[1;97;48;5;160m' "NewFreedeck v0.1" "独立重构版·上游注明部分功能未完成"
+        ui_touch_button 9 '\033[1;97;48;5;160m' "NewFreedeck" "重构版·自动检测最新版·个别模拟器仍不可用"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -617,7 +617,7 @@ freedeck_versions_menu() {
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck
                 ;;
             new)
-                confirm_and_run "安装 NewFreedeck v0.1" "作者独立重构版；上游注明部分功能尚未完成，可能使用异常" \
+                confirm_and_run "安装/更新 NewFreedeck" "自动检测作者最新版；上游注明个别模拟器仍不可用" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" newfreedeck
                 ;;
             back) NEXT_CATEGORY="games"; return 0 ;;

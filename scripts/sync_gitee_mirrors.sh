@@ -291,6 +291,9 @@ sync_plugin savepulse "Ren-Amamiya-pixle/SavePulse" '^SavePulse[.]zip$' "SavePul
     "e0680fc3995b8bbb2971673db43d5e9459d8fa8e4a1b431a1f5d4edad19a35ad"
 sync_plugin unifideck "mubaraknumann/unifideck" '^unifideck[.]prod[.]v[0-9.]+[.]zip$' "Unifideck"
 sync_plugin freedeck "panyiwei-home/Freedeck" '^freedeck[.]v[0-9.]+[.]zip$' "Freedeck"
+sync_plugin newfreedeck "panyiwei-home/Freedeck" \
+    '^NewFreedeck[.]v[.][0-9]+[.][0-9]+([.][0-9]+)?[.]zip$' \
+    "NewFreedeck" "" "" "" "" "$MIRROR3"
 sync_plugin simpledeckytdp "aarron-lee/SimpleDeckyTDP" '^SimpleDeckyTDP[.]zip$' "SimpleDeckyTDP"
 # HMCL 启动器固定版本，镜像必须与Renkit内置版本一致，否则 SHA 校验会拒绝。
 sync_plugin hmcl "HMCL-dev/HMCL" '^HMCL-[0-9.]+[.]jar$' "HMCL" \

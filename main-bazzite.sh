@@ -553,7 +553,7 @@ bazzite_extra_plugins_menu() {
         ui_touch_button 3 '\033[1;97;48;5;24m' "安装 DeckRecall" "添加启动项并恢复游戏可玩状态"
         ui_touch_button 5 '\033[1;97;48;5;24m' "安装 SavePulse" "自动存档、个人 WebDAV 云备份与换机恢复"
         ui_touch_button 7 '\033[1;97;48;5;24m' "安装 Freedeck" "0.6 稳定版"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "安装 NewFreedeck" "0.1 重构测试版，可与稳定版共存"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "安装 NewFreedeck" "自动检测最新版，可与稳定版共存"
         ui_touch_button 11 '\033[1;97;48;5;24m' "安装 ToMoon" "第三方游戏工具插件"
         ui_touch_button 13 '\033[1;97;48;5;24m' "安装 Unifideck" "统一游戏库插件"
         ui_touch_button 15 '\033[1;97;48;5;24m' "掌机控制插件" "功耗、RGB、按键、震动与风扇"
@@ -566,7 +566,7 @@ bazzite_extra_plugins_menu() {
             deckrecall) confirm_and_run "安装 DeckRecall" "作者 GitHub Release，下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckrecall ;;
             savepulse) confirm_and_run "安装 SavePulse" "自动版本存档、个人坚果云或标准 WebDAV 云备份与换机恢复；作者 GitHub Release，下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" savepulse ;;
             freedeck) confirm_and_run "安装 Freedeck" "Gitee 分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck ;;
-            newfreedeck) confirm_and_run "安装 NewFreedeck" "上游重构测试版，部分功能可能尚未完成；Gitee 分块镜像优先" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" newfreedeck ;;
+            newfreedeck) confirm_and_run "安装/更新 NewFreedeck" "自动检测作者最新版；上游注明个别模拟器仍不可用；Gitee 分块镜像优先" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" newfreedeck ;;
             tomoon) confirm_and_run "安装 ToMoon" "Gitee 分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon ;;
             unifideck) confirm_and_run "安装 Unifideck" "Gitee 分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
             handheld) bazzite_handheld_plugins_menu || return 1 ;;

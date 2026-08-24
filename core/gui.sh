@@ -372,7 +372,7 @@ game_environment_gui_menu() {
             freedeck)
                 freedeck_choice="$(gui_dialog --menu "Freedeck 版本选择" \
                     stable "Freedeck 0.6 稳定版｜现有稳定版本" \
-                    new "NewFreedeck v0.1｜独立重构版，上游注明部分功能未完成" \
+                    new "NewFreedeck｜自动检测最新版，上游注明个别模拟器仍不可用" \
                     back "返回游戏与插件")" || continue
                 case "$freedeck_choice" in
                     stable)
@@ -381,8 +381,8 @@ game_environment_gui_menu() {
                             bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck
                         ;;
                     new)
-                        gui_confirm "NewFreedeck v0.1 是作者独立重构版；上游注明部分功能尚未完成，可能使用异常。是否继续安装？" && \
-                            run_gui_action "安装 NewFreedeck v0.1" \
+                        gui_confirm "将自动检测并安装 NewFreedeck 作者最新版；上游注明个别模拟器仍不可用。是否继续？" && \
+                            run_gui_action "安装/更新 NewFreedeck" \
                                 env ZHOUKEER_AUTO_CONFIRM=1 \
                                 bash "$PROJECT_ROOT/modules/plugin_store.sh" newfreedeck
                         ;;
