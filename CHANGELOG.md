@@ -2,6 +2,7 @@
 
 - 游戏兼容层菜单新增 Proton-CachyOS，安装 CachyOS 上游普通 `x86_64` Steam Linux Runtime 包，与官方 Proton、GE-Proton 和既有自定义兼容层共存。
 - 新建公开 Gitee 专用仓库 `zhoukeer-toolbox-mirror-9`，通过独立定时工作流把上游正式 Release 拆为 8 MiB 分块；全部分块上传完成后才发布 `latest.txt`。
+- Proton-CachyOS 专用同步在 Gitee 已接收分块但连接未及时结束时使用 60 秒超时重试，避免每块等待五分钟；仍保持单块提交和最多三次重试。
 - 安装过程限制 SteamOS/Bazzite 平台，执行清单、文件大小、SHA256、tar.xz 路径、必要文件和符号链接检查，并以同盘暂存目录原子替换；失败时保留现有版本。
 - SteamOS 触控菜单、图形菜单和 Bazzite 菜单统一新增入口；固定安全回退版本为 `proton-cachyos-11.0-20260703-slr-x86_64`。
 

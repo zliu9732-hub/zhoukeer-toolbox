@@ -135,6 +135,9 @@ grep -Fq -- '--only-proton-cachyos' \
 grep -Fq 'git -C "$repo" add -- README.md proton-cachyos/latest.txt' \
     "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
     FAIL "Proton-CachyOS 清单没有在全部分块后单独发布"
+grep -Fq '"Proton-CachyOS chunk $first/$PROTON_CACHYOS_CHUNKS" 60' \
+    "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
+    FAIL "Proton-CachyOS 推送未针对 Gitee 挂起连接缩短重试周期"
 grep -Fq "'^MAKO-Decky-v[0-9.]+[.]zip$'" \
     "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
     FAIL "MAKO LSFG 同步未跟随上游最新正式插件包"

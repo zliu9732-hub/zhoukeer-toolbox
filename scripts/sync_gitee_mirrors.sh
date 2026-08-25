@@ -225,11 +225,11 @@ EOF
 }
 
 push_main_with_retry() {
-    local repo="$1" label="$2" attempt=1
+    local repo="$1" label="$2" timeout_seconds="${3:-300}" attempt=1
 
     while [ "$attempt" -le 3 ]; do
         echo "Uploading $label (attempt $attempt/3)..."
-        if timeout 300 git -C "$repo" push --progress -u origin main; then
+        if timeout "$timeout_seconds" git -C "$repo" push --progress -u origin main; then
             return 0
         fi
         echo "Upload failed or timed out for $label"
@@ -308,7 +308,7 @@ commit_and_push_proton_cachyos_batches() {
             git -C "$repo" -c commit.gpgsign=false commit -q \
                 -m "Sync Proton-CachyOS $PROTON_CACHYOS_VERSION chunk $first"
             push_main_with_retry "$repo" \
-                "Proton-CachyOS chunk $first/$PROTON_CACHYOS_CHUNKS"
+                "Proton-CachyOS chunk $first/$PROTON_CACHYOS_CHUNKS" 60
         fi
         first=$((last + 1))
     done
@@ -316,7 +316,7 @@ commit_and_push_proton_cachyos_batches() {
     if ! git -C "$repo" diff --cached --quiet; then
         git -C "$repo" -c commit.gpgsign=false commit -q \
             -m "Publish Proton-CachyOS $PROTON_CACHYOS_VERSION manifest"
-        push_main_with_retry "$repo" "Proton-CachyOS manifest"
+        push_main_with_retry "$repo" "Proton-CachyOS manifest" 60
     fi
     echo "Pushed Proton-CachyOS $PROTON_CACHYOS_VERSION in resumable batches"
 }
