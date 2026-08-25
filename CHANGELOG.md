@@ -1,3 +1,10 @@
+## Renkit 2.0.9 Proton-CachyOS 独立分块镜像 — 2026-08-25
+
+- 游戏兼容层菜单新增 Proton-CachyOS，安装 CachyOS 上游普通 `x86_64` Steam Linux Runtime 包，与官方 Proton、GE-Proton 和既有自定义兼容层共存。
+- 新建公开 Gitee 专用仓库 `zhoukeer-toolbox-mirror-9`，通过独立定时工作流把上游正式 Release 拆为 8 MiB 分块；全部分块上传完成后才发布 `latest.txt`。
+- 安装过程限制 SteamOS/Bazzite 平台，执行清单、文件大小、SHA256、tar.xz 路径、必要文件和符号链接检查，并以同盘暂存目录原子替换；失败时保留现有版本。
+- SteamOS 触控菜单、图形菜单和 Bazzite 菜单统一新增入口；固定安全回退版本为 `proton-cachyos-11.0-20260703-slr-x86_64`。
+
 ## Renkit 2.0.8 NewFreedeck 自动更新与分块镜像 — 2026-08-24
 
 - NewFreedeck 安全基线同步到作者官方 0.2.0，修复原先固定 0.1 且已有目录会被误判为无需更新的问题；现有 0.1 会原子升级，0.2.0 不重复下载。

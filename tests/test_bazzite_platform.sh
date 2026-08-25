@@ -168,6 +168,7 @@ grep -Fq 'modules/domestic_source.sh" restore' "$PROJECT_ROOT/main-bazzite.sh" |
 grep -Fq 'localsend) title="LocalSend"' "$PROJECT_ROOT/main-bazzite.sh" || fail "LocalSend 菜单动作缺失"
 grep -Fq 'modules/ge_proton.sh" install-trainer' "$PROJECT_ROOT/main-bazzite.sh" || fail "修改器常用 GE-Proton 入口缺失"
 grep -Fq 'modules/ge_proton.sh" install-trainer-one "$version"' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 单版本修改器兼容层入口缺失"
+grep -Fq 'modules/proton_cachyos.sh" install' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite Proton-CachyOS 安装入口缺失"
 for version in 7-55 8-25 9-27 10-29; do
     grep -Fq "安装 GE-Proton $version" "$PROJECT_ROOT/main-bazzite.sh" || \
         fail "Bazzite 修改器兼容层子菜单缺少 $version"

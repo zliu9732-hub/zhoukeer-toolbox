@@ -61,7 +61,7 @@ download_progress_filter() {
 
 download_policy_github_repo_allowed() {
     case "$1" in
-        SteamDeckHomebrew/decky-loader|xXJSONDeruloXx/decky-lsfg-vk|eugeniosegala/decky-lsfg-vk-experimental|eugeniosegala/MAKO|xXJSONDeruloXx/Decky-Framegen|SheffeyG/CheatDeck|YukiCoco/ToMoon|Ren-Amamiya-pixle/DeckRecall|Ren-Amamiya-pixle/SavePulse|aarron-lee/SimpleDeckyTDP|mubaraknumann/unifideck|panyiwei-home/Freedeck|panyiwei-home/Friendeck|jinzhongjia/decky-music|GloriousEggroll/proton-ge-custom|rustdesk/rustdesk|zliu9732-hub/zhoukeer-toolbox|zliu9732-hub/decky-lsfg-vk-zh|zliu9732-hub/decky-framegen-zh|HMCL-dev/HMCL|adoptium/temurin21-binaries) return 0 ;;
+        SteamDeckHomebrew/decky-loader|xXJSONDeruloXx/decky-lsfg-vk|eugeniosegala/decky-lsfg-vk-experimental|eugeniosegala/MAKO|xXJSONDeruloXx/Decky-Framegen|SheffeyG/CheatDeck|YukiCoco/ToMoon|Ren-Amamiya-pixle/DeckRecall|Ren-Amamiya-pixle/SavePulse|aarron-lee/SimpleDeckyTDP|mubaraknumann/unifideck|panyiwei-home/Freedeck|panyiwei-home/Friendeck|jinzhongjia/decky-music|GloriousEggroll/proton-ge-custom|CachyOS/proton-cachyos|rustdesk/rustdesk|zliu9732-hub/zhoukeer-toolbox|zliu9732-hub/decky-lsfg-vk-zh|zliu9732-hub/decky-framegen-zh|HMCL-dev/HMCL|adoptium/temurin21-binaries) return 0 ;;
         *) return 1 ;;
     esac
 }
@@ -99,6 +99,7 @@ download_policy_url_allowed() {
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-6/*) return 0 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-7/*) return 0 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-8/*) return 0 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-9/*) return 0 ;;
         https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.001|https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.002|https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.003|https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.004) return 0 ;;
         https://gitee.com/easylife2025/emu/releases/download/v1.0.0/Clover.tar.gz) return 0 ;;
         https://dl.todesk.com/linux/todesk-v4.8.6.2-amd64.deb) return 0 ;;
@@ -131,6 +132,7 @@ download_policy_max_bytes() {
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-6/raw/main/*/latest.txt) printf '%s\n' 2097152 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-7/raw/main/*/latest.txt) printf '%s\n' 2097152 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-8/raw/main/*/latest.txt) printf '%s\n' 2097152 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-9/raw/main/*/latest.txt) printf '%s\n' 2097152 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/mirrors/*/part.*) printf '%s\n' 8388608 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/*/part.*) printf '%s\n' 8388608 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-2/raw/main/*/part.*) printf '%s\n' 8388608 ;;
@@ -140,6 +142,7 @@ download_policy_max_bytes() {
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-6/raw/main/*/part.*) printf '%s\n' 8388608 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-7/raw/main/*/part.*) printf '%s\n' 8388608 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-8/raw/main/*/part.*) printf '%s\n' 8388608 ;;
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-9/raw/main/*/part.*) printf '%s\n' 8388608 ;;
         https://gitee.com/easylife2025/battle/releases/download/*) printf '%s\n' 104857600 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/renkit.tar.gz|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/renkit.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/renkit.tar.gz|https://jktool.icu/dist/renkit.tar.gz|https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/dist/zhoukeer-toolbox.tar.gz|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/zhoukeer-toolbox.tar.gz|https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/dist/zhoukeer-toolbox.tar.gz|https://jktool.icu/dist/zhoukeer-toolbox.tar.gz) printf '%s\n' 9437184 ;;
         */VERSION|*/SHA256SUMS|*.json|*.flatpakrepo|*.service|*.txt) printf '%s\n' 2097152 ;;

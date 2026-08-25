@@ -198,9 +198,12 @@ gui_trainer_ge_proton="$(function_source "$GUI_FILE" trainer_ge_proton_gui_menu)
 for menu in "$touch_ge_proton" "$gui_ge_proton"; do
     assert_contains "$menu" '安装最新 GE 兼容层' "GE 兼容层子菜单缺少最新版入口"
     assert_contains "$menu" '安装修改器所需常用兼容层' "GE 兼容层子菜单缺少修改器常用入口"
+    assert_contains "$menu" '安装 Proton-CachyOS' "游戏兼容层菜单缺少 Proton-CachyOS 入口"
+    assert_contains "$menu" 'modules/proton_cachyos.sh" install' "Proton-CachyOS 安装动作错误"
 done
 assert_contains "$touch_ge_proton" 'right:5-6:latest' "GE 兼容层最新版坐标错误"
 assert_contains "$touch_ge_proton" 'right:9-10:trainer' "GE 兼容层修改器常用坐标错误"
+assert_contains "$touch_ge_proton" 'right:13-14:cachyos' "Proton-CachyOS 触控坐标错误"
 assert_contains "$touch_ge_proton" 'trainer_ge_proton_menu' "修改器兼容层未进入独立子菜单"
 assert_contains "$gui_ge_proton" 'trainer_ge_proton_gui_menu' "GUI 修改器兼容层未进入独立子菜单"
 for menu in "$touch_trainer_ge_proton" "$gui_trainer_ge_proton"; do
@@ -249,6 +252,7 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_contains "$source_text" 'core/detect.sh" --health' "系统健康检查动作错误：$file"
     assert_contains "$source_text" 'modules/ge_proton.sh" install' "安装 GE 兼容层动作错误：$file"
     assert_contains "$source_text" 'modules/ge_proton.sh" install-trainer' "安装修改器常用兼容层动作错误：$file"
+    assert_contains "$source_text" 'modules/proton_cachyos.sh" install' "安装 Proton-CachyOS 动作错误：$file"
     assert_contains "$source_text" 'modules/game_launchers.sh" epic' "Epic 动作错误：$file"
     assert_contains "$source_text" 'modules/game_launchers.sh" heihe' "黑盒工坊动作错误：$file"
     assert_contains "$source_text" 'modules/game_launchers.sh" ubisoft' "Ubisoft Connect 动作错误：$file"

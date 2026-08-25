@@ -1,0 +1,17 @@
+name: Sync Proton-CachyOS Gitee mirror
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '15 */6 * * *'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync Proton-CachyOS x86_64 SLR to dedicated Gitee mirror
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+        run: bash scripts/sync_gitee_mirrors.sh --only-proton-cachyos

@@ -44,6 +44,9 @@ for mirror_id in 4 5 6 7; do
 done
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-8/raw/main/ge-proton/latest.txt' || fail "GE-Proton mirror-8 清单地址未列入白名单"
 [ "$(download_policy_max_bytes 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-8/raw/main/ge-proton/GE-Proton11-5/part.0001')" -le 8388608 ] || fail "GE-Proton mirror-8 分块大小限制异常"
+download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-9/raw/main/proton-cachyos/latest.txt' || fail "Proton-CachyOS mirror-9 清单地址未列入白名单"
+[ "$(download_policy_max_bytes 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-9/raw/main/proton-cachyos/proton-cachyos-11.0-test-slr-x86_64/part.0001')" -le 8388608 ] || fail "Proton-CachyOS mirror-9 分块大小限制异常"
+download_policy_github_repo_allowed 'CachyOS/proton-cachyos' || fail "Proton-CachyOS 上游仓库未列入白名单"
 if download_policy_url_allowed 'https://evil.example/payload.sh'; then fail "任意域名被白名单接受"; fi
 download_policy_github_mirror_allowed 'https://ghfast.top/' || fail "GitHub Release 加速源被拒绝"
 for mirror in \

@@ -375,17 +375,19 @@ bazzite_trainer_ge_proton_menu() {
 bazzite_ge_proton_menu() {
     local choice
     while true; do
-        draw_category_frame games "GE-Proton 兼容层" "安装到当前用户的 Steam 兼容工具目录"
+        draw_category_frame games "游戏兼容层" "安装到当前用户的 Steam 兼容工具目录"
         ui_touch_button 6 '\033[1;97;48;5;24m' "安装最新版 GE-Proton" "已安装的旧版本不会删除"
         ui_touch_button 10 '\033[1;97;48;5;24m' "安装修改器常用版本" "7-55、8-25、9-27、10-29 · 约 1.72GB"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "安装 Proton-CachyOS" "普通 x86_64 SLR 版 · 独立 Gitee 镜像"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回游戏与插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页"
         ui_prompt
-        choice="$(read_touch_menu right:6-7:latest right:10-11:trainer right:19-20:back right:22-23:home)"
+        choice="$(read_touch_menu right:6-7:latest right:10-11:trainer right:14-15:cachyos right:19-20:back right:22-23:home)"
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
             latest) confirm_and_run "安装最新版 GE-Proton" "自动检测最新版并保留现有兼容层" bash "$PROJECT_ROOT/modules/ge_proton.sh" install ;;
             trainer) bazzite_trainer_ge_proton_menu || return 1 ;;
+            cachyos) confirm_and_run "安装 Proton-CachyOS" "安装上游普通 x86_64 SLR 版并保留现有兼容层" bash "$PROJECT_ROOT/modules/proton_cachyos.sh" install ;;
             back) return 0 ;;
             home) NEXT_CATEGORY="home"; return 1 ;;
         esac

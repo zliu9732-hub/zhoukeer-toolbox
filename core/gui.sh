@@ -243,9 +243,10 @@ ge_proton_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "GE 兼容层｜安装最新版或修改器常用兼容层" \
+        choice="$(gui_dialog --menu "游戏兼容层｜GE-Proton 与 Proton-CachyOS" \
             latest "安装最新 GE 兼容层｜自动检测最新版本，不再删除旧版" \
             trainer "安装修改器所需常用兼容层｜四个版本约1.72GB，下载较慢为正常现象" \
+            cachyos "安装 Proton-CachyOS｜上游普通 x86_64 SLR 版，独立 Gitee 分块镜像" \
             back "返回游戏与插件" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
@@ -258,6 +259,11 @@ ge_proton_gui_menu() {
             trainer)
                 trainer_ge_proton_gui_menu
                 [ "$GUI_NAV_HOME" -eq 0 ] || return 0
+                ;;
+            cachyos)
+                gui_confirm "将安装 CachyOS 上游普通 x86_64 SLR 兼容层，不会删除现有 Proton。是否继续？" && \
+                    run_gui_action "安装 Proton-CachyOS" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/proton_cachyos.sh" install
                 ;;
             back) return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;

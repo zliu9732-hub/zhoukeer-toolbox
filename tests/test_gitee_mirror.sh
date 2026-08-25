@@ -58,6 +58,8 @@ curl() {
 
 [ "$(gitee_mirror_manifest_repo ge-proton)" = "zhoukeer-toolbox-mirror-8" ] || \
     FAIL "GE-Proton 最新清单未迁移到 mirror-8"
+[ "$(gitee_mirror_manifest_repo proton-cachyos)" = "zhoukeer-toolbox-mirror-9" ] || \
+    FAIL "Proton-CachyOS 最新清单未使用独立 mirror-9"
 [ "$(gitee_mirror_manifest_repo test)" = "zhoukeer-toolbox-mirror" ] || \
     FAIL "其他镜像清单仓库被 GE-Proton 专用路由影响"
 
@@ -124,6 +126,15 @@ grep -Fq 'push_main_with_retry' \
 grep -Fq 'git -C "$repo" add -- ge-proton/latest.txt' \
     "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
     FAIL "GE-Proton 清单没有在全部分块后单独发布"
+grep -Fq 'zhoukeer-toolbox-mirror-9' \
+    "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
+    FAIL "Proton-CachyOS 同步未使用独立 mirror-9"
+grep -Fq -- '--only-proton-cachyos' \
+    "$PROJECT_ROOT/.github/workflows/sync-proton-cachyos-gitee.yml" || \
+    FAIL "Proton-CachyOS 专用定时同步工作流缺失"
+grep -Fq 'git -C "$repo" add -- README.md proton-cachyos/latest.txt' \
+    "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
+    FAIL "Proton-CachyOS 清单没有在全部分块后单独发布"
 grep -Fq "'^MAKO-Decky-v[0-9.]+[.]zip$'" \
     "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
     FAIL "MAKO LSFG 同步未跟随上游最新正式插件包"

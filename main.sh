@@ -850,13 +850,14 @@ ge_proton_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "GE 兼容层" "安装最新版或修改器常用兼容层" 0
+        draw_category_frame games "游戏兼容层" "安装 GE-Proton、修改器常用版本或 Proton-CachyOS" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "安装最新 GE 兼容层" "自动检测最新版本，不再删除旧版"
         ui_touch_button 9 '\033[1;97;48;5;24m' "安装修改器所需常用兼容层" "四个版本约1.72GB，下载较慢为正常现象"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "安装 Proton-CachyOS" "上游 x86_64 SLR 版；独立 Gitee 分块镜像"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "查看其他游戏组件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:latest right:9-10:trainer right:19-20:back right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:latest right:9-10:trainer right:13-14:cachyos right:19-20:back right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             latest)
@@ -865,6 +866,10 @@ ge_proton_menu() {
             trainer)
                 trainer_ge_proton_menu
                 [ "$NEXT_CATEGORY" = "home" ] && return 0
+                ;;
+            cachyos)
+                confirm_and_run "安装 Proton-CachyOS" "安装上游普通 x86_64 SLR 版，不删除现有 Proton" \
+                    bash "$PROJECT_ROOT/modules/proton_cachyos.sh" install
                 ;;
             back) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;

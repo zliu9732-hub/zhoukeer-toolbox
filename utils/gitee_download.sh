@@ -11,6 +11,7 @@ ZHOUKEER_GITEE_DOWNLOAD_LOADED=1
 GITEE_MIRROR_OWNER="${ZHOUKEER_GITEE_MIRROR_OWNER:-zliu9732-hub}"
 GITEE_MIRROR_REPO="${ZHOUKEER_GITEE_MIRROR_REPO:-zhoukeer-toolbox-mirror}"
 GITEE_GE_PROTON_MIRROR_REPO="${ZHOUKEER_GE_PROTON_GITEE_MIRROR_REPO:-zhoukeer-toolbox-mirror-8}"
+GITEE_PROTON_CACHYOS_MIRROR_REPO="${ZHOUKEER_PROTON_CACHYOS_GITEE_MIRROR_REPO:-zhoukeer-toolbox-mirror-9}"
 GITEE_MIRROR_BRANCH="${ZHOUKEER_GITEE_MIRROR_BRANCH:-main}"
 GITEE_MIRROR_CHUNK_BYTES="${ZHOUKEER_GITEE_MIRROR_CHUNK_BYTES:-8388608}"
 GITEE_MIRROR_DIRECT_MAX_BYTES="${ZHOUKEER_GITEE_MIRROR_DIRECT_MAX_BYTES:-9437184}"
@@ -57,6 +58,7 @@ gitee_mirror_raw_base() {
 gitee_mirror_manifest_repo() {
     case "$1" in
         ge-proton) printf '%s\n' "$GITEE_GE_PROTON_MIRROR_REPO" ;;
+        proton-cachyos) printf '%s\n' "$GITEE_PROTON_CACHYOS_MIRROR_REPO" ;;
         *) printf '%s\n' "$GITEE_MIRROR_REPO" ;;
     esac
 }
@@ -437,6 +439,7 @@ gitee_mirror_id_for_url() {
         *'/SteamDeckHomebrew/decky-loader/releases/download/v3.2.6/'*) printf '%s\n' decky-loader-stable ;;
         *'/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8-pre1/'*) printf '%s\n' decky-loader-prerelease ;;
         *'/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton'*) printf '%s\n' ge-proton ;;
+        *'/CachyOS/proton-cachyos/releases/download/'*'/proton-cachyos-'*'-slr-x86_64.tar.xz') printf '%s\n' proton-cachyos ;;
         *'/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/yuzu.AppImage') printf '%s\n' yuzu ;;
         *'/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/Cemu.AppImage') printf '%s\n' cemu ;;
         *'/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/DuckStation.AppImage') printf '%s\n' duckstation ;;

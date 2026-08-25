@@ -11,8 +11,8 @@ OWNER="zliu9732-hub"
 TOKEN="${GITEE_TOKEN:-}"
 MODE="${1:-}"
 case "$MODE" in
-    ''|--only-ge-proton) ;;
-    *) echo "Usage: $0 [--only-ge-proton]"; exit 2 ;;
+    ''|--only-ge-proton|--only-proton-cachyos) ;;
+    *) echo "Usage: $0 [--only-ge-proton|--only-proton-cachyos]"; exit 2 ;;
 esac
 [ -n "$TOKEN" ] || {
     echo "GITEE_TOKEN secret is missing"
@@ -26,9 +26,12 @@ MIRROR1="$WORK/mirror1"
 MIRROR2="$WORK/mirror2"
 MIRROR3="$WORK/mirror3"
 MIRROR8="$WORK/mirror8"
+MIRROR9="$WORK/mirror9"
 GE_PROTON_VERSION=""
 GE_PROTON_CHUNKS=0
 GE_PUSH_BATCH_SIZE=1
+PROTON_CACHYOS_VERSION=""
+PROTON_CACHYOS_CHUNKS=0
 
 prepare_empty_main() {
     local repo="$1"
@@ -37,13 +40,19 @@ prepare_empty_main() {
     fi
 }
 
-if [ "$MODE" != "--only-ge-proton" ]; then
+if [ "$MODE" != "--only-ge-proton" ] && [ "$MODE" != "--only-proton-cachyos" ]; then
     git clone -q "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
     git clone -q "$BASE/zhoukeer-toolbox-mirror-2.git" "$MIRROR2"
     git clone -q "$BASE/zhoukeer-toolbox-mirror-3.git" "$MIRROR3"
 fi
-git clone -q "$BASE/zhoukeer-toolbox-mirror-8.git" "$MIRROR8"
-prepare_empty_main "$MIRROR8"
+if [ "$MODE" != "--only-proton-cachyos" ]; then
+    git clone -q "$BASE/zhoukeer-toolbox-mirror-8.git" "$MIRROR8"
+    prepare_empty_main "$MIRROR8"
+fi
+if [ "$MODE" = "--only-proton-cachyos" ]; then
+    git clone -q "$BASE/zhoukeer-toolbox-mirror-9.git" "$MIRROR9"
+    prepare_empty_main "$MIRROR9"
+fi
 
 sha_of() {
     sha256sum -- "$1" | awk '{print $1}'
@@ -162,6 +171,59 @@ sync_ge_proton() {
     echo "Synced GE-Proton $version"
 }
 
+sync_proton_cachyos() {
+    local version file url sha size chunks target i part
+
+    version="proton-cachyos-11.0-20260703-slr-x86_64"
+    file="${version}.tar.xz"
+    url="https://github.com/CachyOS/proton-cachyos/releases/download/cachyos-11.0-20260703-slr/$file"
+    sha="b06d509ffddee2ffe592d34948ce2578ef2cff4102582e75e77b504ae1a44c1b"
+    if resolve_latest_github_release "CachyOS/proton-cachyos" \
+        '^proton-cachyos-[0-9.]+-[0-9]+-slr-x86_64[.]tar[.]xz$' \
+        "Proton-CachyOS"; then
+        file="$_LATEST_RELEASE_ASSET"
+        url="$_LATEST_RELEASE_URL"
+        sha="$_LATEST_RELEASE_SHA256"
+        version="${file%.tar.xz}"
+    else
+        echo "Proton-CachyOS latest lookup failed; using pinned $version"
+    fi
+
+    curl -fsSL --proto '=https' --proto-redir '=https' \
+        --connect-timeout 15 --max-time 1800 -o "$WORK/$file" "$url"
+    [ "$(sha_of "$WORK/$file")" = "$sha" ] || {
+        echo "Proton-CachyOS SHA256 mismatch"
+        exit 1
+    }
+    size="$(wc -c < "$WORK/$file" | tr -d ' ')"
+    chunks=$(( (size + 8388607) / 8388608 ))
+    target="$MIRROR9/proton-cachyos/$version"
+    mkdir -p "$target"
+    rm -f -- "$MIRROR9/proton-cachyos"/*/part.*
+    split -b 8388608 --numeric-suffixes=1 -a 4 \
+        "$WORK/$file" "$WORK/proton-cachyos.part."
+    i=1
+    while [ "$i" -le "$chunks" ]; do
+        part="$(printf 'part.%04d' "$i")"
+        cp -- "$WORK/proton-cachyos.$part" "$target/$part"
+        i=$((i + 1))
+    done
+    write_manifest "$MIRROR9" "proton-cachyos" "Proton-CachyOS" \
+        "$version" "$file" "$url" "$sha" "$size" "$chunks" 8388608 \
+        "zhoukeer-toolbox-mirror-9" "zhoukeer-toolbox-mirror-9" "$chunks"
+    cat > "$MIRROR9/README.md" <<'EOF'
+# Proton-CachyOS x86_64 分块镜像
+
+本仓库仅镜像 [CachyOS/proton-cachyos](https://github.com/CachyOS/proton-cachyos)
+上游发布的普通 x86_64 Steam Linux Runtime 压缩包。文件保持上游原样，
+原作者、许可证和校验信息均随上游包保留；`latest.txt` 记录来源地址、
+整体 SHA256、文件大小与分块数量。
+EOF
+    PROTON_CACHYOS_VERSION="$version"
+    PROTON_CACHYOS_CHUNKS="$chunks"
+    echo "Synced Proton-CachyOS $version"
+}
+
 push_main_with_retry() {
     local repo="$1" label="$2" attempt=1
 
@@ -221,6 +283,44 @@ commit_and_push_ge_proton_batches() {
     echo "Pushed GE-Proton $GE_PROTON_VERSION in resumable batches"
 }
 
+commit_and_push_proton_cachyos_batches() {
+    local repo="$1" first last i part
+    local -a paths=()
+
+    [ -n "$PROTON_CACHYOS_VERSION" ] && [ "$PROTON_CACHYOS_CHUNKS" -gt 0 ] || {
+        echo "Proton-CachyOS batch metadata is missing"
+        return 1
+    }
+    git -C "$repo" config user.name "zhoukeer-toolbox[bot]"
+    git -C "$repo" config user.email "bot@users.noreply.github.com"
+    first=1
+    while [ "$first" -le "$PROTON_CACHYOS_CHUNKS" ]; do
+        last="$first"
+        paths=()
+        i="$first"
+        while [ "$i" -le "$last" ]; do
+            part="$(printf 'part.%04d' "$i")"
+            paths+=("proton-cachyos/$PROTON_CACHYOS_VERSION/$part")
+            i=$((i + 1))
+        done
+        git -C "$repo" add -- "${paths[@]}"
+        if ! git -C "$repo" diff --cached --quiet; then
+            git -C "$repo" -c commit.gpgsign=false commit -q \
+                -m "Sync Proton-CachyOS $PROTON_CACHYOS_VERSION chunk $first"
+            push_main_with_retry "$repo" \
+                "Proton-CachyOS chunk $first/$PROTON_CACHYOS_CHUNKS"
+        fi
+        first=$((last + 1))
+    done
+    git -C "$repo" add -- README.md proton-cachyos/latest.txt
+    if ! git -C "$repo" diff --cached --quiet; then
+        git -C "$repo" -c commit.gpgsign=false commit -q \
+            -m "Publish Proton-CachyOS $PROTON_CACHYOS_VERSION manifest"
+        push_main_with_retry "$repo" "Proton-CachyOS manifest"
+    fi
+    echo "Pushed Proton-CachyOS $PROTON_CACHYOS_VERSION in resumable batches"
+}
+
 commit_and_push() {
     local repo="$1"
 
@@ -239,6 +339,11 @@ commit_and_push() {
 if [ "$MODE" = "--only-ge-proton" ]; then
     sync_ge_proton
     commit_and_push_ge_proton_batches "$MIRROR8"
+    exit 0
+fi
+if [ "$MODE" = "--only-proton-cachyos" ]; then
+    sync_proton_cachyos
+    commit_and_push_proton_cachyos_batches "$MIRROR9"
     exit 0
 fi
 
