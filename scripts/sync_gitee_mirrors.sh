@@ -308,7 +308,7 @@ commit_and_push_proton_cachyos_batches() {
             git -C "$repo" -c commit.gpgsign=false commit -q \
                 -m "Sync Proton-CachyOS $PROTON_CACHYOS_VERSION chunk $first"
             push_main_with_retry "$repo" \
-                "Proton-CachyOS chunk $first/$PROTON_CACHYOS_CHUNKS" 300
+                "Proton-CachyOS chunk $first/$PROTON_CACHYOS_CHUNKS" 900
         fi
         first=$((last + 1))
     done
