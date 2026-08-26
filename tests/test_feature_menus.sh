@@ -89,10 +89,10 @@ assert_contains "$gui_games" '战网启动器' "GUI 游戏与插件缺少战网�
 assert_contains "$touch_plugin_page_2" 'ToMoon' "插件第二页缺少 ToMoon"
 assert_contains "$gui_games" 'ToMoon' "GUI 游戏与插件缺少 ToMoon"
 for menu in "$touch_feature_singles" "$gui_games"; do
-    for item in '游戏封面更换' '主题美化' '文件传输助手' '音乐播放器'; do
+    for item in '游戏封面更换' '主题美化' '文件传输助手' '音乐播放器' 'Fantastic 风扇控制'; do
         assert_contains "$menu" "$item" "其余常用插件缺少独立入口：$item"
     done
-    for action in steamgriddb cssloader friendeck deckymusic; do
+    for action in steamgriddb cssloader friendeck deckymusic fantastic; do
         assert_contains "$menu" "modules/plugin_store.sh\" $action" "其余常用插件动作错误：$action"
     done
     assert_contains "$menu" 'Decky Music v1.0.2 完整包' "音乐播放器入口未说明完整包版本"
@@ -124,10 +124,14 @@ for menu in "$touch_freedeck" "$gui_games"; do
     assert_contains "$menu" '自动检测最新版' "NewFreedeck 入口缺少自动更新说明"
     assert_contains "$menu" '个别模拟器仍不可用' "NewFreedeck 入口缺少上游状态提示"
 done
+for menu in "$touch_feature_singles" "$gui_games"; do
+    assert_contains "$menu" 'Fantastic 风扇控制' "其余常用插件缺少 Fantastic"
+    assert_contains "$menu" '汉化：RenAmamiya' "Fantastic 入口缺少汉化署名"
+    assert_contains "$menu" '过低转速可能导致设备过热' "Fantastic 入口缺少风扇风险确认"
+done
 for menu in "$MAIN_FILE" "$GUI_FILE"; do
-    assert_contains "$(cat "$menu")" '"Fantastic"' "精选插件列表缺少 Fantastic"
-    assert_contains "$(cat "$menu")" '风扇曲线控制·Gitee汉化版·汉化：RenAmamiya' "Fantastic 入口缺少 Gitee 汉化与署名说明"
-    assert_contains "$(cat "$menu")" '过低转速可能导致设备过热' "Fantastic 入口缺少风扇曲线风险确认"
+    selected_names="$(sed -n '/^DECKY_OFFICIAL_PLUGIN_NAMES=(/,/^)/p' "$menu")"
+    assert_not_contains "$selected_names" 'Fantastic' "Fantastic 仍错误显示在精选插件列表"
 done
 touch_lsfg="$(function_source "$MAIN_FILE" lsfg_versions_menu)"
 for menu in "$touch_lsfg" "$gui_games"; do
@@ -162,7 +166,7 @@ for menu in "$touch_games" "$gui_games"; do
     done
     assert_contains "$menu" '黑盒工坊' "战网子菜单缺少黑盒工坊"
     assert_contains "$menu" '预装客户端' "战网子菜单缺少预装客户端提示"
-    assert_contains "$gui_games" '常用插件加27款精选插件' "GUI 缺少常用加精选插件入口"
+    assert_contains "$gui_games" '常用插件加精选插件' "GUI 缺少常用加精选插件入口"
     assert_contains "$menu" '插帧神器（必装）' "小黄鸭缺少功能说明"
     assert_contains "$menu" '画质补丁（阅读桌面文档慎用）' "FSR4 缺少功能说明"
     assert_contains "$menu" 'Linux 原生' "HMCL 启动器入口缺少 Linux 原生说明"

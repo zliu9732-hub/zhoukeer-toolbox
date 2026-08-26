@@ -56,7 +56,7 @@ DECKY_OFFICIAL_PLUGIN_NAMES=(
     "PowerTools" "Storage Cleaner" "AutoFlatpaks" "Bluetooth"
     "Deck Settings" "HLTB for Deck" "PlayCount" "TabMaster"
     "Wine Cellar" "Pause Games" "Controller Tools" "Volume Mixer" "Battery Tracker"
-    "PlayTime" "Free Loader" "DeckMTP" "MangoPeel" "Fantastic"
+    "PlayTime" "Free Loader" "DeckMTP" "MangoPeel"
 )
 DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "自定义界面样式" "调整界面配色" "更换开机动画" "更换系统音效" "自动补游戏封面"
@@ -64,7 +64,6 @@ DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "更多 Deck 设置" "显示通关时长" "记录游玩次数" "整理游戏库标签"
     "管理 Wine 与 Proton" "后台自动暂停游戏" "手柄辅助工具" "分应用调节音量" "查看电池状态"
     "记录游戏时长" "下载功能扩展" "USB 文件传输" "优化 Steam 界面"
-    "风扇曲线控制·Gitee汉化版·汉化：RenAmamiya"
 )
 DECKY_TOUCH_PAGE_SIZE=5
 
@@ -520,13 +519,13 @@ game_environment_menu() {
     while true; do
         draw_category_frame games "游戏与插件｜插件商城" "浏览插件商城、运行组件和启动器" 0
         ui_touch_button 5 '\033[1;97;48;5;160m' "安装插件商城" "稳定版国内失败自动切换官方源 · 可选测试版 · 高级操作"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭、FSR4、封面、主题等七款插件"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭、FSR4、Fantastic等八款插件"
         ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
         ui_touch_button 11 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
         ui_touch_button 13 '\033[1;97;48;5;24m' "小黄鸭" "插帧神器（必装）·旧版汉化或 MAKO 官方最新版"
         ui_touch_button 15 '\033[1;97;48;5;24m' "FSR4" "画质补丁（阅读桌面文档慎用）·汉化：RenAmamiya"
         ui_touch_button 17 '\033[1;97;48;5;24m' "Freedeck 版本选择" "0.6 稳定版或 NewFreedeck 重构版"
-        ui_touch_button 19 '\033[1;97;48;5;24m' "其余常用插件" "封面、主题、文件传输与音乐播放器单独安装"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "其余常用插件" "封面、主题、Fantastic等插件单独安装"
         ui_touch_button 21 '\033[1;97;48;5;238m' "下一页…" "查看剩余插件"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -535,7 +534,7 @@ game_environment_menu() {
 
         case "$choice" in
             decky-install) NEXT_CATEGORY="decky_loader"; return 0 ;;
-            features) confirm_and_run "安装常用插件组合" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；未安装插件商城时会先安装插件商城，再继续安装七款常用插件；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
+            features) confirm_and_run "安装常用插件组合" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；未安装插件商城时会先安装插件商城，再继续安装八款常用插件；Fantastic 会覆盖默认风扇曲线，过低转速可能导致设备过热；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
             browse) plugin_official_touch_pages ;;
             cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             lsfg) NEXT_CATEGORY="lsfg_versions"; return 0 ;;
@@ -553,21 +552,23 @@ feature_plugin_singles_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "其余常用插件" "组合安装中的四款插件也可分别安装" 0
+        draw_category_frame games "其余常用插件" "组合安装中的五款插件也可分别安装" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "游戏封面更换" "SteamGridDB · Gitee 分块优先"
         ui_touch_button 8 '\033[1;97;48;5;24m' "主题美化" "CSS Loader 中文版 · Gitee 分块优先"
         ui_touch_button 11 '\033[1;97;48;5;24m' "文件传输助手" "Friendeck · Gitee 分块优先"
         ui_touch_button 14 '\033[1;97;48;5;24m' "音乐播放器" "Decky Music v1.0.2 完整包 · 音乐源已内置"
-        ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "不进行安装"
-        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "Fantastic 风扇控制" "Gitee汉化版 · 汉化：RenAmamiya · 注意温度"
+        ui_touch_button 20 '\033[1;97;48;5;238m' "返回插件列表" "不进行安装"
+        ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:steamgriddb right:8-9:cssloader right:11-12:friendeck right:14-15:deckymusic right:19-20:back right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:steamgriddb right:8-9:cssloader right:11-12:friendeck right:14-15:deckymusic right:17-18:fantastic right:20-21:back right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             steamgriddb) confirm_and_run "安装游戏封面更换" "安装 SteamGridDB；Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
             cssloader) confirm_and_run "安装主题美化" "安装 CSS Loader 中文版；Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
             friendeck) confirm_and_run "安装文件传输助手" "安装 Friendeck；Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
             deckymusic) confirm_and_run "安装音乐播放器" "安装 Decky Music v1.0.2 完整包；播放器和 QQ/网易云音乐源已内置，使用 Gitee 分块并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
+            fantastic) confirm_and_run "安装 Fantastic 风扇控制" "高风险：Fantastic 会覆盖 SteamOS 默认风扇曲线，过低转速可能导致设备过热；仅适用于 Steam Deck。将从 Gitee mirror-3 安装带 RenAmamiya 署名的完整汉化包" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fantastic ;;
             back) return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -1035,10 +1036,7 @@ plugin_official_touch_pages() {
             plugin-*)
                 index="${choice#plugin-}"
                 if [ "$index" -lt "$total" ]; then
-                    install_description="${DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS[$index]}；安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。Fantastic 汉化版从 Gitee 固定镜像安装，其余插件由 Decky 官方商店安装"
-                    if [ "${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}" = "Fantastic" ]; then
-                        install_description="高风险：Fantastic 会覆盖 SteamOS 默认风扇曲线，过低转速可能导致设备过热。仅适用于 Steam Deck；请确认理解风险。将从 Gitee mirror-3 安装带 RenAmamiya 署名的完整汉化包"
-                    fi
+                    install_description="${DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS[$index]}；安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”"
                     confirm_and_run "${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}" \
                         "$install_description" \
                         env ZHOUKEER_AUTO_CONFIRM=1 \

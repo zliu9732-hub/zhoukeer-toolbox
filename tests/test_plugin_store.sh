@@ -386,9 +386,10 @@ for install_call in \
     'install_configured_plugin steamgriddb 0 0' \
     'install_configured_plugin cssloader 0 0' \
     'install_configured_plugin friendeck 0 0' \
-    'install_configured_plugin deckymusic 0 0'; do
+    'install_configured_plugin deckymusic 0 0' \
+    'install_configured_plugin fantastic 0 0'; do
     printf '%s\n' "$feature_install" | grep -Fq "$install_call" || {
-        echo "FAIL: 七款常用插件缺少下载调用：$install_call" >&2
+        echo "FAIL: 常用插件组合缺少下载调用：$install_call" >&2
         exit 1
     }
 done
@@ -418,7 +419,10 @@ printf '%s\n' "$feature_install_function" | grep -Fq 'ensure_plugin_store_ready 
 }
 printf '%s\n' "$feature_install_function" | grep -Fq '小黄鸭（LSFG-VK）'
 printf '%s\n' "$feature_install_function" | grep -Fq 'reload_decky_plugins'
-printf '%s\n' "$feature_install_function" | grep -Fq '七款常用插件会出现在插头菜单中'
+printf '%s\n' "$feature_install_function" | grep -Fq '常用插件会出现在插头菜单中'
+printf '%s\n' "$feature_install_function" | grep -Fq '八款常用功能插件已全部安装完成'
+grep -Fq 'DECKY_FANTASTIC_URL="https://gitee.com/' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'fantastic) show_plugin_download_speed_tip; install_configured_plugin fantastic' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CheatDeck 安装完成后可在 Decky 右侧栏显示' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '风灵月影网址.txt' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '若返回游戏模式后没有看到 Decky 的插头图标' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -639,7 +643,7 @@ grep -Fq 'eugeniosegala/MAKO' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'LSFG_MAKO_DIRECTORY="Mako"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '正在安装小黄鸭' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '正在安装 FSR4' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '将依次安装：小黄鸭、FSR4、CheatDeck、游戏封面更换、主题美化、文件传输助手、音乐播放器。' \
+grep -Fq '将依次直接安装：小黄鸭、FSR4、CheatDeck、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Fq 'Lossless Scaling.rar' "$PROJECT_ROOT/modules/plugin_store.sh" || \
     grep -Eq 'https?://[^[:space:]]*Lossless' "$PROJECT_ROOT/modules/plugin_store.sh"; then
@@ -841,6 +845,12 @@ update_output="$(
                 cssloader) echo "TEST_UPDATE: CSS Loader" ;;
                 friendeck) echo "TEST_UPDATE: Friendeck" ;;
                 deckymusic) echo "TEST_UPDATE: Decky Music" ;;
+                fantastic)
+                    mkdir -p "$DECKY_PLUGIN_DIR/Fantastic"
+                    cp -R "$PROJECT_ROOT/third_party/fantastic-zh-v0.5.1/." \
+                        "$DECKY_PLUGIN_DIR/Fantastic/"
+                    echo "TEST_UPDATE: Fantastic"
+                    ;;
                 *) return 1 ;;
             esac
             return 0

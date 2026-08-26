@@ -1,3 +1,10 @@
+## Renkit 2.1.2 Fantastic 常用插件直装 — 2026-08-26
+
+- Fantastic 从“精选插件”迁移到“常用插件组合”，成为 Steam Deck 的第八款常用插件。
+- “其余常用插件”新增 Fantastic 单项入口，保留原作者 NGnius、GPL-3.0 许可证与“中文汉化：RenAmamiya”署名。
+- Fantastic 改由 Renkit 从 Gitee mirror-3 固定地址直接下载，执行 SHA256、ZIP 路径、插件目录、版本和汉化前端校验后原子安装，不再调用会弹出 Steam/Decky 安装窗口的精选插件安装器。
+- Bazzite 常用组合保持原有七款，不安装仅适用于 Steam Deck 的 Fantastic 风扇控制。
+
 ## Renkit 2.1.1 Sunshine 静默授权与 Fantastic 汉化版 — 2026-08-26
 
 - Sunshine 不再调用会连续触发多个 KDE 验证窗口的官方 `pkexec` 附加脚本；改为校验官方 Flatpak 包内服务、内核模块和 udev 规则后，使用桌面 `管理员密码.txt` 经 Renkit 安全 `sudo` 流程自动配置。

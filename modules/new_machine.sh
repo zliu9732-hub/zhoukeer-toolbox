@@ -112,7 +112,7 @@ show_initialization_plan() {
     echo "【02-03】更新必要组件并初始化国内软件源"
     echo "【04】安装 Fcitx5 中文输入法和中文插件"
     echo "【05-06】安装微信、QQ、Firefox并创建桌面图标"
-    echo "【07】安装 Decky Loader、FreeDeck、七款常用插件"
+    echo "【07】安装 Decky Loader、FreeDeck、八款常用插件（含 Fantastic 风扇控制）"
     echo "【08】识别机器型号，仅应用匹配且低风险的插件配置"
     echo "【09】安装修改器常用兼容层：GE-Proton 7-55、8-25、9-27、10-29"
     echo "【10】按物理内存设置 zram、8-16GB swap 和 swappiness"
@@ -122,6 +122,7 @@ show_initialization_plan() {
     echo "【17-18】生成桌面交付说明、执行报告和后续咨询指引"
     echo "【第三方平台】Epic 默认安装；可选：$(optional_launcher_summary)"
     echo ""
+    echo "Fantastic 会覆盖默认风扇曲线；过低转速可能导致设备过热，请安装后保持合理温度。"
     echo "不会自动清理着色器、游戏、存档、兼容数据或整个用户缓存。"
     echo "初始化时部分步骤会临时关闭 SteamOS 只读保护，完成后由对应模块恢复。"
     echo "各安装器会先保留旧版本或临时配置备份，单项失败不会阻断后续项目。"
@@ -374,7 +375,7 @@ run_new_machine_initialization() {
         bash "$PROJECT_ROOT/modules/plugin_store.sh" store-auto
     run_step "【07】FreeDeck 稳定版" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck
-    run_step "【07】七款常用插件（含主题美化汉化）" env ZHOUKEER_AUTO_CONFIRM=1 \
+    run_step "【07】八款常用插件（含主题美化与 Fantastic 汉化）" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" features
     run_step "【08】按机器型号应用安全配置" apply_machine_profile
     run_step "【09】修改器常用 GE-Proton 兼容层" env ZHOUKEER_AUTO_CONFIRM=1 \

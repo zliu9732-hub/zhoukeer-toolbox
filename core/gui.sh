@@ -25,7 +25,7 @@ DECKY_OFFICIAL_PLUGIN_NAMES=(
     "Deck Settings" "HLTB for Deck" "PlayCount" "TabMaster"
     "Wine Cellar" "Pause Games" "Controller Tools" "Volume Mixer" "Battery Tracker"
     "PlayTime" "Free Loader" "DeckMTP" "MangoPeel"
-    "Freedeck" "Fantastic"
+    "Freedeck"
 )
 DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "自定义界面样式" "调整界面配色" "更换开机动画" "更换系统音效" "自动补游戏封面"
@@ -34,7 +34,6 @@ DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "管理 Wine 与 Proton" "后台自动暂停游戏" "手柄辅助工具" "分应用调节音量" "查看电池状态"
     "下载游戏和模拟器游戏"
     "记录游戏时长" "下载功能扩展" "USB 文件传输" "优化 Steam 界面"
-    "风扇曲线控制·Gitee汉化版·汉化：RenAmamiya"
 )
 
 gui_dialog() {
@@ -288,9 +287,9 @@ game_environment_gui_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
-            features "常用插件组合｜小黄鸭、FSR4、封面、主题等七款插件" \
-            all "常用插件加27款精选插件｜优先安装七款常用插件，已装则跳过；再补27款精选" \
-            feature-singles "其余常用插件｜封面、主题、文件传输与音乐播放器单独安装" \
+            features "常用插件组合｜小黄鸭、FSR4、Fantastic等八款插件" \
+            all "常用插件加精选插件｜优先安装八款常用插件，已装则跳过；再补精选" \
+            feature-singles "其余常用插件｜封面、主题、Fantastic等插件单独安装" \
             lsfg "小黄鸭｜插帧神器（必装）｜Gitee mirror-3 署名完整包｜汉化：RenAmamiya" \
             fsr4 "FSR4｜画质补丁（阅读桌面文档慎用）｜Gitee mirror-3 署名完整包｜汉化：RenAmamiya" \
             browse "浏览官方插件｜逐个查看插件作用" \
@@ -311,13 +310,13 @@ game_environment_gui_menu() {
             nav-exit "退出Renkit")" || return 0
         case "$choice" in
             features)
-                gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。未安装插件商城时会先安装插件商城，再继续安装七款常用插件；会使用管理员权限。是否继续？" && \
+                gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。未安装插件商城时会先安装插件商城，再继续安装八款常用插件。Fantastic 会覆盖默认风扇曲线，过低转速可能导致设备过热；会使用管理员权限。是否继续？" && \
                     run_gui_action "安装常用插件组合" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" features
                 ;;
             all)
                 gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。未安装插件商城时会先安装插件商城，再继续安装常用与精选插件；会使用管理员权限。是否继续？" && \
-                    run_gui_action "安装常用插件加27款精选插件" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    run_gui_action "安装常用插件加精选插件" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" all
                 ;;
             feature-singles)
@@ -326,12 +325,17 @@ game_environment_gui_menu() {
                     cssloader "主题美化｜CSS Loader 中文版｜Gitee 分块优先" \
                     friendeck "文件传输助手｜Friendeck｜Gitee 分块优先" \
                     deckymusic "音乐播放器｜Decky Music v1.0.2 完整包｜音乐源已内置" \
+                    fantastic "Fantastic 风扇控制｜Gitee汉化版｜汉化：RenAmamiya｜注意温度" \
                     back "返回游戏与插件")" || continue
                 case "$feature_choice" in
                     steamgriddb) run_gui_action "安装游戏封面更换" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
                     cssloader) run_gui_action "安装主题美化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
                     friendeck) run_gui_action "安装文件传输助手" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
                     deckymusic) run_gui_action "安装音乐播放器" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
+                    fantastic)
+                        gui_confirm "高风险：Fantastic 会覆盖 SteamOS 默认风扇曲线，过低转速可能导致设备过热；仅适用于 Steam Deck。将从 Gitee mirror-3 安装带 RenAmamiya 署名的完整汉化包，是否继续？" && \
+                            run_gui_action "安装 Fantastic 风扇控制" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fantastic
+                        ;;
                 esac
                 ;;
             lsfg)
@@ -640,10 +644,7 @@ plugin_official_gui_pages() {
         case "$choice" in
             plugin-*)
                 index="${choice#plugin-}"
-                install_description="${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}：${DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS[$index]}。安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。Fantastic 汉化版从 Gitee 固定镜像安装，其余插件由 Decky 官方商店安装，是否继续？"
-                if [ "${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}" = "Fantastic" ]; then
-                    install_description="高风险：Fantastic 会覆盖 SteamOS 默认风扇曲线，过低转速可能导致设备过热。仅适用于 Steam Deck；请确认理解风险。将从 Gitee mirror-3 安装带 RenAmamiya 署名的完整汉化包，是否继续？"
-                fi
+                install_description="${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}：${DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS[$index]}。安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”，是否继续？"
                 gui_confirm "$install_description" && \
                     run_gui_action "安装 ${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/decky_bundle.sh" plugin "${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}"

@@ -93,20 +93,9 @@ assert_contains "$custom_json" "$DECKY_UNIFIDECK_SHA256" "非官方插件未携�
 assert_contains "$custom_json" '"name":"Freedeck"' "未生成Freedeck安装请求"
 assert_contains "$custom_json" "$DECKY_FREEDECK_SHA256" "Freedeck 未固定 0.6 校验值"
 assert_contains "$custom_json" 'gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/simpledeckytdp' "SimpleDeckyTDP 未使用 Gitee 镜像地址"
-assert_contains "$custom_json" '"name":"Fantastic"' "未生成 Fantastic 汉化版安装请求"
-assert_contains "$custom_json" "$DECKY_FANTASTIC_SHA256" "Fantastic 汉化包未携带固定 SHA256"
-assert_contains "$custom_json" 'gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-3/raw/main/fantastic-zh-signed/v0.5.1/Fantastic-zh-signed-v0.5.1.zip' "Fantastic 未使用 Gitee mirror-3 固定汉化包"
-
-DECKY_BUNDLE_CUSTOM_ONLY=fantastic
-fantastic_file="$TMP_ROOT/fantastic.json"
-build_custom_plugins_json "$fantastic_file"
-fantastic_json="$(cat "$fantastic_file")"
-assert_contains "$fantastic_json" '"name":"Fantastic"' "Fantastic 单项安装未生成请求"
-if printf '%s\n' "$fantastic_json" | grep -Eq 'SimpleDeckyTDP|Unifideck|Freedeck'; then
-    fail "Fantastic 单项安装不应捎带其他自定义插件"
+if printf '%s\n' "$custom_json" | grep -Fq 'Fantastic'; then
+    fail "Fantastic 不应再进入会弹出 Steam 安装窗口的精选插件请求"
 fi
-unset DECKY_BUNDLE_CUSTOM_ONLY
-grep -Fq '[ "$plugin_name" = "Fantastic" ]' "$MODULE" || fail "Fantastic 未注册精选插件单项安装分支"
 
 DECKY_SIMPLE_TDP_URL="http://unsafe.invalid/plugin.zip"
 DECKY_SIMPLE_TDP_MIRROR_URL="http://unsafe.invalid/plugin.zip"
@@ -185,4 +174,4 @@ if missing_output="$(ZHOUKEER_ALLOW_NON_STEAMOS=1 ZHOUKEER_AUTO_CONFIRM=1 instal
 fi
 assert_contains "$missing_output" "仍有插件未出现在已安装列表" "缺失插件没有给出真实失败提示"
 
-echo "PASS: Decky官方商店与 Fantastic Gitee 汉化版推荐插件安装测试通过"
+echo "PASS: Decky官方商店推荐插件安装测试通过，Fantastic 已与精选安装器隔离"
