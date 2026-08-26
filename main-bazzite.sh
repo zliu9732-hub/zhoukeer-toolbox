@@ -270,10 +270,11 @@ software_menu() {
                 ui_touch_button 10 '\033[1;97;48;5;24m' "OnlyOffice"
                 ui_touch_button 12 '\033[1;97;48;5;24m' "Joplin 笔记"
                 ui_touch_button 14 '\033[1;97;48;5;24m' "Parsec"
+                ui_touch_button 16 '\033[1;97;48;5;24m' "Sunshine 串流服务端"
                 ui_touch_button 19 '\033[1;97;48;5;24m' "上一页"
                 ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页"
                 ui_prompt
-                choice="$(read_touch_menu right:2-3:motrix right:4-5:freedownloadmanager right:6-7:media-downloader right:8-9:flameshot right:10-11:onlyoffice right:12-13:joplin right:14-15:parsec right:19-20:previous right:22-23:home)"
+                choice="$(read_touch_menu right:2-3:motrix right:4-5:freedownloadmanager right:6-7:media-downloader right:8-9:flameshot right:10-11:onlyoffice right:12-13:joplin right:14-15:parsec right:16-17:sunshine right:19-20:previous right:22-23:home)"
                 ;;
         esac
         if apply_navigation "$choice"; then return 0; fi
@@ -315,6 +316,7 @@ software_menu() {
             onlyoffice) title="OnlyOffice"; description="兼容 Office 文档" ;;
             joplin) title="Joplin 笔记"; description="笔记与待办管理" ;;
             parsec) title="Parsec"; description="远程串流与协作" ;;
+            sunshine) title="Sunshine 串流服务端"; description="Moonlight 串流主机；安装后配置输入权限" ;;
             *) continue ;;
         esac
         confirm_and_run "安装$title" "$description" bash "$PROJECT_ROOT/modules/software.sh" "$target"

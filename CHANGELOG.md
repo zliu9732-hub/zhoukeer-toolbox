@@ -1,3 +1,10 @@
+## Renkit 2.1.0 Sunshine 串流服务端 — 2026-08-26
+
+- “安装常用软件”在 SteamOS 触控菜单、桌面 GUI 与 Bazzite 菜单统一新增 Sunshine 串流服务端，使用官方 Flatpak ID `dev.lizardbyte.app.Sunshine`。
+- Flatpak 安装完成后执行 Sunshine 官方包内要求的附加安装脚本，配置虚拟键鼠与手柄输入权限；操作前显示中文说明，失败或超时返回非零且不误报完成。
+- Sunshine 仅允许 SteamOS/Bazzite 执行；重复运行不会重新下载 Flatpak，但会幂等修复附加权限并重建桌面快捷方式。
+- 用户级卸载先运行官方附加组件清理脚本；系统级 Flatpak 不自动提权或改动，避免清理规则后遗留半卸载状态。
+
 ## Renkit 2.0.9 Proton-CachyOS 独立分块镜像 — 2026-08-25
 
 - 游戏兼容层菜单新增 Proton-CachyOS，安装 CachyOS 上游普通 `x86_64` Steam Linux Runtime 包，与官方 Proton、GE-Proton 和既有自定义兼容层共存。

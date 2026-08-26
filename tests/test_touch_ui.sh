@@ -174,6 +174,8 @@ for item in 'LibreOffice 办公套件' 'VLC 播放器' 'OBS Studio' 'LocalSend �
     printf '%s\n' "$more_software" | grep -Fq "$item" || fail "更多常用软件缺少：$item"
 done
 printf '%s\n' "$more_software" | grep -Fq 'right:22-23:home' || fail "更多常用软件返回首页坐标错误"
+printf '%s\n' "$more_software" | grep -Fq 'right:16-17:sunshine' || fail "Sunshine 触控坐标错误"
+printf '%s\n' "$more_software" | grep -Fq 'modules/software.sh" sunshine' || fail "Sunshine 安装动作缺失"
 
 games="$(sed -n '/^game_environment_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$games" | grep -Fq 'draw_category_frame games "游戏与插件｜插件商城" "浏览插件商城、运行组件和启动器" 0' || fail "游戏与插件仍显示与首个按钮重叠的分类文字"

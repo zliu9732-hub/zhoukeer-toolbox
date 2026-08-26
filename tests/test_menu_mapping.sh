@@ -88,6 +88,8 @@ assert_contains "$touch_software_more" 'right:2-3:xbox-cloud' "更多常用软�
 assert_contains "$touch_software_more" 'right:16-17:media-downloader' "更多常用软件缺少 Media Downloader 坐标"
 assert_contains "$touch_software_more" 'right:18-19:previous' "更多常用软件缺少上一页坐标"
 assert_contains "$touch_software_more" 'right:14-15:parsec' "更多常用软件缺少 Parsec 坐标"
+assert_contains "$touch_software_more" 'right:16-17:sunshine' "更多常用软件缺少 Sunshine 坐标"
+assert_contains "$touch_software_more" 'modules/software.sh" sunshine' "Sunshine 安装动作错误"
 assert_contains "$touch_software_more" 'right:22-23:home' "更多常用软件缺少返回首页坐标"
 assert_contains "$touch_games" 'right:23-24:home' "游戏环境缺少返回首页"
 assert_contains "$touch_decky_loader" 'right:5-6:stable' "Decky Loader 子菜单缺少稳定版动作"

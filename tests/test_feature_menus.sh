@@ -66,7 +66,7 @@ for menu in "$touch_software" "$gui_software"; do
 done
 
 for menu in "$touch_software_more" "$gui_software"; do
-    for item in 'LibreOffice 办公套件' 'VLC 播放器' 'OBS Studio' 'LocalSend 局域网传文件' 'PeaZip 压缩工具' 'WiliWili' '中文输入法' 'Xbox 云游戏' 'QQ音乐' '网易云音乐' 'YesPlayMusic' 'qBittorrent' 'Motrix 下载器' 'Free Download Manager' 'Media Downloader' 'Flameshot 截图' 'OnlyOffice 办公套件' 'Joplin 笔记' 'Heroic 游戏启动器' 'Lutris' 'Chiaki4Deck（PS5串流）' 'Parsec'; do
+    for item in 'LibreOffice 办公套件' 'VLC 播放器' 'OBS Studio' 'LocalSend 局域网传文件' 'PeaZip 压缩工具' 'WiliWili' '中文输入法' 'Xbox 云游戏' 'QQ音乐' '网易云音乐' 'YesPlayMusic' 'qBittorrent' 'Motrix 下载器' 'Free Download Manager' 'Media Downloader' 'Flameshot 截图' 'OnlyOffice 办公套件' 'Joplin 笔记' 'Heroic 游戏启动器' 'Lutris' 'Chiaki4Deck（PS5串流）' 'Parsec' 'Sunshine 串流服务端'; do
         assert_contains "$menu" "$item" "更多常用软件缺少：$item"
     done
 done

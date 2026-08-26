@@ -228,6 +228,13 @@ software_details() {
             SOFTWARE_CATEGORIES="Game;"
             SOFTWARE_STEAM_ENTRY=1
             ;;
+        sunshine)
+            SOFTWARE_NAME="Sunshine 串流服务端"
+            SOFTWARE_DESKTOP_NAME="Sunshine"
+            SOFTWARE_APP_ID="dev.lizardbyte.app.Sunshine"
+            SOFTWARE_INSTALL_MODE="sunshine_flatpak"
+            SOFTWARE_CATEGORIES="Game;Network;RemoteAccess;"
+            ;;
         *)
             echo "未知软件: $1"
             return 1
@@ -240,6 +247,7 @@ SOFTWARE_TARGETS=(
     localsend peazip willwill fcitx5 xbox-cloud
     qqmusic netease-music yesplaymusic qbittorrent motrix freedownloadmanager
     media-downloader flameshot onlyoffice joplin heroic lutris chiaki4deck parsec
+    sunshine
 )
 
 software_print_domestic_source_hint() {
@@ -268,6 +276,10 @@ confirm_software_install() {
             ;;
         rustdesk_appimage)
             echo "将从 RustDesk 作者 GitHub Release 下载 x86_64 AppImage。"
+            ;;
+        sunshine_flatpak)
+            echo "将通过 Flatpak 安装 Sunshine 串流服务端。"
+            echo "安装后会运行 Sunshine 官方包内的附加安装脚本，配置虚拟输入设备权限；系统可能请求管理员授权。"
             ;;
         baidunetdisk)
             SOFTWARE_NAME="百度网盘"
@@ -951,6 +963,19 @@ software_is_installed() {
     esac
 }
 
+complete_sunshine_install() {
+    echo "正在执行 Sunshine 官方 Flatpak 的必要附加安装步骤..."
+    if ! timeout --foreground 180 flatpak run \
+        --command=additional-install.sh "$SOFTWARE_APP_ID"; then
+        echo "Sunshine 附加安装失败或超时，虚拟键鼠/手柄输入可能不可用。"
+        echo "可重新选择安装 Sunshine 进行修复。"
+        log "Sunshine Flatpak附加安装失败"
+        return 1
+    fi
+    echo "Sunshine 附加安装完成；如输入设备暂不可用，请重启 Steam Deck。"
+    log "Sunshine Flatpak附加安装完成"
+}
+
 create_software_shortcut() {
     local desktop_dir="$HOME/Desktop"
     local desktop_file="$desktop_dir/$SOFTWARE_DESKTOP_NAME.desktop"
@@ -1149,9 +1174,20 @@ install_software() {
         echo "$SOFTWARE_NAME 安装仅支持Linux/SteamOS。"
         return 1
     }
+    if [ "$target" = "sunshine" ]; then
+        require_supported_gaming_os || return 1
+    fi
 
     if software_is_installed; then
         echo "[已安装] $SOFTWARE_NAME"
+        if [ "$target" = "sunshine" ]; then
+            require_command timeout || return 1
+            confirm_software_install || {
+                echo "已取消修复 $SOFTWARE_NAME。"
+                return 0
+            }
+            complete_sunshine_install || return 1
+        fi
         create_software_shortcut
         if [ "$SOFTWARE_STEAM_ENTRY" = "1" ]; then
             install_software_steam_entry "$target"
@@ -1260,6 +1296,9 @@ install_software() {
 
     echo "$SOFTWARE_NAME 安装完成。"
     log "$SOFTWARE_NAME Flatpak安装完成"
+    if [ "$target" = "sunshine" ]; then
+        complete_sunshine_install || return 1
+    fi
     create_software_shortcut
     if [ "$SOFTWARE_STEAM_ENTRY" = "1" ]; then
         install_software_steam_entry "$target"
@@ -1607,13 +1646,40 @@ uninstall_software() {
         willwill) uninstall_steam_entry_flatpak_software "willwill" ;;
         fcitx5) uninstall_flatpak_software "org.fcitx.Fcitx5" "Fcitx5 中文输入法" "Fcitx5.desktop" "org.fcitx.Fcitx5.desktop" ;;
         xbox-cloud|qqmusic|netease-music|yesplaymusic|qbittorrent|motrix|freedownloadmanager|media-downloader|flameshot|onlyoffice|joplin|heroic|lutris|chiaki4deck|parsec) uninstall_steam_entry_flatpak_software "$1" ;;
+        sunshine)
+            require_supported_gaming_os || return 1
+            software_details sunshine || return 1
+            if ! software_is_installed; then
+                echo "$SOFTWARE_NAME 未安装。"
+                return 0
+            fi
+            if ! flatpak info --user "$SOFTWARE_APP_ID" >/dev/null 2>&1; then
+                echo "Sunshine 是系统级 Flatpak，Renkit 不会自动提权或改动它的附加组件。"
+                echo "请按 Sunshine 官方说明维护该系统级安装。"
+                return 1
+            fi
+            confirm_software_uninstall "$SOFTWARE_NAME" || { echo "已取消卸载。"; return 0; }
+            require_command timeout || return 1
+            echo "正在移除 Sunshine 虚拟输入设备规则..."
+            if ! timeout --foreground 180 flatpak run \
+                --command=remove-additional-install.sh "$SOFTWARE_APP_ID"; then
+                echo "Sunshine 附加组件清理失败，已停止卸载 Flatpak，避免遗留系统规则。"
+                log "Sunshine Flatpak附加组件清理失败"
+                return 1
+            fi
+            flatpak uninstall --user --noninteractive -y "$SOFTWARE_APP_ID" || return 1
+            remove_software_shortcuts "Sunshine.desktop" \
+                "dev.lizardbyte.app.Sunshine.desktop" || return 1
+            echo "$SOFTWARE_NAME 已卸载。"
+            log "$SOFTWARE_NAME 已卸载"
+            ;;
         *) echo "未知卸载目标：$1"; return 1 ;;
     esac
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
-        wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5|xbox-cloud|qqmusic|netease-music|yesplaymusic|qbittorrent|motrix|freedownloadmanager|media-downloader|flameshot|onlyoffice|joplin|heroic|lutris|chiaki4deck|parsec) install_software "$1" ;;
+        wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5|xbox-cloud|qqmusic|netease-music|yesplaymusic|qbittorrent|motrix|freedownloadmanager|media-downloader|flameshot|onlyoffice|joplin|heroic|lutris|chiaki4deck|parsec|sunshine) install_software "$1" ;;
         firefox-pacman|firefox-sjtu|system-setup)
             echo "该旧版系统级功能已停用，请使用当前 Flatpak 菜单功能。"
             exit 1
@@ -1628,6 +1694,6 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
             ;;
         status) require_command od && show_software_status ;;
         repair-shortcuts) require_command od && repair_software_shortcuts ;;
-        *) echo "用法: $0 {wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5|xbox-cloud|qqmusic|netease-music|yesplaymusic|qbittorrent|motrix|freedownloadmanager|media-downloader|flameshot|onlyoffice|joplin|heroic|lutris|chiaki4deck|parsec|chrome|edge|protontricks|bottles|status|repair-shortcuts}"; exit 1 ;;
+        *) echo "用法: $0 {wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5|xbox-cloud|qqmusic|netease-music|yesplaymusic|qbittorrent|motrix|freedownloadmanager|media-downloader|flameshot|onlyoffice|joplin|heroic|lutris|chiaki4deck|parsec|sunshine|chrome|edge|protontricks|bottles|status|repair-shortcuts}"; exit 1 ;;
     esac
 fi

@@ -14,6 +14,10 @@ cleanup() {
 trap cleanup EXIT
 
 mkdir -p "$BIN_DIR" "$HOME_DIR" "$STATE_DIR"
+cat > "$STATE_DIR/os-release" <<'EOF'
+ID=steamos
+PRETTY_NAME="SteamOS Test"
+EOF
 mkdir -p "$STATE_DIR/firefox-fixture/firefox/browser/chrome/icons/default"
 printf '#!/bin/sh\nexit 0\n' > "$STATE_DIR/firefox-fixture/firefox/firefox"
 printf '[App]\nName=Firefox\n' > "$STATE_DIR/firefox-fixture/firefox/application.ini"
@@ -132,8 +136,16 @@ case "$command" in
         printf 'modify %s\n' "$*" >> "$state/commands"
         ;;
     info)
-        case "${1:-}" in --user|--system) shift ;; esac
-        [ -f "$state/installed.$1" ]
+        scope="any"
+        case "${1:-}" in
+            --user) scope="user"; shift ;;
+            --system) scope="system"; shift ;;
+        esac
+        case "$scope" in
+            user) [ -f "$state/installed.$1" ] ;;
+            system) [ -f "$state/installed-system.$1" ] ;;
+            *) [ -f "$state/installed.$1" ] || [ -f "$state/installed-system.$1" ] ;;
+        esac
         ;;
     install)
         printf 'install %s\n' "$*" >> "$state/commands"
@@ -152,6 +164,16 @@ case "$command" in
         done
         [ -n "$app_id" ] || exit 1
         rm -f "$state/installed.$app_id"
+        ;;
+    run)
+        printf 'run %s\n' "$*" >> "$state/commands"
+        case " $* " in
+            *' --command=additional-install.sh dev.lizardbyte.app.Sunshine '*)
+                [ "${FLATPAK_TEST_FAIL_SUNSHINE_POST:-0}" != "1" ]
+                ;;
+            *' --command=remove-additional-install.sh dev.lizardbyte.app.Sunshine '*) ;;
+            *) exit 1 ;;
+        esac
         ;;
     *)
         echo "unexpected flatpak command: $command" >&2
@@ -345,6 +367,106 @@ PEAZIP_SHORTCUT="$HOME_DIR/Desktop/PeaZip.desktop"
 grep -Fq 'Exec=flatpak run io.github.peazip.PeaZip' "$PEAZIP_SHORTCUT"
 grep -Fq 'install --user --noninteractive -y flathub-cn io.github.peazip.PeaZip' "$STATE_DIR/commands"
 [ -f "$STATE_DIR/installed.io.github.peazip.PeaZip" ]
+
+# Sunshine 仅允许 SteamOS/Bazzite，通过用户级 Flatpak 安装后必须执行官方附加安装脚本。
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_OS_RELEASE_FILE="$STATE_DIR/os-release" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" sunshine >/dev/null
+SUNSHINE_SHORTCUT="$HOME_DIR/Desktop/Sunshine.desktop"
+[ -x "$SUNSHINE_SHORTCUT" ]
+grep -Fq 'Exec=flatpak run dev.lizardbyte.app.Sunshine' "$SUNSHINE_SHORTCUT"
+grep -Fq 'install --user --noninteractive -y flathub-cn dev.lizardbyte.app.Sunshine' \
+    "$STATE_DIR/commands"
+grep -Fq 'run --command=additional-install.sh dev.lizardbyte.app.Sunshine' \
+    "$STATE_DIR/commands"
+[ -f "$STATE_DIR/installed.dev.lizardbyte.app.Sunshine" ]
+
+# 重复执行不重复下载 Flatpak，但会幂等重跑官方附加步骤以修复权限。
+sunshine_install_calls_before="$(grep -c '^install .* dev.lizardbyte.app.Sunshine$' "$STATE_DIR/commands")"
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_OS_RELEASE_FILE="$STATE_DIR/os-release" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" sunshine >/dev/null
+[ "$(grep -c '^install .* dev.lizardbyte.app.Sunshine$' "$STATE_DIR/commands")" = \
+    "$sunshine_install_calls_before" ]
+[ "$(grep -c '^run --command=additional-install.sh dev.lizardbyte.app.Sunshine$' "$STATE_DIR/commands")" -eq 2 ]
+
+# 非 SteamOS/Bazzite 必须在任何安装或附加步骤前停止。
+cat > "$STATE_DIR/unsupported-os-release" <<'EOF'
+ID=ubuntu
+PRETTY_NAME="Unsupported Test Linux"
+EOF
+rm -f "$STATE_DIR/installed.dev.lizardbyte.app.Sunshine"
+sunshine_calls_before="$(grep -c 'dev.lizardbyte.app.Sunshine' "$STATE_DIR/commands")"
+set +e
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_OS_RELEASE_FILE="$STATE_DIR/unsupported-os-release" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" sunshine >/dev/null 2>&1
+unsupported_status=$?
+set -e
+[ "$unsupported_status" -ne 0 ] || {
+    echo "FAIL: Sunshine 在非 SteamOS/Bazzite 上仍返回成功" >&2
+    exit 1
+}
+[ "$(grep -c 'dev.lizardbyte.app.Sunshine' "$STATE_DIR/commands")" = "$sunshine_calls_before" ]
+
+# 附加安装失败必须返回非零，不能误报完整安装成功。
+set +e
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+FLATPAK_TEST_FAIL_SUNSHINE_POST=1 \
+ZHOUKEER_OS_RELEASE_FILE="$STATE_DIR/os-release" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" sunshine >/dev/null 2>&1
+sunshine_failure_status=$?
+set -e
+[ "$sunshine_failure_status" -ne 0 ] || {
+    echo "FAIL: Sunshine 附加安装失败仍返回成功" >&2
+    exit 1
+}
+
+# 卸载必须先成功运行官方清理脚本，再移除用户级 Flatpak 与快捷方式。
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_OS_RELEASE_FILE="$STATE_DIR/os-release" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" uninstall sunshine >/dev/null
+grep -Fq 'run --command=remove-additional-install.sh dev.lizardbyte.app.Sunshine' \
+    "$STATE_DIR/commands"
+grep -Fq 'uninstall --user --noninteractive -y dev.lizardbyte.app.Sunshine' \
+    "$STATE_DIR/commands"
+[ ! -e "$STATE_DIR/installed.dev.lizardbyte.app.Sunshine" ]
+[ ! -e "$SUNSHINE_SHORTCUT" ]
+
+# 系统级 Sunshine 不得先删除附加规则再拒绝卸载。
+touch "$STATE_DIR/installed-system.dev.lizardbyte.app.Sunshine"
+sunshine_remove_calls_before="$(grep -c '^run --command=remove-additional-install.sh dev.lizardbyte.app.Sunshine$' "$STATE_DIR/commands")"
+set +e
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_OS_RELEASE_FILE="$STATE_DIR/os-release" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" uninstall sunshine >/dev/null 2>&1
+system_sunshine_status=$?
+set -e
+[ "$system_sunshine_status" -ne 0 ] || {
+    echo "FAIL: 系统级 Sunshine 卸载未被安全拦截" >&2
+    exit 1
+}
+[ "$(grep -c '^run --command=remove-additional-install.sh dev.lizardbyte.app.Sunshine$' "$STATE_DIR/commands")" = \
+    "$sunshine_remove_calls_before" ]
+rm -f "$STATE_DIR/installed-system.dev.lizardbyte.app.Sunshine"
 
 # WiliWili 复用常用软件的用户级 Flatpak 国内缓存，并加入 Steam 库。
 mkdir -p "$HOME_DIR/.local/share/Steam/steamapps" \

@@ -120,6 +120,7 @@ software_menu() {
             lutris "Lutris｜多平台游戏管理" \
             chiaki4deck "Chiaki4Deck（PS5串流）｜PS5 远程串流" \
             parsec "Parsec｜远程串流与协作" \
+            sunshine "Sunshine 串流服务端｜Moonlight 串流主机｜需配置输入权限" \
             protontricks "游戏兼容设置｜安装 Protontricks" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
@@ -175,6 +176,7 @@ software_menu() {
             lutris) gui_confirm "将通过 Flathub 国内缓存安装 Lutris，并自动加入 Steam 库。是否继续？" && run_gui_action "安装 Lutris" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" lutris ;;
             chiaki4deck) gui_confirm "将通过 Flathub 国内缓存安装 Chiaki4Deck（PS5串流），并自动加入 Steam 库。是否继续？" && run_gui_action "安装 Chiaki4Deck（PS5串流）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" chiaki4deck ;;
             parsec) gui_confirm "将通过 Flathub 国内缓存安装 Parsec，并自动加入 Steam 库。是否继续？" && run_gui_action "安装 Parsec" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" parsec ;;
+            sunshine) gui_confirm "将通过 Flathub 国内缓存安装 Sunshine，并运行官方附加安装脚本配置虚拟输入设备权限；系统可能请求管理员授权。是否继续？" && run_gui_action "安装 Sunshine 串流服务端" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" sunshine ;;
             protontricks) gui_confirm "将通过 Flatpak 安装 Protontricks。是否继续？" && run_gui_action "安装 Protontricks" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
             bottles) gui_confirm "将通过 Flatpak 安装 Bottles。是否继续？" && run_gui_action "安装 Bottles" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
             home) GUI_NAV_HOME=1; return 0 ;;

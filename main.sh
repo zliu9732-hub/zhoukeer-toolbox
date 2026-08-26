@@ -326,10 +326,11 @@ common_software_more_menu() {
                 ui_touch_button 10 '\033[1;97;48;5;24m' "Lutris" "多平台游戏管理"
                 ui_touch_button 12 '\033[1;97;48;5;24m' "Chiaki4Deck（PS5串流）" "PS5 远程串流"
                 ui_touch_button 14 '\033[1;97;48;5;24m' "Parsec" "远程串流与协作"
+                ui_touch_button 16 '\033[1;97;48;5;24m' "Sunshine 串流服务端" "Moonlight 串流主机 · 需配置输入权限"
                 ui_touch_button 18 '\033[1;97;48;5;24m' "上一页" "音乐与下载工具"
                 ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
                 ui_prompt
-                choice="$(read_touch_menu right:2-3:flameshot right:4-5:onlyoffice right:6-7:joplin right:8-9:heroic right:10-11:lutris right:12-13:chiaki4deck right:14-15:parsec right:18-19:previous right:22-23:home)"
+                choice="$(read_touch_menu right:2-3:flameshot right:4-5:onlyoffice right:6-7:joplin right:8-9:heroic right:10-11:lutris right:12-13:chiaki4deck right:14-15:parsec right:16-17:sunshine right:18-19:previous right:22-23:home)"
                 ;;
         esac
         case "$choice" in
@@ -359,6 +360,7 @@ common_software_more_menu() {
             lutris) confirm_and_run "安装 Lutris" "通过 Flathub 国内缓存安装，完成后加入 Steam 库" bash "$PROJECT_ROOT/modules/software.sh" lutris ;;
             chiaki4deck) confirm_and_run "安装 Chiaki4Deck（PS5串流）" "通过 Flathub 国内缓存安装，完成后加入 Steam 库" bash "$PROJECT_ROOT/modules/software.sh" chiaki4deck ;;
             parsec) confirm_and_run "安装 Parsec" "通过 Flathub 国内缓存安装，完成后加入 Steam 库" bash "$PROJECT_ROOT/modules/software.sh" parsec ;;
+            sunshine) confirm_and_run "安装 Sunshine 串流服务端" "通过 Flathub 国内缓存安装；随后运行官方附加安装脚本配置虚拟输入设备权限，系统可能请求管理员授权" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" sunshine ;;
             next) page=$((page + 1)); [ "$page" -le 2 ] || page=2 ;;
             previous) page=$((page - 1)); [ "$page" -ge 0 ] || page=0 ;;
             back) return 0 ;;
