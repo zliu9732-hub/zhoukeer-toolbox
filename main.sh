@@ -56,7 +56,7 @@ DECKY_OFFICIAL_PLUGIN_NAMES=(
     "PowerTools" "Storage Cleaner" "AutoFlatpaks" "Bluetooth"
     "Deck Settings" "HLTB for Deck" "PlayCount" "TabMaster"
     "Wine Cellar" "Pause Games" "Controller Tools" "Volume Mixer" "Battery Tracker"
-    "PlayTime" "Free Loader" "DeckMTP" "MangoPeel"
+    "PlayTime" "Free Loader" "DeckMTP" "MangoPeel" "Fantastic"
 )
 DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "自定义界面样式" "调整界面配色" "更换开机动画" "更换系统音效" "自动补游戏封面"
@@ -64,6 +64,7 @@ DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "更多 Deck 设置" "显示通关时长" "记录游玩次数" "整理游戏库标签"
     "管理 Wine 与 Proton" "后台自动暂停游戏" "手柄辅助工具" "分应用调节音量" "查看电池状态"
     "记录游戏时长" "下载功能扩展" "USB 文件传输" "优化 Steam 界面"
+    "风扇曲线控制·Gitee汉化版·汉化：RenAmamiya"
 )
 DECKY_TOUCH_PAGE_SIZE=5
 
@@ -360,7 +361,7 @@ common_software_more_menu() {
             lutris) confirm_and_run "安装 Lutris" "通过 Flathub 国内缓存安装，完成后加入 Steam 库" bash "$PROJECT_ROOT/modules/software.sh" lutris ;;
             chiaki4deck) confirm_and_run "安装 Chiaki4Deck（PS5串流）" "通过 Flathub 国内缓存安装，完成后加入 Steam 库" bash "$PROJECT_ROOT/modules/software.sh" chiaki4deck ;;
             parsec) confirm_and_run "安装 Parsec" "通过 Flathub 国内缓存安装，完成后加入 Steam 库" bash "$PROJECT_ROOT/modules/software.sh" parsec ;;
-            sunshine) confirm_and_run "安装 Sunshine 串流服务端" "通过 Flathub 国内缓存安装；随后运行官方附加安装脚本配置虚拟输入设备权限，系统可能请求管理员授权" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" sunshine ;;
+            sunshine) confirm_and_run "安装 Sunshine 串流服务端" "通过 Flathub 国内缓存安装；随后读取官方包内规则，并使用桌面管理员密码记录自动配置输入权限，不重复弹窗" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" sunshine ;;
             next) page=$((page + 1)); [ "$page" -le 2 ] || page=2 ;;
             previous) page=$((page - 1)); [ "$page" -ge 0 ] || page=0 ;;
             back) return 0 ;;
@@ -992,9 +993,10 @@ plugin_official_touch_pages() {
     local index
     local slot
     local row
+    local install_description
 
     while true; do
-        draw_category_frame games "官方插件（第 $((page + 1)) / $total_pages 页）" "点击插件即可安装"
+        draw_category_frame games "精选插件（第 $((page + 1)) / $total_pages 页）" "点击插件即可安装"
         start=$((page * DECKY_TOUCH_PAGE_SIZE))
         for slot in 0 1 2 3 4; do
             index=$((start + slot))
@@ -1033,8 +1035,12 @@ plugin_official_touch_pages() {
             plugin-*)
                 index="${choice#plugin-}"
                 if [ "$index" -lt "$total" ]; then
+                    install_description="${DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS[$index]}；安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。Fantastic 汉化版从 Gitee 固定镜像安装，其余插件由 Decky 官方商店安装"
+                    if [ "${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}" = "Fantastic" ]; then
+                        install_description="高风险：Fantastic 会覆盖 SteamOS 默认风扇曲线，过低转速可能导致设备过热。仅适用于 Steam Deck；请确认理解风险。将从 Gitee mirror-3 安装带 RenAmamiya 署名的完整汉化包"
+                    fi
                     confirm_and_run "${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}" \
-                        "${DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS[$index]}；安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将由 Decky 官方商店安装" \
+                        "$install_description" \
                         env ZHOUKEER_AUTO_CONFIRM=1 \
                         bash "$PROJECT_ROOT/modules/decky_bundle.sh" plugin "${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}"
                 fi

@@ -30,6 +30,7 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | GpdControl | GPD Win 系列 RGB 控制 | https://github.com/aarron-lee/GpdControl | GPL-3.0 | 是 | 上游 Release 原包 |
 | LeGo Vibe Control | Legion Go / Go 2 震动与触控板控制 | https://github.com/Rayekkk/LeGo-Vibe-Control | BSD-3-Clause | 是 | 需要 hid-lenovo-go；不支持 Legion Go S |
 | LeGo2 Fan Control | Legion Go 2 风扇曲线控制 | https://github.com/Rodpad/LeGo2-Fan-Control | GPL-3.0 | 是 | 仅适用于 Legion Go 2；提供不受限风扇控制 |
+| Fantastic | Steam Deck 风扇曲线控制 | https://gitlab.com/NGnius/Fantastic | GPL-3.0 | 是 | 基于 Decky 商店 v0.5.1 完整包，仅汉化前端与清单并显示 `RenAmamiya` 署名；完整保留 NGnius、后端和许可证 |
 | OneXPlayer Apex Tools | OneXPlayer Apex 的 HHD、睡眠、风扇和按键修复 | https://github.com/srsholmes/onexplayer-apex-bazzite-fixes | MIT | 是 | 仅适用于 OneXPlayer Apex（Strix Halo），包含机型专用内核模块和系统修复 |
 | SimpleDeckyTDP | SimpleDeckyTDP 插件 | https://github.com/aarron-lee/SimpleDeckyTDP | BSD-3-Clause | 是 | |
 | 小黄鸭署名完整包 | LSFG v0.12.8 完整中文插件 | Gitee mirror-3 分块镜像 | 同 Decky LSFG-VK（BSD-3-Clause） | 否（安装时下载） | 保留官方运行文件，只替换中文前端并显示 `RenAmamiya` 署名 |
@@ -69,5 +70,6 @@ PNG 格式转换，不改变图形内容；各图标沿用对应上游项目的�
   既有代理回退。
 - Flatpak 应用依赖（LibreOffice、Firefox、LocalSend 等）由 Flathub 及
   上海交大/中科大镜像提供，不进入本仓库 `mirrors/`。
-- 镜像中的压缩包均为上游发布的原始文件，Renkit不在镜像阶段修改内容；
-  下载后仍会校验固定 SHA256。
+- 普通镜像压缩包保持上游原始内容；名称中明确标注“署名中文插件”的
+  Renkit 汉化包只替换同版本前端与清单，完整保留上游后端、作者和许可证。
+  所有镜像下载后均校验固定 SHA256。

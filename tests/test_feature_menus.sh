@@ -124,6 +124,11 @@ for menu in "$touch_freedeck" "$gui_games"; do
     assert_contains "$menu" '自动检测最新版' "NewFreedeck 入口缺少自动更新说明"
     assert_contains "$menu" '个别模拟器仍不可用' "NewFreedeck 入口缺少上游状态提示"
 done
+for menu in "$MAIN_FILE" "$GUI_FILE"; do
+    assert_contains "$(cat "$menu")" '"Fantastic"' "精选插件列表缺少 Fantastic"
+    assert_contains "$(cat "$menu")" '风扇曲线控制·Gitee汉化版·汉化：RenAmamiya' "Fantastic 入口缺少 Gitee 汉化与署名说明"
+    assert_contains "$(cat "$menu")" '过低转速可能导致设备过热' "Fantastic 入口缺少风扇曲线风险确认"
+done
 touch_lsfg="$(function_source "$MAIN_FILE" lsfg_versions_menu)"
 for menu in "$touch_lsfg" "$gui_games"; do
     assert_contains "$menu" '旧版小黄鸭' "小黄鸭版本菜单缺少旧版"

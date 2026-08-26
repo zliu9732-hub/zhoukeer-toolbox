@@ -32,6 +32,12 @@ DECKY_FREEDECK_URL="${ZHOUKEER_DECKY_FREEDECK_URL:-https://github.com/panyiwei-h
 DECKY_FREEDECK_SHA256="${ZHOUKEER_DECKY_FREEDECK_SHA256:-04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62}"
 DECKY_FREEDECK_VERSION="${ZHOUKEER_DECKY_FREEDECK_VERSION:-0.6}"
 DECKY_FREEDECK_MIRROR_URL="$(gitee_mirror_direct_url freedeck 0.6 freedeck.v.0.6.zip)"
+# Fantastic 汉化完整包只从 Renkit 的 Gitee 固定镜像下载；包内保留上游
+# 后端与 GPL-3.0 许可证，并在前端显示 RenAmamiya 汉化署名。
+DECKY_FANTASTIC_VERSION="0.5.1"
+DECKY_FANTASTIC_SHA256="c2dbb0bf74dbea4a17c2cf5121941bc61176559eefdf033c7380c530b5bb54ba"
+DECKY_FANTASTIC_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
+DECKY_FANTASTIC_MIRROR_URL="$(gitee_mirror_raw_base "$DECKY_FANTASTIC_MIRROR_REPO")/fantastic-zh-signed/v0.5.1/Fantastic-zh-signed-v0.5.1.zip"
 
 # Names must exactly match the official Decky store database.
 DECKY_OFFICIAL_PLUGIN_NAMES='["CSS Loader","vibrantDeck","Animation Changer","Audio Loader","SteamGridDB","PowerTools","Storage Cleaner","AutoFlatpaks","Bluetooth","Deck Settings","HLTB for Deck","PlayCount","TabMaster","Wine Cellar","Pause Games","Controller Tools","Volume Mixer","Battery Tracker","PlayTime","Free Loader","DeckMTP","MangoPeel"]'
@@ -88,6 +94,14 @@ build_custom_plugins_json() {
     local output="$1"
 
     : > "$output"
+    if [ "${DECKY_BUNDLE_CUSTOM_ONLY:-}" = "fantastic" ]; then
+        append_custom_plugin_json "$output" \
+            "Fantastic" \
+            "$DECKY_FANTASTIC_VERSION" \
+            "$DECKY_FANTASTIC_MIRROR_URL" \
+            "$DECKY_FANTASTIC_SHA256"
+        return $?
+    fi
     append_custom_plugin_json "$output" \
         "SimpleDeckyTDP" \
         "${DECKY_SIMPLE_TDP_VERSION:-v1.0.4}" \
@@ -103,6 +117,11 @@ build_custom_plugins_json() {
         "${DECKY_FREEDECK_VERSION:-0.6}" \
         "${DECKY_FREEDECK_MIRROR_URL:-$DECKY_FREEDECK_URL}" \
         "${DECKY_FREEDECK_SHA256:-}" || return 1
+    append_custom_plugin_json "$output" \
+        "Fantastic" \
+        "$DECKY_FANTASTIC_VERSION" \
+        "$DECKY_FANTASTIC_MIRROR_URL" \
+        "$DECKY_FANTASTIC_SHA256" || return 1
 }
 
 build_decky_bundle_javascript_legacy() {
@@ -457,7 +476,7 @@ confirm_bundle_install() {
 
     echo "将从Decky官方商店读取 $plugin_count 个插件的最新版本，并交给Decky内置安装器。"
     if [ "$include_custom" = "1" ]; then
-        echo "SimpleDeckyTDP和Unifideck使用作者 GitHub Release 加入安装队列。"
+        echo "SimpleDeckyTDP、Unifideck、Freedeck和Fantastic汉化版使用固定Gitee镜像加入安装队列。"
     fi
     echo "PowerTools与SimpleDeckyTDP功能有重叠，请安装后只保留一套性能参数控制。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
@@ -561,6 +580,14 @@ install_recommended_decky_plugins() {
 install_single_official_plugin() {
     local plugin_name="${1:-}"
 
+    if [ "$plugin_name" = "Fantastic" ]; then
+        DECKY_BUNDLE_OFFICIAL_NAMES_JSON='[]'
+        DECKY_BUNDLE_PLUGIN_COUNT=1
+        DECKY_BUNDLE_INCLUDE_CUSTOM=1
+        DECKY_BUNDLE_CUSTOM_ONLY=fantastic
+        install_recommended_decky_plugins
+        return $?
+    fi
     if [ -z "$plugin_name" ] || ! printf '%s\n' "$DECKY_OFFICIAL_PLUGIN_NAMES" | grep -Fq "\"$plugin_name\""; then
         echo "未找到该官方插件：$plugin_name"
         return 1

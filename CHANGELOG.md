@@ -1,3 +1,11 @@
+## Renkit 2.1.1 Sunshine 静默授权与 Fantastic 汉化版 — 2026-08-26
+
+- Sunshine 不再调用会连续触发多个 KDE 验证窗口的官方 `pkexec` 附加脚本；改为校验官方 Flatpak 包内服务、内核模块和 udev 规则后，使用桌面 `管理员密码.txt` 经 Renkit 安全 `sudo` 流程自动配置。
+- Sunshine 卸载同样使用桌面密码记录清理固定服务与输入规则；密码只经标准输入建立短暂 sudo 时间戳，不进入命令参数、环境变量或日志。
+- 精选插件新增 Fantastic 0.5.1 风扇控制汉化版，完整保留 NGnius 官方后端和 GPL-3.0 许可证，界面显示“中文汉化：RenAmamiya”。
+- Fantastic 署名完整包固定从 Gitee mirror-3 下载并校验 SHA256；单项安装与整组精选插件安装都会使用汉化包，不回退原版。
+- Fantastic 安装前增加设备过热风险确认，仅允许 SteamOS/Bazzite 进入安装流程。
+
 ## Renkit 2.1.0 Sunshine 串流服务端 — 2026-08-26
 
 - “安装常用软件”在 SteamOS 触控菜单、桌面 GUI 与 Bazzite 菜单统一新增 Sunshine 串流服务端，使用官方 Flatpak ID `dev.lizardbyte.app.Sunshine`。

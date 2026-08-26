@@ -18,6 +18,10 @@ cat > "$STATE_DIR/os-release" <<'EOF'
 ID=steamos
 PRETTY_NAME="SteamOS Test"
 EOF
+cat > "$STATE_DIR/admin-password.txt" <<'EOF'
+密码：test-password
+EOF
+chmod 600 "$STATE_DIR/admin-password.txt"
 mkdir -p "$STATE_DIR/firefox-fixture/firefox/browser/chrome/icons/default"
 printf '#!/bin/sh\nexit 0\n' > "$STATE_DIR/firefox-fixture/firefox/firefox"
 printf '[App]\nName=Firefox\n' > "$STATE_DIR/firefox-fixture/firefox/application.ini"
@@ -112,6 +116,84 @@ cat > "$BIN_DIR/update-desktop-database" <<'EOF'
 printf 'update-desktop-database %s\n' "$*" >> "${FLATPAK_TEST_STATE:?}/desktop-calls"
 EOF
 
+cat > "$BIN_DIR/modprobe" <<'EOF'
+#!/bin/sh
+exit 0
+EOF
+
+cat > "$BIN_DIR/systemctl" <<'EOF'
+#!/bin/sh
+printf 'systemctl %s\n' "$*" >> "${FLATPAK_TEST_STATE:?}/systemctl-commands"
+EOF
+
+cat > "$BIN_DIR/sudo" <<'EOF'
+#!/bin/sh
+state="${FLATPAK_TEST_STATE:?}"
+case "${1:-}" in
+    -k)
+        exit 0
+        ;;
+    -S)
+        shift
+        [ "${1:-}" = "-p" ] || exit 1
+        shift 2
+        [ "${1:-}" = "-v" ] || exit 1
+        IFS= read -r password
+        [ "$password" = "test-password" ] || exit 1
+        printf 'auth\n' >> "$state/sudo-commands"
+        exit 0
+        ;;
+    -n)
+        shift
+        if [ "${1:-}" = "true" ]; then
+            exit 1
+        fi
+        [ "${1:-}" = "--" ] || exit 1
+        shift
+        printf '%s\n' "$*" >> "$state/sudo-commands"
+        case "${1:-}" in
+            true)
+                exit 0
+                ;;
+            install)
+                shift
+                [ "${1:-}" = "-m" ] || exit 1
+                shift 2
+                source_file="${1:-}"
+                destination="${2:-}"
+                case "$destination" in
+                    /etc/modules-load.d/60-sunshine.conf|/etc/udev/rules.d/60-sunshine.rules) ;;
+                    *) exit 1 ;;
+                esac
+                target="$state/system$destination"
+                mkdir -p "$(dirname "$target")"
+                cp "$source_file" "$target"
+                ;;
+            modprobe)
+                [ "${2:-}" = "uhid" ] || exit 1
+                ;;
+            rm)
+                shift
+                [ "${1:-}" = "-f" ] || exit 1
+                shift
+                [ "${1:-}" = "--" ] || exit 1
+                shift
+                for destination in "$@"; do
+                    case "$destination" in
+                        /etc/modules-load.d/60-sunshine.conf|/etc/udev/rules.d/60-sunshine.rules)
+                            rm -f "$state/system$destination"
+                            ;;
+                        *) exit 1 ;;
+                    esac
+                done
+                ;;
+            *) exit 1 ;;
+        esac
+        ;;
+    *) exit 1 ;;
+esac
+EOF
+
 cat > "$BIN_DIR/flatpak" <<'EOF'
 #!/bin/sh
 state="${FLATPAK_TEST_STATE:?}"
@@ -167,11 +249,32 @@ case "$command" in
         ;;
     run)
         printf 'run %s\n' "$*" >> "$state/commands"
-        case " $* " in
-            *' --command=additional-install.sh dev.lizardbyte.app.Sunshine '*)
-                [ "${FLATPAK_TEST_FAIL_SUNSHINE_POST:-0}" != "1" ]
+        [ "${1:-}" = "--command=cat" ] || exit 1
+        [ "${2:-}" = "dev.lizardbyte.app.Sunshine" ] || exit 1
+        [ "${FLATPAK_TEST_FAIL_SUNSHINE_EXPORT:-0}" != "1" ] || exit 1
+        case "${3:-}" in
+            /app/share/sunshine/systemd/user/app-dev.lizardbyte.app.Sunshine.service)
+                cat <<'SERVICE'
+[Unit]
+Description=Sunshine self-hosted game stream host
+
+[Service]
+ExecStart=/usr/bin/flatpak run dev.lizardbyte.app.Sunshine
+
+[Install]
+WantedBy=default.target
+SERVICE
                 ;;
-            *' --command=remove-additional-install.sh dev.lizardbyte.app.Sunshine '*) ;;
+            /app/share/sunshine/modules-load.d/60-sunshine.conf)
+                printf 'uhid\n'
+                ;;
+            /app/share/sunshine/udev/rules.d/60-sunshine.rules)
+                cat <<'RULES'
+# Sunshine virtual input permissions
+KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess"
+KERNEL=="uhid", TAG+="uaccess"
+RULES
+                ;;
             *) exit 1 ;;
         esac
         ;;
@@ -186,6 +289,8 @@ chmod +x "$BIN_DIR"/*
 : > "$STATE_DIR/commands"
 : > "$STATE_DIR/curl-urls"
 : > "$STATE_DIR/desktop-calls"
+: > "$STATE_DIR/sudo-commands"
+: > "$STATE_DIR/systemctl-commands"
 
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \
@@ -368,10 +473,11 @@ grep -Fq 'Exec=flatpak run io.github.peazip.PeaZip' "$PEAZIP_SHORTCUT"
 grep -Fq 'install --user --noninteractive -y flathub-cn io.github.peazip.PeaZip' "$STATE_DIR/commands"
 [ -f "$STATE_DIR/installed.io.github.peazip.PeaZip" ]
 
-# Sunshine 仅允许 SteamOS/Bazzite，通过用户级 Flatpak 安装后必须执行官方附加安装脚本。
+# Sunshine 仅允许 SteamOS/Bazzite，并使用桌面密码记录配置包内官方规则，不调用 pkexec 脚本。
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \
 FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_PASSWORD_RECORD="$STATE_DIR/admin-password.txt" \
 ZHOUKEER_OS_RELEASE_FILE="$STATE_DIR/os-release" \
 ZHOUKEER_AUTO_CONFIRM=1 \
 bash "$PROJECT_ROOT/modules/software.sh" sunshine >/dev/null
@@ -380,21 +486,30 @@ SUNSHINE_SHORTCUT="$HOME_DIR/Desktop/Sunshine.desktop"
 grep -Fq 'Exec=flatpak run dev.lizardbyte.app.Sunshine' "$SUNSHINE_SHORTCUT"
 grep -Fq 'install --user --noninteractive -y flathub-cn dev.lizardbyte.app.Sunshine' \
     "$STATE_DIR/commands"
-grep -Fq 'run --command=additional-install.sh dev.lizardbyte.app.Sunshine' \
-    "$STATE_DIR/commands"
+grep -Fq 'run --command=cat dev.lizardbyte.app.Sunshine /app/share/sunshine/systemd/user/app-dev.lizardbyte.app.Sunshine.service' "$STATE_DIR/commands"
+grep -Fq 'run --command=cat dev.lizardbyte.app.Sunshine /app/share/sunshine/modules-load.d/60-sunshine.conf' "$STATE_DIR/commands"
+grep -Fq 'run --command=cat dev.lizardbyte.app.Sunshine /app/share/sunshine/udev/rules.d/60-sunshine.rules' "$STATE_DIR/commands"
+grep -Fq 'modprobe uhid' "$STATE_DIR/sudo-commands"
+[ -f "$STATE_DIR/system/etc/modules-load.d/60-sunshine.conf" ]
+[ -f "$STATE_DIR/system/etc/udev/rules.d/60-sunshine.rules" ]
+[ -f "$HOME_DIR/.config/systemd/user/app-dev.lizardbyte.app.Sunshine.service" ]
+! grep -Eq 'additional-install\.sh|remove-additional-install\.sh|pkexec' "$STATE_DIR/commands"
 [ -f "$STATE_DIR/installed.dev.lizardbyte.app.Sunshine" ]
 
-# 重复执行不重复下载 Flatpak，但会幂等重跑官方附加步骤以修复权限。
+# 重复执行不重复下载 Flatpak，但会幂等地重新读取并配置官方规则。
 sunshine_install_calls_before="$(grep -c '^install .* dev.lizardbyte.app.Sunshine$' "$STATE_DIR/commands")"
+sunshine_export_calls_before="$(grep -c '^run --command=cat dev.lizardbyte.app.Sunshine ' "$STATE_DIR/commands")"
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \
 FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_PASSWORD_RECORD="$STATE_DIR/admin-password.txt" \
 ZHOUKEER_OS_RELEASE_FILE="$STATE_DIR/os-release" \
 ZHOUKEER_AUTO_CONFIRM=1 \
 bash "$PROJECT_ROOT/modules/software.sh" sunshine >/dev/null
 [ "$(grep -c '^install .* dev.lizardbyte.app.Sunshine$' "$STATE_DIR/commands")" = \
     "$sunshine_install_calls_before" ]
-[ "$(grep -c '^run --command=additional-install.sh dev.lizardbyte.app.Sunshine$' "$STATE_DIR/commands")" -eq 2 ]
+[ "$(grep -c '^run --command=cat dev.lizardbyte.app.Sunshine ' "$STATE_DIR/commands")" -eq \
+    "$((sunshine_export_calls_before + 3))" ]
 
 # 非 SteamOS/Bazzite 必须在任何安装或附加步骤前停止。
 cat > "$STATE_DIR/unsupported-os-release" <<'EOF'
@@ -407,6 +522,7 @@ set +e
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \
 FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_PASSWORD_RECORD="$STATE_DIR/admin-password.txt" \
 ZHOUKEER_OS_RELEASE_FILE="$STATE_DIR/unsupported-os-release" \
 ZHOUKEER_AUTO_CONFIRM=1 \
 bash "$PROJECT_ROOT/modules/software.sh" sunshine >/dev/null 2>&1
@@ -418,12 +534,13 @@ set -e
 }
 [ "$(grep -c 'dev.lizardbyte.app.Sunshine' "$STATE_DIR/commands")" = "$sunshine_calls_before" ]
 
-# 附加安装失败必须返回非零，不能误报完整安装成功。
+# 包内配置读取失败必须返回非零，不能误报完整安装成功。
 set +e
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \
 FLATPAK_TEST_STATE="$STATE_DIR" \
-FLATPAK_TEST_FAIL_SUNSHINE_POST=1 \
+FLATPAK_TEST_FAIL_SUNSHINE_EXPORT=1 \
+ZHOUKEER_PASSWORD_RECORD="$STATE_DIR/admin-password.txt" \
 ZHOUKEER_OS_RELEASE_FILE="$STATE_DIR/os-release" \
 ZHOUKEER_AUTO_CONFIRM=1 \
 bash "$PROJECT_ROOT/modules/software.sh" sunshine >/dev/null 2>&1
@@ -434,27 +551,32 @@ set -e
     exit 1
 }
 
-# 卸载必须先成功运行官方清理脚本，再移除用户级 Flatpak 与快捷方式。
+# 卸载必须先使用桌面密码记录清理固定规则，再移除用户级 Flatpak 与快捷方式。
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \
 FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_PASSWORD_RECORD="$STATE_DIR/admin-password.txt" \
 ZHOUKEER_OS_RELEASE_FILE="$STATE_DIR/os-release" \
 ZHOUKEER_AUTO_CONFIRM=1 \
 bash "$PROJECT_ROOT/modules/software.sh" uninstall sunshine >/dev/null
-grep -Fq 'run --command=remove-additional-install.sh dev.lizardbyte.app.Sunshine' \
-    "$STATE_DIR/commands"
+grep -Fq 'rm -f -- /etc/modules-load.d/60-sunshine.conf /etc/udev/rules.d/60-sunshine.rules' \
+    "$STATE_DIR/sudo-commands"
 grep -Fq 'uninstall --user --noninteractive -y dev.lizardbyte.app.Sunshine' \
     "$STATE_DIR/commands"
 [ ! -e "$STATE_DIR/installed.dev.lizardbyte.app.Sunshine" ]
 [ ! -e "$SUNSHINE_SHORTCUT" ]
+[ ! -e "$STATE_DIR/system/etc/modules-load.d/60-sunshine.conf" ]
+[ ! -e "$STATE_DIR/system/etc/udev/rules.d/60-sunshine.rules" ]
+[ ! -e "$HOME_DIR/.config/systemd/user/app-dev.lizardbyte.app.Sunshine.service" ]
 
 # 系统级 Sunshine 不得先删除附加规则再拒绝卸载。
 touch "$STATE_DIR/installed-system.dev.lizardbyte.app.Sunshine"
-sunshine_remove_calls_before="$(grep -c '^run --command=remove-additional-install.sh dev.lizardbyte.app.Sunshine$' "$STATE_DIR/commands")"
+sunshine_remove_calls_before="$(grep -c '^rm -f -- /etc/modules-load.d/60-sunshine.conf /etc/udev/rules.d/60-sunshine.rules$' "$STATE_DIR/sudo-commands")"
 set +e
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \
 FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_PASSWORD_RECORD="$STATE_DIR/admin-password.txt" \
 ZHOUKEER_OS_RELEASE_FILE="$STATE_DIR/os-release" \
 ZHOUKEER_AUTO_CONFIRM=1 \
 bash "$PROJECT_ROOT/modules/software.sh" uninstall sunshine >/dev/null 2>&1
@@ -464,7 +586,7 @@ set -e
     echo "FAIL: 系统级 Sunshine 卸载未被安全拦截" >&2
     exit 1
 }
-[ "$(grep -c '^run --command=remove-additional-install.sh dev.lizardbyte.app.Sunshine$' "$STATE_DIR/commands")" = \
+[ "$(grep -c '^rm -f -- /etc/modules-load.d/60-sunshine.conf /etc/udev/rules.d/60-sunshine.rules$' "$STATE_DIR/sudo-commands")" = \
     "$sunshine_remove_calls_before" ]
 rm -f "$STATE_DIR/installed-system.dev.lizardbyte.app.Sunshine"
 

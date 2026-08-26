@@ -1,0 +1,11 @@
+{
+    "name": "Fantastic",
+    "author": "NGnius",
+    "flags": ["root", "_debug", "global-dfl"],
+    "publish": {
+        "discord_id": "106537989684887552",
+        "description": "Steam Deck 风扇曲线控制。中文汉化：RenAmamiya。",
+        "tags": [ "utility", "fan-control", "root" ],
+        "image": "https://raw.githubusercontent.com/NGnius/Fantastic/main/assets/thumbnail.png"
+    }
+}

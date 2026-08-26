@@ -25,7 +25,7 @@ DECKY_OFFICIAL_PLUGIN_NAMES=(
     "Deck Settings" "HLTB for Deck" "PlayCount" "TabMaster"
     "Wine Cellar" "Pause Games" "Controller Tools" "Volume Mixer" "Battery Tracker"
     "PlayTime" "Free Loader" "DeckMTP" "MangoPeel"
-    "Freedeck"
+    "Freedeck" "Fantastic"
 )
 DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "自定义界面样式" "调整界面配色" "更换开机动画" "更换系统音效" "自动补游戏封面"
@@ -34,6 +34,7 @@ DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "管理 Wine 与 Proton" "后台自动暂停游戏" "手柄辅助工具" "分应用调节音量" "查看电池状态"
     "下载游戏和模拟器游戏"
     "记录游戏时长" "下载功能扩展" "USB 文件传输" "优化 Steam 界面"
+    "风扇曲线控制·Gitee汉化版·汉化：RenAmamiya"
 )
 
 gui_dialog() {
@@ -176,7 +177,7 @@ software_menu() {
             lutris) gui_confirm "将通过 Flathub 国内缓存安装 Lutris，并自动加入 Steam 库。是否继续？" && run_gui_action "安装 Lutris" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" lutris ;;
             chiaki4deck) gui_confirm "将通过 Flathub 国内缓存安装 Chiaki4Deck（PS5串流），并自动加入 Steam 库。是否继续？" && run_gui_action "安装 Chiaki4Deck（PS5串流）" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" chiaki4deck ;;
             parsec) gui_confirm "将通过 Flathub 国内缓存安装 Parsec，并自动加入 Steam 库。是否继续？" && run_gui_action "安装 Parsec" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" parsec ;;
-            sunshine) gui_confirm "将通过 Flathub 国内缓存安装 Sunshine，并运行官方附加安装脚本配置虚拟输入设备权限；系统可能请求管理员授权。是否继续？" && run_gui_action "安装 Sunshine 串流服务端" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" sunshine ;;
+            sunshine) gui_confirm "将通过 Flathub 国内缓存安装 Sunshine，随后读取官方包内规则，并使用桌面管理员密码记录自动配置输入权限，不重复弹出验证窗口。是否继续？" && run_gui_action "安装 Sunshine 串流服务端" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" sunshine ;;
             protontricks) gui_confirm "将通过 Flatpak 安装 Protontricks。是否继续？" && run_gui_action "安装 Protontricks" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
             bottles) gui_confirm "将通过 Flatpak 安装 Bottles。是否继续？" && run_gui_action "安装 Bottles" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
             home) GUI_NAV_HOME=1; return 0 ;;
@@ -613,12 +614,13 @@ plugin_official_gui_pages() {
     local end
     local index
     local -a menu_args
+    local install_description
 
     while true; do
         start=$((page * page_size))
         end=$((start + page_size))
         [ "$end" -le "$total" ] || end="$total"
-        menu_args=(--menu "官方插件（第 $((page + 1)) / $total_pages 页）")
+        menu_args=(--menu "精选插件（第 $((page + 1)) / $total_pages 页）")
         for ((index = start; index < end; index++)); do
             menu_args+=("plugin-$index" "${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}｜${DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS[$index]}")
         done
@@ -638,7 +640,11 @@ plugin_official_gui_pages() {
         case "$choice" in
             plugin-*)
                 index="${choice#plugin-}"
-                gui_confirm "${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}：${DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS[$index]}。安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。将由 Decky 官方商店安装，是否继续？" && \
+                install_description="${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}：${DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS[$index]}。安装前请先在游戏模式开启“启用开发者模式”和“CEF远程调试”。Fantastic 汉化版从 Gitee 固定镜像安装，其余插件由 Decky 官方商店安装，是否继续？"
+                if [ "${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}" = "Fantastic" ]; then
+                    install_description="高风险：Fantastic 会覆盖 SteamOS 默认风扇曲线，过低转速可能导致设备过热。仅适用于 Steam Deck；请确认理解风险。将从 Gitee mirror-3 安装带 RenAmamiya 署名的完整汉化包，是否继续？"
+                fi
+                gui_confirm "$install_description" && \
                     run_gui_action "安装 ${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/decky_bundle.sh" plugin "${DECKY_OFFICIAL_PLUGIN_NAMES[$index]}"
                 ;;

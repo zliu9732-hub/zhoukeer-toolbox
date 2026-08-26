@@ -279,7 +279,7 @@ confirm_software_install() {
             ;;
         sunshine_flatpak)
             echo "将通过 Flatpak 安装 Sunshine 串流服务端。"
-            echo "安装后会运行 Sunshine 官方包内的附加安装脚本，配置虚拟输入设备权限；系统可能请求管理员授权。"
+            echo "安装后会读取 Sunshine 官方包内的服务和输入规则，并使用桌面管理员密码记录自动配置，不重复弹出验证窗口。"
             ;;
         baidunetdisk)
             SOFTWARE_NAME="百度网盘"
@@ -963,17 +963,109 @@ software_is_installed() {
     esac
 }
 
-complete_sunshine_install() {
-    echo "正在执行 Sunshine 官方 Flatpak 的必要附加安装步骤..."
-    if ! timeout --foreground 180 flatpak run \
-        --command=additional-install.sh "$SOFTWARE_APP_ID"; then
-        echo "Sunshine 附加安装失败或超时，虚拟键鼠/手柄输入可能不可用。"
-        echo "可重新选择安装 Sunshine 进行修复。"
-        log "Sunshine Flatpak附加安装失败"
+sunshine_package_file_is_safe() {
+    local file="$1"
+    local minimum_bytes="$2"
+    local maximum_bytes="$3"
+    local file_bytes
+
+    [ -f "$file" ] && [ ! -L "$file" ] || return 1
+    file_bytes="$(file_size_bytes "$file" 2>/dev/null || true)"
+    case "$file_bytes" in
+        ''|*[!0-9]*) return 1 ;;
+    esac
+    [ "$file_bytes" -ge "$minimum_bytes" ] && \
+        [ "$file_bytes" -le "$maximum_bytes" ]
+}
+
+sunshine_export_package_file() {
+    local source_path="$1"
+    local destination="$2"
+
+    timeout --foreground 30 flatpak run --command=cat \
+        "$SOFTWARE_APP_ID" "$source_path" > "$destination"
+}
+
+complete_sunshine_install() (
+    local temp_dir service_file module_file udev_file service_target
+
+    for command_name in sudo install modprobe; do
+        require_command "$command_name" || return 1
+    done
+    toolbox_sudo true || {
+        echo "Sunshine 输入权限配置需要可用的桌面管理员密码记录，已停止。"
         return 1
+    }
+
+    temp_dir="$(mktemp -d)" || return 1
+    trap 'rm -rf -- "$temp_dir"' EXIT INT TERM
+    service_file="$temp_dir/app-dev.lizardbyte.app.Sunshine.service"
+    module_file="$temp_dir/60-sunshine.conf"
+    udev_file="$temp_dir/60-sunshine.rules"
+    service_target="$HOME/.config/systemd/user/app-dev.lizardbyte.app.Sunshine.service"
+
+    echo "正在从已安装的 Sunshine 官方 Flatpak 读取必要配置..."
+    sunshine_export_package_file \
+        /app/share/sunshine/systemd/user/app-dev.lizardbyte.app.Sunshine.service \
+        "$service_file" || return 1
+    sunshine_export_package_file \
+        /app/share/sunshine/modules-load.d/60-sunshine.conf \
+        "$module_file" || return 1
+    sunshine_export_package_file \
+        /app/share/sunshine/udev/rules.d/60-sunshine.rules \
+        "$udev_file" || return 1
+
+    sunshine_package_file_is_safe "$service_file" 100 32768 && \
+        grep -Fxq '[Unit]' "$service_file" && \
+        grep -Fxq '[Service]' "$service_file" && \
+        grep -Fxq '[Install]' "$service_file" && \
+        grep -Fq 'dev.lizardbyte.app.Sunshine' "$service_file" || {
+        echo "Sunshine 用户服务文件格式异常，已停止配置。"
+        return 1
+    }
+    sunshine_package_file_is_safe "$module_file" 1 128 && \
+        [ "$(tr -d '[:space:]' < "$module_file")" = "uhid" ] || {
+        echo "Sunshine 内核模块配置异常，已停止配置。"
+        return 1
+    }
+    sunshine_package_file_is_safe "$udev_file" 100 32768 && \
+        grep -Fq 'KERNEL=="uinput"' "$udev_file" && \
+        grep -Fq 'KERNEL=="uhid"' "$udev_file" && \
+        grep -Fq 'TAG+="uaccess"' "$udev_file" || {
+        echo "Sunshine 输入设备规则格式异常，已停止配置。"
+        return 1
+    }
+
+    mkdir -p "$(dirname "$service_target")" || return 1
+    install -m 0644 "$service_file" "$service_target" || return 1
+    toolbox_sudo install -m 0644 "$module_file" \
+        /etc/modules-load.d/60-sunshine.conf || return 1
+    toolbox_sudo modprobe uhid || return 1
+    toolbox_sudo install -m 0644 "$udev_file" \
+        /etc/udev/rules.d/60-sunshine.rules || return 1
+
+    echo "Sunshine 附加安装完成；没有调用 pkexec。若输入设备暂不可用，请重启 Steam Deck。"
+    log "Sunshine Flatpak附加安装完成：使用桌面密码记录配置，无pkexec弹窗"
+)
+
+remove_sunshine_additional_install() {
+    local service_target="$HOME/.config/systemd/user/app-dev.lizardbyte.app.Sunshine.service"
+
+    require_command sudo || return 1
+    toolbox_sudo true || {
+        echo "Sunshine 输入规则清理需要可用的桌面管理员密码记录，已停止。"
+        return 1
+    }
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl --user stop app-dev.lizardbyte.app.Sunshine >/dev/null 2>&1 || true
     fi
-    echo "Sunshine 附加安装完成；如输入设备暂不可用，请重启 Steam Deck。"
-    log "Sunshine Flatpak附加安装完成"
+    rm -f -- "$service_target" || return 1
+    toolbox_sudo rm -f -- \
+        /etc/modules-load.d/60-sunshine.conf \
+        /etc/udev/rules.d/60-sunshine.rules || return 1
+    if command -v systemctl >/dev/null 2>&1; then
+        systemctl --user daemon-reload >/dev/null 2>&1 || true
+    fi
 }
 
 create_software_shortcut() {
@@ -1660,9 +1752,8 @@ uninstall_software() {
             fi
             confirm_software_uninstall "$SOFTWARE_NAME" || { echo "已取消卸载。"; return 0; }
             require_command timeout || return 1
-            echo "正在移除 Sunshine 虚拟输入设备规则..."
-            if ! timeout --foreground 180 flatpak run \
-                --command=remove-additional-install.sh "$SOFTWARE_APP_ID"; then
+            echo "正在使用桌面密码记录移除 Sunshine 虚拟输入设备规则..."
+            if ! remove_sunshine_additional_install; then
                 echo "Sunshine 附加组件清理失败，已停止卸载 Flatpak，避免遗留系统规则。"
                 log "Sunshine Flatpak附加组件清理失败"
                 return 1
