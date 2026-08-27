@@ -641,6 +641,11 @@ grep -Fq 'lsfg-mako) show_plugin_download_speed_tip; install_configured_plugin l
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'eugeniosegala/MAKO' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'LSFG_MAKO_DIRECTORY="Mako"' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'LSFG_MAKO_VERSION="2.2.0"' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'DECKY_LSFG_MAKO_SHA256="621ad66bd40f12b416e8112bb78e1aae55a96bf7fe14439b95fca1cf89324089"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'LSFG_MAKO_INDEX_SHA256="e615016e8d1bb89634be7b259e24a972537cef0238b9036a20235bfffc615e2e"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '正在安装小黄鸭' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '正在安装 FSR4' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '将依次直接安装：小黄鸭、FSR4、CheatDeck、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。' \
@@ -667,21 +672,46 @@ printf '%s\n' "$allycenter_output" | grep -Fq 'Decky 插件安装仅支持 Steam
 (
     # shellcheck disable=SC1090
     source "$PROJECT_ROOT/modules/plugin_store.sh"
+    resolve_latest_gitee_mirror() {
+        [ "${GITEE_MIRROR_REPO:-}" = "zhoukeer-toolbox-mirror-3" ] || exit 81
+        [ "${GITEE_MIRROR_CONNECT_TIMEOUT:-}" = "5" ] || exit 82
+        [ "${GITEE_MIRROR_MAX_TIME:-}" = "8" ] || exit 83
+        [ "${GITEE_MIRROR_RETRIES:-}" = "1" ] || exit 84
+        _GITEE_MIRROR_LATEST_VERSION="plugin-v2.2.0"
+        _GITEE_MIRROR_LATEST_FILE="MAKO-Decky-v2.2.0.zip"
+        _GITEE_MIRROR_LATEST_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.2.0/MAKO-Decky-v2.2.0.zip"
+        _GITEE_MIRROR_LATEST_SHA256="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
     resolve_latest_github_release() {
-        _LATEST_RELEASE_TAG="plugin-v2.2.0"
-        _LATEST_RELEASE_ASSET="MAKO-Decky-v2.2.0.zip"
-        _LATEST_RELEASE_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.2.0/MAKO-Decky-v2.2.0.zip"
-        _LATEST_RELEASE_SHA256="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        echo "FAIL: MAKO 已取得 Gitee 镜像版本后不应继续等待 GitHub" >&2
+        exit 1
     }
     resolve_plugin_latest lsfg-mako
     [ "$LSFG_MAKO_VERSION" = "2.2.0" ] || {
-        echo "FAIL: MAKO 没有从最新 Release 资产名更新版本" >&2
+        echo "FAIL: MAKO 没有从 Gitee 镜像资产名更新版本" >&2
         exit 1
     }
     [ "$DECKY_LSFG_MAKO_SHA256" = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" ] || {
-        echo "FAIL: MAKO 没有采用最新 Release SHA256" >&2
+        echo "FAIL: MAKO 没有采用 Gitee 镜像清单 SHA256" >&2
         exit 1
     }
+)
+
+(
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    resolve_latest_gitee_mirror() { return 1; }
+    resolve_latest_github_release() {
+        [ "${GITHUB_API_CONNECT_TIMEOUT:-}" = "5" ] || exit 91
+        [ "${GITHUB_API_MAX_TIME:-}" = "8" ] || exit 92
+        _LATEST_RELEASE_TAG="plugin-v2.2.0"
+        _LATEST_RELEASE_ASSET="MAKO-Decky-v2.2.0.zip"
+        _LATEST_RELEASE_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.2.0/MAKO-Decky-v2.2.0.zip"
+        _LATEST_RELEASE_SHA256="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+    resolve_plugin_latest lsfg-mako
+    [ "$LSFG_MAKO_VERSION" = "2.2.0" ] || exit 93
+    [ "$DECKY_LSFG_MAKO_SHA256" = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" ] || exit 94
 )
 
 MAKO_CALLS="$TMP_ROOT/mako.calls"

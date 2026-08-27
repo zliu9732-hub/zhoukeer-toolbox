@@ -94,7 +94,7 @@ mirror_id="$(gitee_mirror_id_for_url \
     'https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip')"
 [ "$mirror_id" = "lsfg" ] || FAIL "LSFG 镜像标识映射错误"
 mako_mirror_id="$(gitee_mirror_id_for_url \
-    'https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.1.0/MAKO-Decky-v2.1.0.zip')"
+    'https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.2.0/MAKO-Decky-v2.2.0.zip')"
 [ "$mako_mirror_id" = "lsfg-mako" ] || FAIL "MAKO LSFG 镜像标识映射错误"
 newfreedeck_mirror_id="$(gitee_mirror_id_for_url \
     'https://github.com/panyiwei-home/Freedeck/releases/download/N0.3/NewFreedeck.v.0.3.zip')"

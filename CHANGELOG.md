@@ -1,3 +1,10 @@
+## Renkit 2.1.3 MAKO 2.2.0 与国内源优先 — 2026-08-28
+
+- MAKO 小黄鸭安全基线升级到上游官方 2.2.0，固定下载地址、ZIP SHA256 和前端完整性校验同步更新；最新版检查失败时不再退回 2.1.0。
+- 安装前先读取 Gitee mirror-3 的 `lsfg-mako` 最新清单，直接采用清单中的版本、作者原包地址和 SHA256；国内镜像可用时不再等待 GitHub API。
+- Gitee 清单不可用时才短时检查作者 GitHub Release，并显示当前检查阶段，避免 GitHub API 受限时界面长时间没有反馈。
+- 已核验 mirror-3 的 MAKO 2.2.0 四个分块可完整重组，ZIP SHA256 为 `621ad66bd40f12b416e8112bb78e1aae55a96bf7fe14439b95fca1cf89324089`，包内保留 Eugenio Segala 与 GPL-3.0-or-later 许可证。
+
 ## Renkit 2.1.2 Fantastic 常用插件直装 — 2026-08-26
 
 - Fantastic 从“精选插件”迁移到“常用插件组合”，成为 Steam Deck 的第八款常用插件。

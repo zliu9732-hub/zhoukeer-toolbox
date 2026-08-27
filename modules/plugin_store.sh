@@ -42,8 +42,8 @@ LSFG_OFFICIAL_DIRECTORY="Decky LSFG-VK"
 LSFG_OFFICIAL_VERSION="0.12.8"
 LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"
 LSFG_MAKO_DIRECTORY="Mako"
-LSFG_MAKO_VERSION="2.1.0"
-LSFG_MAKO_INDEX_SHA256="1811514778b964a04ab2757b32ea9375f133518ead9263378645979ca537da96"
+LSFG_MAKO_VERSION="2.2.0"
+LSFG_MAKO_INDEX_SHA256="e615016e8d1bb89634be7b259e24a972537cef0238b9036a20235bfffc615e2e"
 DECKY_LSFG_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_MAKO_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 LSFG_ZH_MIRROR_ID="lsfg-zh-signed"
@@ -71,8 +71,8 @@ CSSLOADER_ZH_INDEX_SHA256="38ec628efcc1238247e0cf771bde98b26be49349dca9c2d7de427
 # 独立插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip"
 DECKY_LSFG_SHA256="322f6eec21a489ef9f12938ea2ec4e43c234093876f95b7245fbd260f882ce9c"
-DECKY_LSFG_MAKO_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.1.0/MAKO-Decky-v2.1.0.zip"
-DECKY_LSFG_MAKO_SHA256="75836617713893ec48e18fcd37c7b3af4dd7f6b0a05cdcaebcb7e941ed1677d6"
+DECKY_LSFG_MAKO_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.2.0/MAKO-Decky-v2.2.0.zip"
+DECKY_LSFG_MAKO_SHA256="621ad66bd40f12b416e8112bb78e1aae55a96bf7fe14439b95fca1cf89324089"
 DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip"
 DECKY_FSR4_SHA256="3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f"
 DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v2.0.0/CheatDeck.zip"
@@ -235,18 +235,36 @@ resolve_plugin_latest() {
             fi
             ;;
         lsfg-mako)
-            if resolve_latest_github_release "eugeniosegala/MAKO" \
-                '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO 小黄鸭"; then
+            echo "正在检查 MAKO 小黄鸭的 Gitee 镜像版本..."
+            if GITEE_MIRROR_REPO="$DECKY_MAKO_MIRROR_REPO" \
+                GITEE_MIRROR_CONNECT_TIMEOUT=5 \
+                GITEE_MIRROR_MAX_TIME=8 \
+                GITEE_MIRROR_RETRIES=1 \
+                resolve_latest_gitee_mirror lsfg-mako \
+                    '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO 小黄鸭"; then
+                latest_version="${_GITEE_MIRROR_LATEST_FILE#MAKO-Decky-v}"
+                latest_version="${latest_version%.zip}"
+                if [[ "$latest_version" =~ ^[0-9]+([.][0-9]+)+$ ]]; then
+                    DECKY_LSFG_MAKO_URL="$_GITEE_MIRROR_LATEST_URL"
+                    DECKY_LSFG_MAKO_SHA256="$_GITEE_MIRROR_LATEST_SHA256"
+                    LSFG_MAKO_VERSION="$latest_version"
+                    return 0
+                fi
+            fi
+            echo "MAKO Gitee 镜像版本检查未完成，短时检查作者 GitHub Release..."
+            if GITHUB_API_CONNECT_TIMEOUT=5 GITHUB_API_MAX_TIME=8 \
+                resolve_latest_github_release "eugeniosegala/MAKO" \
+                    '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO 小黄鸭"; then
                 latest_version="${_LATEST_RELEASE_ASSET#MAKO-Decky-v}"
                 latest_version="${latest_version%.zip}"
                 if [[ "$latest_version" =~ ^[0-9]+([.][0-9]+)+$ ]]; then
                     DECKY_LSFG_MAKO_URL="$_LATEST_RELEASE_URL"
                     DECKY_LSFG_MAKO_SHA256="$_LATEST_RELEASE_SHA256"
                     LSFG_MAKO_VERSION="$latest_version"
-                else
-                    echo "MAKO 小黄鸭最新版本号格式异常，继续使用固定版本。"
+                    return 0
                 fi
             fi
+            echo "MAKO 最新版本检查失败，继续使用 Renkit 内置的校验版本。"
             ;;
         fsr4)
             [ -z "${ZHOUKEER_DECKY_FSR4_URL:-}" ] || return 0
@@ -2573,7 +2591,7 @@ mako_official_is_current() {
     renderer_archive="$(find "$plugin_dir/bin" -maxdepth 1 -type f \
         -name 'MAKO-Renderer-v*-linux.tar.xz' -print -quit 2>/dev/null || true)"
     [ -n "$renderer_archive" ] || return 1
-    if [ "$LSFG_MAKO_VERSION" = "2.1.0" ]; then
+    if [ "$LSFG_MAKO_VERSION" = "2.2.0" ]; then
         actual_sha256="$(calculate_decky_sha256 "$plugin_dir/dist/index.js" 2>/dev/null || true)"
         [ "$actual_sha256" = "$LSFG_MAKO_INDEX_SHA256" ] || return 1
     fi
