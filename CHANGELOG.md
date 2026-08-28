@@ -1,3 +1,10 @@
+## Renkit 2.1.5 飞行家 F1L OLED 实机识别修正 — 2026-08-28
+
+- 根据 8840U OLED 实机 DMI 输出，将固件设备名 `ONEXPLAYER F1L` 加入屏幕方向修复的严格白名单，修正 2.1.4 无法通过设备检测的问题。
+- 设备安装判断与生成的 Gamescope 包装器同步允许 `ONEXPLAYER F1L`；继续保留 `ONEXPLAYER F1` 和 `ONEXPLAYER F1 OLED` 兼容名称，其他近似名称仍会被拒绝。
+- 触控菜单、图形菜单、README 和模拟测试同步标明 8840U OLED 的实机名称；修复仍只使用用户级 systemd override，不使用 sudo。
+- 8840U OLED 实机 BIOS 版本为 2.24，不属于 7840U V1.14 版本线；本次仍不开放 8840U BIOS 入口。
+
 ## Renkit 2.1.4 飞行家 F1 8840U 屏幕方向修复 — 2026-08-28
 
 - 飞行家 F1 屏幕方向修复新增 `ONEXPLAYER F1 OLED` 严格 DMI 白名单，支持 8840U OLED 机型继续使用 Gamescope `--force-orientation left` 修正游戏模式画面。

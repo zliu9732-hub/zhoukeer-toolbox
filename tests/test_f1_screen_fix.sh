@@ -16,6 +16,7 @@ mkdir -p "$TMP_ROOT/home" "$TMP_ROOT/steamos" "$TMP_ROOT/logs"
 : > "$TMP_ROOT/steamos/gamescope-session"
 printf 'ONEXPLAYER F1\n' > "$TMP_ROOT/product-f1"
 printf 'ONEXPLAYER F1 OLED\n' > "$TMP_ROOT/product-f1-8840u"
+printf 'ONEXPLAYER F1L\n' > "$TMP_ROOT/product-f1l-8840u-oled"
 printf 'Other Device\n' > "$TMP_ROOT/product-other"
 
 HOME="$TMP_ROOT/home"
@@ -45,11 +46,13 @@ systemctl() {
     esac
 }
 
-# 7840U 与 8840U OLED DMI 必须允许，其他近似名称仍必须拒绝。
+# 7840U、8840U OLED 实机 DMI 与兼容名称必须允许，其他近似名称仍必须拒绝。
 F1_PRODUCT_FILE="$TMP_ROOT/product-f1"
 f1_is_target_device || fail "ONEXPLAYER F1 未被识别为目标设备"
 F1_PRODUCT_FILE="$TMP_ROOT/product-f1-8840u"
 f1_is_target_device || fail "ONEXPLAYER F1 OLED 未被识别为目标设备"
+F1_PRODUCT_FILE="$TMP_ROOT/product-f1l-8840u-oled"
+f1_is_target_device || fail "ONEXPLAYER F1L 未被识别为 8840U OLED 目标设备"
 F1_PRODUCT_FILE="$TMP_ROOT/product-other"
 if f1_is_target_device; then
     fail "非目标设备被识别为飞行家 F1"
@@ -66,7 +69,7 @@ grep -Fq '不适用' "$TMP_ROOT/not-f1.out" || fail "非目标设备缺少不适
     fail "非目标设备创建了 systemd override"
 
 # gamescope-session 不存在时必须停止安装。
-F1_PRODUCT_FILE="$TMP_ROOT/product-f1-8840u"
+F1_PRODUCT_FILE="$TMP_ROOT/product-f1l-8840u-oled"
 F1_GAMESCOPE_SESSION="$TMP_ROOT/missing-session"
 if f1_install > "$TMP_ROOT/missing-session.out" 2>&1; then
     fail "gamescope-session 不存在时仍允许安装"
@@ -91,6 +94,7 @@ OVERRIDE="$HOME/.config/systemd/user/gamescope-session.service.d/override.conf"
 grep -Fq '#!/bin/bash' "$WRAPPER" || fail "gamescope wrapper 缺少 shebang"
 grep -Fq 'ONEXPLAYER F1' "$WRAPPER" || fail "gamescope wrapper 缺少机型判断"
 grep -Fq 'ONEXPLAYER F1 OLED' "$WRAPPER" || fail "gamescope wrapper 缺少 8840U OLED 机型判断"
+grep -Fq 'ONEXPLAYER F1L' "$WRAPPER" || fail "gamescope wrapper 缺少 8840U OLED 实机 DMI 判断"
 grep -Fq -- '--force-orientation left' "$WRAPPER" || \
     fail "gamescope wrapper 缺少方向参数"
 grep -Fq '/usr/bin/gamescope' "$WRAPPER" || fail "gamescope wrapper 路径错误"

@@ -1215,7 +1215,7 @@ f1_handheld_menu() {
 
     while true; do
         draw_category_frame advanced "掌机适配" "飞行家 F1 问题 · 屏幕方向与 BIOS 声音修复"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "安装修复" "适用于 F1 7840U 与 8840U OLED"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "安装修复" "适用于 F1 7840U 与 8840U OLED（F1L）"
         ui_touch_button 9 '\033[1;97;48;5;24m' "检查状态" "查看修复文件和 systemd override"
         ui_touch_button 11 '\033[1;97;48;5;160m' "卸载修复" "删除用户级修复并恢复原始启动方式"
         ui_touch_button 13 '\033[1;97;48;5;160m' "准备 V1.14 BIOS" "仅 F1/ONEXFLY 7840U 普通版 · 复制到互通盘"
@@ -1227,7 +1227,7 @@ f1_handheld_menu() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             install)
-                confirm_and_run "安装飞行家 F1 屏幕方向修复" "适用于 ONEXPLAYER F1 7840U 与 F1 OLED 8840U；使用用户级 systemd override，不使用 sudo" \
+                confirm_and_run "安装飞行家 F1 屏幕方向修复" "适用于 ONEXPLAYER F1 7840U 与 F1L OLED 8840U；使用用户级 systemd override，不使用 sudo" \
                     bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" install
                 return 0
                 ;;

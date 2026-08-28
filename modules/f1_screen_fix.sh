@@ -9,7 +9,7 @@ source "$PROJECT_ROOT/core/platform.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/logger.sh"
 
-F1_PRODUCT_LABEL="ONEXPLAYER F1 / ONEXPLAYER F1 OLED"
+F1_PRODUCT_LABEL="ONEXPLAYER F1 / ONEXPLAYER F1L / ONEXPLAYER F1 OLED"
 F1_PRODUCT_FILE="${ZHOUKEER_F1_PRODUCT_FILE:-/sys/devices/virtual/dmi/id/product_name}"
 F1_GAMESCOPE_SESSION="${ZHOUKEER_F1_GAMESCOPE_SESSION:-/usr/lib/steamos/gamescope-session}"
 F1_ROOT="$HOME/.local/gamescope-f1"
@@ -25,7 +25,7 @@ f1_is_target_device() {
     [ -r "$F1_PRODUCT_FILE" ] || return 1
     product="$(tr -d '\r\n' < "$F1_PRODUCT_FILE" 2>/dev/null)"
     case "$product" in
-        "ONEXPLAYER F1"|"ONEXPLAYER F1 OLED") return 0 ;;
+        "ONEXPLAYER F1"|"ONEXPLAYER F1L"|"ONEXPLAYER F1 OLED") return 0 ;;
         *) return 1 ;;
     esac
 }
@@ -55,7 +55,7 @@ f1_install() {
     cat > "$F1_GAMESCOPE_WRAPPER" <<'EOF'
 #!/bin/bash
 case "$(tr -d '\r\n' < /sys/devices/virtual/dmi/id/product_name 2>/dev/null)" in
-    "ONEXPLAYER F1"|"ONEXPLAYER F1 OLED")
+    "ONEXPLAYER F1"|"ONEXPLAYER F1L"|"ONEXPLAYER F1 OLED")
         exec /usr/bin/gamescope --force-orientation left "$@"
         ;;
     *)
