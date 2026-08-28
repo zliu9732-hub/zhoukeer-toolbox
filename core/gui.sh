@@ -1046,7 +1046,7 @@ f1_screen_fix_gui_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "掌机适配｜飞行家 F1 问题" \
-            install "安装修复｜仅适用于 ONEXPLAYER F1｜不使用 sudo" \
+            install "安装修复｜F1 7840U 与 8840U OLED｜不使用 sudo" \
             status "检查状态｜查看修复文件和 systemd override" \
             uninstall "卸载修复｜删除用户级修复并恢复原始启动方式" \
             bios "准备 V1.14 BIOS｜仅 7840U 普通黑白版｜复制到互通盘" \
@@ -1056,7 +1056,7 @@ f1_screen_fix_gui_menu() {
             nav-exit "退出Renkit")" || return 0
         case "$choice" in
             install)
-                gui_confirm "仅适用于 ONEXPLAYER F1；将创建用户级 gamescope wrapper 和 systemd override，不使用 sudo。确认继续？" && \
+                gui_confirm "适用于 ONEXPLAYER F1 7840U 与 F1 OLED 8840U；将创建用户级 gamescope wrapper 和 systemd override，不使用 sudo。确认继续？" && \
                     run_gui_action "安装飞行家 F1 屏幕方向修复" bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" install
                 return 0
                 ;;

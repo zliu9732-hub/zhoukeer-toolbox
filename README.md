@@ -29,7 +29,7 @@ Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装�
 - 安装与卸载：软件、兼容层和插件会先检测现有完整安装，已安装时不重复下载；独立的七页卸载菜单可逐项移除，启动器卸载保留游戏与下载文件，模拟器卸载保留存档与配置，系统组件和全部插件仍需风险确认。
 - GE-Proton兼容层：安装入口提供“最新 GE 兼容层”和“修改器所需常用兼容层”两个选项；最新版通过专用 Gitee mirror-8 自动检测并分块下载，修改器兼容层仍沿用原仓库，可分别安装 GE-Proton 7-55、8-25、9-27、10-29。最新版安装不会删除本机已有旧版。下载后校验 SHA256，安装到 Steam 用户的 `compatibilitytools.d` 目录，不需要管理员权限；安装完成后自动重启 Steam 使其生效。
 - Proton-CachyOS兼容层：使用 CachyOS 上游普通 `x86_64` Steam Linux Runtime 包，通过独立 Gitee mirror-9 分块下载；校验清单、整体 SHA256、压缩包路径和必要文件后原子安装，与官方 Proton 和 GE-Proton 共存。
-- 飞行家 F1 适配：保留屏幕方向修复，并为 ONEXPLAYER F1 / ONEXFLY 7840U 普通黑白版提供 V1.14 BIOS 文件准备入口。Renkit 只校验官方 ZIP 与九个原厂文件并复制到名称不区分大小写的 Game 互通盘，不会在 SteamOS 下刷写 BIOS；8840U、EVA、F1 Pro 和其他机型会被拒绝。
+- 飞行家 F1 适配：屏幕方向修复支持 `ONEXPLAYER F1` 7840U 与 `ONEXPLAYER F1 OLED` 8840U；V1.14 BIOS 文件准备入口仍仅适用于 ONEXPLAYER F1 / ONEXFLY 7840U 普通黑白版。Renkit 只校验官方 ZIP 与九个原厂文件并复制到名称不区分大小写的 Game 互通盘，不会在 SteamOS 下刷写 BIOS；8840U、EVA、F1 Pro 和其他机型会被 BIOS 入口拒绝。
 - ToDesk：使用固定的第三方SteamOS适配包并校验SHA256，安装完成后恢复只读保护。
 - Steam Deck 优化：清理 Steam 下载缓存、着色器缓存，并提供性能模式提示。
 - 国内下载源与系统组件：先检测 SteamOS 基础组件，已安装且无对应更新时跳过 pacman 更新；archlinuxcn 使用上海交大、中科大和官方 HTTPS 镜像逐级回退，安装并加载 GPG 密钥环；三条线路均失败时撤销Renkit写入的该仓库并继续配置 locale 与 Flatpak 国内缓存，不阻断其他软件安装。完成后恢复只读保护，恢复入口不覆盖用户原有配置。

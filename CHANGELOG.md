@@ -1,3 +1,10 @@
+## Renkit 2.1.4 飞行家 F1 8840U 屏幕方向修复 — 2026-08-28
+
+- 飞行家 F1 屏幕方向修复新增 `ONEXPLAYER F1 OLED` 严格 DMI 白名单，支持 8840U OLED 机型继续使用 Gamescope `--force-orientation left` 修正游戏模式画面。
+- 保留原有 `ONEXPLAYER F1` 7840U 支持；其他近似名称（包括 `ONEXPLAYER F1Pro`）仍会被拒绝，避免把未经真机验证的机型顺带放行。
+- 触控菜单、图形菜单和模拟测试同步标明 7840U 与 8840U OLED 支持范围；修复仍只写用户级 systemd override，不使用 sudo。
+- 8840U BIOS 未加入 Renkit：官方普通 OneXFly 8840U 下载区没有公开 BIOS，AI 365/AI 370 的 F1 Pro BIOS 不适用于 8840U；7840U V1.14 BIOS 入口继续严格拒绝 8840U。
+
 ## Renkit 2.1.3 MAKO 2.2.0 与国内源优先 — 2026-08-28
 
 - MAKO 小黄鸭安全基线升级到上游官方 2.2.0，固定下载地址、ZIP SHA256 和前端完整性校验同步更新；最新版检查失败时不再退回 2.1.0。
