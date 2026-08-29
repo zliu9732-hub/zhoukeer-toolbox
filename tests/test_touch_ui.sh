@@ -117,6 +117,8 @@ new_machine_preflight="$(sed -n '/^new_machine_preflight()/,/^}/p' "$PROJECT_ROO
 printf '%s\n' "$new_machine_preflight" | grep -Fq 'CEF 远程调试' || fail "新机初始化没有提示开启 CEF 远程调试"
 printf '%s\n' "$new_machine_preflight" | grep -Fq 'right:18-19:start' || fail "新机初始化确认按钮坐标错误"
 printf '%s\n' "$new_machine_preflight" | grep -Fq 'right:20-21:init' || fail "新机初始化返回按钮坐标错误"
+printf '%s\n' "$new_machine_preflight" | grep -Fq '是否跳过系统组件更新' || fail "新机初始化入口没有提示系统组件更新可跳过"
+printf '%s\n' "$new_machine_preflight" | grep -Fq 'GE-Proton 10-29' || fail "新机初始化入口没有说明只安装 GE-Proton 10-29"
 grep -Fq 'CEF 远程调试' "$PROJECT_ROOT/modules/new_machine.sh" || fail "新机初始化终端说明没有提示 CEF 远程调试"
 
 touch_button="$(sed -n '/^ui_touch_button()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"

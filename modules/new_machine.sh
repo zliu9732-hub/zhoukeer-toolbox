@@ -17,6 +17,7 @@ NEW_MACHINE_DMI_ROOT="${ZHOUKEER_DMI_ROOT:-/sys/class/dmi/id}"
 NEW_MACHINE_BATTLENET="${ZHOUKEER_NEW_MACHINE_BATTLENET:-0}"
 NEW_MACHINE_UBISOFT="${ZHOUKEER_NEW_MACHINE_UBISOFT:-0}"
 NEW_MACHINE_HEIHE="${ZHOUKEER_NEW_MACHINE_HEIHE:-0}"
+NEW_MACHINE_SKIP_SYSTEM_UPDATE="${ZHOUKEER_NEW_MACHINE_SKIP_SYSTEM_UPDATE:-0}"
 
 new_machine_flag_is_valid() {
     case "$1" in 0|1) return 0 ;; *) return 1 ;; esac
@@ -89,6 +90,57 @@ select_optional_launchers() {
     normalize_optional_launchers
 }
 
+select_system_component_update() {
+    local selection
+
+    new_machine_flag_is_valid "$NEW_MACHINE_SKIP_SYSTEM_UPDATE" || {
+        echo "新机初始化选项无效：NEW_MACHINE_SKIP_SYSTEM_UPDATE=$NEW_MACHINE_SKIP_SYSTEM_UPDATE"
+        return 1
+    }
+    if [ "${ZHOUKEER_NEW_MACHINE_SYSTEM_UPDATE_SET:-0}" = "1" ]; then
+        return 0
+    fi
+
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ] && command -v kdialog >/dev/null 2>&1; then
+        selection="$(kdialog --menu \
+            "是否需要跳过前面的系统组件更新？\n\n选择跳过后，不会修改 pacman、系统密钥环和 locale；仍会配置用户级 Flatpak 国内源，并继续安装其他项目。" \
+            update "不跳过，完整更新系统组件（推荐新机使用）" \
+            skip "跳过系统组件更新，继续其余初始化" 2>/dev/null)" || {
+                echo "已取消系统组件更新选择，新机初始化未开始。"
+                return 1
+            }
+        case "$selection" in
+            update) NEW_MACHINE_SKIP_SYSTEM_UPDATE=0 ;;
+            skip) NEW_MACHINE_SKIP_SYSTEM_UPDATE=1 ;;
+            *) echo "无法识别系统组件更新选项：$selection"; return 1 ;;
+        esac
+        return 0
+    fi
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ] && [ ! -t 0 ]; then
+        echo "未检测到图形选择框且当前无法交互，默认不跳过系统组件更新。"
+        NEW_MACHINE_SKIP_SYSTEM_UPDATE=0
+        return 0
+    fi
+
+    echo ""
+    echo "系统组件更新会处理 pacman、系统密钥环和 locale，并临时关闭 SteamOS 只读保护。"
+    echo "跳过后仍会配置用户级 Flatpak 国内源，并继续安装其他项目。"
+    read -r -p "是否需要跳过系统组件更新？输入 y 跳过，直接回车继续更新 [y/N]：" selection
+    case "$selection" in
+        y|Y|yes|YES|Yes) NEW_MACHINE_SKIP_SYSTEM_UPDATE=1 ;;
+        ""|n|N|no|NO|No) NEW_MACHINE_SKIP_SYSTEM_UPDATE=0 ;;
+        *) echo "请输入 y 跳过，或直接回车继续更新。"; return 1 ;;
+    esac
+}
+
+system_component_update_summary() {
+    if [ "$NEW_MACHINE_SKIP_SYSTEM_UPDATE" = "1" ]; then
+        printf '%s\n' "已选择跳过"
+    else
+        printf '%s\n' "完整更新"
+    fi
+}
+
 optional_launcher_summary() {
     local summary=""
 
@@ -109,12 +161,17 @@ show_initialization_plan() {
     echo ""
     echo "默认处理："
     echo "【01】检查 SteamOS、网络、电源、空间和系统保护状态"
-    echo "【02-03】更新必要组件并初始化国内软件源"
+    if [ "$NEW_MACHINE_SKIP_SYSTEM_UPDATE" = "1" ]; then
+        echo "【02】跳过 pacman、系统密钥环和 locale 更新（按本次选择）"
+        echo "【03】仅配置用户级 Flatpak 国内软件源"
+    else
+        echo "【02-03】更新必要组件并初始化国内软件源"
+    fi
     echo "【04】安装 Fcitx5 中文输入法和中文插件"
     echo "【05-06】安装微信、QQ、Firefox并创建桌面图标"
     echo "【07】安装 Decky Loader、FreeDeck、八款常用插件（含 Fantastic 风扇控制）"
-    echo "【08】识别机器型号，仅应用匹配且低风险的插件配置"
-    echo "【09】安装修改器常用兼容层：GE-Proton 7-55、8-25、9-27、10-29"
+    echo "【08】识别机器型号；无合适专用插件时安装通用掌机功耗控制"
+    echo "【09】安装修改器所需兼容层：仅 GE-Proton 10-29"
     echo "【10】按物理内存设置 zram、8-16GB swap 和 swappiness"
     echo "【11-12】安装 Steamcommunity 302，后台运行并设置开机自启"
     echo "【13-14】清理未完成下载，并复查网络、系统和游戏启动环境"
@@ -155,6 +212,7 @@ new_machine_report_begin() {
         echo "Renkit版本：$TOOLBOX_VERSION"
         echo "默认平台：Epic"
         echo "可选平台：$(optional_launcher_summary)"
+        echo "系统组件更新：$(system_component_update_summary)"
         echo ""
     } > "$NEW_MACHINE_REPORT_FILE" || return 1
     chmod 0600 "$NEW_MACHINE_REPORT_FILE" || return 1
@@ -243,14 +301,16 @@ apply_machine_profile() {
     echo "机器识别：${identity:-未提供 DMI 型号}"
     case "$identity" in
         *steam*deck*|*jupiter*|*galileo*)
-            echo "已选择 Steam Deck 通用配置；内存参数由各模块按当前系统处理。"
+            echo "已选择 Steam Deck 通用配置；ROG / 联想专用插件不适用，改装掌机功耗控制。"
+            install_generic_handheld_power_control
             ;;
-        *rog*ally*)
-            echo "检测到 ROG Ally 系列，正在安装匹配的 Ally 控制中心。"
+        *rog*ally*|*rc71l*|*rc72la*|*rc73xa*)
+            echo "检测到 ROG Ally 系列（含二代、三代），正在安装匹配的 Ally 控制中心。"
             env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter
             ;;
         *legion*go\ 2*|*legion*go*s*)
-            echo "检测到 Legion Go 2 / Go S；高风险风扇和不匹配控制插件不会自动安装。"
+            echo "检测到 Legion Go 2 / Go S；现有联想专用控制插件不匹配，改装掌机功耗控制。"
+            install_generic_handheld_power_control
             ;;
         *legion*go*)
             echo "检测到初代 Legion Go，正在安装匹配的控制中心。"
@@ -261,9 +321,16 @@ apply_machine_profile() {
             env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" gpd-control
             ;;
         *)
-            echo "型号无法安全匹配，已保留通用配置，不自动安装硬件控制插件。"
+            echo "型号无法安全匹配 ROG、联想或 GPD 专用插件，改装通用掌机功耗控制。"
+            install_generic_handheld_power_control
             ;;
     esac
+}
+
+install_generic_handheld_power_control() {
+    echo "正在安装或检查掌机功耗控制（SimpleDeckyTDP 中文版）。"
+    env ZHOUKEER_AUTO_CONFIRM=1 \
+        bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee
 }
 
 install_optional_launchers() {
@@ -306,7 +373,7 @@ write_customer_handover_guide() {
 
 1. Renkit：桌面双击 Renkit；启动时会自动检测更新，也可在“检查与维护”中手动检查更新。
 2. Decky / FreeDeck：返回游戏模式，按右下角“…”键，再打开插头图标；插件不显示时请完全退出并重开 Steam。
-3. 修改器兼容层：已安装 GE-Proton 7-55、8-25、9-27、10-29；在游戏属性 → 兼容性中按游戏选择。
+3. 修改器兼容层：新机初始化仅安装 GE-Proton 10-29；在游戏属性 → 兼容性中选择该版本。
 4. Epic：已按默认清单安装并加入 Steam 库；首次登录、验证码可用触控板，Steam + X 呼出键盘。
 5. 中文输入：桌面模式使用 Fcitx5；首次使用请在系统托盘确认输入法已启动。
 6. Steam 加速：Steamcommunity 302 已设置后台运行和开机自启；规则或证书未就绪时，在Renkit中打开一次官方配置界面。
@@ -340,6 +407,7 @@ run_new_machine_initialization() {
     SKIP_COUNT=0
 
     select_optional_launchers || return 1
+    select_system_component_update || return 1
     if ! confirm_initialization; then
         echo "已取消新机初始化。"
         return 0
@@ -361,8 +429,14 @@ run_new_machine_initialization() {
     new_machine_report_result "完成" "【01】SteamOS、电源、空间、网络和系统保护预检"
 
     run_step "【01】网络线路复查" check_network
-    run_step "【02-03】更新必要系统组件并优化国内软件源" \
-        env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/domestic_source.sh" init
+    if [ "$NEW_MACHINE_SKIP_SYSTEM_UPDATE" = "1" ]; then
+        skip_step "【02】更新系统组件、密钥环和 locale" "已按开始前选择跳过"
+        run_step "【03】优化用户级 Flatpak 国内软件源" \
+            env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/domestic_source.sh" enable
+    else
+        run_step "【02-03】更新必要系统组件并优化国内软件源" \
+            env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/domestic_source.sh" init
+    fi
     run_step "【04】Fcitx5 中文输入法" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/software.sh" fcitx5
     run_step "【05】微信" env ZHOUKEER_AUTO_CONFIRM=1 \
@@ -378,8 +452,8 @@ run_new_machine_initialization() {
     run_step "【07】八款常用插件（含主题美化与 Fantastic 汉化）" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" features
     run_step "【08】按机器型号应用安全配置" apply_machine_profile
-    run_step "【09】修改器常用 GE-Proton 兼容层" env ZHOUKEER_AUTO_CONFIRM=1 \
-        bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer
+    run_step "【09】修改器所需 GE-Proton 10-29 兼容层" env ZHOUKEER_AUTO_CONFIRM=1 \
+        bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer-one "10-29"
     run_step "【第三方平台】Epic Games 启动器（默认）" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
     install_optional_launchers
@@ -417,6 +491,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         run) run_new_machine_initialization ;;
         plan)
             select_optional_launchers || exit 1
+            select_system_component_update || exit 1
             show_initialization_plan
             ;;
         *) echo "用法: $0 [run|plan]"; exit 1 ;;

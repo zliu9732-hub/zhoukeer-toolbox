@@ -21,7 +21,7 @@ Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装�
 
 ## 功能
 
-- 一键新机初始化：一次确认后执行 18 项客户交付流程，检查 SteamOS、网络、电源和系统组件，配置国内源与中文输入法，安装常用软件、Decky、FreeDeck、Epic、常用插件、修改器兼容层、虚拟内存和 Steamcommunity 302，并生成桌面报告与使用说明；战网、Ubisoft Connect 和黑盒工坊开始前可选。
+- 一键新机初始化：开始前可选择跳过 pacman、系统密钥环和 locale 更新；跳过时仍配置用户级 Flatpak 国内源并继续其余流程。初始化会检查 SteamOS、网络、电源和系统组件，安装中文输入法、常用软件、Decky、FreeDeck、Epic、常用插件、GE-Proton 10-29、虚拟内存和 Steamcommunity 302；机型匹配不到适用的 ROG、联想或 GPD 专用控制插件时，自动安装通用“掌机功耗控制”。流程结束后生成桌面报告与使用说明；战网、Ubisoft Connect 和黑盒工坊开始前可选。
 - 插件商城：Steam Deck 常用组合包含小黄鸭、FSR4、CheatDeck、游戏封面更换（SteamGridDB）、主题美化（CSS Loader 中文版）、文件传输助手（Friendeck）、音乐播放器（Decky Music）和 Fantastic 风扇控制汉化版；Fantastic 同时列在“其余常用插件”，由 Renkit 从 Gitee mirror-3 直接下载、校验并自动安装，不调用 Decky 商城弹窗。另提供 Decky 官方精选插件；支持整组或单项安装和八款文件状态检查。Decky Music 使用作者原版 v1.0.2 完整包，内置播放器与 QQ/网易云音乐源，不汉化、不重打。Decky Loader 子菜单提供 ROG White 白色主题一键安装，把主题文件放入 CSS Loader themes 目录后即可在 CSS Loader 中开启。独立提供 DeckRecall 与 SavePulse：SavePulse 可自动保留存档版本，并使用每位用户自己的坚果云或标准 WebDAV 做加密备份和换机恢复。固定版本均执行 SHA256、ZIP 结构与插件目录校验。安装或检测到功能插件后会在桌面补充风灵月影、小黄鸭和 FSR4 小白教程；检测到 FSR4 时另建 OptiScaler 官方 Wiki 已测试游戏清单。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
 
 使用小黄鸭前，安装完成后请在 Steam 正版页面打开游戏右侧齿轮，进入“属性 → 测试版”，选择名称以 Linux 开头的可用版本；随后进入游戏模式，按 Steam Deck 机身右下角的“三个点（…）”按钮，在打开的菜单中依次点击插头图标 → 小黄鸭 → 安装 LSFG。
@@ -219,6 +219,6 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 
 ## 当前版本与维护
 
-当前正式版为 Renkit 2.1.3，后续版本从 1.0 起按语义化版本递增。后续维护同时覆盖 SteamOS 与 Bazzite 的独立菜单；rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
+当前正式版为 Renkit 2.1.8，后续版本从 1.0 起按语义化版本递增。后续维护同时覆盖 SteamOS 与 Bazzite 的独立菜单；rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。

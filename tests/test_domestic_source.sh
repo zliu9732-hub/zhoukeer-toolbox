@@ -301,6 +301,8 @@ for repo_url in \
 done
 grep -Fq '更新必要系统组件并优化国内软件源' "$PROJECT_ROOT/modules/new_machine.sh" || \
     fail "新机初始化没有运行国内源与系统组件检测"
+grep -Fq 'modules/domestic_source.sh" enable' "$PROJECT_ROOT/modules/new_machine.sh" || \
+    fail "新机初始化跳过系统更新时没有继续配置用户级 Flatpak 国内源"
 
 # 配置文件测试只操作临时目录，toolbox_sudo 被替换为直接调用假 install/locale-gen。
 SYSTEM_DIR="$TMP_ROOT/system"

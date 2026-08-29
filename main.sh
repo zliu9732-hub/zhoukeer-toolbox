@@ -443,13 +443,14 @@ new_machine_preflight() {
     local choice
 
     while true; do
-        draw_category_frame init "新机初始化" "更新系统组件后安装常用软件并初始化国内源"
+        draw_category_frame init "新机初始化" "系统组件可选跳过，再安装常用软件并初始化国内源"
         ui_panel_line 7 '\033[1;38;5;220m' "① Steam 键 → 设置 → 启用开发者模式"
         ui_panel_line 9 '\033[1;38;5;45m' "② 设置左侧出现“开发者”后 → 开发者 → 杂项"
         ui_panel_line 11 '\033[1;38;5;220m' "③ 开启“CEF 远程调试”（Decky 插件商城）"
         ui_panel_line 13 '\033[1;38;5;45m' "④ 重新进入桌面模式，再开始初始化"
-        ui_panel_line 15 '\033[1;38;5;45m' "继续后将更新系统组件，并安装常用软件、插件、兼容层和 Epic"
-        ui_panel_line 16 '\033[1;38;5;45m' "Epic 与 FreeDeck 默认安装；战网、育碧、黑盒工坊按需选择"
+        ui_panel_line 15 '\033[1;38;5;45m' "继续后会询问是否跳过系统组件更新，并安装软件、插件和 Epic"
+        ui_panel_line 16 '\033[1;38;5;45m' "修改器兼容层仅安装 GE-Proton 10-29；其他版本可在兼容层菜单安装"
+        ui_panel_line 17 '\033[1;38;5;45m' "Epic 与 FreeDeck 默认安装；战网、育碧、黑盒工坊按需选择"
         ui_touch_button 18 '\033[1;30;48;5;114m' "设置已完成，开始新机初始化" "点击即确认已开启开发者模式和 CEF 远程调试"
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回新机必备" "暂不初始化"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
