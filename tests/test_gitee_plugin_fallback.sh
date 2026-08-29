@@ -68,10 +68,30 @@ calculate_decky_sha256() {
     case "$1" in
         *'/Decky LSFG-VK/dist/index.js') printf '%s\n' "$LSFG_ZH_INDEX_SHA256" ;;
         *'/Decky-Framegen/dist/index.js') printf '%s\n' "$FSR4_ZH_INDEX_SHA256" ;;
+        *'/third_party/decky-simpledeckytdp-zh-v1.0.6/dist/index.js') \
+            printf '%s\n' "$SIMPLEDECKYTDP_ZH_INDEX_SHA256" ;;
+        *'/SimpleDeckyTDP/dist/index.js') printf '%s\n' "$SIMPLEDECKYTDP_ZH_INDEX_SHA256" ;;
         *) return 1 ;;
     esac
 }
-install_decky_zip_from_mirror() { printf 'gitee:%s\n' "$1" >> "$CALLS"; return "${GITEE_RESULT:-1}"; }
+install_decky_zip_from_mirror() {
+    printf 'gitee:%s\n' "$1" >> "$CALLS"
+    [ "${GITEE_RESULT:-1}" = "0" ] || return 1
+    if [ "$2" = "simpledeckytdp" ]; then
+        mkdir -p "$DECKY_PLUGIN_DIR/SimpleDeckyTDP/bin" \
+            "$DECKY_PLUGIN_DIR/SimpleDeckyTDP/dist"
+        printf '{"name":"SimpleDeckyTDP"}\n' > \
+            "$DECKY_PLUGIN_DIR/SimpleDeckyTDP/plugin.json"
+        printf '{"version":"1.0.6"}\n' > \
+            "$DECKY_PLUGIN_DIR/SimpleDeckyTDP/package.json"
+        printf 'official frontend\n' > \
+            "$DECKY_PLUGIN_DIR/SimpleDeckyTDP/dist/index.js"
+        printf 'runtime\n' > "$DECKY_PLUGIN_DIR/SimpleDeckyTDP/bin/ryzenadj"
+        printf 'runtime library\n' > "$DECKY_PLUGIN_DIR/SimpleDeckyTDP/bin/libryzenadj.so"
+        printf 'runtime license\n' > "$DECKY_PLUGIN_DIR/SimpleDeckyTDP/bin/LICENSE-ryzenadj"
+    fi
+    return 0
+}
 remove_legacy_lsfg_directories() { return 0; }
 log() { return 0; }
 
@@ -89,8 +109,17 @@ GITEE_RESULT=0
 : > "$CALLS"
 install_lsfg_zh_from_gitee 0 || fail "小黄鸭没有从 Gitee 分块镜像安装"
 install_fsr4_zh_from_gitee 0 || fail "FSR4 没有从 Gitee 分块镜像安装"
+install_simpledeckytdp_zh_from_gitee 0 || \
+    fail "SimpleDeckyTDP 没有从 Gitee 镜像安装并叠加汉化"
 grep -Fq 'gitee:小黄鸭（LSFG-VK）' "$CALLS" || fail "小黄鸭未使用专用镜像"
 grep -Fq 'gitee:FSR4（Decky Framegen）' "$CALLS" || fail "FSR4 未使用专用镜像"
+grep -Fq 'gitee:SimpleDeckyTDP' "$CALLS" || fail "SimpleDeckyTDP 未使用专用镜像"
+grep -Fq '"version": "1.0.6"' \
+    "$PLUGIN_ROOT/SimpleDeckyTDP/package.json" || \
+    fail "SimpleDeckyTDP Gitee 安装后未叠加 v1.0.6 汉化组件"
+grep -Fq '"name": "掌机功耗控制"' \
+    "$PLUGIN_ROOT/SimpleDeckyTDP/plugin.json" || \
+    fail "SimpleDeckyTDP Gitee 安装后未写入中文插件身份"
 
 printf '{"name":"小黄鸭"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
 printf '{"name":"Decky-Framegen（FSR4）"}\n' > "$PLUGIN_ROOT/Decky-Framegen/plugin.json"
@@ -114,4 +143,4 @@ if grep -Eq 'github|overlay' "$CALLS"; then
     fail "镜像失败后仍回退 GitHub 或本地覆盖层"
 fi
 
-echo "PASS: 小黄鸭与 FSR4 仅使用 Gitee 分块镜像且失败返回非零"
+echo "PASS: 小黄鸭、FSR4 与 SimpleDeckyTDP 的 Gitee 镜像路径和失败状态正确"

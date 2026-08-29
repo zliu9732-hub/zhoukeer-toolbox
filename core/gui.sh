@@ -325,7 +325,7 @@ game_environment_gui_menu() {
                     cssloader "主题美化｜CSS Loader 中文版｜Gitee 分块优先" \
                     friendeck "文件传输助手｜Friendeck｜Gitee 分块优先" \
                     deckymusic "音乐播放器｜Decky Music v1.0.2 完整包｜音乐源已内置" \
-                    fantastic "Fantastic 风扇控制｜Gitee汉化版｜汉化：RenAmamiya｜注意温度" \
+                    fantastic "Fantastic 风扇控制｜完整汉化版｜汉化：RenAmamiya｜注意温度" \
                     back "返回游戏与插件")" || continue
                 case "$feature_choice" in
                     steamgriddb) run_gui_action "安装游戏封面更换" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
@@ -333,7 +333,7 @@ game_environment_gui_menu() {
                     friendeck) run_gui_action "安装文件传输助手" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
                     deckymusic) run_gui_action "安装音乐播放器" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
                     fantastic)
-                        gui_confirm "高风险：Fantastic 会覆盖 SteamOS 默认风扇曲线，过低转速可能导致设备过热；仅适用于 Steam Deck。将从 Gitee mirror-3 安装带 RenAmamiya 署名的完整汉化包，是否继续？" && \
+                        gui_confirm "高风险：Fantastic 会覆盖 SteamOS 默认风扇曲线，过低转速可能导致设备过热；仅适用于 Steam Deck。将直接安装带 RenAmamiya 署名的完整汉化包，是否继续？" && \
                             run_gui_action "安装 Fantastic 风扇控制" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fantastic
                         ;;
                 esac

@@ -1,3 +1,10 @@
+## Renkit 2.1.6 掌机功耗镜像锁定与 Fantastic 提示精简 — 2026-08-29
+
+- SimpleDeckyTDP 最新正式版仍为 v1.0.6，Renkit 汉化组件、官方完整包和 Gitee 清单继续统一使用 v1.0.6 与固定 SHA256。
+- Gitee 自动同步脚本不再让 SimpleDeckyTDP 镜像抢跑到尚未完成汉化的新上游版本，避免安装器因镜像清单与当前固定版本不一致而回退 GitHub。
+- 增加 SimpleDeckyTDP Gitee 安装行为测试，验证官方运行核心下载、v1.0.6 汉化叠加、插件中文身份与重复安装检测。
+- Fantastic 的触控菜单、图形菜单、风险确认和安装进度不再显示内部仓库编号 `Gitee mirror-3`，保留完整汉化版、`RenAmamiya` 署名与风扇过热风险提示。
+
 ## Renkit 2.1.5 飞行家 F1L OLED 实机识别修正 — 2026-08-28
 
 - 根据 8840U OLED 实机 DMI 输出，将固件设备名 `ONEXPLAYER F1L` 加入屏幕方向修复的严格白名单，修正 2.1.4 无法通过设备检测的问题。

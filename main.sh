@@ -557,7 +557,7 @@ feature_plugin_singles_menu() {
         ui_touch_button 8 '\033[1;97;48;5;24m' "主题美化" "CSS Loader 中文版 · Gitee 分块优先"
         ui_touch_button 11 '\033[1;97;48;5;24m' "文件传输助手" "Friendeck · Gitee 分块优先"
         ui_touch_button 14 '\033[1;97;48;5;24m' "音乐播放器" "Decky Music v1.0.2 完整包 · 音乐源已内置"
-        ui_touch_button 17 '\033[1;97;48;5;160m' "Fantastic 风扇控制" "Gitee汉化版 · 汉化：RenAmamiya · 注意温度"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "Fantastic 风扇控制" "完整汉化版 · 汉化：RenAmamiya · 注意温度"
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回插件列表" "不进行安装"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -568,7 +568,7 @@ feature_plugin_singles_menu() {
             cssloader) confirm_and_run "安装主题美化" "安装 CSS Loader 中文版；Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
             friendeck) confirm_and_run "安装文件传输助手" "安装 Friendeck；Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
             deckymusic) confirm_and_run "安装音乐播放器" "安装 Decky Music v1.0.2 完整包；播放器和 QQ/网易云音乐源已内置，使用 Gitee 分块并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
-            fantastic) confirm_and_run "安装 Fantastic 风扇控制" "高风险：Fantastic 会覆盖 SteamOS 默认风扇曲线，过低转速可能导致设备过热；仅适用于 Steam Deck。将从 Gitee mirror-3 安装带 RenAmamiya 署名的完整汉化包" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fantastic ;;
+            fantastic) confirm_and_run "安装 Fantastic 风扇控制" "高风险：Fantastic 会覆盖 SteamOS 默认风扇曲线，过低转速可能导致设备过热；仅适用于 Steam Deck。将直接安装带 RenAmamiya 署名的完整汉化包" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fantastic ;;
             back) return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac

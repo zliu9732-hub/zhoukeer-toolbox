@@ -399,7 +399,12 @@ sync_plugin freedeck "panyiwei-home/Freedeck" '^freedeck[.]v[0-9.]+[.]zip$' "Fre
 sync_plugin newfreedeck "panyiwei-home/Freedeck" \
     '^NewFreedeck[.]v[.][0-9]+[.][0-9]+([.][0-9]+)?[.]zip$' \
     "NewFreedeck" "" "" "" "" "$MIRROR3"
-sync_plugin simpledeckytdp "aarron-lee/SimpleDeckyTDP" '^SimpleDeckyTDP[.]zip$' "SimpleDeckyTDP"
+# SimpleDeckyTDP 需要先由 Renkit 同步并验证同版本汉化组件；镜像不得自动
+# 抢跑到更新的上游版本，否则安装器会因固定 SHA256 不一致拒绝国内源。
+sync_plugin simpledeckytdp "aarron-lee/SimpleDeckyTDP" '^SimpleDeckyTDP[.]zip$' "SimpleDeckyTDP" \
+    "v1.0.6" "SimpleDeckyTDP.zip" \
+    "https://github.com/aarron-lee/SimpleDeckyTDP/releases/download/v1.0.6/SimpleDeckyTDP.zip" \
+    "a033de51bbf861fd4b5c61da14ec09adad22d96867425bcb09740c3bbdaafc2a"
 # HMCL 启动器固定版本，镜像必须与Renkit内置版本一致，否则 SHA 校验会拒绝。
 sync_plugin hmcl "HMCL-dev/HMCL" '^HMCL-[0-9.]+[.]jar$' "HMCL" \
     "v3.16.3" "HMCL-3.16.3.jar" \

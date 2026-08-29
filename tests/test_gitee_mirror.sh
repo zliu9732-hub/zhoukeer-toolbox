@@ -100,6 +100,20 @@ newfreedeck_mirror_id="$(gitee_mirror_id_for_url \
     'https://github.com/panyiwei-home/Freedeck/releases/download/N0.3/NewFreedeck.v.0.3.zip')"
 [ "$newfreedeck_mirror_id" = "newfreedeck" ] || \
     FAIL "NewFreedeck 0.2.0 未使用独立 Gitee 镜像标识"
+simpledeckytdp_mirror_id="$(gitee_mirror_id_for_url \
+    'https://github.com/aarron-lee/SimpleDeckyTDP/releases/download/v1.0.6/SimpleDeckyTDP.zip')"
+[ "$simpledeckytdp_mirror_id" = "simpledeckytdp" ] || \
+    FAIL "SimpleDeckyTDP v1.0.6 未使用独立 Gitee 镜像标识"
+grep -Fq 'simpledeckytdp|SimpleDeckyTDP|v1.0.6|SimpleDeckyTDP.zip|https://github.com/aarron-lee/SimpleDeckyTDP/releases/download/v1.0.6/SimpleDeckyTDP.zip|a033de51bbf861fd4b5c61da14ec09adad22d96867425bcb09740c3bbdaafc2a|' \
+    "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || \
+    FAIL "SimpleDeckyTDP v1.0.6 缺少固定 Gitee 镜像清单"
+simpledeckytdp_sync="$(sed -n '/^# SimpleDeckyTDP 需要先由 Renkit/,/^# HMCL 启动器/p' \
+    "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh")"
+printf '%s\n' "$simpledeckytdp_sync" | grep -Fq '"v1.0.6" "SimpleDeckyTDP.zip"' || \
+    FAIL "SimpleDeckyTDP Gitee 自动同步未锁定汉化基线 v1.0.6"
+printf '%s\n' "$simpledeckytdp_sync" | grep -Fq \
+    '"a033de51bbf861fd4b5c61da14ec09adad22d96867425bcb09740c3bbdaafc2a"' || \
+    FAIL "SimpleDeckyTDP Gitee 自动同步 SHA256 与汉化基线不一致"
 grep -Fq 'sync_plugin newfreedeck' "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
     FAIL "NewFreedeck 0.2.0 缺少 Gitee 分块同步入口"
 grep -Fq 'newfreedeck|NewFreedeck|0.2.0|NewFreedeck.v.0.2.zip|' \

@@ -423,6 +423,11 @@ printf '%s\n' "$feature_install_function" | grep -Fq '常用插件会出现在�
 printf '%s\n' "$feature_install_function" | grep -Fq '八款常用功能插件已全部安装完成'
 grep -Fq 'DECKY_FANTASTIC_URL="https://gitee.com/' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'fantastic) show_plugin_download_speed_tip; install_configured_plugin fantastic' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '正在直接安装 Fantastic v$DECKY_FANTASTIC_VERSION 汉化版' "$PROJECT_ROOT/modules/plugin_store.sh"
+if grep -Fq '正在从 Gitee mirror-3 直接安装 Fantastic' "$PROJECT_ROOT/modules/plugin_store.sh"; then
+    echo "FAIL: Fantastic 安装进度仍显示镜像名称" >&2
+    exit 1
+fi
 grep -Fq 'CheatDeck 安装完成后可在 Decky 右侧栏显示' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '风灵月影网址.txt' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '若返回游戏模式后没有看到 Decky 的插头图标' "$PROJECT_ROOT/modules/plugin_store.sh"

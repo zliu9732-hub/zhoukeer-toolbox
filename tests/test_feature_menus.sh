@@ -126,8 +126,11 @@ for menu in "$touch_freedeck" "$gui_games"; do
 done
 for menu in "$touch_feature_singles" "$gui_games"; do
     assert_contains "$menu" 'Fantastic 风扇控制' "其余常用插件缺少 Fantastic"
+    assert_contains "$menu" '完整汉化版' "Fantastic 入口缺少完整汉化包说明"
     assert_contains "$menu" '汉化：RenAmamiya' "Fantastic 入口缺少汉化署名"
     assert_contains "$menu" '过低转速可能导致设备过热' "Fantastic 入口缺少风扇风险确认"
+    assert_not_contains "$menu" 'Gitee汉化版' "Fantastic 入口仍显示 Gitee 来源"
+    assert_not_contains "$menu" '从 Gitee mirror-3 安装带 RenAmamiya' "Fantastic 确认框仍显示镜像名称"
 done
 for menu in "$MAIN_FILE" "$GUI_FILE"; do
     selected_names="$(sed -n '/^DECKY_OFFICIAL_PLUGIN_NAMES=(/,/^)/p' "$menu")"

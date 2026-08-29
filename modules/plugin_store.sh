@@ -3551,7 +3551,7 @@ install_configured_plugin() {
                 echo "[已安装] Fantastic v$DECKY_FANTASTIC_VERSION 汉化版已存在且校验通过。"
                 PLUGIN_INSTALL_CHANGED=0
             else
-                echo "正在从 Gitee mirror-3 直接安装 Fantastic v$DECKY_FANTASTIC_VERSION 汉化版……"
+                echo "正在直接安装 Fantastic v$DECKY_FANTASTIC_VERSION 汉化版……"
                 install_decky_zip \
                     "Fantastic 风扇控制（汉化：RenAmamiya）" \
                     "$DECKY_FANTASTIC_URL" "$DECKY_FANTASTIC_SHA256" \
