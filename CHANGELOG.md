@@ -1,3 +1,11 @@
+## Renkit 2.1.9 壹号掌机 SteamOS 特殊按键修复 — 2026-08-30
+
+- “更多设置 → 掌机适配”把原 F1L 专用入口扩展为“壹号掌机 SteamOS 特殊按键修复”，仅精确接受实机验证成功的 `ONEXPLAYER F1L` 与 `ONEXPLAYER X1Pro`；其他 DMI 明确提示尚未实机验证并停止。
+- F1L 复用系统 `50-onexplayer_onexfly.yaml` 并只替换首个 `ONEXPLAYER F1`；X1 Pro 复用 `50-onexplayer_x1.yaml` 并只替换首个 `ONEXPLAYER X1 A`。两者都只写入 `/etc/inputplumber/devices.d`，不修改只读系统源配置、不安装 HHD。
+- 安装前显示检测机型与修改范围并确认；检测到 HHD 进程或服务时停止。安装后启用、重启并验证 InputPlumber、唯一 DMI、自定义文件、系统源校验和及开机启动状态，支持幂等重复运行和立即/稍后重启。
+- 恢复记录首次修复前 InputPlumber 的启用与运行状态；同名目标原本存在时先保留带权限的校验备份，恢复时只处理 Renkit 有状态记录的文件并还原原内容，异常或篡改会安全停止。
+- 实机记录：`ONEXPLAYER F1L` 已在 SteamOS 3.10、InputPlumber 0.77.4 修复成功；`ONEXPLAYER X1Pro` 已在 InputPlumber 0.77.7 修复成功。修复后 Steam/Guide 菜单、快捷菜单与虚拟键盘相关特殊按键可被 SteamOS 识别。
+
 ## Renkit 2.1.8 新机初始化精简与掌机插件回退 — 2026-08-30
 
 - 新机初始化开始前新增系统组件更新选择；可跳过 pacman、系统密钥环和 locale 更新，同时继续配置用户级 Flatpak 国内源并执行其余安装项目。

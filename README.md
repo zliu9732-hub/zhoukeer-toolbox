@@ -2,7 +2,7 @@
 
 Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装命令会自动选择独立版本：SteamOS 保留完整原版功能，Bazzite 使用单独菜单，仅开放已适配的常用软件、Decky、兼容层、启动器、模拟器和诊断功能。
 
-当前正式版：Renkit 2.1.7；从 Renkit 1.0 起按语义化版本递增。
+当前正式版：Renkit 2.1.9；从 Renkit 1.0 起按语义化版本递增。
 
 - SteamOS 版：继续使用原有 `main.sh`，系统初始化、国内源、插件与高级功能保持原逻辑。
 - Bazzite 版：使用独立 `main-bazzite.sh`；Decky 通过官方 `ujust setup-decky` 安装，并可整组或逐个安装官方商店插件；Flatpak 默认使用带 GPG 验证的官方 Flathub，国内镜像仅在用户确认风险后以用户级远程启用，并可恢复官方源；提供用户级软件、启动器、模拟器与 GE-Proton 安装/卸载，以及 Yuzu 自备密钥、诊断、攻略和快捷方式维护；不调用 pacman、steamos-readonly、ToDesk、AnyDesk或内存调优。Clover 双系统引导作为独立高风险入口开放，动态识别 Bazzite EFI，并提供状态检查和恢复。
@@ -29,7 +29,7 @@ Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装�
 - 安装与卸载：软件、兼容层和插件会先检测现有完整安装，已安装时不重复下载；独立的七页卸载菜单可逐项移除，启动器卸载保留游戏与下载文件，模拟器卸载保留存档与配置，系统组件和全部插件仍需风险确认。
 - GE-Proton兼容层：安装入口提供“最新 GE 兼容层”和“修改器所需常用兼容层”两个选项；最新版通过专用 Gitee mirror-8 自动检测并分块下载，修改器兼容层仍沿用原仓库，可分别安装 GE-Proton 7-55、8-25、9-27、10-29。最新版安装不会删除本机已有旧版。下载后校验 SHA256，安装到 Steam 用户的 `compatibilitytools.d` 目录，不需要管理员权限；安装完成后自动重启 Steam 使其生效。
 - Proton-CachyOS兼容层：使用 CachyOS 上游普通 `x86_64` Steam Linux Runtime 包，通过独立 Gitee mirror-9 分块下载；校验清单、整体 SHA256、压缩包路径和必要文件后原子安装，与官方 Proton 和 GE-Proton 共存。
-- 飞行家 F1 适配：屏幕方向修复支持 `ONEXPLAYER F1` 7840U、8840U OLED 实机 DMI 名 `ONEXPLAYER F1L`，并保留 `ONEXPLAYER F1 OLED` 兼容名称。F1L 按键修复复用 SteamOS 自带的 ONEXFLY F1 InputPlumber 配置，只在 `/etc/inputplumber/devices.d` 创建型号副本，修复 Home、Turbo、键盘等特殊按键；不安装 HHD、不修改 `/usr/share/inputplumber`，支持状态验证、重复运行与恢复服务原状态。V1.14 BIOS 文件准备入口仍仅适用于 ONEXPLAYER F1 / ONEXFLY 7840U 普通黑白版；Renkit 只校验并复制原厂文件，不会在 SteamOS 下刷写 BIOS。
+- 壹号掌机适配：屏幕方向修复支持 `ONEXPLAYER F1` 7840U、8840U OLED 实机 DMI 名 `ONEXPLAYER F1L`，并保留 `ONEXPLAYER F1 OLED` 兼容名称。特殊按键修复严格支持实机验证过的 `ONEXPLAYER F1L` 与 `ONEXPLAYER X1Pro`，分别复用 SteamOS 自带的 ONEXFLY F1 与 X1 InputPlumber 配置，只在 `/etc/inputplumber/devices.d` 创建型号副本；修复 Steam/Guide、快捷菜单和虚拟键盘相关按键。不安装 HHD、不允许 HHD 与 InputPlumber 同时运行、不修改 `/usr/share/inputplumber`；原有同名自定义文件会先备份，恢复时还原原文件及服务原状态。V1.14 BIOS 文件准备入口仍仅适用于 ONEXPLAYER F1 / ONEXFLY 7840U 普通黑白版；Renkit 只校验并复制原厂文件，不会在 SteamOS 下刷写 BIOS。
 - ToDesk：使用固定的第三方SteamOS适配包并校验SHA256，安装完成后恢复只读保护。
 - Steam Deck 优化：清理 Steam 下载缓存、着色器缓存，并提供性能模式提示。
 - 国内下载源与系统组件：先检测 SteamOS 基础组件，已安装且无对应更新时跳过 pacman 更新；archlinuxcn 使用上海交大、中科大和官方 HTTPS 镜像逐级回退，安装并加载 GPG 密钥环；三条线路均失败时撤销Renkit写入的该仓库并继续配置 locale 与 Flatpak 国内缓存，不阻断其他软件安装。完成后恢复只读保护，恢复入口不覆盖用户原有配置。
@@ -219,6 +219,6 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 
 ## 当前版本与维护
 
-当前正式版为 Renkit 2.1.8，后续版本从 1.0 起按语义化版本递增。后续维护同时覆盖 SteamOS 与 Bazzite 的独立菜单；rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
+当前正式版为 Renkit 2.1.9，后续版本从 1.0 起按语义化版本递增。后续维护同时覆盖 SteamOS 与 Bazzite 的独立菜单；rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。

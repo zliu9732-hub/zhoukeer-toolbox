@@ -1042,16 +1042,16 @@ memory_gui_menu() {
 }
 
 f1_screen_fix_gui_menu() {
-    local choice
+    local choice plan_output
 
     while true; do
         choice="$(gui_dialog --menu "掌机适配｜飞行家 F1 问题" \
             install "安装屏幕修复｜F1 7840U 与 8840U OLED（F1L）｜不使用 sudo" \
             status "屏幕修复状态｜查看修复文件和 systemd override" \
             uninstall "卸载屏幕修复｜删除用户级修复并恢复原始启动方式" \
-            f1l-install "安装 F1L 按键修复｜修复 Home、Turbo、键盘等特殊按键" \
-            f1l-status "F1L 按键状态｜验证自定义配置与 InputPlumber" \
-            f1l-restore "恢复 F1L 按键｜删除自定义配置并恢复服务原状态" \
+            button-install "安装特殊按键修复｜实机支持 F1L 8840U 与 X1 Pro AMD" \
+            button-status "特殊按键修复状态｜验证机型、配置、备份与 InputPlumber" \
+            button-restore "恢复特殊按键修复｜还原原文件与 InputPlumber 原状态" \
             bios "准备 V1.14 BIOS｜仅 7840U 普通黑白版｜复制到互通盘" \
             reboot "立即重启 SteamOS｜重启后生效｜请先保存工作" \
             back "返回更多设置" \
@@ -1072,21 +1072,33 @@ f1_screen_fix_gui_menu() {
                     run_gui_action "卸载飞行家 F1 屏幕方向修复" bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" uninstall
                 return 0
                 ;;
-            f1l-install)
-                gui_confirm "仅适用于 ONEXPLAYER F1L；将把系统自带 ONEXFLY 配置复制到 /etc/inputplumber/devices.d，仅修改第一处型号，并启用、重启 InputPlumber。不会安装 HHD、修改 /usr/share/inputplumber 或替换程序。确认继续？" && \
-                    run_gui_action "安装飞行家 F1/F1L SteamOS 按键修复" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/f1l_button_fix.sh" install
+            button-install)
+                if ! plan_output="$(bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" plan-install 2>&1)"; then
+                    gui_dialog --error "$plan_output"
+                    return 0
+                fi
+                gui_confirm "$plan_output
+
+确认继续？" && \
+                    run_gui_action "壹号掌机 SteamOS 特殊按键修复" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" install
                 return 0
                 ;;
-            f1l-status)
-                run_gui_action "飞行家 F1/F1L SteamOS 按键修复状态" \
-                    bash "$PROJECT_ROOT/modules/f1l_button_fix.sh" status
+            button-status)
+                run_gui_action "壹号掌机 SteamOS 特殊按键修复状态" \
+                    bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" status
                 return 0
                 ;;
-            f1l-restore)
-                gui_confirm "将删除 /etc/inputplumber/devices.d/50-onexplayer_f1l.yaml，并把 InputPlumber 恢复到本功能执行前的启用与运行状态；不会修改系统自带配置。确认继续？" && \
-                    run_gui_action "恢复飞行家 F1/F1L SteamOS 按键" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/f1l_button_fix.sh" restore
+            button-restore)
+                if ! plan_output="$(bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" plan-restore 2>&1)"; then
+                    gui_dialog --error "$plan_output"
+                    return 0
+                fi
+                gui_confirm "$plan_output
+
+确认继续？" && \
+                    run_gui_action "恢复壹号掌机 SteamOS 特殊按键修复" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" restore
                 return 0
                 ;;
             bios)
@@ -1096,7 +1108,7 @@ f1_screen_fix_gui_menu() {
                 ;;
             reboot)
                 gui_confirm "将立即重启 SteamOS；请先保存所有工作。确认继续？" && \
-                    run_gui_action "立即重启 SteamOS" bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" reboot
+                    run_gui_action "立即重启 SteamOS" bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" reboot
                 return 0
                 ;;
             back) return 0 ;;
@@ -1116,7 +1128,7 @@ advanced_tools_gui_menu() {
             memory "虚拟内存｜设置 zram、swap 或撤销｜高级操作" \
             change-password "修改管理员密码｜会更换 SteamOS 管理密码｜高级操作" \
             dual "双系统与互通盘｜管理磁盘和开机菜单｜高级操作" \
-            handheld "掌机适配｜飞行家 F1 屏幕与 BIOS｜屏幕修复不使用 sudo" \
+            handheld "掌机适配｜F1 屏幕修复不使用 sudo｜壹号掌机特殊按键" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
         case "$choice" in

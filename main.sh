@@ -1215,19 +1215,19 @@ f1_handheld_menu() {
     local choice
 
     while true; do
-        draw_category_frame advanced "掌机适配" "飞行家 F1 屏幕、F1L 按键与 BIOS 声音修复"
+        draw_category_frame advanced "掌机适配" "飞行家 F1 屏幕/BIOS · 壹号掌机特殊按键修复"
         ui_touch_button 2 '\033[1;97;48;5;24m' "安装屏幕修复" "适用于 F1 7840U 与 8840U OLED（F1L）"
         ui_touch_button 4 '\033[1;97;48;5;24m' "屏幕修复状态" "查看修复文件和 systemd override"
         ui_touch_button 6 '\033[1;97;48;5;160m' "卸载屏幕修复" "删除用户级修复并恢复原始启动方式"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "安装 F1L 按键修复" "修复 Home、Turbo、键盘等特殊按键"
-        ui_touch_button 10 '\033[1;97;48;5;24m' "F1L 按键状态" "验证自定义配置与 InputPlumber"
-        ui_touch_button 12 '\033[1;97;48;5;160m' "恢复 F1L 按键" "删除自定义配置并恢复服务原状态"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "安装特殊按键修复" "实机支持 F1L 8840U 与 X1 Pro AMD"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "特殊按键修复状态" "验证机型、配置、备份与 InputPlumber"
+        ui_touch_button 12 '\033[1;97;48;5;160m' "恢复特殊按键修复" "还原原文件与 InputPlumber 原状态"
         ui_touch_button 14 '\033[1;97;48;5;160m' "准备 V1.14 BIOS" "仅 F1/ONEXFLY 7840U 普通版 · 复制到互通盘"
         ui_touch_button 16 '\033[1;97;48;5;160m' "立即重启 SteamOS" "重启后生效 · 请先保存工作"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回更多设置" "查看其他系统功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:2-3:install right:4-5:status right:6-7:uninstall right:8-9:f1l-install right:10-11:f1l-status right:12-13:f1l-restore right:14-15:bios right:16-17:reboot right:19-20:advanced right:22-23:home)"
+        choice="$(read_touch_menu right:2-3:install right:4-5:status right:6-7:uninstall right:8-9:button-install right:10-11:button-status right:12-13:button-restore right:14-15:bios right:16-17:reboot right:19-20:advanced right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             install)
@@ -1244,19 +1244,19 @@ f1_handheld_menu() {
                     bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" uninstall
                 return 0
                 ;;
-            f1l-install)
-                confirm_and_run "安装飞行家 F1/F1L SteamOS 按键修复" "仅适用于 ONEXPLAYER F1L；将复制系统自带 ONEXFLY 配置到 /etc/inputplumber/devices.d，启用并重启 InputPlumber；不会安装 HHD 或修改只读系统文件" \
-                    bash "$PROJECT_ROOT/modules/f1l_button_fix.sh" install
+            button-install)
+                run_action "壹号掌机 SteamOS 特殊按键修复" \
+                    bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" install
                 return 0
                 ;;
-            f1l-status)
-                run_action "飞行家 F1/F1L SteamOS 按键修复状态" \
-                    bash "$PROJECT_ROOT/modules/f1l_button_fix.sh" status
+            button-status)
+                run_action "壹号掌机 SteamOS 特殊按键修复状态" \
+                    bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" status
                 return 0
                 ;;
-            f1l-restore)
-                confirm_and_run "恢复飞行家 F1/F1L SteamOS 按键" "将删除 /etc/inputplumber/devices.d/50-onexplayer_f1l.yaml，并把 InputPlumber 恢复到本功能执行前的启用与运行状态" \
-                    bash "$PROJECT_ROOT/modules/f1l_button_fix.sh" restore
+            button-restore)
+                run_action "恢复壹号掌机 SteamOS 特殊按键修复" \
+                    bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" restore
                 return 0
                 ;;
             bios)
@@ -1266,7 +1266,7 @@ f1_handheld_menu() {
                 ;;
             reboot)
                 confirm_and_run "立即重启 SteamOS" "将立即重启；请先保存所有工作" \
-                    bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" reboot
+                    bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" reboot
                 return 0
                 ;;
             advanced) return 0 ;;
@@ -1285,7 +1285,7 @@ advanced_tools_menu() {
         ui_touch_button 11 '\033[1;97;48;5;160m' "虚拟内存" "设置 zram、swap 或撤销 · 高级操作"
         ui_touch_button 13 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
         ui_touch_button 15 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单 · 高级操作"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "掌机适配" "飞行家 F1 屏幕与 BIOS · 屏幕修复不使用 sudo"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "掌机适配" "F1 屏幕修复不使用 sudo · 壹号掌机特殊按键"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:memory right:13-14:change-password right:15-16:dual right:17-18:handheld right:22-23:home)"
