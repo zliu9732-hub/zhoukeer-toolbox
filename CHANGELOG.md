@@ -1,3 +1,10 @@
+## Renkit 2.1.7 飞行家 F1L SteamOS 按键修复 — 2026-08-29
+
+- “更多设置 → 掌机适配”新增 ONEXPLAYER F1L 专用按键修复，严格读取 DMI 型号；其他机型、非 SteamOS 和 root 直接运行都会被拒绝。
+- 复用 SteamOS 自带的 `50-onexplayer_onexfly.yaml`，只在 `/etc/inputplumber/devices.d/50-onexplayer_f1l.yaml` 副本中替换第一处 F1 型号，不修改 `/usr/share/inputplumber`、不替换 InputPlumber，也不安装 HHD。
+- 安装会先显示修改范围并确认，检查命令、systemd 服务与源配置，启用并重启 InputPlumber，再验证服务 active、开机启动和唯一 F1L 型号；重复执行不重复写入。
+- 新增状态与恢复入口；恢复只删除自定义配置，并依据首次安装记录恢复 InputPlumber 原启用/运行状态。模拟测试覆盖平台与机型保护、依赖缺失、唯一替换、幂等、失败回滚和恢复。
+
 ## Renkit 2.1.6 掌机功耗镜像锁定与 Fantastic 提示精简 — 2026-08-29
 
 - SimpleDeckyTDP 最新正式版仍为 v1.0.6，Renkit 汉化组件、官方完整包和 Gitee 清单继续统一使用 v1.0.6 与固定 SHA256。
