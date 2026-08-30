@@ -2,7 +2,7 @@
 
 Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装命令会自动选择独立版本：SteamOS 保留完整原版功能，Bazzite 使用单独菜单，仅开放已适配的常用软件、Decky、兼容层、启动器、模拟器和诊断功能。
 
-当前正式版：Renkit 2.1.9；从 Renkit 1.0 起按语义化版本递增。
+当前正式版：Renkit 2.2.0；从 Renkit 1.0 起按语义化版本递增。
 
 - SteamOS 版：继续使用原有 `main.sh`，系统初始化、国内源、插件与高级功能保持原逻辑。
 - Bazzite 版：使用独立 `main-bazzite.sh`；Decky 通过官方 `ujust setup-decky` 安装，并可整组或逐个安装官方商店插件；Flatpak 默认使用带 GPG 验证的官方 Flathub，国内镜像仅在用户确认风险后以用户级远程启用，并可恢复官方源；提供用户级软件、启动器、模拟器与 GE-Proton 安装/卸载，以及 Yuzu 自备密钥、诊断、攻略和快捷方式维护；不调用 pacman、steamos-readonly、ToDesk、AnyDesk或内存调优。Clover 双系统引导作为独立高风险入口开放，动态识别 Bazzite EFI，并提供状态检查和恢复。
@@ -22,13 +22,13 @@ Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装�
 ## 功能
 
 - 一键新机初始化：开始前可选择跳过 pacman、系统密钥环和 locale 更新；跳过时仍配置用户级 Flatpak 国内源并继续其余流程。初始化会检查 SteamOS、网络、电源和系统组件，安装中文输入法、常用软件、Decky、FreeDeck、Epic、常用插件、GE-Proton 10-29、虚拟内存和 Steamcommunity 302；机型匹配不到适用的 ROG、联想或 GPD 专用控制插件时，自动安装通用“掌机功耗控制”。流程结束后生成桌面报告与使用说明；战网、Ubisoft Connect 和黑盒工坊开始前可选。
-- 插件商城：Steam Deck 常用组合包含小黄鸭、FSR4、CheatDeck、游戏封面更换（SteamGridDB）、主题美化（CSS Loader 中文版）、文件传输助手（Friendeck）、音乐播放器（Decky Music）和 Fantastic 风扇控制汉化版；Fantastic 同时列在“其余常用插件”，由 Renkit 从 Gitee mirror-3 直接下载、校验并自动安装，不调用 Decky 商城弹窗。另提供 Decky 官方精选插件；支持整组或单项安装和八款文件状态检查。Decky Music 使用作者原版 v1.0.2 完整包，内置播放器与 QQ/网易云音乐源，不汉化、不重打。Decky Loader 子菜单提供 ROG White 白色主题一键安装，把主题文件放入 CSS Loader themes 目录后即可在 CSS Loader 中开启。独立提供 DeckRecall 与 SavePulse：SavePulse 可自动保留存档版本，并使用每位用户自己的坚果云或标准 WebDAV 做加密备份和换机恢复。固定版本均执行 SHA256、ZIP 结构与插件目录校验。安装或检测到功能插件后会在桌面补充风灵月影、小黄鸭和 FSR4 小白教程；检测到 FSR4 时另建 OptiScaler 官方 Wiki 已测试游戏清单。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
+- 插件商城：Steam Deck 常用组合包含小黄鸭、FSR4、CheatDeck、游戏封面更换（SteamGridDB）、主题美化（CSS Loader 中文版）、文件传输助手（Friendeck）、音乐播放器（Decky Music）和 Fantastic 风扇控制汉化版；Fantastic 同时列在“其余常用插件”，由 Renkit 从国内分块镜像直接下载、校验并自动安装，不调用 Decky 商城弹窗。另提供 Decky 官方精选插件；支持整组或单项安装和八款文件状态检查。Decky Music 使用作者原版 v1.0.2 完整包，内置播放器与 QQ/网易云音乐源，不汉化、不重打。Decky Loader 子菜单提供 ROG White 白色主题一键安装，把主题文件放入 CSS Loader themes 目录后即可在 CSS Loader 中开启。独立提供 DeckRecall 与 SavePulse：SavePulse 可自动保留存档版本，并使用每位用户自己的坚果云或标准 WebDAV 做加密备份和换机恢复。固定版本均执行 SHA256、ZIP 结构与插件目录校验。安装或检测到功能插件后会在桌面补充风灵月影、小黄鸭和 FSR4 小白教程；检测到 FSR4 时另建 OptiScaler 官方 Wiki 已测试游戏清单。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
 
 使用小黄鸭前，安装完成后请在 Steam 正版页面打开游戏右侧齿轮，进入“属性 → 测试版”，选择名称以 Linux 开头的可用版本；随后进入游戏模式，按 Steam Deck 机身右下角的“三个点（…）”按钮，在打开的菜单中依次点击插头图标 → 小黄鸭 → 安装 LSFG。
 - 常用软件与远程协助：微信使用腾讯官网官方 AppImage；QQ、Chrome、Edge、AnyDesk、百度网盘、LibreOffice、VLC、OBS Studio、LocalSend、PeaZip、WiliWili、QQ音乐、网易云音乐、YesPlayMusic、qBittorrent、Motrix、Free Download Manager、Media Downloader、Flameshot、OnlyOffice、Joplin、Protontricks、Bottles 通过上海交大和中科大 Flathub 国内缓存安装；Xbox 云游戏通过 Flathub 安装 Greenlight，云游戏需 Xbox 账号；Heroic、Lutris、Chiaki4Deck、Parsec 通过 Flathub 安装并自动加入 Steam 库；WiliWili 也会同步加入 Steam 库；Firefox 使用官方 Flathub 的 `org.mozilla.firefox`；RustDesk 使用作者 GitHub Release 提供的 AppImage。安装成功后会创建桌面快捷方式，不修改 SteamOS 只读分区。
 - 安装与卸载：软件、兼容层和插件会先检测现有完整安装，已安装时不重复下载；独立的七页卸载菜单可逐项移除，启动器卸载保留游戏与下载文件，模拟器卸载保留存档与配置，系统组件和全部插件仍需风险确认。
-- GE-Proton兼容层：安装入口提供“最新 GE 兼容层”和“修改器所需常用兼容层”两个选项；最新版通过专用 Gitee mirror-8 自动检测并分块下载，修改器兼容层仍沿用原仓库，可分别安装 GE-Proton 7-55、8-25、9-27、10-29。最新版安装不会删除本机已有旧版。下载后校验 SHA256，安装到 Steam 用户的 `compatibilitytools.d` 目录，不需要管理员权限；安装完成后自动重启 Steam 使其生效。
-- Proton-CachyOS兼容层：使用 CachyOS 上游普通 `x86_64` Steam Linux Runtime 包，通过独立 Gitee mirror-9 分块下载；校验清单、整体 SHA256、压缩包路径和必要文件后原子安装，与官方 Proton 和 GE-Proton 共存。
+- GE-Proton兼容层：安装入口提供“最新 GE 兼容层”和“修改器所需常用兼容层”两个选项；最新版通过专用国内分块镜像自动检测并下载，修改器兼容层仍沿用原仓库，可分别安装 GE-Proton 7-55、8-25、9-27、10-29。最新版安装不会删除本机已有旧版。下载后校验 SHA256，安装到 Steam 用户的 `compatibilitytools.d` 目录，不需要管理员权限；安装完成后自动重启 Steam 使其生效。
+- Proton-CachyOS兼容层：使用 CachyOS 上游普通 `x86_64` Steam Linux Runtime 包，通过独立国内分块镜像下载；校验清单、整体 SHA256、压缩包路径和必要文件后原子安装，与官方 Proton 和 GE-Proton 共存。
 - 壹号掌机适配：屏幕方向修复支持 `ONEXPLAYER F1` 7840U、8840U OLED 实机 DMI 名 `ONEXPLAYER F1L`，并保留 `ONEXPLAYER F1 OLED` 兼容名称。特殊按键修复严格支持实机验证过的 `ONEXPLAYER F1L` 与 `ONEXPLAYER X1Pro`，分别复用 SteamOS 自带的 ONEXFLY F1 与 X1 InputPlumber 配置，只在 `/etc/inputplumber/devices.d` 创建型号副本；修复 Steam/Guide、快捷菜单和虚拟键盘相关按键。不安装 HHD、不允许 HHD 与 InputPlumber 同时运行、不修改 `/usr/share/inputplumber`；原有同名自定义文件会先备份，恢复时还原原文件及服务原状态。V1.14 BIOS 文件准备入口仍仅适用于 ONEXPLAYER F1 / ONEXFLY 7840U 普通黑白版；Renkit 只校验并复制原厂文件，不会在 SteamOS 下刷写 BIOS。
 - ToDesk：使用固定的第三方SteamOS适配包并校验SHA256，安装完成后恢复只读保护。
 - Steam Deck 优化：清理 Steam 下载缓存、着色器缓存，并提供性能模式提示。
@@ -44,10 +44,10 @@ Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装�
 - 一键修复模式：执行网络检测、Steam 下载缓存清理建议和 DNS 处理提示。
 - 一键体检：检查 SteamOS、剩余空间、网络与 Steam 域名解析、Decky、Flatpak 软件源和常用软件状态；不修改系统，并把报告保存到桌面。
 - 游戏启动诊断：检查 Steam 游戏库、可用空间、Steam 运行状态、兼容数据、自定义 Proton / GE 和日志目录；不删除游戏、兼容数据或缓存。
-- 游戏与掌机助手：一键下载 Epic、战网和育碧官方 Windows 安装包，自动创建带Renkit标识的桌面入口，并写入当前 Steam 账号的非 Steam 游戏库及完整封面。Windows 虚拟目录默认放在用户可见的 `~/游戏启动器`，Steam 条目直接绑定真实 EXE 与 Proton 10.0-4，并把 Steam compatdata 的 drive_c 链接到同一份目录，便于黑盒工坊等插件定位游戏文件。Epic 安装包先走 Gitee 分块镜像，失败后回退官方源与官方 CDN 固定版；MAKO 小黄鸭跟随上游最新正式版，优先从 Gitee mirror-3 下载作者官方中文原包，镜像尚未同步时回退作者 GitHub Release，全程校验作者 SHA256，保留 Eugenio Segala 与 GPL-3.0-or-later 许可证，不添加 Renkit 汉化署名；FSR4 仍使用 Gitee mirror-3 分块署名中文包。战网由 Steam 原生条目配合 Proton Experimental 完成安装并复用同一兼容环境；Epic 与育碧继续由Renkit自动准备兼容层，缺少时通过 Steam 补齐官方 Proton。
+- 游戏与掌机助手：一键下载 Epic、战网和育碧官方 Windows 安装包，自动创建带Renkit标识的桌面入口，并写入当前 Steam 账号的非 Steam 游戏库及完整封面。Windows 虚拟目录默认放在用户可见的 `~/游戏启动器`，Steam 条目直接绑定真实 EXE 与 Proton 10.0-4，并把 Steam compatdata 的 drive_c 链接到同一份目录，便于黑盒工坊等插件定位游戏文件。Epic 安装包先走国内分块镜像，失败后回退官方源与官方 CDN 固定版；MAKO 小黄鸭跟随上游最新正式版，优先从国内镜像下载作者官方中文原包，镜像尚未同步时回退作者 GitHub Release，全程校验作者 SHA256，保留 Eugenio Segala 与 GPL-3.0-or-later 许可证，不添加 Renkit 汉化署名；FSR4 仍使用国内分块镜像中的署名中文包。战网由 Steam 原生条目配合 Proton Experimental 完成安装并复用同一兼容环境；Epic 与育碧继续由Renkit自动准备兼容层，缺少时通过 Steam 补齐官方 Proton。
 - 实用指南：独立提供启动器、Proton、手柄、反作弊和性能空间的中文兼容攻略；可查看常用快捷键、外接设备状态、高风险操作说明，并将最近 80 条Renkit操作记录导出到桌面。
 - 更新日志：可在Renkit内用触屏查看当前版本的主要改动。
-- 自动更新Renkit：每次启动会快速检测版本，发现新版本后自动下载并校验更新；优先使用Gitee，失败后切换GitHub，断网或更新失败时继续启动现有版本。
+- 自动更新Renkit：每次启动会快速检测版本，发现新版本后自动下载并校验更新；优先使用国内镜像，失败后切换 GitHub，断网或更新失败时继续启动现有版本。
 - 纯触控界面：大按钮支持触屏和触控板，菜单忽略键盘数字和字母输入。
 - 专用视觉主题：安装时自动配置大字体、深色遮罩和Renkit背景图；启动免责声明使用终端文字版，不展示大图开屏，不修改其他 Konsole 会话。
 
@@ -59,34 +59,34 @@ Renkit是面向 SteamOS 与 Bazzite 掌机的 Bash 工具集。同一条安装�
 
 ### 短域名入口
 
-推荐使用短域名入口；入口会依次尝试 Gitee、GitHub Raw 和域名自身的安装器，并在执行前拒绝 HTML、超大文件和语法错误响应：
+推荐使用短域名入口；入口会依次尝试国内镜像、GitHub Raw 和域名自身的安装器，并在执行前拒绝 HTML、超大文件和语法错误响应：
 
 ```bash
 curl -fsSL https://jktool.icu/i | bash
 ```
 
-Gitee 完整地址仍可作为手动备用：
+GitHub Raw 完整地址仍可作为手动备用：
 
 ```bash
-curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/i | bash
+curl -fsSL https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/i | bash
 ```
 
 ## 三款核心插件独立安装
 
-以下命令由Renkit下载器统一处理：Gitee 分块镜像优先，失败后回退作者 GitHub Release；下载后校验 SHA256 并原子替换 Decky 插件目录，不使用或转存第三方 ZIP。运行前请先安装 Decky Loader。
+以下命令由Renkit下载器统一处理：国内分块镜像优先，失败后回退作者 GitHub Release；下载后校验 SHA256 并原子替换 Decky 插件目录，不使用或转存第三方 ZIP。运行前请先安装 Decky Loader。
 
 ```bash
-curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/scripts/install-decky-plugin.sh | bash -s -- lsfg
-curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/scripts/install-decky-plugin.sh | bash -s -- framegen
-curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/scripts/install-decky-plugin.sh | bash -s -- cheatdeck
+curl -fsSL https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/scripts/install-decky-plugin.sh | bash -s -- lsfg
+curl -fsSL https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/scripts/install-decky-plugin.sh | bash -s -- framegen
+curl -fsSL https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/scripts/install-decky-plugin.sh | bash -s -- cheatdeck
 ```
 
 安装后完全退出游戏模式再重新进入一次，让 Decky 重新扫描插件。小黄鸭、Decky-Framegen 和 CheatDeck 的插件作者分别为 xXJSONDeruloXx、xXJSONDeruloXx、SheffeyG，请支持原作者。
 
-Gitee 完整入口：
+GitHub Raw 完整入口：
 
 ```bash
-curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/bootstrap.sh | bash
 ```
 
 默认安装目录：
@@ -98,7 +98,7 @@ ${HOME}/.local/share/zhoukeer-toolbox
 安装前预演，不修改文件：
 
 ```bash
-curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/bootstrap.sh | bash -s -- --dry-run
+curl -fsSL https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/bootstrap.sh | bash -s -- --dry-run
 ```
 
 安装完成后会创建：
@@ -206,19 +206,19 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 
 1. 确认 `bash -n` 检查通过。
 2. 确认 `config/settings.conf` 不包含私人配置。
-3. 更新 `VERSION` 与 `CHANGELOG.md`，确认本机 SSH 可以推送 Gitee。
+3. 更新 `VERSION` 与 `CHANGELOG.md`，确认本机 SSH 可以推送生产国内更新仓库。
 4. 执行 `bash scripts/deploy_release.sh` 生成发布包、`.sha256` 和 `SHA256SUMS` 校验文件；发布包必须不超过 9,437,184 字节。
 5. 只显式暂存本次发布文件，提交代码并打 tag，例如 `v1.2.0`；禁止 `git add .`、force push 或改写历史。
-6. 只推送 `main` 与当前版本 tag（例如 `v1.6.1`），禁止使用 `git push --tags`；避免把已清理的旧标签带回仓库。再在 Gitee Release 中上传版本化发布包和 `.sha256` 校验文件。
+6. 只推送 `main` 与当前版本 tag（例如 `v1.6.1`），禁止使用 `git push --tags`；避免把已清理的旧标签带回仓库。再向生产国内更新仓库同步版本化发布包和 `.sha256` 校验文件。
 7. 在 Release 中写明安装、更新、卸载命令。
 8. 不要在 Release 包中包含密码、Token、邮箱或个人路径；桌面的 `管理员密码.txt` 仅在用户设备本地生成。
 
 默认下载顺序：
 
-1. Gitee项目内固定包：`dist/renkit.tar.gz`
+1. 国内更新仓库固定包：`dist/renkit.tar.gz`
 
 ## 当前版本与维护
 
-当前正式版为 Renkit 2.1.9，后续版本从 1.0 起按语义化版本递增。后续维护同时覆盖 SteamOS 与 Bazzite 的独立菜单；rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
+当前正式版为 Renkit 2.2.0，后续版本从 1.0 起按语义化版本递增。后续维护同时覆盖 SteamOS 与 Bazzite 的独立菜单；rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。

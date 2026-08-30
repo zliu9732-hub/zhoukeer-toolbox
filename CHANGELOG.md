@@ -1,3 +1,9 @@
+## Renkit 2.2.0 界面下载源名称统一 — 2026-08-30
+
+- SteamOS 触控菜单、桌面 GUI、Bazzite 菜单、确认框、安装进度、错误提示和日志不再显示内部镜像平台名称，统一使用“国内镜像”或“国内分块镜像”。
+- 下载状态页为内部国内线路 ID 增加中文显示名；管理员密码重置提示改用 GitHub 帮助链接，安装器 dry-run 不再输出国内镜像的真实仓库 URL。
+- 内置更新日志的历史来源说明同步改为通用国内镜像称呼；实际国内下载地址、内部兼容标识、下载优先级、SHA256、体积限制和失败回退逻辑保持不变。
+
 ## Renkit 2.1.9 壹号掌机 SteamOS 特殊按键修复 — 2026-08-30
 
 - “更多设置 → 掌机适配”把原 F1L 专用入口扩展为“壹号掌机 SteamOS 特殊按键修复”，仅精确接受实机验证成功的 `ONEXPLAYER F1L` 与 `ONEXPLAYER X1Pro`；其他 DMI 明确提示尚未实机验证并停止。
@@ -22,10 +28,10 @@
 
 ## Renkit 2.1.6 掌机功耗镜像锁定与 Fantastic 提示精简 — 2026-08-29
 
-- SimpleDeckyTDP 最新正式版仍为 v1.0.6，Renkit 汉化组件、官方完整包和 Gitee 清单继续统一使用 v1.0.6 与固定 SHA256。
-- Gitee 自动同步脚本不再让 SimpleDeckyTDP 镜像抢跑到尚未完成汉化的新上游版本，避免安装器因镜像清单与当前固定版本不一致而回退 GitHub。
-- 增加 SimpleDeckyTDP Gitee 安装行为测试，验证官方运行核心下载、v1.0.6 汉化叠加、插件中文身份与重复安装检测。
-- Fantastic 的触控菜单、图形菜单、风险确认和安装进度不再显示内部仓库编号 `Gitee mirror-3`，保留完整汉化版、`RenAmamiya` 署名与风扇过热风险提示。
+- SimpleDeckyTDP 最新正式版仍为 v1.0.6，Renkit 汉化组件、官方完整包和 国内镜像 清单继续统一使用 v1.0.6 与固定 SHA256。
+- 国内镜像 自动同步脚本不再让 SimpleDeckyTDP 镜像抢跑到尚未完成汉化的新上游版本，避免安装器因镜像清单与当前固定版本不一致而回退 GitHub。
+- 增加 SimpleDeckyTDP 国内镜像 安装行为测试，验证官方运行核心下载、v1.0.6 汉化叠加、插件中文身份与重复安装检测。
+- Fantastic 的触控菜单、图形菜单、风险确认和安装进度不再显示内部仓库编号 `国内镜像`，保留完整汉化版、`RenAmamiya` 署名与风扇过热风险提示。
 
 ## Renkit 2.1.5 飞行家 F1L OLED 实机识别修正 — 2026-08-28
 
@@ -44,15 +50,15 @@
 ## Renkit 2.1.3 MAKO 2.2.0 与国内源优先 — 2026-08-28
 
 - MAKO 小黄鸭安全基线升级到上游官方 2.2.0，固定下载地址、ZIP SHA256 和前端完整性校验同步更新；最新版检查失败时不再退回 2.1.0。
-- 安装前先读取 Gitee mirror-3 的 `lsfg-mako` 最新清单，直接采用清单中的版本、作者原包地址和 SHA256；国内镜像可用时不再等待 GitHub API。
-- Gitee 清单不可用时才短时检查作者 GitHub Release，并显示当前检查阶段，避免 GitHub API 受限时界面长时间没有反馈。
+- 安装前先读取 国内镜像 的 `lsfg-mako` 最新清单，直接采用清单中的版本、作者原包地址和 SHA256；国内镜像可用时不再等待 GitHub API。
+- 国内镜像 清单不可用时才短时检查作者 GitHub Release，并显示当前检查阶段，避免 GitHub API 受限时界面长时间没有反馈。
 - 已核验 mirror-3 的 MAKO 2.2.0 四个分块可完整重组，ZIP SHA256 为 `621ad66bd40f12b416e8112bb78e1aae55a96bf7fe14439b95fca1cf89324089`，包内保留 Eugenio Segala 与 GPL-3.0-or-later 许可证。
 
 ## Renkit 2.1.2 Fantastic 常用插件直装 — 2026-08-26
 
 - Fantastic 从“精选插件”迁移到“常用插件组合”，成为 Steam Deck 的第八款常用插件。
 - “其余常用插件”新增 Fantastic 单项入口，保留原作者 NGnius、GPL-3.0 许可证与“中文汉化：RenAmamiya”署名。
-- Fantastic 改由 Renkit 从 Gitee mirror-3 固定地址直接下载，执行 SHA256、ZIP 路径、插件目录、版本和汉化前端校验后原子安装，不再调用会弹出 Steam/Decky 安装窗口的精选插件安装器。
+- Fantastic 改由 Renkit 从 国内镜像 固定地址直接下载，执行 SHA256、ZIP 路径、插件目录、版本和汉化前端校验后原子安装，不再调用会弹出 Steam/Decky 安装窗口的精选插件安装器。
 - Bazzite 常用组合保持原有七款，不安装仅适用于 Steam Deck 的 Fantastic 风扇控制。
 
 ## Renkit 2.1.1 Sunshine 静默授权与 Fantastic 汉化版 — 2026-08-26
@@ -60,7 +66,7 @@
 - Sunshine 不再调用会连续触发多个 KDE 验证窗口的官方 `pkexec` 附加脚本；改为校验官方 Flatpak 包内服务、内核模块和 udev 规则后，使用桌面 `管理员密码.txt` 经 Renkit 安全 `sudo` 流程自动配置。
 - Sunshine 卸载同样使用桌面密码记录清理固定服务与输入规则；密码只经标准输入建立短暂 sudo 时间戳，不进入命令参数、环境变量或日志。
 - 精选插件新增 Fantastic 0.5.1 风扇控制汉化版，完整保留 NGnius 官方后端和 GPL-3.0 许可证，界面显示“中文汉化：RenAmamiya”。
-- Fantastic 署名完整包固定从 Gitee mirror-3 下载并校验 SHA256；单项安装与整组精选插件安装都会使用汉化包，不回退原版。
+- Fantastic 署名完整包固定从 国内镜像 下载并校验 SHA256；单项安装与整组精选插件安装都会使用汉化包，不回退原版。
 - Fantastic 安装前增加设备过热风险确认，仅允许 SteamOS/Bazzite 进入安装流程。
 
 ## Renkit 2.1.0 Sunshine 串流服务端 — 2026-08-26
@@ -73,8 +79,8 @@
 ## Renkit 2.0.9 Proton-CachyOS 独立分块镜像 — 2026-08-25
 
 - 游戏兼容层菜单新增 Proton-CachyOS，安装 CachyOS 上游普通 `x86_64` Steam Linux Runtime 包，与官方 Proton、GE-Proton 和既有自定义兼容层共存。
-- 新建公开 Gitee 专用仓库 `zhoukeer-toolbox-mirror-9`，通过独立定时工作流把上游正式 Release 拆为 8 MiB 分块；全部分块上传完成后才发布 `latest.txt`。
-- Proton-CachyOS 专用同步在 Gitee 已接收分块但连接未及时结束时使用 60 秒超时重试，避免每块等待五分钟；仍保持单块提交和最多三次重试。
+- 新建公开 国内镜像 专用仓库 `zhoukeer-toolbox-mirror-9`，通过独立定时工作流把上游正式 Release 拆为 8 MiB 分块；全部分块上传完成后才发布 `latest.txt`。
+- Proton-CachyOS 专用同步在 国内镜像 已接收分块但连接未及时结束时使用 60 秒超时重试，避免每块等待五分钟；仍保持单块提交和最多三次重试。
 - 安装过程限制 SteamOS/Bazzite 平台，执行清单、文件大小、SHA256、tar.xz 路径、必要文件和符号链接检查，并以同盘暂存目录原子替换；失败时保留现有版本。
 - SteamOS 触控菜单、图形菜单和 Bazzite 菜单统一新增入口；固定安全回退版本为 `proton-cachyos-11.0-20260703-slr-x86_64`。
 
@@ -82,7 +88,7 @@
 
 - NewFreedeck 安全基线同步到作者官方 0.2.0，修复原先固定 0.1 且已有目录会被误判为无需更新的问题；现有 0.1 会原子升级，0.2.0 不重复下载。
 - 安装前自动检测作者最新正式 Release，按官方资产名解析内部三段版本和 GitHub 提供的 SHA256；检测失败时回退已验证的 0.2.0。
-- NewFreedeck 使用独立 `newfreedeck` Gitee mirror-3 清单和四个 8 MiB 分块，完整重组后校验 SHA256；镜像不可用时才回退作者 GitHub Release。
+- NewFreedeck 使用独立 `newfreedeck` 国内镜像 清单和四个 8 MiB 分块，完整重组后校验 SHA256；镜像不可用时才回退作者 GitHub Release。
 - SteamOS、Bazzite 与图形菜单统一改为“自动检测最新版”，并保留作者关于个别模拟器仍不可用的提示。
 
 ## Renkit 2.0.7 GE-Proton 11-5 安装修复 — 2026-08-24
@@ -92,7 +98,7 @@
 
 ## Renkit 2.0.6 GE-Proton 专用镜像 — 2026-08-24
 
-- 最新 GE-Proton 的 Gitee 清单与全部分块迁移到新建的公开专用仓库 `zhoukeer-toolbox-mirror-8`，避开旧镜像仓库历史对象超过 1 GiB 配额导致的同步失败。
+- 最新 GE-Proton 的 国内镜像 清单与全部分块迁移到新建的公开专用仓库 `zhoukeer-toolbox-mirror-8`，避开旧镜像仓库历史对象超过 1 GiB 配额导致的同步失败。
 - 新增独立定时同步任务，只更新 GE-Proton 专用仓库；客户端仍会自动识别上游最新正式版，分块重组后执行文件大小与 SHA256 双重校验。
 - 本机已有 GE-Proton 11-3、修改器专用 7-55/8-25/9-27/10-29 兼容层及其既有镜像仓库均不删除、不迁移。
 
@@ -100,7 +106,7 @@
 
 - “掌机适配 → 飞行家 F1 问题”新增 V1.14 BIOS 准备入口，只适用于 ONEXPLAYER F1 / ONEXFLY 7840U 普通黑白版，不适用于 8840U、EVA、F1 Pro 或其他机型。
 - Renkit 只下载固定 BIOS 包，执行 ZIP SHA256、压缩包结构和九个原厂文件逐项校验，再解压到首选互通盘 `/run/media/deck/GAME/F1-BIOS-V1.14`（Game 卷标不区分大小写）；不会在 SteamOS 下刷写 BIOS。
-- 修复 GE-Proton 自动更新停在 11-3：兼容上游 11-5 起新增的 `-x86_64` 资产名，继续优先使用 Gitee 分块镜像并禁止旧镜像降级，固定安全回退同步更新为 GE-Proton 11-5。
+- 修复 GE-Proton 自动更新停在 11-3：兼容上游 11-5 起新增的 `-x86_64` 资产名，继续优先使用 国内分块镜像并禁止旧镜像降级，固定安全回退同步更新为 GE-Proton 11-5。
 - 安装 GE-Proton 11-5 不会删除本机已有 11-3、四个修改器兼容层或任何其他自定义版本。
 - 退役战网＋黑盒工坊独立一行引导、独立打包脚本及专用测试；Renkit 主工具箱内原有战网和黑盒工坊功能保持不变。
 
@@ -114,30 +120,30 @@
 
 - SimpleDeckyTDP 汉化版同步上游 v1.0.6，纳入新版 Steam 客户端挂起/唤醒事件兼容修复，解决旧恢复状态字段移除后的监听问题。
 - 保留“掌机功耗控制”中文界面、完整简体中文翻译、原作者 Aarron Lee 与 `RenAmamiya` 汉化署名；插件运行后端和许可证继续保持上游原样。
-- GitHub 与 Gitee 镜像基线、内置中文前端校验、版本检测和发布包路径统一升级到 v1.0.6；旧版安装会自动识别并更新。
+- GitHub 与 国内镜像基线、内置中文前端校验、版本检测和发布包路径统一升级到 v1.0.6；旧版安装会自动识别并更新。
 
 ## Renkit 2.0.2 MAKO 自动跟随上游更新 — 2026-08-22
 
 - MAKO 小黄鸭改为安装前检测 `eugeniosegala/MAKO` 最新正式 Release，动态采用作者资产版本、下载地址和 SHA256；检测失败时继续使用 v2.1.0 安全基线。
-- MAKO 复用 CheatDeck 的下载链路：优先使用 Gitee mirror-3 中 SHA256 完全匹配的作者原包，镜像尚未同步时回退作者 GitHub Release，失败时保留现有插件。
-- Gitee 定时同步与手动镜像流程均改为跟随 MAKO 最新正式插件包；继续保留 Eugenio Segala、GPL-3.0-or-later 许可证和作者官方简体中文，不注入 Renkit 汉化或署名。
+- MAKO 复用 CheatDeck 的下载链路：优先使用 国内镜像 中 SHA256 完全匹配的作者原包，镜像尚未同步时回退作者 GitHub Release，失败时保留现有插件。
+- 国内镜像 定时同步与手动镜像流程均改为跟随 MAKO 最新正式插件包；继续保留 Eugenio Segala、GPL-3.0-or-later 许可证和作者官方简体中文，不注入 Renkit 汉化或署名。
 - 战网/黑盒独立工具版本固定为其现有 `2.0.1`，不再随 Renkit 主版本重复打包或作为每次主版本发布附件；主工具箱发布只生成 Renkit 更新包。
 
 ## Renkit 2.0.1 MAKO 官方中文原包 — 2026-08-22
 
 - MAKO 小黄鸭升级到上游官方 v2.1.0，直接使用作者 Release 原始 ZIP；该版本已自带简体中文、Renderer v2.1.0 和完整 GPL-3.0-or-later 许可证。
 - 移除 MAKO 安装后的 Renkit 汉化注入与 `RenAmamiya` 署名，保留上游作者 Eugenio Segala 的原始包信息，ZIP 不修改、不重打。
-- 官方原包固定通过 Gitee mirror-3 分块下载，重组后校验官方 SHA256；镜像失败时保留现有插件且不回退 GitHub。
+- 官方原包固定通过 国内镜像 分块下载，重组后校验官方 SHA256；镜像失败时保留现有插件且不回退 GitHub。
 
 ## Renkit 2.0.0 Decky Music 镜像迁移 — 2026-08-21
 
-- Decky Music v1.0.2 作者原版完整包迁移到 Gitee `zhoukeer-toolbox-mirror-4`，避开已超配额的主镜像仓库；包内容、分块和官方 SHA256 均不变。
+- Decky Music v1.0.2 作者原版完整包迁移到 国内镜像 `zhoukeer-toolbox-mirror-4`，避开已超配额的主镜像仓库；包内容、分块和官方 SHA256 均不变。
 - 下载路由固定使用 mirror-4，原七款一键安装与一键新机初始化逻辑保持不变。
 
 ## Renkit 1.9.9 Decky Music 完整音乐源与独立入口 — 2026-08-21
 
 - Decky Music 固定升级到作者原版 v1.0.2 完整包，播放器、QQ 音乐源和网易云音乐源均随包提供，避免首次启动因外网依赖下载失败而显示“音乐源启动失败”；原包不汉化、不重打、不修改作者信息。
-- 作者原包按 8 MiB 分块同步到既有 Gitee 镜像，安装时重组并核对官方 SHA256；安装状态同时检查三个音乐源运行文件，旧版或残缺安装会触发完整包更新。
+- 作者原包按 8 MiB 分块同步到既有 国内镜像，安装时重组并核对官方 SHA256；安装状态同时检查三个音乐源运行文件，旧版或残缺安装会触发完整包更新。
 - 常用插件组合新增独立入口页，可分别安装 SteamGridDB、CSS Loader、Friendeck 和 Decky Music；原有七款一键安装与一键新机初始化调用顺序保持不变。
 
 ## Renkit 1.9.8 暂停问题插件入口 — 2026-08-21
@@ -149,38 +155,38 @@
 
 - 沉浸式翻译由过时的 0.8.0 升级为官方最新 0.9.1，包含新版 SteamOS 布局、商店与媒体层输入、Python 运行时和屏幕捕获兼容修复；保留完整简体中文界面与 `RenAmamiya` 汉化署名。
 - 中文包直接以官方 0.9.1 Release ZIP 为底，仅替换校验后的中文前端与清单，并内置官方固定 SHA256 的完整依赖归档；旧 0.8.0 会被版本、前端、后端和依赖四重校验强制升级。
-- 0.9.1 完整包继续从 Gitee 分块源下载，清单固定在 mirror-3；分块跨 Gitee 镜像仓库承载，任一分块或整包校验失败时保留现有插件。
+- 0.9.1 完整包继续从 国内分块源下载，清单固定在 mirror-3；分块跨 国内镜像仓库承载，任一分块或整包校验失败时保留现有插件。
 
 ## Renkit 1.9.6 游戏数据插件运行依赖修复 — 2026-08-20
 
 - 修复沉浸式翻译 mirror-3 中文包漏装 0.8.0 官方后端依赖，导致 Decky 后端持续崩溃并表现为插件商城反复重启的问题；修正版完整包内置固定 SHA256 的官方依赖归档。
 - 安装器新增后端文件与依赖归档校验：已经安装 1.9.5 坏包的设备会自动识别缺失依赖并强制重装，不会因为版本号仍为 0.8.0 而跳过。
-- SteamDB 游戏数据后端切换到当前 Decky 的 `decky_plugin` 模块名，并纳入后端哈希校验；两款修正版仍只通过 Gitee mirror-3 分块下载，失败时保留现有插件。
+- SteamDB 游戏数据后端切换到当前 Decky 的 `decky_plugin` 模块名，并纳入后端哈希校验；两款修正版仍只通过 国内镜像 分块下载，失败时保留现有插件。
 
 ## Renkit 1.9.5 游戏模式数据与沉浸式翻译 — 2026-08-20
 
 - 插件第二页新增“游戏数据与翻译”子菜单，可安装 SteamDB 游戏数据中文版，在游戏商店页查看价格史低与在线峰值。
 - 新增沉浸式翻译中文版，可翻译 Steam Deck 游戏兼容性评价与屏幕文字；界面固定为简体中文，并统一显示 `RenAmamiya` 汉化署名。
-- 两个完整插件包均固定通过 Gitee mirror-3 分块清单下载、重组并校验 SHA256；镜像失败时保留现有插件，不使用 GitHub 或本地覆盖层回退。
+- 两个完整插件包均固定通过 国内镜像 分块清单下载、重组并校验 SHA256；镜像失败时保留现有插件，不使用 GitHub 或本地覆盖层回退。
 
 ## Renkit 1.9.4 插件后端连接与兼容层菜单修复 — 2026-08-20
 
 - 修复小黄鸭与 FSR4 修改 `plugin.json` 外显名后，前端仍用旧英文身份连接 Python 后端，导致小黄鸭无法检测 Lossless Scaling、FSR4 无法安装 OptiScaler 并显示 Python error 的问题；后端、运行库和安装脚本保持上游原文件。
-- 两个署名完整包继续只走 Gitee mirror-3：小黄鸭保持 2 个分块，FSR4 保持 24 个分块；下载、重组和校验逻辑不变，仅同步修正版完整包、分块和固定 SHA256。
+- 两个署名完整包继续只走 国内镜像：小黄鸭保持 2 个分块，FSR4 保持 24 个分块；下载、重组和校验逻辑不变，仅同步修正版完整包、分块和固定 SHA256。
 - “修改器所需常用兼容层”新增子菜单，可单独安装 GE-Proton 7-55、8-25、9-27、10-29，第五项保留原来的四款全部安装。
 - Epic 与育碧准备安装环境时会识别自定义 Steam 库中的 Proton Experimental/10.0-4，避免兼容层已安装仍重复打开 Steam 安装页并等待。
 
 ## Renkit 1.9.3 插件名称升级判定 — 2026-08-20
 
 - 修复已安装 1.9.1 插件时仅凭版本号与前端哈希跳过更新的问题；带署名小黄鸭与 FSR4 现在还会严格核对 `plugin.json` 外显名。
-- 旧英文名称会触发从原有 Gitee mirror-3 分块源重新安装，新名称分别固定为“小黄鸭”和 `Decky-Framegen（FSR4）`。
+- 旧英文名称会触发从原有 国内镜像 分块源重新安装，新名称分别固定为“小黄鸭”和 `Decky-Framegen（FSR4）`。
 - 保持两份完整包、SHA256、镜像 ID、分块数量和下载逻辑不变，仅补强本地幂等检测与升级路径。
 
 ## Renkit 1.9.2 Decky 插头列表名称修复 — 2026-08-20
 
 - 修复带署名小黄鸭与 FSR4 完整包的 `plugin.json` 仍保留英文名称，导致 Decky 插头列表显示英文、进入插件后才显示中文的问题。
 - 小黄鸭外显名统一为“小黄鸭”，FSR4 外显名统一为 `Decky-Framegen（FSR4）`；插件目录、后端、中文界面与 `RenAmamiya` 署名保持不变。
-- 两个完整包继续只使用 Gitee mirror-3 分块清单下载；镜像 ID、版本、文件名、分块数量和下载逻辑均保持不变，仅更新包 SHA256 与对应分块。
+- 两个完整包继续只使用 国内镜像 分块清单下载；镜像 ID、版本、文件名、分块数量和下载逻辑均保持不变，仅更新包 SHA256 与对应分块。
 
 ## Renkit 1.9.1 小黄鸭与 FSR4 展示名称 — 2026-08-19
 
@@ -191,20 +197,20 @@
 ## Renkit 1.9.0 小黄鸭固定中文界面 — 2026-08-19
 
 - 修复小黄鸭 0.12.8 中文包仍跟随 Steam 界面语言、在英文 Steam 环境下整页回退英文的问题；中文包现在固定使用简体中文。
-- 仅更新小黄鸭完整 ZIP、固定 SHA256 与 mirror-3 的两块内容；Gitee 分块数量、大小、下载、重组及校验逻辑保持不变。
+- 仅更新小黄鸭完整 ZIP、固定 SHA256 与 mirror-3 的两块内容；国内分块数量、大小、下载、重组及校验逻辑保持不变。
 
 ## Renkit 1.8.9 Decky 与新机流程紧急修复 — 2026-08-19
 
 - 旧版小黄鸭/FSR4 汉化覆盖配置改为静默退役，升级时自动清理，不再在每个安装项目前重复报警。
 - 网络诊断只跟踪、等待和回收自身探测进程；用户中断后先终止后台探测，再删除临时目录，避免后续出现 `/tmp/...` 文件不存在。
-- Decky Loader 保持既有 Gitee 版本判断、分块下载、逐块校验、重组和回退逻辑；分块完成后恢复服务模板下载进度，避免界面长时间无提示。
+- Decky Loader 保持既有 国内镜像 版本判断、分块下载、逐块校验、重组和回退逻辑；分块完成后恢复服务模板下载进度，避免界面长时间无提示。
 - ROG Ally / Ally X 自动配置在插件目录缺失时先补装 Decky Loader，再从既有 mirror-3 镜像安装 Ally Center 中文版。
 
-## Renkit 1.8.8 小黄鸭/FSR4 完整署名包固定 Gitee 分块 — 2026-08-19
+## Renkit 1.8.8 小黄鸭/FSR4 完整署名包固定 国内分块 — 2026-08-19
 
 - 小黄鸭改用上游 0.12.8 新 i18n 架构重新汉化，补齐中文词条，不再使用 0.12.5 前端只改版本号。
-- 小黄鸭与 FSR4 均改为带 `RenAmamiya` 署名的完整 Decky ZIP，固定从 Gitee mirror-3 分块下载；镜像失败时保留现有插件，不回退 GitHub 或本地覆盖层。
-- 清理发布包中的小黄鸭 0.12.5 与 FSR4 旧本地覆盖源码，并补充严格 Gitee 失败返回非零的模拟测试。
+- 小黄鸭与 FSR4 均改为带 `RenAmamiya` 署名的完整 Decky ZIP，固定从 国内镜像 分块下载；镜像失败时保留现有插件，不回退 GitHub 或本地覆盖层。
+- 清理发布包中的小黄鸭 0.12.5 与 FSR4 旧本地覆盖源码，并补充严格 国内镜像 失败返回非零的模拟测试。
 - 独立完整中文插件的公开仓库与 Renkit 署名发布完全隔离，公开文案只描述完整插件，不标注署名状态或双方关系。
 - 修复 `jktool.icu/i` 短安装入口：默认补齐 GitHub Raw 与域名自身回退，并在逐源尝试时拒绝 HTML、超大响应和 Shell 语法错误。
 - 工具箱背景改为与红色桌面图标呼应的黑红极简几何设计，移除灰原哀及其他人物元素，并保留菜单文字所需的低对比留白。
@@ -212,7 +218,7 @@
 ## Renkit 1.8.7 小黄鸭 0.12.8 镜像切换 mirror-3 — 2026-08-19
 
 - 小黄鸭官方 v0.12.8 分块镜像上传到 `zhoukeer-toolbox-mirror-3`，安装不再出现“镜像清单校验值与当前固定版本不一致”。
-- 删除 Gitee 旧版 v0.12.5 小黄鸭镜像，安装流程完全使用 v0.12.8。
+- 删除 国内镜像 旧版 v0.12.5 小黄鸭镜像，安装流程完全使用 v0.12.8。
 
 ## Renkit 1.8.6 小黄鸭更新 0.12.8 并拆分中文组件仓库 — 2026-08-19
 
@@ -244,12 +250,12 @@
 
 - 修正 MAKO 安装包来源为 `eugeniosegala/MAKO`，资产名匹配 `MAKO-Decky-v*.zip`，解决“最新 Release 元数据获取失败”。
 - MAKO 安装到独立 `Mako` 目录，不再覆盖旧版小黄鸭；安装后注入完整简体中文词条，并在界面顶部保留 RenAmamiya汉化署名。
-- Gitee 分块镜像同步同步改为 MAKO 官方仓库，更新版本后自动上传分块镜像。
+- 国内分块镜像同步同步改为 MAKO 官方仓库，更新版本后自动上传分块镜像。
 
 ## Renkit 1.7.9 小黄鸭新增 MAKO 尝鲜版 — 2026-08-19
 
 - 小黄鸭安装改为版本选择子菜单：保留 v0.12.5 旧版汉化，新增 eugeniosegala/MAKO 的 MAKO 尝鲜版；尝鲜版安装官方运行核心后叠加 Renkit 汉化，顶部署名沿用 RenAmamiya。
-- MAKO 尝鲜版继续走 Gitee 分块镜像优先、GitHub Release 回退，并在上游更新版本后由同步流程上传分块镜像。
+- MAKO 尝鲜版继续走 国内分块镜像优先、GitHub Release 回退，并在上游更新版本后由同步流程上传分块镜像。
 
 ## Renkit 1.7.8 左下角 Steam 菜单白字黑边 — 2026-08-17
 
@@ -338,10 +344,10 @@
 - 根因：旧版把 plugin.json 的 name 改成中文，导致 Decky 插件目录名、清单名与前端内部身份不一致；新版恢复官方名称，仅保留工具箱菜单中的中文名。
 - 已安装旧版中文名插件的用户再次运行安装或常用插件组合会自动恢复官方名称，不改动官方后端、版本和前端。
 
-## Renkit 1.5.7 HMCL 改用 Gitee 分块镜像下载 — 2026-08-15
+## Renkit 1.5.7 HMCL 改用 国内分块镜像下载 — 2026-08-15
 
-- HMCL 启动器与 Temurin JRE 21 下载改为项目原有 Gitee 分块镜像优先，镜像缺失或校验失败才回退 GitHub 加速链路与官方源。
-- 新增 HMCL 与 Temurin JRE 的 Gitee 镜像清单和定时同步条目，后续镜像工作流会自动更新分块。
+- HMCL 启动器与 Temurin JRE 21 下载改为项目原有 国内分块镜像优先，镜像缺失或校验失败才回退 GitHub 加速链路与官方源。
+- 新增 HMCL 与 Temurin JRE 的 国内镜像清单和定时同步条目，后续镜像工作流会自动更新分块。
 
 ## Renkit 1.5.6 HMCL 下载接入 GitHub 加速链路 — 2026-08-15
 
@@ -369,25 +375,25 @@
 ## Renkit 1.5.2 DeckRecall 下载运行时修复 — 2026-08-13
 
 - DeckRecall 固定版本更新到 v0.4.2，修复 Decky Loader 的 PyInstaller 临时 OpenSSL 环境污染系统 `curl`，导致小黄鸭、FSR4 与 GE-Proton 下载后统一显示失败的问题。
-- DeckRecall 安装固定使用已验证的 Gitee `zhoukeer-toolbox-mirror-3` 镜像，失败仍回退作者 GitHub Release；版本、大小与 SHA256 校验保持不变。
+- DeckRecall 安装固定使用已验证的 国内镜像 `zhoukeer-toolbox-mirror-3` 镜像，失败仍回退作者 GitHub Release；版本、大小与 SHA256 校验保持不变。
 - 已安装 Renkit 1.5.1 的 DeckRecall v0.4.1 默认配置会安全迁移到 v0.4.2；其他插件、菜单与安装逻辑不变。
 
 ## Renkit 1.5.1 多源更新链修复 — 2026-08-13
 
-- `jktool.icu` 现在默认参与版本比较并选择最高可用版本，避免 Gitee 主仓库因历史体积超额停留在旧版本时阻断后续更新；其他更新逻辑保持不变。
+- `jktool.icu` 现在默认参与版本比较并选择最高可用版本，避免 国内镜像 主仓库因历史体积超额停留在旧版本时阻断后续更新；其他更新逻辑保持不变。
 - 同步修正运行时显示版本；1.5.0 的 Windows 桌面快捷切换、插件排版、DeckRecall 0.4.1 与汉化署名修正保持不变。
 
 ## Renkit 1.5.0 Windows 快捷切换与插件下载修复 — 2026-08-13
 
 - “切换至 Windows”入口改为只创建桌面快捷方式，本次操作绝不设置 BootNext 或重启；用户以后主动打开桌面图标、输入 `WINDOWS` 二次确认后，才会切换并重启。
 - 插件第一页收紧布局，FSR4 与 Freedeck 连续显示，不再空一行；DeckRecall 与 SavePulse 仍位于第二页。
-- DeckRecall 固定回退更新到 v0.4.1：绕过 SteamOS Python 证书链故障，下载和 API 请求改用严格 TLS 的系统 curl；接入 Gitee 分块镜像、最新版 GE-Proton，并修复 EXE/目录选择无反应。
+- DeckRecall 固定回退更新到 v0.4.1：绕过 SteamOS Python 证书链故障，下载和 API 请求改用严格 TLS 的系统 curl；接入 国内分块镜像、最新版 GE-Proton，并修复 EXE/目录选择无反应。
 - Renkit 汉化插件的公开署名统一为 `RenAmamiya`，保留原作者与开源许可证。
 
 ## Renkit 1.4.9 DeckRecall EXE 入库与 SavePulse 自动识别 — 2026-08-13
 
 - DeckRecall 固定回退更新到 v0.4.0：可选择 Windows 安装 EXE，借助 Steam Proton 完成安装后识别主程序并入库，也可选择已解压的非 Steam 游戏目录，自动排序候选游戏 EXE、设置 Proton 并创建桌面快捷方式；不自动套用不可信封面。
-- SavePulse 更新到 v0.2.0-alpha.1：补接管所有正在运行的 Steam 会话，集成 Ludusavi 社区清单识别 19,000 多款游戏的存档路径，支持非 Steam 游戏稳定身份、加密 WebDAV 换机恢复、删除状态版本和写入重试；14.6 MB 作者包使用 Gitee 分块镜像优先，失败才回退 GitHub Release。
+- SavePulse 更新到 v0.2.0-alpha.1：补接管所有正在运行的 Steam 会话，集成 Ludusavi 社区清单识别 19,000 多款游戏的存档路径，支持非 Steam 游戏稳定身份、加密 WebDAV 换机恢复、删除状态版本和写入重试；14.6 MB 作者包使用 国内分块镜像优先，失败才回退 GitHub Release。
 - 自动迁移 Renkit 旧版内置的 DeckRecall v0.3.2 与 SavePulse v0.1 Alpha 固定配置；两项插件仍位于插件第二页，固定 Release 包继续执行 SHA256 与 ZIP 结构校验。
 
 ## Renkit 1.4.8 SavePulse 与插件菜单排序 — 2026-08-13
@@ -413,15 +419,15 @@
 ## Renkit 1.4.5 DeckRecall v0.3.2 下载与错误显示修复 — 2026-08-12
 
 - DeckRecall 固定回退更新到官方 v0.3.2 轻量包，并使用 Release 提供的 SHA256；旧 v0.2.8／v0.3.1 默认配置会在 Renkit 更新时安全迁移。
-- 取消 DeckRecall 的过期 Gitee v0.2.8 镜像清单路由，65 KB 插件包直接使用官方 GitHub Release 与既有线路回退，不再先显示“镜像清单校验值不一致”。
+- 取消 DeckRecall 的过期 国内镜像 v0.2.8 镜像清单路由，65 KB 插件包直接使用官方 GitHub Release 与既有线路回退，不再先显示“镜像清单校验值不一致”。
 - 安装前读取实际插件目录中的版本并进行三段语义版本比较；同版或更高版本跳过重复下载，v0.2.8 会正确更新到 v0.3.1。
 - 修复 Decky RPC 嵌套异常被统一显示为“发生了意外错误”；检测更新和虚拟内存现在会显示具体的中英双语失败原因。
 - DeckRecall v0.3.1 起已内置新版下载与浏览器处理，Renkit 不再对新版套用只适用于旧前端的兼容补丁。
 
-## Renkit 1.4.4 Decky Gitee 自动镜像修复 — 2026-08-12
+## Renkit 1.4.4 Decky 国内镜像 自动镜像修复 — 2026-08-12
 
-- 修复定时任务把 GitHub `main` 直接推送到已分叉的旧 Gitee 仓库，持续触发 `non-fast-forward` 失败邮件的问题。
-- Decky 自动镜像改为克隆当前 `zhoukeer-toolbox-v2` 的 Gitee 历史，只同步 `decky-installer-cn` 目录并创建普通提交；不 force push、不覆盖 Gitee 历史。
+- 修复定时任务把 GitHub `main` 直接推送到已分叉的旧 国内镜像 仓库，持续触发 `non-fast-forward` 失败邮件的问题。
+- Decky 自动镜像改为克隆当前 `zhoukeer-toolbox-v2` 的 国内镜像 历史，只同步 `decky-installer-cn` 目录并创建普通提交；不 force push、不覆盖 国内镜像 历史。
 - 新增工作流静态回归检查，防止镜像地址退回旧仓库或再次直接推送分叉历史；Decky 稳定版与测试版安装逻辑不变。
 - 同步修正运行时显示版本，使其与正式发布版本保持一致；自动更新继续兼容历史 `1.3.10` 用户。
 
@@ -465,12 +471,12 @@
 
 - 修复微信官方 AppImage 安装完成后桌面快捷方式使用不存在的 `wechat` 主题图标，导致 KDE 桌面只显示空白或通用图标的问题。
 - Renkit 内置已核验的微信官方默认图标，快捷方式改用随更新包存在的绝对路径；新安装、重复安装和“修复桌面图标”都会补齐，不需要重复下载微信。
-- 图标随 GitHub Release 和 Gitee v2 的 Renkit 更新包分发，不新增单独图标镜像；游戏启动器入库和封面代码及素材未改动。
+- 图标随 GitHub Release 和 国内更新源 的 Renkit 更新包分发，不新增单独图标镜像；游戏启动器入库和封面代码及素材未改动。
 
 ## Renkit 1.3.8 一键安装模拟器与官方图标 — 2026-08-11
 
 - SteamOS、Bazzite 触控菜单和桌面 GUI 新增“一键安装 6 款”，依次安装 Yuzu、Cemu、DuckStation、PCSX2、RPCS3、ShadPS4；已完整安装的项目会跳过，单项失败会汇总并继续后续安装。
-- 一键安装继续复用各模拟器原有的 Gitee 分块镜像优先、GitHub 回退、固定 SHA256、ELF 格式校验、桌面入口和 Steam 入库流程；不包含游戏、BIOS、固件或密钥。
+- 一键安装继续复用各模拟器原有的 国内分块镜像优先、GitHub 回退、固定 SHA256、ELF 格式校验、桌面入口和 Steam 入库流程；不包含游戏、BIOS、固件或密钥。
 - 六张 AI 生成的模拟器图标全部替换为各项目官方默认图标，并固定来源提交与文件 SHA256；PPSSPP、mGBA 继续使用 Flatpak 官方图标，Azahar 继续使用用户本地程序图标。
 - 游戏启动器入库、Steam 条目和封面代码及素材未改动。
 
@@ -503,20 +509,20 @@
 
 ## Renkit 1.3.2 镜像仓库恢复与 seed 修复 — 2026-08-10
 
-- 修复 Gitee 分块镜像仓库 mirror-2/3/5/6/7 在推送模拟器分块时意外丢失旧插件与 GE-Proton 内容的问题；旧提交中的原文件已完整恢复，模拟器分块同时保留，所有 `latest.txt` 与分块已公网回读。
-- `scripts/seed_gitee_local_asset.sh` 在部分克隆后先 `read-tree HEAD` 再添加新 id，后续镜像推送会保留仓库已有分块，不再覆盖其他镜像内容。
-- Ally Center 等插件的 Gitee 镜像恢复可用；下载逻辑未改动，GitHub 回退行为保持不变。
+- 修复 国内分块镜像仓库 mirror-2/3/5/6/7 在推送模拟器分块时意外丢失旧插件与 GE-Proton 内容的问题；旧提交中的原文件已完整恢复，模拟器分块同时保留，所有 `latest.txt` 与分块已公网回读。
+- `镜像维护脚本` 在部分克隆后先 `read-tree HEAD` 再添加新 id，后续镜像推送会保留仓库已有分块，不再覆盖其他镜像内容。
+- Ally Center 等插件的 国内镜像恢复可用；下载逻辑未改动，GitHub 回退行为保持不变。
 
-## Renkit 1.3.1 模拟器 Gitee 分块镜像 — 2026-08-10
+## Renkit 1.3.1 模拟器 国内分块镜像 — 2026-08-10
 
-- 修复 ShadPS4（PS4 模拟器）无法从 GitHub Release 下载的问题；Yuzu、Cemu、DuckStation、PCSX2、RPCS3、ShadPS4 六款 AppImage 模拟器全部改为 Gitee 8MiB 分块镜像优先，镜像仓库按模拟器拆分到 mirror-2～mirror-7，SHA256、大小和 ELF 格式校验通过后才回退 GitHub Release。
+- 修复 ShadPS4（PS4 模拟器）无法从 GitHub Release 下载的问题；Yuzu、Cemu、DuckStation、PCSX2、RPCS3、ShadPS4 六款 AppImage 模拟器全部改为 国内镜像 8MiB 分块镜像优先，镜像仓库按模拟器拆分到 mirror-2～mirror-7，SHA256、大小和 ELF 格式校验通过后才回退 GitHub Release。
 - 模拟器安装仍只安装模拟器本体，不包含游戏、BIOS、固件或密钥；镜像文件保持上游未修改的固定 AppImage。
 - License 清单同步更新六款模拟器的镜像授权说明；DuckStation 仅分发自有 Release 中未修改的固定 AppImage，保留 CC BY-NC-ND 署名与许可要求。
 
 ## Renkit 1.3.0 Bazzite 汉化插件与安装结果校验 — 2026-08-10
 
 - Bazzite 的 Decky 菜单新增完整功能插件分页：除小黄鸭、FSR4 与 CheatDeck 外，还可安装 DeckRecall、Freedeck、NewFreedeck、ToMoon、Unifideck，以及现有掌机控制插件和 OneXPlayer Apex Tools；SteamOS 原菜单保持不变。
-- DeckRecall 作者已明确授权 Renkit 建立国内镜像；DeckRecall 与 OneXPlayer Apex Tools 均使用 Gitee 镜像优先、固定版本与 SHA256 校验，失败才回退作者 GitHub Release。
+- DeckRecall 作者已明确授权 Renkit 建立国内镜像；DeckRecall 与 OneXPlayer Apex Tools 均使用 国内镜像优先、固定版本与 SHA256 校验，失败才回退作者 GitHub Release。
 - CheatDeck 固定基线更新到 v2.0.0，DeckRecall 固定回退版本更新到 v0.2.8；自动解析最新正式版的逻辑保持不变。
 - 修复 Bazzite 菜单安装“掌机功耗控制”汉化版时被旧 SteamOS-only 版本检测误拦截的问题；汉化前端继续复用上游原生后端。
 - Bazzite 缺少 Decky Loader 时只调用官方 `ujust setup-decky`；不会执行 SteamOS 的 Decky 服务替换、pacman 或只读系统操作。
@@ -612,7 +618,7 @@
 
 - “掌机控制插件”扩充为七项：新增通用掌机 RGB、Legion Go 控制中心、GPD 控制中心、Legion Go 震动控制和 Legion Go 2 风扇控制，并统一使用中文插件名。
 - HueSync 沿用上游完整简体中文；其余四款完成中文前端并加入 RenAmamiya署名，保留原作者信息和官方硬件控制后端。
-- 五款插件均使用 Gitee mirror-3 静默分块下载、固定 SHA256 与 GitHub Release 回退；新增 tar.gz 安全解压支持、机型限制和风扇控制风险提示。
+- 五款插件均使用 国内镜像 静默分块下载、固定 SHA256 与 GitHub Release 回退；新增 tar.gz 安全解压支持、机型限制和风扇控制风险提示。
 - 安装器白名单与发布包校验显式包含全部五套前端组件，并新增官方后端保留、重复安装幂等、ZIP/tar.gz 分支及防漏打包测试。
 
 ## Renkit 1.1.5 Ally 控制中心组件随更新安装 — 2026-08-09
@@ -629,7 +635,7 @@
 
 - 新增“掌机控制插件”子菜单，保留原有“掌机功耗控制”，并加入适用于 ROG Ally / Ally X 的 Ally Center v1.2.0。
 - Ally Center 的 RGB、TDP、风扇、CPU、电池、下载模式和设备信息界面完成中文化，并加入与小黄鸭一致的汉化署名；硬件控制后端保持作者原版。
-- 下载保持 Gitee mirror-3 国内源优先、固定 SHA256 校验和 GitHub Release 自动回退；分块细节静默，已安装英文版或旧版再次执行会替换为已校验的中文版。
+- 下载保持 国内镜像 国内源优先、固定 SHA256 校验和 GitHub Release 自动回退；分块细节静默，已安装英文版或旧版再次执行会替换为已校验的中文版。
 
 ## Renkit 1.1.2 黑盒工坊兼容手动战网与横向 Logo 再缩小 — 2026-08-09
 
@@ -646,7 +652,7 @@
 
 - Freedeck 改为双版本子菜单：保留 0.6 稳定版，并新增独立的 NewFreedeck v0.1；新版使用 mirror-3 分块镜像、固定 SHA256，并明确提示上游部分功能尚未完成。
 - “掌机功耗控制”主界面新增与小黄鸭一致的两行可见署名：汉化与原作者说明，以及金色居中的汉化账号。
-- 插件商城仍保持 Gitee 分块镜像优先与原有回退顺序，仅静默分块下载过程提示。
+- 插件商城仍保持 国内分块镜像优先与原有回退顺序，仅静默分块下载过程提示。
 
 ## Renkit 1.0.9 Freedeck 探测提示修复 — 2026-08-08
 
@@ -664,7 +670,7 @@
 
 ## Renkit 1.0.6 启动器封面改走 v2 镜像 — 2026-08-08
 
-- 启动器封面素材改为优先从 Gitee v2 镜像拉取并缓存，不再优先使用本地旧素材；镜像缓存版本升级为 v2，更新后会自动重新下载新封面。
+- 启动器封面素材改为优先从 国内更新源 镜像拉取并缓存，不再优先使用本地旧素材；镜像缓存版本升级为 v2，更新后会自动重新下载新封面。
 - 新版 Epic、战网、育碧、黑盒工坊封面已同步到 `zhoukeer-toolbox-v2` 的 `launcher-covers` 镜像，更新后重装或运行“修复启动器封面”即可生效。
 
 ## Renkit 1.0.5 掌机功耗控制汉化版与版本检测 — 2026-08-08
@@ -679,7 +685,7 @@
 ## Renkit 1.0.3 SimpleDeckyTDP 完整汉化 — 2026-08-08
 
 - SimpleDeckyTDP 插件完整汉化：修复 Steam 中文语言码未命中导致瓦数、滑块等界面回退英文的问题，补齐 GPU 模式、EPP/调频选项、TDP 范围等界面中文。
-- 汉化组件内置并带 RenAmamiya署名，安装复用 Gitee 镜像优先、GitHub Release 回退并校验 SHA256。
+- 汉化组件内置并带 RenAmamiya署名，安装复用 国内镜像优先、GitHub Release 回退并校验 SHA256。
 
 ## Renkit 1.0.2 修复虚拟内存撤销与启动器封面 — 2026-08-08
 

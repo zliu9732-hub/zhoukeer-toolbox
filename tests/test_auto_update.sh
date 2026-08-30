@@ -3,6 +3,7 @@
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CURRENT_VERSION="$(tr -d '\r\n' < "$PROJECT_ROOT/VERSION")"
 TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf "$TMP_ROOT"' EXIT
 
@@ -157,16 +158,16 @@ grep -Fq '/dist/renkit.tar.gz' "$CURL_LOG"
 grep -Fq '/dist/SHA256SUMS' "$CURL_LOG"
 
 # 1.4.0 发布后的补丁版也必须保持同一条更新链；1.3.10 用户即使没有
-# 先启动 1.4.0，也会由最高版本选择逻辑直接拿到当前 2.1.8。
+# 先启动 1.4.0，也会由最高版本选择逻辑直接拿到当前正式版。
 printf '%s\n' '1.3.10' > "$INSTALL_DIR/VERSION"
-printf '%s\n' '2.1.8' > "$RELEASE_DIR/VERSION"
-printf '%s\n' '2.1.8' > "$REMOTE_DIR/VERSION"
+printf '%s\n' "$CURRENT_VERSION" > "$RELEASE_DIR/VERSION"
+printf '%s\n' "$CURRENT_VERSION" > "$REMOTE_DIR/VERSION"
 tar -czf "$REMOTE_DIR/dist/renkit.tar.gz" -C "$RELEASE_DIR" .
 PACKAGE_SHA="$(shasum -a 256 "$REMOTE_DIR/dist/renkit.tar.gz" | awk '{print $1}')"
 printf '%s  %s\n' "$PACKAGE_SHA" 'renkit.tar.gz' > "$REMOTE_DIR/dist/SHA256SUMS"
 run_update >/dev/null
-if [ "$(tr -d '\r\n' < "$INSTALL_DIR/VERSION")" != '2.1.8' ]; then
-    echo "FAIL: Renkit 1.3.10 没有直接升级到当前 2.1.8"
+if [ "$(tr -d '\r\n' < "$INSTALL_DIR/VERSION")" != "$CURRENT_VERSION" ]; then
+    echo "FAIL: Renkit 1.3.10 没有直接升级到当前 $CURRENT_VERSION"
     exit 1
 fi
 

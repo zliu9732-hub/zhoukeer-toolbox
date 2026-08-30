@@ -126,7 +126,7 @@ resolve_ge_proton_latest() {
         GE_PROTON_URL="$_GITEE_MIRROR_LATEST_URL"
         GE_PROTON_VERSION="$_GITEE_MIRROR_LATEST_VERSION"
         GE_PROTON_SHA256="$_GITEE_MIRROR_LATEST_SHA256"
-        log "GE-Proton Gitee 分块镜像最新版本: $GE_PROTON_VERSION"
+        log "GE-Proton 国内分块镜像最新版本: $GE_PROTON_VERSION"
     elif resolve_latest_github_release "GloriousEggroll/proton-ge-custom" \
         '^GE-Proton[0-9]+-[0-9]+(-x86_64)?[.]tar[.]gz$' "GE-Proton"; then
         GE_PROTON_URL="$_LATEST_RELEASE_URL"

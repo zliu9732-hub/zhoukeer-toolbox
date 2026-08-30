@@ -273,7 +273,7 @@ download_verified_package() {
     if download_verified_package_from \
         "国内镜像" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
-        DOWNLOAD_SOURCE="Gitee"
+        DOWNLOAD_SOURCE="国内镜像"
         return 0
     fi
 
@@ -305,7 +305,7 @@ download_with_fallback() {
     local github_url="$5"
 
     if download_one "$gitee_url" "$output" "国内镜像"; then
-        DOWNLOAD_SOURCE="Gitee"
+        DOWNLOAD_SOURCE="国内镜像"
         return 0
     fi
 
@@ -342,7 +342,7 @@ need_command tar
 
 if [ "$DRY_RUN" -eq 1 ]; then
     echo "[dry-run] 将优先从域名获取版本: $DOMAIN_VERSION_URL"
-    echo "[dry-run] 国内镜像发布包: $GITEE_PACKAGE_URL"
+    echo "[dry-run] 国内镜像发布包：已配置（地址已隐藏）"
     echo "[dry-run] GitHub备用包: $GITHUB_PACKAGE_URL"
     echo "[dry-run] 将安装到: $INSTALL_DIR"
     echo "[dry-run] 不会创建目录、下载文件或调用安装器。"

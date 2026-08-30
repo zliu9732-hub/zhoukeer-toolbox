@@ -359,7 +359,7 @@ download_gitee_mirror_file() {
     fi
     echo "$name 下载完成。"
     if declare -F log >/dev/null 2>&1; then
-        log "Gitee 镜像下载成功: $name"
+        log "国内镜像下载成功: $name"
     fi
     return 0
 }

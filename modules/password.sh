@@ -220,13 +220,13 @@ set_system_password() {
             echo "检测到当前用户已经设置过系统密码，所以系统会要求输入 Current password。"
             echo "如果知道旧密码，请返回选择“我已有管理员密码”，输入一次即可保存记录。"
             echo "如果忘记旧密码，Renkit不会绕过系统强制重置，请先查看："
-            echo "https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/blob/main/STEAMDECK_PASSWORD_RESET_GUIDE.md"
+            echo "https://github.com/zliu9732-hub/zhoukeer-toolbox/blob/main/STEAMDECK_PASSWORD_RESET_GUIDE.md"
             return 1
             ;;
         L)
             echo "检测到当前用户的系统密码已锁定，不能在这里直接设置新密码。"
             echo "Renkit不会绕过系统强制重置，请先查看："
-            echo "https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/blob/main/STEAMDECK_PASSWORD_RESET_GUIDE.md"
+            echo "https://github.com/zliu9732-hub/zhoukeer-toolbox/blob/main/STEAMDECK_PASSWORD_RESET_GUIDE.md"
             return 1
             ;;
         NP) ;;

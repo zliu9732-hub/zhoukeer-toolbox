@@ -375,7 +375,7 @@ download_verified_package() {
         if download_verified_package_from \
             "国内镜像" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
             "$package_file" "$checksum_file"; then
-            DOWNLOAD_SOURCE="Gitee"
+            DOWNLOAD_SOURCE="国内镜像"
             source_status_record update-gitee ok "更新包与校验文件可用" >/dev/null 2>&1 || true
             return 0
         fi
@@ -388,7 +388,7 @@ download_verified_package() {
     if download_verified_package_from \
         "国内镜像" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
-        DOWNLOAD_SOURCE="Gitee"
+        DOWNLOAD_SOURCE="国内镜像"
         source_status_record update-gitee ok "更新包与校验文件可用" >/dev/null 2>&1 || true
         return 0
     fi
@@ -434,7 +434,7 @@ download_version_with_fallback() {
             break
         fi
         case "$source" in
-            gitee) source_url="$GITEE_VERSION_URL"; source_label="国内镜像"; source_name="Gitee"; status_key="update-gitee" ;;
+            gitee) source_url="$GITEE_VERSION_URL"; source_label="国内镜像"; source_name="国内镜像"; status_key="update-gitee" ;;
             github) source_url="$GITHUB_VERSION_URL"; source_label="GitHub"; source_name="GitHub"; status_key="update-github" ;;
             domain) source_url="$DOMAIN_VERSION_URL"; source_label="域名"; source_name="域名"; status_key="update-domain" ;;
         esac

@@ -380,7 +380,7 @@ bazzite_ge_proton_menu() {
         draw_category_frame games "游戏兼容层" "安装到当前用户的 Steam 兼容工具目录"
         ui_touch_button 6 '\033[1;97;48;5;24m' "安装最新版 GE-Proton" "已安装的旧版本不会删除"
         ui_touch_button 10 '\033[1;97;48;5;24m' "安装修改器常用版本" "7-55、8-25、9-27、10-29 · 约 1.72GB"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "安装 Proton-CachyOS" "普通 x86_64 SLR 版 · 独立 Gitee 镜像"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "安装 Proton-CachyOS" "普通 x86_64 SLR 版 · 独立国内镜像"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回游戏与插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页"
         ui_prompt
@@ -477,7 +477,7 @@ bazzite_decky_plugins_menu() {
 bazzite_feature_plugins_menu() {
     local choice
     while true; do
-        draw_category_frame games "汉化功能插件" "Gitee 分块镜像优先 · 安装后核对真实插件文件"
+        draw_category_frame games "汉化功能插件" "国内分块镜像优先 · 安装后核对真实插件文件"
         ui_touch_button 4 '\033[1;97;48;5;24m' "一键安装三款" "小黄鸭、FSR4 与 CheatDeck"
         ui_touch_button 7 '\033[1;97;48;5;24m' "小黄鸭版本选择" "旧版稳定汉化 · MAKO 官方最新版"
         ui_touch_button 10 '\033[1;97;48;5;24m' "安装 FSR4" "Decky-Framegen 汉化版"
@@ -489,10 +489,10 @@ bazzite_feature_plugins_menu() {
         choice="$(read_touch_menu right:4-5:all right:7-8:lsfg right:10-11:fsr4 right:13-14:cheatdeck right:16-17:more right:19-20:feature-singles right:22-23:back)"
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
-            all) confirm_and_run "安装三款汉化功能插件" "使用 Gitee 分块镜像并校验 SHA256；插件目录不可写时可能请求管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
+            all) confirm_and_run "安装三款汉化功能插件" "使用国内分块镜像并校验 SHA256；插件目录不可写时可能请求管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
             lsfg) bazzite_lsfg_versions_menu || return 1 ;;
-            fsr4) confirm_and_run "安装 FSR4" "仅从 Gitee mirror-3 分块安装署名完整包并校验 SHA256；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
-            cheatdeck) confirm_and_run "安装 CheatDeck" "Gitee 分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
+            fsr4) confirm_and_run "安装 FSR4" "仅从国内分块镜像安装署名完整包并校验 SHA256；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
+            cheatdeck) confirm_and_run "安装 CheatDeck" "国内分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             more) bazzite_extra_plugins_menu || return 1 ;;
             feature-singles) bazzite_common_feature_singles_menu || return 1 ;;
             back) return 0 ;;
@@ -504,9 +504,9 @@ bazzite_common_feature_singles_menu() {
     local choice
     while true; do
         draw_category_frame games "其余常用插件" "组合安装中的四款插件也可分别安装"
-        ui_touch_button 5 '\033[1;97;48;5;24m' "游戏封面更换" "SteamGridDB · Gitee 分块优先"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "主题美化" "CSS Loader 中文版 · Gitee 分块优先"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "文件传输助手" "Friendeck · Gitee 分块优先"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "游戏封面更换" "SteamGridDB · 国内分块优先"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "主题美化" "CSS Loader 中文版 · 国内分块优先"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "文件传输助手" "Friendeck · 国内分块优先"
         ui_touch_button 14 '\033[1;97;48;5;24m' "音乐播放器" "Decky Music v1.0.2 完整包 · 音乐源已内置"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回功能插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页"
@@ -514,10 +514,10 @@ bazzite_common_feature_singles_menu() {
         choice="$(read_touch_menu right:5-6:steamgriddb right:8-9:cssloader right:11-12:friendeck right:14-15:deckymusic right:19-20:back right:22-23:home)"
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
-            steamgriddb) confirm_and_run "安装游戏封面更换" "Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
-            cssloader) confirm_and_run "安装主题美化" "CSS Loader 中文版；Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
-            friendeck) confirm_and_run "安装文件传输助手" "Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
-            deckymusic) confirm_and_run "安装音乐播放器" "Decky Music v1.0.2 完整包；播放器和 QQ/网易云音乐源已内置，使用 Gitee 分块并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
+            steamgriddb) confirm_and_run "安装游戏封面更换" "国内分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
+            cssloader) confirm_and_run "安装主题美化" "CSS Loader 中文版；国内分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
+            friendeck) confirm_and_run "安装文件传输助手" "国内分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
+            deckymusic) confirm_and_run "安装音乐播放器" "Decky Music v1.0.2 完整包；播放器和 QQ/网易云音乐源已内置，使用国内分块并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
             back) return 0 ;;
             home) NEXT_CATEGORY="home"; return 1 ;;
         esac
@@ -537,11 +537,11 @@ bazzite_lsfg_versions_menu() {
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
             stable)
-                confirm_and_run "安装旧版小黄鸭" "v0.12.8 汉化版；仅从 Gitee mirror-3 分块安装署名完整包；汉化：RenAmamiya" \
+                confirm_and_run "安装旧版小黄鸭" "v0.12.8 汉化版；仅从国内分块镜像安装署名完整包；汉化：RenAmamiya" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                 ;;
             mako)
-                confirm_and_run "安装或更新 MAKO 小黄鸭" "跟随 eugeniosegala/MAKO 最新正式版；优先从 Gitee mirror-3 下载，镜像尚未同步时回退作者 GitHub Release；全程校验作者 SHA256，保留作者与 GPL-3.0-or-later 许可证" \
+                confirm_and_run "安装或更新 MAKO 小黄鸭" "跟随 eugeniosegala/MAKO 最新正式版；优先从国内镜像下载，镜像尚未同步时回退作者 GitHub Release；全程校验作者 SHA256，保留作者与 GPL-3.0-or-later 许可证" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako
                 ;;
             back) return 0 ;;
@@ -553,7 +553,7 @@ bazzite_lsfg_versions_menu() {
 bazzite_extra_plugins_menu() {
     local choice
     while true; do
-        draw_category_frame games "更多功能插件" "现有 Renkit 插件 · Gitee 国内镜像优先"
+        draw_category_frame games "更多功能插件" "现有 Renkit 插件 · 国内镜像优先"
         ui_touch_button 3 '\033[1;97;48;5;24m' "安装 DeckRecall" "添加启动项并恢复游戏可玩状态"
         ui_touch_button 5 '\033[1;97;48;5;24m' "安装 SavePulse" "自动存档、个人 WebDAV 云备份与换机恢复"
         ui_touch_button 7 '\033[1;97;48;5;24m' "安装 Freedeck" "0.6 稳定版"
@@ -569,10 +569,10 @@ bazzite_extra_plugins_menu() {
         case "$choice" in
             deckrecall) confirm_and_run "安装 DeckRecall" "作者 GitHub Release，下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckrecall ;;
             savepulse) confirm_and_run "安装 SavePulse" "自动版本存档、个人坚果云或标准 WebDAV 云备份与换机恢复；作者 GitHub Release，下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" savepulse ;;
-            freedeck) confirm_and_run "安装 Freedeck" "Gitee 分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck ;;
-            newfreedeck) confirm_and_run "安装/更新 NewFreedeck" "自动检测作者最新版；上游注明个别模拟器仍不可用；Gitee 分块镜像优先" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" newfreedeck ;;
-            tomoon) confirm_and_run "安装 ToMoon" "Gitee 分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon ;;
-            unifideck) confirm_and_run "安装 Unifideck" "Gitee 分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
+            freedeck) confirm_and_run "安装 Freedeck" "国内分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck ;;
+            newfreedeck) confirm_and_run "安装/更新 NewFreedeck" "自动检测作者最新版；上游注明个别模拟器仍不可用；国内分块镜像优先" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" newfreedeck ;;
+            tomoon) confirm_and_run "安装 ToMoon" "国内分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon ;;
+            unifideck) confirm_and_run "安装 Unifideck" "国内分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
             handheld) bazzite_handheld_plugins_menu || return 1 ;;
             status) run_action "汉化功能插件状态" bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status ;;
             back) return 0 ;;
@@ -596,7 +596,7 @@ bazzite_handheld_plugins_menu() {
         choice="$(read_touch_menu right:2-3:simpletdp right:5-6:allycenter right:8-9:huesync right:11-12:legionremap right:14-15:gpd right:17-18:legovibe right:20-21:more right:22-23:back)"
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
-            simpletdp) confirm_and_run "安装掌机功耗控制" "安装 SimpleDeckyTDP 中文版；Gitee 国内镜像优先" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee ;;
+            simpletdp) confirm_and_run "安装掌机功耗控制" "安装 SimpleDeckyTDP 中文版；国内镜像优先" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee ;;
             allycenter) confirm_and_run "安装 Ally 控制中心" "仅用于 ROG Ally / Ally X；会调用硬件控制后端" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter ;;
             huesync) confirm_and_run "安装通用掌机 RGB" "HueSync 上游自带中文；请确认设备灯效受支持" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" huesync ;;
             legionremap) confirm_and_run "安装 Legion Go 控制中心" "仅用于 Legion Go；会调用按键控制后端" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" legiongo-remapper ;;

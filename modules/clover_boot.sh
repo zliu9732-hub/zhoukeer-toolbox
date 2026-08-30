@@ -1022,7 +1022,7 @@ clover_show_install_risk() {
     echo "================================================"
     echo " Clover 开机选择菜单"
     echo "================================================"
-    echo "版本：Clover ${CLOVER_VERSION}（Gitee 分块镜像）"
+    echo "版本：Clover ${CLOVER_VERSION}（国内分块镜像）"
     echo "设备：${CLOVER_DEVICE_NAME:-Steam Deck/掌机}"
     if [ -n "${CLOVER_SCREEN_RESOLUTION:-}" ]; then
         echo "主题：自定义怪盗；分辨率：${CLOVER_SCREEN_RESOLUTION}（设备专用横屏）"

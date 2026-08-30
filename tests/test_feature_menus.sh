@@ -6,6 +6,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MAIN_FILE="$PROJECT_ROOT/main.sh"
 GUI_FILE="$PROJECT_ROOT/core/gui.sh"
 UI_FILE="$PROJECT_ROOT/core/ui.sh"
+BAZZITE_FILE="$PROJECT_ROOT/main-bazzite.sh"
 
 fail() {
     echo "FAIL: $*" >&2
@@ -33,6 +34,12 @@ assert_not_contains() {
         fail "$label"
     fi
 }
+
+for public_file in "$MAIN_FILE" "$GUI_FILE" "$BAZZITE_FILE" "$PROJECT_ROOT/README.md" "$PROJECT_ROOT/CHANGELOG.md"; do
+    if grep -Fq 'Gitee' "$public_file"; then
+        fail "用户可见内容仍显示内部镜像平台名称：$public_file"
+    fi
+done
 
 touch_home="$(function_source "$MAIN_FILE" home_menu)"
 gui_home="$(function_source "$GUI_FILE" main_gui_menu)"
@@ -173,7 +180,8 @@ for menu in "$touch_games" "$gui_games"; do
     assert_contains "$menu" '插帧神器（必装）' "小黄鸭缺少功能说明"
     assert_contains "$menu" '画质补丁（阅读桌面文档慎用）' "FSR4 缺少功能说明"
     assert_contains "$menu" 'Linux 原生' "HMCL 启动器入口缺少 Linux 原生说明"
-    assert_contains "$menu" 'Gitee mirror-3' "小黄鸭/FSR4 缺少固定 Gitee 分块说明"
+    assert_contains "$menu" '国内镜像' "小黄鸭/FSR4 缺少国内镜像说明"
+    assert_not_contains "$menu" 'Gitee' "插件菜单仍显示内部镜像平台名称"
     assert_contains "$menu" '汉化：RenAmamiya' "小黄鸭/FSR4 缺少最终汉化署名"
     assert_not_contains "$menu" 'v0.12.8 汉化版；国内源优先，失败自动改用 GitHub Release' "小黄鸭仍显示 GitHub 回退"
     assert_not_contains "$menu" '画质补丁（阅读桌面文档慎用）·国内源优先，失败自动改用 GitHub Release' "FSR4 仍显示 GitHub 回退"

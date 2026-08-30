@@ -10,7 +10,7 @@ SCRIPT_PATH="${BASH_SOURCE[0]}"
 CORE_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 PROJECT_ROOT="$(cd "$CORE_DIR/.." && pwd)"
 
-TOOLBOX_VERSION="2.1.9"
+TOOLBOX_VERSION="2.2.0"
 TOOLBOX_NAME="Renkit"
 
 CONFIG_FILE="$PROJECT_ROOT/config/settings.conf"

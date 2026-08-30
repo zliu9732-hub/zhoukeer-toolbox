@@ -566,7 +566,7 @@ reset_steam302() {
 download_steam302_archive() {
     local destination="$1"
 
-    echo "正在从自有 Gitee 镜像下载 Steamcommunity 302 V$STEAM302_VERSION..."
+    echo "正在从自有国内镜像下载 Steamcommunity 302 V$STEAM302_VERSION..."
     if ! download_gitee_mirror_file \
         "steam302" "$destination" "$STEAM302_ARCHIVE_SHA256" \
         "Steamcommunity 302"; then

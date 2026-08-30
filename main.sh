@@ -539,7 +539,7 @@ game_environment_menu() {
             browse) plugin_official_touch_pages ;;
             cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             lsfg) NEXT_CATEGORY="lsfg_versions"; return 0 ;;
-            fsr4) confirm_and_run "安装 FSR4" "画质补丁（阅读桌面文档慎用）·仅从 Gitee mirror-3 分块安装署名完整包；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
+            fsr4) confirm_and_run "安装 FSR4" "画质补丁（阅读桌面文档慎用）·仅从国内分块镜像安装署名完整包；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             freedeck) NEXT_CATEGORY="freedeck_versions"; return 0 ;;
             feature-singles) feature_plugin_singles_menu ;;
             next) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
@@ -554,9 +554,9 @@ feature_plugin_singles_menu() {
 
     while true; do
         draw_category_frame games "其余常用插件" "组合安装中的五款插件也可分别安装" 0
-        ui_touch_button 5 '\033[1;97;48;5;24m' "游戏封面更换" "SteamGridDB · Gitee 分块优先"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "主题美化" "CSS Loader 中文版 · Gitee 分块优先"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "文件传输助手" "Friendeck · Gitee 分块优先"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "游戏封面更换" "SteamGridDB · 国内分块优先"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "主题美化" "CSS Loader 中文版 · 国内分块优先"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "文件传输助手" "Friendeck · 国内分块优先"
         ui_touch_button 14 '\033[1;97;48;5;24m' "音乐播放器" "Decky Music v1.0.2 完整包 · 音乐源已内置"
         ui_touch_button 17 '\033[1;97;48;5;160m' "Fantastic 风扇控制" "完整汉化版 · 汉化：RenAmamiya · 注意温度"
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回插件列表" "不进行安装"
@@ -565,10 +565,10 @@ feature_plugin_singles_menu() {
         choice="$(read_touch_menu right:5-6:steamgriddb right:8-9:cssloader right:11-12:friendeck right:14-15:deckymusic right:17-18:fantastic right:20-21:back right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
-            steamgriddb) confirm_and_run "安装游戏封面更换" "安装 SteamGridDB；Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
-            cssloader) confirm_and_run "安装主题美化" "安装 CSS Loader 中文版；Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
-            friendeck) confirm_and_run "安装文件传输助手" "安装 Friendeck；Gitee 分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
-            deckymusic) confirm_and_run "安装音乐播放器" "安装 Decky Music v1.0.2 完整包；播放器和 QQ/网易云音乐源已内置，使用 Gitee 分块并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
+            steamgriddb) confirm_and_run "安装游戏封面更换" "安装 SteamGridDB；国内分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
+            cssloader) confirm_and_run "安装主题美化" "安装 CSS Loader 中文版；国内分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
+            friendeck) confirm_and_run "安装文件传输助手" "安装 Friendeck；国内分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
+            deckymusic) confirm_and_run "安装音乐播放器" "安装 Decky Music v1.0.2 完整包；播放器和 QQ/网易云音乐源已内置，使用国内分块并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
             fantastic) confirm_and_run "安装 Fantastic 风扇控制" "高风险：Fantastic 会覆盖 SteamOS 默认风扇曲线，过低转速可能导致设备过热；仅适用于 Steam Deck。将直接安装带 RenAmamiya 署名的完整汉化包" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fantastic ;;
             back) return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
@@ -590,11 +590,11 @@ lsfg_versions_menu() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             stable)
-                confirm_and_run "安装旧版小黄鸭" "v0.12.8 汉化版；仅从 Gitee mirror-3 分块安装署名完整包；汉化：RenAmamiya" \
+                confirm_and_run "安装旧版小黄鸭" "v0.12.8 汉化版；仅从国内分块镜像安装署名完整包；汉化：RenAmamiya" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                 ;;
             mako)
-                confirm_and_run "安装或更新 MAKO 小黄鸭" "跟随 eugeniosegala/MAKO 最新正式版；优先从 Gitee mirror-3 下载，镜像尚未同步时回退作者 GitHub Release；全程校验作者 SHA256，保留作者与 GPL-3.0-or-later 许可证" \
+                confirm_and_run "安装或更新 MAKO 小黄鸭" "跟随 eugeniosegala/MAKO 最新正式版；优先从国内镜像下载，镜像尚未同步时回退作者 GitHub Release；全程校验作者 SHA256，保留作者与 GPL-3.0-or-later 许可证" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako
                 ;;
             back) NEXT_CATEGORY="games"; return 0 ;;
@@ -729,7 +729,7 @@ game_info_plugins_menu() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             steamdb-info)
-                confirm_and_run "安装 SteamDB 游戏数据" "仅从 Gitee mirror-3 分块安装完整汉化包；在游戏模式 Steam 商店详情页显示价格史低和在线峰值入口；需要开启 CEF 远程调试；汉化：RenAmamiya" \
+                confirm_and_run "安装 SteamDB 游戏数据" "仅从国内分块镜像安装完整汉化包；在游戏模式 Steam 商店详情页显示价格史低和在线峰值入口；需要开启 CEF 远程调试；汉化：RenAmamiya" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamdb-info
                 ;;
             back) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
@@ -858,7 +858,7 @@ ge_proton_menu() {
         draw_category_frame games "游戏兼容层" "安装 GE-Proton、修改器常用版本或 Proton-CachyOS" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "安装最新 GE 兼容层" "自动检测最新版本，不再删除旧版"
         ui_touch_button 9 '\033[1;97;48;5;24m' "安装修改器所需常用兼容层" "四个版本约1.72GB，下载较慢为正常现象"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "安装 Proton-CachyOS" "上游 x86_64 SLR 版；独立 Gitee 分块镜像"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "安装 Proton-CachyOS" "上游 x86_64 SLR 版；独立国内分块镜像"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "查看其他游戏组件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt

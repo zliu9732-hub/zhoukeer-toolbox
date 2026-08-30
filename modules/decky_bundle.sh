@@ -456,7 +456,7 @@ confirm_bundle_install() {
 
     echo "将从Decky官方商店读取 $plugin_count 个插件的最新版本，并交给Decky内置安装器。"
     if [ "$include_custom" = "1" ]; then
-        echo "SimpleDeckyTDP、Unifideck和Freedeck使用固定Gitee镜像加入安装队列。"
+        echo "SimpleDeckyTDP、Unifideck和Freedeck使用固定国内镜像加入安装队列。"
     fi
     echo "PowerTools与SimpleDeckyTDP功能有重叠，请安装后只保留一套性能参数控制。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then

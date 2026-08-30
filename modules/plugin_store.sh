@@ -235,7 +235,7 @@ resolve_plugin_latest() {
             fi
             ;;
         lsfg-mako)
-            echo "正在检查 MAKO 小黄鸭的 Gitee 镜像版本..."
+            echo "正在检查 MAKO 小黄鸭的国内镜像版本..."
             if GITEE_MIRROR_REPO="$DECKY_MAKO_MIRROR_REPO" \
                 GITEE_MIRROR_CONNECT_TIMEOUT=5 \
                 GITEE_MIRROR_MAX_TIME=8 \
@@ -251,7 +251,7 @@ resolve_plugin_latest() {
                     return 0
                 fi
             fi
-            echo "MAKO Gitee 镜像版本检查未完成，短时检查作者 GitHub Release..."
+            echo "MAKO 国内镜像版本检查未完成，短时检查作者 GitHub Release..."
             if GITHUB_API_CONNECT_TIMEOUT=5 GITHUB_API_MAX_TIME=8 \
                 resolve_latest_github_release "eugeniosegala/MAKO" \
                     '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO 小黄鸭"; then
@@ -482,7 +482,7 @@ load_decky_gitee_mirror_meta() {
     DECKY_GITEE_PRERELEASE_SERVICE_SHA256=""
 
     if ! download_github_file "$DECKY_GITEE_MIRROR_META" "$meta_file" "" "Decky 镜像元数据"; then
-        log "Decky Gitee镜像元数据获取失败，改用既有线路。"
+        log "Decky 国内镜像元数据获取失败，改用既有线路。"
         return 1
     fi
     while IFS='=' read -r key value; do
@@ -587,7 +587,7 @@ download_decky_gitee_loader() {
     done
     if [ "$(calculate_decky_sha256 "$output")" != "$expected_sha256" ]; then
         rm -f -- "$output"
-        log "Decky Gitee镜像PluginLoader整体SHA256校验失败。"
+        log "Decky 国内镜像 PluginLoader 整体 SHA256 校验失败。"
         return 1
     fi
     DECKY_GITEE_SELECTED_VERSION="$version"
@@ -1148,7 +1148,7 @@ install_plugin_store() (
     if [ "$gitee_meta_ok" -eq 1 ] && download_decky_gitee_loader "$channel" "$loader_download"; then
         selected_version="$DECKY_GITEE_SELECTED_VERSION"
         echo "Decky PluginLoader 已从国内镜像下载。"
-        log "Decky下载成功: Decky PluginLoader source=gitee"
+        log "Decky下载成功: Decky PluginLoader source=domestic-mirror"
     elif [ "$channel" = "prerelease" ]; then
         download_decky_prerelease_component \
             "Decky PluginLoader" \
@@ -1168,7 +1168,7 @@ install_plugin_store() (
     echo "正在下载 Decky systemd 服务模板..."
     if [ "$gitee_meta_ok" -eq 1 ] && download_decky_gitee_service "$channel" "$service_template"; then
         echo "Decky systemd服务模板 已从国内镜像下载。"
-        log "Decky下载成功: Decky systemd服务模板 source=gitee"
+        log "Decky下载成功: Decky systemd服务模板 source=domestic-mirror"
     elif [ "$channel" = "prerelease" ]; then
         download_decky_prerelease_component \
             "Decky systemd服务模板" \
@@ -1872,7 +1872,7 @@ extract_gitee_plugin_archive() {
     esac
     archive_paths_are_safe "$repository_archive" zip || return 1
     unzip -Z1 "$repository_archive" | grep -Fxq -- "$archive_member" || {
-        echo "Gitee 镜像下载失败。"
+        echo "国内镜像下载失败。"
         return 1
     }
     if ! unzip -p "$repository_archive" "$archive_member" > "$output"; then
@@ -1944,7 +1944,7 @@ install_decky_zip_from_gitee_archive() {
         return 1
     }
     echo "$display_name 安装成功。"
-    log "$display_name 通过 Gitee 国内源安装完成"
+    log "$display_name 通过国内镜像安装完成"
     PLUGIN_INSTALL_CHANGED=1
     cleanup_decky_tmp
     trap - EXIT INT TERM
@@ -2005,7 +2005,7 @@ install_decky_zip_from_mirror() {
         return 1
     fi
     echo "$display_name 安装成功。"
-    log "$display_name 通过 Gitee 镜像安装完成"
+    log "$display_name 通过国内镜像安装完成"
     PLUGIN_INSTALL_CHANGED=1
     cleanup_decky_tmp
     trap - EXIT INT TERM
@@ -2628,7 +2628,7 @@ install_lsfg_zh_from_gitee() {
         install_decky_zip_from_mirror "小黄鸭（LSFG-VK）" \
         "$LSFG_ZH_MIRROR_ID" "$LSFG_ZH_PACKAGE_SHA256" \
         "$LSFG_OFFICIAL_DIRECTORY" || {
-            echo "小黄鸭署名包的 Gitee 分块镜像不可用，已保留现有插件。"
+            echo "小黄鸭署名包的国内分块镜像不可用，已保留现有插件。"
             return 1
         }
     remove_legacy_lsfg_directories "$plugin_root"
@@ -2674,7 +2674,7 @@ install_fsr4_zh_from_gitee() {
         install_decky_zip_from_mirror "FSR4（Decky Framegen）" \
         "$FSR4_ZH_MIRROR_ID" "$FSR4_ZH_PACKAGE_SHA256" \
         "$FSR4_OFFICIAL_DIRECTORY" || {
-            echo "FSR4 署名包的 Gitee 分块镜像不可用，已保留现有插件。"
+            echo "FSR4 署名包的国内分块镜像不可用，已保留现有插件。"
             return 1
         }
     echo "FSR4 安装成功。"
@@ -2795,7 +2795,7 @@ install_simpledeckytdp_zh_from_gitee() {
     else
         cleanup_decky_tmp
         trap - EXIT INT TERM
-        log "SimpleDeckyTDP Gitee 镜像不可用，切换 GitHub Release"
+        log "SimpleDeckyTDP 国内镜像不可用，切换 GitHub Release"
         install_configured_plugin simpledeckytdp 0 0 || return 1
         install_simpledeckytdp_chinese "$reload_after"
         return $?
@@ -3072,7 +3072,7 @@ ensure_handheld_overlay_current() {
 }
 
 restore_lsfg_official() {
-    echo "Renkit 只提供带 RenAmamiya 署名的 Gitee 分块版本。"
+    echo "Renkit 只提供带 RenAmamiya 署名的国内分块版本。"
     install_lsfg_zh_from_gitee 1
 }
 
@@ -3328,7 +3328,7 @@ install_configured_plugin() {
                     "$DECKY_LSFG_MAKO_URL" \
                     "$DECKY_LSFG_MAKO_SHA256" \
                     "$LSFG_MAKO_DIRECTORY" 0 || {
-                        echo "MAKO 的 Gitee 镜像和作者 GitHub Release 均不可用，已保留现有插件。"
+                        echo "MAKO 的国内镜像和作者 GitHub Release 均不可用，已保留现有插件。"
                         return 1
                     }
                 mako_official_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" || {
@@ -3744,15 +3744,15 @@ install_game_info_plugin_from_gitee() {
     fi
     if [ -d "$plugin_root/$directory" ]; then
         installed_version="$(decky_plugin_version "$plugin_root/$directory" || true)"
-        echo "检测到 $display_name 版本 ${installed_version:-未知}，将通过 Gitee 分块更新到 v${version}。"
+        echo "检测到 $display_name 版本 ${installed_version:-未知}，将通过国内分块更新到 v${version}。"
     else
-        echo "正在通过 Gitee mirror-3 分块安装 $display_name v$version..."
+        echo "正在通过国内分块镜像安装 $display_name v$version..."
     fi
 
     GITEE_MIRROR_REPO="$DECKY_GAME_INFO_MIRROR_REPO" \
         install_decky_zip_from_mirror "$display_name" "$mirror_id" \
         "$package_sha256" "$directory" || {
-            echo "$display_name 的 Gitee 分块镜像不可用，已保留现有插件。"
+            echo "$display_name 的国内分块镜像不可用，已保留现有插件。"
             return 1
         }
 

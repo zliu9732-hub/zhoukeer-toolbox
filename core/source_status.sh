@@ -68,6 +68,7 @@ source_status_show() {
     fi
     awk -F '\t' '
         function label(id) {
+            if (id == "gitee") return "国内线路"
             if (id == "update-gitee") return "Renkit更新（国内镜像）"
             if (id == "update-github") return "Renkit更新（GitHub）"
             if (id == "update-domain") return "Renkit更新（域名备用）"
