@@ -143,7 +143,7 @@ if command -v sha256sum >/dev/null 2>&1; then
 else
     background_sha="$(shasum -a 256 "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/background.png" | awk '{print $1}')"
 fi
-[ "$background_sha" = "b2e5ded70aff4ecdc12f351e642ee7dca2b2b173ec465fbeb14c5136eb7eb696" ] || \
+[ "$background_sha" = "83ad7be810be72fe79bfb1085e2738bf34f2b114f856e0f825525f8aed2634a4" ] || \
     fail "Clover 安装后仍保留旧版开机背景"
 grep -Fq 'steamcl.efi' "$ESP/EFI/CLOVER/config.plist" || \
     fail "SteamOS 不是默认启动器"
