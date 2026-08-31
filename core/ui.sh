@@ -812,6 +812,12 @@ read_menu_choice() {
                 return 0
             fi
 
+            # 分类页只接受本帧实际绘制的按钮。动态列表末页仍可能传入空槽
+            # 映射，不能回退到旧行号，否则会截走重排后的翻页/返回点击。
+            if [ "${UI_DRAW_FUNCTION[0]:-}" = draw_category_frame ]; then
+                case "$region" in left|right) continue ;; esac
+            fi
+
             if [ "$region" != any ]; then
                 ui_scale_row "$row_start"
                 row_start="$UI_SCALED_ROW"

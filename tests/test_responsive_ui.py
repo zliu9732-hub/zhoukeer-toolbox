@@ -313,6 +313,108 @@ run_flow 2> >(filter_terminal_stderr >&2)
         os.close(master)
 
 
+def plugin_page_tests(directory):
+    """Use both real pagers, but replace every installation entry with a fatal mock."""
+    prefix = SHELL.split("draw_category_frame software '' ''")[0]
+    for filename, name in [('main.sh', 'plugin_official_touch_pages'),
+                           ('main-bazzite.sh', 'bazzite_official_plugin_pages')]:
+        source = (ROOT / filename).read_text()
+        extract = lambda function: re.search(r'^' + function + r'\(\).*?^}', source, re.M | re.S).group()
+        pager = extract(name)
+        navigation = extract('apply_navigation')
+        reader = extract('read_touch_menu')
+        fixture = directory / (filename + '-plugin-probe.sh')
+        for remaining in range(1, 6):
+            # Start at the final page with 1..5 entries; keep the real rendering and mappings.
+            names = [f'PLUGIN_{i:02}' for i in range(20 + remaining)]
+            setup = ('DECKY_TOUCH_PAGE_SIZE=5\nDECKY_OFFICIAL_PLUGIN_NAMES=('
+                     + ' '.join(names) + ')\nDECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=('
+                     + ' '.join('hint' for _ in names) + ')\n')
+            fixture.write_text(prefix + setup + navigation + '\n'
+                               + reader.replace('read_touch_menu()', 'probe_read_touch_menu()', 1) + '\n'
+                               + pager.replace('page=0', 'page=4', 1) + r'''
+confirm_and_run() { printf 'UNEXPECTED INSTALL\n' >&2; exit 93; }
+exec 8>&1
+read_touch_menu() {
+    local result
+    if [ "$UI_TEST_MODE" != render ]; then
+        result="$(probe_read_touch_menu "$@")" || exit 94
+        printf '\nRESULT=%s\n' "$result" >&8
+    fi
+    # End the real menu after observing one action, without executing that action.
+    printf 'nav-exit\n'
+}
+''' + name + ' || [ "$?" -eq 1 ]\n')
+            actions = [(label, f'plugin-{i}') for i, label in enumerate(names) if i >= 20]
+            actions += [('上一页', 'previous'),
+                        ('返回游戏与插件' if filename == 'main.sh' else '返回插件分类', 'next'),
+                        ('返回首页', 'home')]
+            for cols, rows in [(80, 24), (120, 32), (160, 48)]:
+                frame = run(fixture, cols, rows)
+                cells = screen_cells(frame)
+                rectangles = []
+                for label, action in actions:
+                    top, bottom, left, right = box_bounds(frame, label, cells)
+                    rectangles.append((top, bottom, left, right))
+                    y, x = item_position(frame, label)
+                    for cx, cy in [(x, y), (left, top), (right, bottom)]:
+                        result = run(fixture, cols, rows, 'choice', click(cx, cy))
+                        check(result.endswith(f'RESULT={action}\n'),
+                              f'{filename}: {remaining} items, {cols}x{rows}, {label} hit wrong action')
+                # Invisible entries and gaps must not consume a later valid Home tap.
+                left = rectangles[0][2]
+                blank = b''.join(click(left, y) for y in range(4, rows)
+                                 if not any(t <= y <= b and l <= left <= r for t, b, l, r in rectangles))
+                y, x = item_position(frame, '返回首页')
+                check(run(fixture, cols, rows, 'choice', blank + click(x, y)).endswith('RESULT=home\n'),
+                      f'{filename}: hidden entry or gap captured a tap')
+
+        # Exercise actual page state transitions in a private terminal, including relayout.
+        arrays = '\n'.join(re.search(r'^' + var + r'=\(.*?^\)', source, re.M | re.S).group()
+                           for var in ['DECKY_OFFICIAL_PLUGIN_NAMES', 'DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS'])
+        fixture.write_text(prefix + arrays + '\nDECKY_TOUCH_PAGE_SIZE=5\n'
+                           + navigation + '\n' + reader + '\n' + pager + r'''
+confirm_and_run() { printf 'UNEXPECTED INSTALL\n' >&2; exit 93; }
+NEXT_CATEGORY=games
+''' + name + ' || [ "$?" -eq 1 ]\nprintf "\\nPAGE_FLOW_DONE=%s\\n" "$NEXT_CATEGORY"\n')
+        master, slave = pty.openpty()
+        tty.setraw(slave)
+        resize(master, 120, 32)
+        process = subprocess.Popen(['bash', str(fixture)],
+                                   env=dict(os.environ, UI_TEST_ROOT=str(ROOT), UI_TEST_MODE='live'),
+                                   stdin=slave, stdout=slave, stderr=slave)
+        os.close(slave)
+        try:
+            frame = read_until(master, '触屏或触控板点击功能'.encode())
+            total = len(re.findall(r'"[^"]*"', arrays.split('DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=')[0]))
+            pages = (total + 4) // 5
+            for page in range(1, pages):
+                y, x = item_position(frame, '下一页')
+                os.write(master, click(x, y))
+                frame = read_until(master, '触屏或触控板点击功能'.encode())
+                check(f'第 {page + 1} / {pages} 页' in frame, f'{filename}: Next did not advance')
+            for cols, rows in [(160, 48), (80, 28), (120, 32)]:
+                resize(master, cols, rows)
+                frame = read_until(master, '触屏或触控板点击功能'.encode())
+                y, x = item_position(frame, '上一页')
+                os.write(master, click(x, y))
+                frame = read_until(master, '触屏或触控板点击功能'.encode())
+                check(f'第 {pages - 1} / {pages} 页' in frame, f'{filename}: Previous swallowed')
+                y, x = item_position(frame, '下一页')
+                os.write(master, click(x, y))
+                frame = read_until(master, '触屏或触控板点击功能'.encode())
+                check(f'第 {pages} / {pages} 页' in frame, f'{filename}: Last page not restored')
+            y, x = item_position(frame, '返回首页')
+            os.write(master, click(x, y))
+            read_until(master, b'PAGE_FLOW_DONE=home')
+            check(process.wait(timeout=3) == 0, f'{filename}: Page flow failed')
+        finally:
+            if process.poll() is None:
+                process.kill()
+            process.wait()
+            os.close(master)
+
+
 def main():
     with tempfile.TemporaryDirectory(prefix='renkit-ui-test-') as temp:
         fixture = Path(temp) / 'canvas.sh'
@@ -466,7 +568,8 @@ ui_disclaimer_button 16 '' 'WELCOME' 'Read first and click to continue'
         live_test(fixture)
         input_stream_test(Path(temp))
         new_machine_flow_test(Path(temp))
-    print('PASS: 8 sizes, sidebar, card hits, resize, fragmented taps and actual initialization menus through launcher filter')
+        plugin_page_tests(Path(temp))
+    print('PASS: 8 sizes, sidebar, card hits, resize, fragmented taps, initialization and both dynamic plugin pagers')
 
 
 if __name__ == '__main__':
