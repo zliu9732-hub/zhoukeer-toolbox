@@ -172,14 +172,13 @@ ui_prepare_layout() {
         UI_HOME=1
         count="$notes"
     fi
-    stride=$(((UI_CONTENT_ROWS - 1) / 9))
-    height="$stride"
-    [ "$height" -le 3 ] || height=$((height - 1))
-    [ "$height" -le 5 ] || height=5
+    # 侧栏共用两侧竖线和相邻横线，固定为一行名称、一行分隔，不随窗口拉高。
+    # 分隔线归下一个选项，末项包含底边，点击范围不重叠。
     for ((index=0; index<9; index++)); do
         row=$((2 + index * 2))
-        UI_LEFT_TOP[row]=$((2 + index * stride))
-        UI_LEFT_BOTTOM[row]=$((UI_LEFT_TOP[row] + height - 1))
+        UI_LEFT_TOP[row]="$row"
+        UI_LEFT_BOTTOM[row]=$((row + 1))
+        [ "$index" -ne 8 ] || UI_LEFT_BOTTOM[row]=$((row + 2))
         UI_LEFT_COL[row]=3
         UI_LEFT_WIDTH[row]=$((UI_SIDEBAR_WIDTH - 2))
     done
@@ -408,7 +407,7 @@ ui_panel_line() {
     printf ' \033[0m\033[?7h'
 }
 
-# 分类沿用两行逻辑触控区，实际边框随窗口高度展开。
+# 分类共用一个红色外框，横线逐项分隔；右侧继续使用独立卡片。
 ui_sidebar_item() {
     local row="$1"
     local value="$2"
@@ -427,7 +426,24 @@ ui_sidebar_item() {
         border='\033[1;38;5;203m'
     fi
 
-    ui_button_box "$row" 3 "$((UI_SIDEBAR_WIDTH - 2))" "$border" 2 left
+    ui_button_rect left "$row" || return 1
+    UI_BOX_COL="$UI_HIT_COL" UI_BOX_WIDTH="$UI_HIT_WIDTH"
+    UI_BOX_TEXT_ROW=$((UI_HIT_TOP + 1)) UI_BOX_HINT_ROW=0
+    printf '\033[?7l'
+    ui_move_absolute "$UI_HIT_TOP" "$UI_BOX_COL"
+    printf '\033[38;5;131m'
+    if [ "$row" -eq 2 ]; then
+        printf '╭'; ui_rule "$((UI_BOX_WIDTH - 2))"; printf '╮'
+    else
+        printf '├'; ui_rule "$((UI_BOX_WIDTH - 2))"; printf '┤'
+    fi
+    ui_move_absolute "$UI_BOX_TEXT_ROW" "$UI_BOX_COL"
+    printf '%b│%*s│' "$border" "$((UI_BOX_WIDTH - 2))" ''
+    if [ "$row" -eq 18 ]; then
+        ui_move_absolute "$UI_HIT_BOTTOM" "$UI_BOX_COL"
+        printf '\033[38;5;131m╰'; ui_rule "$((UI_BOX_WIDTH - 2))"; printf '╯'
+    fi
+    printf '\033[0m\033[?7h'
     ui_button_caption "$UI_BOX_COL" "$UI_BOX_WIDTH" "$foreground" "$marker$label"
 }
 

@@ -40,7 +40,7 @@ ui_touch_button 15 '' 'CANCEL' 'No change'
 ui_touch_button 23 '' 'RETURN' 'Return home'
 ui_prompt
 if [ "${UI_TEST_MODE:-}" = render ]; then exit 0; fi
-choice="$(read_menu_choice left:2-3:nav-init left:18-19:nav-exit right:2-3:first right:4-5:second right:10-11:yes right:15-16:no right:23-24:home)"
+choice="$(read_menu_choice left:2-3:nav-init left:4-5:nav-software left:6-7:nav-games left:8-9:nav-emulators left:10-11:nav-check left:12-13:nav-advanced left:14-15:nav-uninstall left:16-17:nav-notice left:18-19:nav-exit right:2-3:first right:4-5:second right:10-11:yes right:15-16:no right:23-24:home)"
 printf '\nRESULT=%s\n' "$choice"
 '''
 
@@ -236,19 +236,45 @@ def main():
             if cols >= 110:
                 check(bounds[0][0] == bounds[1][0] and bounds[0][3] < bounds[1][2], 'Two-column layout missing')
                 check(all(bottom - top >= 2 for top, bottom, _, _ in bounds), 'Grid caption overlaps border')
-            side_heights = []
-            for label in ['新机器设置', '安装常用软件', '游戏与插件', '模拟器', '检查与维护',
-                          '更多设置', '卸载已安装', '免责声明与须知', '退出Renkit']:
-                top, bottom, _, _ = box_bounds(output, label, cells)
-                side_heights.append(bottom - top)
-            check(len(set(side_heights)) == 1, 'Sidebar cards have inconsistent heights')
+            previous_y = None
+            for index, (label, action) in enumerate([
+                    ('新机器设置', 'nav-init'), ('安装常用软件', 'nav-software'),
+                    ('游戏与插件', 'nav-games'), ('模拟器', 'nav-emulators'),
+                    ('检查与维护', 'nav-check'), ('更多设置', 'nav-advanced'),
+                    ('卸载已安装', 'nav-uninstall'), ('免责声明与须知', 'nav-notice'),
+                    ('退出Renkit', 'nav-exit')]):
+                y, caption_col = item_position(output, label)
+                left = caption_col - 1
+                right = next(c for (r, c), (char, _) in cells.items()
+                             if r == y and c > left and char == '│')
+                check(previous_y is None or y - previous_y == 2, 'Sidebar spacing is not compact')
+                previous_y = y
+                for c in (left, right):
+                    check(cells.get((y, c)) == ('│', 203 if index == 1 else 131),
+                          'Sidebar rail or selected highlight missing')
+                for c, char in [(left, '╭' if index == 0 else '├'),
+                                (right, '╮' if index == 0 else '┤')]:
+                    check(cells.get((y - 1, c)) == (char, 131), 'Sidebar junction missing')
+                check(all(cells.get((y - 1, c)) == ('─', 131) for c in range(left + 1, right)),
+                      'Sidebar separator overwritten')
+                # The shared separator belongs to the following option; both rails remain clickable.
+                for x, hit_y in [(left, y - 1), (right, y - 1), (left, y), (right, y)]:
+                    check(run(fixture, cols, rows, 'choice', click(x, hit_y)).endswith(f'RESULT={action}\n'),
+                          f'Sidebar boundary dispatched wrong action: {label}')
+            check(cells.get((y + 1, left)) == ('╰', 131)
+                  and cells.get((y + 1, right)) == ('╯', 131), 'Sidebar bottom corners missing')
+            check(all(cells.get((y + 1, c)) == ('─', 131) for c in range(left + 1, right)),
+                  'Sidebar bottom border overwritten')
+            check(run(fixture, cols, rows, 'choice', click(right, y + 1)).endswith('RESULT=nav-exit\n'),
+                  'Sidebar bottom border cannot exit')
             nav_y, _ = item_position(output, '退出Renkit')
             check(run(fixture, cols, rows, 'choice', click(5, nav_y)).endswith('RESULT=nav-exit\n'),
                   'Sidebar hit mismatch')
             # Footer, divider and an off-window click cannot trigger confirmation.
             yes_y, yes_x = item_position(output, 'CONFIRM')
             no_y, no_x = item_position(output, 'CANCEL')
-            invalid = click(yes_x - 3, yes_y) + click(cols + 1, yes_y) + click(cols, yes_y) + click(1, 2)
+            invalid = (click(yes_x - 3, yes_y) + click(cols + 1, yes_y) + click(cols, yes_y)
+                       + click(1, 2) + click(5, nav_y + 2))
             if rows > 24:
                 invalid += click(yes_x, rows)
             check(run(fixture, cols, rows, 'choice', invalid + click(no_x, no_y)).endswith('RESULT=no\n'),
@@ -318,7 +344,7 @@ ui_disclaimer_button 16 '' 'WELCOME' 'Read first and click to continue'
             output = run(fixture, cols, rows)
             check('窗口太小' in output and 'FIRST' not in output, 'Small-window guard missing')
         live_test(fixture)
-    print('PASS: 8 sizes, two-column cards, equal sidebar heights, homepage navigation, preserved risk text, borders and live resize')
+    print('PASS: 8 sizes, two-column cards, compact shared sidebar and boundary hits, homepage navigation, preserved risk text, borders and live resize')
 
 
 if __name__ == '__main__':
