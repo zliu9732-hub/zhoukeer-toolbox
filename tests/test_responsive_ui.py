@@ -5,6 +5,7 @@ from pathlib import Path
 import pty
 import re
 import select
+import signal
 import struct
 import subprocess
 import tempfile
@@ -246,6 +247,72 @@ def input_stream_test(directory):
             os.close(master)
 
 
+def new_machine_flow_test(directory):
+    """Run real menu functions with the launcher's line filter; never run an installer."""
+    main_source = (ROOT / 'main.sh').read_text()
+    launcher_source = (ROOT / 'launch.sh').read_text()
+    functions = [re.search(r'^' + name + r'\(\).*?^}', main_source, re.M | re.S).group()
+                 for name in ['read_touch_menu', 'apply_navigation', 'new_machine_menu', 'new_machine_preflight']]
+    filter_function = re.search(r'^filter_terminal_stderr\(\).*?^}', launcher_source, re.M | re.S).group()
+    fixture = directory / 'new-machine-flow.sh'
+    fixture.write_text(SHELL.split("draw_category_frame software '' ''")[0]
+                       + '\n'.join(functions) + '\n' + filter_function + r'''
+launcher_log() { :; }
+run_action() {
+    [ "$#" -eq 5 ] && [ "$1" = '新机初始化' ] && [ "$2" = env ] &&
+        [ "$3" = ZHOUKEER_AUTO_CONFIRM=1 ] && [ "$4" = bash ] &&
+        [ "$5" = "$PROJECT_ROOT/modules/new_machine.sh" ] || exit 91
+    printf '\nMOCK_INITIALIZATION_STARTED\n'
+}
+run_flow() {
+    NEXT_CATEGORY=init
+    new_machine_menu
+    printf '\nFIRST_DONE=%s\n' "$NEXT_CATEGORY"
+    new_machine_menu
+    printf '\nFLOW_DONE=%s\n' "$NEXT_CATEGORY"
+}
+run_flow 2> >(filter_terminal_stderr >&2)
+''')
+    master, slave = pty.openpty()
+    tty.setraw(slave)
+    resize(master, 120, 32)
+    process = subprocess.Popen(['bash', str(fixture)],
+                               env=dict(os.environ, UI_TEST_ROOT=str(ROOT), UI_TEST_MODE='live'),
+                               stdin=slave, stdout=slave, stderr=slave, start_new_session=True)
+    os.close(slave)
+    try:
+        frame = read_until(master, '触屏或触控板点击功能'.encode())
+        y, x = item_position(frame, '新机初始化')
+        os.write(master, click(x + 2, y))
+        preflight = read_until(master, '触屏或触控板点击功能'.encode())
+        check('设置已完成，开始新机初始化' in preflight and 'CEF 远程调试' in preflight,
+              'New-machine preparation page hidden by launcher filter')
+        check('MOCK_INITIALIZATION_STARTED' not in preflight, 'Initialization started before confirmation')
+        y, x = item_position(preflight, '返回新机必备')
+        os.write(master, click(x + 2, y))
+        frame = read_until(master, '触屏或触控板点击功能'.encode())
+        check('FIRST_DONE=init' in frame and 'MOCK_INITIALIZATION_STARTED' not in frame,
+              'Returning from preflight started initialization or changed navigation')
+        y, x = item_position(frame, '新机初始化')
+        os.write(master, click(x + 2, y))
+        read_until(master, '触屏或触控板点击功能'.encode())
+        resize(master, 160, 48)
+        preflight = read_until(master, '触屏或触控板点击功能'.encode())
+        check('设置已完成，开始新机初始化' in preflight, 'Resize redraw hidden by launcher filter')
+        y, x = item_position(preflight, '设置已完成，开始新机初始化')
+        os.write(master, click(x + 2, y))
+        result = read_until(master, b'FLOW_DONE=init')
+        check(result.count('MOCK_INITIALIZATION_STARTED') == 1, 'Confirmation did not dispatch exactly once')
+        check(process.wait(timeout=3) == 0, 'New-machine menu flow failed')
+    finally:
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        process.wait()
+        os.close(master)
+
+
 def main():
     with tempfile.TemporaryDirectory(prefix='renkit-ui-test-') as temp:
         fixture = Path(temp) / 'canvas.sh'
@@ -398,7 +465,8 @@ ui_disclaimer_button 16 '' 'WELCOME' 'Read first and click to continue'
             check('窗口太小' in output and 'FIRST' not in output, 'Small-window guard missing')
         live_test(fixture)
         input_stream_test(Path(temp))
-    print('PASS: 8 sizes, full-height sidebar, right cards, boundary hits, live resize and fragmented taps without duplicate actions')
+        new_machine_flow_test(Path(temp))
+    print('PASS: 8 sizes, sidebar, card hits, resize, fragmented taps and actual initialization menus through launcher filter')
 
 
 if __name__ == '__main__':

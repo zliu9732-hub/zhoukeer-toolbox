@@ -28,6 +28,7 @@ UI_DRAW_ARG4=()
 UI_DEFERRED=0
 UI_GRID=0
 UI_HOME=0
+UI_TERMINAL_OUTPUT_READY=0
 UI_LEFT_TOP=() UI_LEFT_BOTTOM=() UI_LEFT_COL=() UI_LEFT_WIDTH=()
 UI_RIGHT_TOP=() UI_RIGHT_BOTTOM=() UI_RIGHT_COL=() UI_RIGHT_WIDTH=()
 TOOLBOX_VERSION="$(tr -d '\r\n' < "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/VERSION" 2>/dev/null || true)"
@@ -322,6 +323,12 @@ ui_record_draw() {
 
 ui_begin_frame() {
     if [ "$UI_REPLAYING" = 0 ]; then
+        # 在 choice=$(...) 捕获 stdout 前保存真正的终端输出。
+        # FD 9 专供 UI 重绘使用；不能经启动器按行过滤的 stderr 绘制无换行帧。
+        if [ -t 1 ]; then
+            exec 9>&1
+            UI_TERMINAL_OUTPUT_READY=1
+        fi
         ui_wait_for_minimum_canvas || true
         ui_discard_pending_input
         UI_DRAW_COUNT=0
@@ -741,6 +748,16 @@ read_touch_click() {
     return 1
 }
 
+ui_render_to_terminal() {
+    case "${1:-}" in ui_prompt|ui_redraw_if_resized) ;; *) return 1 ;; esac
+    if [ "$UI_TERMINAL_OUTPUT_READY" = 1 ] && [ -t 9 ]; then
+        "$1" >&9
+    else
+        # 无终端的管道与模拟调用保留 stderr 回退，不污染动作返回值。
+        "$1" >&2
+    fi
+}
+
 read_menu_choice() {
     local mapping
     local region
@@ -754,16 +771,16 @@ read_menu_choice() {
     # ToDesk / 新机准备页直接读取触控，没有显式 ui_prompt；仍须先完整
     # 显示说明和按钮，且不能让重绘内容混入 choice=$(...) 的动作值。
     if [ "$UI_DEFERRED" = 1 ]; then
-        ui_prompt >&2
+        ui_render_to_terminal ui_prompt
     fi
 
     while true; do
         status=0
         read_ui_event || status=$?
         [ "$status" -ne 1 ] || return 1
-        # choice=$(...) 的 stdout 只返回动作；重绘输出送回终端 stderr。
+        # choice=$(...) 的 stdout 只返回动作；重绘直达终端，不经过日志过滤。
         # 尺寸变化这一瞬间收到的点击丢弃，防止用旧位置误触另一项。
-        ui_redraw_if_resized >&2 && continue
+        ui_render_to_terminal ui_redraw_if_resized && continue
         [ "$status" -eq 0 ] || continue
         [ "$UI_EVENT_TYPE" = "click" ] || continue
         [ "$UI_LAYOUT_USABLE" = 1 ] || continue
