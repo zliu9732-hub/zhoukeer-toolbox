@@ -90,12 +90,12 @@ fi
 grep -Fq 'assets/icon-toolbox-deck.png' "$PROJECT_ROOT/install.sh" || fail "安装程序没有使用新的Renkit桌面图标"
 
 touch_button="$(sed -n '/^ui_touch_button()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
-printf '%s\n' "$touch_button" | grep -Fq 'if [ -n "$hint" ]' || fail "空说明按钮仍会显示分隔符"
+button_caption="$(sed -n '/^ui_button_caption()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
+printf '%s\n' "$button_caption" | grep -Fq '[ -n "$hint" ]' || fail "空说明按钮仍会显示分隔符"
 if printf '%s\n' "$touch_button" | grep -Fq '48;5;234'; then
     fail "功能按钮仍使用独立黑色底块"
 fi
-printf '%s\n' "$touch_button" | grep -Fq 'row + 2' || fail "功能按钮底边未随触控区域缩放"
-printf '%s\n' "$touch_button" | grep -Fq 'ui_rule "$UI_PANEL_WIDTH"' || fail "功能按钮分隔线未随窗口宽度绘制"
+printf '%s\n' "$touch_button" | grep -Fq 'ui_button_box "$row" "$UI_PANEL_COL" "$UI_PANEL_WIDTH"' || fail "功能按钮未绘制自适应红框"
 
 ui_prompt_source="$(sed -n '/^ui_prompt()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
 printf '%s\n' "$ui_prompt_source" | grep -Fq 'enable_mouse_tracking' \
@@ -126,7 +126,7 @@ printf '%s\n' "$new_machine_preflight" | grep -Fq 'GE-Proton 10-29' || fail "新
 grep -Fq 'CEF 远程调试' "$PROJECT_ROOT/modules/new_machine.sh" || fail "新机初始化终端说明没有提示 CEF 远程调试"
 
 touch_button="$(sed -n '/^ui_touch_button()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
-printf '%s\n' "$touch_button" | grep -Fq '· %s' || fail "按钮说明没有放到功能名称后方"
+printf '%s\n' "$button_caption" | grep -Fq ' · $hint' || fail "按钮说明没有放到功能名称后方"
 
 installer_entry="$(sed -n '/^if download_bootstrap/,/^fi$/p' "$PROJECT_ROOT/i")"
 printf '%s\n' "$installer_entry" | sed -n '1p' | grep -Fq 'GITEE_URL' || fail "短安装入口没有优先使用 Gitee"

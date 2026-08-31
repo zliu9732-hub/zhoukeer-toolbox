@@ -149,6 +149,68 @@ ui_rule() {
     printf '%s' "${rule// /─}"
 }
 
+# 框只占用原来的两行逻辑触控区，不借用相邻说明或其他按钮的行。
+# 两行高时名称嵌在上边框；空间充足时名称位于框内，保持中文完整。
+ui_button_box() {
+    local row="$1" col="$2" width="$3"
+    local border="${4:-\033[38;5;203m}" span="${5:-2}"
+    local top bottom current
+    ui_scale_row "$row"
+    top="$UI_SCALED_ROW"
+    ui_scale_row "$((row + span))"
+    bottom=$((UI_SCALED_ROW - 1))
+    UI_BOX_TEXT_ROW=$(((top + bottom) / 2))
+    printf '\033[?7l'
+    for ((current=top; current<=bottom; current++)); do
+        ui_move_absolute "$current" "$col"
+        printf '%b' "$border"
+        if [ "$current" -eq "$top" ]; then
+            printf '╭'; ui_rule "$((width - 2))"; printf '╮'
+        elif [ "$current" -eq "$bottom" ]; then
+            printf '╰'; ui_rule "$((width - 2))"; printf '╯'
+        else
+            printf '│%*s│' "$((width - 2))" ''
+        fi
+    done
+    printf '\033[0m\033[?7h'
+}
+
+# 静态中文菜单按终端单元格限宽；其他非 ASCII 字符保守预留两格，
+# 避免中文字或 emoji 被切成半个，或长说明覆盖右边框。无需外部进程。
+ui_fit_button_text() {
+    local text="$1" limit="$2" character width
+    local LC_COLLATE=C
+    UI_FIT_TEXT=''
+    UI_FIT_USED=0
+    while [ -n "$text" ]; do
+        character="${text:0:1}"
+        case "$character" in
+            [[:cntrl:]]) text="${text:1}"; continue ;;
+            [\ -~]|◆|▣|✦|▦|◎|▧|×|▶|·|…|—|–|→|←|✓|✗) width=1 ;;
+            *) width=2 ;;
+        esac
+        [ "$((UI_FIT_USED + width))" -le "$limit" ] || break
+        UI_FIT_TEXT="$UI_FIT_TEXT$character"
+        UI_FIT_USED=$((UI_FIT_USED + width))
+        text="${text:1}"
+    done
+}
+
+ui_button_caption() {
+    local col="$1" width="$2" color="$3" label="$4" hint="${5:-}"
+    local remaining=$((width - 4))
+    ui_move_absolute "$UI_BOX_TEXT_ROW" "$((col + 1))"
+    printf '\033[?7l %b' "$color"
+    ui_fit_button_text "$label" "$remaining"
+    printf '%s' "$UI_FIT_TEXT"
+    remaining=$((remaining - UI_FIT_USED))
+    if [ -n "$hint" ] && [ "$remaining" -gt 3 ]; then
+        ui_fit_button_text " · $hint" "$remaining"
+        printf '\033[38;5;245m%s' "$UI_FIT_TEXT"
+    fi
+    printf ' \033[0m\033[?7h'
+}
+
 # 只保存界面函数的参数，缩放时重画当前页，不重跑菜单或功能模块。
 # 不保存或执行拼接的 Shell 命令，也不改动调用方的 action ID。
 ui_record_draw() {
@@ -229,33 +291,24 @@ ui_panel_line() {
     printf ' \033[0m\033[?7h'
 }
 
-# 每个分类是两行高的大按钮，内部值只用于程序识别，界面不显示字母或数字。
+# 分类沿用两行逻辑触控区，实际边框随窗口高度展开。
 ui_sidebar_item() {
     local row="$1"
     local value="$2"
     local label="$3"
     local selected="$4"
-    local show_separator="${5:-1}"
     local marker='  '
     local foreground='\033[38;5;252m'
-    local separator='\033[38;5;239m'
+    local border='\033[38;5;203m'
 
     if [ "$value" = "$selected" ]; then
         marker='▶ '
         foreground='\033[1;38;5;203m'
-        separator='\033[38;5;203m'
+        border='\033[1;38;5;203m'
     fi
 
-    # 左侧分类共用背景，以细线形成连续列表；当前分类使用红色强调。
-    ui_move "$row" 3
-    printf '%b%s%s%b' "$foreground" "$marker" "$label" "$NC"
-    if [ "$show_separator" = "1" ]; then
-        ui_scale_row "$((row + 2))"
-        ui_move_absolute "$((UI_SCALED_ROW - 1))" 3
-        printf '%b' "$separator"
-        ui_rule "$((UI_SIDEBAR_WIDTH - 2))"
-        printf '%b' "$NC"
-    fi
+    ui_button_box "$row" 3 "$((UI_SIDEBAR_WIDTH - 2))" "$border"
+    ui_button_caption 3 "$((UI_SIDEBAR_WIDTH - 2))" "$foreground" "$marker$label"
 }
 
 ui_touch_button() {
@@ -266,30 +319,16 @@ ui_touch_button() {
     local label="$3"
     local hint="${4:-}"
     local label_color='\033[38;5;255m'
-    local rail_color='\033[38;5;203m'
-    local separator_color='\033[38;5;239m'
+    local border='\033[38;5;203m'
 
-    # 名称与说明放在同一行，第二行作为列表分隔线和触控区域。
+    # 返回、安装和确认按钮都使用红框，危险确认保留加亮边框。
     case "$color" in
-        *'48;5;114'*) label_color='\033[38;5;255m' ;;
-        *'48;5;160'*) label_color='\033[38;5;255m'; rail_color='\033[38;5;203m'; separator_color='\033[38;5;203m' ;;
-        *'48;5;238'*) label_color='\033[38;5;250m'; rail_color='\033[38;5;245m'; separator_color='\033[38;5;239m' ;;
+        *'48;5;160'*) border='\033[1;38;5;203m' ;;
+        *'48;5;238'*) label_color='\033[38;5;250m' ;;
     esac
 
-    ui_move "$row" "$UI_PANEL_COL"
-    # 临时关闭终端自动换行，过长说明会在右边缘截断，不会挤乱下一行。
-    printf '\033[?7l%b▌ %b%s' \
-        "$rail_color" "$label_color" "$label"
-    if [ -n "$hint" ]; then
-        printf '\033[38;5;245m · %s' "$hint"
-    fi
-    printf ' \033[0m\033[?7h'
-    # 分隔线放在整个按钮触控区的底边，留出舒适行距。
-    ui_scale_row "$((row + 2))"
-    ui_move_absolute "$((UI_SCALED_ROW - 1))" "$UI_PANEL_COL"
-    printf '%b' "$separator_color"
-    ui_rule "$UI_PANEL_WIDTH"
-    printf '\033[0m'
+    ui_button_box "$row" "$UI_PANEL_COL" "$UI_PANEL_WIDTH" "$border"
+    ui_button_caption "$UI_PANEL_COL" "$UI_PANEL_WIDTH" "$label_color" "$label" "$hint"
 }
 
 draw_category_frame() {
@@ -379,11 +418,11 @@ ui_disclaimer_button() {
     local label="$3"
     local hint="$4"
 
-    ui_resolve_text_color "$color"
-    ui_move "$row" 8
-    printf '%b▌  %s \033[0m' "$UI_THEME_COLOR" "$label"
-    ui_move "$((row + 1))" 11
-    printf '\033[38;5;250m  %s \033[0m' "$hint"
+    # 欢迎页没有密集相邻按钮，可使用四行逻辑高度保留完整说明。
+    ui_button_box "$row" 6 "$((UI_COLUMNS - 10))" '\033[38;5;203m' 4
+    ui_button_caption 6 "$((UI_COLUMNS - 10))" '\033[38;5;255m' "$label"
+    UI_BOX_TEXT_ROW=$((UI_BOX_TEXT_ROW + 1))
+    ui_button_caption 6 "$((UI_COLUMNS - 10))" '\033[38;5;250m' "$hint"
 }
 
 ui_prompt() {
@@ -392,6 +431,8 @@ ui_prompt() {
     # 进入点击模式，避免下一层菜单退回普通光标导致触控失效。
     enable_mouse_tracking
     [ "$UI_LAYOUT_USABLE" = 1 ] || return 0
+    # 24 行紧凑窗口优先显示最底部按钮的完整红框，不用提示覆盖按钮。
+    [ "$UI_ROWS" -gt "$UI_CONTENT_ROWS" ] || return 0
     ui_move_absolute "$UI_ROWS" "$UI_PANEL_COL"
     printf '\033[?7l\033[0m\033[K\033[38;5;255m 触屏或触控板点击功能 \033[0m\033[?7h'
 }
@@ -561,14 +602,14 @@ read_menu_choice() {
                 row_start="$UI_SCALED_ROW"
                 ui_scale_row "$((row_end + 1))"
                 row_end=$((UI_SCALED_ROW - 1))
-                [ "$UI_EVENT_Y" -lt "$UI_ROWS" ] || continue
+                [ "$UI_EVENT_Y" -le "$UI_CONTENT_ROWS" ] || continue
             fi
 
             [ "$UI_EVENT_Y" -ge "$row_start" ] 2>/dev/null || continue
             [ "$UI_EVENT_Y" -le "$row_end" ] 2>/dev/null || continue
             case "$region" in
-                left) [ "$UI_EVENT_X" -le "$UI_SIDEBAR_WIDTH" ] || continue ;;
-                right) [ "$UI_EVENT_X" -ge "$UI_PANEL_COL" ] || continue ;;
+                left) [ "$UI_EVENT_X" -ge 3 ] && [ "$UI_EVENT_X" -le "$UI_SIDEBAR_WIDTH" ] || continue ;;
+                right) [ "$UI_EVENT_X" -ge "$UI_PANEL_COL" ] && [ "$UI_EVENT_X" -lt "$((UI_PANEL_COL + UI_PANEL_WIDTH))" ] || continue ;;
                 any) ;;
                 *) continue ;;
             esac
