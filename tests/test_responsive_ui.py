@@ -53,8 +53,8 @@ def check(condition, message):
         raise AssertionError(message)
 
 
-def item_position(output, label):
-    prefix = output[:output.index(label)]
+def item_position(output, label, last=False):
+    prefix = output[:output.rindex(label) if last else output.index(label)]
     matches = list(MOVE.finditer(prefix))
     check(matches, f'No cursor before {label}')
     return tuple(map(int, matches[-1].groups()))
@@ -104,8 +104,8 @@ def screen_cells(output):
     return cells
 
 
-def box_bounds(output, label, cells):
-    y, caption_col = item_position(output, label)
+def box_bounds(output, label, cells, last=False):
+    y, caption_col = item_position(output, label, last=last)
     left = caption_col - 1
     top = max(r for (r, c), (char, _) in cells.items()
               if c == left and r <= y and char == '╭')
@@ -113,16 +113,18 @@ def box_bounds(output, label, cells):
                  if r == top and c > left and char == '╮')
     bottom = min(r for (r, c), (char, _) in cells.items()
                  if c == left and r > top and char == '╰')
+    border = cells[top, left][1]
+    check(border in (131, 203), f'{label}: border is not red')
     for r, c, char in [(top, left, '╭'), (top, right, '╮'),
                        (bottom, left, '╰'), (bottom, right, '╯')]:
-        check(cells.get((r, c)) == (char, 203), f'{label}: missing red corner {r},{c}')
+        check(cells.get((r, c)) == (char, border), f'{label}: missing red corner {r},{c}')
     for r in range(top + 1, bottom):
-        check(cells.get((r, left)) == ('│', 203), f'{label}: left border overwritten')
-        check(cells.get((r, right)) == ('│', 203), f'{label}: right border overwritten')
+        check(cells.get((r, left)) == ('│', border), f'{label}: left border overwritten')
+        check(cells.get((r, right)) == ('│', border), f'{label}: right border overwritten')
     for c in range(left + 1, right):
-        check(cells.get((bottom, c)) == ('─', 203), f'{label}: bottom border overwritten')
+        check(cells.get((bottom, c)) == ('─', border), f'{label}: bottom border overwritten')
         if top < y:
-            check(cells.get((top, c)) == ('─', 203), f'{label}: top border overwritten')
+            check(cells.get((top, c)) == ('─', border), f'{label}: top border overwritten')
     return top, bottom, left, right
 
 
@@ -169,7 +171,7 @@ def live_test(fixture):
         resize(master, 200, 60)
         enlarged = read_until(master, '触屏或触控板点击功能'.encode())
         check('FIRST' in enlarged and 'RETURN' in enlarged, 'Resize lost current menu')
-        check(item_position(enlarged, 'RETURN')[0] > 50, 'Return did not move down')
+        check(item_position(enlarged, 'RETURN')[0] > 32, 'Return did not move down')
         check(item_position(enlarged, 'FIRST')[1] > 50, 'Panel did not move right')
 
         # An undersized window suppresses clicks, including the former confirmation.
@@ -219,18 +221,27 @@ def main():
             bounds = []
             for label, action in [('FIRST', 'first'), ('SECOND', 'second'), ('CONFIRM', 'yes'), ('CANCEL', 'no'), ('RETURN', 'home')]:
                 top, bottom, left, right = box_bounds(output, label, cells)
-                bounds.append((top, bottom))
-                check(right == cols - 2, 'Box does not fill panel width')
+                bounds.append((top, bottom, left, right))
+                if cols < 110 or label == 'RETURN':
+                    check(right == cols - 2, 'Single/spanning box does not fill panel width')
                 y, x = item_position(output, label)
                 result = run(fixture, cols, rows, 'choice', click(x + 2, y))
                 check(result.endswith(f'RESULT={action}\n'), f'Wrong {label} hit at {cols}x{rows}')
                 for bx, by in [(left, top), (right, top), (left, bottom), (right, bottom)]:
                     result = run(fixture, cols, rows, 'choice', click(bx, by))
                     check(result.endswith(f'RESULT={action}\n'), 'Red corner hit mismatch')
-            check(all(a[1] < b[0] for a, b in zip(bounds, bounds[1:])), 'Adjacent boxes overlap')
+            for index, (top, bottom, left, right) in enumerate(bounds):
+                for ot, ob, ol, oright in bounds[index + 1:]:
+                    check(bottom < ot or ob < top or right < ol or oright < left, 'Cards overlap')
+            if cols >= 110:
+                check(bounds[0][0] == bounds[1][0] and bounds[0][3] < bounds[1][2], 'Two-column layout missing')
+                check(all(bottom - top >= 2 for top, bottom, _, _ in bounds), 'Grid caption overlaps border')
+            side_heights = []
             for label in ['新机器设置', '安装常用软件', '游戏与插件', '模拟器', '检查与维护',
                           '更多设置', '卸载已安装', '免责声明与须知', '退出Renkit']:
-                box_bounds(output, label, cells)
+                top, bottom, _, _ = box_bounds(output, label, cells)
+                side_heights.append(bottom - top)
+            check(len(set(side_heights)) == 1, 'Sidebar cards have inconsistent heights')
             nav_y, _ = item_position(output, '退出Renkit')
             check(run(fixture, cols, rows, 'choice', click(5, nav_y)).endswith('RESULT=nav-exit\n'),
                   'Sidebar hit mismatch')
@@ -242,6 +253,57 @@ def main():
                 invalid += click(yes_x, rows)
             check(run(fixture, cols, rows, 'choice', invalid + click(no_x, no_y)).endswith('RESULT=no\n'),
                   'Blank area incorrectly dispatched action')
+
+        # Render the real homepage calls and prove each right card reuses its left action.
+        home_function = re.search(r'^home_menu\(\).*?^}', (ROOT / 'main.sh').read_text(), re.M | re.S).group()
+        home_lines = [line.strip() for line in home_function.splitlines()
+                      if line.strip().startswith(('draw_category_frame ', 'ui_panel_line ')) or line.strip() == 'ui_prompt']
+        navigation = [('新机器设置', 'nav-init'), ('安装常用软件', 'nav-software'),
+                      ('游戏与插件', 'nav-games'), ('模拟器', 'nav-emulators'),
+                      ('检查与维护', 'nav-check'), ('更多设置', 'nav-advanced'),
+                      ('卸载已安装', 'nav-uninstall'), ('免责声明与使用须知', 'nav-notice')]
+        mappings = ' '.join(f'left:{2 + i * 2}-{3 + i * 2}:{action}' for i, (_, action) in enumerate(navigation))
+        home = Path(temp) / 'home.sh'
+        home.write_text(SHELL.split("draw_category_frame software '' ''")[0] + '\n'.join(home_lines) + '\n'
+                        + 'if [ "$UI_TEST_MODE" = render ]; then exit 0; fi\n'
+                        + 'choice="$(read_menu_choice ' + mappings + ')"\nprintf "\\nRESULT=%s\\n" "$choice"\n')
+        for cols, rows in [(80, 24), (120, 32), (160, 48)]:
+            output = run(home, cols, rows)
+            cells = screen_cells(output)
+            for label, action in navigation:
+                top, bottom, left, right = box_bounds(output, label, cells, last=True)
+                for x, y in [(left, top), (right, bottom)]:
+                    result = run(home, cols, rows, 'choice', click(x, y))
+                    check(result.endswith(f'RESULT={action}\n'), 'Homepage card changed navigation')
+
+        # Extra risk text disables the grid and remains above the original confirmation.
+        mixed = Path(temp) / 'mixed.sh'
+        mixed.write_text(SHELL.split("draw_category_frame software '' ''")[0] + r'''
+draw_category_frame advanced 'RISK_PAGE' 'Read before choosing'
+ui_panel_line 7 '' 'WARNING: review all consequences before confirming'
+ui_touch_button 9 '' 'CONFIRM'
+ui_touch_button 12 '' 'STATUS'
+ui_touch_button 15 '' 'CANCEL'
+ui_touch_button 22 '' 'RETURN'
+ui_prompt
+''')
+        for cols, rows in [(120, 32), (160, 48)]:
+            output = run(mixed, cols, rows)
+            cells = screen_cells(output)
+            boxes = [box_bounds(output, label, cells) for label in ['CONFIRM', 'STATUS', 'CANCEL', 'RETURN']]
+            check(len({left for _, _, left, _ in boxes}) == 1, 'Risk page was rearranged into columns')
+            check(item_position(output, 'WARNING')[0] < boxes[0][0], 'Risk notice moved below confirmation')
+            # Some real preflight pages omit ui_prompt and read the choice directly.
+            implicit = Path(temp) / 'implicit-prompt.sh'
+            implicit.write_text(mixed.read_text().replace('ui_prompt\n', '')
+                                + 'choice="$(read_menu_choice right:15-16:no)"\nprintf "RESULT=%s\\n" "$choice"\n')
+            _, _, left, _ = boxes[2]
+            y, _ = item_position(output, 'CANCEL')
+            result = subprocess.run(['bash', str(implicit)], input=click(left, y), capture_output=True,
+                                    env=dict(os.environ, UI_TEST_ROOT=str(ROOT), MOCK_COLS=str(cols),
+                                             MOCK_ROWS=str(rows), UI_TEST_MODE='choice'), timeout=10)
+            check(result.returncode == 0 and result.stdout == b'RESULT=no\n', 'Implicit frame polluted choice')
+            check(b'WARNING' in result.stderr and b'CONFIRM' in result.stderr, 'Preflight did not display before reading')
         # The welcome button also has a red box; its explanation stays inside it.
         welcome = Path(temp) / 'welcome.sh'
         welcome.write_text(SHELL.split("draw_category_frame software '' ''")[0] + r'''
@@ -256,7 +318,7 @@ ui_disclaimer_button 16 '' 'WELCOME' 'Read first and click to continue'
             output = run(fixture, cols, rows)
             check('窗口太小' in output and 'FIRST' not in output, 'Small-window guard missing')
         live_test(fixture)
-    print('PASS: 8 terminal sizes, red boxes and corner hits, CJK clipping, adjacent boxes, idle resize and small-window recovery')
+    print('PASS: 8 sizes, two-column cards, equal sidebar heights, homepage navigation, preserved risk text, borders and live resize')
 
 
 if __name__ == '__main__':
