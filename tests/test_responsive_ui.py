@@ -202,6 +202,50 @@ def live_test(fixture):
         os.close(master)
 
 
+def input_stream_test(directory):
+    """A partial packet must not consume the next tap; release must not open another page."""
+    start = SHELL.index('choice="$(read_menu_choice')
+    reader = SHELL[start:]
+    fixture = directory / 'stream.sh'
+    fixture.write_text(SHELL[:start] + reader.replace('RESULT=', 'FIRST_RESULT=')
+                       + reader.replace('RESULT=', 'SECOND_RESULT='))
+    for raw in (False, True):
+        master, slave = pty.openpty()
+        if raw:
+            tty.setraw(slave)
+        resize(master, 120, 32)
+        env = dict(os.environ, UI_TEST_ROOT=str(ROOT), UI_TEST_MODE='live')
+        process = subprocess.Popen(['bash', str(fixture)], env=env,
+                                   stdin=slave, stdout=slave, stderr=slave)
+        os.close(slave)
+        try:
+            frame = read_until(master, '触屏或触控板点击功能'.encode())
+            y, x = item_position(frame, 'CANCEL')
+            os.write(master, b'\x1b[<0;')
+            time.sleep(0.05)
+            # Deliver a new valid tap in fragments, like delayed terminal input.
+            packet = click(x + 2, y)
+            for part in (packet[:1], packet[1:5], packet[5:-1], packet[-1:]):
+                os.write(master, part)
+                time.sleep(0.02)
+            os.write(master, packet[:-1] + b'm')
+            result = read_until(master, b'FIRST_RESULT=no')
+            check('SECOND_RESULT=' not in result, 'Release triggered another menu')
+            time.sleep(0.05)
+            check(process.poll() is None, 'Release or leftover bytes dispatched another action')
+            y, x = item_position(frame, 'FIRST')
+            packet = click(x + 2, y)
+            os.write(master, packet + packet[:-1] + b'm')
+            result = read_until(master, b'SECOND_RESULT=first')
+            check('UNEXPECTED' not in result, 'Input stream executed a system action')
+            check(process.wait(timeout=3) == 0, 'Input stream reader failed')
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.wait()
+            os.close(master)
+
+
 def main():
     with tempfile.TemporaryDirectory(prefix='renkit-ui-test-') as temp:
         fixture = Path(temp) / 'canvas.sh'
@@ -237,7 +281,7 @@ def main():
             if cols >= 110:
                 check(bounds[0][0] == bounds[1][0] and bounds[0][3] < bounds[1][2], 'Two-column layout missing')
                 check(all(bottom - top >= 2 for top, bottom, _, _ in bounds), 'Grid caption overlaps border')
-            previous_y = None
+            side_heights = []
             for index, (label, action) in enumerate([
                     ('新机器设置', 'nav-init'), ('安装常用软件', 'nav-software'),
                     ('游戏与插件', 'nav-games'), ('模拟器', 'nav-emulators'),
@@ -248,25 +292,33 @@ def main():
                 left = caption_col - 1
                 right = next(c for (r, c), (char, _) in cells.items()
                              if r == y and c > left and char == '│')
-                check(previous_y is None or y - previous_y == 2, 'Sidebar spacing is not compact')
-                previous_y = y
-                for c in (left, right):
-                    check(cells.get((y, c)) == ('│', 203 if index == 1 else 131),
-                          'Sidebar rail or selected highlight missing')
+                top = max(r for (r, c), (char, _) in cells.items()
+                          if c == left and r < y and char in '╭├')
+                bottom = min(r for (r, c), (char, _) in cells.items()
+                             if c == left and r > y and char in '├╰')
+                side_heights.append(bottom - top)
+                check(abs((y - top) - (bottom - y)) <= 1, 'Sidebar caption not centered')
+                check(index != 0 or top == 2, 'Sidebar no longer starts below header')
+                for rail_y in range(top + 1, bottom):
+                    for c in (left, right):
+                        check(cells.get((rail_y, c)) == ('│', 203 if index == 1 else 131),
+                              'Sidebar rail or selected highlight missing')
                 for c, char in [(left, '╭' if index == 0 else '├'),
                                 (right, '╮' if index == 0 else '┤')]:
-                    check(cells.get((y - 1, c)) == (char, 131), 'Sidebar junction missing')
-                check(all(cells.get((y - 1, c)) == ('─', 131) for c in range(left + 1, right)),
+                    check(cells.get((top, c)) == (char, 131), 'Sidebar junction missing')
+                check(all(cells.get((top, c)) == ('─', 131) for c in range(left + 1, right)),
                       'Sidebar separator overwritten')
                 # The shared separator belongs to the following option; both rails remain clickable.
-                for x, hit_y in [(left, y - 1), (right, y - 1), (left, y), (right, y)]:
+                for x, hit_y in [(left, top), (right, top), (left, y), (right, bottom - 1)]:
                     check(run(fixture, cols, rows, 'choice', click(x, hit_y)).endswith(f'RESULT={action}\n'),
                           f'Sidebar boundary dispatched wrong action: {label}')
-            check(cells.get((y + 1, left)) == ('╰', 131)
-                  and cells.get((y + 1, right)) == ('╯', 131), 'Sidebar bottom corners missing')
-            check(all(cells.get((y + 1, c)) == ('─', 131) for c in range(left + 1, right)),
+            check(max(side_heights) - min(side_heights) <= 1, 'Sidebar height not evenly distributed')
+            check(rows - 2 <= bottom <= rows, 'Excessive blank space below sidebar')
+            check(cells.get((bottom, left)) == ('╰', 131)
+                  and cells.get((bottom, right)) == ('╯', 131), 'Sidebar bottom corners missing')
+            check(all(cells.get((bottom, c)) == ('─', 131) for c in range(left + 1, right)),
                   'Sidebar bottom border overwritten')
-            check(run(fixture, cols, rows, 'choice', click(right, y + 1)).endswith('RESULT=nav-exit\n'),
+            check(run(fixture, cols, rows, 'choice', click(right, bottom)).endswith('RESULT=nav-exit\n'),
                   'Sidebar bottom border cannot exit')
             nav_y, _ = item_position(output, '退出Renkit')
             check(run(fixture, cols, rows, 'choice', click(5, nav_y)).endswith('RESULT=nav-exit\n'),
@@ -275,7 +327,7 @@ def main():
             yes_y, yes_x = item_position(output, 'CONFIRM')
             no_y, no_x = item_position(output, 'CANCEL')
             invalid = (click(yes_x - 3, yes_y) + click(cols + 1, yes_y) + click(cols, yes_y)
-                       + click(1, 2) + click(5, nav_y + 2))
+                       + click(1, 2) + click(5, bottom + 1))
             if rows > 24:
                 invalid += click(yes_x, rows)
             check(run(fixture, cols, rows, 'choice', invalid + click(no_x, no_y)).endswith('RESULT=no\n'),
@@ -345,7 +397,8 @@ ui_disclaimer_button 16 '' 'WELCOME' 'Read first and click to continue'
             output = run(fixture, cols, rows)
             check('窗口太小' in output and 'FIRST' not in output, 'Small-window guard missing')
         live_test(fixture)
-    print('PASS: 8 sizes, two-column cards, compact shared sidebar and boundary hits, homepage navigation, preserved risk text, borders and live resize')
+        input_stream_test(Path(temp))
+    print('PASS: 8 sizes, full-height sidebar, right cards, boundary hits, live resize and fragmented taps without duplicate actions')
 
 
 if __name__ == '__main__':

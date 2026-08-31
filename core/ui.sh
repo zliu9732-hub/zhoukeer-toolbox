@@ -172,13 +172,13 @@ ui_prepare_layout() {
         UI_HOME=1
         count="$notes"
     fi
-    # 侧栏共用两侧竖线和相邻横线，固定为一行名称、一行分隔，不随窗口拉高。
+    # 侧栏共用两侧竖线和相邻横线，均分可用高度，底边延伸到页脚上方。
     # 分隔线归下一个选项，末项包含底边，点击范围不重叠。
     for ((index=0; index<9; index++)); do
         row=$((2 + index * 2))
-        UI_LEFT_TOP[row]="$row"
-        UI_LEFT_BOTTOM[row]=$((row + 1))
-        [ "$index" -ne 8 ] || UI_LEFT_BOTTOM[row]=$((row + 2))
+        UI_LEFT_TOP[row]=$((2 + index * (UI_CONTENT_ROWS - 2) / 9))
+        UI_LEFT_BOTTOM[row]=$((1 + (index + 1) * (UI_CONTENT_ROWS - 2) / 9))
+        [ "$index" -ne 8 ] || UI_LEFT_BOTTOM[row]="$UI_CONTENT_ROWS"
         UI_LEFT_COL[row]=3
         UI_LEFT_WIDTH[row]=$((UI_SIDEBAR_WIDTH - 2))
     done
@@ -413,6 +413,7 @@ ui_sidebar_item() {
     local value="$2"
     local label="$3"
     local selected="$4"
+    local current content_bottom
     local marker='  '
     local foreground='\033[38;5;250m'
     local border='\033[38;5;131m'
@@ -428,7 +429,9 @@ ui_sidebar_item() {
 
     ui_button_rect left "$row" || return 1
     UI_BOX_COL="$UI_HIT_COL" UI_BOX_WIDTH="$UI_HIT_WIDTH"
-    UI_BOX_TEXT_ROW=$((UI_HIT_TOP + 1)) UI_BOX_HINT_ROW=0
+    content_bottom="$UI_HIT_BOTTOM"
+    [ "$row" -ne 18 ] || content_bottom=$((content_bottom - 1))
+    UI_BOX_TEXT_ROW=$(((UI_HIT_TOP + 1 + content_bottom) / 2)) UI_BOX_HINT_ROW=0
     printf '\033[?7l'
     ui_move_absolute "$UI_HIT_TOP" "$UI_BOX_COL"
     printf '\033[38;5;131m'
@@ -437,8 +440,10 @@ ui_sidebar_item() {
     else
         printf '├'; ui_rule "$((UI_BOX_WIDTH - 2))"; printf '┤'
     fi
-    ui_move_absolute "$UI_BOX_TEXT_ROW" "$UI_BOX_COL"
-    printf '%b│%*s│' "$border" "$((UI_BOX_WIDTH - 2))" ''
+    for ((current=UI_HIT_TOP+1; current<=content_bottom; current++)); do
+        ui_move_absolute "$current" "$UI_BOX_COL"
+        printf '%b│%*s│' "$border" "$((UI_BOX_WIDTH - 2))" ''
+    done
     if [ "$row" -eq 18 ]; then
         ui_move_absolute "$UI_HIT_BOTTOM" "$UI_BOX_COL"
         printf '\033[38;5;131m╰'; ui_rule "$((UI_BOX_WIDTH - 2))"; printf '╯'
@@ -626,19 +631,20 @@ ui_discard_pending_input() {
 }
 
 char_code() {
-    LC_CTYPE=C printf '%d' "'$1"
+    local code
+    LC_CTYPE=C printf -v code '%d' "'$1"
+    # 部分 Bash 对高位字节返回负数，X10 坐标必须按无符号字节解释。
+    printf '%d' "$((code & 255))"
 }
 
 read_ui_event() {
-    local button_char
     local char
     local first
     local index
-    local old_ifs
-    local payload
     local sequence=""
-    local x_char
-    local y_char
+    local mouse_pattern='^\[<([0-9]{1,3});([0-9]{1,4});([0-9]{1,4})([Mm])$'
+    # X10 使用原始字节坐标；不能按 UTF-8 字符合并相邻坐标字节。
+    local LC_ALL=C
 
     UI_EVENT_TYPE=""
     UI_EVENT_BUTTON=""
@@ -671,18 +677,22 @@ read_ui_event() {
     index=0
     while [ "$index" -lt 32 ]; do
         IFS= read -rsn1 -t 1 char || break
+        # 残缺事件或 ESC 键后紧接一次点击时，从新 ESC 重新同步，
+        # 不把新的完整点击拼进旧事件并一起丢弃。
+        if [ "$char" = $'\033' ]; then
+            sequence=""
+            index=0
+            continue
+        fi
         sequence="$sequence$char"
 
         # 旧式 X10 鼠标事件以 ESC [ M 开头，后面还有三个坐标字节。
-        if [ "$sequence" = '[M' ]; then
-            IFS= read -rsn1 -t 1 button_char || return 0
-            IFS= read -rsn1 -t 1 x_char || return 0
-            IFS= read -rsn1 -t 1 y_char || return 0
-            UI_EVENT_BUTTON=$(( $(char_code "$button_char") - 32 ))
-            UI_EVENT_X=$(( $(char_code "$x_char") - 32 ))
-            UI_EVENT_Y=$(( $(char_code "$y_char") - 32 ))
-            if [ $((UI_EVENT_BUTTON & 3)) -eq 0 ] && \
-                [ $((UI_EVENT_BUTTON & 96)) -eq 0 ]; then
+        if [[ "$sequence" = '[M'* ]]; then
+            [ "${#sequence}" -ge 5 ] || { index=$((index + 1)); continue; }
+            UI_EVENT_BUTTON=$(( $(char_code "${sequence:2:1}") - 32 ))
+            UI_EVENT_X=$(( $(char_code "${sequence:3:1}") - 32 ))
+            UI_EVENT_Y=$(( $(char_code "${sequence:4:1}") - 32 ))
+            if [ $((UI_EVENT_BUTTON & ~28)) -eq 0 ]; then
                 UI_EVENT_TYPE="click"
             else
                 UI_EVENT_TYPE="ignored-mouse"
@@ -690,38 +700,35 @@ read_ui_event() {
             return 0
         fi
 
-        case "$char" in
-            M|m) break ;;
+        case "$sequence" in
+            '[') ;;
+            '[<'*)
+                case "$char" in
+                    M|m) break ;;
+                    '<'|[0-9]|';') ;;
+                    *) UI_EVENT_TYPE="ignored-mouse"; return 0 ;;
+                esac ;;
+            *) UI_EVENT_TYPE="ignored-key"; return 0 ;;
         esac
         index=$((index + 1))
     done
 
-    case "$sequence" in
-        '[<'*M)
-            payload="${sequence#'[<'}"
-            payload="${payload%M}"
-            old_ifs="$IFS"
-            IFS=';'
-            # shellcheck disable=SC2162
-            read UI_EVENT_BUTTON UI_EVENT_X UI_EVENT_Y <<EOF
-$payload
-EOF
-            IFS="$old_ifs"
-            # 只响应主指针按下，忽略滚轮、右键和拖动事件。
-            if [ $((UI_EVENT_BUTTON & 3)) -eq 0 ] && \
-                [ $((UI_EVENT_BUTTON & 96)) -eq 0 ]; then
-                UI_EVENT_TYPE="click"
-            else
-                UI_EVENT_TYPE="ignored-mouse"
-            fi
-            return 0
-            ;;
-        '[<'*m)
-            # 松开事件不再触发操作，避免一次触摸连续打开两层菜单。
+    # 只接受有界十进制字段，残缺或畸形事件不能进入算术解析。
+    if [[ "$sequence" =~ $mouse_pattern ]]; then
+        UI_EVENT_BUTTON=$((10#${BASH_REMATCH[1]}))
+        UI_EVENT_X=$((10#${BASH_REMATCH[2]}))
+        UI_EVENT_Y=$((10#${BASH_REMATCH[3]}))
+        if [ "${BASH_REMATCH[4]}" = m ]; then
+            # 松开不触发操作，避免一次触摸连续打开两层菜单。
             UI_EVENT_TYPE="release"
-            return 0
-            ;;
-    esac
+        elif [ $((UI_EVENT_BUTTON & ~28)) -eq 0 ]; then
+            # 只响应主指针按下，忽略滚轮、额外按键和拖动事件。
+            UI_EVENT_TYPE="click"
+        else
+            UI_EVENT_TYPE="ignored-mouse"
+        fi
+        return 0
+    fi
 
     UI_EVENT_TYPE="ignored-key"
 }

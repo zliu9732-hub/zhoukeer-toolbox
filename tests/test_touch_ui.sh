@@ -19,10 +19,11 @@ run_choice_test() {
     local expected="$2"
     local mapping="$3"
     local actual
+    shift 2
 
     if ! actual="$(
         source "$PROJECT_ROOT/core/ui.sh"
-        printf "%b" "$input" | read_menu_choice "$mapping"
+        printf "%b" "$input" | read_menu_choice "$@"
     )"; then
         fail "触控事件未命中任何动作：$mapping"
     fi
@@ -36,6 +37,17 @@ run_choice_test '\033[<0;15;5M' "nav-software" "left:5-6:nav-software"
 run_choice_test '\033[<0;40;22M' "home" "right:22-23:home"
 run_choice_test '\033[<0;8;1M' "agree" "any:1-999:agree"
 run_choice_test '\033[<0;80;19M' "agree" "any:1-999:agree"
+
+# 残缺输入不能吞掉紧随其后的点击；拒绝畸形字段和额外按键。
+for prefix in '\033' '\033[' '\033[<0;' '\033[M' '\033[A' \
+    '\033[<x;40;13M' '\033[<0;;13M' '\033[<0;40;13;7M' \
+    '\033[<128;40;13M' '\033[<0;99999;13M'; do
+    run_choice_test "${prefix}\033[<0;40;18M" "cancel" "right:12-14:unexpected" "right:18-19:cancel"
+done
+run_choice_test '\033[<000;040;018M' "cancel" "right:18-19:cancel"
+# X10 字节编码：(按钮 + 32)、(x + 32)、(y + 32)。
+run_choice_test '\033[M H2' "cancel" "right:18-19:cancel"
+run_choice_test '\033[M \2162' "cancel" "right:18-19:cancel"
 
 grep -Fq 'UI_LAST_ROW=24' "$PROJECT_ROOT/core/ui.sh" || fail "触控画布行数异常"
 grep -Fq 'TOOLBOX_VERSION' "$PROJECT_ROOT/core/ui.sh" || fail "触控标题没有使用真实版本号"
