@@ -35,8 +35,8 @@ konsoleprofile() { exit 92; }
 draw_category_frame software '' ''
 ui_touch_button 2 '' 'FIRST' '中文说明与长文本 Mixed 123 · 测试按钮边框不能被覆盖'
 ui_touch_button 4 '' 'SECOND' 'Adjacent item'
-ui_touch_button 10 '' 'CONFIRM' 'Only after explicit click'
-ui_touch_button 15 '' 'CANCEL' 'No change'
+ui_touch_button 10 '\033[48;5;160m' 'CONFIRM' 'Only after explicit click'
+ui_touch_button 15 '\033[48;5;238m' 'CANCEL' 'No change'
 ui_touch_button 23 '' 'RETURN' 'Return home'
 ui_prompt
 if [ "${UI_TEST_MODE:-}" = render ]; then exit 0; fi
@@ -221,6 +221,7 @@ def main():
             bounds = []
             for label, action in [('FIRST', 'first'), ('SECOND', 'second'), ('CONFIRM', 'yes'), ('CANCEL', 'no'), ('RETURN', 'home')]:
                 top, bottom, left, right = box_bounds(output, label, cells)
+                check(cells[top, left][1] == 131, 'Right button border colors differ')
                 bounds.append((top, bottom, left, right))
                 if cols < 110 or label == 'RETURN':
                     check(right == cols - 2, 'Single/spanning box does not fill panel width')
