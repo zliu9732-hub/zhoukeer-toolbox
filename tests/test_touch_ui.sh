@@ -4,6 +4,11 @@ set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# 固定模拟终端，禁止从测试所在窗口继承尺寸；只加载 UI 函数，不运行主程序。
+stty() { return 1; }
+tput() { case "$1" in cols) printf '120\n' ;; lines) printf '24\n' ;; esac; }
+export COLUMNS=120 LINES=24
+
 fail() {
     echo "FAIL: $*" >&2
     exit 1
@@ -16,10 +21,8 @@ run_choice_test() {
     local actual
 
     if ! actual="$(
-        INPUT="$input" MAPPING="$mapping" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
-            source "$PROJECT_ROOT/core/ui.sh"
-            printf "%b" "$INPUT" | read_menu_choice "$MAPPING"
-        '
+        source "$PROJECT_ROOT/core/ui.sh"
+        printf "%b" "$input" | read_menu_choice "$mapping"
     )"; then
         fail "触控事件未命中任何动作：$mapping"
     fi
@@ -67,7 +70,8 @@ main_prefix="$(sed -n '1,/^# V5 默认就是纯触控界面/p' "$PROJECT_ROOT/ma
 printf '%s\n' "$main_prefix" | grep -Fq 'show_startup_loading' || fail "启动提示没有在触控界面初始化前显示"
 
 disclaimer="$(sed -n '/^draw_disclaimer_frame()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
-printf '%s\n' "$disclaimer" | grep -Fq 'ui_reset_screen' || fail "免责声明首屏未执行完整清屏"
+printf '%s\n' "$disclaimer" | grep -Fq 'ui_begin_frame draw_disclaimer_frame' || fail "免责声明首屏未初始化自适应画布"
+sed -n '/^ui_begin_frame()/,/^}/p' "$PROJECT_ROOT/core/ui.sh" | grep -Fq 'ui_reset_screen' || fail "画布初始化未执行完整清屏"
 main_disclaimer="$(sed -n '/^show_disclaimer()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 if printf '%s\n' "$main_disclaimer" | grep -Fq 'ui_disclaimer_line 14'; then
     fail "免责声明正文仍紧贴首个按钮"
@@ -90,8 +94,8 @@ printf '%s\n' "$touch_button" | grep -Fq 'if [ -n "$hint" ]' || fail "空说明�
 if printf '%s\n' "$touch_button" | grep -Fq '48;5;234'; then
     fail "功能按钮仍使用独立黑色底块"
 fi
-printf '%s\n' "$touch_button" | grep -Fq 'row + 1' || fail "功能按钮之间缺少分隔线"
-printf '%s\n' "$touch_button" | grep -Fq '────────────────' || fail "功能按钮分隔线未绘制"
+printf '%s\n' "$touch_button" | grep -Fq 'row + 2' || fail "功能按钮底边未随触控区域缩放"
+printf '%s\n' "$touch_button" | grep -Fq 'ui_rule "$UI_PANEL_WIDTH"' || fail "功能按钮分隔线未随窗口宽度绘制"
 
 ui_prompt_source="$(sed -n '/^ui_prompt()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
 printf '%s\n' "$ui_prompt_source" | grep -Fq 'enable_mouse_tracking' \

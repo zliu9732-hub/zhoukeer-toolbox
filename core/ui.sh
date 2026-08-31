@@ -13,21 +13,50 @@ UI_PREFERRED_COLUMNS=120
 UI_PREFERRED_ROWS=32
 UI_LAYOUT_RETRY_COUNT=20
 UI_LAYOUT_RETRY_INTERVAL=0.2
+UI_COLUMNS=120
+UI_ROWS=24
+UI_CONTENT_ROWS=24
+UI_PANEL_WIDTH=81
+UI_RECORDING=0
+UI_REPLAYING=0
+UI_DRAW_COUNT=0
+UI_DRAW_FUNCTION=()
+UI_DRAW_ARG1=()
+UI_DRAW_ARG2=()
+UI_DRAW_ARG3=()
+UI_DRAW_ARG4=()
 TOOLBOX_VERSION="$(tr -d '\r\n' < "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/VERSION" 2>/dev/null || true)"
 [ -n "$TOOLBOX_VERSION" ] || TOOLBOX_VERSION="?"
 
 ui_detect_layout() {
-    local columns="${COLUMNS:-}"
+    local columns rows size
 
-    if ! [[ "$columns" =~ ^[0-9]+$ ]]; then
-        columns="$(tput cols 2>/dev/null || printf '120')"
+    # 优先读取实际 TTY，避免最大化后继承的 COLUMNS/LINES 仍是旧值。
+    size="$(stty size 2>/dev/null || true)"
+    read -r rows columns <<< "$size"
+    if ! [[ "$columns" =~ ^[1-9][0-9]{0,3}$ ]]; then
+        columns="${COLUMNS:-$(tput cols 2>/dev/null || true)}"
     fi
+    if ! [[ "$rows" =~ ^[1-9][0-9]{0,3}$ ]]; then
+        rows="${LINES:-$(tput lines 2>/dev/null || true)}"
+    fi
+    [[ "$columns" =~ ^[1-9][0-9]{0,3}$ ]] || columns=120
+    [[ "$rows" =~ ^[1-9][0-9]{0,3}$ ]] || rows=24
+    UI_COLUMNS="$columns"
+    UI_ROWS="$rows"
+    UI_CONTENT_ROWS=$((rows - 2))
+    [ "$UI_CONTENT_ROWS" -ge "$UI_LAST_ROW" ] || UI_CONTENT_ROWS="$UI_LAST_ROW"
 
-    # 小屏掌机常见的窄终端下收紧导航栏，保留右侧至少 50 列内容空间。
-    if [ "$columns" -le 104 ]; then
-        UI_SIDEBAR_WIDTH=27
-        UI_SEPARATOR_COL=30
-        UI_PANEL_COL=33
+    # 左侧约占四分之一宽度；每次重算，缩小后再放大也能恢复。
+    UI_SEPARATOR_COL=$((columns / 4 + 4))
+    [ "$UI_SEPARATOR_COL" -ge 30 ] || UI_SEPARATOR_COL=30
+    UI_SIDEBAR_WIDTH=$((UI_SEPARATOR_COL - 3))
+    UI_PANEL_COL=$((UI_SEPARATOR_COL + 3))
+    UI_PANEL_WIDTH=$((columns - UI_PANEL_COL - 1))
+    [ "$UI_PANEL_WIDTH" -ge 1 ] || UI_PANEL_WIDTH=1
+    UI_LAYOUT_USABLE=1
+    if [ "$rows" -lt "$UI_LAST_ROW" ] || [ "$columns" -lt 70 ]; then
+        UI_LAYOUT_USABLE=0
     fi
 }
 
@@ -97,7 +126,73 @@ print_section_title() {
 }
 
 ui_move() {
+    ui_scale_row "$1"
+    ui_move_absolute "$UI_SCALED_ROW" "$2"
+}
+
+# 菜单保留原来的 24 行逻辑坐标；绘制和命中测试使用同一个变换。
+ui_scale_row() {
+    if [ "$1" -gt "$UI_LAST_ROW" ]; then
+        UI_SCALED_ROW=$((UI_CONTENT_ROWS + 1))
+    else
+        UI_SCALED_ROW=$((1 + ($1 - 1) * (UI_CONTENT_ROWS - 1) / (UI_LAST_ROW - 1)))
+    fi
+}
+
+ui_move_absolute() {
     printf '\033[%s;%sH' "$1" "$2"
+}
+
+ui_rule() {
+    local rule
+    printf -v rule '%*s' "$1" ''
+    printf '%s' "${rule// /─}"
+}
+
+# 只保存界面函数的参数，缩放时重画当前页，不重跑菜单或功能模块。
+# 不保存或执行拼接的 Shell 命令，也不改动调用方的 action ID。
+ui_record_draw() {
+    [ "$UI_RECORDING" = 1 ] && [ "$UI_REPLAYING" = 0 ] || return 0
+    UI_DRAW_FUNCTION[UI_DRAW_COUNT]="$1"
+    UI_DRAW_ARG1[UI_DRAW_COUNT]="${2:-}"
+    UI_DRAW_ARG2[UI_DRAW_COUNT]="${3:-}"
+    UI_DRAW_ARG3[UI_DRAW_COUNT]="${4:-}"
+    UI_DRAW_ARG4[UI_DRAW_COUNT]="${5:-}"
+    UI_DRAW_COUNT=$((UI_DRAW_COUNT + 1))
+}
+
+ui_begin_frame() {
+    if [ "$UI_REPLAYING" = 0 ]; then
+        ui_wait_for_minimum_canvas || true
+        ui_discard_pending_input
+        UI_DRAW_COUNT=0
+    fi
+    ui_detect_layout
+    UI_RECORDING=1
+    ui_record_draw "$@"
+    UI_RECORDING=0
+    ui_reset_screen
+    if [ "$UI_LAYOUT_USABLE" = 0 ]; then
+        printf '\033[?7l窗口太小，请放大至至少 70 列 × 24 行\033[?7h'
+    fi
+}
+
+ui_redraw_if_resized() {
+    local previous_size="$UI_COLUMNS:$UI_ROWS" index function
+    [ "$UI_DRAW_COUNT" -gt 0 ] || return 1
+    ui_detect_layout
+    [ "$previous_size" != "$UI_COLUMNS:$UI_ROWS" ] || return 1
+    UI_REPLAYING=1
+    for ((index=0; index<UI_DRAW_COUNT; index++)); do
+        function="${UI_DRAW_FUNCTION[index]}"
+        case "$function" in
+            draw_category_frame|draw_disclaimer_frame|ui_panel_line|ui_touch_button|ui_disclaimer_line|ui_disclaimer_button|ui_prompt)
+                "$function" "${UI_DRAW_ARG1[index]}" "${UI_DRAW_ARG2[index]}" \
+                    "${UI_DRAW_ARG3[index]}" "${UI_DRAW_ARG4[index]}" ;;
+        esac
+    done
+    UI_REPLAYING=0
+    return 0
 }
 
 ui_reset_screen() {
@@ -118,13 +213,20 @@ ui_resolve_text_color() {
 }
 
 ui_panel_line() {
+    ui_record_draw ui_panel_line "$@"
+    [ "$UI_LAYOUT_USABLE" = 1 ] || return 0
     local row="$1"
     local color="$2"
     local text="$3"
 
     ui_resolve_text_color "$color"
     ui_move "$row" "$UI_PANEL_COL"
-    printf '\033[?7l %b%s \033[0m\033[?7h' "$UI_THEME_COLOR" "$text"
+    printf '\033[?7l %b' "$UI_THEME_COLOR"
+    case "$text" in
+        ─*) ui_rule "$((UI_PANEL_WIDTH - 2))" ;;
+        *) printf '%s' "$text" ;;
+    esac
+    printf ' \033[0m\033[?7h'
 }
 
 # 每个分类是两行高的大按钮，内部值只用于程序识别，界面不显示字母或数字。
@@ -148,12 +250,17 @@ ui_sidebar_item() {
     ui_move "$row" 3
     printf '%b%s%s%b' "$foreground" "$marker" "$label" "$NC"
     if [ "$show_separator" = "1" ]; then
-        ui_move "$((row + 1))" 3
-        printf '%b──────────────────────────%b' "$separator" "$NC"
+        ui_scale_row "$((row + 2))"
+        ui_move_absolute "$((UI_SCALED_ROW - 1))" 3
+        printf '%b' "$separator"
+        ui_rule "$((UI_SIDEBAR_WIDTH - 2))"
+        printf '%b' "$NC"
     fi
 }
 
 ui_touch_button() {
+    ui_record_draw ui_touch_button "$@"
+    [ "$UI_LAYOUT_USABLE" = 1 ] || return 0
     local row="$1"
     local color="$2"
     local label="$3"
@@ -177,9 +284,12 @@ ui_touch_button() {
         printf '\033[38;5;245m · %s' "$hint"
     fi
     printf ' \033[0m\033[?7h'
-    ui_move "$((row + 1))" "$UI_PANEL_COL"
-    printf '%b────────────────────────────────────────────────────\033[0m' \
-        "$separator_color"
+    # 分隔线放在整个按钮触控区的底边，留出舒适行距。
+    ui_scale_row "$((row + 2))"
+    ui_move_absolute "$((UI_SCALED_ROW - 1))" "$UI_PANEL_COL"
+    printf '%b' "$separator_color"
+    ui_rule "$UI_PANEL_WIDTH"
+    printf '\033[0m'
 }
 
 draw_category_frame() {
@@ -189,9 +299,11 @@ draw_category_frame() {
     local show_context="${4:-1}"
     local row
 
-    ui_wait_for_minimum_canvas || true
-    ui_discard_pending_input
-    ui_reset_screen
+    ui_begin_frame draw_category_frame "$@"
+    if [ "$UI_LAYOUT_USABLE" = 0 ]; then
+        UI_RECORDING=1
+        return 0
+    fi
 
     ui_move 1 3
     printf '\033[1;38;5;245m功能导航\033[0m'
@@ -209,8 +321,8 @@ draw_category_frame() {
     ui_sidebar_item 18 exit "× 退出Renkit" "$selected" 0
 
     row=2
-    while [ "$row" -le "$UI_LAST_ROW" ]; do
-        ui_move "$row" "$UI_SEPARATOR_COL"
+    while [ "$row" -lt "$UI_ROWS" ]; do
+        ui_move_absolute "$row" "$UI_SEPARATOR_COL"
         printf '\033[38;5;239m│\033[0m'
         row=$((row + 1))
     done
@@ -224,34 +336,44 @@ draw_category_frame() {
             ui_panel_line 6 '\033[1;38;5;45m' "  $subtitle"
         fi
     fi
+    UI_RECORDING=1
 }
 
 draw_disclaimer_frame() {
-    ui_wait_for_minimum_canvas || true
-    ui_discard_pending_input
-    ui_reset_screen
+    ui_begin_frame draw_disclaimer_frame
+    if [ "$UI_LAYOUT_USABLE" = 0 ]; then
+        UI_RECORDING=1
+        return 0
+    fi
 
     ui_move 2 6
     printf '\033[1;38;5;203m ◆ Renkit  ·  V%s \033[0m' "$TOOLBOX_VERSION"
     ui_move 3 6
-    printf '\033[38;5;203m────────────────────────────────────────────────────────────\033[0m'
+    printf '\033[38;5;203m'
+    ui_rule "$((UI_COLUMNS - 8))"
+    printf '\033[0m'
     ui_move 5 6
     printf '\033[1;38;5;255m ▌ 使用说明与免责声明 \033[0m'
     ui_move 6 6
     printf '\033[38;5;250m  请阅读以下内容，知悉后再开始使用 \033[0m'
+    UI_RECORDING=1
 }
 
 ui_disclaimer_line() {
+    ui_record_draw ui_disclaimer_line "$@"
+    [ "$UI_LAYOUT_USABLE" = 1 ] || return 0
     local row="$1"
     local color="$2"
     local text="$3"
 
     ui_resolve_text_color "$color"
     ui_move "$row" 6
-    printf ' %b%s \033[0m' "$UI_THEME_COLOR" "$text"
+    printf '\033[?7l %b%s \033[0m\033[?7h' "$UI_THEME_COLOR" "$text"
 }
 
 ui_disclaimer_button() {
+    ui_record_draw ui_disclaimer_button "$@"
+    [ "$UI_LAYOUT_USABLE" = 1 ] || return 0
     local row="$1"
     local color="$2"
     local label="$3"
@@ -265,11 +387,13 @@ ui_disclaimer_button() {
 }
 
 ui_prompt() {
+    ui_record_draw ui_prompt
     # 操作完成后 pause_menu 会暂时关闭鼠标追踪；每次显示触控提示前重新
     # 进入点击模式，避免下一层菜单退回普通光标导致触控失效。
     enable_mouse_tracking
-    ui_move "$UI_LAST_ROW" "$UI_PANEL_COL"
-    printf '\033[0m\033[2K\033[38;5;255m 触屏或触控板点击功能 \033[0m'
+    [ "$UI_LAYOUT_USABLE" = 1 ] || return 0
+    ui_move_absolute "$UI_ROWS" "$UI_PANEL_COL"
+    printf '\033[?7l\033[0m\033[K\033[38;5;255m 触屏或触控板点击功能 \033[0m\033[?7h'
 }
 
 enable_mouse_tracking() {
@@ -312,7 +436,22 @@ read_ui_event() {
     UI_EVENT_X=""
     UI_EVENT_Y=""
 
-    IFS= read -rsn1 first || return 1
+    if [ "${UI_POLL_RESIZE:-0}" = 1 ]; then
+        local read_started=$SECONDS
+        if IFS= read -rsn1 -t 1 first; then
+            :
+        else
+            local status=$?
+            [ "$status" -gt 128 ] && return 2
+            # macOS Bash 3.2 把超时和 EOF 都返回 1；用耗时区分模拟测试中的超时。
+            if [ "${BASH_VERSINFO[0]}" -lt 4 ] && [ "$SECONDS" -gt "$read_started" ]; then
+                return 2
+            fi
+            return 1
+        fi
+    else
+        IFS= read -rsn1 first || return 1
+    fi
     if [ "$first" != $'\033' ]; then
         # 触控界面故意忽略所有键盘输入，避免数字键与触屏冲突。
         UI_EVENT_TYPE="ignored-key"
@@ -392,9 +531,21 @@ read_menu_choice() {
     local row_spec
     local row_start
     local value
+    local status
+    local UI_POLL_RESIZE=1
 
-    while read_ui_event; do
+    while true; do
+        status=0
+        read_ui_event || status=$?
+        [ "$status" -ne 1 ] || return 1
+        # choice=$(...) 的 stdout 只返回动作；重绘输出送回终端 stderr。
+        # 尺寸变化这一瞬间收到的点击丢弃，防止用旧位置误触另一项。
+        ui_redraw_if_resized >&2 && continue
+        [ "$status" -eq 0 ] || continue
         [ "$UI_EVENT_TYPE" = "click" ] || continue
+        [ "$UI_LAYOUT_USABLE" = 1 ] || continue
+        [ "$UI_EVENT_X" -ge 1 ] && [ "$UI_EVENT_X" -le "$UI_COLUMNS" ] || continue
+        [ "$UI_EVENT_Y" -ge 1 ] && [ "$UI_EVENT_Y" -le "$UI_ROWS" ] || continue
 
         for mapping in "$@"; do
             region="${mapping%%:*}"
@@ -404,6 +555,14 @@ read_menu_choice() {
             row_start="${row_spec%-*}"
             row_end="${row_spec#*-}"
             [ "$row_start" = "$row_spec" ] && row_end="$row_start"
+
+            if [ "$region" != any ]; then
+                ui_scale_row "$row_start"
+                row_start="$UI_SCALED_ROW"
+                ui_scale_row "$((row_end + 1))"
+                row_end=$((UI_SCALED_ROW - 1))
+                [ "$UI_EVENT_Y" -lt "$UI_ROWS" ] || continue
+            fi
 
             [ "$UI_EVENT_Y" -ge "$row_start" ] 2>/dev/null || continue
             [ "$UI_EVENT_Y" -le "$row_end" ] 2>/dev/null || continue
