@@ -86,7 +86,7 @@ COPYFILE_DISABLE=1 tar \
     --exclude="config/settings.conf" \
     -czf "$PACKAGE_PATH" "${PACKAGE_SOURCES[@]}"
 
-if PACKAGE_BYTES="$(stat -f '%z' "$PACKAGE_PATH" 2>/dev/null || stat -c '%s' "$PACKAGE_PATH" 2>/dev/null)" && \
+if PACKAGE_BYTES="$(stat -c '%s' "$PACKAGE_PATH" 2>/dev/null || stat -f '%z' "$PACKAGE_PATH" 2>/dev/null)" && \
     [ "$PACKAGE_BYTES" -le "$MAX_GITEE_RAW_PACKAGE_BYTES" ]; then
     :
 else

@@ -6,6 +6,7 @@
 - 插件安装前检查现有 Loader，安装完成后不主动重启 ChimeraOS 自带服务，提示重新进入游戏模式加载；支持 MAKO、FSR4、CheatDeck、DeckRecall、SavePulse、SteamGridDB、CSS Loader、Friendeck、Decky Music、Freedeck、NewFreedeck、ToMoon、Unifideck 与 SimpleDeckyTDP。
 - ChimeraOS 菜单明确隔离 pacman、frzr、系统源、系统服务替换、系统调优、双系统、互通盘、Clover、EFI、磁盘、模拟器和游戏启动器；系统级 Flatpak 交还系统自带工具维护。
 - 新增模拟测试，覆盖安全解析 `os-release`、独立启动分流、官方 Flathub 模式、现有插件环境检查、安装/发布文件携带及禁止功能静态审计。
+- 修复 Linux/WSL 打包时文件大小检测误用 macOS `stat` 参数的问题，确保正式更新包可在两类开发环境中生成并执行 9 MiB 上限检查。
 
 ## Renkit 2.2.8 动态菜单触控修复 — 2026-09-01
 
