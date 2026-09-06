@@ -1305,8 +1305,26 @@ decky_plugin_loader_is_installed() {
         [ -x "$HOME/.local/share/decky-loader/services/PluginLoader" ]
 }
 
+require_existing_chimera_plugin_environment() {
+    detect_platform
+    if [ "$IS_CHIMERAOS" -eq 1 ] && ! decky_plugin_loader_is_installed; then
+        echo "未检测到 ChimeraOS 自带插件环境；请先使用系统自带入口启用插件支持。"
+        echo "Renkit ChimeraOS版不会安装或替换插件商城本体。"
+        return 1
+    fi
+}
+
 ensure_plugin_store_ready() {
     detect_platform
+    if [ "$IS_CHIMERAOS" -eq 1 ]; then
+        if decky_plugin_loader_is_installed; then
+            echo "已检测到 ChimeraOS 自带插件环境，开始安装插件。"
+            return 0
+        fi
+        echo "未检测到 ChimeraOS 插件环境；请先使用系统自带入口启用插件支持。"
+        echo "Renkit ChimeraOS版不会安装或替换插件商城本体。"
+        return 1
+    fi
     if [ "$IS_BAZZITE" -eq 1 ]; then
         if decky_plugin_loader_is_installed; then
             echo "已检测到 Bazzite Decky Loader，开始安装插件。"
@@ -1474,13 +1492,21 @@ run_plugin_file_operation() {
 prepare_plugin_root() {
     local plugin_root="$1"
 
+    detect_platform
     if [ ! -d "$plugin_root" ]; then
         echo "未找到 Decky 插件目录：$plugin_root"
-        echo "请先点击“安装或更新 Decky Loader”，完成后再安装插件。"
+        if [ "$IS_CHIMERAOS" -eq 1 ]; then
+            echo "请先使用 ChimeraOS 自带入口完成插件环境初始化。"
+        else
+            echo "请先点击“安装或更新 Decky Loader”，完成后再安装插件。"
+        fi
         return 1
     fi
     if [ -w "$plugin_root" ]; then
         PLUGIN_NEEDS_SUDO=0
+    elif [ "$IS_CHIMERAOS" -eq 1 ]; then
+        echo "ChimeraOS 插件目录不可由当前用户写入，Renkit不会提权修改系统或 Loader 文件。"
+        return 1
     else
         require_command sudo || return 1
         PLUGIN_NEEDS_SUDO=1
@@ -2013,6 +2039,12 @@ install_decky_zip_from_mirror() {
 
 reload_decky_plugins() {
     local success_message="$1"
+
+    detect_platform
+    if [ "$IS_CHIMERAOS" -eq 1 ]; then
+        echo "插件文件已更新。Renkit不会重启 ChimeraOS 自带服务；请完全退出游戏模式后重新进入一次。"
+        return 0
+    fi
 
     if command -v systemctl >/dev/null 2>&1 && command -v sudo >/dev/null 2>&1; then
         if toolbox_sudo systemctl restart "$DECKY_SERVICE_NAME"; then
@@ -2605,10 +2637,11 @@ install_lsfg_zh_from_gitee() {
     local installed_version actual_sha256
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
-        echo "小黄鸭仅支持 SteamOS 或 Bazzite。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "$IS_CHIMERAOS" -ne 1 ]; then
+        echo "小黄鸭仅支持 SteamOS、Bazzite 或 ChimeraOS。"
         return 1
     fi
+    require_existing_chimera_plugin_environment || return 1
     actual_sha256="$(calculate_decky_sha256 \
         "$plugin_root/$LSFG_OFFICIAL_DIRECTORY/dist/index.js" 2>/dev/null || true)"
     if feature_plugin_is_current "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" \
@@ -2651,10 +2684,11 @@ install_fsr4_zh_from_gitee() {
     local installed_version actual_sha256
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
-        echo "FSR4 中文界面仅支持 SteamOS 或 Bazzite。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "$IS_CHIMERAOS" -ne 1 ]; then
+        echo "FSR4 中文界面仅支持 SteamOS、Bazzite 或 ChimeraOS。"
         return 1
     fi
+    require_existing_chimera_plugin_environment || return 1
     actual_sha256="$(calculate_decky_sha256 \
         "$plugin_root/$FSR4_OFFICIAL_DIRECTORY/dist/index.js" 2>/dev/null || true)"
     if feature_plugin_is_current "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" \
@@ -2706,10 +2740,11 @@ install_simpledeckytdp_chinese() {
     local staged_source
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
-        echo "SimpleDeckyTDP 中文界面仅支持 SteamOS 或 Bazzite。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "$IS_CHIMERAOS" -ne 1 ]; then
+        echo "SimpleDeckyTDP 中文界面仅支持 SteamOS、Bazzite 或 ChimeraOS。"
         return 1
     fi
+    require_existing_chimera_plugin_environment || return 1
     if simpledeckytdp_chinese_is_current "$plugin_root"; then
         echo "[已安装] SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
         return 0
@@ -2771,10 +2806,11 @@ install_simpledeckytdp_zh_from_gitee() {
     local installed_version
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
-        echo "SimpleDeckyTDP 中文版仅支持 SteamOS 或 Bazzite。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "$IS_CHIMERAOS" -ne 1 ]; then
+        echo "SimpleDeckyTDP 中文版仅支持 SteamOS、Bazzite 或 ChimeraOS。"
         return 1
     fi
+    require_existing_chimera_plugin_environment || return 1
     if simpledeckytdp_chinese_is_current "$plugin_root"; then
         echo "[已安装] SimpleDeckyTDP v$SIMPLEDECKYTDP_OFFICIAL_VERSION 中文插件已存在且文件完整，无需重复安装。"
         return 0
@@ -2813,10 +2849,11 @@ ensure_simpledeckytdp_chinese_current() {
     local installed_version=""
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
-        echo "掌机功耗控制版本检测仅支持 SteamOS 或 Bazzite。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "$IS_CHIMERAOS" -ne 1 ]; then
+        echo "掌机功耗控制版本检测仅支持 SteamOS、Bazzite 或 ChimeraOS。"
         return 1
     fi
+    require_existing_chimera_plugin_environment || return 1
     if simpledeckytdp_chinese_is_current "$plugin_root"; then
         echo "[已检测] 掌机功耗控制已是最新汉化版 v$SIMPLEDECKYTDP_OFFICIAL_VERSION，无需处理。"
         return 0
@@ -3300,9 +3337,19 @@ install_configured_plugin() {
     local deckrecall_ready=0
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
-        echo "Decky 插件安装仅支持 SteamOS 或 Bazzite。"
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "$IS_CHIMERAOS" -ne 1 ]; then
+        echo "Decky 插件安装仅支持 SteamOS、Bazzite 或 ChimeraOS。"
         return 1
+    fi
+    require_existing_chimera_plugin_environment || return 1
+    if [ "$IS_CHIMERAOS" -eq 1 ]; then
+        case "$action" in
+            lsfg-mako|cheatdeck|deckrecall|savepulse|steamgriddb|cssloader|friendeck|deckymusic|freedeck|newfreedeck|tomoon|unifideck|simpledeckytdp) ;;
+            *)
+                echo "该插件不在 Renkit ChimeraOS版的安全安装清单中，已停止执行。"
+                return 1
+                ;;
+        esac
     fi
 
     case "$action" in
@@ -3529,7 +3576,7 @@ install_configured_plugin() {
             ;;
         unifideck)
             resolve_plugin_latest unifideck
-            ensure_steam302_for_download || true
+            [ "$IS_CHIMERAOS" -eq 1 ] || ensure_steam302_for_download || true
             GITHUB_RETRIES=1 GITHUB_MIN_SPEED_TIME=20 install_decky_zip \
                 "Unifideck" \
                 "${DECKY_UNIFIDECK_URL:-}" \
@@ -4063,7 +4110,21 @@ install_25_plugins() {
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
-    case "${1:-store}" in
+    requested_action="${1:-store}"
+    detect_platform
+    if [ "$IS_CHIMERAOS" -eq 1 ]; then
+        case "$requested_action" in
+            lsfg-mako|fsr4-zh|fsr4-zh-gitee|cheatdeck|steamgriddb|cssloader|friendeck|deckymusic|tomoon|deckrecall|savepulse|freedeck|newfreedeck|simpledeckytdp-zh|simpledeckytdp-zh-gitee|unifideck)
+                require_existing_chimera_plugin_environment || exit 1
+                ;;
+            feature-status) ;;
+            *)
+                echo "Renkit ChimeraOS版只安装安全清单中的插件，不管理插件商城或机型控制组件。"
+                exit 1
+                ;;
+        esac
+    fi
+    case "$requested_action" in
         store) show_plugin_download_speed_tip; install_plugin_store stable ;;
         store-test) show_plugin_download_speed_tip; install_plugin_store prerelease ;;
         store-auto) show_plugin_download_speed_tip; install_plugin_store_auto ;;

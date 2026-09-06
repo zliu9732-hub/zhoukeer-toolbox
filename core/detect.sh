@@ -58,9 +58,12 @@ if [ "$IS_STEAMOS" -eq 1 ]; then
 elif [ "$IS_BAZZITE" -eq 1 ]; then
     echo "Bazzite环境：是"
     health_pass "已识别 Bazzite 环境"
+elif [ "$IS_CHIMERAOS" -eq 1 ]; then
+    echo "ChimeraOS环境：是"
+    health_pass "已识别 ChimeraOS 环境"
 else
     echo "SteamOS环境：否"
-    health_warn "未识别到 SteamOS 或 Bazzite；掌机专用功能可能不可用"
+    health_warn "未识别到 SteamOS、Bazzite 或 ChimeraOS；掌机专用功能可能不可用"
 fi
 
 echo "设备架构：$(uname -m)"

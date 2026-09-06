@@ -252,7 +252,7 @@ SOFTWARE_TARGETS=(
 
 software_print_domestic_source_hint() {
     if [ "$FLATPAK_SOURCE_MODE" = "official" ]; then
-        echo "提示：当前使用官方 Flathub；如国内网络下载较慢，可在 Bazzite 使用准备中手动选择国内 Flatpak 源。"
+        echo "提示：当前使用官方 Flathub；也可使用系统自带应用商店安装。"
     else
         echo "提示：请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。"
     fi
@@ -1680,7 +1680,11 @@ uninstall_flatpak_software() {
         detect_platform
         if [ "$IS_BAZZITE" -eq 1 ]; then
             echo "$app_name 是系统级 Flatpak，Renkit Bazzite版不会提权卸载。"
-            echo "请使用 Bazzite 自带的软件管理界面维护该系统级应用。"
+            echo "请使用 Bazzite 系统管理方式维护该系统级应用。"
+            return 0
+        elif [ "$IS_CHIMERAOS" -eq 1 ]; then
+            echo "$app_name 是系统级 Flatpak，Renkit ChimeraOS版不会提权卸载。"
+            echo "请使用 ChimeraOS 自带的软件管理界面维护该系统级应用。"
             return 0
         fi
         confirm_software_uninstall "$app_name" || { echo "已取消卸载。"; return 0; }

@@ -2,7 +2,7 @@
 
 ## 项目边界
 
-1. 项目名称为“Renkit”，目标平台是 Steam Deck / SteamOS，主要语言为 Bash。
+1. 项目名称为“Renkit”，目标平台是 Steam Deck / SteamOS、Bazzite 与 ChimeraOS，主要语言为 Bash。
 2. 开发电脑是 macOS。macOS 上只能进行静态检查、语法检查和模拟测试；禁止执行 SteamOS 安装、修复、网络、权限、Flatpak、pacman、systemctl、EFI 或磁盘操作。
 3. 小黄鸭优先使用上游官方自带中文的完整插件包，保留原作者与许可证，通过 Gitee 分块清单下载；不得添加非上游署名。
 4. 只有 Renkit 实际进行汉化的插件才显示 `RenAmamiya` 汉化署名；上游官方中文包不得添加该署名。
@@ -24,6 +24,7 @@
 3. 小黄鸭优先使用上游官方自带中文的完整插件包，保留原作者与许可证，通过 Gitee 分块清单下载；不得添加非上游署名。
 4. 只有 Renkit 实际进行汉化的插件才显示 `RenAmamiya` 汉化署名；上游官方中文包不得添加该署名。
 5. 独立发布的完整中文插件与 Renkit 署名仓库必须彻底隔离：包内不得带 Renkit 署名，仓库描述、README、Release 标题和文案不得标注“未署名”，不得引用、暗示或链接 Renkit、其创作者或其发布仓库；Renkit 也不得引用独立发布仓库。
+6. ChimeraOS 必须使用独立菜单，只允许用户级应用和已有插件环境中的插件安装；插件商城本体由系统自带功能维护。禁止在 ChimeraOS 暴露 pacman、frzr、系统服务替换、系统调优、双系统、互通盘、Clover、EFI 或磁盘操作。
 
 ## 版本规则
 

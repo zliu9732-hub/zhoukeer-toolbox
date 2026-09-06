@@ -425,6 +425,20 @@ ui_sidebar_item() {
     local foreground='\033[38;5;250m'
     local border='\033[38;5;131m'
 
+    # 各平台可以替换分类名称；默认调用仍保留 SteamOS 的固定文案，
+    # 让既有界面契约与触控布局检查保持稳定。
+    case "$value" in
+        init) [ -z "${RENKIT_NAV_INIT_LABEL:-}" ] || label="$RENKIT_NAV_INIT_LABEL" ;;
+        software) [ -z "${RENKIT_NAV_SOFTWARE_LABEL:-}" ] || label="$RENKIT_NAV_SOFTWARE_LABEL" ;;
+        games) [ -z "${RENKIT_NAV_GAMES_LABEL:-}" ] || label="$RENKIT_NAV_GAMES_LABEL" ;;
+        emulators) [ -z "${RENKIT_NAV_EMULATORS_LABEL:-}" ] || label="$RENKIT_NAV_EMULATORS_LABEL" ;;
+        support) [ -z "${RENKIT_NAV_SUPPORT_LABEL:-}" ] || label="$RENKIT_NAV_SUPPORT_LABEL" ;;
+        advanced) [ -z "${RENKIT_NAV_ADVANCED_LABEL:-}" ] || label="$RENKIT_NAV_ADVANCED_LABEL" ;;
+        uninstall) [ -z "${RENKIT_NAV_UNINSTALL_LABEL:-}" ] || label="$RENKIT_NAV_UNINSTALL_LABEL" ;;
+        notice) [ -z "${RENKIT_NAV_NOTICE_LABEL:-}" ] || label="$RENKIT_NAV_NOTICE_LABEL" ;;
+        exit) [ -z "${RENKIT_NAV_EXIT_LABEL:-}" ] || label="$RENKIT_NAV_EXIT_LABEL" ;;
+    esac
+
     # 去掉不同字体下容易显示为方块的装饰图形，名称和导航 ID 保持不变。
     label="${label#* }"
 

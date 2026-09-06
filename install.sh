@@ -406,7 +406,11 @@ detect_platform
 
 TOOLBOX_DISPLAY_NAME="Renkit"
 TOOLBOX_DESKTOP_COMMENT="Steam Deck 工具"
-if [ "$IS_STEAMOS" -ne 1 ]; then
+if [ "$IS_CHIMERAOS" -eq 1 ]; then
+    PLATFORM_FAMILY="chimeraos"
+    TOOLBOX_DISPLAY_NAME="Renkit ChimeraOS版"
+    TOOLBOX_DESKTOP_COMMENT="ChimeraOS 应用与插件工具"
+elif [ "$IS_STEAMOS" -ne 1 ]; then
     PLATFORM_FAMILY="bazzite"
     TOOLBOX_DISPLAY_NAME="Renkit Bazzite版"
     TOOLBOX_DESKTOP_COMMENT="Bazzite 掌机工具"
@@ -562,7 +566,7 @@ remove_appledouble_files() {
     find "$root" -type f -name '._*' -exec rm -f -- {} +
 }
 
-for file in main.sh main-bazzite.sh launch.sh install.sh uninstall.sh update.sh bootstrap.sh i README.md VERSION .gitignore; do
+for file in main.sh main-bazzite.sh main-chimera.sh launch.sh install.sh uninstall.sh update.sh bootstrap.sh i README.md VERSION .gitignore; do
     if [ -f "$SOURCE_ROOT/$file" ]; then
         copy_file "$SOURCE_ROOT/$file" "$STAGING_DIR/$file"
     fi
@@ -629,6 +633,8 @@ if ! grep -Fq 'STEAM302_LAYOUT_VALIDATION_REVISION="ascii-files-v2"' \
     "$STAGING_DIR/modules/game_launchers.sh" || \
     ! grep -Fq 'RENKIT_PLATFORM_LABEL="BAZZITE 掌机  /  中文工具"' \
     "$STAGING_DIR/main-bazzite.sh" || \
+    ! grep -Fq 'RENKIT_PLATFORM_LABEL="CHIMERAOS 掌机  /  应用与插件"' \
+    "$STAGING_DIR/main-chimera.sh" || \
     ! grep -Fq 'ujust setup-decky' \
     "$STAGING_DIR/modules/bazzite_decky.sh" || \
     ! grep -Fq 'memory_optimize()' \

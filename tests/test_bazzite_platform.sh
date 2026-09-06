@@ -157,7 +157,7 @@ ZHOUKEER_OS_RELEASE_FILE="$BAZZITE_RELEASE" \
 grep -Fq '七款常用功能插件已全部安装' "$TMP_ROOT/bazzite-features.out" || \
     fail "Bazzite 汉化功能插件仍被 SteamOS 平台门禁拦截"
 
-if rg -n 'modules/(todesk|memory_tuning|dual_system)' "$PROJECT_ROOT/main-bazzite.sh"; then
+if grep -En 'modules/(todesk|memory_tuning|dual_system)' "$PROJECT_ROOT/main-bazzite.sh"; then
     fail "Bazzite 菜单暴露了未适配的系统模块"
 fi
 grep -Fq 'modules/clover_boot.sh" install' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite Clover 安装入口缺失"

@@ -38,8 +38,8 @@ validate_release_version() {
 
 validate_release_version
 
-# Bazzite 使用独立主程序和官方 Decky 入口，发布包必须同时携带这两个文件。
-VERIFY_FILES="$VERIFY_FILES main-bazzite.sh modules/bazzite_decky.sh assets/clover/bootmanager/clover-bootmanager.service assets/clover/bootmanager/clover-whitelist.conf"
+# Bazzite 与 ChimeraOS 使用独立主程序；发布包必须携带对应入口。
+VERIFY_FILES="$VERIFY_FILES main-bazzite.sh main-chimera.sh modules/bazzite_decky.sh assets/clover/bootmanager/clover-bootmanager.service assets/clover/bootmanager/clover-whitelist.conf"
 
 mkdir -p "$DIST_DIR"
 

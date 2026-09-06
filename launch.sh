@@ -19,6 +19,9 @@ resolve_main_program() {
         source "$PROJECT_ROOT/core/platform.sh"
         detect_platform
         if [ "$(uname -s 2>/dev/null || echo unknown)" = "Linux" ] && \
+            [ "${IS_CHIMERAOS:-0}" -eq 1 ]; then
+            MAIN_PROGRAM="$PROJECT_ROOT/main-chimera.sh"
+        elif [ "$(uname -s 2>/dev/null || echo unknown)" = "Linux" ] && \
             [ "${IS_STEAMOS:-0}" -ne 1 ]; then
             MAIN_PROGRAM="$PROJECT_ROOT/main-bazzite.sh"
         fi

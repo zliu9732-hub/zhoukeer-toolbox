@@ -29,6 +29,7 @@ detect_platform() {
     PLATFORM_FAMILY="unknown"
     IS_STEAMOS=0
     IS_BAZZITE=0
+    IS_CHIMERAOS=0
 
     if [ -r "${ZHOUKEER_OS_RELEASE_FILE:-/etc/os-release}" ]; then
         PLATFORM_ID="$(platform_os_release_value ID 2>/dev/null || true)"
@@ -44,6 +45,10 @@ detect_platform() {
             bazzite)
                 IS_BAZZITE=1
                 PLATFORM_FAMILY="bazzite"
+                ;;
+            chimeraos)
+                IS_CHIMERAOS=1
+                PLATFORM_FAMILY="chimeraos"
                 ;;
         esac
         case " ${PLATFORM_ID_LIKE:-} " in
@@ -86,6 +91,14 @@ require_bazzite() {
     detect_platform
     if [ "$IS_BAZZITE" -ne 1 ]; then
         echo "此功能仅支持 Bazzite，已停止执行。"
+        return 1
+    fi
+}
+
+require_chimeraos() {
+    detect_platform
+    if [ "$IS_CHIMERAOS" -ne 1 ]; then
+        echo "此功能仅支持 ChimeraOS，已停止执行。"
         return 1
     fi
 }

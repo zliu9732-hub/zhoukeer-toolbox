@@ -1,4 +1,12 @@
 
+## Renkit 2.2.9 ChimeraOS 应用与插件独立菜单 — 2026-09-06
+
+- 新增 ChimeraOS 平台识别与独立 `main-chimera.sh` 分流；不再误进入 Bazzite 菜单，安装后显示独立名称并写入 `chimeraos` 平台标记。
+- ChimeraOS 版仅开放官方 Flathub/已校验 AppImage 应用安装，以及系统已有 Loader 环境中的插件安装和状态检查；不安装、更新或卸载插件商城本体。
+- 插件安装前检查现有 Loader，安装完成后不主动重启 ChimeraOS 自带服务，提示重新进入游戏模式加载；支持 MAKO、FSR4、CheatDeck、DeckRecall、SavePulse、SteamGridDB、CSS Loader、Friendeck、Decky Music、Freedeck、NewFreedeck、ToMoon、Unifideck 与 SimpleDeckyTDP。
+- ChimeraOS 菜单明确隔离 pacman、frzr、系统源、系统服务替换、系统调优、双系统、互通盘、Clover、EFI、磁盘、模拟器和游戏启动器；系统级 Flatpak 交还系统自带工具维护。
+- 新增模拟测试，覆盖安全解析 `os-release`、独立启动分流、官方 Flathub 模式、现有插件环境检查、安装/发布文件携带及禁止功能静态审计。
+
 ## Renkit 2.2.8 动态菜单触控修复 — 2026-09-01
 
 - 修复插件列表末页不足五项时，“上一页”和“返回”点击无反应的问题：未显示的条目仍按旧坐标接收点击，拦截了宽窗口下重新排布的导航按钮。
