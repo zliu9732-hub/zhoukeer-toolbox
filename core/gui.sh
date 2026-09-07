@@ -672,6 +672,8 @@ dual_system_menu() {
             cleanup-boot "清理第三方引导项｜保护 SteamOS / Windows｜保留 EFI 文件" \
             repair-boot "修复双系统引导｜补齐缺失的 SteamOS / Windows / Clover 引导项｜高级操作" \
             switch-to-windows "创建切换至 Windows 快捷方式｜仅创建桌面图标｜本次不重启" \
+            clover-windows "隐藏 Clover 菜单并默认 Windows｜开机直接进入 Windows｜可恢复" \
+            clover-menu "重新显示 Clover 菜单｜恢复 8 秒开机选择时间" \
             clover-background "应用 Renkit 开机背景｜仅替换 Clover Apocalypse 主题背景" \
             back "返回系统设置" \
             home "返回首页" \
@@ -716,6 +718,16 @@ dual_system_menu() {
             switch-to-windows)
                 run_gui_action "创建切换至 Windows 快捷方式" \
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-shortcut
+                ;;
+            clover-windows)
+                gui_confirm "将备份并修改 Clover config.plist，把 Windows 设为默认项且等待时间设为 0 秒；不会删除任何系统或 EFI 启动项。是否继续？" && \
+                    run_gui_action "隐藏 Clover 菜单并默认进入 Windows" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/clover_boot.sh" autoboot-windows
+                ;;
+            clover-menu)
+                gui_confirm "将备份并修改 Clover config.plist，把菜单等待时间恢复为 8 秒；当前默认系统保持不变。是否继续？" && \
+                    run_gui_action "重新显示 Clover 菜单" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/clover_boot.sh" show-menu
                 ;;
             clover-background)
                 gui_confirm "仅替换 esp/efi/clover/themes/Apocalypse/background.png，不修改其他 Clover 文件。是否继续？" && \

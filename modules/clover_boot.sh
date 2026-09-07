@@ -41,6 +41,7 @@ CLOVER_SCREEN_RESOLUTION=""
 CLOVER_DEFAULT_OS=""
 CLOVER_STEAMOS_BACKUP=""
 CLOVER_STEAMOS_BOOT_NUMBERS=""
+CLOVER_VISIBLE_TIMEOUT="${ZHOUKEER_CLOVER_VISIBLE_TIMEOUT:-8}"
 
 clover_path_is_dir() {
     local path="$1"
@@ -455,6 +456,238 @@ clover_configure_default_loader() {
         return 1
     }
     mv -- "$temporary" "$config"
+}
+
+clover_configure_default_loader_path() {
+    local config="$1"
+    local loader="$2"
+    local temporary="${config}.loader.$$"
+
+    case "$loader" in
+        \\EFI\\Microsoft\\Boot\\bootmgfw.efi|\\EFI\\Microsoft\\bootmgfw.efi) ;;
+        *)
+            echo "Windows EFI 启动路径不在允许列表中，Clover 配置未修改。" >&2
+            return 1
+            ;;
+    esac
+
+    CLOVER_CONFIG_LOADER="$loader" awk '
+        BEGIN { loader = ENVIRON["CLOVER_CONFIG_LOADER"] }
+        /<key>DefaultLoader<\/key>/ {
+            print
+            if ((getline loader_line) <= 0) exit 2
+            if (loader_line !~ /^[[:space:]]*<string>.*<\/string>[[:space:]]*$/) exit 3
+            match(loader_line, /^[[:space:]]*/)
+            print substr(loader_line, 1, RLENGTH) "<string>" loader "</string>"
+            found++
+            next
+        }
+        { print }
+        END { if (found != 1) exit 4 }
+    ' "$config" > "$temporary" || {
+        rm -f -- "$temporary"
+        echo "无法安全更新 Clover 的 Windows 默认启动项，配置文件未修改。" >&2
+        return 1
+    }
+    mv -- "$temporary" "$config"
+}
+
+clover_configure_timeout() {
+    local config="$1"
+    local timeout="$2"
+    local temporary="${config}.timeout.$$"
+
+    case "$timeout" in
+        0|1|5|8|10|15|60) ;;
+        *)
+            echo "不支持的 Clover 菜单等待时间：$timeout" >&2
+            return 1
+            ;;
+    esac
+
+    awk -v timeout="$timeout" '
+        /<key>Timeout<\/key>/ {
+            print
+            if ((getline timeout_line) <= 0) exit 2
+            if (timeout_line !~ /^[[:space:]]*<integer>-?[0-9]+<\/integer>[[:space:]]*$/) exit 3
+            match(timeout_line, /^[[:space:]]*/)
+            print substr(timeout_line, 1, RLENGTH) "<integer>" timeout "</integer>"
+            found++
+            next
+        }
+        { print }
+        END { if (found != 1) exit 4 }
+    ' "$config" > "$temporary" || {
+        rm -f -- "$temporary"
+        echo "无法安全更新 Clover 菜单等待时间，配置文件未修改。" >&2
+        return 1
+    }
+    mv -- "$temporary" "$config"
+}
+
+clover_windows_loader_path() {
+    if clover_path_is_file "$CLOVER_ESP/EFI/Microsoft/Boot/bootmgfw.efi"; then
+        printf '%s\n' '\EFI\Microsoft\Boot\bootmgfw.efi'
+    elif clover_path_is_file "$CLOVER_ESP/EFI/Microsoft/bootmgfw.efi"; then
+        printf '%s\n' '\EFI\Microsoft\bootmgfw.efi'
+    else
+        echo "未找到可用的 Windows EFI 启动文件；不会把 Clover 指向 .orig 或语言资源文件。" >&2
+        return 1
+    fi
+}
+
+clover_write_live_config() {
+    local working="$1"
+    local config="$2"
+    local backup_root timestamp backup temporary_target suffix=0
+
+    backup_root="$CLOVER_ESP/EFI/zhoukeer-backups"
+    timestamp="$(date +%Y%m%d%H%M%S)-$$"
+    backup="$backup_root/clover-config-before-$timestamp.plist"
+    temporary_target="$CLOVER_ESP/EFI/CLOVER/.config.plist.renkit-new.$$"
+
+    while clover_path_exists "$backup"; do
+        suffix=$((suffix + 1))
+        [ "$suffix" -le 99 ] || {
+            echo "短时间内 Clover 配置备份数量异常，已拒绝继续修改。" >&2
+            return 1
+        }
+        backup="$backup_root/clover-config-before-$timestamp-$suffix.plist"
+    done
+
+    if clover_path_is_symlink "$CLOVER_ESP/EFI/CLOVER" || clover_path_is_symlink "$config"; then
+        echo "Clover 目录或配置文件是符号链接，出于安全原因拒绝修改。" >&2
+        return 1
+    fi
+    clover_path_is_symlink "$backup_root" && {
+        echo "EFI 备份目录是符号链接，出于安全原因拒绝修改。" >&2
+        return 1
+    }
+    toolbox_sudo mkdir -p -- "$backup_root" || return 1
+    toolbox_sudo cp -- "$config" "$backup" || {
+        echo "备份 Clover 配置失败，原配置未修改。" >&2
+        return 1
+    }
+    if ! toolbox_sudo cp -- "$working" "$temporary_target"; then
+        echo "写入 Clover 临时配置失败，原配置未修改；备份保存在：$backup" >&2
+        return 1
+    fi
+    if ! toolbox_sudo mv -- "$temporary_target" "$config"; then
+        toolbox_sudo rm -f -- "$temporary_target" >/dev/null 2>&1 || true
+        echo "启用新 Clover 配置失败，原配置未修改；备份保存在：$backup" >&2
+        return 1
+    fi
+    echo "原 Clover 配置备份：$backup"
+}
+
+clover_prepare_live_config() {
+    local output="$1"
+    local config="$CLOVER_ESP/EFI/CLOVER/config.plist"
+
+    clover_path_is_nonempty_file "$CLOVER_ESP/EFI/CLOVER/CLOVERX64.efi" || {
+        echo "未找到可用的 Clover EFI 主程序。" >&2
+        return 1
+    }
+    clover_path_is_nonempty_file "$config" || {
+        echo "未找到可用的 Clover 配置文件：$config" >&2
+        return 1
+    }
+    toolbox_sudo cat -- "$config" > "$output" || {
+        echo "读取 Clover 配置失败。" >&2
+        return 1
+    }
+}
+
+clover_confirm_windows_autoboot() {
+    local answer
+
+    echo "将把 Clover 默认启动项改为 Windows，并把菜单等待时间设为 0 秒。"
+    echo "开机将直接进入 Windows；不会删除 SteamOS/Bazzite、Windows 或任何 EFI 启动项。"
+    echo "需要进入 Linux 时，可关机后按住音量减再按电源键，从固件菜单选择系统。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        echo "已通过Renkit界面确认，开始修改 Clover 配置。"
+        return 0
+    fi
+    read -r -p "确认隐藏菜单并默认进入 Windows 请输入 WINDOWS：" answer
+    [ "$answer" = "WINDOWS" ]
+}
+
+clover_confirm_show_menu() {
+    local answer
+
+    echo "将重新显示 Clover 开机菜单，等待时间设为 ${CLOVER_VISIBLE_TIMEOUT} 秒。"
+    echo "当前默认启动系统保持不变，不修改 EFI 文件或 UEFI BootOrder。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        echo "已通过Renkit界面确认，开始修改 Clover 配置。"
+        return 0
+    fi
+    read -r -p "确认重新显示 Clover 菜单请输入 MENU：" answer
+    [ "$answer" = "MENU" ]
+}
+
+clover_autoboot_windows() {
+    local work_dir working config loader
+
+    require_supported_gaming_os || return 1
+    for command_name in awk cat cp findmnt grep lsblk mkdir mktemp mv rm sudo; do
+        require_command "$command_name" || return 1
+    done
+    clover_prepare_admin_access || return 1
+    clover_find_esp || return 1
+    CLOVER_ESP="$CLOVER_ESP_FOUND"
+    config="$CLOVER_ESP/EFI/CLOVER/config.plist"
+    loader="$(clover_windows_loader_path)" || return 1
+    clover_confirm_windows_autoboot || {
+        echo "已取消，Clover 配置未修改。"
+        return 0
+    }
+
+    work_dir="$(mktemp -d)" || return 1
+    working="$work_dir/config.plist"
+    if ! clover_prepare_live_config "$working" ||
+        ! clover_configure_default_loader_path "$working" "$loader" ||
+        ! clover_configure_timeout "$working" 0 ||
+        ! clover_write_live_config "$working" "$config"; then
+        rm -rf -- "$work_dir"
+        return 1
+    fi
+    rm -rf -- "$work_dir"
+    echo "Clover 菜单已隐藏；以后开机将直接进入 Windows。"
+    echo "实际 Windows 启动路径：$loader"
+    log "Clover已隐藏并默认Windows: esp=$CLOVER_ESP loader=$loader timeout=0"
+}
+
+clover_show_menu() {
+    local work_dir working config
+
+    case "$CLOVER_VISIBLE_TIMEOUT" in
+        1|5|8|10|15|60) ;;
+        *) echo "Clover 菜单恢复等待时间配置异常。" >&2; return 1 ;;
+    esac
+    require_supported_gaming_os || return 1
+    for command_name in awk cat cp findmnt grep lsblk mkdir mktemp mv rm sudo; do
+        require_command "$command_name" || return 1
+    done
+    clover_prepare_admin_access || return 1
+    clover_find_esp || return 1
+    CLOVER_ESP="$CLOVER_ESP_FOUND"
+    config="$CLOVER_ESP/EFI/CLOVER/config.plist"
+    clover_confirm_show_menu || {
+        echo "已取消，Clover 配置未修改。"
+        return 0
+    }
+
+    work_dir="$(mktemp -d)" || return 1
+    working="$work_dir/config.plist"
+    if ! clover_prepare_live_config "$working" ||
+        ! clover_configure_timeout "$working" "$CLOVER_VISIBLE_TIMEOUT" ||
+        ! clover_write_live_config "$working" "$config"; then
+        rm -rf -- "$work_dir"
+        return 1
+    fi
+    rm -rf -- "$work_dir"
+    echo "Clover 开机菜单已恢复，等待时间为 ${CLOVER_VISIBLE_TIMEOUT} 秒；默认启动项保持不变。"
+    log "Clover菜单已恢复: esp=$CLOVER_ESP timeout=$CLOVER_VISIBLE_TIMEOUT"
 }
 
 clover_remove_steamos_entries() {
@@ -1493,7 +1726,9 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         restore) clover_restore ;;
         delete) clover_delete ;;
         status) clover_status ;;
+        autoboot-windows) clover_autoboot_windows ;;
+        show-menu) clover_show_menu ;;
         apply-background) clover_apply_renkit_background ;;
-        *) echo "用法: $0 {install|restore|delete|status|apply-background}"; exit 1 ;;
+        *) echo "用法: $0 {install|restore|delete|status|autoboot-windows|show-menu|apply-background}"; exit 1 ;;
     esac
 fi

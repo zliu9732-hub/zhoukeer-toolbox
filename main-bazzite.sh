@@ -768,16 +768,20 @@ bazzite_clover_menu() {
         ui_panel_line 7 '\033[1;38;5;220m' "请先关闭 Secure Boot；失败时可从本页执行恢复"
         ui_touch_button 8 '\033[1;97;48;5;24m' "应用 Renkit 开机背景" "替换 Clover Apocalypse 主题背景"
         ui_touch_button 10 '\033[1;30;48;5;220m' "安装/修复 Clover 双系统引导" "自动识别 EFI，并备份清理旧 SteamOS 引导"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "查看 Clover 状态" "只读检查 EFI 与 NVRAM 启动项"
+        ui_touch_button 12 '\033[1;97;48;5;160m' "隐藏 Clover 菜单并默认 Windows" "开机直接进入 Windows · 可恢复"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "重新显示 Clover 菜单" "恢复 8 秒开机选择时间"
+        ui_touch_button 16 '\033[1;97;48;5;24m' "查看 Clover 状态" "只读检查 EFI 与 NVRAM 启动项"
         ui_touch_button 18 '\033[1;97;48;5;160m' "恢复安装前引导" "恢复原 BootOrder 与 Windows 启动文件"
         ui_touch_button 21 '\033[1;97;48;5;238m' "返回高级功能"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页"
         ui_prompt
-        choice="$(read_touch_menu right:8-9:clover-background right:10-11:install right:14-15:status right:18-19:restore right:21-22:back right:23-24:home)"
+        choice="$(read_touch_menu right:8-9:clover-background right:10-11:install right:12-13:clover-windows right:14-15:clover-menu right:16-17:status right:18-19:restore right:21-22:back right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             clover-background) confirm_and_run "应用 Renkit 开机背景" "仅替换 esp/efi/clover/themes/Apocalypse/background.png" bash "$PROJECT_ROOT/modules/clover_boot.sh" apply-background ;;
             install) confirm_and_run "安装/修复 Clover 双系统引导" "会写入 EFI、修改 BootOrder 并备份原 Clover；Bazzite 下检测到旧 SteamOS 引导时先备份再清理，保留 Windows 官方启动项且不删除系统分区" bash "$PROJECT_ROOT/modules/clover_boot.sh" install ;;
+            clover-windows) confirm_and_run "隐藏 Clover 菜单并默认进入 Windows" "会备份并修改 Clover config.plist：Windows 设为默认项，等待时间设为 0 秒；不会删除任何系统或 EFI 启动项" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/clover_boot.sh" autoboot-windows ;;
+            clover-menu) confirm_and_run "重新显示 Clover 菜单" "会备份并修改 Clover config.plist：等待时间恢复为 8 秒；当前默认系统保持不变" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/clover_boot.sh" show-menu ;;
             status) run_action "查看 Clover 状态" bash "$PROJECT_ROOT/modules/clover_boot.sh" status ;;
             restore) confirm_and_run "恢复安装前引导" "删除Renkit创建的 Clover 启动项，并恢复原 BootOrder 和 Windows 启动文件" bash "$PROJECT_ROOT/modules/clover_boot.sh" restore ;;
             back) return 0 ;;

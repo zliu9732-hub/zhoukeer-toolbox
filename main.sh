@@ -1073,11 +1073,12 @@ dual_system_menu() {
             ui_touch_button 7 '\033[1;97;48;5;160m' "初始化并挂载 TF 卡" "会清空目标卡并格式化为 NTFS"
             ui_touch_button 9 '\033[1;97;48;5;160m' "修复磁盘写入错误" "NTFS/exFAT 基础修复 · 会卸载磁盘"
             ui_touch_button 11 '\033[1;97;48;5;30m' "双系统互通盘保护" "重新挂载为只读，防止升级后掉盘"
+            ui_touch_button 15 '\033[1;97;48;5;24m' "应用 Renkit 开机背景" "替换 Clover Apocalypse 主题背景"
             ui_touch_button 19 '\033[1;97;48;5;24m' "更多双系统工具" "状态、删除与第三方引导清理"
             ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
             ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
             ui_prompt
-            choice="$(read_touch_menu right:5-6:mount right:7-8:tf-format right:9-10:repair-drive right:11-12:protect right:19-20:next right:21-22:advanced right:23-24:home)"
+            choice="$(read_touch_menu right:5-6:mount right:7-8:tf-format right:9-10:repair-drive right:11-12:protect right:15-16:clover-background right:19-20:next right:21-22:advanced right:23-24:home)"
         else
             draw_category_frame advanced "更多双系统工具" "只读检查、恢复与引导清理 · 第 2/2 页"
             ui_touch_button 5 '\033[1;97;48;5;24m' "双系统健康检查" "识别 Clover、rEFInd、GRUB、OpenCore 等"
@@ -1085,12 +1086,13 @@ dual_system_menu() {
             ui_touch_button 9 '\033[1;97;48;5;160m' "清理第三方引导项" "仅删选定 NVRAM，保留 EFI 文件"
             ui_touch_button 11 '\033[1;97;48;5;24m' "修复双系统引导" "补齐缺失引导项并恢复启动顺序"
             ui_touch_button 13 '\033[1;97;48;5;24m' "创建切换至 Windows 快捷方式" "仅创建桌面图标，本次不会重启"
-            ui_touch_button 15 '\033[1;97;48;5;24m' "应用 Renkit 开机背景" "替换 Clover Apocalypse 主题背景"
+            ui_touch_button 15 '\033[1;97;48;5;160m' "隐藏 Clover 菜单并默认 Windows" "开机直接进入 Windows · 可恢复"
+            ui_touch_button 17 '\033[1;97;48;5;24m' "重新显示 Clover 菜单" "恢复 8 秒开机选择时间"
             ui_touch_button 19 '\033[1;97;48;5;24m' "返回常用工具" "回到双系统常用功能"
             ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
             ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
             ui_prompt
-            choice="$(read_touch_menu right:5-6:health right:7-8:unprotect right:9-10:cleanup-boot right:11-12:repair-boot right:13-14:switch-to-windows right:15-16:clover-background right:19-20:previous right:21-22:advanced right:23-24:home)"
+            choice="$(read_touch_menu right:5-6:health right:7-8:unprotect right:9-10:cleanup-boot right:11-12:repair-boot right:13-14:switch-to-windows right:15-16:clover-windows right:17-18:clover-menu right:19-20:previous right:21-22:advanced right:23-24:home)"
         fi
         if apply_navigation "$choice"; then return 0; fi
 
@@ -1127,6 +1129,14 @@ dual_system_menu() {
             switch-to-windows)
                 confirm_and_run "创建切换至 Windows 快捷方式" "只在桌面创建图标；本次不会设置 BootNext，也不会重启" \
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-shortcut
+                ;;
+            clover-windows)
+                confirm_and_run "隐藏 Clover 菜单并默认进入 Windows" "会备份并修改 Clover config.plist：Windows 设为默认项，等待时间设为 0 秒；不会删除任何系统或 EFI 启动项" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/clover_boot.sh" autoboot-windows
+                ;;
+            clover-menu)
+                confirm_and_run "重新显示 Clover 菜单" "会备份并修改 Clover config.plist：等待时间恢复为 8 秒；当前默认系统保持不变" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/clover_boot.sh" show-menu
                 ;;
             clover-background)
                 confirm_and_run "应用 Renkit 开机背景" "仅替换 esp/efi/clover/themes/Apocalypse/background.png，不修改其他 Clover 文件" \

@@ -23,6 +23,10 @@ for menu in "$touch_dual" "$gui_dual"; do
     done
     printf '%s\n' "$menu" | grep -Fq 'modules/clover_boot.sh" install' || \
         fail "Clover 安装/修复菜单动作缺失"
+    printf '%s\n' "$menu" | grep -Fq 'modules/clover_boot.sh" autoboot-windows' || \
+        fail "Clover 隐藏菜单并默认 Windows 动作缺失"
+    printf '%s\n' "$menu" | grep -Fq 'modules/clover_boot.sh" show-menu' || \
+        fail "Clover 菜单恢复动作缺失"
     if printf '%s\n' "$menu" | grep -Fq 'modules/clover_boot.sh" delete'; then
         fail "Clover 删除动作不应直接暴露在双系统菜单"
     fi

@@ -288,6 +288,8 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_contains "$source_text" 'modules/settings_backup.sh" restore' "设置恢复动作错误：$file"
     assert_contains "$source_text" 'modules/network.sh" --details' "详细网络状态动作错误：$file"
     assert_contains "$source_text" 'modules/clover_boot.sh" install' "Clover 安装/修复动作错误：$file"
+    assert_contains "$source_text" 'modules/clover_boot.sh" autoboot-windows' "Clover 隐藏菜单并默认 Windows 动作错误：$file"
+    assert_contains "$source_text" 'modules/clover_boot.sh" show-menu' "Clover 菜单恢复动作错误：$file"
     assert_not_contains "$source_text" 'modules/clover_boot.sh" delete' "Clover 删除动作不应直接暴露：$file"
     assert_contains "$source_text" 'modules/dual_system_tools.sh" health' "双系统健康检查动作错误：$file"
     assert_contains "$source_text" 'modules/dual_system_tools.sh" windows-shortcut' "Windows 桌面快捷方式动作错误：$file"
@@ -297,6 +299,8 @@ done
 
 bazzite_clover="$(function_source "$PROJECT_ROOT/main-bazzite.sh" bazzite_clover_menu)"
 assert_contains "$bazzite_clover" '备份清理旧 SteamOS 引导' "Bazzite Clover 安装入口未说明自动清理"
+assert_contains "$bazzite_clover" 'modules/clover_boot.sh" autoboot-windows' "Bazzite Clover 隐藏菜单动作缺失"
+assert_contains "$bazzite_clover" 'modules/clover_boot.sh" show-menu' "Bazzite Clover 菜单恢复动作缺失"
 assert_not_contains "$bazzite_clover" 'cleanup-steamos' "旧 SteamOS 清理不应暴露为独立菜单动作"
 
 echo "PASS: 九分类导航、关键动作和返回坐标映射一致"

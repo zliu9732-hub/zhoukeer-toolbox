@@ -1,4 +1,11 @@
 
+## Renkit 2.3.1 Clover 静默启动 Windows — 2026-09-07
+
+- 双系统工具新增“隐藏 Clover 菜单并默认 Windows”，自动识别标准 `EFI/Microsoft/Boot/bootmgfw.efi` 与旧版移动后的 `EFI/Microsoft/bootmgfw.efi`，仅在实际启动文件存在时写入。
+- 修改前为 `config.plist` 创建独立时间戳备份，使用临时文件原子替换；拒绝符号链接、重复或异常配置键，不会把 `.orig` 和语言资源误当成 Windows 启动器，也不会删除系统或 EFI 启动项。
+- 新增“重新显示 Clover 菜单”恢复入口，将等待时间恢复为 8 秒并保留当前默认系统；SteamOS 触控菜单、桌面 GUI 与 Bazzite Clover 页面均已接入。
+- 新增模拟测试，覆盖标准与旧版 Windows EFI 布局、菜单隐藏与恢复、默认项保持、连续备份及菜单动作映射。
+
 ## Renkit 2.3.0 Legion Go 新机识别修复 — 2026-09-07
 
 - 修复初代 Legion Go 的真实 DMI `product_name=83E1` 不含机型名称，导致新机初始化误装通用掌机功耗控制的问题；现在会精确安装 Legion Go 控制中心和震动控制两款插件。

@@ -75,8 +75,13 @@ clover_resolve_esp_device() {
     CLOVER_DISK="/dev/fake"
     CLOVER_PARTITION="1"
 }
+clover_find_esp() {
+    CLOVER_ESP_FOUND="$ESP"
+}
 clover_confirm_install() { return 0; }
 clover_confirm_restore() { return 0; }
+clover_confirm_windows_autoboot() { return 0; }
+clover_confirm_show_menu() { return 0; }
 clover_detect_device() {
     CLOVER_DEVICE_PREFIX="SD"
     CLOVER_DEVICE_NAME="Steam Deck Test"
@@ -166,6 +171,30 @@ grep -Fq 'enable --now clover-bootmanager.service' "$STATE/calls" || \
 status_output="$(clover_status)" || fail "安装后状态检查失败"
 printf '%s\n' "$status_output" | grep -Fq 'Clover：已由Renkit安装' || fail "状态未报告 Clover 已安装"
 
+clover_autoboot_windows >/dev/null || fail "隐藏 Clover 菜单并默认 Windows 失败"
+grep -Fq '<string>\EFI\Microsoft\Boot\bootmgfw.efi</string>' \
+    "$ESP/EFI/CLOVER/config.plist" || fail "Clover 默认项未改为实际存在的标准 Windows EFI"
+awk '
+    /<key>Timeout<\/key>/ { getline; if ($0 ~ /<integer>0<\/integer>/) found=1 }
+    END { exit(found ? 0 : 1) }
+' "$ESP/EFI/CLOVER/config.plist" || fail "Clover 菜单等待时间未改为 0"
+
+clover_show_menu >/dev/null || fail "重新显示 Clover 菜单失败"
+awk '
+    /<key>Timeout<\/key>/ { getline; if ($0 ~ /<integer>8<\/integer>/) found=1 }
+    END { exit(found ? 0 : 1) }
+' "$ESP/EFI/CLOVER/config.plist" || fail "Clover 菜单等待时间未恢复为 8 秒"
+grep -Fq '<string>\EFI\Microsoft\Boot\bootmgfw.efi</string>' \
+    "$ESP/EFI/CLOVER/config.plist" || fail "恢复菜单时意外改变了默认系统"
+[ "$(find "$ESP/EFI/zhoukeer-backups" -maxdepth 1 -type f \
+    -name 'clover-config-before-*.plist' | wc -l | tr -d ' ')" = "2" ] || \
+    fail "Clover 启动设置没有为每次修改保留独立配置备份"
+
+mv -- "$ESP/EFI/Microsoft/Boot/bootmgfw.efi" "$ESP/EFI/Microsoft/bootmgfw.efi"
+[ "$(clover_windows_loader_path)" = '\EFI\Microsoft\bootmgfw.efi' ] || \
+    fail "没有兼容旧版 Clover 移动后的 Windows EFI 路径"
+mv -- "$ESP/EFI/Microsoft/bootmgfw.efi" "$ESP/EFI/Microsoft/Boot/bootmgfw.efi"
+
 clover_delete >/dev/null || fail "模拟删除Renkit Clover 双系统引导失败"
 [ -f "$ESP/EFI/CLOVER/original.txt" ] || fail "没有恢复安装前的 CLOVER 目录"
 [ ! -e "$ESP/EFI/CLOVER/.zhoukeer-managed" ] || fail "恢复后仍使用Renkit Clover"
@@ -210,4 +239,4 @@ fi
 grep -Fq '包含符号链接' "$TMP_ROOT/bad-stage-output" || \
     fail "Clover 安装包准备失败没有输出具体原因"
 
-echo "PASS: Clover Gitee 镜像、设备配置、怪盗主题、Windows 启动保留、BootOrder 和删除恢复模拟测试通过"
+echo "PASS: Clover 镜像、设备配置、菜单隐藏/恢复、Windows 路径兼容、BootOrder 和删除恢复模拟测试通过"
