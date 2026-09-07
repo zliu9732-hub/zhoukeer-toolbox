@@ -47,7 +47,7 @@ cp -R "$SOURCE/." "$TMP_ROOT/archive/Fantastic/"
 # 完全使用本地归档和临时插件目录，验证直装调用链不会访问网络或 Decky 商城。
 # shellcheck disable=SC1090
 source "$MODULE"
-detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
+detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
 download_verified_package() { cp -- "$TMP_ROOT/Fantastic.zip" "$4"; }
 reload_decky_plugins() { printf 'TEST_RELOAD: %s\n' "$1"; }
 DECKY_PLUGIN_DIR="$TMP_ROOT/plugins"
