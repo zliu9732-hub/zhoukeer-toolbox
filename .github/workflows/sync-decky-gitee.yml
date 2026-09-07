@@ -1,15 +1,6 @@
-name: Sync Renkit and Decky Gitee mirror
+name: Sync Decky Gitee mirror
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - VERSION
-      - dist/SHA256SUMS
-      - dist/renkit.tar.gz
-      - dist/zhoukeer-toolbox.tar.gz
-      - .github/workflows/sync-decky-gitee.yml
   schedule:
     - cron: '0 */6 * * *'
   workflow_dispatch:
@@ -42,7 +33,7 @@ jobs:
       - name: Push GitHub
         run: git push origin main
 
-      - name: Push Renkit release and Decky mirror to Gitee
+      - name: Push Gitee
         env:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
         run: |
@@ -54,28 +45,15 @@ jobs:
           git clone --depth 1 --filter=blob:none --sparse \
             "https://zliu9732-hub:${GITEE_TOKEN}@gitee.com/zliu9732-hub/zhoukeer-toolbox-v2.git" \
             "$sync_dir/repo"
-          git -C "$sync_dir/repo" sparse-checkout set --no-cone \
-            '/decky-installer-cn/' \
-            '/VERSION' \
-            '/dist/SHA256SUMS' \
-            '/dist/renkit.tar.gz' \
-            '/dist/zhoukeer-toolbox.tar.gz'
+          git -C "$sync_dir/repo" sparse-checkout set decky-installer-cn
           git -C "$sync_dir/repo" config user.name "zhoukeer-toolbox[bot]"
           git -C "$sync_dir/repo" config user.email "bot@users.noreply.github.com"
-          git -C "$sync_dir/repo" rm -r --ignore-unmatch \
-            decky-installer-cn VERSION dist/SHA256SUMS \
-            dist/renkit.tar.gz dist/zhoukeer-toolbox.tar.gz
+          git -C "$sync_dir/repo" rm -r --ignore-unmatch decky-installer-cn
           cp -a -- decky-installer-cn "$sync_dir/repo/"
-          mkdir -p "$sync_dir/repo/dist"
-          cp -- VERSION "$sync_dir/repo/VERSION"
-          cp -- dist/SHA256SUMS dist/renkit.tar.gz dist/zhoukeer-toolbox.tar.gz \
-            "$sync_dir/repo/dist/"
-          git -C "$sync_dir/repo" add \
-            decky-installer-cn VERSION dist/SHA256SUMS \
-            dist/renkit.tar.gz dist/zhoukeer-toolbox.tar.gz
+          git -C "$sync_dir/repo" add decky-installer-cn
           if git -C "$sync_dir/repo" diff --cached --quiet; then
-            echo "No Gitee Renkit or Decky mirror changes"
+            echo "No Gitee Decky mirror changes"
           else
-            git -C "$sync_dir/repo" commit -m "Sync Renkit release and Decky Loader mirror"
+            git -C "$sync_dir/repo" commit -m "Sync Decky Loader mirror to latest"
             git -C "$sync_dir/repo" push origin main
           fi

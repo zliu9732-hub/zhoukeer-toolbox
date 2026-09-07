@@ -1,0 +1,61 @@
+name: Sync Renkit release to Gitee v2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - VERSION
+      - dist/SHA256SUMS
+      - dist/renkit.tar.gz
+      - dist/zhoukeer-toolbox.tar.gz
+      - .github/workflows/sync-renkit-release-gitee.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-renkit-release-gitee
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Push Renkit release files to Gitee v2
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+        run: |
+          if [ -z "$GITEE_TOKEN" ]; then
+            echo "GITEE_TOKEN secret is missing"
+            exit 1
+          fi
+          sync_dir="$(mktemp -d)"
+          trap 'rm -rf -- "$sync_dir"' EXIT
+          git clone --depth 1 --filter=blob:none --sparse \
+            "https://zliu9732-hub:${GITEE_TOKEN}@gitee.com/zliu9732-hub/zhoukeer-toolbox-v2.git" \
+            "$sync_dir/repo"
+          git -C "$sync_dir/repo" sparse-checkout set --no-cone \
+            '/VERSION' \
+            '/dist/SHA256SUMS' \
+            '/dist/renkit.tar.gz' \
+            '/dist/zhoukeer-toolbox.tar.gz'
+          git -C "$sync_dir/repo" config user.name "zhoukeer-toolbox[bot]"
+          git -C "$sync_dir/repo" config user.email "bot@users.noreply.github.com"
+          git -C "$sync_dir/repo" rm --ignore-unmatch \
+            VERSION dist/SHA256SUMS dist/renkit.tar.gz dist/zhoukeer-toolbox.tar.gz
+          mkdir -p "$sync_dir/repo/dist"
+          cp -- VERSION "$sync_dir/repo/VERSION"
+          cp -- dist/SHA256SUMS dist/renkit.tar.gz dist/zhoukeer-toolbox.tar.gz \
+            "$sync_dir/repo/dist/"
+          git -C "$sync_dir/repo" add \
+            VERSION dist/SHA256SUMS dist/renkit.tar.gz dist/zhoukeer-toolbox.tar.gz
+          if git -C "$sync_dir/repo" diff --cached --quiet; then
+            echo "Gitee v2 already has the current Renkit release"
+          else
+            git -C "$sync_dir/repo" commit -m "release: sync Renkit $(cat VERSION)"
+            git -C "$sync_dir/repo" push origin main
+          fi
