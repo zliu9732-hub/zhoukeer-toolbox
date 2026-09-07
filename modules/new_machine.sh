@@ -170,7 +170,7 @@ show_initialization_plan() {
     echo "【04】安装 Fcitx5 中文输入法和中文插件"
     echo "【05-06】安装微信、QQ、Firefox并创建桌面图标"
     echo "【07】安装 Decky Loader、FreeDeck、八款常用插件（含 Fantastic 风扇控制）"
-    echo "【08】识别机器型号；无合适专用插件时安装通用掌机功耗控制"
+    echo "【08】识别机器型号；安装匹配的掌机控制插件组合，无合适专用插件时安装通用功耗控制"
     echo "【09】安装修改器所需兼容层：仅 GE-Proton 10-29"
     echo "【10】按物理内存设置 zram、8-16GB swap 和 swappiness"
     echo "【11-12】安装 Steamcommunity 302，后台运行并设置开机自启"
@@ -286,19 +286,29 @@ check_network() {
 }
 
 read_machine_identity() {
-    local vendor product board
+    local vendor product board version sku family
 
     vendor="$(cat "$NEW_MACHINE_DMI_ROOT/sys_vendor" 2>/dev/null || true)"
     product="$(cat "$NEW_MACHINE_DMI_ROOT/product_name" 2>/dev/null || true)"
     board="$(cat "$NEW_MACHINE_DMI_ROOT/board_name" 2>/dev/null || true)"
-    printf '%s %s %s\n' "$vendor" "$product" "$board" | tr '[:upper:]' '[:lower:]'
+    version="$(cat "$NEW_MACHINE_DMI_ROOT/product_version" 2>/dev/null || true)"
+    sku="$(cat "$NEW_MACHINE_DMI_ROOT/product_sku" 2>/dev/null || true)"
+    family="$(cat "$NEW_MACHINE_DMI_ROOT/product_family" 2>/dev/null || true)"
+    printf '%s %s %s %s %s %s\n' \
+        "$vendor" "$product" "$board" "$version" "$sku" "$family" | \
+        tr '[:upper:]' '[:lower:]'
 }
 
 apply_machine_profile() {
-    local identity
+    local identity identity_label
 
     identity="$(read_machine_identity)"
-    echo "机器识别：${identity:-未提供 DMI 型号}"
+    case "$identity" in
+        *[![:space:]]*) identity_label="$identity" ;;
+        *) identity_label="未提供 DMI 型号" ;;
+    esac
+    echo "机器识别：$identity_label"
+    identity=" $identity "
     case "$identity" in
         *steam*deck*|*jupiter*|*galileo*)
             echo "已选择 Steam Deck 通用配置；ROG / 联想专用插件不适用，改装掌机功耗控制。"
@@ -308,13 +318,17 @@ apply_machine_profile() {
             echo "检测到 ROG Ally 系列（含二代、三代），正在安装匹配的 Ally 控制中心。"
             env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter
             ;;
-        *legion*go\ 2*|*legion*go*s*)
-            echo "检测到 Legion Go 2 / Go S；现有联想专用控制插件不匹配，改装掌机功耗控制。"
+        *" 83n0 "*|*" 83n1 "*|*legion*go\ 2*)
+            echo "检测到 Legion Go 2；初代 Legion Go 控制插件不适用，改装掌机功耗控制。"
             install_generic_handheld_power_control
             ;;
-        *legion*go*)
-            echo "检测到初代 Legion Go，正在安装匹配的控制中心。"
-            env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" legiongo-remapper
+        *" 83l3 "*|*" 83n6 "*|*" 83q2 "*|*" 83q3 "*|*legion*go*s*)
+            echo "检测到 Legion Go S；初代 Legion Go 控制插件不适用，改装掌机功耗控制。"
+            install_generic_handheld_power_control
+            ;;
+        *" 83e1 "*|*legion*go*)
+            echo "检测到初代 Legion Go，正在安装控制中心与震动控制。"
+            install_initial_legion_go_plugins
             ;;
         *gpd*win*)
             echo "检测到 GPD Win 系列，正在安装匹配的 GPD 控制中心。"
@@ -325,6 +339,18 @@ apply_machine_profile() {
             install_generic_handheld_power_control
             ;;
     esac
+}
+
+install_initial_legion_go_plugins() {
+    local failed=0
+
+    echo "正在安装或检查 Legion Go 控制中心。"
+    env ZHOUKEER_AUTO_CONFIRM=1 \
+        bash "$PROJECT_ROOT/modules/plugin_store.sh" legiongo-remapper || failed=1
+    echo "正在安装或检查 Legion Go 震动控制。"
+    env ZHOUKEER_AUTO_CONFIRM=1 \
+        bash "$PROJECT_ROOT/modules/plugin_store.sh" lego-vibe || failed=1
+    return "$failed"
 }
 
 install_generic_handheld_power_control() {

@@ -1,4 +1,10 @@
 
+## Renkit 2.3.0 Legion Go 新机识别修复 — 2026-09-07
+
+- 修复初代 Legion Go 的真实 DMI `product_name=83E1` 不含机型名称，导致新机初始化误装通用掌机功耗控制的问题；现在会精确安装 Legion Go 控制中心和震动控制两款插件。
+- 精确区分 Legion Go 2（`83N0`/`83N1`）与 Legion Go S（`83L3`/`83N6`/`83Q2`/`83Q3`），继续安全回退通用掌机功耗控制，不误装仅支持初代的插件。
+- 机器身份检测补充读取 DMI 的产品版本、SKU 与 Family 字段，兼容固件只在这些字段提供商品名称的情况；新增真实初代 DMI 与各代机器类型代码回归测试。
+
 ## Renkit 2.2.9 ChimeraOS 应用与插件独立菜单 — 2026-09-06
 
 - 新增 ChimeraOS 平台识别与独立 `main-chimera.sh` 分流；不再误进入 Bazzite 菜单，安装后显示独立名称并写入 `chimeraos` 平台标记。

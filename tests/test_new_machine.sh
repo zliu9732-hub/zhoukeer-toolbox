@@ -110,17 +110,29 @@ run_machine_profile() (
     apply_machine_profile
 )
 
+empty_identity_output="$(run_machine_profile '')"
+printf '%s\n' "$empty_identity_output" | grep -Fq \
+    '机器识别：未提供 DMI 型号' || \
+    fail "DMI 为空时没有显示明确的未知型号提示"
+
 for fallback_identity in \
     "valve steam deck galileo" \
     "lenovo legion go 2" \
     "lenovo legion go s" \
+    "lenovo 83n0 lnvnb161216" \
+    "lenovo 83n1 lnvnb161216" \
+    "lenovo 83l3" \
+    "lenovo 83n6" \
+    "lenovo 83q2" \
+    "lenovo 83q3" \
+    "lenovo 83e10" \
     "unknown handheld"; do
     profile_output="$(run_machine_profile "$fallback_identity")"
     printf '%s\n' "$profile_output" | grep -Fq \
         'modules/plugin_store.sh simpledeckytdp-zh-gitee' || \
         fail "$fallback_identity 没有回退安装掌机功耗控制"
     if printf '%s\n' "$profile_output" | grep -Eq \
-        'modules/plugin_store.sh (allycenter|legiongo-remapper|gpd-control)'; then
+        'modules/plugin_store.sh (allycenter|legiongo-remapper|gpd-control|lego-vibe|lego2-fan)'; then
         fail "$fallback_identity 错误安装了专用掌机插件"
     fi
 done
@@ -130,7 +142,6 @@ for profile_case in \
     "asustek rc71l|allycenter" \
     "asustek rc72la|allycenter" \
     "asustek rc73xa|allycenter" \
-    "lenovo legion go|legiongo-remapper" \
     "gpd win max 2|gpd-control"; do
     identity="${profile_case%%|*}"
     expected_action="${profile_case##*|}"
@@ -143,5 +154,49 @@ for profile_case in \
         fail "$identity 已匹配专用插件却又安装了通用功耗控制"
     fi
 done
+
+for legion_identity in \
+    "lenovo legion go" \
+    "lenovo 83e1 lnvnb161216"; do
+    profile_output="$(run_machine_profile "$legion_identity")"
+    for expected_action in legiongo-remapper lego-vibe; do
+        printf '%s\n' "$profile_output" | grep -Fq \
+            "modules/plugin_store.sh $expected_action" || \
+            fail "$legion_identity 没有安装 $expected_action"
+    done
+    if printf '%s\n' "$profile_output" | grep -Fq \
+        'modules/plugin_store.sh simpledeckytdp-zh-gitee'; then
+        fail "$legion_identity 已匹配专用插件却又安装了通用功耗控制"
+    fi
+done
+
+failed_legion_output="$({
+    source "$PROJECT_ROOT/modules/new_machine.sh"
+    env() {
+        printf 'PLUGIN|%s\n' "$*"
+        case "$*" in *legiongo-remapper) return 1 ;; esac
+    }
+    install_initial_legion_go_plugins
+} 2>&1)" && fail "Legion Go 控制中心失败后错误报告为全部成功"
+printf '%s\n' "$failed_legion_output" | grep -Fq \
+    'modules/plugin_store.sh lego-vibe' || \
+    fail "Legion Go 控制中心失败后没有继续安装震动控制"
+
+dmi_root="$TMP_ROOT/legion-go-dmi"
+mkdir -p "$dmi_root"
+printf '%s\n' LENOVO > "$dmi_root/sys_vendor"
+printf '%s\n' 83E1 > "$dmi_root/product_name"
+printf '%s\n' LNVNB161216 > "$dmi_root/board_name"
+printf '%s\n' 'Legion Go 8APU1' > "$dmi_root/product_version"
+printf '%s\n' 'LENOVO_MT_83E1_BU_idea_FM_Legion Go 8APU1' > "$dmi_root/product_sku"
+printf '%s\n' 'Legion Go 8APU1' > "$dmi_root/product_family"
+dmi_identity="$(
+    source "$PROJECT_ROOT/modules/new_machine.sh"
+    NEW_MACHINE_DMI_ROOT="$dmi_root"
+    read_machine_identity
+)"
+printf '%s\n' "$dmi_identity" | grep -Fq \
+    'lenovo 83e1 lnvnb161216 legion go 8apu1 lenovo_mt_83e1_bu_idea_fm_legion go 8apu1 legion go 8apu1' || \
+    fail "没有读取 Legion Go 的完整 DMI 身份字段"
 
 echo "PASS: 新机初始化更新可选、GE-Proton 10-29 和机型插件回退测试通过"
