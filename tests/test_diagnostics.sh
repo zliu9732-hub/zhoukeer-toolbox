@@ -65,7 +65,12 @@ bundle_output="$(
 archive="$(printf '%s\n' "$bundle_output" | sed -n 's/^保存位置：//p')"
 [ -f "$archive" ] || fail "诊断包未生成"
 [ ! -e "$TMP_ROOT/curl.log" ] || fail "生成诊断包时发起了网络请求"
-[ "$(stat -f '%Lp' "$archive" 2>/dev/null || stat -c '%a' "$archive")" = "600" ] || fail "诊断包权限不是 600"
+if archive_mode="$(stat -c '%a' "$archive" 2>/dev/null)"; then
+    :
+else
+    archive_mode="$(stat -f '%Lp' "$archive")"
+fi
+[ "$archive_mode" = "600" ] || fail "诊断包权限不是 600"
 listing="$(tar -tzf "$archive")"
 for name in 基础信息.txt 网络检查摘要.txt 下载与更新状态.txt 最近错误摘要.txt 请先阅读.txt; do
     printf '%s\n' "$listing" | grep -Fq "$name" || fail "诊断包缺少 $name"
