@@ -63,7 +63,7 @@ mkdir -p "$PLUGIN_ROOT"
 )
 
 CALLS="$TMP_ROOT/strict-gitee.calls"
-detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
+detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
 calculate_decky_sha256() {
     case "$1" in
         *'/Decky LSFG-VK/dist/index.js') printf '%s\n' "$LSFG_ZH_INDEX_SHA256" ;;
