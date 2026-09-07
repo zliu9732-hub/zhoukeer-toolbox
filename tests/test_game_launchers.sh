@@ -1442,7 +1442,7 @@ COVER_BUNDLE="$PROJECT_ROOT/launcher-covers/$COVER_VERSION/$COVER_FILE"
     exit 1
 }
 ACTUAL_COVER_SHA="$(shasum -a 256 "$COVER_BUNDLE" | awk '{print $1}')"
-ACTUAL_COVER_SIZE="$(stat -f '%z' "$COVER_BUNDLE" 2>/dev/null || stat -c '%s' "$COVER_BUNDLE")"
+ACTUAL_COVER_SIZE="$(stat -c '%s' "$COVER_BUNDLE" 2>/dev/null || stat -f '%z' "$COVER_BUNDLE")"
 [ "$ACTUAL_COVER_SHA" = "$COVER_SHA" ] && [ "$ACTUAL_COVER_SIZE" = "$COVER_SIZE" ] || {
     echo "FAIL: 启动器封面镜像清单与实际包不一致" >&2
     exit 1

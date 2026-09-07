@@ -167,7 +167,7 @@ reset_fixture() {
 }
 
 file_mode() {
-    stat -f '%Lp' "$1" 2>/dev/null || stat -c '%a' "$1"
+    stat -c '%a' "$1" 2>/dev/null || stat -f '%Lp' "$1"
 }
 
 # 平台、用户和精确 DMI 白名单必须先于任何写入操作生效。

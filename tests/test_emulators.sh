@@ -121,7 +121,12 @@ trap 'rm -rf -- "$BATCH_TEST_ROOT" "$KEY_TEST_ROOT"' EXIT
     [ -f "$YUZU_KEYS_DIR/prod.keys" ] || exit 1
     [ -f "$YUZU_KEYS_DIR/title.keys" ] || exit 1
     [ ! -L "$YUZU_KEYS_DIR/prod.keys" ] || exit 1
-    [ "$(stat -f '%Lp' "$YUZU_KEYS_DIR/prod.keys")" = "600" ] || exit 1
+    if key_mode="$(stat -c '%a' "$YUZU_KEYS_DIR/prod.keys" 2>/dev/null)"; then
+        :
+    else
+        key_mode="$(stat -f '%Lp' "$YUZU_KEYS_DIR/prod.keys")"
+    fi
+    [ "$key_mode" = "600" ] || exit 1
 )
 
 for action in yuzu cemu duckstation pcsx2 rpcs3 shadps4; do
