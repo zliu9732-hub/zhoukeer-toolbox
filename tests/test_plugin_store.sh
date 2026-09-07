@@ -167,7 +167,7 @@ savepulse_install_output="$(
     ZHOUKEER_TEST_MODE=1 \
     bash -c '
         source "$PROJECT_ROOT/modules/plugin_store.sh"
-        detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
+        detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
         download_verified_package() { cp -- "$SAVEPULSE_ARCHIVE" "$4"; }
         reload_decky_plugins() { echo "TEST_RELOAD: SavePulse"; }
         install_configured_plugin savepulse
@@ -287,7 +287,7 @@ printf 'remove on update\n' > "$NEWFREEDECK_PLUGIN_ROOT/NewFreedeck/old-marker.t
 newfreedeck_upgrade_output="$(
     # shellcheck disable=SC1090
     source "$PROJECT_ROOT/modules/plugin_store.sh"
-    detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
+    detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
     resolve_plugin_latest() { :; }
     download_verified_package() { cp -- "$NEWFREEDECK_ARCHIVE" "$4"; }
     reload_decky_plugins() { echo "TEST_RELOAD: NewFreedeck"; }
@@ -312,7 +312,7 @@ installed_newfreedeck_version="$(sed -n \
 newfreedeck_repeat_output="$(
     # shellcheck disable=SC1090
     source "$PROJECT_ROOT/modules/plugin_store.sh"
-    detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
+    detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
     resolve_plugin_latest() { :; }
     download_verified_package() { echo 'FAIL: 同版仍触发下载' >&2; return 1; }
     reload_decky_plugins() { echo 'FAIL: 同版仍触发重载' >&2; return 1; }
@@ -538,7 +538,7 @@ DECKRECALL_MIRROR_LOG="$TMP_ROOT/deckrecall-mirror.log"
     export DECKRECALL_RELOAD_LOG DECKRECALL_MIRROR_LOG
     # shellcheck disable=SC1090
     source "$PROJECT_ROOT/modules/plugin_store.sh"
-    detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
+    detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
     resolve_plugin_latest() { return 0; }
     install_decky_zip() {
         printf '%s\n' "${GITEE_MIRROR_REPO:-missing}" >> "$DECKRECALL_MIRROR_LOG"
@@ -666,13 +666,14 @@ if grep -Fqi '云盘' "$PROJECT_ROOT/modules/plugin_store.sh"; then
 fi
 
 output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg || true)"
-printf '%s\n' "$output" | grep -Fq '仅支持 SteamOS 或 Bazzite'
+printf '%s\n' "$output" | grep -Fq '仅支持 SteamOS、Bazzite 或 ChimeraOS'
 
 simpledeckytdp_output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee || true)"
-printf '%s\n' "$simpledeckytdp_output" | grep -Fq '仅支持 SteamOS 或 Bazzite'
+printf '%s\n' "$simpledeckytdp_output" | grep -Fq '仅支持 SteamOS、Bazzite 或 ChimeraOS'
 
 allycenter_output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter || true)"
-printf '%s\n' "$allycenter_output" | grep -Fq 'Decky 插件安装仅支持 SteamOS 或 Bazzite'
+printf '%s\n' "$allycenter_output" | \
+    grep -Fq 'Decky 插件安装仅支持 SteamOS、Bazzite 或 ChimeraOS'
 
 (
     # shellcheck disable=SC1090
@@ -725,7 +726,7 @@ MAKO_CALLS="$TMP_ROOT/mako.calls"
     export MAKO_CALLS
     # shellcheck disable=SC1090
     source "$PROJECT_ROOT/modules/plugin_store.sh"
-    detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
+    detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
     resolve_plugin_latest() {
         LSFG_MAKO_VERSION="2.2.0"
         DECKY_LSFG_MAKO_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.2.0/MAKO-Decky-v2.2.0.zip"
@@ -857,7 +858,7 @@ printf '{"version":"1.2.1"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
 update_output="$(
     DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
         source "$PROJECT_ROOT/modules/plugin_store.sh"
-        detect_platform() { IS_STEAMOS=1; }
+        detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
         ensure_plugin_store_ready() { return 0; }
         install_lsfg_zh_from_gitee() {
             printf '\''{"version":"%s"}\n'\'' "$LSFG_OFFICIAL_VERSION" > \
@@ -931,7 +932,7 @@ ally_install_output="$(
     ZHOUKEER_TEST_MODE=1 \
     bash -c '
         source "$PROJECT_ROOT/modules/plugin_store.sh"
-        detect_platform() { IS_STEAMOS=1; }
+        detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
         download_verified_package() { cp -- "$ALLY_ARCHIVE" "$4"; }
         reload_decky_plugins() { echo "TEST_RELOAD: Ally Center"; }
         ensure_allycenter_chinese_current
@@ -965,7 +966,7 @@ ally_repeat_output="$(
     ZHOUKEER_TEST_MODE=1 \
     bash -c '
         source "$PROJECT_ROOT/modules/plugin_store.sh"
-        detect_platform() { IS_STEAMOS=1; }
+        detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
         ensure_allycenter_chinese_current
     '
 )"
