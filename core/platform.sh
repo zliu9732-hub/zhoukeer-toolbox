@@ -46,7 +46,7 @@ detect_platform() {
                 IS_BAZZITE=1
                 PLATFORM_FAMILY="bazzite"
                 ;;
-            chimeraos)
+            chimeraos|skorionos)
                 IS_CHIMERAOS=1
                 PLATFORM_FAMILY="chimeraos"
                 ;;

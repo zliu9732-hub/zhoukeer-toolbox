@@ -12,12 +12,19 @@ fail() {
 }
 
 CHIMERA_RELEASE="$TMP_ROOT/chimera-release"
+SKORION_RELEASE="$TMP_ROOT/skorion-release"
 INJECTION_MARKER="$TMP_ROOT/os-release-was-executed"
 cat > "$CHIMERA_RELEASE" <<EOF
 ID=chimeraos
 ID_LIKE=arch
 PRETTY_NAME="ChimeraOS 50"
 UNTRUSTED=\$(touch "$INJECTION_MARKER")
+EOF
+
+cat > "$SKORION_RELEASE" <<'EOF'
+ID=skorionos
+ID_LIKE=arch
+PRETTY_NAME="SkorionOS 56"
 EOF
 
 platform_result="$({
@@ -31,6 +38,17 @@ platform_result="$({
 [ "$platform_result" = "chimeraos|0|0|1|ChimeraOS 50" ] || \
     fail "ChimeraOS 平台识别错误：$platform_result"
 [ ! -e "$INJECTION_MARKER" ] || fail "os-release 内容被当成 Shell 执行"
+
+platform_result="$({
+    ZHOUKEER_OS_RELEASE_FILE="$SKORION_RELEASE"
+    source "$PROJECT_ROOT/core/platform.sh"
+    detect_platform
+    require_chimeraos
+    printf '%s|%s|%s|%s|%s\n' \
+        "$PLATFORM_FAMILY" "$IS_STEAMOS" "$IS_BAZZITE" "$IS_CHIMERAOS" "$PLATFORM_NAME"
+})"
+[ "$platform_result" = "chimeraos|0|0|1|SkorionOS 56" ] || \
+    fail "SkorionOS 平台识别错误：$platform_result"
 
 # ChimeraOS 不进入 SteamOS/Bazzite 的系统级功能门禁，避免 Clover 等模块被误开放。
 if (
@@ -73,6 +91,16 @@ printf '%s\n' "$launch_output" | grep -Fq CHIMERA_MAIN || \
     fail "ChimeraOS 没有进入独立主程序"
 if printf '%s\n' "$launch_output" | grep -Eq 'STEAMOS_MAIN|BAZZITE_MAIN'; then
     fail "ChimeraOS 误进入 SteamOS 或 Bazzite 主程序"
+fi
+
+launch_output="$(HOME="$HOME_DIR" PATH="$BIN_DIR:/usr/bin:/bin" \
+    ZHOUKEER_OS_RELEASE_FILE="$SKORION_RELEASE" ZHOUKEER_SKIP_STARTUP_UPDATE=1 \
+    ZHOUKEER_LAUNCH_LOG="$TMP_ROOT/skorion-launch.log" \
+    bash "$LAUNCH_APP/launch.sh" --run-main)"
+printf '%s\n' "$launch_output" | grep -Fq CHIMERA_MAIN || \
+    fail "SkorionOS 没有进入 ChimeraOS 独立主程序"
+if printf '%s\n' "$launch_output" | grep -Eq 'STEAMOS_MAIN|BAZZITE_MAIN'; then
+    fail "SkorionOS 误进入 SteamOS 或 Bazzite 主程序"
 fi
 
 grep -Fq 'RENKIT_PLATFORM_LABEL="CHIMERAOS 掌机  /  应用与插件"' \
@@ -142,12 +170,12 @@ INSTALL_HOME="$TMP_ROOT/install-home"
 INSTALL_TARGET="$INSTALL_HOME/.local/share/zhoukeer-toolbox"
 mkdir -p "$INSTALL_HOME/Desktop"
 HOME="$INSTALL_HOME" ZHOUKEER_INSTALL_DIR="$INSTALL_TARGET" \
-    ZHOUKEER_OS_RELEASE_FILE="$CHIMERA_RELEASE" \
+    ZHOUKEER_OS_RELEASE_FILE="$SKORION_RELEASE" \
     bash "$PROJECT_ROOT/install.sh" > "$TMP_ROOT/install.out"
 [ -x "$INSTALL_TARGET/main-chimera.sh" ] || \
     fail "ChimeraOS 安装后缺少独立主程序"
 [ "$(cat "$INSTALL_TARGET/.renkit-platform")" = "chimeraos" ] || \
-    fail "ChimeraOS 安装平台标记错误"
+    fail "SkorionOS 安装平台标记错误"
 grep -Fq 'Name=Renkit ChimeraOS版' "$INSTALL_HOME/Desktop/Renkit.desktop" || \
     fail "ChimeraOS 桌面入口名称错误"
 grep -Fq 'ChimeraOS 应用与插件工具' "$INSTALL_HOME/Desktop/Renkit.desktop" || \
