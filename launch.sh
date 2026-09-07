@@ -361,6 +361,16 @@ try_fallback_terminals() {
         try_terminal "系统默认终端" x-terminal-emulator -e "${FALLBACK_RUN_COMMAND[@]}"; then
         return 0
     fi
+    if command -v kgx >/dev/null 2>&1 && \
+        try_terminal "GNOME Console" kgx \
+            --working-directory="$PROJECT_ROOT" -- "${FALLBACK_RUN_COMMAND[@]}"; then
+        return 0
+    fi
+    if command -v ptyxis >/dev/null 2>&1 && \
+        try_terminal "Ptyxis" ptyxis --standalone \
+            --working-directory="$PROJECT_ROOT" -- "${FALLBACK_RUN_COMMAND[@]}"; then
+        return 0
+    fi
     if command -v gnome-terminal >/dev/null 2>&1 && \
         try_terminal "GNOME Terminal" gnome-terminal \
             --working-directory="$PROJECT_ROOT" -- "${FALLBACK_RUN_COMMAND[@]}"; then

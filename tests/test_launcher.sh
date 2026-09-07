@@ -210,6 +210,37 @@ grep -Fq 'Konsole 各级启动均不可用' "$LAUNCH_LOG"
 
 mv "$BIN_DIR/konsole" "$BIN_DIR/konsole.disabled"
 mv "$BIN_DIR/xterm" "$BIN_DIR/xterm.disabled"
+
+cat > "$BIN_DIR/kgx" <<'SCRIPT'
+#!/bin/bash
+printf 'kgx %s\n' "$*" >> "$FAKE_TERMINAL_CALL_LOG"
+exit 0
+SCRIPT
+chmod +x "$BIN_DIR/kgx"
+: > "$CALL_LOG"
+run_launcher '' none 1
+grep -Fq "kgx --working-directory=$PROJECT_ROOT -- env ZHOUKEER_STARTUP_SPLASH=0 bash" \
+    "$CALL_LOG" || {
+    echo "FAIL: GNOME Console 存在时未使用 kgx 启动" >&2
+    exit 1
+}
+mv "$BIN_DIR/kgx" "$BIN_DIR/kgx.disabled"
+
+cat > "$BIN_DIR/ptyxis" <<'SCRIPT'
+#!/bin/bash
+printf 'ptyxis %s\n' "$*" >> "$FAKE_TERMINAL_CALL_LOG"
+exit 0
+SCRIPT
+chmod +x "$BIN_DIR/ptyxis"
+: > "$CALL_LOG"
+run_launcher '' none 1
+grep -Fq "ptyxis --standalone --working-directory=$PROJECT_ROOT -- env ZHOUKEER_STARTUP_SPLASH=0 bash" \
+    "$CALL_LOG" || {
+    echo "FAIL: Ptyxis 存在时未使用兼容参数启动" >&2
+    exit 1
+}
+mv "$BIN_DIR/ptyxis" "$BIN_DIR/ptyxis.disabled"
+
 if run_launcher '' none 1; then
     echo "FAIL: 没有可用终端时启动器错误返回成功"
     exit 1
