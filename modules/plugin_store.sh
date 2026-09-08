@@ -1493,6 +1493,53 @@ run_plugin_file_operation() {
     fi
 }
 
+chimera_plugin_root_is_user_scoped() {
+    local plugin_root="$1"
+    local home_real root_real
+
+    [ -d "$plugin_root" ] && [ ! -L "$plugin_root" ] || return 1
+    home_real="$(cd -P -- "$HOME" 2>/dev/null && pwd)" || return 1
+    root_real="$(cd -P -- "$plugin_root" 2>/dev/null && pwd)" || return 1
+    case "$root_real" in
+        "$home_real/homebrew/plugins"|"$home_real/.local/share/decky-loader/plugins")
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+repair_chimera_plugin_root_owner() {
+    local plugin_root="$1"
+    local uid gid answer
+
+    chimera_plugin_root_is_user_scoped "$plugin_root" || {
+        echo "ChimeraOS 插件目录不在当前用户目录的允许范围内，拒绝修改：$plugin_root"
+        return 1
+    }
+    require_command sudo || return 1
+    uid="$(id -u)" || return 1
+    gid="$(id -g)" || return 1
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
+        echo "需要修复当前用户插件目录的归属：$plugin_root"
+        echo "只会调整该 plugins 目录；不会修改 PluginLoader、服务或 ChimeraOS 系统。"
+        read -r -p "是否继续？[y/N] " answer
+        case "$answer" in y|Y|yes|YES) ;; *) echo "已取消插件目录权限修复。"; return 1 ;; esac
+    fi
+    echo "正在修复当前用户插件目录写入权限..."
+    toolbox_sudo chown -R --no-dereference -- "$uid:$gid" "$plugin_root" || {
+        echo "插件目录权限修复失败，未开始下载。"
+        return 1
+    }
+    [ -w "$plugin_root" ] || {
+        echo "插件目录修复后仍不可写，未开始下载。"
+        return 1
+    }
+    PLUGIN_NEEDS_SUDO=0
+    log "ChimeraOS 用户插件目录归属已修复: $plugin_root"
+}
+
 prepare_plugin_root() {
     local plugin_root="$1"
 
@@ -1509,8 +1556,7 @@ prepare_plugin_root() {
     if [ -w "$plugin_root" ]; then
         PLUGIN_NEEDS_SUDO=0
     elif [ "$IS_CHIMERAOS" -eq 1 ]; then
-        echo "ChimeraOS 插件目录不可由当前用户写入，Renkit不会提权修改系统或 Loader 文件。"
-        return 1
+        repair_chimera_plugin_root_owner "$plugin_root" || return 1
     else
         require_command sudo || return 1
         PLUGIN_NEEDS_SUDO=1

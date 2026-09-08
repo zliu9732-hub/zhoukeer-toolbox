@@ -1,4 +1,8 @@
 ## Renkit 2.3.4 ChimeraOS Decky 预检修复 — 2026-09-08
+## Renkit 2.3.5 ChimeraOS 插件目录权限修复 — 2026-09-08
+
+- 修复 ChimeraOS 已存在 Decky 插件目录归 root 所有时，Renkit 无法安装任何插件的问题；已确认的安装操作会只调整当前用户目录内的 `homebrew/plugins` 或 Decky 用户插件目录归属，然后继续原有的校验下载与原子替换。
+- 拒绝处理符号链接、用户目录外路径、PluginLoader、systemd 服务及任何 ChimeraOS 系统目录；权限修复失败时不会开始下载或改动已有插件。
 
 - 修复 ChimeraOS 独立菜单已放行的插件仍被通用预检误判为“仅支持 SteamOS 或 Bazzite”的问题；现在仅对 `decky` 下载预检放行 ChimeraOS。
 - 系统更新、内存调整、Steam302 等系统级预检仍保持 SteamOS/Bazzite 限制，ChimeraOS 不会因此获得系统修改能力。

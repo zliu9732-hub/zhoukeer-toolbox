@@ -160,8 +160,12 @@ grep -Fq 'Renkit不会重启 ChimeraOS 自带服务' \
     "$PROJECT_ROOT/modules/plugin_store.sh" || fail "ChimeraOS 插件安装仍可能重启系统服务"
 grep -Fq '[ "$IS_CHIMERAOS" -eq 1 ] || ensure_steam302_for_download || true' \
     "$PROJECT_ROOT/modules/plugin_store.sh" || fail "ChimeraOS 的 Unifideck 仍会启动 Steam302"
-grep -Fq 'Renkit不会提权修改系统或 Loader 文件' \
-    "$PROJECT_ROOT/modules/plugin_store.sh" || fail "ChimeraOS 插件目录仍可能使用 sudo 写入"
+grep -Fq 'chimera_plugin_root_is_user_scoped' \
+    "$PROJECT_ROOT/modules/plugin_store.sh" || fail "ChimeraOS 插件目录权限修复缺少用户路径限制"
+grep -Fq 'chown -R --no-dereference' \
+    "$PROJECT_ROOT/modules/plugin_store.sh" || fail "ChimeraOS 插件目录权限修复缺少禁止跟随链接保护"
+grep -Fq '不会修改 PluginLoader、服务或 ChimeraOS 系统' \
+    "$PROJECT_ROOT/modules/plugin_store.sh" || fail "ChimeraOS 插件目录权限修复提示不完整"
 
 # 即使命令行绕过菜单，也不能安装/卸载插件商城或机型控制插件。
 CHIMERA_HOME="$TMP_ROOT/chimera-home"
