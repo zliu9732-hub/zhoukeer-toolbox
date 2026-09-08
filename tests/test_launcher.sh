@@ -216,7 +216,12 @@ cat > "$BIN_DIR/kgx" <<'SCRIPT'
 printf 'kgx %s\n' "$*" >> "$FAKE_TERMINAL_CALL_LOG"
 exit 0
 SCRIPT
-chmod +x "$BIN_DIR/kgx"
+cat > "$BIN_DIR/x-terminal-emulator" <<'SCRIPT'
+#!/bin/bash
+printf 'x-terminal-emulator %s\n' "$*" >> "$FAKE_TERMINAL_CALL_LOG"
+exit 0
+SCRIPT
+chmod +x "$BIN_DIR/kgx" "$BIN_DIR/x-terminal-emulator"
 : > "$CALL_LOG"
 run_launcher '' none 1
 grep -Fq "kgx --working-directory=$PROJECT_ROOT -- env ZHOUKEER_STARTUP_SPLASH=0 bash" \
@@ -224,7 +229,12 @@ grep -Fq "kgx --working-directory=$PROJECT_ROOT -- env ZHOUKEER_STARTUP_SPLASH=0
     echo "FAIL: GNOME Console 存在时未使用 kgx 启动" >&2
     exit 1
 }
+if grep -Fq 'x-terminal-emulator ' "$CALL_LOG"; then
+    echo "FAIL: GNOME Console 存在时错误优先使用通用终端" >&2
+    exit 1
+fi
 mv "$BIN_DIR/kgx" "$BIN_DIR/kgx.disabled"
+mv "$BIN_DIR/x-terminal-emulator" "$BIN_DIR/x-terminal-emulator.disabled"
 
 cat > "$BIN_DIR/ptyxis" <<'SCRIPT'
 #!/bin/bash

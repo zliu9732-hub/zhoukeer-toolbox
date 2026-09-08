@@ -4,7 +4,7 @@ set -u
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MAIN_PROGRAM="$PROJECT_ROOT/main.sh"
-MAIN_PROFILE_FILE="$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
+MAIN_PROFILE_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/konsole/ZhoukeerToolbox.profile"
 PROFILE_FILE="$MAIN_PROFILE_FILE"
 STARTUP_VIEW="main-with-disclaimer"
 WINDOW_SIZE="1280x740"
@@ -357,8 +357,9 @@ try_konsole_levels() {
 }
 
 try_fallback_terminals() {
-    if command -v x-terminal-emulator >/dev/null 2>&1 && \
-        try_terminal "系统默认终端" x-terminal-emulator -e "${FALLBACK_RUN_COMMAND[@]}"; then
+    if command -v ptyxis >/dev/null 2>&1 && \
+        try_terminal "Ptyxis" ptyxis --standalone \
+            --working-directory="$PROJECT_ROOT" -- "${FALLBACK_RUN_COMMAND[@]}"; then
         return 0
     fi
     if command -v kgx >/dev/null 2>&1 && \
@@ -366,14 +367,13 @@ try_fallback_terminals() {
             --working-directory="$PROJECT_ROOT" -- "${FALLBACK_RUN_COMMAND[@]}"; then
         return 0
     fi
-    if command -v ptyxis >/dev/null 2>&1 && \
-        try_terminal "Ptyxis" ptyxis --standalone \
-            --working-directory="$PROJECT_ROOT" -- "${FALLBACK_RUN_COMMAND[@]}"; then
-        return 0
-    fi
     if command -v gnome-terminal >/dev/null 2>&1 && \
         try_terminal "GNOME Terminal" gnome-terminal \
             --working-directory="$PROJECT_ROOT" -- "${FALLBACK_RUN_COMMAND[@]}"; then
+        return 0
+    fi
+    if command -v x-terminal-emulator >/dev/null 2>&1 && \
+        try_terminal "系统默认终端" x-terminal-emulator -e "${FALLBACK_RUN_COMMAND[@]}"; then
         return 0
     fi
     if command -v qterminal >/dev/null 2>&1 && \

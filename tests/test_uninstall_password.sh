@@ -6,8 +6,9 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TEST_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/zhoukeer-uninstall-test.XXXXXX")"
 trap 'rm -rf -- "$TEST_ROOT"' EXIT INT TERM
 
-mkdir -p "$TEST_ROOT/home/Desktop" "$TEST_ROOT/source"
+mkdir -p "$TEST_ROOT/home/Desktop" "$TEST_ROOT/source/core"
 cp "$PROJECT_ROOT/uninstall.sh" "$TEST_ROOT/source/uninstall.sh"
+cp "$PROJECT_ROOT/core/desktop_paths.sh" "$TEST_ROOT/source/core/desktop_paths.sh"
 chmod +x "$TEST_ROOT/source/uninstall.sh"
 printf '密码：test-only\n' > "$TEST_ROOT/home/Desktop/管理员密码.txt"
 chmod 600 "$TEST_ROOT/home/Desktop/管理员密码.txt"

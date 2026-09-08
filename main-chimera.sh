@@ -33,7 +33,7 @@ RENKIT_NAV_ADVANCED_LABEL="! 平台说明"
 RENKIT_NAV_UNINSTALL_LABEL="- 移除Renkit"
 RENKIT_NAV_NOTICE_LABEL="▧ 免责声明与须知"
 RENKIT_NAV_EXIT_LABEL="× 退出Renkit"
-ZHOUKEER_FLATPAK_SOURCE_MODE="official"
+ZHOUKEER_FLATPAK_SOURCE_MODE="managed"
 export RENKIT_PLATFORM_LABEL RENKIT_CONSOLE_TITLE
 export RENKIT_NAV_INIT_LABEL RENKIT_NAV_SOFTWARE_LABEL RENKIT_NAV_GAMES_LABEL
 export RENKIT_NAV_EMULATORS_LABEL RENKIT_NAV_SUPPORT_LABEL RENKIT_NAV_ADVANCED_LABEL
@@ -58,21 +58,21 @@ APP_TITLES=(
     "百度网盘" "WiliWili（B站）" "Xbox 云游戏" "QQ音乐" "网易云音乐" "YesPlayMusic" "qBittorrent" "Motrix"
 )
 APP_DESCRIPTIONS=(
-    "腾讯官方 AppImage" "官方 Flathub" "官方 Flathub" "官方 Flathub" "官方 Flathub" "作者官方 AppImage" "官方 Flathub" "官方 Flathub"
-    "官方 Flathub" "官方 Flathub" "官方 Flathub" "官方 Flathub" "官方 Flathub" "官方 Flathub" "官方 Flathub" "官方 Flathub"
-    "官方 Flathub" "官方 Flathub" "Greenlight 云游戏客户端" "官方 Flathub" "官方 Flathub" "第三方开源客户端" "官方 Flathub" "用户空间下载工具"
+    "腾讯官方 AppImage" "Flatpak（可选国内源）" "Flatpak（可选国内源）" "Flatpak（可选国内源）" "Flatpak（可选国内源）" "作者官方 AppImage" "Flatpak（可选国内源）" "Flatpak（可选国内源）"
+    "Flatpak（可选国内源）" "Flatpak（可选国内源）" "Flatpak（可选国内源）" "Flatpak（可选国内源）" "Flatpak（可选国内源）" "Flatpak（可选国内源）" "Flatpak（可选国内源）" "Flatpak（可选国内源）"
+    "Flatpak（可选国内源）" "Flatpak（可选国内源）" "Greenlight 云游戏客户端" "Flatpak（可选国内源）" "Flatpak（可选国内源）" "第三方开源客户端" "Flatpak（可选国内源）" "用户空间下载工具"
 )
 
 PLUGIN_ACTIONS=(
-    lsfg-mako fsr4-zh-gitee cheatdeck deckrecall savepulse steamgriddb cssloader
+    lsfg-zh-gitee lsfg-mako fsr4-zh-gitee cheatdeck deckrecall savepulse steamgriddb cssloader
     friendeck deckymusic freedeck newfreedeck tomoon unifideck simpledeckytdp-zh-gitee
 )
 PLUGIN_TITLES=(
-    "MAKO 小黄鸭" "FSR4 帧生成" "CheatDeck" "DeckRecall" "SavePulse" "游戏封面更换" "主题美化"
+    "旧版小黄鸭" "MAKO 小黄鸭" "FSR4 帧生成" "CheatDeck" "DeckRecall" "SavePulse" "游戏封面更换" "主题美化"
     "文件传输助手" "音乐播放器" "Freedeck" "NewFreedeck" "ToMoon" "Unifideck" "掌机功耗控制"
 )
 PLUGIN_DESCRIPTIONS=(
-    "上游官方中文完整包" "Decky-Framegen 中文版" "游戏启动参数工具" "游戏录像与回放" "存档备份与恢复" "SteamGridDB" "CSS Loader 中文版"
+    "v0.12.8 汉化稳定版" "上游官方中文最新版" "Decky-Framegen 中文版" "游戏启动参数工具" "游戏录像与回放" "存档备份与恢复" "SteamGridDB" "CSS Loader 中文版"
     "Friendeck" "Decky Music 完整包" "功能扩展" "重构版功能扩展" "网络辅助插件" "功能整合插件" "SimpleDeckyTDP 中文版，请核对机型"
 )
 
@@ -111,6 +111,10 @@ run_action() {
     pause_menu
 }
 
+run_confirmed_action() {
+    ZHOUKEER_AUTO_CONFIRM=1 "$@"
+}
+
 confirm_and_run() {
     local title="$1" message="$2" choice
     shift 2
@@ -121,7 +125,7 @@ confirm_and_run() {
     ui_prompt
     choice="$(read_touch_menu right:10-11:yes right:15-16:no)"
     if apply_navigation "$choice"; then return 0; fi
-    [ "$choice" = "yes" ] && run_action "$title" env ZHOUKEER_AUTO_CONFIRM=1 "$@"
+    [ "$choice" = "yes" ] && run_action "$title" run_confirmed_action "$@"
 }
 
 chimera_plugin_environment_ready() {
@@ -160,7 +164,7 @@ show_disclaimer() {
         ui_disclaimer_line 9 '\033[38;5;45m' "插件商城本体由 ChimeraOS 自带功能负责"
         ui_disclaimer_line 10 '\033[38;5;45m' "不会执行 pacman、frzr、系统更新或系统服务替换"
         ui_disclaimer_line 11 '\033[38;5;45m' "不会提供双系统、互通盘、Clover、EFI 或磁盘操作"
-        ui_disclaimer_line 12 '\033[38;5;45m' "应用只使用官方 Flathub 或已校验的官方 AppImage"
+        ui_disclaimer_line 12 '\033[38;5;45m' "Flatpak 可选官方签名源或经确认的国内缓存；AppImage 保持官方渠道"
         ui_disclaimer_line 13 '\033[1;38;5;220m' "插件下载完成后请重新进入游戏模式加载"
         ui_disclaimer_button 16 '\033[1;38;5;114m' "点击窗口任意位置开始使用" "关闭窗口即可退出"
         choice="$(read_menu_choice any:1-999:agree)"
@@ -202,7 +206,7 @@ home_menu() {
     local choice
     draw_category_frame "" "Renkit ChimeraOS版" "只安装应用和插件，不修改系统或引导"
     ui_panel_line 8 '\033[1;38;5;220m' "已自动切换到 ChimeraOS 安全功能集"
-    ui_panel_line 10 '\033[1;38;5;45m' "开放：官方 Flathub、官方 AppImage、现有环境中的插件"
+    ui_panel_line 10 '\033[1;38;5;45m' "开放：用户级 Flatpak 下载线路、官方 AppImage、现有环境中的插件"
     ui_panel_line 12 '\033[1;38;5;114m' "插件商城本体继续由 ChimeraOS 自带功能维护"
     ui_panel_line 14 '\033[1;38;5;250m' "不开放：系统、磁盘、双系统、互通盘和 EFI 功能"
     ui_prompt
@@ -210,22 +214,82 @@ home_menu() {
     apply_navigation "$choice" || true
 }
 
+confirm_domestic_flatpak_source() {
+    local choice
+    draw_category_frame init "启用 Flatpak 国内下载" "仅修改当前用户的 Flatpak 远程源"
+    ui_panel_line 6 '\033[1;38;5;220m' "风险：两个国内缓存均会关闭 Flatpak GPG 验证"
+    ui_panel_line 8 '\033[38;5;45m' "flathub-cn｜https://mirror.sjtu.edu.cn/flathub"
+    ui_panel_line 10 '\033[38;5;45m' "flathub-ustc｜https://mirrors.ustc.edu.cn/flathub"
+    ui_panel_line 12 '\033[38;5;250m' "不会运行 pacman、frzr、sudo 或修改 ChimeraOS 系统"
+    ui_touch_button 15 '\033[1;30;48;5;114m' "确认信任并启用" "关闭上述两个缓存的 GPG 验证"
+    ui_touch_button 19 '\033[1;97;48;5;160m' "取消" "不修改 Flatpak 远程源"
+    ui_prompt
+    choice="$(read_touch_menu right:15-16:yes right:19-20:no)"
+    if apply_navigation "$choice"; then return 0; fi
+    if [ "$choice" = "yes" ]; then
+        run_action "启用 Flatpak 国内下载" env \
+            ZHOUKEER_AUTO_CONFIRM=1 \
+            ZHOUKEER_DOMESTIC_SOURCE_CONFIRMED=1 \
+            ZHOUKEER_FLATPAK_SOURCE_MODE=managed \
+            bash "$PROJECT_ROOT/modules/software.sh" enable-domestic-remotes
+    fi
+}
+
+confirm_official_flatpak_restore() {
+    local choice
+    draw_category_frame init "恢复官方 Flathub" "仅修改当前用户的 Flatpak 远程源"
+    ui_panel_line 7 '\033[1;38;5;114m' "恢复：https://dl.flathub.org/repo/"
+    ui_panel_line 9 '\033[38;5;45m' "重新导入 Flathub 官方公钥并启用 GPG 验证"
+    ui_panel_line 11 '\033[38;5;250m' "移除 flathub-cn 与 flathub-ustc 用户级缓存"
+    ui_panel_line 13 '\033[38;5;250m' "不会修改 ChimeraOS 系统密钥或不可变系统"
+    ui_touch_button 16 '\033[1;30;48;5;114m' "确认恢复官方源"
+    ui_touch_button 20 '\033[1;97;48;5;160m' "取消"
+    ui_prompt
+    choice="$(read_touch_menu right:16-17:yes right:20-21:no)"
+    if apply_navigation "$choice"; then return 0; fi
+    [ "$choice" = "yes" ] && run_action "恢复官方 Flathub" env \
+        ZHOUKEER_FLATPAK_SOURCE_MODE=managed \
+        bash "$PROJECT_ROOT/modules/software.sh" restore-official-remote
+}
+
+flatpak_source_menu() {
+    local choice
+    while true; do
+        draw_category_frame init "Flatpak 下载线路" "官方源或国内双缓存，只管理当前用户"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "查看当前线路" "显示地址与 GPG 验证状态"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "启用国内下载" "上海交大 → 中科大"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "恢复官方 Flathub" "修复官方公钥与 GPG 验证"
+        ui_touch_button 21 '\033[1;97;48;5;238m' "返回使用准备"
+        ui_prompt
+        choice="$(read_touch_menu right:5-6:status right:9-10:domestic right:13-14:official right:21-22:back)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            status) run_action "查看 Flatpak 下载线路" env ZHOUKEER_FLATPAK_SOURCE_MODE=managed bash "$PROJECT_ROOT/modules/software.sh" source-status ;;
+            domestic) confirm_domestic_flatpak_source ;;
+            official) confirm_official_flatpak_restore ;;
+            back) return 0 ;;
+        esac
+    done
+}
+
 setup_menu() {
     local choice
     while true; do
-        draw_category_frame init "ChimeraOS 使用准备" "只读检查，不修改系统"
-        ui_touch_button 6 '\033[1;97;48;5;24m' "查看系统信息" "识别 ChimeraOS 版本与设备状态"
-        ui_touch_button 10 '\033[1;97;48;5;24m' "一键检查网络" "检查 Steam、官方 Flathub 与下载线路"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "查看插件环境" "只检测系统自带 Loader 和插件目录"
-        ui_touch_button 18 '\033[1;97;48;5;24m' "查看应用状态" "只读取 Flatpak 与 AppImage"
+        draw_category_frame init "ChimeraOS 使用准备" "只读检查与用户级 Flatpak 下载线路"
+        ui_touch_button 4 '\033[1;97;48;5;24m' "查看系统信息" "识别 ChimeraOS 版本与设备状态"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "一键检查网络" "检查 Steam、Flathub 与下载线路"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "查看插件环境" "只检测系统自带 Loader 和插件目录"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "Flatpak 下载线路" "国内双缓存或官方签名源"
+        ui_touch_button 16 '\033[1;97;48;5;24m' "查看应用状态" "只读取 Flatpak 与 AppImage"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页"
         ui_prompt
-        choice="$(read_touch_menu right:6-7:system right:10-11:network right:14-15:plugins right:18-19:apps right:22-23:home)"
+        choice="$(read_touch_menu right:4-5:system right:7-8:network right:10-11:plugins right:13-14:sources right:16-17:apps right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             system) run_action "查看 ChimeraOS 系统信息" bash "$PROJECT_ROOT/core/detect.sh" ;;
             network) run_action "一键检查网络" bash "$PROJECT_ROOT/modules/network.sh" ;;
             plugins) run_action "查看插件环境" chimera_plugin_environment_status ;;
+            sources) flatpak_source_menu ;;
             apps) run_action "查看应用状态" bash "$PROJECT_ROOT/modules/software.sh" status ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -238,7 +302,7 @@ software_menu() {
     total="${#APP_TARGETS[@]}"
     pages=$(((total + 6) / 7))
     while true; do
-        draw_category_frame software "安装应用（第 $((page + 1)) / $pages 页）" "官方 Flathub 与已校验 AppImage"
+        draw_category_frame software "安装应用（第 $((page + 1)) / $pages 页）" "可切换 Flatpak 下载线路与已校验 AppImage"
         start=$((page * 7))
         touch_args=()
         for slot in 0 1 2 3 4 5 6; do

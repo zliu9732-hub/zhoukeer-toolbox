@@ -16,10 +16,15 @@ for arg in "$@"; do
 done
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$PROJECT_ROOT/core/desktop_paths.sh"
 DEFAULT_INSTALL_DIR="$HOME/.local/share/zhoukeer-toolbox"
 CONFIG_BACKUP_DIR="$HOME/.config/zhoukeer-toolbox"
 LOG_BACKUP_DIR="$HOME/.local/state/zhoukeer-toolbox"
-PASSWORD_RECORD="$HOME/Desktop/管理员密码.txt"
+DESKTOP_DIR="$(renkit_desktop_dir)"
+DATA_HOME="$(renkit_data_home)"
+APPLICATIONS_DIR="$(renkit_applications_dir)"
+PASSWORD_RECORD="$DESKTOP_DIR/管理员密码.txt"
 
 confirm_action() {
     local prompt="$1"
@@ -45,8 +50,8 @@ echo "模式: $([ "$DRY_RUN" -eq 1 ] && echo dry-run || echo uninstall)"
 echo ""
 
 if [ "$DRY_RUN" -eq 1 ]; then
-    echo "[dry-run] 将删除桌面快捷方式: $HOME/Desktop/Renkit.desktop"
-    echo "[dry-run] 将删除应用菜单入口: $HOME/.local/share/applications/zhoukeer-toolbox.desktop"
+    echo "[dry-run] 将删除桌面快捷方式: $DESKTOP_DIR/Renkit.desktop"
+    echo "[dry-run] 将删除应用菜单入口: $APPLICATIONS_DIR/zhoukeer-toolbox.desktop"
     echo "[dry-run] 将清理旧版桌面与应用菜单入口"
     echo "[dry-run] 将删除Renkit专用 Konsole 主题"
     echo "[dry-run] 默认安装目录匹配时将删除: $DEFAULT_INSTALL_DIR"
@@ -81,14 +86,14 @@ if [ -e "$PASSWORD_RECORD" ] || [ -L "$PASSWORD_RECORD" ]; then
     fi
 fi
 
-rm -f "$HOME/Desktop/Renkit.desktop"
-rm -f "$HOME/.local/share/applications/zhoukeer-toolbox.desktop"
-rm -f "$HOME/Desktop/周克儿工具箱.desktop"
-rm -f "$HOME/.local/share/applications/周克儿工具箱.desktop"
-rm -f "$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
-rm -f "$HOME/.local/share/konsole/ZhoukeerToolbox.colorscheme"
-rm -f "$HOME/.local/share/konsole/ZhoukeerToolboxSplash.profile"
-rm -f "$HOME/.local/share/konsole/ZhoukeerToolboxSplash.colorscheme"
+rm -f "$DESKTOP_DIR/Renkit.desktop"
+rm -f "$APPLICATIONS_DIR/zhoukeer-toolbox.desktop"
+rm -f "$DESKTOP_DIR/周克儿工具箱.desktop"
+rm -f "$APPLICATIONS_DIR/周克儿工具箱.desktop"
+rm -f "$DATA_HOME/konsole/ZhoukeerToolbox.profile"
+rm -f "$DATA_HOME/konsole/ZhoukeerToolbox.colorscheme"
+rm -f "$DATA_HOME/konsole/ZhoukeerToolboxSplash.profile"
+rm -f "$DATA_HOME/konsole/ZhoukeerToolboxSplash.colorscheme"
 echo "已删除快捷方式"
 
 if [ "$DELETE_PASSWORD_RECORD" -eq 1 ]; then

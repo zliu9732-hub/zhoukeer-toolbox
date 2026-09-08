@@ -70,7 +70,7 @@ cat > "$output" <<'REPO'
 [Flatpak Repo]
 Title=Flathub
 Url=https://dl.flathub.org/repo/
-GPGKey=test-key
+GPGKey=RHVtbXlLZXk=
 REPO
 EOF
 
@@ -196,8 +196,8 @@ COMMON_ENV=(
 # Bazzite 默认只走官方用户级 Flathub，即使系统层残留同名国内源也不沿用。
 env "${COMMON_ENV[@]}" ZHOUKEER_FLATPAK_SOURCE_MODE=official \
     bash "$PROJECT_ROOT/modules/software.sh" localsend > "$TMP_ROOT/official.out"
-grep -Fq 'remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo' \
-    "$STATE_DIR/commands" || fail "Bazzite 默认未添加用户级官方 Flathub"
+grep -Eq 'remote-add --user --if-not-exists --from flathub /tmp/' \
+    "$STATE_DIR/commands" || fail "Bazzite 默认未通过官方签名配置添加用户级 Flathub"
 grep -Fq 'install --user --noninteractive -y flathub org.localsend.localsend_app' \
     "$STATE_DIR/commands" || fail "Bazzite 软件安装未使用官方 Flathub"
 if grep -Eq -- '--no-gpg-verify|install .*flathub-(cn|ustc)' "$STATE_DIR/commands"; then

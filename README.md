@@ -8,7 +8,7 @@ Renkit是面向 SteamOS、Bazzite 与 ChimeraOS 掌机的 Bash 工具集。同�
 
 - SteamOS 版：继续使用原有 `main.sh`，系统初始化、国内源、插件与高级功能保持原逻辑。
 - Bazzite 版：使用独立 `main-bazzite.sh`；Decky 通过官方 `ujust setup-decky` 安装，并可整组或逐个安装官方商店插件；Flatpak 默认使用带 GPG 验证的官方 Flathub，国内镜像仅在用户确认风险后以用户级远程启用，并可恢复官方源；提供用户级软件、启动器、模拟器与 GE-Proton 安装/卸载，以及 Yuzu 自备密钥、诊断、攻略和快捷方式维护；不调用 pacman、steamos-readonly、ToDesk、AnyDesk或内存调优。Clover 双系统引导作为独立高风险入口开放，动态识别 Bazzite EFI，并提供状态检查和恢复。
-- ChimeraOS 版：使用独立 `main-chimera.sh`；应用固定使用官方 Flathub 或已校验的官方 AppImage，插件只安装到系统已有的 Loader 环境。Renkit不安装、更新或卸载插件商城本体，也不重启 ChimeraOS 自带服务；不开放 pacman、frzr、系统源、系统调优、双系统、互通盘、Clover、EFI、磁盘、模拟器或游戏启动器入口。
+- ChimeraOS 版：使用独立 `main-chimera.sh`；Flatpak 应用可选择官方签名源或明确确认风险后的用户级国内缓存，AppImage 保持已校验的官方来源，插件只安装到系统已有的 Loader 环境。Renkit不安装、更新或卸载插件商城本体，也不重启 ChimeraOS 自带服务；不开放 pacman、frzr、系统调优、双系统、互通盘、Clover、EFI、磁盘、模拟器或游戏启动器入口。
 
 - 双系统设置：提供互通盘挂载与只读保护、TF 卡 NTFS 初始化、NTFS/exFAT 基础修复、只读健康检查、受保护的第三方引导项清理、双系统引导修复，以及桌面“切换至 Windows”快捷方式。工具箱入口只创建图标，不会立即重启；用户主动打开图标并二次确认后才切换。rEFInd 继续停用，不提供入口。
 
@@ -62,10 +62,10 @@ Renkit是面向 SteamOS、Bazzite 与 ChimeraOS 掌机的 Bash 工具集。同�
 
 ### 短域名入口
 
-推荐使用短域名入口；入口会依次尝试国内镜像、GitHub Raw 和域名自身的安装器，并在执行前拒绝 HTML、超大文件和语法错误响应：
+推荐使用国内安装入口；入口会依次尝试国内镜像、GitHub Raw 和备用域名安装器，并在执行前拒绝 HTML、超大文件和语法错误响应：
 
 ```bash
-curl -fsSL https://jktool.icu/i | bash
+curl -fsSL https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/i | bash
 ```
 
 GitHub Raw 完整地址仍可作为手动备用：
@@ -222,6 +222,6 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 
 ## 当前版本与维护
 
-当前正式版为 Renkit 2.2.9，后续版本从 1.0 起按语义化版本递增。后续维护覆盖 SteamOS、Bazzite 与 ChimeraOS 的独立菜单；ChimeraOS 仅维护用户级应用和插件功能。rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
+当前正式版为 Renkit 2.3.3，后续版本从 1.0 起按语义化版本递增。后续维护覆盖 SteamOS、Bazzite 与 ChimeraOS 的独立菜单；ChimeraOS 仅维护用户级应用和插件功能。rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。

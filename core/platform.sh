@@ -26,6 +26,7 @@ detect_platform() {
     PLATFORM_ID=""
     PLATFORM_NAME="$PLATFORM_UNAME"
     PLATFORM_VARIANT_ID=""
+    PLATFORM_ID_LIKE=""
     PLATFORM_FAMILY="unknown"
     IS_STEAMOS=0
     IS_BAZZITE=0
@@ -38,37 +39,31 @@ detect_platform() {
         PLATFORM_ID_LIKE="$(platform_os_release_value ID_LIKE 2>/dev/null || true)"
         [ -n "$PLATFORM_NAME" ] || PLATFORM_NAME="$PLATFORM_UNAME"
         case "$PLATFORM_ID" in
-            steamos)
-                IS_STEAMOS=1
-                PLATFORM_FAMILY="steamos"
-                ;;
-            bazzite)
-                IS_BAZZITE=1
-                PLATFORM_FAMILY="bazzite"
-                ;;
-            chimeraos|skorionos)
-                IS_CHIMERAOS=1
-                PLATFORM_FAMILY="chimeraos"
-                ;;
+            steamos) PLATFORM_FAMILY="steamos" ;;
+            bazzite) PLATFORM_FAMILY="bazzite" ;;
+            chimeraos|skorionos) PLATFORM_FAMILY="chimeraos" ;;
         esac
-        case " ${PLATFORM_ID_LIKE:-} " in
-            *" steamos "*)
-                IS_STEAMOS=1
-                PLATFORM_FAMILY="steamos"
-                ;;
-        esac
-        case "$PLATFORM_VARIANT_ID" in
-            bazzite*)
-                IS_BAZZITE=1
-                PLATFORM_FAMILY="bazzite"
-                ;;
-        esac
+        if [ "$PLATFORM_FAMILY" = "unknown" ]; then
+            case "$PLATFORM_VARIANT_ID" in
+                bazzite*) PLATFORM_FAMILY="bazzite" ;;
+            esac
+        fi
+        if [ "$PLATFORM_FAMILY" = "unknown" ]; then
+            case " ${PLATFORM_ID_LIKE:-} " in
+                *" steamos "*) PLATFORM_FAMILY="steamos" ;;
+            esac
+        fi
     fi
 
-    if [ "$IS_BAZZITE" -ne 1 ] && command -v steamos-readonly >/dev/null 2>&1; then
-        IS_STEAMOS=1
+    if [ "$PLATFORM_FAMILY" = "unknown" ] && command -v steamos-readonly >/dev/null 2>&1; then
         PLATFORM_FAMILY="steamos"
     fi
+
+    case "$PLATFORM_FAMILY" in
+        steamos) IS_STEAMOS=1 ;;
+        bazzite) IS_BAZZITE=1 ;;
+        chimeraos) IS_CHIMERAOS=1 ;;
+    esac
 }
 
 is_linux() {

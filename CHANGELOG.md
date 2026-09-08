@@ -797,3 +797,10 @@
 - 发布包改为 `renkit.tar.gz` 与 `renkit-1.0.tar.gz`，移除 `dist` 中所有旧版发布包。
 - 保留 V1.6.4 本地备份，安装、更新和下载链路继续使用原有仓库地址。
 - 旧版安装检测到 Renkit 1.0 后会自动升级；仅剩域名源可用时也允许完成迁移。
+## Renkit 2.3.3 ChimeraOS Flatpak 与 GNOME 适配修复 — 2026-09-08
+
+- 修复 ChimeraOS 菜单通过 `env` 调用 Shell 函数导致插件安装报“没有那个文件或目录”的问题；旧版小黄鸭 v0.12.8 与 MAKO 官方中文最新版现在同时显示，并继续要求使用系统已有 Loader。
+- 修复已有用户级 `flathub` 缺少公钥时直接安装 QQ 报签名失败的问题；安装前重新读取 Flathub 官方签名配置、导入公钥并启用 GPG 验证。
+- ChimeraOS 新增用户级 Flatpak 下载线路菜单，可在官方签名源与上海交大、中科大国内缓存间切换；关闭国内缓存 GPG 验证前显示远程名称、地址和中文风险确认，并可恢复官方源。
+- Chrome、Edge、Bottles、Protontricks 与其余菜单应用统一使用用户级 Flatpak 安装链路；模块入口额外阻止 ChimeraOS 绕过菜单执行 Sunshine 系统服务和输入规则配置。
+- GNOME/SkorionOS 支持本地化桌面目录与 XDG 应用菜单，优先使用 Ptyxis、GNOME Console 或 GNOME Terminal 启动；微信和 RustDesk AppImage 同步创建应用菜单入口。

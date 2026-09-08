@@ -20,6 +20,16 @@ INSTALL_DIR="${ZHOUKEER_INSTALL_DIR:-$HOME/.local/share/zhoukeer-toolbox}"
 CONFIG_FILE="$INSTALL_DIR/config/settings.conf"
 CONFIG_EXAMPLE_FILE="$SOURCE_ROOT/config/settings.example.conf"
 
+if [ ! -r "$SOURCE_ROOT/core/desktop_paths.sh" ]; then
+    echo "安装包缺少桌面路径模块，已停止安装。"
+    exit 1
+fi
+# shellcheck disable=SC1091
+source "$SOURCE_ROOT/core/desktop_paths.sh"
+DESKTOP_DIR="$(renkit_desktop_dir)"
+DATA_HOME="$(renkit_data_home)"
+APPLICATIONS_DIR="$(renkit_applications_dir)"
+
 CONFIG_MIGRATION_VARIABLES=(
     DUAL_BOOT_TIMEOUT
     DECKY_LOADER_URL
@@ -377,8 +387,8 @@ if [ "$DRY_RUN" -eq 1 ]; then
         echo "[dry-run] 将创建用户配置: $CONFIG_FILE"
     fi
     show_config_migration_dry_run
-    echo "[dry-run] 将创建桌面快捷方式: $HOME/Desktop/Renkit.desktop"
-    echo "[dry-run] 将创建应用菜单入口: $HOME/.local/share/applications/zhoukeer-toolbox.desktop"
+    echo "[dry-run] 将创建桌面快捷方式: $DESKTOP_DIR/Renkit.desktop"
+    echo "[dry-run] 将创建应用菜单入口: $APPLICATIONS_DIR/zhoukeer-toolbox.desktop"
     echo "[dry-run] 将清理旧版桌面与应用菜单入口"
     echo "[dry-run] 将创建Renkit专用的 Konsole 大字体和背景主题"
     echo "[dry-run] 不会创建目录、复制文件或修改权限。"
@@ -449,7 +459,7 @@ trap cleanup_install EXIT
 mkdir -p "$INSTALL_PARENT"
 rm -rf -- "$STAGING_DIR" "$BACKUP_DIR"
 mkdir -p "$STAGING_DIR/config" "$STAGING_DIR/apps" "$STAGING_DIR/logs"
-mkdir -p "$HOME/.local/share/applications" "$HOME/.local/share/konsole"
+mkdir -p "$APPLICATIONS_DIR" "$DATA_HOME/konsole"
 
 # 配置、已下载应用和日志属于用户数据，先复制到新版本暂存目录。
 # 新程序完全准备好后才会一次切换，避免更新中断形成新旧混合版本。
@@ -675,25 +685,23 @@ if [ -f "$INSTALL_DIR/modules/software.sh" ]; then
         echo "部分桌面快捷方式重建失败，可在Renkit中重新点击对应软件修复。"
 fi
 
-DESKTOP_FILE="$HOME/Desktop/Renkit.desktop"
-APPLICATION_FILE="$HOME/.local/share/applications/zhoukeer-toolbox.desktop"
+DESKTOP_FILE="$DESKTOP_DIR/Renkit.desktop"
+APPLICATION_FILE="$APPLICATIONS_DIR/zhoukeer-toolbox.desktop"
 ICON_PATH="$INSTALL_DIR/assets/icon-toolbox-deck.png"
 BACKGROUND_PATH="$INSTALL_DIR/assets/background.jpg"
-KONSOLE_PROFILE="$HOME/.local/share/konsole/ZhoukeerToolbox.profile"
-KONSOLE_COLOR_SCHEME="$HOME/.local/share/konsole/ZhoukeerToolbox.colorscheme"
+KONSOLE_PROFILE="$DATA_HOME/konsole/ZhoukeerToolbox.profile"
+KONSOLE_COLOR_SCHEME="$DATA_HOME/konsole/ZhoukeerToolbox.colorscheme"
 ICON_ENTRY="utilities-terminal"
 
 if [ -f "$ICON_PATH" ]; then
     ICON_ENTRY="$ICON_PATH"
 fi
 
-if [ ! -d "$HOME/Desktop" ]; then
-    mkdir -p "$HOME/Desktop"
-fi
+mkdir -p "$DESKTOP_DIR" "$APPLICATIONS_DIR" "$DATA_HOME/konsole"
 
 # 清理旧版“周克儿工具箱”桌面与应用菜单入口，避免升级后出现重复图标。
-rm -f "$HOME/Desktop/周克儿工具箱.desktop" \
-    "$HOME/.local/share/applications/周克儿工具箱.desktop" 2>/dev/null || true
+rm -f "$DESKTOP_DIR/周克儿工具箱.desktop" \
+    "$APPLICATIONS_DIR/周克儿工具箱.desktop" 2>/dev/null || true
 
 # 更新后强制重建 Renkit 快捷方式，避免桌面继续缓存旧图标。
 rm -f "$DESKTOP_FILE" "$APPLICATION_FILE" 2>/dev/null || true
@@ -732,8 +740,8 @@ EOF
 fi
 
 # 启动免责声明已改回终端文字版，删除旧版图片主题，避免引用已移除的背景图。
-rm -f "$HOME/.local/share/konsole/ZhoukeerToolboxSplash.profile" \
-    "$HOME/.local/share/konsole/ZhoukeerToolboxSplash.colorscheme" 2>/dev/null || true
+rm -f "$DATA_HOME/konsole/ZhoukeerToolboxSplash.profile" \
+    "$DATA_HOME/konsole/ZhoukeerToolboxSplash.colorscheme" 2>/dev/null || true
 
 cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]

@@ -16,7 +16,7 @@ SKORION_RELEASE="$TMP_ROOT/skorion-release"
 INJECTION_MARKER="$TMP_ROOT/os-release-was-executed"
 cat > "$CHIMERA_RELEASE" <<EOF
 ID=chimeraos
-ID_LIKE=arch
+ID_LIKE="arch steamos"
 PRETTY_NAME="ChimeraOS 50"
 UNTRUSTED=\$(touch "$INJECTION_MARKER")
 EOF
@@ -26,6 +26,20 @@ ID=skorionos
 ID_LIKE=arch
 PRETTY_NAME="SkorionOS 56"
 EOF
+
+DESKTOP_HOME="$TMP_ROOT/desktop-home"
+mkdir -p "$DESKTOP_HOME/.config" "$DESKTOP_HOME/桌面"
+cat > "$DESKTOP_HOME/.config/user-dirs.dirs" <<'EOF'
+XDG_DESKTOP_DIR="$HOME/桌面"
+EOF
+desktop_result="$(
+    HOME="$DESKTOP_HOME"
+    XDG_CONFIG_HOME="$DESKTOP_HOME/.config"
+    source "$PROJECT_ROOT/core/desktop_paths.sh"
+    renkit_desktop_dir
+)"
+[ "$desktop_result" = "$DESKTOP_HOME/桌面" ] || \
+    fail "GNOME 本地化桌面目录识别错误：$desktop_result"
 
 platform_result="$({
     ZHOUKEER_OS_RELEASE_FILE="$CHIMERA_RELEASE"
@@ -105,12 +119,30 @@ fi
 
 grep -Fq 'RENKIT_PLATFORM_LABEL="CHIMERAOS 掌机  /  应用与插件"' \
     "$PROJECT_ROOT/main-chimera.sh" || fail "ChimeraOS 主程序缺少独立平台标识"
-grep -Fq 'ZHOUKEER_FLATPAK_SOURCE_MODE="official"' \
-    "$PROJECT_ROOT/main-chimera.sh" || fail "ChimeraOS 应用安装未固定为官方 Flathub"
+grep -Fq 'ZHOUKEER_FLATPAK_SOURCE_MODE="managed"' \
+    "$PROJECT_ROOT/main-chimera.sh" || fail "ChimeraOS Flatpak 下载线路未使用受控选择"
+grep -Fq 'modules/software.sh" enable-domestic-remotes' \
+    "$PROJECT_ROOT/main-chimera.sh" || fail "ChimeraOS 缺少国内 Flatpak 下载入口"
+grep -Fq 'modules/software.sh" restore-official-remote' \
+    "$PROJECT_ROOT/main-chimera.sh" || fail "ChimeraOS 缺少恢复官方 Flathub 入口"
+grep -Fq 'flathub-cn｜https://mirror.sjtu.edu.cn/flathub' \
+    "$PROJECT_ROOT/main-chimera.sh" || fail "ChimeraOS 国内源确认未显示上海交大远程名称与地址"
+grep -Fq 'flathub-ustc｜https://mirrors.ustc.edu.cn/flathub' \
+    "$PROJECT_ROOT/main-chimera.sh" || fail "ChimeraOS 国内源确认未显示中科大远程名称与地址"
 grep -Fq 'chimera_plugin_environment_ready' \
     "$PROJECT_ROOT/main-chimera.sh" || fail "ChimeraOS 插件安装缺少现有环境检查"
 grep -Fq 'modules/plugin_store.sh" "$action"' \
     "$PROJECT_ROOT/main-chimera.sh" || fail "ChimeraOS 缺少直接插件安装入口"
+grep -Fq 'lsfg-zh-gitee lsfg-mako' \
+    "$PROJECT_ROOT/main-chimera.sh" || fail "ChimeraOS 小黄鸭菜单没有同时提供旧版与 MAKO"
+grep -Fq 'lsfg-mako|lsfg-zh|lsfg-zh-gitee|' \
+    "$PROJECT_ROOT/modules/plugin_store.sh" || fail "ChimeraOS 插件安全清单未放行旧版小黄鸭"
+grep -Fq 'run_action "$title" run_confirmed_action "$@"' \
+    "$PROJECT_ROOT/main-chimera.sh" || fail "ChimeraOS 确认操作不能调用 Shell 函数"
+if grep -Fq 'run_action "$title" env ZHOUKEER_AUTO_CONFIRM=1 "$@"' \
+    "$PROJECT_ROOT/main-chimera.sh"; then
+    fail "ChimeraOS 仍通过 env 错误调用 Shell 函数"
+fi
 
 if grep -En 'modules/(bazzite_decky|decky_bundle|clover_boot|dual_system|dual_system_tools|memory_tuning|steam_accelerator|domestic_source|new_machine|emulators|game_launchers|todesk)\.sh' \
     "$PROJECT_ROOT/main-chimera.sh"; then
@@ -168,17 +200,21 @@ grep -Fq 'main-chimera.sh' "$PROJECT_ROOT/scripts/package_release.sh" || \
 # 在隔离 HOME 中执行一次真实安装，确认独立入口、平台标记和桌面名称落盘。
 INSTALL_HOME="$TMP_ROOT/install-home"
 INSTALL_TARGET="$INSTALL_HOME/.local/share/zhoukeer-toolbox"
-mkdir -p "$INSTALL_HOME/Desktop"
-HOME="$INSTALL_HOME" ZHOUKEER_INSTALL_DIR="$INSTALL_TARGET" \
+mkdir -p "$INSTALL_HOME/.config" "$INSTALL_HOME/桌面"
+cat > "$INSTALL_HOME/.config/user-dirs.dirs" <<'EOF'
+XDG_DESKTOP_DIR="$HOME/桌面"
+EOF
+HOME="$INSTALL_HOME" XDG_CONFIG_HOME="$INSTALL_HOME/.config" \
+    ZHOUKEER_INSTALL_DIR="$INSTALL_TARGET" \
     ZHOUKEER_OS_RELEASE_FILE="$SKORION_RELEASE" \
     bash "$PROJECT_ROOT/install.sh" > "$TMP_ROOT/install.out"
 [ -x "$INSTALL_TARGET/main-chimera.sh" ] || \
     fail "ChimeraOS 安装后缺少独立主程序"
 [ "$(cat "$INSTALL_TARGET/.renkit-platform")" = "chimeraos" ] || \
     fail "SkorionOS 安装平台标记错误"
-grep -Fq 'Name=Renkit ChimeraOS版' "$INSTALL_HOME/Desktop/Renkit.desktop" || \
+grep -Fq 'Name=Renkit ChimeraOS版' "$INSTALL_HOME/桌面/Renkit.desktop" || \
     fail "ChimeraOS 桌面入口名称错误"
-grep -Fq 'ChimeraOS 应用与插件工具' "$INSTALL_HOME/Desktop/Renkit.desktop" || \
+grep -Fq 'ChimeraOS 应用与插件工具' "$INSTALL_HOME/桌面/Renkit.desktop" || \
     fail "ChimeraOS 桌面入口说明错误"
 
 # 模拟官方 Flathub，确认 ChimeraOS 应用安装只写入当前用户范围。
@@ -188,11 +224,56 @@ mkdir -p "$APP_BIN" "$APP_STATE"
 cat > "$APP_BIN/flatpak" <<'EOF'
 #!/bin/sh
 case "${1:-}" in
-    info) exit 1 ;;
-    remotes) printf 'flathub\n' ;;
-    install) printf '%s\n' "$*" >> "${CHIMERA_APP_STATE:?}/commands" ;;
+    info)
+        for argument in "$@"; do app_id="$argument"; done
+        grep -Fxq "$app_id" "${CHIMERA_APP_STATE:?}/installed" 2>/dev/null
+        ;;
+    remotes)
+        if [ -s "${CHIMERA_APP_STATE:?}/remotes" ]; then
+            cat "${CHIMERA_APP_STATE:?}/remotes"
+        else
+            printf 'flathub\n'
+        fi
+        ;;
+    remote-add)
+        printf '%s\n' "$*" >> "${CHIMERA_APP_STATE:?}/commands"
+        for argument in "$@"; do
+            case "$argument" in
+                flathub|flathub-cn|flathub-ustc) printf '%s\n' "$argument" >> "${CHIMERA_APP_STATE:?}/remotes" ;;
+            esac
+        done
+        ;;
+    remote-modify)
+        printf '%s\n' "$*" >> "${CHIMERA_APP_STATE:?}/commands"
+        for argument in "$@"; do
+            case "$argument" in
+                --gpg-import=*)
+                    key_file="${argument#--gpg-import=}"
+                    [ "$(cat "$key_file" 2>/dev/null)" = "DummyKey" ] || exit 1
+                    ;;
+            esac
+        done
+        ;;
+    remote-delete) printf '%s\n' "$*" >> "${CHIMERA_APP_STATE:?}/commands" ;;
+    install)
+        printf '%s\n' "$*" >> "${CHIMERA_APP_STATE:?}/commands"
+        for argument in "$@"; do app_id="$argument"; done
+        printf '%s\n' "$app_id" >> "${CHIMERA_APP_STATE:?}/installed"
+        ;;
     *) exit 1 ;;
 esac
+EOF
+cat > "$APP_BIN/curl" <<'EOF'
+#!/bin/sh
+output=""
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        --output) shift; output="${1:-}" ;;
+    esac
+    shift
+done
+[ -n "$output" ] || exit 1
+printf '%s\n' '[Flatpak Repo]' 'Title=Flathub' 'Url=https://dl.flathub.org/repo/' 'GPGKey=RHVtbXlLZXk=' > "$output"
 EOF
 cat > "$APP_BIN/timeout" <<'EOF'
 #!/bin/sh
@@ -200,13 +281,69 @@ cat > "$APP_BIN/timeout" <<'EOF'
 [ "$#" -eq 0 ] || shift
 exec "$@"
 EOF
-chmod +x "$APP_BIN/flatpak" "$APP_BIN/timeout"
+chmod +x "$APP_BIN/flatpak" "$APP_BIN/curl" "$APP_BIN/timeout"
 : > "$APP_STATE/commands"
+: > "$APP_STATE/installed"
 HOME="$CHIMERA_HOME" PATH="$APP_BIN:/usr/bin:/bin" \
     CHIMERA_APP_STATE="$APP_STATE" ZHOUKEER_OS_RELEASE_FILE="$CHIMERA_RELEASE" \
-    ZHOUKEER_FLATPAK_SOURCE_MODE=official \
+    ZHOUKEER_FLATPAK_SOURCE_MODE=official ZHOUKEER_AUTO_CONFIRM=1 \
     bash "$PROJECT_ROOT/modules/software.sh" chrome > "$TMP_ROOT/app-install.out"
 grep -Fq 'install --user --noninteractive -y flathub com.google.Chrome' \
     "$APP_STATE/commands" || fail "ChimeraOS 应用安装没有使用用户级官方 Flathub"
+grep -Fq 'remote-modify --user --url=https://dl.flathub.org/repo/ --gpg-verify --gpg-import=' \
+    "$APP_STATE/commands" || fail "官方 Flathub 缺少公钥自动修复"
+
+SOURCE_STATE="$TMP_ROOT/flatpak-source-mode"
+: > "$APP_STATE/commands"
+HOME="$HOME_DIR" PATH="$APP_BIN:/usr/bin:/bin" \
+    ZHOUKEER_OS_RELEASE_FILE="$CHIMERA_RELEASE" \
+    ZHOUKEER_FLATPAK_SOURCE_MODE=managed \
+    ZHOUKEER_FLATPAK_SOURCE_STATE_FILE="$SOURCE_STATE" \
+    ZHOUKEER_AUTO_CONFIRM=1 \
+    ZHOUKEER_DOMESTIC_SOURCE_CONFIRMED=1 \
+    CHIMERA_APP_STATE="$APP_STATE" \
+    bash "$PROJECT_ROOT/modules/software.sh" enable-domestic-remotes \
+        > "$TMP_ROOT/domestic-source.out"
+[ "$(cat "$SOURCE_STATE")" = domestic ] || \
+    fail "ChimeraOS 未保存国内 Flatpak 下载线路"
+grep -Fq 'remote-add --user --if-not-exists --no-gpg-verify flathub-cn https://mirror.sjtu.edu.cn/flathub' \
+    "$APP_STATE/commands" || fail "ChimeraOS 未添加上海交大用户级缓存"
+
+: > "$APP_STATE/commands"
+: > "$APP_STATE/installed"
+HOME="$CHIMERA_HOME" PATH="$APP_BIN:/usr/bin:/bin" \
+    ZHOUKEER_OS_RELEASE_FILE="$CHIMERA_RELEASE" \
+    ZHOUKEER_FLATPAK_SOURCE_MODE=managed \
+    ZHOUKEER_FLATPAK_SOURCE_STATE_FILE="$SOURCE_STATE" \
+    ZHOUKEER_AUTO_CONFIRM=1 CHIMERA_APP_STATE="$APP_STATE" \
+    bash "$PROJECT_ROOT/modules/software.sh" edge \
+        > "$TMP_ROOT/domestic-edge.out"
+grep -Fq 'install --user --noninteractive -y flathub-cn com.microsoft.Edge' \
+    "$APP_STATE/commands" || fail "ChimeraOS 其他 Flathub 应用没有使用国内用户源"
+if grep -Eq -- '--system|sudo' "$APP_STATE/commands"; then
+    fail "ChimeraOS 国内源应用安装越界使用了系统级命令"
+fi
+
+: > "$APP_STATE/commands"
+if HOME="$CHIMERA_HOME" PATH="$APP_BIN:/usr/bin:/bin" \
+    CHIMERA_APP_STATE="$APP_STATE" ZHOUKEER_OS_RELEASE_FILE="$CHIMERA_RELEASE" \
+    ZHOUKEER_AUTO_CONFIRM=1 \
+    bash "$PROJECT_ROOT/modules/software.sh" sunshine \
+        > "$TMP_ROOT/sunshine-block.out" 2>&1; then
+    fail "ChimeraOS 仍可绕过菜单执行 Sunshine 系统级配置"
+fi
+grep -Fq 'ChimeraOS 版不提供 Sunshine 安装' "$TMP_ROOT/sunshine-block.out" || \
+    fail "ChimeraOS Sunshine 拦截缺少中文说明"
+[ ! -s "$APP_STATE/commands" ] || \
+    fail "ChimeraOS 拦截 Sunshine 后仍调用了 Flatpak 或系统配置"
+if HOME="$CHIMERA_HOME" PATH="$APP_BIN:/usr/bin:/bin" \
+    CHIMERA_APP_STATE="$APP_STATE" ZHOUKEER_OS_RELEASE_FILE="$CHIMERA_RELEASE" \
+    ZHOUKEER_AUTO_CONFIRM=1 \
+    bash "$PROJECT_ROOT/modules/software.sh" uninstall sunshine \
+        > "$TMP_ROOT/sunshine-uninstall-block.out" 2>&1; then
+    fail "ChimeraOS 仍可绕过菜单清理 Sunshine 系统级配置"
+fi
+grep -Fq 'ChimeraOS 版不管理 Sunshine' "$TMP_ROOT/sunshine-uninstall-block.out" || \
+    fail "ChimeraOS Sunshine 卸载拦截缺少中文说明"
 
 echo "PASS: ChimeraOS 独立分流、应用/插件范围与系统功能隔离测试通过"

@@ -8,6 +8,8 @@ source "$PROJECT_ROOT/core/platform.sh"
 source "$PROJECT_ROOT/core/logger.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/auth.sh"
+# shellcheck disable=SC1091
+source "$PROJECT_ROOT/core/desktop_paths.sh"
 
 load_config
 
@@ -17,13 +19,43 @@ FLATHUB_CN_URL="${ZHOUKEER_FLATHUB_CN_URL:-https://mirror.sjtu.edu.cn/flathub}"
 FLATHUB_CN_FALLBACK_URL="${ZHOUKEER_FLATHUB_CN_FALLBACK_URL:-https://mirrors.ustc.edu.cn/flathub}"
 FLATHUB_OFFICIAL_REMOTE="flathub"
 FLATHUB_OFFICIAL_REPO_FILE="https://dl.flathub.org/repo/flathub.flatpakrepo"
+FLATPAK_SOURCE_STATE_FILE="${ZHOUKEER_FLATPAK_SOURCE_STATE_FILE:-$APP_DIR/.flatpak-source-mode}"
 FLATPAK_INSTALL_TIMEOUT="${ZHOUKEER_FLATPAK_INSTALL_TIMEOUT:-300}"
 FLATPAK_INSTALL_RETRIES="${ZHOUKEER_FLATPAK_INSTALL_RETRIES:-1}"
 FLATPAK_SOURCE_PROBE_TIMEOUT="${ZHOUKEER_FLATPAK_SOURCE_PROBE_TIMEOUT:-8}"
 INSTALL_PRIMARY_REMOTE="$FLATHUB_CN_REMOTE"
 INSTALL_FALLBACK_REMOTE="$FLATHUB_CN_FALLBACK_REMOTE"
+read_managed_flatpak_source_mode() {
+    local mode
+
+    mode="$(sed -n '1p' "$FLATPAK_SOURCE_STATE_FILE" 2>/dev/null || true)"
+    case "$mode" in
+        official|domestic) printf '%s\n' "$mode" ;;
+        *) printf '%s\n' official ;;
+    esac
+}
+
+write_managed_flatpak_source_mode() {
+    local mode="$1" state_dir temporary
+
+    case "$mode" in official|domestic) ;; *) return 1 ;; esac
+    state_dir="$(dirname "$FLATPAK_SOURCE_STATE_FILE")"
+    mkdir -p "$state_dir" || return 1
+    temporary="$(mktemp "$state_dir/.flatpak-source-mode.XXXXXX")" || return 1
+    printf '%s\n' "$mode" > "$temporary" || {
+        rm -f -- "$temporary"
+        return 1
+    }
+    chmod 600 "$temporary" || {
+        rm -f -- "$temporary"
+        return 1
+    }
+    mv -f -- "$temporary" "$FLATPAK_SOURCE_STATE_FILE"
+}
+
 case "${ZHOUKEER_FLATPAK_SOURCE_MODE:-domestic}" in
     official|domestic) FLATPAK_SOURCE_MODE="${ZHOUKEER_FLATPAK_SOURCE_MODE:-domestic}" ;;
+    managed) FLATPAK_SOURCE_MODE="$(read_managed_flatpak_source_mode)" ;;
     *) FLATPAK_SOURCE_MODE="domestic" ;;
 esac
 
@@ -70,12 +102,36 @@ software_details() {
             SOFTWARE_INSTALL_MODE="flatpak"
             SOFTWARE_CATEGORIES="Network;WebBrowser;"
             ;;
+        chrome)
+            SOFTWARE_NAME="Google Chrome"
+            SOFTWARE_DESKTOP_NAME="Google Chrome"
+            SOFTWARE_APP_ID="com.google.Chrome"
+            SOFTWARE_CATEGORIES="Network;WebBrowser;"
+            ;;
+        edge)
+            SOFTWARE_NAME="Microsoft Edge"
+            SOFTWARE_DESKTOP_NAME="Microsoft Edge"
+            SOFTWARE_APP_ID="com.microsoft.Edge"
+            SOFTWARE_CATEGORIES="Network;WebBrowser;"
+            ;;
         rustdesk)
             SOFTWARE_NAME="RustDesk"
             SOFTWARE_DESKTOP_NAME="RustDesk"
             SOFTWARE_APP_ID=""
             SOFTWARE_INSTALL_MODE="rustdesk_appimage"
             SOFTWARE_CATEGORIES="Network;RemoteAccess;"
+            ;;
+        bottles)
+            SOFTWARE_NAME="Bottles"
+            SOFTWARE_DESKTOP_NAME="Bottles"
+            SOFTWARE_APP_ID="com.usebottles.bottles"
+            SOFTWARE_CATEGORIES="Utility;Emulator;"
+            ;;
+        protontricks)
+            SOFTWARE_NAME="Protontricks"
+            SOFTWARE_DESKTOP_NAME="Protontricks"
+            SOFTWARE_APP_ID="com.github.Matoking.protontricks"
+            SOFTWARE_CATEGORIES="Utility;Game;"
             ;;
         anydesk)
             SOFTWARE_NAME="AnyDesk"
@@ -243,7 +299,7 @@ software_details() {
 }
 
 SOFTWARE_TARGETS=(
-    wechat qq browser rustdesk anydesk baidunetdisk libreoffice vlc obs
+    wechat qq browser chrome edge rustdesk bottles protontricks anydesk baidunetdisk libreoffice vlc obs
     localsend peazip willwill fcitx5 xbox-cloud
     qqmusic netease-music yesplaymusic qbittorrent motrix freedownloadmanager
     media-downloader flameshot onlyoffice joplin heroic lutris chiaki4deck parsec
@@ -254,7 +310,12 @@ software_print_domestic_source_hint() {
     if [ "$FLATPAK_SOURCE_MODE" = "official" ]; then
         echo "提示：当前使用官方 Flathub；也可使用系统自带应用商店安装。"
     else
-        echo "提示：请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。"
+        detect_platform
+        if [ "$IS_CHIMERAOS" -eq 1 ]; then
+            echo "提示：请在 Renkit ChimeraOS版【使用准备 → Flatpak 下载线路】中重新启用国内缓存。"
+        else
+            echo "提示：请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。"
+        fi
     fi
 }
 
@@ -359,6 +420,12 @@ confirm_domestic_flatpak_risk() {
     echo "警告：以下国内 Flatpak 远程源将关闭软件包签名验证："
     echo "- $FLATHUB_CN_REMOTE: $FLATHUB_CN_URL"
     echo "- $FLATHUB_CN_FALLBACK_REMOTE: $FLATHUB_CN_FALLBACK_URL"
+    detect_platform
+    if [ "$IS_CHIMERAOS" -eq 1 ] && \
+       [ "${ZHOUKEER_DOMESTIC_SOURCE_CONFIRMED:-0}" != "1" ]; then
+        echo "请先在 Renkit ChimeraOS版【使用准备 → Flatpak 下载线路】中确认并启用国内缓存。"
+        return 1
+    fi
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         echo "已通过Renkit界面确认，正在继续配置。"
         return 0
@@ -393,7 +460,7 @@ configure_domestic_flatpak_remote() {
     local scope
 
     detect_platform
-    if [ "$IS_BAZZITE" -eq 1 ]; then
+    if [ "$IS_BAZZITE" -eq 1 ] || [ "$IS_CHIMERAOS" -eq 1 ]; then
         if flatpak_remote_exists "$remote"; then
             scope=user
         else
@@ -434,7 +501,7 @@ configure_domestic_flatpak_remote() {
 ensure_flatpak_remotes() {
     detect_platform
     if [ "${ZHOUKEER_FORCE_FLATPAK_RECONFIGURE:-0}" != "1" ]; then
-        if [ "$IS_BAZZITE" -eq 1 ]; then
+        if [ "$IS_BAZZITE" -eq 1 ] || [ "$IS_CHIMERAOS" -eq 1 ]; then
             if flatpak_remote_exists "$FLATHUB_CN_REMOTE" && \
                flatpak_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE"; then
                 return 0
@@ -453,6 +520,51 @@ ensure_flatpak_remotes() {
         "$FLATHUB_CN_URL" "上海交大" || return 1
     configure_domestic_flatpak_remote "$FLATHUB_CN_FALLBACK_REMOTE" \
         "$FLATHUB_CN_FALLBACK_URL" "中科大" || return 1
+}
+
+enable_chimera_domestic_flatpak_remotes() {
+    require_chimeraos || return 1
+    require_command flatpak || return 1
+    require_command timeout || return 1
+
+    ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 ensure_flatpak_remotes || return 1
+    write_managed_flatpak_source_mode domestic || {
+        echo "国内缓存已配置，但保存下载线路选择失败。"
+        return 1
+    }
+    echo "Flatpak 国内下载已启用：上海交大 → 中科大。"
+    echo "仅修改当前用户的 Flatpak 远程源；未修改 ChimeraOS 系统。"
+}
+
+restore_chimera_official_flatpak_remote() {
+    require_chimeraos || return 1
+    require_command flatpak || return 1
+    require_command timeout || return 1
+    require_command curl || return 1
+
+    ensure_official_flathub_remote || return 1
+    if flatpak_remote_exists "$FLATHUB_CN_REMOTE"; then
+        timeout --foreground 30 flatpak remote-delete --user --force \
+            "$FLATHUB_CN_REMOTE" || return 1
+    fi
+    if flatpak_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE"; then
+        timeout --foreground 30 flatpak remote-delete --user --force \
+            "$FLATHUB_CN_FALLBACK_REMOTE" || return 1
+    fi
+    write_managed_flatpak_source_mode official || return 1
+    echo "已恢复官方 Flathub，并重新启用 GPG 验证。"
+    echo "仅修改当前用户的 Flatpak 远程源；未修改 ChimeraOS 系统。"
+}
+
+show_chimera_flatpak_source_status() {
+    require_chimeraos || return 1
+    require_command flatpak || return 1
+    echo "当前 Renkit Flatpak 下载线路：$FLATPAK_SOURCE_MODE"
+    echo "当前用户的 Flatpak 远程源："
+    if ! flatpak remotes --user --columns=name,url,options 2>/dev/null; then
+        flatpak remotes --user --show-details 2>/dev/null || \
+            echo "无法读取当前用户的 Flatpak 远程源。"
+    fi
 }
 
 run_flatpak_install() {
@@ -479,13 +591,44 @@ run_flatpak_install() {
 }
 
 ensure_official_flathub_remote() {
-    if flatpak_remote_exists "$FLATHUB_OFFICIAL_REMOTE"; then
-        return 0
+    local repo_file gpg_key_file
+
+    require_command curl || return 1
+    require_command base64 || return 1
+    repo_file="$(mktemp)" || return 1
+    gpg_key_file="$(mktemp)" || {
+        rm -f -- "$repo_file"
+        return 1
+    }
+    if ! download_official_flathub_repo_file "$repo_file"; then
+        rm -f -- "$repo_file" "$gpg_key_file"
+        return 1
+    fi
+    if ! awk -F= '$1 == "GPGKey" { print substr($0, index($0, "=") + 1); exit }' \
+        "$repo_file" | base64 -d > "$gpg_key_file" 2>/dev/null || \
+       [ ! -s "$gpg_key_file" ]; then
+        rm -f -- "$repo_file" "$gpg_key_file"
+        echo "Flathub 官方配置中的签名密钥无效，已停止。"
+        return 1
     fi
 
-    echo "正在添加官方 Flathub 源..."
-    timeout --foreground 30 flatpak remote-add --user --if-not-exists \
-        "$FLATHUB_OFFICIAL_REMOTE" "$FLATHUB_OFFICIAL_REPO_FILE"
+    if flatpak_remote_exists "$FLATHUB_OFFICIAL_REMOTE"; then
+        echo "正在校准官方 Flathub 地址与签名密钥..."
+        if ! timeout --foreground 30 flatpak remote-modify --user \
+            --url=https://dl.flathub.org/repo/ --gpg-verify \
+            --gpg-import="$gpg_key_file" "$FLATHUB_OFFICIAL_REMOTE"; then
+            rm -f -- "$repo_file" "$gpg_key_file"
+            return 1
+        fi
+    else
+        echo "正在添加官方 Flathub 源与签名密钥..."
+        if ! timeout --foreground 30 flatpak remote-add --user --if-not-exists \
+            --from "$FLATHUB_OFFICIAL_REMOTE" "$repo_file"; then
+            rm -f -- "$repo_file" "$gpg_key_file"
+            return 1
+        fi
+    fi
+    rm -f -- "$repo_file" "$gpg_key_file"
 }
 
 install_official_firefox_flatpak() {
@@ -1069,11 +1212,15 @@ remove_sunshine_additional_install() {
 }
 
 create_software_shortcut() {
-    local desktop_dir="$HOME/Desktop"
-    local desktop_file="$desktop_dir/$SOFTWARE_DESKTOP_NAME.desktop"
-    local application_dir="$HOME/.local/share/applications"
+    local desktop_dir
+    local desktop_file
+    local application_dir
     local application_file=""
     local exec_line icon_name
+
+    desktop_dir="$(renkit_desktop_dir)"
+    desktop_file="$desktop_dir/$SOFTWARE_DESKTOP_NAME.desktop"
+    application_dir="$(renkit_applications_dir)"
 
     case "$SOFTWARE_INSTALL_MODE" in
         appimage)
@@ -1087,10 +1234,12 @@ create_software_shortcut() {
                 return 1
             fi
             icon_name="$WECHAT_ICON_PATH"
+            application_file="$application_dir/renkit-wechat.desktop"
             ;;
         rustdesk_appimage)
             exec_line="\"$RUSTDESK_APPIMAGE_PATH\""
             icon_name="rustdesk"
+            application_file="$application_dir/renkit-rustdesk.desktop"
             ;;
         baidunetdisk)
             SOFTWARE_NAME="百度网盘"
@@ -1110,12 +1259,18 @@ create_software_shortcut() {
 Type=Application
 Name=$SOFTWARE_NAME
 Comment=由Renkit安装
+X-Renkit-Managed=true
 Exec=$exec_line
 Icon=$icon_name
 Terminal=false
 Categories=$SOFTWARE_CATEGORIES
 EOF
     chmod +x "$desktop_file" || return 1
+    if [ -n "$application_file" ]; then
+        mkdir -p "$application_dir" || return 1
+        cp -- "$desktop_file" "$application_file" || return 1
+        chmod +x "$application_file" || return 1
+    fi
 
     log "$SOFTWARE_NAME 桌面快捷方式已创建: $desktop_file"
 }
@@ -1266,6 +1421,12 @@ install_software() {
         echo "$SOFTWARE_NAME 安装仅支持Linux/SteamOS。"
         return 1
     }
+    detect_platform
+    if [ "$IS_CHIMERAOS" -eq 1 ] && [ "$target" = "sunshine" ]; then
+        echo "ChimeraOS 版不提供 Sunshine 安装：该功能需要系统级输入规则和服务配置。"
+        echo "请使用 ChimeraOS 自带的软件与系统管理方式。"
+        return 1
+    fi
     if [ "$target" = "sunshine" ]; then
         require_supported_gaming_os || return 1
     fi
@@ -1363,7 +1524,11 @@ install_software() {
             fi
             if [ "$_fr_retry" -eq 0 ]; then
                 echo "检测到下载源不可用，正在切换至国内源，请耐心等待..."
-                if ! ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
+                detect_platform
+                if [ "$IS_CHIMERAOS" -eq 1 ]; then
+                    ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
+                        ensure_flatpak_remotes >/dev/null 2>&1 || true
+                elif ! ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
                     bash "$PROJECT_ROOT/modules/domestic_source.sh" enable >/dev/null 2>&1; then
                     ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
                         ensure_flatpak_remotes >/dev/null 2>&1 || true
@@ -1656,11 +1821,17 @@ confirm_software_uninstall() {
 }
 
 remove_software_shortcuts() {
-    local shortcut
+    local shortcut desktop_dir applications_dir
+
+    desktop_dir="$(renkit_desktop_dir)"
+    applications_dir="$(renkit_applications_dir)"
 
     for shortcut in "$@"; do
         [ -n "$shortcut" ] || continue
-        rm -f -- "$HOME/Desktop/$shortcut" || return 1
+        rm -f -- "$desktop_dir/$shortcut" || return 1
+        if grep -Fxq 'X-Renkit-Managed=true' "$applications_dir/$shortcut" 2>/dev/null; then
+            rm -f -- "$applications_dir/$shortcut" || return 1
+        fi
     done
 }
 
@@ -1719,17 +1890,25 @@ uninstall_appimage_software() {
 }
 
 uninstall_software() {
+    local target="$1"
+
     is_linux || {
         echo "软件卸载仅支持 Linux / SteamOS。"
         return 1
     }
-    case "$1" in
-        wechat) uninstall_appimage_software "$WECHAT_APPIMAGE_PATH" "微信" "微信.desktop" ;;
+    detect_platform
+    if [ "$IS_CHIMERAOS" -eq 1 ] && [ "$target" = "sunshine" ]; then
+        echo "ChimeraOS 版不管理 Sunshine 的系统级输入规则和服务配置。"
+        echo "请使用 ChimeraOS 自带的软件与系统管理方式。"
+        return 1
+    fi
+    case "$target" in
+        wechat) uninstall_appimage_software "$WECHAT_APPIMAGE_PATH" "微信" "微信.desktop" "renkit-wechat.desktop" ;;
         qq) uninstall_flatpak_software "com.qq.QQ" "QQ" "QQ.desktop" "com.qq.QQ.desktop" ;;
         browser) uninstall_flatpak_software "org.mozilla.firefox" "Firefox 浏览器" "Firefox浏览器.desktop" "org.mozilla.firefox.desktop" ;;
         chrome) uninstall_flatpak_software "com.google.Chrome" "Google Chrome" "com.google.Chrome.desktop" ;;
         edge) uninstall_flatpak_software "com.microsoft.Edge" "Microsoft Edge" "com.microsoft.Edge.desktop" ;;
-        rustdesk) uninstall_appimage_software "$RUSTDESK_APPIMAGE_PATH" "RustDesk" "RustDesk.desktop" ;;
+        rustdesk) uninstall_appimage_software "$RUSTDESK_APPIMAGE_PATH" "RustDesk" "RustDesk.desktop" "renkit-rustdesk.desktop" ;;
         anydesk) uninstall_flatpak_software "com.anydesk.Anydesk" "AnyDesk" "AnyDesk.desktop" "com.anydesk.Anydesk.desktop" ;;
         protontricks) uninstall_flatpak_software "com.github.Matoking.protontricks" "Protontricks" "com.github.Matoking.protontricks.desktop" ;;
         bottles) uninstall_flatpak_software "com.usebottles.bottles" "Bottles" "com.usebottles.bottles.desktop" ;;
@@ -1774,15 +1953,14 @@ uninstall_software() {
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
-        wechat|qq|browser|rustdesk|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5|xbox-cloud|qqmusic|netease-music|yesplaymusic|qbittorrent|motrix|freedownloadmanager|media-downloader|flameshot|onlyoffice|joplin|heroic|lutris|chiaki4deck|parsec|sunshine) install_software "$1" ;;
+        enable-domestic-remotes) enable_chimera_domestic_flatpak_remotes ;;
+        restore-official-remote) restore_chimera_official_flatpak_remote ;;
+        source-status) show_chimera_flatpak_source_status ;;
+        wechat|qq|browser|chrome|edge|rustdesk|bottles|protontricks|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5|xbox-cloud|qqmusic|netease-music|yesplaymusic|qbittorrent|motrix|freedownloadmanager|media-downloader|flameshot|onlyoffice|joplin|heroic|lutris|chiaki4deck|parsec|sunshine) install_software "$1" ;;
         firefox-pacman|firefox-sjtu|system-setup)
             echo "该旧版系统级功能已停用，请使用当前 Flatpak 菜单功能。"
             exit 1
             ;;
-        chrome) install_flatpak_app "com.google.Chrome" "Google Chrome" ;;
-        edge) install_flatpak_app "com.microsoft.Edge" "Microsoft Edge" ;;
-        protontricks) install_flatpak_app "com.github.Matoking.protontricks" "Protontricks" ;;
-        bottles) install_flatpak_app "com.usebottles.bottles" "Bottles" ;;
         uninstall)
             [ -n "${2:-}" ] || { echo "用法: $0 uninstall 软件名"; exit 1; }
             uninstall_software "$2"

@@ -4118,7 +4118,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     detect_platform
     if [ "$IS_CHIMERAOS" -eq 1 ]; then
         case "$requested_action" in
-            lsfg-mako|fsr4-zh|fsr4-zh-gitee|cheatdeck|steamgriddb|cssloader|friendeck|deckymusic|tomoon|deckrecall|savepulse|freedeck|newfreedeck|simpledeckytdp-zh|simpledeckytdp-zh-gitee|unifideck)
+            lsfg-mako|lsfg-zh|lsfg-zh-gitee|fsr4-zh|fsr4-zh-gitee|cheatdeck|steamgriddb|cssloader|friendeck|deckymusic|tomoon|deckrecall|savepulse|freedeck|newfreedeck|simpledeckytdp-zh|simpledeckytdp-zh-gitee|unifideck)
                 require_existing_chimera_plugin_environment || exit 1
                 ;;
             feature-status) ;;

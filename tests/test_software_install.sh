@@ -302,6 +302,7 @@ bash "$PROJECT_ROOT/modules/software.sh" wechat >/dev/null
 
 SHORTCUT="$HOME_DIR/Desktop/微信.desktop"
 [ -x "$STATE_DIR/apps/WeChat.AppImage" ]
+[ -x "$HOME_DIR/.local/share/applications/renkit-wechat.desktop" ] || fail "微信未写入 GNOME 应用菜单"
 [ -x "$SHORTCUT" ]
 grep -Fq "Exec=\"$STATE_DIR/apps/WeChat.AppImage\"" "$SHORTCUT"
 grep -Fq "Icon=$PROJECT_ROOT/assets/software/wechat.png" "$SHORTCUT"
@@ -443,6 +444,7 @@ ZHOUKEER_AUTO_CONFIRM=1 \
 bash "$PROJECT_ROOT/modules/software.sh" rustdesk >/dev/null
 
 RUSTDESK_SHORTCUT="$HOME_DIR/Desktop/RustDesk.desktop"
+[ -x "$HOME_DIR/.local/share/applications/renkit-rustdesk.desktop" ] || fail "RustDesk 未写入 GNOME 应用菜单"
 [ -x "$STATE_DIR/apps/RustDesk.AppImage" ]
 [ -x "$RUSTDESK_SHORTCUT" ]
 grep -Fq "Exec=\"$STATE_DIR/apps/RustDesk.AppImage\"" "$RUSTDESK_SHORTCUT"
