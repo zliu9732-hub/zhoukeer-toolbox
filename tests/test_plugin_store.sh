@@ -464,34 +464,110 @@ grep -Fq '小黄鸭署名包的国内分块镜像不可用，已保留现有插�
 grep -Fq 'FSR4 署名包的国内分块镜像不可用，已保留现有插件。' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '"name": "掌机功耗控制"' \
-    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.6/plugin.json"
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/plugin.json"
+grep -Fq '"description": "掌机硬件控制插件，支持 TDP、GPU 等。中文汉化：RenAmamiya。"' \
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/plugin.json" || {
+    echo "FAIL: SimpleDeckyTDP 插件清单说明仍为英文" >&2
+    exit 1
+}
 grep -Fq 'const manifest = {"name":"掌机功耗控制"' \
-    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.6/dist/index.js" || {
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/dist/index.js" || {
     echo "FAIL: SimpleDeckyTDP 前端 API 身份名与插件清单不一致" >&2
     exit 1
 }
-grep -Fq '"version": "1.0.6"' \
-    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.6/package.json"
-[ "$(grep -Fc 'RenAmamiya汉化' "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.6/dist/index.js")" -ge 1 ] || {
+grep -Fq '"description":"掌机硬件控制插件，支持 TDP、GPU 等。中文汉化：RenAmamiya。"' \
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/dist/index.js" || {
+    echo "FAIL: SimpleDeckyTDP 前端内嵌清单说明仍为英文" >&2
+    exit 1
+}
+python3 - \
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/i18n/en.json" \
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/i18n/zh.json" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    english = json.load(handle)
+with open(sys.argv[2], encoding="utf-8") as handle:
+    chinese = json.load(handle)
+
+if set(english) != set(chinese):
+    raise SystemExit("FAIL: SimpleDeckyTDP 中英文词库键不完整")
+unchanged = [key for key in english if english[key] == chinese[key]]
+if unchanged:
+    raise SystemExit("FAIL: SimpleDeckyTDP 中文词库仍有英文原文: " + ", ".join(unchanged))
+PY
+grep -Fq '"version": "1.0.7"' \
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/package.json"
+[ "$(grep -Fc 'RenAmamiya汉化' "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/dist/index.js")" -ge 1 ] || {
     echo "FAIL: SimpleDeckyTDP 插件打开后缺少可见汉化署名" >&2
     exit 1
 }
 grep -Fq '中文汉化：RenAmamiya · 原插件作者：Aarron Lee' \
-    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.6/dist/index.js" || {
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/dist/index.js" || {
     echo "FAIL: SimpleDeckyTDP 缺少与小黄鸭一致的作者署名行" >&2
     exit 1
 }
 grep -Fq 'color: "#ffcc66"' \
-    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.6/dist/index.js" || {
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/dist/index.js" || {
     echo "FAIL: SimpleDeckyTDP 缺少与小黄鸭一致的突出汉化署名" >&2
     exit 1
 }
-simpledeckytdp_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.6/dist/index.js" | awk '{print $1}')"
-[ "$simpledeckytdp_actual_sha256" = "e1d6a325a0587c9972e649cb18440e316d303049843691ce8f6d678dd53f1d1e" ] || {
+grep -Fq 'lang.includes("-")' \
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/dist/index.js" || {
+    echo "FAIL: SimpleDeckyTDP v1.0.7 缺少地区后缀语言码兼容修复" >&2
+    exit 1
+}
+grep -Fq 'cachedLang = "zh";' \
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/dist/index.js" || {
+    echo "FAIL: SimpleDeckyTDP 中文版没有强制命中简体中文词库" >&2
+    exit 1
+}
+grep -Fq 'CPU_CONTROLS_TITLE: "CPU 设置"' \
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/dist/index.js" || {
+    echo "FAIL: SimpleDeckyTDP 中文构建未内嵌主要中文界面词条" >&2
+    exit 1
+}
+grep -Fq '请在 RenKit 中更新掌机功耗控制；插件内官方重装会覆盖中文界面。' \
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/dist/index.js" || {
+    echo "FAIL: SimpleDeckyTDP 中文版缺少由 RenKit 管理更新的可见提示" >&2
+    exit 1
+}
+if grep -Fq 'createElement(OtaUpdates, null)' \
+    "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/dist/index.js"; then
+    echo "FAIL: SimpleDeckyTDP 中文版仍会显示覆盖汉化的官方重装入口" >&2
+    exit 1
+fi
+simpledeckytdp_future_output="$(PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    DECKY_SIMPLE_TDP_URL="https://github.com/aarron-lee/SimpleDeckyTDP/releases/download/v1.0.7/SimpleDeckyTDP.zip"
+    DECKY_SIMPLE_TDP_VERSION="v1.0.7"
+    DECKY_SIMPLE_TDP_SHA256="dae7cf43ec8936c07a94a08ac418be8d9e129744a54f3aa63d2b31222bc0ad38"
+    resolve_latest_github_release() {
+        _LATEST_RELEASE_TAG="v1.0.8"
+        _LATEST_RELEASE_URL="https://example.invalid/SimpleDeckyTDP-v1.0.8.zip"
+        _LATEST_RELEASE_SHA256="ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+        return 0
+    }
+    resolve_plugin_latest simpledeckytdp
+    printf "RESULT:%s:%s\n" "$DECKY_SIMPLE_TDP_VERSION" "$DECKY_SIMPLE_TDP_SHA256"
+')"
+printf '%s\n' "$simpledeckytdp_future_output" | \
+    grep -Fq 'v1.0.8 尚未完成Renkit汉化，继续使用 v1.0.7' || {
+    echo "FAIL: SimpleDeckyTDP 新上游版本没有保留已汉化安全基线" >&2
+    exit 1
+}
+printf '%s\n' "$simpledeckytdp_future_output" | \
+    grep -Fq 'RESULT:v1.0.7:dae7cf43ec8936c07a94a08ac418be8d9e129744a54f3aa63d2b31222bc0ad38' || {
+    echo "FAIL: SimpleDeckyTDP 未汉化新版本覆盖了固定下载配置" >&2
+    exit 1
+}
+simpledeckytdp_actual_sha256="$(shasum -a 256 "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/dist/index.js" | awk '{print $1}')"
+[ "$simpledeckytdp_actual_sha256" = "22b8e59c71e3e3f3f94b2eff4864bb39f362a8b095916b4614d1ce636fe9cb16" ] || {
     echo "FAIL: SimpleDeckyTDP 中文构建文件校验值不匹配" >&2
     exit 1
 }
-grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="e1d6a325a0587c9972e649cb18440e316d303049843691ce8f6d678dd53f1d1e"' \
+grep -Fq 'SIMPLEDECKYTDP_ZH_INDEX_SHA256="22b8e59c71e3e3f3f94b2eff4864bb39f362a8b095916b4614d1ce636fe9cb16"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'install_simpledeckytdp_chinese()' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'simpledeckytdp_chinese_is_current()' "$PROJECT_ROOT/modules/plugin_store.sh"

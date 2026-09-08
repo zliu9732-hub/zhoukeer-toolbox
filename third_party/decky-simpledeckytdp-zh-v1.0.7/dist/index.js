@@ -2,7 +2,7 @@
 // @ts-ignore
 
 // Prevents it from being duplicated in output.
-const manifest = {"name":"掌机功耗控制","author":"Aarron Lee","flags":["root"],"api_version":1,"publish":{"tags":["tdp","root"],"description":"Hardware control plugin for PC handhelds, including TDP, GPU, etc","image":"https://raw.githubusercontent.com/aarron-lee/SimpleDeckyTDP/refs/heads/main/img/plugin-image.jpg"}};
+const manifest = {"name":"掌机功耗控制","author":"Aarron Lee","flags":["root"],"api_version":1,"publish":{"tags":["tdp","root"],"description":"掌机硬件控制插件，支持 TDP、GPU 等。中文汉化：RenAmamiya。","image":"https://raw.githubusercontent.com/aarron-lee/SimpleDeckyTDP/refs/heads/main/img/plugin-image.jpg"}};
 const API_VERSION = 2;
 const internalAPIConnection = window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit;
 // Initialize
@@ -21044,7 +21044,11 @@ const getCurrentLanguage = () => {
  * t('TDP_PROFILE_ENABLE_DESKTOP', 'Enable Desktop Profile')
  */
 const t = (key, originalString) => {
-    const lang = getCurrentLanguage();
+    let lang = getCurrentLanguage();
+    // If there is a hyphenated area code (e.g. en-US), take the en prefix*/
+    if (lang && lang.includes("-")) {
+        lang = lang.split("-")[0];
+    }
     // Return translation if exists, otherwise return original text
     return LANGS[lang]?.strings?.[key] ?? originalString;
 };
@@ -21726,8 +21730,9 @@ const App = SP_REACT.memo(({}) => {
             window.SP_REACT.createElement(TdpRange, null),
             window.SP_REACT.createElement(PollTdp, null))),
         window.SP_REACT.createElement(AdvancedOptions, null),
-        !isDesktop && (window.SP_REACT.createElement(ErrorBoundary, { title: "在线更新" },
-            window.SP_REACT.createElement(OtaUpdates, null)))))));
+        !isDesktop && (window.SP_REACT.createElement(DeckySection, { title: "汉化版更新" },
+            window.SP_REACT.createElement(DeckyRow, null,
+                window.SP_REACT.createElement(DeckyField, { label: "由 RenKit 管理", bottomSeparator: "none" }, "请在 RenKit 中更新掌机功耗控制；插件内官方重装会覆盖中文界面。"))))))));
 });
 const AppContainer = ({}) => {
     return (window.SP_REACT.createElement(Provider, { store: store },

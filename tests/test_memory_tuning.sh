@@ -143,7 +143,7 @@ ATTR_LOG="$TMP_ROOT/attr.log"
 mkdir -p "$FAKE_BIN"
 cat > "$FAKE_BIN/lsattr" <<'SCRIPT'
 #!/bin/bash
-printf '%s %s\n' '----i--------' "${@: -1}"
+printf '%s %s\n' '----ia-------' "${@: -1}"
 SCRIPT
 cat > "$FAKE_BIN/chattr" <<'SCRIPT'
 #!/bin/bash
@@ -154,6 +154,7 @@ export ATTR_LOG
 PATH="$FAKE_BIN:$PATH"
 memory_clear_immutable_attribute "$ZHOUKEER_SWAPFILE_PATH" || fail "未解除旧 swap 的不可变属性"
 [ "$MEMORY_SWAPFILE_WAS_IMMUTABLE" -eq 1 ] || fail "未记录旧 swap 的不可变状态"
+[ "$MEMORY_SWAPFILE_WAS_APPEND_ONLY" -eq 1 ] || fail "未记录旧 swap 的只追加状态"
 toolbox_sudo() {
     case "${1:-}" in
         test) return 0 ;;
@@ -162,19 +163,23 @@ toolbox_sudo() {
 }
 memory_restore_immutable_attribute "$ZHOUKEER_SWAPFILE_PATH" || fail "未恢复旧 swap 的不可变属性"
 grep -Fq -- '-i --' "$ATTR_LOG" || fail "没有执行 chattr -i"
+grep -Fq -- '-a --' "$ATTR_LOG" || fail "没有执行 chattr -a"
 grep -Fq -- '+i --' "$ATTR_LOG" || fail "没有执行 chattr +i"
+grep -Fq -- '+a --' "$ATTR_LOG" || fail "没有执行 chattr +a"
 
 # 部分 SteamOS 文件系统上 lsattr 读取可能失效；首次移动失败后应只对旧
-# swap 再尝试 chattr -i，并在成功备份时记录需要在回滚时恢复保护。
+# swap 再尝试解除不可变/只追加属性，并记录需要在回滚时恢复的保护。
 RETRY_SOURCE="$TMP_ROOT/retry-swapfile"
 RETRY_BACKUP="$TMP_ROOT/retry-swapfile.backup"
 printf 'old swap\n' > "$RETRY_SOURCE"
 MEMORY_SWAPFILE_WAS_IMMUTABLE=0
+MEMORY_SWAPFILE_WAS_APPEND_ONLY=0
 memory_move_swapfile_after_forced_immutable_clear "$RETRY_SOURCE" "$RETRY_BACKUP" || \
     fail "不可变保护回退移动失败"
 [ ! -e "$RETRY_SOURCE" ] || fail "旧 swap 未移动到备份位置"
 [ -f "$RETRY_BACKUP" ] || fail "旧 swap 备份缺失"
 [ "$MEMORY_SWAPFILE_WAS_IMMUTABLE" -eq 1 ] || fail "回退移动未记录不可变保护"
+[ "$MEMORY_SWAPFILE_WAS_APPEND_ONLY" -eq 1 ] || fail "回退移动未记录只追加保护"
 
 # 系统 swap 无法移动且Renkit备用路径残留旧文件时，应先原子备份旧备用
 # 文件，再启用新文件；失败不能覆盖或丢失旧内容。

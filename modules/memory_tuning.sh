@@ -16,6 +16,7 @@ MEMORY_SYSCTL_CONFIG="${ZHOUKEER_MEMORY_SYSCTL_CONFIG:-/etc/sysctl.d/90-zhoukeer
 MEMORY_SYSTEMD_DIR="${ZHOUKEER_SYSTEMD_DIR:-/etc/systemd/system}"
 MEMORY_MIN_FREE_GIB="${ZHOUKEER_MEMORY_MIN_FREE_GIB:-4}"
 MEMORY_SWAPFILE_WAS_IMMUTABLE=0
+MEMORY_SWAPFILE_WAS_APPEND_ONLY=0
 MEMORY_UNIT_WAS_ENABLED=0
 
 memory_value_is_positive_integer() {
@@ -67,6 +68,7 @@ memory_clear_immutable_attribute() {
     local attributes
 
     MEMORY_SWAPFILE_WAS_IMMUTABLE=0
+    MEMORY_SWAPFILE_WAS_APPEND_ONLY=0
     attributes="$(toolbox_sudo lsattr -d -- "$path" 2>/dev/null | awk 'NR == 1 { print $1 }')"
     case "$attributes" in
         *i*)
@@ -78,31 +80,53 @@ memory_clear_immutable_attribute() {
             echo "已临时解除现有 swap 的不可变保护。"
             ;;
     esac
+    case "$attributes" in
+        *a*)
+            toolbox_sudo chattr -a -- "$path" 2>/dev/null || {
+                memory_restore_immutable_attribute "$path" || true
+                echo "现有 swap 带只追加保护且无法临时解除，未做替换。"
+                return 1
+            }
+            MEMORY_SWAPFILE_WAS_APPEND_ONLY=1
+            echo "已临时解除现有 swap 的只追加保护。"
+            ;;
+    esac
 }
 
 memory_restore_immutable_attribute() {
     local path="$1"
+    local restore_status=0
 
-    [ "$MEMORY_SWAPFILE_WAS_IMMUTABLE" -eq 1 ] || return 0
     toolbox_sudo test -e "$path" || return 0
-    toolbox_sudo chattr +i -- "$path" || {
-        echo "警告：原 swap 已恢复，但不可变属性未能恢复：$path"
-        return 1
-    }
+    if [ "$MEMORY_SWAPFILE_WAS_APPEND_ONLY" -eq 1 ]; then
+        toolbox_sudo chattr +a -- "$path" || {
+            echo "警告：原 swap 已恢复，但只追加属性未能恢复：$path"
+            restore_status=1
+        }
+    fi
+    if [ "$MEMORY_SWAPFILE_WAS_IMMUTABLE" -eq 1 ]; then
+        toolbox_sudo chattr +i -- "$path" || {
+            echo "警告：原 swap 已恢复，但不可变属性未能恢复：$path"
+            restore_status=1
+        }
+    fi
+    return "$restore_status"
 }
 
 memory_move_swapfile_after_forced_immutable_clear() {
     local source_path="$1"
     local backup_path="$2"
 
-    echo "现有 swap 首次移动失败，正在再次解除不可变保护后重试..."
+    echo "现有 swap 首次移动失败，正在再次解除不可变/只追加保护后重试..."
     toolbox_sudo chattr -i -- "$source_path" || return 1
+    toolbox_sudo chattr -a -- "$source_path" || return 1
     toolbox_sudo mv -- "$source_path" "$backup_path" || return 1
 
-    # 首次 lsattr 读取可能在部分 SteamOS 文件系统上失败；本次通过
-    # chattr -i 后才能移动，回滚时仍须恢复旧文件的不可变保护。
+    # 首次 lsattr 读取可能在部分 SteamOS 文件系统上失败；本次同时尝试
+    # 清除 immutable 与 append-only，回滚时按保守策略恢复两种保护。
     MEMORY_SWAPFILE_WAS_IMMUTABLE=1
-    echo "已解除现有 swap 的不可变保护并完成备份。"
+    MEMORY_SWAPFILE_WAS_APPEND_ONLY=1
+    echo "已解除现有 swap 的文件保护并完成备份。"
 }
 
 memory_activate_fallback_swapfile() {
@@ -419,6 +443,7 @@ memory_remove_managed_fallback_swap() {
             # lsattr 读取失败或命令不可用时，也直接尝试解除文件自身的
             # immutable 保护后再删除一次，避免撤销被 SteamOS 保护卡住。
             if toolbox_sudo chattr -i -- "$MEMORY_FALLBACK_SWAPFILE_PATH" >/dev/null 2>&1 && \
+               toolbox_sudo chattr -a -- "$MEMORY_FALLBACK_SWAPFILE_PATH" >/dev/null 2>&1 && \
                toolbox_sudo rm -f -- "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
                 :
             else

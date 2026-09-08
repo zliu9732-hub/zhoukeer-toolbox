@@ -16,6 +16,8 @@ logs/
 *.swp
 *.swo
 *~
+__pycache__/
+*.pyc
 
 # 本地运行产物
 apps/

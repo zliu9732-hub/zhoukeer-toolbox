@@ -58,9 +58,9 @@ FSR4_RUNTIME_ARCHIVE="Optiscaler_0.9.4-final.20260718._MM.7z"
 FSR4_RUNTIME_UPSCALER="amd_fidelityfx_upscaler_dx12.dll"
 FSR4_RUNTIME_PATCHER="OptiPatcher_rolling.asi"
 SIMPLEDECKYTDP_OFFICIAL_DIRECTORY="SimpleDeckyTDP"
-SIMPLEDECKYTDP_OFFICIAL_VERSION="1.0.6"
-SIMPLEDECKYTDP_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.6"
-SIMPLEDECKYTDP_ZH_INDEX_SHA256="e1d6a325a0587c9972e649cb18440e316d303049843691ce8f6d678dd53f1d1e"
+SIMPLEDECKYTDP_OFFICIAL_VERSION="1.0.7"
+SIMPLEDECKYTDP_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7"
+SIMPLEDECKYTDP_ZH_INDEX_SHA256="22b8e59c71e3e3f3f94b2eff4864bb39f362a8b095916b4614d1ce636fe9cb16"
 STEAMGRIDDB_OFFICIAL_DIRECTORY="decky-steamgriddb"
 STEAMGRIDDB_OFFICIAL_VERSION="1.7.1"
 CSSLOADER_OFFICIAL_DIRECTORY="SDH-CssLoader"
@@ -356,6 +356,10 @@ resolve_plugin_latest() {
             [ -z "${ZHOUKEER_DECKY_SIMPLE_TDP_URL:-}" ] || return 0
             if resolve_latest_github_release "aarron-lee/SimpleDeckyTDP" \
                 '^SimpleDeckyTDP[.]zip$' "SimpleDeckyTDP"; then
+                if [ "${_LATEST_RELEASE_TAG#v}" != "$SIMPLEDECKYTDP_OFFICIAL_VERSION" ]; then
+                    echo "SimpleDeckyTDP 上游最新版本 $_LATEST_RELEASE_TAG 尚未完成Renkit汉化，继续使用 v$SIMPLEDECKYTDP_OFFICIAL_VERSION。"
+                    return 0
+                fi
                 DECKY_SIMPLE_TDP_URL="$_LATEST_RELEASE_URL"
                 DECKY_SIMPLE_TDP_SHA256="$_LATEST_RELEASE_SHA256"
                 DECKY_SIMPLE_TDP_VERSION="$_LATEST_RELEASE_TAG"

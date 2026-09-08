@@ -68,7 +68,7 @@ calculate_decky_sha256() {
     case "$1" in
         *'/Decky LSFG-VK/dist/index.js') printf '%s\n' "$LSFG_ZH_INDEX_SHA256" ;;
         *'/Decky-Framegen/dist/index.js') printf '%s\n' "$FSR4_ZH_INDEX_SHA256" ;;
-        *'/third_party/decky-simpledeckytdp-zh-v1.0.6/dist/index.js') \
+        *'/third_party/decky-simpledeckytdp-zh-v1.0.7/dist/index.js') \
             printf '%s\n' "$SIMPLEDECKYTDP_ZH_INDEX_SHA256" ;;
         *'/SimpleDeckyTDP/dist/index.js') printf '%s\n' "$SIMPLEDECKYTDP_ZH_INDEX_SHA256" ;;
         *) return 1 ;;
@@ -82,7 +82,7 @@ install_decky_zip_from_mirror() {
             "$DECKY_PLUGIN_DIR/SimpleDeckyTDP/dist"
         printf '{"name":"SimpleDeckyTDP"}\n' > \
             "$DECKY_PLUGIN_DIR/SimpleDeckyTDP/plugin.json"
-        printf '{"version":"1.0.6"}\n' > \
+        printf '{"version":"1.0.7"}\n' > \
             "$DECKY_PLUGIN_DIR/SimpleDeckyTDP/package.json"
         printf 'official frontend\n' > \
             "$DECKY_PLUGIN_DIR/SimpleDeckyTDP/dist/index.js"
@@ -114,9 +114,9 @@ install_simpledeckytdp_zh_from_gitee 0 || \
 grep -Fq 'gitee:小黄鸭（LSFG-VK）' "$CALLS" || fail "小黄鸭未使用专用镜像"
 grep -Fq 'gitee:FSR4（Decky Framegen）' "$CALLS" || fail "FSR4 未使用专用镜像"
 grep -Fq 'gitee:SimpleDeckyTDP' "$CALLS" || fail "SimpleDeckyTDP 未使用专用镜像"
-grep -Fq '"version": "1.0.6"' \
+grep -Fq '"version": "1.0.7"' \
     "$PLUGIN_ROOT/SimpleDeckyTDP/package.json" || \
-    fail "SimpleDeckyTDP Gitee 安装后未叠加 v1.0.6 汉化组件"
+    fail "SimpleDeckyTDP Gitee 安装后未叠加 v1.0.7 汉化组件"
 grep -Fq '"name": "掌机功耗控制"' \
     "$PLUGIN_ROOT/SimpleDeckyTDP/plugin.json" || \
     fail "SimpleDeckyTDP Gitee 安装后未写入中文插件身份"
