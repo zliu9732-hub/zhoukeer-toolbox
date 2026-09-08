@@ -1,3 +1,7 @@
+## Renkit 2.3.4 ChimeraOS Decky 预检修复 — 2026-09-08
+
+- 修复 ChimeraOS 独立菜单已放行的插件仍被通用预检误判为“仅支持 SteamOS 或 Bazzite”的问题；现在仅对 `decky` 下载预检放行 ChimeraOS。
+- 系统更新、内存调整、Steam302 等系统级预检仍保持 SteamOS/Bazzite 限制，ChimeraOS 不会因此获得系统修改能力。
 
 ## Renkit 2.3.2 掌机功耗控制 1.0.7 与 swap 保护修复 — 2026-09-08
 

@@ -33,6 +33,31 @@ if grep -Fq '详细信息' "$TMP_ROOT/ok.output"; then
 fi
 grep -Fq '网络=此操作不需要联网，未检查' "$TMP_ROOT/preflight-ok.txt" || fail "虚拟内存预检仍错误要求联网"
 
+# ChimeraOS 只允许复用 Decky 插件下载的预检；不能因此放开系统级预检。
+chimera_decky_output="$(
+    PROJECT_ROOT="$PROJECT_ROOT" HOME="$TMP_ROOT/home" \
+        ZHOUKEER_TEST_MODE=0 ZHOUKEER_PREFLIGHT_DETAIL_FILE="$TMP_ROOT/chimera-decky.txt" \
+        bash -c '
+            source "$PROJECT_ROOT/modules/preflight.sh"
+            detect_platform() { IS_STEAMOS=0; IS_BAZZITE=0; IS_CHIMERAOS=1; }
+            preflight_available_kib() { printf "%s\\n" 5000000; }
+            preflight_network_ok() { return 0; }
+            preflight_readonly_status() { return 2; }
+            preflight_power_ok() { return 0; }
+            run_preflight decky
+        '
+)"
+printf '%s\n' "$chimera_decky_output" | grep -Fq '检查通过，正在继续' || \
+    fail "ChimeraOS 的 Decky 预检仍被错误拦截"
+if PROJECT_ROOT="$PROJECT_ROOT" HOME="$TMP_ROOT/home" ZHOUKEER_TEST_MODE=0 \
+    bash -c '
+        source "$PROJECT_ROOT/modules/preflight.sh"
+        detect_platform() { IS_STEAMOS=0; IS_BAZZITE=0; IS_CHIMERAOS=1; }
+        run_preflight memory
+    ' >/dev/null 2>&1; then
+    fail "ChimeraOS 的系统级预检被错误放行"
+fi
+
 if PREFLIGHT_TEST_AVAILABLE=100 HOME="$TMP_ROOT/home" PATH="$BIN_DIR:/usr/bin:/bin" \
     ZHOUKEER_TEST_MODE=1 ZHOUKEER_PREFLIGHT_SKIP_NETWORK=1 \
     ZHOUKEER_POWER_SUPPLY_ROOT="$POWER_ROOT" ZHOUKEER_PREFLIGHT_DETAIL_FILE="$TMP_ROOT/preflight-fail.txt" \
