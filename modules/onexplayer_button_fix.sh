@@ -888,6 +888,12 @@ oxp_reboot() {
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    # X2 Mini Pro 的 InputPlumber 配置结构与 F1L/X1 Pro 不同，交由专用模块
+    # 处理；菜单入口、确认与状态/恢复动作仍保持统一。
+    if [ -r "$OXP_PRODUCT_FILE" ] && \
+       [ "$(tr -d '\r\n' < "$OXP_PRODUCT_FILE" 2>/dev/null)" = "ONEXPLAYER X2Mini PRO" ]; then
+        exec bash "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/onexplayer_x2mini_pro_fix.sh" "${1:-}"
+    fi
     case "${1:-}" in
         install) oxp_install ;;
         status) oxp_status ;;

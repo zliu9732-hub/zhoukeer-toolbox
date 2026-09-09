@@ -61,7 +61,7 @@ download_progress_filter() {
 
 download_policy_github_repo_allowed() {
     case "$1" in
-        SteamDeckHomebrew/decky-loader|xXJSONDeruloXx/decky-lsfg-vk|eugeniosegala/decky-lsfg-vk-experimental|eugeniosegala/MAKO|xXJSONDeruloXx/Decky-Framegen|SheffeyG/CheatDeck|YukiCoco/ToMoon|Ren-Amamiya-pixle/DeckRecall|Ren-Amamiya-pixle/SavePulse|aarron-lee/SimpleDeckyTDP|mengmeet/PowerControl|mubaraknumann/unifideck|panyiwei-home/Freedeck|panyiwei-home/Friendeck|jinzhongjia/decky-music|GloriousEggroll/proton-ge-custom|CachyOS/proton-cachyos|rustdesk/rustdesk|zliu9732-hub/zhoukeer-toolbox|zliu9732-hub/decky-lsfg-vk-zh|zliu9732-hub/decky-framegen-zh|HMCL-dev/HMCL|adoptium/temurin21-binaries) return 0 ;;
+        SteamDeckHomebrew/decky-loader|ShadowBlip/InputPlumber|dahui/onexplayer-x2-mini-pro-cachyos|xXJSONDeruloXx/decky-lsfg-vk|eugeniosegala/decky-lsfg-vk-experimental|eugeniosegala/MAKO|xXJSONDeruloXx/Decky-Framegen|SheffeyG/CheatDeck|YukiCoco/ToMoon|Ren-Amamiya-pixle/DeckRecall|Ren-Amamiya-pixle/SavePulse|aarron-lee/SimpleDeckyTDP|mengmeet/PowerControl|mubaraknumann/unifideck|panyiwei-home/Freedeck|panyiwei-home/Friendeck|jinzhongjia/decky-music|GloriousEggroll/proton-ge-custom|CachyOS/proton-cachyos|rustdesk/rustdesk|zliu9732-hub/zhoukeer-toolbox|zliu9732-hub/decky-lsfg-vk-zh|zliu9732-hub/decky-framegen-zh|HMCL-dev/HMCL|adoptium/temurin21-binaries) return 0 ;;
         *) return 1 ;;
     esac
 }
@@ -87,6 +87,7 @@ download_policy_url_allowed() {
             download_policy_github_repo_allowed "$repo"
             ;;
         https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/*) return 0 ;;
+        https://raw.githubusercontent.com/dahui/onexplayer-x2-mini-pro-cachyos/a0b76a16471174ded80913a681357f43bfb17fa4/*) return 0 ;;
         https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service) return 0 ;;
         https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.8-pre1/dist/plugin_loader-prerelease.service) return 0 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/*) return 0 ;;

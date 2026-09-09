@@ -9,6 +9,8 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | 项目 | 用途 | 上游地址 | 许可证 | 进入 Gitee 镜像 | 备注 |
 | --- | --- | --- | --- | --- | --- |
 | Decky Loader | Decky 插件商城加载器 | https://github.com/SteamDeckHomebrew/decky-loader | GPL-2.0 | 是 | 稳定版与测试版均来自同一上游 |
+| InputPlumber | 壹号掌机 SteamOS 输入路由与特殊按键支持更新 | https://github.com/ShadowBlip/InputPlumber | GPL-3.0-or-later | 否（官方 Release） | 固定官方 x86_64 原包与 SHA256；GitHub 代理仅作传输回退，不修改包内容 |
+| OneXPlayer X2 Mini Pro CachyOS 配置 | X2 Mini Pro 的 InputPlumber、QuickAccess 与 SteamOS 设备目标配置 | https://github.com/dahui/onexplayer-x2-mini-pro-cachyos | GPL-2.0 | 否（固定上游提交下载） | 固定提交 `a0b76a1` 的三份配置及 SHA256；仅用于精确 DMI `ONEXPLAYER X2Mini PRO` |
 | Decky LSFG-VK | 小黄鸭插件 | https://github.com/xXJSONDeruloXx/decky-lsfg-vk | BSD-3-Clause | 是 | 上游 License 明确允许再分发 |
 | MAKO（小黄鸭） | MAKO 帧生成插件 | https://github.com/eugeniosegala/MAKO | GPL-3.0-or-later | 是 | 跟随上游最新正式版；使用作者官方原包自带简体中文，保留 Eugenio Segala 与许可证，不叠加 Renkit 汉化或署名 |
 | Decky-Framegen | FSR4 插件 | https://github.com/xXJSONDeruloXx/Decky-Framegen | BSD-3-Clause | 是 | 基于 Decky 模板并保留 BSD-3 声明 |

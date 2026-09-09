@@ -414,7 +414,7 @@ for forbidden in 'steamos-readonly disable' 'efibootmgr' 'HHD 安装'; do
         fail "模块包含禁止操作：$forbidden"
     fi
 done
-if rg -n '(^|[[:space:]])(eval|bash -c|sh -c)([[:space:]]|$)' "$MODULE" >/dev/null; then
+if grep -Eq '(^|[[:space:]])(eval|bash -c|sh -c)([[:space:]]|$)' "$MODULE"; then
     fail "特殊按键修复包含禁止的动态命令执行"
 fi
 

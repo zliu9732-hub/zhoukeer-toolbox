@@ -1243,19 +1243,20 @@ f1_handheld_menu() {
     local choice
 
     while true; do
-        draw_category_frame advanced "掌机适配" "飞行家 F1 屏幕/BIOS · 壹号掌机特殊按键修复"
+        draw_category_frame advanced "掌机适配" "飞行家 F1 屏幕/BIOS · 壹号掌机特殊按键与 InputPlumber"
         ui_touch_button 2 '\033[1;97;48;5;24m' "安装屏幕修复" "适用于 F1 7840U 与 8840U OLED（F1L）"
         ui_touch_button 4 '\033[1;97;48;5;24m' "屏幕修复状态" "查看修复文件和 systemd override"
         ui_touch_button 6 '\033[1;97;48;5;160m' "卸载屏幕修复" "删除用户级修复并恢复原始启动方式"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "安装特殊按键修复" "实机支持 F1L 8840U 与 X1 Pro AMD"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "安装特殊按键修复" "实机支持 F1L、X1 Pro 与 X2 Mini Pro"
         ui_touch_button 10 '\033[1;97;48;5;24m' "特殊按键修复状态" "验证机型、配置、备份与 InputPlumber"
         ui_touch_button 12 '\033[1;97;48;5;160m' "恢复特殊按键修复" "还原原文件与 InputPlumber 原状态"
-        ui_touch_button 14 '\033[1;97;48;5;160m' "准备 V1.14 BIOS" "仅 F1/ONEXFLY 7840U 普通版 · 复制到互通盘"
-        ui_touch_button 16 '\033[1;97;48;5;160m' "立即重启 SteamOS" "重启后生效 · 请先保存工作"
-        ui_touch_button 19 '\033[1;97;48;5;238m' "返回更多设置" "查看其他系统功能"
+        ui_touch_button 14 '\033[1;97;48;5;160m' "更新 InputPlumber" "官方 0.79.2 · 固定 SHA256 · 会写入 SteamOS /usr"
+        ui_touch_button 16 '\033[1;97;48;5;160m' "准备 V1.14 BIOS" "仅 F1/ONEXFLY 7840U 普通版 · 复制到互通盘"
+        ui_touch_button 18 '\033[1;97;48;5;160m' "立即重启 SteamOS" "重启后生效 · 请先保存工作"
+        ui_touch_button 20 '\033[1;97;48;5;238m' "返回更多设置" "查看其他系统功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:2-3:install right:4-5:status right:6-7:uninstall right:8-9:button-install right:10-11:button-status right:12-13:button-restore right:14-15:bios right:16-17:reboot right:19-20:advanced right:22-23:home)"
+        choice="$(read_touch_menu right:2-3:install right:4-5:status right:6-7:uninstall right:8-9:button-install right:10-11:button-status right:12-13:button-restore right:14-15:inputplumber-update right:16-17:bios right:18-19:reboot right:20-21:advanced right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             install)
@@ -1285,6 +1286,11 @@ f1_handheld_menu() {
             button-restore)
                 run_action "恢复壹号掌机 SteamOS 特殊按键修复" \
                     bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" restore
+                return 0
+                ;;
+            inputplumber-update)
+                run_action "更新壹号掌机 InputPlumber" \
+                    bash "$PROJECT_ROOT/modules/inputplumber_update.sh" update
                 return 0
                 ;;
             bios)

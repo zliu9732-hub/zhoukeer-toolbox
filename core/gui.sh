@@ -1078,9 +1078,10 @@ f1_screen_fix_gui_menu() {
             install "安装屏幕修复｜F1 7840U 与 8840U OLED（F1L）｜不使用 sudo" \
             status "屏幕修复状态｜查看修复文件和 systemd override" \
             uninstall "卸载屏幕修复｜删除用户级修复并恢复原始启动方式" \
-            button-install "安装特殊按键修复｜实机支持 F1L 8840U 与 X1 Pro AMD" \
+            button-install "安装特殊按键修复｜实机支持 F1L、X1 Pro 与 X2 Mini Pro" \
             button-status "特殊按键修复状态｜验证机型、配置、备份与 InputPlumber" \
             button-restore "恢复特殊按键修复｜还原原文件与 InputPlumber 原状态" \
+            inputplumber-update "更新 InputPlumber｜官方 0.79.2｜固定 SHA256｜高级操作" \
             bios "准备 V1.14 BIOS｜仅 7840U 普通黑白版｜复制到互通盘" \
             reboot "立即重启 SteamOS｜重启后生效｜请先保存工作" \
             back "返回更多设置" \
@@ -1128,6 +1129,18 @@ f1_screen_fix_gui_menu() {
 确认继续？" && \
                     run_gui_action "恢复壹号掌机 SteamOS 特殊按键修复" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" restore
+                return 0
+                ;;
+            inputplumber-update)
+                if ! plan_output="$(bash "$PROJECT_ROOT/modules/inputplumber_update.sh" plan 2>&1)"; then
+                    gui_dialog --error "$plan_output"
+                    return 0
+                fi
+                gui_confirm "$plan_output
+
+确认继续？" && \
+                    run_gui_action "更新壹号掌机 InputPlumber" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/inputplumber_update.sh" update
                 return 0
                 ;;
             bios)

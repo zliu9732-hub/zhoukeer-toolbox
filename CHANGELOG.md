@@ -824,3 +824,8 @@
 - ChimeraOS 新增用户级 Flatpak 下载线路菜单，可在官方签名源与上海交大、中科大国内缓存间切换；关闭国内缓存 GPG 验证前显示远程名称、地址和中文风险确认，并可恢复官方源。
 - Chrome、Edge、Bottles、Protontricks 与其余菜单应用统一使用用户级 Flatpak 安装链路；模块入口额外阻止 ChimeraOS 绕过菜单执行 Sunshine 系统服务和输入规则配置。
 - GNOME/SkorionOS 支持本地化桌面目录与 XDG 应用菜单，优先使用 Ptyxis、GNOME Console 或 GNOME Terminal 启动；微信和 RustDesk AppImage 同步创建应用菜单入口。
+## Renkit 2.3.8 壹号掌机 X2 Mini Pro 三点菜单与 InputPlumber 更新 — 2026-09-09
+
+- “更多设置 → 掌机适配”的特殊按键修复新增精确 DMI `ONEXPLAYER X2Mini PRO`（`ONE-NETBOOK`）支持。该机型补齐 InputPlumber 设备描述、`QuickAccess` 映射和 SteamOS `deck-uhid` 目标，机身 OXP 键可打开三点（QAM）菜单。
+- X2 Mini Pro 的三份上游配置固定到提交 `a0b76a1` 并逐份校验 SHA256；检测到 HHD、近似型号、符号链接或服务异常都会在写入前安全停止。原文件与服务状态可从既有状态/恢复入口撤销；写入 steamos-manager 前会临时关闭并恢复 SteamOS 只读保护。
+- 新增壹号掌机专用 InputPlumber 0.79.2 固定官方 Release 更新入口：下载源多线路回退、SHA256 与包结构/版本验证、旧版备份、失败恢复服务和只读保护，不影响 `/etc/inputplumber/devices.d` 自定义配置。

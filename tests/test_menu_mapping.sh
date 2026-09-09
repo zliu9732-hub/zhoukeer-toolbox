@@ -260,6 +260,7 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_contains "$source_text" 'modules/onexplayer_button_fix.sh" install' "壹号掌机按键修复安装动作错误：$file"
     assert_contains "$source_text" 'modules/onexplayer_button_fix.sh" status' "壹号掌机按键修复状态动作错误：$file"
     assert_contains "$source_text" 'modules/onexplayer_button_fix.sh" restore' "壹号掌机按键恢复动作错误：$file"
+    assert_contains "$source_text" 'modules/inputplumber_update.sh" update' "InputPlumber 更新动作错误：$file"
     assert_contains "$source_text" 'modules/domestic_source.sh" init' "国内软件源动作错误：$file"
     assert_contains "$source_text" 'modules/domestic_source.sh" restore' "恢复官方源动作错误：$file"
     assert_contains "$source_text" 'core/detect.sh" --health' "系统健康检查动作错误：$file"
