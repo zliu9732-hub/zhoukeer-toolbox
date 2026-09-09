@@ -164,8 +164,10 @@ LEGO2_FAN_ZH_INDEX_SHA256="9d93837925ccb2e95bf94942b291664f1cf645362d0f6b9972a03
 # OneXPlayer Apex Tools 仅限 Apex（Strix Halo）；会操作硬件、休眠与内核相关配置。
 DECKY_ONEXPLAYER_APEX_URL="https://github.com/srsholmes/onexplayer-apex-bazzite-fixes/releases/download/build-b696161/OneXPlayer_Apex_Tools.zip"
 DECKY_ONEXPLAYER_APEX_SHA256="7c522bc8145697d78d6165f7f97671d4d67a5bf4f9e4ed5e6feccbb1154acb91"
-DECKY_ONEXPLAYER_APEX_VERSION="build-b696161"
+DECKY_ONEXPLAYER_APEX_VERSION="0.1.0"
 DECKY_ONEXPLAYER_APEX_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
+ONEXPLAYER_APEX_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/onexplayer-apex-tools-zh-v0.1.0"
+ONEXPLAYER_APEX_ZH_INDEX_SHA256="a85f19f0f910ac9f400ab52b273c1e82080a1d1c22b5fa3f94c469fcf852ab85"
 DECKY_HANDHELD_PLUGIN_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_GAME_INFO_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 STEAMDB_INFO_DIRECTORY="SteamDBButton"
@@ -3637,17 +3639,13 @@ install_configured_plugin() {
                 echo "OneXPlayer Apex 工具仅支持 OneXPlayer Apex 的原版 SteamOS，当前系统不会安装。"
                 return 1
             fi
-            (
-                GITEE_MIRROR_REPO="$DECKY_ONEXPLAYER_APEX_MIRROR_REPO"
-                export GITEE_MIRROR_REPO
-                echo "警告：此插件仅适用于 OneXPlayer Apex（Strix Halo）原版 SteamOS，其他机型不要安装或启用。"
-                install_decky_zip \
-                    "OneXPlayer Apex 工具" \
-                    "$DECKY_ONEXPLAYER_APEX_URL" \
-                    "$DECKY_ONEXPLAYER_APEX_SHA256" \
-                    "OneXPlayer Apex Tools" || exit 1
-                install_zhoukeer_localizer 1 || exit 1
-            )
+            echo "警告：此插件仅适用于 OneXPlayer Apex（Strix Halo）原版 SteamOS，其他机型不要安装或启用。"
+            DECKY_HANDHELD_PLUGIN_MIRROR_REPO="$DECKY_ONEXPLAYER_APEX_MIRROR_REPO" \
+                ensure_handheld_overlay_current zip "OneXPlayer Apex Tools" \
+                    "$DECKY_ONEXPLAYER_APEX_VERSION" "OneXPlayer Apex 工具" \
+                    "$DECKY_ONEXPLAYER_APEX_URL" "$DECKY_ONEXPLAYER_APEX_SHA256" \
+                    "$ONEXPLAYER_APEX_ZH_SOURCE_DIR" "$ONEXPLAYER_APEX_ZH_INDEX_SHA256" \
+                    "原作者：Simon Holmes（srsholmes）；许可证：MIT。"
             ;;
         simpledeckytdp)
             resolve_plugin_latest simpledeckytdp

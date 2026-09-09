@@ -1,0 +1,11 @@
+{
+  "name": "OneXPlayer Apex 工具",
+  "author": "srsholmes",
+  "flags": ["root"],
+  "api_version": 1,
+  "publish": {
+    "tags": ["hardware", "handheld", "onexplayer"],
+    "description": "OneXPlayer Apex 硬件工具：按键与灯光、休眠恢复、扬声器 DSP、EC 传感器及风扇控制。",
+    "image": ""
+  }
+}
