@@ -4,21 +4,21 @@ set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MODULE="$PROJECT_ROOT/modules/inputplumber_update.sh"
-TMP_ROOT="$(mktemp -d)"
-trap 'rm -rf -- "$TMP_ROOT"' EXIT
+TEST_ROOT="$(mktemp -d)"
+trap 'rm -rf -- "$TEST_ROOT"' EXIT
 
 fail() {
     echo "FAIL: $*" >&2
     exit 1
 }
 
-INSTALL_ROOT="$TMP_ROOT/root"
-PAYLOAD_ROOT="$TMP_ROOT/payload/inputplumber"
-FIXTURE_ARCHIVE="$TMP_ROOT/inputplumber-x86_64.tar.gz"
-CALLS="$TMP_ROOT/calls"
-LOG_FILE="$TMP_ROOT/toolbox.log"
-PRODUCT_FILE="$TMP_ROOT/product-name"
-VENDOR_FILE="$TMP_ROOT/sys-vendor"
+INSTALL_ROOT="$TEST_ROOT/root"
+PAYLOAD_ROOT="$TEST_ROOT/payload/inputplumber"
+FIXTURE_ARCHIVE="$TEST_ROOT/inputplumber-x86_64.tar.gz"
+CALLS="$TEST_ROOT/calls"
+LOG_FILE="$TEST_ROOT/toolbox.log"
+PRODUCT_FILE="$TEST_ROOT/product-name"
+VENDOR_FILE="$TEST_ROOT/sys-vendor"
 
 mkdir -p -- \
     "$INSTALL_ROOT/usr/bin" \
@@ -32,7 +32,7 @@ mkdir -p -- \
     "$PAYLOAD_ROOT/usr/share/polkit-1/rules.d" \
     "$PAYLOAD_ROOT/usr/share/inputplumber/devices" \
     "$PAYLOAD_ROOT/usr/share/inputplumber/capability_maps" \
-    "$TMP_ROOT/home" "$TMP_ROOT/state"
+    "$TEST_ROOT/home" "$TEST_ROOT/state"
 
 printf '#!/bin/sh\nprintf "inputplumber 0.70.0\\n"\n' > "$INSTALL_ROOT/usr/bin/inputplumber"
 chmod +x "$INSTALL_ROOT/usr/bin/inputplumber"
@@ -52,7 +52,7 @@ done
 for file in onexplayer_type3.yaml onexplayer_type4.yaml; do
     printf 'version: 1\n' > "$PAYLOAD_ROOT/usr/share/inputplumber/capability_maps/$file"
 done
-tar -czf "$FIXTURE_ARCHIVE" -C "$TMP_ROOT/payload" inputplumber
+tar -czf "$FIXTURE_ARCHIVE" -C "$TEST_ROOT/payload" inputplumber
 FIXTURE_SHA256="$(sha256sum "$FIXTURE_ARCHIVE" | awk '{print $1}')"
 
 printf 'ONEXPLAYER 2 PRO ARP23P\n' > "$PRODUCT_FILE"
@@ -60,14 +60,14 @@ printf 'ONE-NETBOOK TECHNOLOGY CO., LTD.\n' > "$VENDOR_FILE"
 : > "$CALLS"
 : > "$LOG_FILE"
 
-export HOME="$TMP_ROOT/home"
-export XDG_STATE_HOME="$TMP_ROOT/state"
+export HOME="$TEST_ROOT/home"
+export XDG_STATE_HOME="$TEST_ROOT/state"
 export ZHOUKEER_TEST_MODE=1
 export ZHOUKEER_AUTO_CONFIRM=1
 export ZHOUKEER_INPUTPLUMBER_PRODUCT_FILE="$PRODUCT_FILE"
 export ZHOUKEER_INPUTPLUMBER_VENDOR_FILE="$VENDOR_FILE"
 export ZHOUKEER_INPUTPLUMBER_INSTALL_ROOT="$INSTALL_ROOT"
-export ZHOUKEER_INPUTPLUMBER_STATE_DIR="$TMP_ROOT/state/inputplumber-update"
+export ZHOUKEER_INPUTPLUMBER_STATE_DIR="$TEST_ROOT/state/inputplumber-update"
 export ZHOUKEER_INPUTPLUMBER_URL="https://github.com/ShadowBlip/InputPlumber/releases/download/v0.79.2/inputplumber-x86_64.tar.gz"
 export ZHOUKEER_INPUTPLUMBER_SHA256="$FIXTURE_SHA256"
 
@@ -156,29 +156,29 @@ toolbox_sudo() {
 
 # 非 SteamOS、root 和非壹号掌机必须在下载及系统修改前拒绝。
 MOCK_STEAMOS=0
-if ipu_update > "$TMP_ROOT/not-steamos.out" 2>&1; then
+if ipu_update > "$TEST_ROOT/not-steamos.out" 2>&1; then
     fail "非 SteamOS 仍允许更新 InputPlumber"
 fi
 [ ! -s "$CALLS" ] || fail "非 SteamOS 拒绝后仍调用了下载或系统命令"
 
 MOCK_STEAMOS=1
 MOCK_UID=0
-if ipu_update > "$TMP_ROOT/root.out" 2>&1; then
+if ipu_update > "$TEST_ROOT/root.out" 2>&1; then
     fail "root 用户仍允许直接更新 InputPlumber"
 fi
 [ ! -s "$CALLS" ] || fail "root 拒绝后仍调用了下载或系统命令"
 
 MOCK_UID=1000
 printf 'Steam Deck\n' > "$PRODUCT_FILE"
-if ipu_update > "$TMP_ROOT/not-onexplayer.out" 2>&1; then
+if ipu_update > "$TEST_ROOT/not-onexplayer.out" 2>&1; then
     fail "非壹号掌机仍允许更新 InputPlumber"
 fi
 [ ! -s "$CALLS" ] || fail "非壹号掌机拒绝后仍调用了下载或系统命令"
 
 # 成功流程：固定包下载、备份、写入、服务恢复和只读保护均需完成。
 printf 'ONEXPLAYER 2 PRO ARP23P\n' > "$PRODUCT_FILE"
-ipu_update > "$TMP_ROOT/update.out" || fail "InputPlumber 模拟更新失败"
-grep -Fq 'InputPlumber 已更新并验证为 0.79.2' "$TMP_ROOT/update.out" || fail "完成提示缺少目标版本"
+ipu_update > "$TEST_ROOT/update.out" || fail "InputPlumber 模拟更新失败"
+grep -Fq 'InputPlumber 已更新并验证为 0.79.2' "$TEST_ROOT/update.out" || fail "完成提示缺少目标版本"
 [ "$("$INSTALL_ROOT/usr/bin/inputplumber" --version)" = 'inputplumber 0.79.2' ] || fail "目标二进制版本不正确"
 [ -f "$INSTALL_ROOT/usr/share/inputplumber/devices/50-onexplayer_mini_pro.yaml" ] || fail "缺少 Mini Pro 配置"
 [ -f "$INSTALL_ROOT/usr/share/inputplumber/devices/50-onexplayer_2.yaml" ] || fail "缺少 2 Pro 配置"
@@ -197,7 +197,7 @@ tar -tzf "$BACKUP_FILE" | grep -Fq 'usr/bin/inputplumber' || fail "旧版备份�
 : > "$CALLS"
 MOCK_DOWNLOAD_FAIL=1
 MOCK_DATE=20260909-120002
-if ipu_update > "$TMP_ROOT/download-fail.out" 2>&1; then
+if ipu_update > "$TEST_ROOT/download-fail.out" 2>&1; then
     fail "下载失败后仍返回成功"
 fi
 grep -Fq 'download https://github.com/ShadowBlip/InputPlumber/' "$CALLS" || fail "未调用受控 GitHub 下载"
@@ -213,11 +213,11 @@ MOCK_READONLY=enabled
 MOCK_ENABLED=1
 MOCK_ACTIVE=1
 MOCK_DATE=20260909-120003
-if ipu_update > "$TMP_ROOT/restart-fail.out" 2>&1; then
+if ipu_update > "$TEST_ROOT/restart-fail.out" 2>&1; then
     fail "服务重启失败后仍返回成功"
 fi
 grep -Fxq 'steamos-readonly enable' "$CALLS" || fail "服务失败后未恢复只读保护"
-grep -Fq '旧版备份保留在' "$TMP_ROOT/restart-fail.out" || fail "失败后未提示保留备份"
+grep -Fq '旧版备份保留在' "$TEST_ROOT/restart-fail.out" || fail "失败后未提示保留备份"
 [ -f "$ZHOUKEER_INPUTPLUMBER_STATE_DIR/inputplumber-before-0.79.2-$MOCK_DATE.tar.gz" ] || \
     fail "服务失败后旧版备份丢失"
 
