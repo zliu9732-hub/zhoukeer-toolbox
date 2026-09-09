@@ -6,7 +6,6 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MAIN_FILE="$PROJECT_ROOT/main.sh"
 GUI_FILE="$PROJECT_ROOT/core/gui.sh"
 UI_FILE="$PROJECT_ROOT/core/ui.sh"
-BAZZITE_FILE="$PROJECT_ROOT/main-bazzite.sh"
 
 fail() {
     echo "FAIL: $*" >&2
@@ -35,7 +34,7 @@ assert_not_contains() {
     fi
 }
 
-for public_file in "$MAIN_FILE" "$GUI_FILE" "$BAZZITE_FILE" "$PROJECT_ROOT/README.md" "$PROJECT_ROOT/CHANGELOG.md"; do
+for public_file in "$MAIN_FILE" "$GUI_FILE" "$PROJECT_ROOT/README.md" "$PROJECT_ROOT/CHANGELOG.md"; do
     if grep -Fq 'Gitee' "$public_file"; then
         fail "用户可见内容仍显示内部镜像平台名称：$public_file"
     fi
@@ -51,13 +50,15 @@ for item in \
     '游戏与插件｜浏览插件商城和游戏组件' \
     '模拟器｜Switch、Wii U、PS1 至 3DS 模拟器' \
     '检查与维护｜检查网络、常见问题并生成诊断包' \
-    '更多设置｜国内下载、内存、密码和双系统' \
+    '更多设置｜国内下载、内存、密码和掌机适配' \
+    '双系统用户专用｜互通盘、Windows 与 Clover 设置' \
     '免责声明与使用须知｜查看完整图文说明'; do
     assert_contains "$touch_home" "$item" "触控首页缺少：$item"
     assert_contains "$gui_home" "$item" "GUI 首页缺少：$item"
 done
 
-[ "$(printf '%s\n' "$sidebar" | grep -c 'ui_sidebar_item')" -eq 9 ] || fail "触控侧栏不是八分类加退出"
+assert_contains "$sidebar" 'ui_sidebar_item 14 dual "◇ 双系统用户专用"' "SteamOS 触控侧栏缺少双系统用户专用"
+assert_contains "$sidebar" 'RENKIT_STEAMOS_DUAL_NAV' "SteamOS 双系统侧栏缺少平台隔离"
 
 touch_software="$(function_source "$MAIN_FILE" common_software_menu)"
 gui_software="$(function_source "$GUI_FILE" software_menu)"
@@ -246,14 +247,15 @@ done
 touch_advanced="$(function_source "$MAIN_FILE" advanced_tools_menu)"
 gui_advanced="$(function_source "$GUI_FILE" advanced_tools_gui_menu)"
 for menu in "$touch_advanced" "$gui_advanced"; do
-    assert_contains "$menu" '国内下载、网络加速、内存、密码与双系统' "更多设置缺少功能概览"
-    for item in '国内软件源' 'Steamcommunity 302' '虚拟内存' '修改管理员密码' '双系统与互通盘' '掌机适配'; do
+    assert_contains "$menu" '国内下载、网络加速、内存、密码与掌机适配' "更多设置缺少功能概览"
+    for item in '国内软件源' 'Steamcommunity 302' '虚拟内存' '修改管理员密码' '掌机适配'; do
         assert_contains "$menu" "$item" "系统设置缺少：$item"
     done
+    assert_not_contains "$menu" '双系统与互通盘' "双系统入口仍嵌套在更多设置"
     for removed in '设置管理员密码' '安装插件商城' '安装 ToDesk'; do
         assert_not_contains "$menu" "$removed" "系统设置仍显示重复入口：$removed"
     done
-    for risk_text in 'Flatpak 软件源' '修改 DNS' 'zram' '管理密码' '管理磁盘和开机菜单' '不使用 sudo'; do
+    for risk_text in 'Flatpak 软件源' '修改 DNS' 'zram' '管理密码' '不使用 sudo'; do
         assert_contains "$menu" "$risk_text" "系统设置缺少风险说明：$risk_text"
     done
 done

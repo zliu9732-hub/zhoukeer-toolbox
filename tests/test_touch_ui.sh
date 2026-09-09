@@ -153,13 +153,14 @@ for entry in \
     'ui_sidebar_item 8 emulators "▦ 模拟器"' \
     'ui_sidebar_item 10 support "◎ 检查与维护"' \
     'ui_sidebar_item 12 advanced "! 更多设置"' \
-    'ui_sidebar_item 14 uninstall "- 卸载已安装"' \
-    'ui_sidebar_item 16 notice "▧ 免责声明与须知"' \
-    'ui_sidebar_item 18 exit "× 退出Renkit"'; do
+    'ui_sidebar_item 14 dual "◇ 双系统用户专用"' \
+    'ui_sidebar_item 16 uninstall "- 卸载已安装"' \
+    'ui_sidebar_item 18 notice "▧ 免责声明与须知"' \
+    'ui_sidebar_item 20 exit "× 退出Renkit"'; do
     printf '%s\n' "$frame" | grep -Fq -- "$entry" || fail "侧栏缺少：$entry"
 done
 
-[ "$(printf '%s\n' "$frame" | grep -c 'ui_sidebar_item')" -eq 9 ] || fail "侧栏入口数量错误"
+printf '%s\n' "$frame" | grep -Fq 'RENKIT_STEAMOS_DUAL_NAV' || fail "侧栏缺少 SteamOS 双系统入口隔离"
 
 touch_nav="$(sed -n '/^read_touch_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 for mapping in \
@@ -169,9 +170,10 @@ for mapping in \
     'left:8-9:nav-emulators' \
     'left:10-11:nav-check' \
     'left:12-13:nav-advanced' \
-    'left:14-15:nav-uninstall' \
-    'left:16-17:nav-notice' \
-    'left:18-19:nav-exit'; do
+    'left:14-15:nav-dual' \
+    'left:16-17:nav-uninstall' \
+    'left:18-19:nav-notice' \
+    'left:20-21:nav-exit'; do
     printf '%s\n' "$touch_nav" | grep -Fq -- "$mapping" || fail "导航坐标缺失：$mapping"
 done
 
@@ -207,12 +209,15 @@ for aligned_line in \
     'ui_panel_line 10' \
     'ui_panel_line 12' \
     'ui_panel_line 14' \
-    'ui_panel_line 16'; do
+    'ui_panel_line 16' \
+    'ui_panel_line 18' \
+    'ui_panel_line 20'; do
     printf '%s\n' "$home" | grep -Fq "$aligned_line" || fail "首页说明没有与左侧分类对齐：$aligned_line"
 done
+printf '%s\n' "$home" | grep -Fq '双系统用户专用' || fail "首页缺少双系统用户专用说明"
 
 changelog="$(sed -n '/^changelog_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 printf '%s\n' "$changelog" | grep -Fq 'CHANGELOG.md' || fail "更新日志文件映射缺失"
 printf '%s\n' "$changelog" | grep -Fq 'VERSION' || fail "更新日志版本映射缺失"
 
-echo "PASS: 九分类触控坐标、返回首页和基础界面配置正确"
+echo "PASS: SteamOS 十项侧栏、返回首页和基础界面配置正确"

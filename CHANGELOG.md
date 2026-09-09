@@ -1,3 +1,9 @@
+## Renkit 2.3.7 SteamOS 双系统独立入口 — 2026-09-09
+
+- SteamOS 左侧主导航新增“**双系统用户专用**”，直接进入互通盘、Windows 切换与 Clover 设置，不再嵌套在“更多设置”中。
+- 同步调整 SteamOS 触控热区、侧栏底部边框、首页说明和桌面 GUI 主菜单；原有双系统确认、备份、平台检测与安全退出逻辑保持不变。
+- 自本版本起停止维护 Bazzite 与 ChimeraOS 版本；后续默认只开发和测试 SteamOS 主线。
+
 ## Renkit 2.3.6 Clover 独立设置与 PowerControl — 2026-09-09
 
 - 将 Clover“隐藏菜单”“默认进入 Windows”“默认进入 SteamOS”拆分为互不覆盖的独立操作；Bazzite 对应提供“默认进入 Bazzite”。

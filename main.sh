@@ -49,6 +49,8 @@ enable_mouse_tracking
 trap 'disable_mouse_tracking' EXIT INT TERM
 
 NEXT_CATEGORY="home"
+RENKIT_STEAMOS_DUAL_NAV=1
+export RENKIT_STEAMOS_DUAL_NAV
 
 # Decky 官方插件的中文短说明。触控界面每页仅显示 5 个，避免小屏幕按钮拥挤。
 DECKY_OFFICIAL_PLUGIN_NAMES=(
@@ -191,9 +193,10 @@ read_touch_menu() {
         left:8-9:nav-emulators \
         left:10-11:nav-check \
         left:12-13:nav-advanced \
-        left:14-15:nav-uninstall \
-        left:16-17:nav-notice \
-        left:18-19:nav-exit \
+        left:14-15:nav-dual \
+        left:16-17:nav-uninstall \
+        left:18-19:nav-notice \
+        left:20-21:nav-exit \
         "$@"
 }
 
@@ -205,6 +208,7 @@ apply_navigation() {
         nav-emulators) NEXT_CATEGORY="emulators" ;;
         nav-network|nav-maintenance|nav-help|nav-check) NEXT_CATEGORY="support" ;;
         nav-advanced) NEXT_CATEGORY="advanced" ;;
+        nav-dual) NEXT_CATEGORY="dual" ;;
         nav-uninstall) NEXT_CATEGORY="uninstall" ;;
         nav-notice) NEXT_CATEGORY="notice" ;;
         # 旧导航 ID 仅保留兼容，不再显示在首页。
@@ -212,7 +216,6 @@ apply_navigation() {
         nav-plugins) NEXT_CATEGORY="games" ;;
         nav-settings) NEXT_CATEGORY="support" ;;
         nav-optimize|nav-guides|nav-changelog|nav-update) NEXT_CATEGORY="support" ;;
-        nav-dual) NEXT_CATEGORY="advanced" ;;
         nav-exit) NEXT_CATEGORY="exit" ;;
         *) return 1 ;;
     esac
@@ -1073,7 +1076,7 @@ dual_system_menu() {
 
     while true; do
         if [ "$page" -eq 0 ]; then
-            draw_category_frame advanced "双系统常用工具" "磁盘与互通盘 · 第 1/2 页"
+            draw_category_frame dual "双系统用户专用" "磁盘与互通盘 · 第 1/2 页"
             ui_touch_button 5 '\033[1;97;48;5;24m' "挂载双系统互通盘" "自动排除 Windows 系统分区"
             ui_touch_button 7 '\033[1;97;48;5;160m' "初始化并挂载 TF 卡" "会清空目标卡并格式化为 NTFS"
             ui_touch_button 9 '\033[1;97;48;5;160m' "修复磁盘写入错误" "NTFS/exFAT 基础修复 · 会卸载磁盘"
@@ -1082,12 +1085,12 @@ dual_system_menu() {
             ui_touch_button 15 '\033[1;97;48;5;24m' "应用 Renkit 开机背景" "替换 Clover Apocalypse 主题背景"
             ui_touch_button 17 '\033[1;97;48;5;24m' "默认进入 Windows" "只修改 Clover 默认项，不改变菜单显示"
             ui_touch_button 19 '\033[1;97;48;5;24m' "更多双系统工具" "状态、删除与第三方引导清理"
-            ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
+            ui_touch_button 21 '\033[1;97;48;5;238m' "返回更多设置" "查看其他系统功能"
             ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
             ui_prompt
             choice="$(read_touch_menu right:5-6:mount right:7-8:tf-format right:9-10:repair-drive right:11-12:protect right:13-14:clover-steamos right:15-16:clover-background right:17-18:clover-windows right:19-20:next right:21-22:advanced right:23-24:home)"
         else
-            draw_category_frame advanced "更多双系统工具" "只读检查、恢复与引导清理 · 第 2/2 页"
+            draw_category_frame dual "更多双系统工具" "只读检查、恢复与引导清理 · 第 2/2 页"
             ui_touch_button 5 '\033[1;97;48;5;24m' "双系统健康检查" "识别 Clover、rEFInd、GRUB、OpenCore 等"
             ui_touch_button 7 '\033[1;97;48;5;24m' "恢复互通盘写入" "退出只读保护并重新挂载"
             ui_touch_button 9 '\033[1;97;48;5;160m' "清理第三方引导项" "仅删选定 NVRAM，保留 EFI 文件"
@@ -1096,7 +1099,7 @@ dual_system_menu() {
             ui_touch_button 15 '\033[1;97;48;5;160m' "隐藏 Clover 菜单" "等待时间设为 0 秒，不改变默认系统"
             ui_touch_button 17 '\033[1;97;48;5;24m' "重新显示 Clover 菜单" "恢复 8 秒开机选择时间"
             ui_touch_button 19 '\033[1;97;48;5;24m' "返回常用工具" "回到双系统常用功能"
-            ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
+            ui_touch_button 21 '\033[1;97;48;5;238m' "返回更多设置" "查看其他系统功能"
             ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
             ui_prompt
             choice="$(read_touch_menu right:5-6:health right:7-8:unprotect right:9-10:cleanup-boot right:11-12:repair-boot right:13-14:switch-to-windows right:15-16:clover-hide right:17-18:clover-menu right:19-20:previous right:21-22:advanced right:23-24:home)"
@@ -1162,7 +1165,7 @@ dual_system_menu() {
             advanced) NEXT_CATEGORY="advanced"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
-        [ "$NEXT_CATEGORY" = "advanced" ] || return 0
+        [ "$NEXT_CATEGORY" = "dual" ] || return 0
     done
 }
 
@@ -1304,23 +1307,21 @@ advanced_tools_menu() {
     local choice
 
     while true; do
-        draw_category_frame advanced "更多设置" "国内下载、网络加速、内存、密码与双系统"
+        draw_category_frame advanced "更多设置" "国内下载、网络加速、内存、密码与掌机适配"
         ui_touch_button 7 '\033[1;97;48;5;160m' "国内软件源" "会修改 Flatpak 软件源 · 高级操作"
         ui_touch_button 9 '\033[1;97;48;5;160m' "Steamcommunity 302" "可能修改 DNS 和证书 · 高级操作"
         ui_touch_button 11 '\033[1;97;48;5;160m' "虚拟内存" "设置 zram、swap 或撤销 · 高级操作"
         ui_touch_button 13 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "双系统与互通盘" "管理磁盘和开机菜单 · 高级操作"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "掌机适配" "F1 屏幕修复不使用 sudo · 壹号掌机特殊按键"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "掌机适配" "F1 屏幕修复不使用 sudo · 壹号掌机特殊按键"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:memory right:13-14:change-password right:15-16:dual right:17-18:handheld right:22-23:home)"
+        choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:memory right:13-14:change-password right:15-16:handheld right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             domestic-source) domestic_source_preflight ;;
             accelerator) steam_accelerator_touch_menu ;;
             memory) memory_touch_menu ;;
             change-password) confirm_and_run "修改管理员密码" "将读取旧记录并明文保存新密码；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;
-            dual) dual_system_menu ;;
             handheld) f1_handheld_menu ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -1716,9 +1717,11 @@ home_menu() {
     ui_panel_line 6 '\033[1;38;5;45m' "游戏与插件｜浏览插件商城和游戏组件"
     ui_panel_line 8 '\033[1;38;5;45m' "模拟器｜Switch、Wii U、PS1 至 3DS 模拟器"
     ui_panel_line 10 '\033[1;38;5;114m' "检查与维护｜检查网络、常见问题并生成诊断包"
-    ui_panel_line 12 '\033[1;38;5;203m' "更多设置｜国内下载、内存、密码和双系统"
-    ui_panel_line 14 '\033[1;38;5;203m' "卸载已安装｜逐项安全移除软件和系统组件"
-    ui_panel_line 16 '\033[1;38;5;250m' "免责声明与使用须知｜查看完整图文说明"
+    ui_panel_line 12 '\033[1;38;5;203m' "更多设置｜国内下载、内存、密码和掌机适配"
+    ui_panel_line 14 '\033[1;38;5;220m' "双系统用户专用｜互通盘、Windows 与 Clover 设置"
+    ui_panel_line 16 '\033[1;38;5;203m' "卸载已安装｜逐项安全移除软件和系统组件"
+    ui_panel_line 18 '\033[1;38;5;250m' "免责声明与使用须知｜查看完整图文说明"
+    ui_panel_line 20 '\033[1;38;5;250m' "退出Renkit｜关闭掌机工具箱"
     ui_prompt
     choice="$(read_touch_menu)"
     apply_navigation "$choice" || true
@@ -1747,13 +1750,13 @@ while true; do
         emulators) emulator_menu ;;
         network|support) support_menu ;;
         advanced) advanced_tools_menu ;;
+        dual) dual_system_menu ;;
         uninstall) uninstall_software_menu ;;
         notice) usage_notice_menu ;;
         # 旧分类仅保留内部兼容，不再显示在首页。
         remote) NEXT_CATEGORY="software" ;;
         plugins|plugins-menu) NEXT_CATEGORY="games" ;;
         settings) NEXT_CATEGORY="support" ;;
-        dual) NEXT_CATEGORY="advanced" ;;
         maintenance|help|optimize|guides|changelog) NEXT_CATEGORY="support" ;;
         update)
             confirm_and_run "检查并更新Renkit" "会联网下载、校验并安全替换为最新版本" bash "$PROJECT_ROOT/update.sh"

@@ -6,7 +6,6 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MAIN_FILE="$PROJECT_ROOT/main.sh"
 GUI_FILE="$PROJECT_ROOT/core/gui.sh"
 UI_FILE="$PROJECT_ROOT/core/ui.sh"
-BAZZITE_FILE="$PROJECT_ROOT/main-bazzite.sh"
 
 fail() {
     echo "FAIL: $*" >&2
@@ -46,24 +45,30 @@ for mapping in \
     'left:8-9:nav-emulators' \
     'left:10-11:nav-check' \
     'left:12-13:nav-advanced' \
-    'left:14-15:nav-uninstall' \
-    'left:16-17:nav-notice' \
-    'left:18-19:nav-exit'; do
+    'left:14-15:nav-dual' \
+    'left:16-17:nav-uninstall' \
+    'left:18-19:nav-notice' \
+    'left:20-21:nav-exit'; do
     assert_contains "$touch_nav" "$mapping" "触控首页映射缺失：$mapping"
 done
 
-for action in nav-init nav-software nav-games nav-emulators nav-check nav-advanced nav-uninstall nav-notice nav-exit; do
+for action in nav-init nav-software nav-games nav-emulators nav-check nav-advanced nav-dual nav-uninstall nav-notice nav-exit; do
     assert_contains "$gui_home" "$action" "GUI 首页映射缺失：$action"
 done
 
-for old_action in nav-remote nav-plugins nav-settings nav-dual nav-optimize nav-guides nav-changelog nav-update nav-network nav-help; do
+for old_action in nav-remote nav-plugins nav-settings nav-optimize nav-guides nav-changelog nav-update nav-network nav-help; do
     assert_not_contains "$touch_nav" "$old_action" "旧导航仍显示在触控首页：$old_action"
     assert_not_contains "$gui_home" "$old_action" "旧导航仍显示在 GUI 首页：$old_action"
 done
 
-for selected in init software games emulators support advanced uninstall notice exit; do
+for selected in init software games emulators support advanced dual uninstall notice exit; do
     assert_contains "$sidebar" " $selected \"" "侧栏缺少分类：$selected"
 done
+
+assert_contains "$sidebar" 'RENKIT_STEAMOS_DUAL_NAV' "侧栏缺少 SteamOS 双系统入口隔离开关"
+assert_contains "$sidebar" 'ui_sidebar_item 14 dual "◇ 双系统用户专用"' "SteamOS 侧栏缺少双系统用户专用入口"
+assert_contains "$touch_nav" 'nav-dual' "SteamOS 触控首页缺少双系统用户专用动作"
+assert_contains "$gui_home" 'nav-dual "双系统用户专用' "SteamOS GUI 首页缺少双系统用户专用入口"
 
 touch_software="$(function_source "$MAIN_FILE" common_software_menu)"
 touch_software_more="$(function_source "$MAIN_FILE" common_software_more_menu)"
@@ -121,11 +126,9 @@ assert_contains "$touch_lsfg" 'modules/plugin_store.sh" lsfg-mako' "MAKO 小黄�
 assert_contains "$touch_games" 'NEXT_CATEGORY="lsfg_versions"' "小黄鸭未进入版本选择子菜单"
 official_plugin_names="$(sed -n '/^DECKY_OFFICIAL_PLUGIN_NAMES=(/,/^)/p' "$MAIN_FILE")"
 gui_official_plugin_names="$(sed -n '/^DECKY_OFFICIAL_PLUGIN_NAMES=(/,/^)/p' "$GUI_FILE")"
-bazzite_official_plugin_names="$(sed -n '/^DECKY_OFFICIAL_PLUGIN_NAMES=(/,/^)/p' "$BAZZITE_FILE")"
 assert_not_contains "$official_plugin_names" 'Freedeck' "官方插件最后一页仍显示 Freedeck"
 assert_not_contains "$official_plugin_names" 'ProtonDB Badges' "官方插件页仍显示 ProtonDB Badges"
 assert_not_contains "$gui_official_plugin_names" 'ProtonDB Badges' "GUI 官方插件页仍显示 ProtonDB Badges"
-assert_not_contains "$bazzite_official_plugin_names" 'ProtonDB Badges' "Bazzite 官方插件页仍显示 ProtonDB Badges"
 touch_plugin_page_2="$(function_source "$MAIN_FILE" plugin_page_2_menu)"
 assert_contains "$touch_plugin_page_2" 'right:5-6:deckrecall right:7-8:savepulse' "DeckRecall 与 SavePulse 未在插件第二页连续显示"
 assert_contains "$touch_plugin_page_2" 'modules/plugin_store.sh" deckrecall' "DeckRecall 第二页动作错误"
@@ -181,6 +184,11 @@ assert_contains "$touch_yuzu" '本人合法备份' "Yuzu 密钥入口缺少合�
 assert_contains "$touch_support" 'right:22-23:home' "检查与维护缺少返回首页"
 assert_contains "$touch_maintenance" 'right:22-23:home' "系统维护缺少返回首页"
 assert_contains "$touch_advanced" 'right:11-12:memory' "系统设置缺少虚拟内存子菜单动作"
+assert_not_contains "$touch_advanced" '双系统与互通盘' "双系统入口仍嵌套在触控更多设置"
+assert_not_contains "$touch_advanced" 'right:15-16:dual' "双系统触控动作仍嵌套在更多设置"
+assert_contains "$touch_advanced" 'right:15-16:handheld' "掌机适配移动后的触控坐标错误"
+gui_advanced="$(function_source "$GUI_FILE" advanced_tools_gui_menu)"
+assert_not_contains "$gui_advanced" '双系统与互通盘' "双系统入口仍嵌套在 GUI 更多设置"
 assert_contains "$touch_memory" 'right:7-8:optimize' "虚拟内存菜单缺少优化动作"
 assert_contains "$touch_memory" 'right:11-12:status' "虚拟内存菜单缺少状态动作"
 assert_contains "$touch_memory" 'right:15-16:restore' "虚拟内存菜单缺少撤销动作"
@@ -300,13 +308,4 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_not_contains "$source_text" 'modules/dual_system_tools.sh" windows-next' "已移除的 Windows 立即切换仍可从菜单执行：$file"
 done
 
-bazzite_clover="$(function_source "$PROJECT_ROOT/main-bazzite.sh" bazzite_clover_menu)"
-assert_contains "$bazzite_clover" '备份清理旧 SteamOS 引导' "Bazzite Clover 安装入口未说明自动清理"
-assert_contains "$bazzite_clover" 'modules/clover_boot.sh" hide-menu' "Bazzite Clover 隐藏菜单动作缺失"
-assert_contains "$bazzite_clover" 'modules/clover_boot.sh" show-menu' "Bazzite Clover 菜单恢复动作缺失"
-assert_contains "$bazzite_clover" 'modules/clover_boot.sh" default-windows' "Bazzite Clover 默认 Windows 动作缺失"
-assert_contains "$bazzite_clover" 'modules/clover_boot.sh" default-bazzite' "Bazzite Clover 默认 Bazzite 动作缺失"
-assert_not_contains "$bazzite_clover" 'modules/clover_boot.sh" autoboot-windows' "Bazzite Clover 菜单仍暴露旧组合动作"
-assert_not_contains "$bazzite_clover" 'cleanup-steamos' "旧 SteamOS 清理不应暴露为独立菜单动作"
-
-echo "PASS: 九分类导航、关键动作和返回坐标映射一致"
+echo "PASS: SteamOS 独立双系统导航、关键动作和返回坐标映射一致"

@@ -420,7 +420,7 @@ ui_sidebar_item() {
     local value="$2"
     local label="$3"
     local selected="$4"
-    local current content_bottom
+    local current content_bottom sidebar_last_row=18
     local marker='  '
     local foreground='\033[38;5;250m'
     local border='\033[38;5;131m'
@@ -434,6 +434,7 @@ ui_sidebar_item() {
         emulators) [ -z "${RENKIT_NAV_EMULATORS_LABEL:-}" ] || label="$RENKIT_NAV_EMULATORS_LABEL" ;;
         support) [ -z "${RENKIT_NAV_SUPPORT_LABEL:-}" ] || label="$RENKIT_NAV_SUPPORT_LABEL" ;;
         advanced) [ -z "${RENKIT_NAV_ADVANCED_LABEL:-}" ] || label="$RENKIT_NAV_ADVANCED_LABEL" ;;
+        dual) [ -z "${RENKIT_NAV_DUAL_LABEL:-}" ] || label="$RENKIT_NAV_DUAL_LABEL" ;;
         uninstall) [ -z "${RENKIT_NAV_UNINSTALL_LABEL:-}" ] || label="$RENKIT_NAV_UNINSTALL_LABEL" ;;
         notice) [ -z "${RENKIT_NAV_NOTICE_LABEL:-}" ] || label="$RENKIT_NAV_NOTICE_LABEL" ;;
         exit) [ -z "${RENKIT_NAV_EXIT_LABEL:-}" ] || label="$RENKIT_NAV_EXIT_LABEL" ;;
@@ -451,7 +452,8 @@ ui_sidebar_item() {
     ui_button_rect left "$row" || return 1
     UI_BOX_COL="$UI_HIT_COL" UI_BOX_WIDTH="$UI_HIT_WIDTH"
     content_bottom="$UI_HIT_BOTTOM"
-    [ "$row" -ne 18 ] || content_bottom=$((content_bottom - 1))
+    [ "${RENKIT_STEAMOS_DUAL_NAV:-0}" != "1" ] || sidebar_last_row=20
+    [ "$row" -ne "$sidebar_last_row" ] || content_bottom=$((content_bottom - 1))
     UI_BOX_TEXT_ROW=$(((UI_HIT_TOP + 1 + content_bottom) / 2)) UI_BOX_HINT_ROW=0
     printf '\033[?7l'
     ui_move_absolute "$UI_HIT_TOP" "$UI_BOX_COL"
@@ -465,7 +467,7 @@ ui_sidebar_item() {
         ui_move_absolute "$current" "$UI_BOX_COL"
         printf '%b│%*s│' "$border" "$((UI_BOX_WIDTH - 2))" ''
     done
-    if [ "$row" -eq 18 ]; then
+    if [ "$row" -eq "$sidebar_last_row" ]; then
         ui_move_absolute "$UI_HIT_BOTTOM" "$UI_BOX_COL"
         printf '\033[38;5;131m╰'; ui_rule "$((UI_BOX_WIDTH - 2))"; printf '╯'
     fi
@@ -515,16 +517,23 @@ draw_category_frame() {
     ui_move 1 3
     printf '\033[1;38;5;203mRENKIT\033[0m  \033[38;5;245m掌机工具箱\033[0m'
 
-    # 九个分类共用等高布局；最小 24 行窗口也保留全部入口。
+    # SteamOS 独立显示双系统入口；冻结的 Bazzite/ChimeraOS 继续保留原九项布局。
     ui_sidebar_item 2 init "◆ 新机器设置" "$selected"
     ui_sidebar_item 4 software "▣ 安装常用软件" "$selected"
     ui_sidebar_item 6 games "✦ 游戏与插件" "$selected"
     ui_sidebar_item 8 emulators "▦ 模拟器" "$selected"
     ui_sidebar_item 10 support "◎ 检查与维护" "$selected"
     ui_sidebar_item 12 advanced "! 更多设置" "$selected" 0
-    ui_sidebar_item 14 uninstall "- 卸载已安装" "$selected" 0
-    ui_sidebar_item 16 notice "▧ 免责声明与须知" "$selected" 0
-    ui_sidebar_item 18 exit "× 退出Renkit" "$selected" 0
+    if [ "${RENKIT_STEAMOS_DUAL_NAV:-0}" = "1" ]; then
+        ui_sidebar_item 14 dual "◇ 双系统用户专用" "$selected" 0
+        ui_sidebar_item 16 uninstall "- 卸载已安装" "$selected" 0
+        ui_sidebar_item 18 notice "▧ 免责声明与须知" "$selected" 0
+        ui_sidebar_item 20 exit "× 退出Renkit" "$selected" 0
+    else
+        ui_sidebar_item 14 uninstall "- 卸载已安装" "$selected" 0
+        ui_sidebar_item 16 notice "▧ 免责声明与须知" "$selected" 0
+        ui_sidebar_item 18 exit "× 退出Renkit" "$selected" 0
+    fi
 
     row=2
     while [ "$row" -lt "$UI_ROWS" ]; do

@@ -669,7 +669,7 @@ dual_system_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "双系统与互通盘｜磁盘和开机菜单设置｜高级操作" \
+        choice="$(gui_dialog --menu "双系统用户专用｜磁盘、互通盘和开机菜单设置｜高级操作" \
             health "双系统健康检查｜识别 Clover、rEFInd、GRUB、OpenCore 等｜只读" \
             mount "挂载双系统互通盘｜自动排除 Windows 系统分区｜高级操作" \
             tf-format "初始化并挂载 TF 卡｜清空并格式化为 NTFS｜高风险" \
@@ -684,7 +684,6 @@ dual_system_menu() {
             clover-windows "默认进入 Windows｜只修改 Clover 默认项｜菜单状态不变" \
             clover-steamos "默认进入 SteamOS｜只修改 Clover 默认项｜菜单状态不变" \
             clover-background "应用 Renkit 开机背景｜仅替换 Clover Apocalypse 主题背景" \
-            back "返回系统设置" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
         case "$choice" in
@@ -753,7 +752,6 @@ dual_system_menu() {
                     run_gui_action "应用 Renkit 开机背景" \
                     bash "$PROJECT_ROOT/modules/clover_boot.sh" apply-background
                 ;;
-            back) return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
         esac
@@ -1153,12 +1151,11 @@ advanced_tools_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "更多设置｜国内下载、网络加速、内存、密码与双系统" \
+        choice="$(gui_dialog --menu "更多设置｜国内下载、网络加速、内存、密码与掌机适配" \
             domestic-source "国内软件源｜会修改 Flatpak 软件源｜高级操作" \
             accelerator "Steamcommunity 302｜可能修改 DNS 和证书｜高级操作" \
             memory "虚拟内存｜设置 zram、swap 或撤销｜高级操作" \
             change-password "修改管理员密码｜会更换 SteamOS 管理密码｜高级操作" \
-            dual "双系统与互通盘｜管理磁盘和开机菜单｜高级操作" \
             handheld "掌机适配｜F1 屏幕修复不使用 sudo｜壹号掌机特殊按键" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
@@ -1170,7 +1167,6 @@ advanced_tools_gui_menu() {
                 gui_confirm "将读取旧记录并明文保存新密码；当前用户运行的软件都可能读取。确认继续？" && \
                     run_gui_action "修改管理员密码" bash "$PROJECT_ROOT/modules/password.sh" change
                 ;;
-            dual) dual_system_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             handheld) f1_screen_fix_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
@@ -1325,7 +1321,8 @@ main_gui_menu() {
             nav-games "游戏与插件｜浏览插件商城和游戏组件" \
             nav-emulators "模拟器｜Switch、Wii U、PS1 至 3DS 模拟器" \
             nav-check "检查与维护｜检查网络、常见问题并生成诊断包" \
-            nav-advanced "更多设置｜国内下载、内存、密码和双系统" \
+            nav-advanced "更多设置｜国内下载、内存、密码和掌机适配" \
+            nav-dual "双系统用户专用｜互通盘、Windows 与 Clover 设置" \
             nav-uninstall "卸载已安装｜逐项安全移除软件和系统组件" \
             nav-notice "免责声明与使用须知｜查看完整图文说明" \
             nav-exit "退出Renkit")" || exit 0
@@ -1337,6 +1334,7 @@ main_gui_menu() {
             nav-emulators) emulator_gui_menu ;;
             nav-check) support_gui_menu ;;
             nav-advanced) advanced_tools_gui_menu ;;
+            nav-dual) dual_system_menu ;;
             nav-uninstall) uninstall_software_gui_menu ;;
             nav-notice)
                 gui_dialog --yesno "请确认已阅读首次启动页的免责声明。\n\nRenkit不包含付费软件、破解、ROM、BIOS 或密钥；涉及下载、安装、权限或磁盘的操作都会另行提示并确认。\n\n点击“我已阅读并知悉”会关闭本页并返回首页。" \
