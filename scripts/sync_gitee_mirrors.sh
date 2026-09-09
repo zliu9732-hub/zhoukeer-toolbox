@@ -405,6 +405,10 @@ sync_plugin simpledeckytdp "aarron-lee/SimpleDeckyTDP" '^SimpleDeckyTDP[.]zip$' 
     "v1.0.7" "SimpleDeckyTDP.zip" \
     "https://github.com/aarron-lee/SimpleDeckyTDP/releases/download/v1.0.7/SimpleDeckyTDP.zip" \
     "dae7cf43ec8936c07a94a08ac418be8d9e129744a54f3aa63d2b31222bc0ad38"
+sync_plugin powercontrol "mengmeet/PowerControl" '^$' "PowerControl" \
+    "v3.15.1" "PowerControl.zip" \
+    "https://github.com/mengmeet/PowerControl/releases/download/v3.15.1/PowerControl.zip" \
+    "9c14eddbec7657a23e73eaf811bd8344198159d48303481cf70ebb7c1c1ebd7c" "$MIRROR3"
 # HMCL 启动器固定版本，镜像必须与Renkit内置版本一致，否则 SHA 校验会拒绝。
 sync_plugin hmcl "HMCL-dev/HMCL" '^HMCL-[0-9.]+[.]jar$' "HMCL" \
     "v3.16.3" "HMCL-3.16.3.jar" \

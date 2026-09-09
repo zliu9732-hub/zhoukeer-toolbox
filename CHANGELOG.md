@@ -1,3 +1,9 @@
+## Renkit 2.3.6 Clover 独立设置与 PowerControl — 2026-09-09
+
+- 将 Clover“隐藏菜单”“默认进入 Windows”“默认进入 SteamOS”拆分为互不覆盖的独立操作；Bazzite 对应提供“默认进入 Bazzite”。
+- 新增 PowerControl v3.15.1 官方原包入口，放入掌机控制插件菜单，沿用国内优先、作者 Release 回退、固定 SHA256 校验与原子安装流程。
+- PowerControl 菜单明确提示 Decky root 权限、功耗/风扇插件冲突及过热风险，不在用户可见描述中展示下载镜像实现细节。
+
 ## Renkit 2.3.4 ChimeraOS Decky 预检修复 — 2026-09-08
 ## Renkit 2.3.5 ChimeraOS 插件目录权限修复 — 2026-09-08
 

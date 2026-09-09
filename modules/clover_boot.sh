@@ -464,9 +464,9 @@ clover_configure_default_loader_path() {
     local temporary="${config}.loader.$$"
 
     case "$loader" in
-        \\EFI\\Microsoft\\Boot\\bootmgfw.efi|\\EFI\\Microsoft\\bootmgfw.efi) ;;
+        \\EFI\\Microsoft\\Boot\\bootmgfw.efi|\\EFI\\Microsoft\\bootmgfw.efi|\\EFI\\STEAMOS\\STEAMCL.efi|\\EFI\\fedora\\shimx64.efi) ;;
         *)
-            echo "Windows EFI 启动路径不在允许列表中，Clover 配置未修改。" >&2
+            echo "EFI 启动路径不在允许列表中，Clover 配置未修改。" >&2
             return 1
             ;;
     esac
@@ -486,7 +486,7 @@ clover_configure_default_loader_path() {
         END { if (found != 1) exit 4 }
     ' "$config" > "$temporary" || {
         rm -f -- "$temporary"
-        echo "无法安全更新 Clover 的 Windows 默认启动项，配置文件未修改。" >&2
+        echo "无法安全更新 Clover 默认启动项，配置文件未修改。" >&2
         return 1
     }
     mv -- "$temporary" "$config"
@@ -533,6 +533,25 @@ clover_windows_loader_path() {
     else
         echo "未找到可用的 Windows EFI 启动文件；不会把 Clover 指向 .orig 或语言资源文件。" >&2
         return 1
+    fi
+}
+
+clover_linux_loader_path() {
+    local linux_name
+
+    linux_name="$(clover_linux_name)"
+    if [ "$linux_name" = "Bazzite" ]; then
+        clover_path_is_file "$CLOVER_ESP/EFI/fedora/shimx64.efi" || {
+            echo "未找到可用的 Bazzite EFI 启动文件。" >&2
+            return 1
+        }
+        printf '%s\n' '\EFI\fedora\shimx64.efi'
+    else
+        clover_path_is_file "$CLOVER_ESP/EFI/steamos/steamcl.efi" || {
+            echo "未找到可用的 SteamOS EFI 启动文件。" >&2
+            return 1
+        }
+        printf '%s\n' '\EFI\STEAMOS\STEAMCL.efi'
     fi
 }
 
@@ -623,6 +642,138 @@ clover_confirm_show_menu() {
     fi
     read -r -p "确认重新显示 Clover 菜单请输入 MENU：" answer
     [ "$answer" = "MENU" ]
+}
+
+clover_confirm_hide_menu() {
+    local answer
+
+    echo "将隐藏 Clover 开机菜单，把等待时间设为 0 秒。"
+    echo "当前默认启动系统保持不变，不修改 EFI 文件或 UEFI BootOrder。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        echo "已通过Renkit界面确认，开始修改 Clover 配置。"
+        return 0
+    fi
+    read -r -p "确认隐藏 Clover 菜单请输入 HIDE：" answer
+    [ "$answer" = "HIDE" ]
+}
+
+clover_confirm_default_windows() {
+    local answer
+
+    echo "将把 Clover 默认启动项改为 Windows。"
+    echo "菜单当前的显示或隐藏状态保持不变，不修改 EFI 文件或 UEFI BootOrder。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        echo "已通过Renkit界面确认，开始修改 Clover 配置。"
+        return 0
+    fi
+    read -r -p "确认默认进入 Windows 请输入 WINDOWS：" answer
+    [ "$answer" = "WINDOWS" ]
+}
+
+clover_confirm_default_linux() {
+    local answer linux_name
+
+    linux_name="$(clover_linux_name)"
+    echo "将把 Clover 默认启动项改为 ${linux_name}。"
+    echo "菜单当前的显示或隐藏状态保持不变，不修改 EFI 文件或 UEFI BootOrder。"
+    if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
+        echo "已通过Renkit界面确认，开始修改 Clover 配置。"
+        return 0
+    fi
+    read -r -p "确认默认进入 ${linux_name} 请输入 LINUX：" answer
+    [ "$answer" = "LINUX" ]
+}
+
+clover_hide_menu() {
+    local work_dir working config
+
+    require_supported_gaming_os || return 1
+    for command_name in awk cat cp findmnt grep lsblk mkdir mktemp mv rm sudo; do
+        require_command "$command_name" || return 1
+    done
+    clover_prepare_admin_access || return 1
+    clover_find_esp || return 1
+    CLOVER_ESP="$CLOVER_ESP_FOUND"
+    config="$CLOVER_ESP/EFI/CLOVER/config.plist"
+    clover_confirm_hide_menu || {
+        echo "已取消，Clover 配置未修改。"
+        return 0
+    }
+
+    work_dir="$(mktemp -d)" || return 1
+    working="$work_dir/config.plist"
+    if ! clover_prepare_live_config "$working" ||
+        ! clover_configure_timeout "$working" 0 ||
+        ! clover_write_live_config "$working" "$config"; then
+        rm -rf -- "$work_dir"
+        return 1
+    fi
+    rm -rf -- "$work_dir"
+    echo "Clover 菜单已隐藏；默认启动项保持不变。"
+    log "Clover菜单已隐藏: esp=$CLOVER_ESP timeout=0"
+}
+
+clover_default_windows() {
+    local work_dir working config loader
+
+    require_supported_gaming_os || return 1
+    for command_name in awk cat cp findmnt grep lsblk mkdir mktemp mv rm sudo; do
+        require_command "$command_name" || return 1
+    done
+    clover_prepare_admin_access || return 1
+    clover_find_esp || return 1
+    CLOVER_ESP="$CLOVER_ESP_FOUND"
+    config="$CLOVER_ESP/EFI/CLOVER/config.plist"
+    loader="$(clover_windows_loader_path)" || return 1
+    clover_confirm_default_windows || {
+        echo "已取消，Clover 配置未修改。"
+        return 0
+    }
+
+    work_dir="$(mktemp -d)" || return 1
+    working="$work_dir/config.plist"
+    if ! clover_prepare_live_config "$working" ||
+        ! clover_configure_default_loader_path "$working" "$loader" ||
+        ! clover_write_live_config "$working" "$config"; then
+        rm -rf -- "$work_dir"
+        return 1
+    fi
+    rm -rf -- "$work_dir"
+    echo "Clover 默认启动项已改为 Windows；菜单显示状态保持不变。"
+    echo "实际 Windows 启动路径：$loader"
+    log "Clover默认项已改为Windows: esp=$CLOVER_ESP loader=$loader"
+}
+
+clover_default_linux() {
+    local work_dir working config loader linux_name
+
+    require_supported_gaming_os || return 1
+    for command_name in awk cat cp findmnt grep lsblk mkdir mktemp mv rm sudo; do
+        require_command "$command_name" || return 1
+    done
+    clover_prepare_admin_access || return 1
+    clover_find_esp || return 1
+    CLOVER_ESP="$CLOVER_ESP_FOUND"
+    config="$CLOVER_ESP/EFI/CLOVER/config.plist"
+    linux_name="$(clover_linux_name)"
+    loader="$(clover_linux_loader_path)" || return 1
+    clover_confirm_default_linux || {
+        echo "已取消，Clover 配置未修改。"
+        return 0
+    }
+
+    work_dir="$(mktemp -d)" || return 1
+    working="$work_dir/config.plist"
+    if ! clover_prepare_live_config "$working" ||
+        ! clover_configure_default_loader_path "$working" "$loader" ||
+        ! clover_write_live_config "$working" "$config"; then
+        rm -rf -- "$work_dir"
+        return 1
+    fi
+    rm -rf -- "$work_dir"
+    echo "Clover 默认启动项已改为 ${linux_name}；菜单显示状态保持不变。"
+    echo "实际 ${linux_name} 启动路径：$loader"
+    log "Clover默认项已改为${linux_name}: esp=$CLOVER_ESP loader=$loader"
 }
 
 clover_autoboot_windows() {
@@ -1727,8 +1878,11 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         delete) clover_delete ;;
         status) clover_status ;;
         autoboot-windows) clover_autoboot_windows ;;
+        hide-menu) clover_hide_menu ;;
         show-menu) clover_show_menu ;;
+        default-windows) clover_default_windows ;;
+        default-steamos|default-bazzite|default-linux) clover_default_linux ;;
         apply-background) clover_apply_renkit_background ;;
-        *) echo "用法: $0 {install|restore|delete|status|autoboot-windows|show-menu|apply-background}"; exit 1 ;;
+        *) echo "用法: $0 {install|restore|delete|status|hide-menu|show-menu|default-windows|default-steamos|default-bazzite|apply-background}"; exit 1 ;;
     esac
 fi

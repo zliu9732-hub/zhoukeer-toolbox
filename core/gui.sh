@@ -403,6 +403,7 @@ game_environment_gui_menu() {
                 ;;
             handheld-plugins)
                 handheld_plugin_choice="$(gui_dialog --menu "掌机控制插件" \
+                    powercontrol "PowerControl 功耗控制｜通用 CPU、GPU、TDP 与风扇控制" \
                     simpledeckytdp "掌机功耗控制｜SimpleDeckyTDP 汉化版·自动检测版本" \
                     allycenter "Ally 控制中心｜ROG Ally / Ally X 的 RGB、TDP、风扇与充电上限" \
                     huesync "通用掌机 RGB｜HueSync 官方简体中文·支持多品牌掌机" \
@@ -412,6 +413,12 @@ game_environment_gui_menu() {
                     lego2-fan "Legion Go 2 风扇控制｜仅 Go 2·不受限风扇曲线" \
                     back "返回游戏与插件")" || continue
                 case "$handheld_plugin_choice" in
+                    powercontrol)
+                        gui_confirm "高风险：PowerControl 以 Decky root 权限修改 CPU、GPU、TDP 与风扇参数，仅适用于受支持的掌机；请勿与其他功耗或风扇插件同时启用，错误设置可能导致不稳定或过热。将安装作者 v3.15.1 官方原包并校验 SHA256。是否继续？" && \
+                            run_gui_action "安装 PowerControl" \
+                                env ZHOUKEER_AUTO_CONFIRM=1 \
+                                bash "$PROJECT_ROOT/modules/plugin_store.sh" powercontrol
+                        ;;
                     simpledeckytdp)
                         run_gui_action "安装/修复掌机功耗控制汉化版" \
                             env ZHOUKEER_AUTO_CONFIRM=1 \
@@ -672,8 +679,10 @@ dual_system_menu() {
             cleanup-boot "清理第三方引导项｜保护 SteamOS / Windows｜保留 EFI 文件" \
             repair-boot "修复双系统引导｜补齐缺失的 SteamOS / Windows / Clover 引导项｜高级操作" \
             switch-to-windows "创建切换至 Windows 快捷方式｜仅创建桌面图标｜本次不重启" \
-            clover-windows "隐藏 Clover 菜单并默认 Windows｜开机直接进入 Windows｜可恢复" \
+            clover-hide "隐藏 Clover 菜单｜等待时间设为 0 秒｜默认系统不变" \
             clover-menu "重新显示 Clover 菜单｜恢复 8 秒开机选择时间" \
+            clover-windows "默认进入 Windows｜只修改 Clover 默认项｜菜单状态不变" \
+            clover-steamos "默认进入 SteamOS｜只修改 Clover 默认项｜菜单状态不变" \
             clover-background "应用 Renkit 开机背景｜仅替换 Clover Apocalypse 主题背景" \
             back "返回系统设置" \
             home "返回首页" \
@@ -720,9 +729,19 @@ dual_system_menu() {
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-shortcut
                 ;;
             clover-windows)
-                gui_confirm "将备份并修改 Clover config.plist，把 Windows 设为默认项且等待时间设为 0 秒；不会删除任何系统或 EFI 启动项。是否继续？" && \
-                    run_gui_action "隐藏 Clover 菜单并默认进入 Windows" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/clover_boot.sh" autoboot-windows
+                gui_confirm "将备份并修改 Clover config.plist，只把 Windows 设为默认项；菜单显示状态保持不变。是否继续？" && \
+                    run_gui_action "默认进入 Windows" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/clover_boot.sh" default-windows
+                ;;
+            clover-steamos)
+                gui_confirm "将备份并修改 Clover config.plist，只把 SteamOS 设为默认项；菜单显示状态保持不变。是否继续？" && \
+                    run_gui_action "默认进入 SteamOS" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/clover_boot.sh" default-steamos
+                ;;
+            clover-hide)
+                gui_confirm "将备份并修改 Clover config.plist，只把菜单等待时间设为 0 秒；当前默认系统保持不变。是否继续？" && \
+                    run_gui_action "隐藏 Clover 菜单" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/clover_boot.sh" hide-menu
                 ;;
             clover-menu)
                 gui_confirm "将备份并修改 Clover config.plist，把菜单等待时间恢复为 8 秒；当前默认系统保持不变。是否继续？" && \

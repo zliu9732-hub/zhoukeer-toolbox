@@ -188,6 +188,15 @@ grep -Fq 'allycenter|Ally Center|v1.2.0|allycenter-v1.2.0.zip|' \
     "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || FAIL "Ally Center 缺少 Gitee 固定镜像清单"
 grep -Fq '| Ally Center |' "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" || \
     FAIL "License 清单缺少 Ally Center"
+powercontrol_mirror_id="$(gitee_mirror_id_for_url \
+    'https://github.com/mengmeet/PowerControl/releases/download/v3.15.1/PowerControl.zip')"
+[ "$powercontrol_mirror_id" = "powercontrol" ] || FAIL "PowerControl 镜像标识映射错误"
+grep -Fq 'powercontrol|PowerControl|v3.15.1|PowerControl.zip|https://github.com/mengmeet/PowerControl/releases/download/v3.15.1/PowerControl.zip|9c14eddbec7657a23e73eaf811bd8344198159d48303481cf70ebb7c1c1ebd7c|' \
+    "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || FAIL "PowerControl 缺少固定镜像清单"
+grep -Fq 'sync_plugin powercontrol "mengmeet/PowerControl"' \
+    "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || FAIL "PowerControl 缺少镜像同步入口"
+grep -Fq '| PowerControl |' "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" || \
+    FAIL "License 清单缺少 PowerControl"
 if gitee_mirror_id_for_url \
     'https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.2/DeckRecall.zip' \
     >/dev/null 2>&1; then :; else

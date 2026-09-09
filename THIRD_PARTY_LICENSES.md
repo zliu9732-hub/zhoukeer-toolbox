@@ -25,6 +25,7 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | Unifideck | Unifideck 插件 | https://github.com/mubaraknumann/unifideck | GPL-3.0 | 是 | |
 | Freedeck | Freedeck 插件 | https://github.com/panyiwei-home/Freedeck | BSD-3-Clause | 是 | LICENSE 文件为 BSD-3 文本 |
 | Ally Center | ROG Ally / Ally X 硬件控制插件 | https://github.com/PixelAddictUnlocked/allycenter | MIT | 是 | 上游 Release 原包，支持 RGB、TDP、风扇与充电上限 |
+| PowerControl | 通用掌机 CPU、GPU、TDP 与风扇控制插件 | https://github.com/mengmeet/PowerControl | BSD-3-Clause | 是 | 使用作者 v3.15.1 Release 原包；保留 yxx、honjow 与上游许可证，不叠加 Renkit 署名 |
 | HueSync | 多品牌掌机 RGB 控制插件 | https://github.com/honjow/HueSync | BSD-3-Clause | 是 | 上游已内置简体中文，保留作者原版 |
 | LegionGoRemapper | 初代 Legion Go 按键、RGB、充电与风扇控制 | https://github.com/aarron-lee/LegionGoRemapper | BSD-3-Clause | 是 | 上游 Release 原包；不支持 Legion Go S |
 | GpdControl | GPD Win 系列 RGB 控制 | https://github.com/aarron-lee/GpdControl | GPL-3.0 | 是 | 上游 Release 原包 |

@@ -262,7 +262,7 @@ fi
 [ "$(clover_replace_boot_numbers '0005,0001,0003' '0005' '0007')" = \
     "0007,0001,0003" ] || fail "恢复流程未正确替换 SteamOS BootOrder 编号"
 
-if rg -n '/dev/nvme0n1|sudo|bash[[:space:]]+-c' "$PROJECT_ROOT/assets/clover/bootmanager"; then
+if grep -ERn '/dev/nvme0n1|sudo|bash[[:space:]]+-c' "$PROJECT_ROOT/assets/clover/bootmanager"; then
     fail "Clover 开机修复仍包含固定磁盘、sudo 或 bash -c"
 fi
 

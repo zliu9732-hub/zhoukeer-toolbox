@@ -427,6 +427,7 @@ gitee_mirror_id_for_url() {
         *'/panyiwei-home/Freedeck/releases/download/'*'/NewFreedeck.v.'*.zip) printf '%s\n' newfreedeck ;;
         *'/panyiwei-home/Freedeck/releases/download/'*) printf '%s\n' freedeck ;;
         *'/PixelAddictUnlocked/allycenter/releases/download/'*) printf '%s\n' allycenter ;;
+        *'/mengmeet/PowerControl/releases/download/'*) printf '%s\n' powercontrol ;;
         *'/honjow/HueSync/releases/download/'*) printf '%s\n' huesync ;;
         *'/aarron-lee/LegionGoRemapper/releases/download/'*) printf '%s\n' legiongo-remapper ;;
         *'/aarron-lee/GpdControl/releases/download/'*) printf '%s\n' gpd-control ;;

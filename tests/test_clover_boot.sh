@@ -81,7 +81,10 @@ clover_find_esp() {
 clover_confirm_install() { return 0; }
 clover_confirm_restore() { return 0; }
 clover_confirm_windows_autoboot() { return 0; }
+clover_confirm_hide_menu() { return 0; }
 clover_confirm_show_menu() { return 0; }
+clover_confirm_default_windows() { return 0; }
+clover_confirm_default_linux() { return 0; }
 clover_detect_device() {
     CLOVER_DEVICE_PREFIX="SD"
     CLOVER_DEVICE_NAME="Steam Deck Test"
@@ -135,7 +138,7 @@ efibootmgr() {
 }
 
 clover_install >/dev/null || fail "模拟 Clover 安装失败"
-if rg -n 'toolbox_sudo[[:space:]]+cp[[:space:]]+-a' "$MODULE" >/dev/null; then
+if grep -En 'toolbox_sudo[[:space:]]+cp[[:space:]]+-a' "$MODULE" >/dev/null; then
     fail "Clover 仍使用 FAT32 不兼容的 cp -a 复制 EFI 文件"
 fi
 [ -s "$ESP/EFI/CLOVER/CLOVERX64.efi" ] || fail "未写入 Clover EFI 文件"
@@ -171,23 +174,39 @@ grep -Fq 'enable --now clover-bootmanager.service' "$STATE/calls" || \
 status_output="$(clover_status)" || fail "安装后状态检查失败"
 printf '%s\n' "$status_output" | grep -Fq 'Clover：已由Renkit安装' || fail "状态未报告 Clover 已安装"
 
-clover_autoboot_windows >/dev/null || fail "隐藏 Clover 菜单并默认 Windows 失败"
+clover_hide_menu >/dev/null || fail "隐藏 Clover 菜单失败"
+awk '
+    /<key>Timeout<\/key>/ { getline; if ($0 ~ /<integer>0<\/integer>/) found=1 }
+    END { exit(found ? 0 : 1) }
+' "$ESP/EFI/CLOVER/config.plist" || fail "Clover 菜单等待时间未改为 0"
+grep -Fq '<string>\EFI\STEAMOS\STEAMCL.efi</string>' \
+    "$ESP/EFI/CLOVER/config.plist" || fail "隐藏 Clover 菜单时意外改变了默认系统"
+
+clover_default_windows >/dev/null || fail "设置 Clover 默认 Windows 失败"
 grep -Fq '<string>\EFI\Microsoft\Boot\bootmgfw.efi</string>' \
     "$ESP/EFI/CLOVER/config.plist" || fail "Clover 默认项未改为实际存在的标准 Windows EFI"
 awk '
     /<key>Timeout<\/key>/ { getline; if ($0 ~ /<integer>0<\/integer>/) found=1 }
     END { exit(found ? 0 : 1) }
-' "$ESP/EFI/CLOVER/config.plist" || fail "Clover 菜单等待时间未改为 0"
+' "$ESP/EFI/CLOVER/config.plist" || fail "设置默认 Windows 时意外显示了 Clover 菜单"
+
+clover_default_linux >/dev/null || fail "设置 Clover 默认 SteamOS 失败"
+grep -Fq '<string>\EFI\STEAMOS\STEAMCL.efi</string>' \
+    "$ESP/EFI/CLOVER/config.plist" || fail "Clover 默认项未改回 SteamOS"
+awk '
+    /<key>Timeout<\/key>/ { getline; if ($0 ~ /<integer>0<\/integer>/) found=1 }
+    END { exit(found ? 0 : 1) }
+' "$ESP/EFI/CLOVER/config.plist" || fail "设置默认 SteamOS 时意外显示了 Clover 菜单"
 
 clover_show_menu >/dev/null || fail "重新显示 Clover 菜单失败"
 awk '
     /<key>Timeout<\/key>/ { getline; if ($0 ~ /<integer>8<\/integer>/) found=1 }
     END { exit(found ? 0 : 1) }
 ' "$ESP/EFI/CLOVER/config.plist" || fail "Clover 菜单等待时间未恢复为 8 秒"
-grep -Fq '<string>\EFI\Microsoft\Boot\bootmgfw.efi</string>' \
+grep -Fq '<string>\EFI\STEAMOS\STEAMCL.efi</string>' \
     "$ESP/EFI/CLOVER/config.plist" || fail "恢复菜单时意外改变了默认系统"
 [ "$(find "$ESP/EFI/zhoukeer-backups" -maxdepth 1 -type f \
-    -name 'clover-config-before-*.plist' | wc -l | tr -d ' ')" = "2" ] || \
+    -name 'clover-config-before-*.plist' | wc -l | tr -d ' ')" = "4" ] || \
     fail "Clover 启动设置没有为每次修改保留独立配置备份"
 
 mv -- "$ESP/EFI/Microsoft/Boot/bootmgfw.efi" "$ESP/EFI/Microsoft/bootmgfw.efi"
@@ -239,4 +258,4 @@ fi
 grep -Fq '包含符号链接' "$TMP_ROOT/bad-stage-output" || \
     fail "Clover 安装包准备失败没有输出具体原因"
 
-echo "PASS: Clover 镜像、设备配置、菜单隐藏/恢复、Windows 路径兼容、BootOrder 和删除恢复模拟测试通过"
+echo "PASS: Clover 镜像、设备配置、菜单显示与默认系统独立设置、Windows 路径兼容、BootOrder 和删除恢复模拟测试通过"

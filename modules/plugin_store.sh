@@ -130,6 +130,11 @@ DECKY_ALLYCENTER_VERSION="1.2.0"
 DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 ALLYCENTER_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0"
 ALLYCENTER_ZH_INDEX_SHA256="72bb93d1f1a2a02fbbf670661d7f76f324d8f7d2077d3e763559f03332332031"
+# PowerControl 使用作者 v3.15.1 官方完整包，不修改名称、前端或后端。
+DECKY_POWERCONTROL_URL="${ZHOUKEER_DECKY_POWERCONTROL_URL:-https://github.com/mengmeet/PowerControl/releases/download/v3.15.1/PowerControl.zip}"
+DECKY_POWERCONTROL_SHA256="${ZHOUKEER_DECKY_POWERCONTROL_SHA256:-9c14eddbec7657a23e73eaf811bd8344198159d48303481cf70ebb7c1c1ebd7c}"
+DECKY_POWERCONTROL_VERSION="3.15.1"
+DECKY_POWERCONTROL_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_HUESYNC_URL="${ZHOUKEER_DECKY_HUESYNC_URL:-https://github.com/honjow/HueSync/releases/download/v3.9.0/huesync.zip}"
 DECKY_HUESYNC_SHA256="${ZHOUKEER_DECKY_HUESYNC_SHA256:-7510c96ed22278a914a3aae591c2393ff4e25812a765d1d633f77baa8a593e1f}"
 DECKY_HUESYNC_VERSION="3.9.0"
@@ -3565,6 +3570,31 @@ install_configured_plugin() {
         allycenter)
             ensure_allycenter_chinese_current
             ;;
+        powercontrol)
+            if feature_plugin_is_current \
+                "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
+                "PowerControl" "$DECKY_POWERCONTROL_VERSION" "PowerControl"; then
+                echo "[已安装] PowerControl v$DECKY_POWERCONTROL_VERSION 官方原包已存在，无需重复安装。"
+                PLUGIN_INSTALL_CHANGED=0
+            else
+                installed_version="$(decky_plugin_version \
+                    "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/PowerControl" || true)"
+                [ -z "$installed_version" ] || \
+                    echo "检测到 PowerControl 已安装版本 $installed_version，将更新到 $DECKY_POWERCONTROL_VERSION。"
+                GITEE_MIRROR_REPO="$DECKY_POWERCONTROL_MIRROR_REPO" \
+                    install_decky_zip \
+                    "PowerControl v$DECKY_POWERCONTROL_VERSION" \
+                    "$DECKY_POWERCONTROL_URL" "$DECKY_POWERCONTROL_SHA256" \
+                    "PowerControl" 0 || return 1
+                feature_plugin_is_current \
+                    "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
+                    "PowerControl" "$DECKY_POWERCONTROL_VERSION" "PowerControl" || {
+                        echo "PowerControl 安装后版本或目录校验失败，未显示为成功。"
+                        return 1
+                    }
+            fi
+            echo "上游作者：yxx、honjow；许可证：BSD-3-Clause；Renkit未修改插件内容。"
+            ;;
         huesync)
             ensure_handheld_overlay_current zip "HueSync" \
                 "$DECKY_HUESYNC_VERSION" "通用掌机 RGB" \
@@ -4205,6 +4235,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         steamdb-info) install_configured_plugin steamdb-info ;;
         decky-translator) install_configured_plugin decky-translator ;;
         allycenter) show_plugin_download_speed_tip; install_configured_plugin allycenter ;;
+        powercontrol) show_plugin_download_speed_tip; install_configured_plugin powercontrol ;;
         huesync) show_plugin_download_speed_tip; install_configured_plugin huesync ;;
         legiongo-remapper) show_plugin_download_speed_tip; install_configured_plugin legiongo-remapper ;;
         gpd-control) show_plugin_download_speed_tip; install_configured_plugin gpd-control ;;

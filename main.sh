@@ -772,6 +772,7 @@ handheld_plugins_menu() {
 
     while true; do
         draw_category_frame games "掌机控制插件" "功耗、灯光、按键、震动与风扇控制" 0
+        ui_touch_button 3 '\033[1;97;48;5;24m' "PowerControl 功耗控制" "通用 CPU、GPU、TDP 与风扇控制"
         ui_touch_button 5 '\033[1;97;48;5;24m' "掌机功耗控制" "SimpleDeckyTDP 汉化版·自动检测版本"
         ui_touch_button 7 '\033[1;97;48;5;24m' "Ally 控制中心" "ROG Ally / Ally X 的 RGB、TDP、风扇与充电上限"
         ui_touch_button 9 '\033[1;97;48;5;24m' "通用掌机 RGB" "HueSync 官方简体中文·支持多品牌掌机"
@@ -782,9 +783,13 @@ handheld_plugins_menu() {
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件第二页"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:simpledeckytdp right:7-8:allycenter right:9-10:huesync right:11-12:legiongo-remapper right:13-14:gpd-control right:15-16:lego-vibe right:17-18:lego2-fan right:19-20:back right:22-23:home)"
+        choice="$(read_touch_menu right:3-4:powercontrol right:5-6:simpledeckytdp right:7-8:allycenter right:9-10:huesync right:11-12:legiongo-remapper right:13-14:gpd-control right:15-16:lego-vibe right:17-18:lego2-fan right:19-20:back right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
+            powercontrol)
+                confirm_and_run "安装 PowerControl" "高风险：PowerControl 以 Decky root 权限修改 CPU、GPU、TDP 与风扇参数；仅适用于受支持的掌机，请勿与其他功耗或风扇插件同时启用，错误设置可能导致不稳定或过热；安装作者 v3.15.1 官方原包并校验 SHA256" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" powercontrol
+                ;;
             simpledeckytdp)
                 confirm_and_run "安装/修复掌机功耗控制汉化版" "自动检测版本：非最新汉化版或检测到原版/旧版会自动替换；国内源优先，失败自动改用 GitHub Release；汉化作者：RenAmamiya" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee
@@ -1073,12 +1078,14 @@ dual_system_menu() {
             ui_touch_button 7 '\033[1;97;48;5;160m' "初始化并挂载 TF 卡" "会清空目标卡并格式化为 NTFS"
             ui_touch_button 9 '\033[1;97;48;5;160m' "修复磁盘写入错误" "NTFS/exFAT 基础修复 · 会卸载磁盘"
             ui_touch_button 11 '\033[1;97;48;5;30m' "双系统互通盘保护" "重新挂载为只读，防止升级后掉盘"
+            ui_touch_button 13 '\033[1;97;48;5;24m' "默认进入 SteamOS" "只修改 Clover 默认项，不改变菜单显示"
             ui_touch_button 15 '\033[1;97;48;5;24m' "应用 Renkit 开机背景" "替换 Clover Apocalypse 主题背景"
+            ui_touch_button 17 '\033[1;97;48;5;24m' "默认进入 Windows" "只修改 Clover 默认项，不改变菜单显示"
             ui_touch_button 19 '\033[1;97;48;5;24m' "更多双系统工具" "状态、删除与第三方引导清理"
             ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
             ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
             ui_prompt
-            choice="$(read_touch_menu right:5-6:mount right:7-8:tf-format right:9-10:repair-drive right:11-12:protect right:15-16:clover-background right:19-20:next right:21-22:advanced right:23-24:home)"
+            choice="$(read_touch_menu right:5-6:mount right:7-8:tf-format right:9-10:repair-drive right:11-12:protect right:13-14:clover-steamos right:15-16:clover-background right:17-18:clover-windows right:19-20:next right:21-22:advanced right:23-24:home)"
         else
             draw_category_frame advanced "更多双系统工具" "只读检查、恢复与引导清理 · 第 2/2 页"
             ui_touch_button 5 '\033[1;97;48;5;24m' "双系统健康检查" "识别 Clover、rEFInd、GRUB、OpenCore 等"
@@ -1086,13 +1093,13 @@ dual_system_menu() {
             ui_touch_button 9 '\033[1;97;48;5;160m' "清理第三方引导项" "仅删选定 NVRAM，保留 EFI 文件"
             ui_touch_button 11 '\033[1;97;48;5;24m' "修复双系统引导" "补齐缺失引导项并恢复启动顺序"
             ui_touch_button 13 '\033[1;97;48;5;24m' "创建切换至 Windows 快捷方式" "仅创建桌面图标，本次不会重启"
-            ui_touch_button 15 '\033[1;97;48;5;160m' "隐藏 Clover 菜单并默认 Windows" "开机直接进入 Windows · 可恢复"
+            ui_touch_button 15 '\033[1;97;48;5;160m' "隐藏 Clover 菜单" "等待时间设为 0 秒，不改变默认系统"
             ui_touch_button 17 '\033[1;97;48;5;24m' "重新显示 Clover 菜单" "恢复 8 秒开机选择时间"
             ui_touch_button 19 '\033[1;97;48;5;24m' "返回常用工具" "回到双系统常用功能"
             ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "查看其他系统功能"
             ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
             ui_prompt
-            choice="$(read_touch_menu right:5-6:health right:7-8:unprotect right:9-10:cleanup-boot right:11-12:repair-boot right:13-14:switch-to-windows right:15-16:clover-windows right:17-18:clover-menu right:19-20:previous right:21-22:advanced right:23-24:home)"
+            choice="$(read_touch_menu right:5-6:health right:7-8:unprotect right:9-10:cleanup-boot right:11-12:repair-boot right:13-14:switch-to-windows right:15-16:clover-hide right:17-18:clover-menu right:19-20:previous right:21-22:advanced right:23-24:home)"
         fi
         if apply_navigation "$choice"; then return 0; fi
 
@@ -1131,8 +1138,16 @@ dual_system_menu() {
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-shortcut
                 ;;
             clover-windows)
-                confirm_and_run "隐藏 Clover 菜单并默认进入 Windows" "会备份并修改 Clover config.plist：Windows 设为默认项，等待时间设为 0 秒；不会删除任何系统或 EFI 启动项" \
-                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/clover_boot.sh" autoboot-windows
+                confirm_and_run "默认进入 Windows" "会备份并修改 Clover config.plist：只把 Windows 设为默认项，菜单显示状态保持不变" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/clover_boot.sh" default-windows
+                ;;
+            clover-steamos)
+                confirm_and_run "默认进入 SteamOS" "会备份并修改 Clover config.plist：只把 SteamOS 设为默认项，菜单显示状态保持不变" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/clover_boot.sh" default-steamos
+                ;;
+            clover-hide)
+                confirm_and_run "隐藏 Clover 菜单" "会备份并修改 Clover config.plist：只把等待时间设为 0 秒，当前默认系统保持不变" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/clover_boot.sh" hide-menu
                 ;;
             clover-menu)
                 confirm_and_run "重新显示 Clover 菜单" "会备份并修改 Clover config.plist：等待时间恢复为 8 秒；当前默认系统保持不变" \

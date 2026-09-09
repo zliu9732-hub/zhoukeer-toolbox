@@ -585,23 +585,23 @@ bazzite_handheld_plugins_menu() {
     while true; do
         draw_category_frame games "掌机控制插件" "请按实际机型安装 · 错误机型不要启用硬件控制"
         ui_touch_button 2 '\033[1;97;48;5;24m' "掌机功耗控制" "SimpleDeckyTDP 中文版"
-        ui_touch_button 5 '\033[1;97;48;5;24m' "Ally 控制中心" "仅 ROG Ally / Ally X"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "通用掌机 RGB" "HueSync，上游自带中文"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "Legion Go 控制中心" "按键映射与控制"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "GPD 控制中心" "GPD 掌机专用"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "Legion Go 震动控制" "Legion Go 专用"
-        ui_touch_button 20 '\033[1;97;48;5;30m' "更多掌机插件" "Legion Go 2 与 OneXPlayer Apex"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "PowerControl 功耗控制" "通用 CPU、GPU、TDP 与风扇控制"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "Ally 控制中心" "仅 ROG Ally / Ally X"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "通用掌机 RGB" "HueSync，上游自带中文"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "Legion Go 控制中心" "按键映射与控制"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "GPD 控制中心" "GPD 掌机专用"
+        ui_touch_button 20 '\033[1;97;48;5;30m' "更多掌机插件" "Legion Go 震动、Go 2 风扇与 Apex 工具"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回掌机插件第一页"
         ui_prompt
-        choice="$(read_touch_menu right:2-3:simpletdp right:5-6:allycenter right:8-9:huesync right:11-12:legionremap right:14-15:gpd right:17-18:legovibe right:20-21:more right:22-23:back)"
+        choice="$(read_touch_menu right:2-3:simpletdp right:5-6:powercontrol right:8-9:allycenter right:11-12:huesync right:14-15:legionremap right:17-18:gpd right:20-21:more right:22-23:back)"
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
             simpletdp) confirm_and_run "安装掌机功耗控制" "安装 SimpleDeckyTDP 中文版；国内镜像优先" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee ;;
+            powercontrol) confirm_and_run "安装 PowerControl" "高风险：以 Decky root 权限修改 CPU、GPU、TDP 与风扇参数；请勿与其他功耗或风扇插件同时启用，错误设置可能导致不稳定或过热；安装作者 v3.15.1 官方原包并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" powercontrol ;;
             allycenter) confirm_and_run "安装 Ally 控制中心" "仅用于 ROG Ally / Ally X；会调用硬件控制后端" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter ;;
             huesync) confirm_and_run "安装通用掌机 RGB" "HueSync 上游自带中文；请确认设备灯效受支持" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" huesync ;;
             legionremap) confirm_and_run "安装 Legion Go 控制中心" "仅用于 Legion Go；会调用按键控制后端" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" legiongo-remapper ;;
             gpd) confirm_and_run "安装 GPD 控制中心" "仅用于 GPD 掌机；会调用硬件控制后端" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" gpd-control ;;
-            legovibe) confirm_and_run "安装 Legion Go 震动控制" "仅用于 Legion Go；会修改震动控制参数" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego-vibe ;;
             more) bazzite_handheld_plugins_more_menu || return 1 ;;
             back) return 0 ;;
         esac
@@ -612,14 +612,16 @@ bazzite_handheld_plugins_more_menu() {
     local choice
     while true; do
         draw_category_frame games "更多掌机插件" "机型专用硬件控制 · 安装前必须核对设备"
+        ui_touch_button 3 '\033[1;97;48;5;24m' "Legion Go 震动控制" "Legion Go / Go 2 专用"
         ui_touch_button 6 '\033[1;97;48;5;24m' "Legion Go 2 风扇控制" "仅 Legion Go 2 · 错误设置可能过热"
         ui_touch_button 10 '\033[1;97;48;5;24m' "OneXPlayer Apex 工具" "仅 Apex（Strix Halo）· HHD、睡眠与风扇修复"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回上一页"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回更多功能插件"
         ui_prompt
-        choice="$(read_touch_menu right:6-7:lego2fan right:10-11:onexplayer right:19-20:previous right:22-23:back)"
+        choice="$(read_touch_menu right:3-4:legovibe right:6-7:lego2fan right:10-11:onexplayer right:19-20:previous right:22-23:back)"
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
+            legovibe) confirm_and_run "安装 Legion Go 震动控制" "仅用于 Legion Go / Go 2；会修改震动控制参数" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego-vibe ;;
             lego2fan) confirm_and_run "安装 Legion Go 2 风扇控制" "仅用于 Legion Go 2；错误设置可能导致过热，请确认机型" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego2-fan ;;
             onexplayer) confirm_and_run "安装 OneXPlayer Apex 工具" "仅用于 OneXPlayer Apex（Strix Halo）；会修改 HHD、睡眠设置并加载机型专用内核模块，其他机型严禁安装" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" onexplayer-apex ;;
             previous) return 0 ;;
@@ -764,24 +766,26 @@ bazzite_clover_menu() {
     local choice
     while true; do
         draw_category_frame advanced "Bazzite Clover 双系统引导" "高风险功能 · 仅用于已有 Windows 的双系统"
-        ui_panel_line 5 '\033[1;38;5;203m' "会写入 EFI、修改 UEFI BootOrder，并备份原文件"
-        ui_panel_line 7 '\033[1;38;5;220m' "请先关闭 Secure Boot；失败时可从本页执行恢复"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "应用 Renkit 开机背景" "替换 Clover Apocalypse 主题背景"
-        ui_touch_button 10 '\033[1;30;48;5;220m' "安装/修复 Clover 双系统引导" "自动识别 EFI，并备份清理旧 SteamOS 引导"
-        ui_touch_button 12 '\033[1;97;48;5;160m' "隐藏 Clover 菜单并默认 Windows" "开机直接进入 Windows · 可恢复"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "重新显示 Clover 菜单" "恢复 8 秒开机选择时间"
-        ui_touch_button 16 '\033[1;97;48;5;24m' "查看 Clover 状态" "只读检查 EFI 与 NVRAM 启动项"
-        ui_touch_button 18 '\033[1;97;48;5;160m' "恢复安装前引导" "恢复原 BootOrder 与 Windows 启动文件"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "应用 Renkit 开机背景" "替换 Clover Apocalypse 主题背景"
+        ui_touch_button 7 '\033[1;30;48;5;220m' "安装/修复 Clover 双系统引导" "自动识别 EFI，并备份清理旧 SteamOS 引导"
+        ui_touch_button 9 '\033[1;97;48;5;160m' "隐藏 Clover 菜单" "等待时间设为 0 秒，不改变默认系统"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "重新显示 Clover 菜单" "恢复 8 秒开机选择时间"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "默认进入 Windows" "只修改 Clover 默认项，不改变菜单显示"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "默认进入 Bazzite" "只修改 Clover 默认项，不改变菜单显示"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "查看 Clover 状态" "只读检查 EFI 与 NVRAM 启动项"
+        ui_touch_button 19 '\033[1;97;48;5;160m' "恢复安装前引导" "恢复原 BootOrder 与 Windows 启动文件"
         ui_touch_button 21 '\033[1;97;48;5;238m' "返回高级功能"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页"
         ui_prompt
-        choice="$(read_touch_menu right:8-9:clover-background right:10-11:install right:12-13:clover-windows right:14-15:clover-menu right:16-17:status right:18-19:restore right:21-22:back right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:clover-background right:7-8:install right:9-10:clover-hide right:11-12:clover-menu right:13-14:clover-windows right:15-16:clover-bazzite right:17-18:status right:19-20:restore right:21-22:back right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             clover-background) confirm_and_run "应用 Renkit 开机背景" "仅替换 esp/efi/clover/themes/Apocalypse/background.png" bash "$PROJECT_ROOT/modules/clover_boot.sh" apply-background ;;
             install) confirm_and_run "安装/修复 Clover 双系统引导" "会写入 EFI、修改 BootOrder 并备份原 Clover；Bazzite 下检测到旧 SteamOS 引导时先备份再清理，保留 Windows 官方启动项且不删除系统分区" bash "$PROJECT_ROOT/modules/clover_boot.sh" install ;;
-            clover-windows) confirm_and_run "隐藏 Clover 菜单并默认进入 Windows" "会备份并修改 Clover config.plist：Windows 设为默认项，等待时间设为 0 秒；不会删除任何系统或 EFI 启动项" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/clover_boot.sh" autoboot-windows ;;
+            clover-hide) confirm_and_run "隐藏 Clover 菜单" "会备份并修改 Clover config.plist：只把等待时间设为 0 秒，当前默认系统保持不变" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/clover_boot.sh" hide-menu ;;
             clover-menu) confirm_and_run "重新显示 Clover 菜单" "会备份并修改 Clover config.plist：等待时间恢复为 8 秒；当前默认系统保持不变" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/clover_boot.sh" show-menu ;;
+            clover-windows) confirm_and_run "默认进入 Windows" "会备份并修改 Clover config.plist：只把 Windows 设为默认项，菜单显示状态保持不变" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/clover_boot.sh" default-windows ;;
+            clover-bazzite) confirm_and_run "默认进入 Bazzite" "会备份并修改 Clover config.plist：只把 Bazzite 设为默认项，菜单显示状态保持不变" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/clover_boot.sh" default-bazzite ;;
             status) run_action "查看 Clover 状态" bash "$PROJECT_ROOT/modules/clover_boot.sh" status ;;
             restore) confirm_and_run "恢复安装前引导" "删除Renkit创建的 Clover 启动项，并恢复原 BootOrder 和 Windows 启动文件" bash "$PROJECT_ROOT/modules/clover_boot.sh" restore ;;
             back) return 0 ;;
