@@ -680,7 +680,7 @@ dual_system_menu() {
             health "双系统健康检查｜识别 Clover、rEFInd、GRUB、OpenCore 等｜只读" \
             mount "挂载双系统互通盘｜自动排除 Windows 系统分区｜高级操作" \
             tf-format "初始化并挂载 TF 卡｜清空并格式化为 NTFS｜高风险" \
-            repair-drive "修复磁盘写入错误｜NTFS/exFAT 基础修复｜高级操作" \
+            repair-drive "修复 Steam 磁盘写入错误｜NTFS/互通盘下载与 Proton compatdata｜高级操作" \
             protect "双系统互通盘保护｜防止 SteamOS 误写入｜高级操作" \
             unprotect "恢复互通盘写入｜重新以可写方式挂载｜高级操作" \
             cleanup-boot "清理第三方引导项｜保护 SteamOS / Windows｜保留 EFI 文件" \
@@ -706,8 +706,8 @@ dual_system_menu() {
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" tf-format-mount
                 ;;
             repair-drive)
-                gui_confirm "将卸载唯一互通盘并运行 NTFS/exFAT 基础修复；严重 NTFS 错误仍需 Windows chkdsk。是否继续？" && \
-                    run_gui_action "修复磁盘写入错误" env ZHOUKEER_AUTO_CONFIRM=1 \
+                gui_confirm "修复 SteamOS 下 NTFS/互通游戏盘出现的磁盘写入错误、下载失败和更新失败，并自动处理 Proton compatdata 兼容问题。是否继续？" && \
+                    run_gui_action "修复 Steam 磁盘写入错误" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" repair-drive
                 ;;
             protect)

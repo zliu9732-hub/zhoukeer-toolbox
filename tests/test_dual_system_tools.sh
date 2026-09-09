@@ -61,10 +61,51 @@ lsblk() {
 }
 
 findmnt() {
-    case " $* " in
-        *' -o SOURCE / '*) printf '/dev/systemp1\n' ;;
-        *" -T $TMP_ROOT/esp "*) printf '/dev/fakep1\n' ;;
-        *' -S /dev/testshare '*) printf '%s\n' "$MOUNT_PATH" ;;
+    local target="" source="" field="" positional=""
+
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            -T) target="$2"; shift 2 ;;
+            -S) source="$2"; shift 2 ;;
+            -o) field="$2"; shift 2 ;;
+            -*) shift ;;
+            *) positional="$1"; shift ;;
+        esac
+    done
+    if [ "$positional" = "/" ] && [ "$field" = "SOURCE" ]; then
+        printf '/dev/systemp1\n'
+        return 0
+    fi
+    if [ -n "$source" ]; then
+        [ "$source" = "/dev/testshare" ] || return 1
+        case "$field" in
+            TARGET|'') printf '%s\n' "$MOUNT_PATH" ;;
+            *) return 1 ;;
+        esac
+        return 0
+    fi
+    case "$target" in
+        "$TMP_ROOT/esp") [ "$field" = "SOURCE" ] && printf '/dev/fakep1\n' || return 1 ;;
+        "$MOUNT_PATH")
+            case "$field" in
+                TARGET) printf '%s\n' "$MOUNT_PATH" ;;
+                FSTYPE) printf 'ntfs3\n' ;;
+                OPTIONS) [ -f "$STATE/readonly" ] && printf 'ro,nosuid\n' || printf 'rw,nosuid\n' ;;
+                SOURCE) printf '/dev/testshare\n' ;;
+                UUID) printf 'TEST-UUID\n' ;;
+                *) return 1 ;;
+            esac
+            ;;
+        "$HOME"|"$HOME"/*)
+            case "$field" in
+                TARGET) printf '%s\n' "$TMP_ROOT" ;;
+                FSTYPE) printf 'ext4\n' ;;
+                OPTIONS) printf 'rw,relatime\n' ;;
+                SOURCE) printf '/dev/testhome\n' ;;
+                UUID) printf 'HOME-UUID\n' ;;
+                *) return 1 ;;
+            esac
+            ;;
         *) return 1 ;;
     esac
 }
@@ -83,7 +124,6 @@ parted() { printf 'parted %s\n' "$*" >> "$CALLS"; : > "$STATE/partitioned"; }
 partprobe() { printf 'partprobe %s\n' "$*" >> "$CALLS"; }
 udevadm() { printf 'udevadm %s\n' "$*" >> "$CALLS"; }
 mkfs.ntfs() { printf 'mkfs.ntfs %s\n' "$*" >> "$CALLS"; }
-ntfsfix() { printf 'ntfsfix %s\n' "$*" >> "$CALLS"; }
 
 efibootmgr() {
     local order next omit label loader count boot_num
@@ -155,12 +195,50 @@ switch_windows_confirm() { return 0; }
 systemctl() { printf 'systemctl %s\n' "$*" >> "$CALLS"; }
 reboot() { printf 'reboot %s\n' "$*" >> "$CALLS"; }
 
-find_shared_drive_device() { printf '/dev/testshare\n'; }
-shared_drive_mountpoint() { printf '%s\n' "$MOUNT_PATH"; }
-mount_shared_drive_device() { printf '%s\n' "$MOUNT_PATH"; }
-create_shared_drive_shortcut() { return 0; }
-repair_shared_drive >/dev/null || fail "NTFS 写入错误修复模拟失败"
-grep -Fq 'ntfsfix /dev/testshare' "$CALLS" || fail "NTFS 修复未调用 ntfsfix"
+mkdir -p "$MOUNT_PATH/steamapps/compatdata/123" \
+    "$MOUNT_PATH/steamapps/downloading/unfinished" \
+    "$MOUNT_PATH/steamapps/temp/stale" \
+    "$MOUNT_PATH/steamapps/common/InstalledGame"
+printf 'prefix\n' > "$MOUNT_PATH/steamapps/compatdata/123/prefix.txt"
+printf 'partial\n' > "$MOUNT_PATH/steamapps/downloading/unfinished/data.bin"
+printf 'temp\n' > "$MOUNT_PATH/steamapps/temp/stale/data.tmp"
+printf 'game\n' > "$MOUNT_PATH/steamapps/common/InstalledGame/game.bin"
+printf 'lock\n' > "$MOUNT_PATH/steamapps/content.lock"
+ZHOUKEER_STEAM_LIBRARY="$MOUNT_PATH"
+ZHOUKEER_COMPATDATA_ROOT="$HOME/.local/share/Steam/renkit-compatdata"
+ZHOUKEER_SKIP_STEAM_RESTART=1
+repair_output="$(repair_shared_drive)" || fail "NTFS 写入错误修复模拟失败"
+printf '%s\n' "$repair_output" | grep -Fq 'Steam 磁盘写入错误修复完成' || fail "修复未输出成功结果"
+[ -L "$MOUNT_PATH/steamapps/compatdata" ] || fail "compatdata 未改为 Linux 文件系统符号链接"
+compat_target="$(readlink -f "$MOUNT_PATH/steamapps/compatdata")"
+case "$compat_target" in
+    "$ZHOUKEER_COMPATDATA_ROOT"/uuid-test-uuid-path-*) ;;
+    *) fail "compatdata 没有使用 UUID 与库路径生成独立目标：$compat_target" ;;
+esac
+[ -f "$MOUNT_PATH/steamapps/compatdata.backup-"*/123/prefix.txt ] || fail "原 compatdata 未按时间戳备份"
+[ -f "$MOUNT_PATH/steamapps/common/InstalledGame/game.bin" ] || fail "修复误删了已安装游戏"
+[ -d "$MOUNT_PATH/steamapps/downloading" ] && \
+    [ -z "$(find "$MOUNT_PATH/steamapps/downloading" -mindepth 1 -print -quit)" ] || fail "下载残留未清理"
+[ -d "$MOUNT_PATH/steamapps/temp" ] && \
+    [ -z "$(find "$MOUNT_PATH/steamapps/temp" -mindepth 1 -print -quit)" ] || fail "临时残留未清理"
+[ ! -e "$MOUNT_PATH/steamapps/content.lock" ] || fail "Steam 锁文件残留未清理"
+backup_count="$(find "$MOUNT_PATH/steamapps" -maxdepth 1 -type d -name 'compatdata.backup-*' | wc -l)"
+repair_shared_drive >/dev/null || fail "重复运行修复失败"
+[ "$(find "$MOUNT_PATH/steamapps" -maxdepth 1 -type d -name 'compatdata.backup-*' | wc -l)" = "$backup_count" ] || \
+    fail "重复运行错误地再次备份 compatdata"
+
+printf 'keep\n' > "$MOUNT_PATH/steamapps/downloading/keep.bin"
+: > "$STATE/readonly"
+if repair_shared_drive > "$TMP_ROOT/readonly.output" 2>&1; then
+    fail "只读 NTFS 库仍继续执行修复"
+fi
+grep -Fq 'powercfg -h off' "$TMP_ROOT/readonly.output" || fail "只读提示缺少 powercfg 指令"
+grep -Fq 'chkdsk X: /f' "$TMP_ROOT/readonly.output" || fail "只读提示缺少 chkdsk 指令"
+if grep -Fq '修复完成' "$TMP_ROOT/readonly.output"; then
+    fail "只读失败时错误显示修复成功"
+fi
+[ -f "$MOUNT_PATH/steamapps/downloading/keep.bin" ] || fail "只读检查后仍修改了下载目录"
+rm -f "$STATE/readonly"
 
 ZHOUKEER_TF_CARD_DEVICE="/not-a-device"
 if find_tf_card_device >"$TMP_ROOT/tf-diagnostic.output" 2>&1; then

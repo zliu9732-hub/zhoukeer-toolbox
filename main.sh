@@ -1084,7 +1084,7 @@ dual_system_menu() {
             draw_category_frame dual "双系统用户专用" "磁盘与互通盘 · 第 1/2 页"
             ui_touch_button 5 '\033[1;97;48;5;24m' "挂载双系统互通盘" "自动排除 Windows 系统分区"
             ui_touch_button 7 '\033[1;97;48;5;160m' "初始化并挂载 TF 卡" "会清空目标卡并格式化为 NTFS"
-            ui_touch_button 9 '\033[1;97;48;5;160m' "修复磁盘写入错误" "NTFS/exFAT 基础修复 · 会卸载磁盘"
+            ui_touch_button 9 '\033[1;97;48;5;160m' "修复 Steam 磁盘写入错误" "修复 NTFS/互通游戏盘下载与 compatdata"
             ui_touch_button 11 '\033[1;97;48;5;30m' "双系统互通盘保护" "重新挂载为只读，防止升级后掉盘"
             ui_touch_button 13 '\033[1;97;48;5;24m' "默认进入 SteamOS" "只修改 Clover 默认项，不改变菜单显示"
             ui_touch_button 15 '\033[1;97;48;5;24m' "应用 Renkit 开机背景" "替换 Clover Apocalypse 主题背景"
@@ -1121,7 +1121,7 @@ dual_system_menu() {
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" tf-format-mount
                 ;;
             repair-drive)
-                confirm_and_run "修复磁盘写入错误" "会卸载唯一互通盘并运行 NTFS/exFAT 基础修复；严重 NTFS 错误仍需 Windows chkdsk" \
+                confirm_and_run "修复 Steam 磁盘写入错误" "修复 SteamOS 下 NTFS/互通游戏盘出现的磁盘写入错误、下载失败和更新失败，并自动处理 Proton compatdata 兼容问题" \
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" repair-drive
                 ;;
             protect)

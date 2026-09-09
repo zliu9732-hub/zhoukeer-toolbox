@@ -211,69 +211,464 @@ clean_invalid_steam_symlinks() {
 }
 
 repair_drive_confirm() {
-    local device="$1"
+    local library="$1"
     local filesystem="$2"
     local answer
 
-    echo "将卸载并修复 ${device}（${filesystem}）。"
-    echo "NTFS 使用 ntfsfix 做基础修复；严重错误仍需进入 Windows 运行 chkdsk。"
-    echo "修复期间不要拔出磁盘或强制关机。"
+    echo "目标 Steam 库：${library}（${filesystem}）"
+    echo "将安全退出 Steam，备份原 compatdata，并清理该库的下载临时残留。"
+    echo "不会删除 steamapps/common，也不会对整个游戏盘执行 chown 或 chmod。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi
-    read -r -p "确认修复请输入 REPAIR ${device}：" answer
-    [ "$answer" = "REPAIR $device" ]
+    read -r -p "确认修复请输入 REPAIR：" answer
+    [ "$answer" = "REPAIR" ]
+}
+
+append_steam_repair_library() {
+    local candidate="$1"
+    local output_file="$2"
+    local canonical filesystem mountpoint
+    local media_root="${ZHOUKEER_MEDIA_ROOT:-/run/media/deck}"
+
+    [ -d "$candidate/steamapps" ] || return 0
+    [ ! -L "$candidate/steamapps" ] || return 0
+    canonical="$(canonical_directory "$candidate" || true)"
+    [ -n "$canonical" ] || return 0
+    case "$canonical" in
+        /*) ;;
+        *) return 0 ;;
+    esac
+    case "$canonical" in *$'\n'*|*$'\t'*) return 0 ;; esac
+    grep -Fqx -- "$canonical" "$output_file" 2>/dev/null && return 0
+
+    filesystem="$(findmnt -rn -T "$canonical" -o FSTYPE 2>/dev/null | head -n 1 | tr '[:upper:]' '[:lower:]')"
+    mountpoint="$(findmnt -rn -T "$canonical" -o TARGET 2>/dev/null | head -n 1)"
+    [ -n "$mountpoint" ] && [ "$mountpoint" != "/" ] || return 0
+    case "$filesystem" in
+        ntfs|ntfs3|exfat) ;;
+        *)
+            case "$canonical" in
+                "$media_root"/*) ;;
+                *) return 0 ;;
+            esac
+            ;;
+    esac
+    printf '%s\n' "$canonical" >> "$output_file"
+}
+
+discover_steam_repair_libraries() {
+    local output_file="$1"
+    local media_root="${ZHOUKEER_MEDIA_ROOT:-/run/media/deck}"
+    local steam_root vdf candidate
+    local -a roots=()
+
+    : > "$output_file" || return 1
+    for steam_root in \
+        "$HOME/.local/share/Steam" \
+        "$HOME/.steam/steam" \
+        "$HOME/.var/app/com.valvesoftware.Steam/.local/share/Steam"; do
+        [ -d "$steam_root/steamapps" ] && roots+=("$steam_root")
+    done
+    for steam_root in "${roots[@]}"; do
+        vdf="$steam_root/steamapps/libraryfolders.vdf"
+        [ -r "$vdf" ] && [ ! -L "$vdf" ] || continue
+        while IFS= read -r candidate; do
+            candidate="${candidate//\\\\/\\}"
+            case "$candidate" in
+                /*) append_steam_repair_library "$candidate" "$output_file" ;;
+            esac
+        done < <(sed -n 's/^[[:space:]]*"path"[[:space:]]*"\([^"]*\)".*/\1/p' "$vdf")
+    done
+    if [ -d "$media_root" ]; then
+        for candidate in "$media_root"/*; do
+            [ -e "$candidate" ] || continue
+            append_steam_repair_library "$candidate" "$output_file"
+        done
+    fi
+}
+
+choose_steam_repair_library() {
+    local libraries_file="$1"
+    local requested="${ZHOUKEER_STEAM_LIBRARY:-}"
+    local count index selected answer candidate
+    local -a menu_args=()
+
+    if [ -n "$requested" ]; then
+        append_steam_repair_library "$requested" "$libraries_file"
+        count="$(wc -l < "$libraries_file" | tr -d '[:space:]')"
+        [ "$count" = "1" ] || {
+            echo "指定的 Steam 库无效、未挂载或不是互通游戏盘：$requested" >&2
+            return 1
+        }
+        sed -n '1p' "$libraries_file"
+        return 0
+    fi
+
+    discover_steam_repair_libraries "$libraries_file" || return 1
+    count="$(wc -l < "$libraries_file" | tr -d '[:space:]')"
+    case "$count" in
+        ''|*[!0-9]*) count=0 ;;
+    esac
+    [ "$count" -gt 0 ] || {
+        echo "未找到已挂载的外置/NTFS Steam 库。请先在 Steam 中添加游戏盘后重试。" >&2
+        return 1
+    }
+    if [ "$count" -eq 1 ]; then
+        sed -n '1p' "$libraries_file"
+        return 0
+    fi
+
+    if command -v kdialog >/dev/null 2>&1 && [ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]; then
+        index=0
+        while IFS= read -r candidate; do
+            index=$((index + 1))
+            menu_args+=("$index" "$candidate")
+        done < "$libraries_file"
+        selected="$(kdialog --title "修复 Steam 磁盘写入错误" \
+            --menu "检测到多个游戏盘，请选择需要修复的 Steam 库。" \
+            "${menu_args[@]}" 2>/dev/null || true)"
+        case "$selected" in ''|*[!0-9]*) return 1 ;; esac
+        [ "$selected" -ge 1 ] && [ "$selected" -le "$count" ] || return 1
+        sed -n "${selected}p" "$libraries_file"
+        return 0
+    fi
+
+    echo "检测到多个游戏盘，请选择需要修复的 Steam 库：" >&2
+    index=0
+    while IFS= read -r candidate; do
+        index=$((index + 1))
+        printf '  %s. %s\n' "$index" "$candidate" >&2
+    done < "$libraries_file"
+    [ -r /dev/tty ] || {
+        echo "当前界面无法读取选择，已停止修复。" >&2
+        return 1
+    }
+    read -r -p "请输入编号 [1-$count]：" answer </dev/tty
+    case "$answer" in ''|*[!0-9]*) return 1 ;; esac
+    [ "$answer" -ge 1 ] && [ "$answer" -le "$count" ] || return 1
+    sed -n "${answer}p" "$libraries_file"
+}
+
+steam_repair_mount_info() {
+    local library="$1"
+    local field="$2"
+
+    findmnt -rn -T "$library" -o "$field" 2>/dev/null | head -n 1
+}
+
+steam_repair_windows_instructions() {
+    local library="$1"
+
+    echo "目标游戏盘当前只读或无法写入，Renkit 未修改任何库文件：$library"
+    echo "请进入 Windows 后按以下步骤处理："
+    echo "  1. 使用管理员 CMD 执行：powercfg -h off"
+    echo "  2. 对对应 Game 分区执行：chkdsk X: /f（将 X: 替换为实际盘符）"
+    echo "  3. Windows 完全关机后，再进入 SteamOS 重试。"
+}
+
+steam_library_write_test() {
+    local library="$1"
+    local test_file="$library/.renkit-write-test-$$"
+
+    case "$test_file" in
+        "$library"/.renkit-write-test-[0-9]*) ;;
+        *) return 1 ;;
+    esac
+    touch -- "$test_file" 2>/dev/null || return 1
+    rm -f -- "$test_file" 2>/dev/null || {
+        echo "写入测试文件已创建，但无法删除：$test_file" >&2
+        return 1
+    }
+}
+
+steam_repair_is_running() {
+    command -v pgrep >/dev/null 2>&1 && pgrep -u "$(id -u)" -x steam >/dev/null 2>&1
+}
+
+stop_steam_for_disk_repair() {
+    local steam_bin attempt
+
+    [ "${ZHOUKEER_SKIP_STEAM_RESTART:-0}" = "1" ] && return 0
+    steam_repair_is_running || return 0
+    if command -v steam >/dev/null 2>&1; then
+        steam_bin="$(command -v steam)"
+    elif [ -x "$HOME/.steam/steam/steam.sh" ]; then
+        steam_bin="$HOME/.steam/steam/steam.sh"
+    else
+        echo "Steam 正在运行，但找不到安全退出命令。请完全退出 Steam 后重试。" >&2
+        return 1
+    fi
+    echo "正在安全退出 Steam…"
+    "$steam_bin" -shutdown >/dev/null 2>&1 || true
+    for attempt in $(seq 1 20); do
+        steam_repair_is_running || return 0
+        sleep 1
+    done
+    echo "Steam 未能在 20 秒内退出。请确认游戏和 Steam 已完全关闭后重试。" >&2
+    return 1
+}
+
+steam_compatdata_stable_id() {
+    local library="$1"
+    local source uuid safe_uuid digest
+
+    source="$(steam_repair_mount_info "$library" SOURCE)"
+    uuid="$(steam_repair_mount_info "$library" UUID)"
+    if [ -z "$uuid" ] && [ -n "$source" ] && command -v lsblk >/dev/null 2>&1; then
+        uuid="$(lsblk -dnro UUID "$source" 2>/dev/null | head -n 1)"
+    fi
+    require_command sha256sum || return 1
+    digest="$(printf '%s' "$library" | sha256sum | awk '{print substr($1,1,20)}')"
+    case "$digest" in
+        [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]) ;;
+        *) echo "无法为 Steam 库生成安全的 compatdata 标识。" >&2; return 1 ;;
+    esac
+    safe_uuid="$(printf '%s' "$uuid" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9._-')"
+    if [ -n "$safe_uuid" ]; then
+        printf 'uuid-%s-path-%s\n' "$safe_uuid" "$digest"
+    else
+        printf 'path-%s\n' "$digest"
+    fi
+}
+
+prepare_linux_compatdata_target() {
+    local library="$1"
+    local base="${ZHOUKEER_COMPATDATA_ROOT:-$HOME/.local/share/Steam/renkit-compatdata}"
+    local home_filesystem ancestor_filesystem target_filesystem stable_id target ancestor
+
+    case "$base" in
+        "$HOME"/*) ;;
+        *) echo "Linux compatdata 目录不在当前用户主目录内：$base" >&2; return 1 ;;
+    esac
+    case "/${base#/}/" in
+        */../*|*/./*|*$'\n'*|*$'\t'*)
+            echo "Linux compatdata 目录包含不安全的路径片段：$base" >&2
+            return 1
+            ;;
+    esac
+    home_filesystem="$(steam_repair_mount_info "$HOME" FSTYPE | tr '[:upper:]' '[:lower:]')"
+    [ -n "$home_filesystem" ] || {
+        echo "无法确认用户主目录所在文件系统。" >&2
+        return 1
+    }
+    is_shared_filesystem "$home_filesystem" && {
+        echo "用户主目录位于 ${home_filesystem}，无法建立 Linux compatdata。" >&2
+        return 1
+    }
+    stable_id="$(steam_compatdata_stable_id "$library")" || return 1
+    target="$base/$stable_id"
+    case "$target" in "$base"/uuid-*|"$base"/path-*) ;; *) return 1 ;; esac
+    ancestor="$base"
+    while [ ! -e "$ancestor" ] && [ "$ancestor" != "$HOME" ]; do
+        ancestor="$(dirname "$ancestor")"
+    done
+    [ -d "$ancestor" ] || {
+        echo "无法确认 Linux compatdata 的上级目录：$ancestor" >&2
+        return 1
+    }
+    ancestor_filesystem="$(steam_repair_mount_info "$ancestor" FSTYPE | tr '[:upper:]' '[:lower:]')"
+    [ -n "$ancestor_filesystem" ] && ! is_shared_filesystem "$ancestor_filesystem" || {
+        echo "compatdata 上级目录不在 Linux 文件系统：$ancestor" >&2
+        return 1
+    }
+    [ ! -L "$base" ] || {
+        echo "Linux compatdata 根目录不能是符号链接：$base" >&2
+        return 1
+    }
+    mkdir -p -- "$target" || return 1
+    [ -d "$target" ] && [ ! -L "$target" ] || {
+        echo "Linux compatdata 目标目录异常：$target" >&2
+        return 1
+    }
+    target_filesystem="$(steam_repair_mount_info "$target" FSTYPE | tr '[:upper:]' '[:lower:]')"
+    [ -n "$target_filesystem" ] && ! is_shared_filesystem "$target_filesystem" || {
+        echo "compatdata 目标不在 Linux 文件系统：$target" >&2
+        return 1
+    }
+    printf '%s\n' "$target"
+}
+
+next_compatdata_backup_path() {
+    local compatdata="$1"
+    local timestamp candidate suffix=0
+
+    timestamp="$(date +%Y%m%d-%H%M%S)"
+    candidate="${compatdata}.backup-${timestamp}"
+    while [ -e "$candidate" ] || [ -L "$candidate" ]; do
+        suffix=$((suffix + 1))
+        candidate="${compatdata}.backup-${timestamp}-${suffix}"
+    done
+    printf '%s\n' "$candidate"
+}
+
+link_library_compatdata() {
+    local library="$1"
+    local target="$2"
+    local steamapps="$library/steamapps"
+    local compatdata="$steamapps/compatdata"
+    local current backup=""
+
+    [ -d "$steamapps" ] && [ ! -L "$steamapps" ] || {
+        echo "Steam 库目录异常：$steamapps" >&2
+        return 1
+    }
+    if [ -L "$compatdata" ]; then
+        current="$(readlink -f "$compatdata" 2>/dev/null || true)"
+        if [ "$current" = "$(canonical_directory "$target" || true)" ]; then
+            return 0
+        fi
+        backup="$(next_compatdata_backup_path "$compatdata")"
+        mv -- "$compatdata" "$backup" || return 1
+        echo "已备份原 compatdata 链接：$backup"
+    elif [ -e "$compatdata" ]; then
+        backup="$(next_compatdata_backup_path "$compatdata")"
+        mv -- "$compatdata" "$backup" || return 1
+        echo "已备份原 compatdata：$backup"
+    fi
+    if ! ln -s -- "$target" "$compatdata"; then
+        [ -z "$backup" ] || mv -- "$backup" "$compatdata" 2>/dev/null || true
+        echo "创建 compatdata 符号链接失败，原路径已尽量恢复。" >&2
+        return 1
+    fi
+}
+
+steam_cache_path_has_mounts() {
+    local cache_dir="$1"
+    local mounted
+
+    while IFS= read -r mounted; do
+        case "$mounted" in
+            "$cache_dir"|"$cache_dir"/*) return 0 ;;
+        esac
+    done < <(findmnt -rn -o TARGET 2>/dev/null)
+    return 1
+}
+
+clear_steam_repair_cache() {
+    local library="$1"
+    local name cache_dir steamapps="$library/steamapps"
+    local lock_file
+
+    [ -d "$steamapps" ] && [ ! -L "$steamapps" ] || return 1
+    for name in downloading temp; do
+        cache_dir="$steamapps/$name"
+        case "$cache_dir" in
+            "$library"/steamapps/downloading|"$library"/steamapps/temp) ;;
+            *) echo "缓存路径安全检查失败：$cache_dir" >&2; return 1 ;;
+        esac
+        if [ -d "$cache_dir" ] && steam_cache_path_has_mounts "$cache_dir"; then
+            echo "缓存目录内包含独立挂载点，已拒绝清理：$cache_dir" >&2
+            return 1
+        fi
+        if [ -L "$cache_dir" ]; then
+            rm -f -- "$cache_dir" || return 1
+        elif [ -e "$cache_dir" ]; then
+            [ -d "$cache_dir" ] || {
+                echo "缓存路径不是目录：$cache_dir" >&2
+                return 1
+            }
+            rm -rf -- "$cache_dir" || return 1
+        fi
+        mkdir -p -- "$cache_dir" || return 1
+    done
+    while IFS= read -r -d '' lock_file; do
+        case "$lock_file" in "$steamapps"/*) rm -f -- "$lock_file" || return 1 ;; *) return 1 ;; esac
+    done < <(find "$steamapps" -maxdepth 1 -type f \( -name '.lock' -o -name '*.lock' \) -print0 2>/dev/null)
+}
+
+verify_steam_disk_repair() {
+    local library="$1"
+    local target="$2"
+    local compatdata="$library/steamapps/compatdata"
+    local actual expected
+
+    steam_library_write_test "$library" || {
+        echo "修复后的实际写入测试失败。" >&2
+        return 1
+    }
+    [ -L "$compatdata" ] || {
+        echo "compatdata 不是符号链接：$compatdata" >&2
+        return 1
+    }
+    actual="$(readlink -f "$compatdata" 2>/dev/null || true)"
+    expected="$(canonical_directory "$target" || true)"
+    [ -n "$actual" ] && [ "$actual" = "$expected" ] || {
+        echo "compatdata 链接目标验证失败：${actual:-无效}" >&2
+        return 1
+    }
 }
 
 repair_shared_drive() {
-    local device filesystem mountpoint repair_command output
+    local libraries_file library filesystem mountpoint options compat_target
 
     require_steamos || return 1
-    clean_invalid_steam_symlinks
-    for command_name in lsblk findmnt udisksctl; do
+    for command_name in findmnt touch rm mv ln readlink find sed awk tr wc date mkdir mktemp grep head seq; do
         require_command "$command_name" || return 1
     done
-    device="$(find_shared_drive_device 1)" || return 1
-    filesystem="$(lsblk -nro FSTYPE "$device" 2>/dev/null | head -n 1)"
-    case "$filesystem" in
-        ntfs|ntfs3) repair_command="ntfsfix" ;;
-        exfat) repair_command="fsck.exfat" ;;
-        *) echo "不支持修复该文件系统：${filesystem:-未知}"; return 1 ;;
-    esac
-    require_command "$repair_command" || return 1
-    repair_drive_confirm "$device" "$filesystem" || {
-        echo "已取消磁盘修复。"
-        return 0
-    }
-    toolbox_sudo true || return 1
-    mountpoint="$(shared_drive_mountpoint "$device" || true)"
-    if [ -n "$mountpoint" ]; then
-        udisksctl unmount --block-device "$device" >/dev/null || {
-            echo "无法卸载互通盘，请关闭正在使用该盘的程序。"
-            return 1
-        }
-    fi
-    if [ "$repair_command" = "ntfsfix" ]; then
-        output="$(toolbox_sudo ntfsfix "$device" 2>&1)" || {
-            printf '%s\n' "$output"
-            echo "NTFS 基础修复失败，请进入 Windows 运行 chkdsk /f。"
-            return 1
-        }
-    else
-        output="$(toolbox_sudo fsck.exfat -p "$device" 2>&1)" || {
-            printf '%s\n' "$output"
-            echo "exFAT 自动修复失败，未继续写入。"
-            return 1
-        }
-    fi
-    printf '%s\n' "$output"
-    mountpoint="$(mount_shared_drive_device "$device")" || {
-        echo "磁盘已完成修复，但重新挂载失败。"
+    libraries_file="$(mktemp "${TMPDIR:-/tmp}/renkit-steam-libraries.XXXXXX")" || {
+        echo "[失败步骤：识别 Steam 库] 无法创建临时候选清单。" >&2
         return 1
     }
-    create_shared_drive_shortcut "$mountpoint" || return 1
-    echo "互通盘基础修复完成并已重新挂载：$mountpoint"
-    log "双系统互通盘修复完成: $device filesystem=$filesystem"
+    library="$(choose_steam_repair_library "$libraries_file")" || {
+        rm -f -- "$libraries_file"
+        echo "[失败步骤：识别 Steam 库] 未选择可修复的游戏盘。" >&2
+        return 1
+    }
+    rm -f -- "$libraries_file"
+    [ -d "$library/steamapps" ] && [ ! -L "$library/steamapps" ] || {
+        echo "[失败步骤：检查路径] Steam 库路径异常：$library" >&2
+        return 1
+    }
+    mountpoint="$(steam_repair_mount_info "$library" TARGET)"
+    filesystem="$(steam_repair_mount_info "$library" FSTYPE | tr '[:upper:]' '[:lower:]')"
+    options="$(steam_repair_mount_info "$library" OPTIONS)"
+    [ -n "$mountpoint" ] && [ -n "$filesystem" ] || {
+        echo "[失败步骤：检查挂载] 目标游戏盘不存在或尚未挂载：$library" >&2
+        return 1
+    }
+    case ",$options," in
+        *,ro,*) steam_repair_windows_instructions "$library"; return 1 ;;
+    esac
+    if ! steam_library_write_test "$library"; then
+        steam_repair_windows_instructions "$library"
+        return 1
+    fi
+    repair_drive_confirm "$library" "$filesystem" || {
+        echo "已取消修复，Steam 库未修改。"
+        return 0
+    }
+    stop_steam_for_disk_repair || {
+        echo "[失败步骤：关闭 Steam] 未修改 compatdata 或下载缓存。" >&2
+        return 1
+    }
+    compat_target="$(prepare_linux_compatdata_target "$library")" || {
+        echo "[失败步骤：建立独立 compatdata] 未修改原 compatdata。" >&2
+        return 1
+    }
+    link_library_compatdata "$library" "$compat_target" || {
+        echo "[失败步骤：链接 compatdata] 修复已停止。" >&2
+        return 1
+    }
+    clear_steam_repair_cache "$library" || {
+        echo "[失败步骤：清理下载残留] 请检查该 Steam 库权限。" >&2
+        return 1
+    }
+    verify_steam_disk_repair "$library" "$compat_target" || {
+        echo "[失败步骤：完成后验证] 未显示修复成功。" >&2
+        return 1
+    }
+
+    echo "Steam 磁盘写入错误修复完成：$library"
+    echo "独立 compatdata：$compat_target"
+    echo "未删除 steamapps/common 或任何已安装游戏。"
+    case "$filesystem" in
+        ntfs|ntfs3)
+            echo "Windows 请保持快速启动和休眠关闭：管理员 CMD 执行 powercfg -h off"
+            ;;
+    esac
+    echo "若 Steam 中出现两个同名库，请保留能够正常下载的库条目，并移除旧的失效库条目；不要删除游戏文件。"
+    log "Steam磁盘写入错误修复完成: library=$library filesystem=$filesystem compatdata=$compat_target"
 }
 
 retire_windows_switch_shortcuts() {
