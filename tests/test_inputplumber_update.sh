@@ -74,6 +74,9 @@ export ZHOUKEER_INPUTPLUMBER_SHA256="$FIXTURE_SHA256"
 # shellcheck disable=SC1090
 source "$MODULE"
 
+# core/env.sh 会设置项目运行日志路径；模拟测试必须继续使用自己的临时文件。
+LOG_FILE="$TEST_ROOT/toolbox.log"
+
 MOCK_STEAMOS=1
 MOCK_UID=1000
 MOCK_GID=1000
