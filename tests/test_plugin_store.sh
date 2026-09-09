@@ -713,6 +713,29 @@ fi
 grep -Fq 'onexplayer-apex) show_plugin_download_speed_tip; install_configured_plugin onexplayer-apex' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'OneXPlayer_Apex_Tools.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '7c522bc8145697d78d6165f7f97671d4d67a5bf4f9e4ed5e6feccbb1154acb91' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '仅支持 OneXPlayer Apex 的原版 SteamOS' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'install_zhoukeer_localizer 1' "$PROJECT_ROOT/modules/plugin_store.sh"
+OXP_CALLS="$TMP_ROOT/onexplayer-apex.calls"
+(
+    export OXP_CALLS
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
+    install_decky_zip() {
+        printf '%s\n' "archive:$2" >> "$OXP_CALLS"
+        printf '%s\n' "sha256:$3" >> "$OXP_CALLS"
+        printf '%s\n' "mirror:${GITEE_MIRROR_REPO:-}" >> "$OXP_CALLS"
+    }
+    install_zhoukeer_localizer() {
+        [ "$1" = "1" ] || exit 1
+        printf '%s\n' "localizer:forced" >> "$OXP_CALLS"
+    }
+    install_configured_plugin onexplayer-apex
+)
+grep -Fxq 'archive:https://github.com/srsholmes/onexplayer-apex-bazzite-fixes/releases/download/build-b696161/OneXPlayer_Apex_Tools.zip' "$OXP_CALLS"
+grep -Fxq 'sha256:7c522bc8145697d78d6165f7f97671d4d67a5bf4f9e4ed5e6feccbb1154acb91' "$OXP_CALLS"
+grep -Fxq 'mirror:zhoukeer-toolbox-mirror-3' "$OXP_CALLS"
+grep -Fxq 'localizer:forced' "$OXP_CALLS"
 grep -Fq '"tomoon"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'feature-status) print_feature_plugin_status' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'uninstall) uninstall_all_decky_plugins' "$PROJECT_ROOT/modules/plugin_store.sh"

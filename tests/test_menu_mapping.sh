@@ -152,6 +152,8 @@ touch_handheld_plugins="$(function_source "$MAIN_FILE" handheld_plugins_menu)"
 assert_contains "$touch_handheld_plugins" 'right:5-6:simpledeckytdp' "掌机控制子菜单缺少功耗控制坐标"
 assert_contains "$touch_handheld_plugins" 'right:7-8:allycenter' "掌机控制子菜单缺少 Ally Center 坐标"
 assert_contains "$touch_handheld_plugins" 'modules/plugin_store.sh" allycenter' "Ally Center 动作错误"
+assert_contains "$touch_handheld_plugins" 'right:19-20:onexplayer-apex' "掌机控制子菜单缺少 OneXPlayer Apex 坐标"
+assert_contains "$touch_handheld_plugins" 'modules/plugin_store.sh" onexplayer-apex' "OneXPlayer Apex 动作错误"
 for mapping in 'right:9-10:huesync' 'right:11-12:legiongo-remapper' \
     'right:13-14:gpd-control' 'right:15-16:lego-vibe' 'right:17-18:lego2-fan'; do
     assert_contains "$touch_handheld_plugins" "$mapping" "掌机控制子菜单坐标错误：$mapping"

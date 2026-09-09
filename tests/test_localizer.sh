@@ -24,6 +24,8 @@ fi
 grep -Fq '立即扫描当前页面' "$SOURCE"
 grep -Fq 'aliases: ["Decky LSFG-VK"]' "$TRANSLATIONS"
 grep -Fq 'aliases: ["Decky Framegen"]' "$TRANSLATIONS"
+grep -Fq 'plugin: "OneXPlayer Apex Tools"' "$TRANSLATIONS"
+grep -Fq '"Button and RGB Fix": "按键与 RGB 修复"' "$TRANSLATIONS"
 grep -Fq '请支持插件原作者与汉化者' "$TRANSLATIONS"
 grep -Fq 'SharedJSContext' "$DIST"
 grep -Fq 'executeInTab' "$DIST"

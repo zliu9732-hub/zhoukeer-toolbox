@@ -130,6 +130,9 @@ for menu in "$touch_handheld_plugins" "$gui_games"; do
     for action in huesync legiongo-remapper gpd-control lego-vibe lego2-fan; do
         assert_contains "$menu" "modules/plugin_store.sh\" $action" "掌机控制插件缺少动作：$action"
     done
+    assert_contains "$menu" 'OneXPlayer Apex 工具' "掌机控制插件菜单缺少 OneXPlayer Apex 工具"
+    assert_contains "$menu" 'modules/plugin_store.sh" onexplayer-apex' "OneXPlayer Apex 工具未调用独立安装动作"
+    assert_contains "$menu" '原版 SteamOS' "OneXPlayer Apex 工具缺少 SteamOS 适用范围提示"
 done
 for menu in "$touch_freedeck" "$gui_games"; do
     assert_contains "$menu" 'Freedeck 0.6 稳定版' "Freedeck 版本菜单缺少稳定版"

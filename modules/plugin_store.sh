@@ -161,7 +161,7 @@ DECKY_LEGO2_FAN_SHA256="${ZHOUKEER_DECKY_LEGO2_FAN_SHA256:-a46af0c53eef63b1ad77f
 DECKY_LEGO2_FAN_VERSION="0.260430"
 LEGO2_FAN_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/lego2-fan-control-zh-v0.260430"
 LEGO2_FAN_ZH_INDEX_SHA256="9d93837925ccb2e95bf94942b291664f1cf645362d0f6b9972a03face0bb22d4"
-# OneXPlayer Apex Tools 只适用于 Apex（Strix Halo）；上游包会操作 HHD、睡眠和内核模块。
+# OneXPlayer Apex Tools 仅限 Apex（Strix Halo）；会操作硬件、休眠与内核相关配置。
 DECKY_ONEXPLAYER_APEX_URL="https://github.com/srsholmes/onexplayer-apex-bazzite-fixes/releases/download/build-b696161/OneXPlayer_Apex_Tools.zip"
 DECKY_ONEXPLAYER_APEX_SHA256="7c522bc8145697d78d6165f7f97671d4d67a5bf4f9e4ed5e6feccbb1154acb91"
 DECKY_ONEXPLAYER_APEX_VERSION="build-b696161"
@@ -2117,6 +2117,7 @@ install_zhoukeer_localizer() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local source_dir="$PROJECT_ROOT/decky-plugins/zhoukeer-localizer"
 
+    local force_update="${1:-0}"
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ]; then
         echo "Renkit汉化仅支持真实 SteamOS 环境。"
@@ -2126,7 +2127,8 @@ install_zhoukeer_localizer() {
         echo "Renkit汉化组件不完整，请更新Renkit后再试。"
         return 1
     fi
-    if decky_plugin_directory_is_complete "$plugin_root" "zhoukeer-localizer"; then
+    if [ "$force_update" != "1" ] && \
+       decky_plugin_directory_is_complete "$plugin_root" "zhoukeer-localizer"; then
         echo "[已安装] Renkit汉化已存在且文件完整，无需重复安装。"
         return 0
     fi
@@ -3631,19 +3633,20 @@ install_configured_plugin() {
                 "原作者：Luke Cama；许可证：GPL-3.0。"
             ;;
         onexplayer-apex)
-            if [ "$IS_BAZZITE" -ne 1 ]; then
-                echo "OneXPlayer Apex 工具仅支持 Bazzite，SteamOS 和其他 Linux 不会安装。"
+            if [ "$IS_STEAMOS" -ne 1 ]; then
+                echo "OneXPlayer Apex 工具仅支持 OneXPlayer Apex 的原版 SteamOS，当前系统不会安装。"
                 return 1
             fi
             (
                 GITEE_MIRROR_REPO="$DECKY_ONEXPLAYER_APEX_MIRROR_REPO"
                 export GITEE_MIRROR_REPO
-                echo "警告：此插件仅适用于 OneXPlayer Apex（Strix Halo），其他机型不要安装或启用。"
+                echo "警告：此插件仅适用于 OneXPlayer Apex（Strix Halo）原版 SteamOS，其他机型不要安装或启用。"
                 install_decky_zip \
                     "OneXPlayer Apex 工具" \
                     "$DECKY_ONEXPLAYER_APEX_URL" \
                     "$DECKY_ONEXPLAYER_APEX_SHA256" \
-                    "OneXPlayer Apex Tools"
+                    "OneXPlayer Apex Tools" || exit 1
+                install_zhoukeer_localizer 1 || exit 1
             )
             ;;
         simpledeckytdp)

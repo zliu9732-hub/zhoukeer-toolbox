@@ -411,6 +411,7 @@ game_environment_gui_menu() {
                     gpd-control "GPD 控制中心｜GPD Win 系列 RGB 与按游戏配置" \
                     lego-vibe "Legion Go 震动控制｜Go / Go 2 震动与触控板反馈" \
                     lego2-fan "Legion Go 2 风扇控制｜仅 Go 2·不受限风扇曲线" \
+                    onexplayer-apex "OneXPlayer Apex 工具｜仅 Apex·功耗、按键、灯光与休眠修复" \
                     back "返回游戏与插件")" || continue
                 case "$handheld_plugin_choice" in
                     powercontrol)
@@ -459,6 +460,12 @@ game_environment_gui_menu() {
                             run_gui_action "安装 Legion Go 2 风扇控制" \
                                 env ZHOUKEER_AUTO_CONFIRM=1 \
                                 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego2-fan
+                        ;;
+                    onexplayer-apex)
+                        gui_confirm "高风险：仅适用于 OneXPlayer Apex（Strix Halo）原版 SteamOS。插件以 Decky root 权限修改硬件设置、按键/灯光与休眠相关配置，可能需要重启；请勿与其他功耗、风扇、按键或灯光控制插件同时启用。错误操作可能导致输入失效、休眠异常或系统不稳定。将校验安装包并自动接入 Renkit 汉化。确认理解风险后继续？" && \
+                            run_gui_action "安装 OneXPlayer Apex 工具" \
+                                env ZHOUKEER_AUTO_CONFIRM=1 \
+                                bash "$PROJECT_ROOT/modules/plugin_store.sh" onexplayer-apex
                         ;;
                 esac
                 ;;

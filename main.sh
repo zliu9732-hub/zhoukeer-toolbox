@@ -783,10 +783,11 @@ handheld_plugins_menu() {
         ui_touch_button 13 '\033[1;97;48;5;24m' "GPD 控制中心" "GPD Win 系列 RGB 与按游戏配置"
         ui_touch_button 15 '\033[1;97;48;5;24m' "Legion Go 震动控制" "Legion Go / Go 2 震动与触控板反馈"
         ui_touch_button 17 '\033[1;97;48;5;24m' "Legion Go 2 风扇控制" "仅 Legion Go 2·不受限风扇曲线"
-        ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件第二页"
-        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "OneXPlayer Apex 工具" "仅 Apex·功耗、按键、灯光与休眠修复"
+        ui_touch_button 21 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件第二页"
+        ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:3-4:powercontrol right:5-6:simpledeckytdp right:7-8:allycenter right:9-10:huesync right:11-12:legiongo-remapper right:13-14:gpd-control right:15-16:lego-vibe right:17-18:lego2-fan right:19-20:back right:22-23:home)"
+        choice="$(read_touch_menu right:3-4:powercontrol right:5-6:simpledeckytdp right:7-8:allycenter right:9-10:huesync right:11-12:legiongo-remapper right:13-14:gpd-control right:15-16:lego-vibe right:17-18:lego2-fan right:19-20:onexplayer-apex right:21-22:back right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             powercontrol)
@@ -820,6 +821,10 @@ handheld_plugins_menu() {
             lego2-fan)
                 confirm_and_run "安装 Legion Go 2 风扇控制" "高风险：仅适用于 Legion Go 2；插件允许不受限制的风扇曲线，错误设置可能在高温时使用过低转速并损伤设备；需要 Decky root 权限。确认理解风险后继续" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego2-fan
+                ;;
+            onexplayer-apex)
+                confirm_and_run "安装 OneXPlayer Apex 工具" "高风险：仅适用于 OneXPlayer Apex（Strix Halo）原版 SteamOS；插件以 Decky root 权限修改硬件设置、按键/灯光与休眠相关配置，可能需要重启。请勿与其他功耗、风扇、按键或灯光控制插件同时启用；错误操作可能导致输入失效、休眠异常或系统不稳定。将校验安装包并自动接入 Renkit 汉化。确认理解风险后继续" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" onexplayer-apex
                 ;;
             back) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
