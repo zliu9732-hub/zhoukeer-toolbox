@@ -510,6 +510,23 @@ copy_zhoukeer_localizer() {
     done
 }
 
+copy_switch_to_windows() {
+    local source_dir="$SOURCE_ROOT/decky-plugins/switch-to-windows"
+    local relative_file
+
+    # 只复制 Decky 运行插件所需的清单、前端和后端，避免更新后菜单存在但本地组件缺失。
+    for relative_file in \
+        plugin.json \
+        package.json \
+        main.py \
+        LICENSE \
+        backend/src/switch_to_windows.py \
+        dist/index.js; do
+        copy_file "$source_dir/$relative_file" \
+            "$STAGING_DIR/decky-plugins/switch-to-windows/$relative_file" || return 1
+    done
+}
+
 copy_cssloader_chinese() {
     local source_dir="$SOURCE_ROOT/third_party/cssloader-zh-v2.1.2"
     local relative_file
@@ -589,6 +606,7 @@ copy_dir_files config
 copy_dir_files assets
 copy_dir_files scripts
 copy_dir_files data
+copy_switch_to_windows || exit 1
 copy_cssloader_chinese
 copy_simpledeckytdp_chinese
 copy_allycenter_chinese

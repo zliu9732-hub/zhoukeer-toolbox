@@ -314,6 +314,26 @@ test_runtime_scripts_packaged() {
         fail "安装目录缺少可执行的 Decky 官方插件安装脚本"
 }
 
+test_switch_to_windows_runtime_packaged() {
+    local case_root="$TMP_ROOT/switch-to-windows-runtime"
+    local install_dir="$case_root/install"
+    local plugin_dir="$install_dir/decky-plugins/switch-to-windows"
+    local relative_file
+
+    run_installer "$case_root/home" "$install_dir"
+
+    for relative_file in \
+        plugin.json \
+        package.json \
+        main.py \
+        LICENSE \
+        backend/src/switch_to_windows.py \
+        dist/index.js; do
+        [ -s "$plugin_dir/$relative_file" ] || \
+            fail "安装目录缺少 Switch to Windows 运行组件：$relative_file"
+    done
+}
+
 test_fsr4_list_and_cssloader_overlay_packaged() {
     local case_root="$TMP_ROOT/fsr4-list-cssloader"
     local install_dir="$case_root/install"
@@ -370,6 +390,7 @@ test_retired_decky_installer_config_removed
 test_missing_config_created
 test_dry_run_has_no_side_effects
 test_runtime_scripts_packaged
+test_switch_to_windows_runtime_packaged
 test_fsr4_list_and_cssloader_overlay_packaged
 test_install_from_replaced_workdir
 
