@@ -294,7 +294,8 @@ download_preinstalled_launcher_parts() {
             --max-filesize "$(download_policy_max_bytes "$part_url")"
         )
         if ! curl "${curl_options[@]}" --output "$part_file" "$part_url" \
-            2> >(download_progress_filter "$LAUNCHER_NAME 预装客户端" >&2); then
+            2> >(download_progress_filter "$LAUNCHER_NAME 预装客户端" \
+                "$((index - 1))" "$LAUNCHER_PREINSTALLED_PARTS" >&2); then
             echo "$LAUNCHER_NAME 客户端下载失败，已保留已下载分卷。"
             return 1
         fi

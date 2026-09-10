@@ -26,11 +26,11 @@ assert_payload_progress() {
 
     body="$(function_section "$file" "$start" "$end")"
     [ -n "$body" ] || fail "没有找到下载函数：$file $start"
-    printf '%s\n' "$body" | grep -Fq -- '--progress-meter' || \
+    grep -Fq -- '--progress-meter' <<< "$body" || \
         fail "$file 的 $start 没有显示实时下载速度"
-    if printf '%s\n' "$body" | grep -Fq -- '--silent'; then
+    if grep -Fq -- '--silent' <<< "$body"; then
         if [ "$allow_conditional_silent" = "1" ]; then
-            printf '%s\n' "$body" | grep -Fq 'if [ "$quiet" = "1" ]; then' || \
+            grep -Fq 'if [ "$quiet" = "1" ]; then' <<< "$body" || \
                 fail "$file 的 $start 的静默开关未限制在 quiet 分支"
         else
             fail "$file 的 $start 仍用静默模式隐藏下载进度"
@@ -50,6 +50,16 @@ assert_payload_progress update.sh download_one download_version_one
 assert_payload_progress bootstrap.sh download_one valid_sha256
 grep -Eq '^download_progress_filter\(\)' "$PROJECT_ROOT/bootstrap.sh" || \
     fail "bootstrap.sh 缺少独立 download_progress_filter 定义"
+if grep -Fq 'GITEE_MIRROR_QUIET=1' "$PROJECT_ROOT/utils/gitee_download.sh"; then
+    fail "国内镜像实际文件下载仍然隐藏进度"
+fi
+gitee_progress="$(function_section utils/gitee_download.sh download_gitee_mirror_file resolve_latest_gitee_mirror)"
+grep -Fq '"$((index - 1))"' <<< "$gitee_progress" || \
+    fail "国内镜像没有换算连续总进度"
+launcher_progress="$(function_section modules/game_launchers.sh download_preinstalled_launcher_parts \
+    verify_preinstalled_launcher_parts)"
+grep -Fq '"$((index - 1))"' <<< "$launcher_progress" || \
+    fail "预装启动器下载没有换算连续总进度"
 
 # curl --progress-meter 自带的英文表头、警告和错误不能漏到终端。
 # shellcheck disable=SC1090
@@ -63,9 +73,11 @@ filtered="$(
         'warning: some proxy warning' |
         download_progress_filter "测试下载"
 )"
-printf '%s\n' "$filtered" | grep -Fq '正在下载 测试下载' || \
+grep -Fq '正在下载 测试下载' <<< "$filtered" || \
     fail "实时下载速度被过滤掉了"
-if printf '%s\n' "$filtered" | grep -Eq 'Dload|% Total|curl: \(|warning:'; then
+grep -Fq '[####################] 100%（5678 B/s）' <<< "$filtered" || \
+    fail "下载没有同时显示完整进度条、百分比和实时速度"
+if grep -Eq 'Dload|% Total|curl: \(|warning:' <<< "$filtered"; then
     fail "curl 英文表头/警告/错误泄漏到终端"
 fi
 
@@ -78,4 +90,10 @@ if grep -Eq 'flatpak install .*2>/dev/null' "$PROJECT_ROOT/modules/software.sh";
     fail "Flatpak 安装仍把原生百分比进度重定向隐藏"
 fi
 
-echo "PASS: 软件、插件、启动器和更新包下载均显示实时速度，元数据请求保持静默"
+bootstrap_progress="$(function_section bootstrap.sh download_progress_filter download_one)"
+grep -Fq 'bar_width = 20' <<< "$bootstrap_progress" || \
+    fail "bootstrap.sh 下载进度缺少 20 格进度条"
+grep -Fq 'percent, speed, unit' <<< "$bootstrap_progress" || \
+    fail "bootstrap.sh 下载进度没有同时显示百分比和速度"
+
+echo "PASS: 软件、插件、启动器和更新包下载均显示进度条、百分比和实时速度，元数据请求保持静默"

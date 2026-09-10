@@ -544,6 +544,8 @@ download_decky_gitee_part() {
     local url="$2"
     local expected_sha256="$3"
     local output="$4"
+    local progress_index="${5:-0}"
+    local progress_total="${6:-1}"
     local temporary_file="${output}.download.$$"
     local actual_sha256 max_bytes
 
@@ -566,7 +568,7 @@ download_decky_gitee_part() {
         --speed-limit 65536 --speed-time 60 \
         --max-filesize "$max_bytes" \
         --output "$temporary_file" "$url" \
-        2> >(download_progress_filter "$name" >&2); then
+        2> >(download_progress_filter "$name" "$progress_index" "$progress_total" >&2); then
         rm -f -- "$temporary_file"
         echo "$name 下载失败，将切换备用线路。"
         return 1
@@ -625,7 +627,7 @@ download_decky_gitee_loader() {
         if ! download_decky_gitee_part \
             "Decky PluginLoader" \
             "$DECKY_GITEE_MIRROR_BASE/${prefix}.part.${part_name}" \
-            "${part_entries[$i]}" "$part_file"; then
+            "${part_entries[$i]}" "$part_file" "$i" "$parts"; then
             rm -f -- "$output"
             return 1
         fi

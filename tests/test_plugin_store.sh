@@ -69,7 +69,7 @@ PROJECT_ROOT="$PROJECT_ROOT" GITEE_PART_CALLS="$GITEE_PART_CALLS" \
         exit 99
     }
     download_decky_gitee_part() {
-        printf "%s\n" "$1" >> "$GITEE_PART_CALLS"
+        printf "%s|%s|%s\n" "$1" "$5" "$6" >> "$GITEE_PART_CALLS"
         printf "%s\n" "$1" > "$4"
     }
     calculate_decky_sha256() {
@@ -77,8 +77,12 @@ PROJECT_ROOT="$PROJECT_ROOT" GITEE_PART_CALLS="$GITEE_PART_CALLS" \
     }
     download_decky_gitee_loader prerelease "$GITEE_LOADER_OUTPUT"
 ' > "$GITEE_VISIBLE_OUTPUT"
-[ "$(grep -Fxc 'Decky PluginLoader' "$GITEE_PART_CALLS")" -eq 2 ] || {
-    echo "FAIL: Decky 国内下载没有统一使用公开名称" >&2
+grep -Fxq 'Decky PluginLoader|0|2' "$GITEE_PART_CALLS" || {
+    echo "FAIL: Decky 国内下载没有从总进度 0% 开始" >&2
+    exit 1
+}
+grep -Fxq 'Decky PluginLoader|1|2' "$GITEE_PART_CALLS" || {
+    echo "FAIL: Decky 国内下载没有连续换算总进度" >&2
     exit 1
 }
 grep -Fq '正在下载 Decky PluginLoader...' "$GITEE_VISIBLE_OUTPUT" || {

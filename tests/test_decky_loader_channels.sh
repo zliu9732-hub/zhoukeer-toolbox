@@ -285,6 +285,25 @@ download_github_file() {
     esac
 }
 
+download_decky_gitee_part() {
+    local name="$1"
+    local url="$2"
+    local expected_sha256="$3"
+    local output="$4"
+    local progress_index="${5:-0}"
+    local progress_total="${6:-1}"
+
+    printf 'gitee-part %s|%s|%s|%s|%s\n' \
+        "$name" "$url" "$expected_sha256" "$progress_index" "$progress_total" >> "$CALLS"
+    [ "$GITEE_FAIL" -eq 0 ] || return 1
+    case "$url" in
+        */decky-installer-cn/PluginLoader.part.00|*/decky-installer-cn/PluginLoader-pre.part.00)
+            printf '#!/bin/sh\nexit 0\n' > "$output"
+            ;;
+        *) return 1 ;;
+    esac
+}
+
 prepare_old_testing_install() {
     printf '#!/bin/sh\nexit 0\n' > "$SERVICES_DIR/PluginLoader"
     chmod +x "$SERVICES_DIR/PluginLoader"
@@ -314,8 +333,9 @@ grep -Fq '"keep": "yes"' "$SETTINGS_DIR/loader.json" || \
 [ -f "$PLUGIN_DIR/KeepMe/data" ] || fail "稳定版安装删除了现有插件"
 grep -Fq 'user disable --now plugin_loader.service' "$CALLS" || \
     fail "稳定版安装未停用旧测试版用户服务"
-grep -Fq 'github Decky PluginLoader分块00|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn/PluginLoader.part.00|' \
+grep -Fq 'gitee-part Decky PluginLoader|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn/PluginLoader.part.00|' \
     "$CALLS" || fail "稳定版未优先使用 Gitee 国内镜像"
+grep -Fq '|0|1' "$CALLS" || fail "稳定版 Gitee 下载没有传递总体进度"
 grep -Fq 'github Decky systemd服务模板|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn/plugin_loader-release.service|' \
     "$CALLS" || fail "稳定版服务模板未使用 Gitee 镜像"
 if grep -Fq "download Decky PluginLoader|$DECKY_LOADER_URL|$DECKY_LOADER_OFFICIAL_URL" "$CALLS"; then
@@ -359,8 +379,9 @@ grep -Fxq 'v3.2.8-pre1' "$SERVICES_DIR/.loader.version" || \
     fail "测试版安装未更新版本标记"
 grep -Eq '"branch"[[:space:]]*:[[:space:]]*1' "$SETTINGS_DIR/loader.json" || \
     fail "测试版安装未切换到预发布分支"
-grep -Fq 'github Decky PluginLoader分块00|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn/PluginLoader-pre.part.00|' \
+grep -Fq 'gitee-part Decky PluginLoader|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn/PluginLoader-pre.part.00|' \
     "$CALLS" || fail "测试版未优先使用 Gitee 国内镜像"
+grep -Fq '|0|1' "$CALLS" || fail "测试版 Gitee 下载没有传递总体进度"
 grep -Fq 'github Decky systemd服务模板|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn/plugin_loader-prerelease.service|' \
     "$CALLS" || fail "测试版服务模板未使用 Gitee 镜像"
 if grep -Fq "$DECKY_PRERELEASE_LOADER_URL" "$CALLS"; then

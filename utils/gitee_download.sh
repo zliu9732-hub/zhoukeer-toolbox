@@ -202,6 +202,7 @@ _gitee_mirror_sha256() {
 
 _gitee_mirror_download_one() {
     local url="$1" output="$2" max_bytes="$3"
+    local progress_index="${4:-0}" progress_total="${5:-1}"
     local connect_timeout max_time retries
     local quiet="${GITEE_MIRROR_QUIET:-0}"
     local curl_options=()
@@ -229,7 +230,8 @@ _gitee_mirror_download_one() {
     else
         curl_options+=(--progress-meter)
         if ! curl "${curl_options[@]}" --output "$output" "$url" \
-            2> >(download_progress_filter "${GITEE_MIRROR_LABEL:-下载}" >&2); then
+            2> >(download_progress_filter "${GITEE_MIRROR_LABEL:-下载}" \
+                "$progress_index" "$progress_total" >&2); then
             return 1
         fi
     fi
@@ -299,7 +301,6 @@ download_gitee_mirror_file() {
             echo "$name 无法创建临时目录。"
             return 1
         }
-        GITEE_MIRROR_QUIET=1
         echo "正在下载 $name..."
         index=1
         while [ "$index" -le "$_GITEE_MIRROR_CHUNKS" ]; do
@@ -316,7 +317,8 @@ download_gitee_mirror_file() {
             fi
             file_url="$(gitee_mirror_raw_base "$part_repo")/$id/$_GITEE_MIRROR_VERSION/$part_name"
             if ! _gitee_mirror_download_one "$file_url" "$part_file" \
-                "$_GITEE_MIRROR_CHUNK_SIZE"; then
+                "$_GITEE_MIRROR_CHUNK_SIZE" "$((index - 1))" \
+                "$_GITEE_MIRROR_CHUNKS"; then
                 rm -rf -- "$temp_dir"
                 rm -f -- "$temp_file"
                 echo "$name 镜像下载失败，切换备用源。"

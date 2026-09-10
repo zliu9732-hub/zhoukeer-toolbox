@@ -28,10 +28,26 @@ EOF
 
 download_progress_filter() {
     local label="${1:-下载}"
+    local segment_index="${2:-0}"
+    local segment_total="${3:-1}"
 
-    tr '\r' '\n' | awk -v label="$label" '
+    tr '\r' '\n' | awk -v label="$label" \
+        -v segment_index="$segment_index" -v segment_total="$segment_total" '
+        BEGIN {
+            if (segment_index !~ /^[0-9]+$/) segment_index = 0
+            if (segment_total !~ /^[1-9][0-9]*$/) segment_total = 1
+            if (segment_index >= segment_total) segment_index = 0
+            bar_width = 20
+        }
         function progress_line(line) {
             return line ~ /^[ ]*[0-9]+[ ]+[0-9]+/ && NF >= 8
+        }
+        function progress_bar(percent,    filled, result, i) {
+            filled = int(percent * bar_width / 100)
+            result = ""
+            for (i = 0; i < filled; i++) result = result "#"
+            for (i = filled; i < bar_width; i++) result = result "-"
+            return result
         }
         {
             line = $0
@@ -44,12 +60,17 @@ download_progress_filter() {
                 next
             }
             if (progress_line(line)) {
+                raw_percent = $1 + 0
+                if (raw_percent < 0) raw_percent = 0
+                if (raw_percent > 100) raw_percent = 100
+                percent = int((segment_index * 100 + raw_percent) / segment_total)
                 speed = $NF
                 unit = "B/s"
                 if (speed ~ /[kK]$/) { unit = "KB/s"; speed = substr(speed, 1, length(speed) - 1) }
                 else if (speed ~ /[mM]$/) { unit = "MB/s"; speed = substr(speed, 1, length(speed) - 1) }
                 else if (speed ~ /[gG]$/) { unit = "GB/s"; speed = substr(speed, 1, length(speed) - 1) }
-                printf "\r\033[2K正在下载 %s...（%s %s）", label, speed, unit
+                printf "\r\033[2K正在下载 %s... [%s] %d%%（%s %s）", \
+                    label, progress_bar(percent), percent, speed, unit
                 fflush()
                 next
             }
