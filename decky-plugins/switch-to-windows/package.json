@@ -1,0 +1,25 @@
+{
+  "name": "switch-to-windows-decky",
+  "version": "1.0.0",
+  "description": "A Decky plugin that reboots once into Windows through UEFI BootNext.",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c",
+    "test": "python3 -m unittest discover -s tests"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@decky/api": "^1.1.3",
+    "@decky/ui": "^4.11.0",
+    "react": "^19.1.1",
+    "react-icons": "^5.3.0"
+  },
+  "devDependencies": {
+    "@decky/rollup": "^1.0.2",
+    "@rollup/rollup-linux-x64-musl": "^4.53.3",
+    "@types/react": "^19.1.1",
+    "@types/react-dom": "^19.1.1",
+    "rollup": "^4.53.3",
+    "typescript": "^5.6.2"
+  }
+}

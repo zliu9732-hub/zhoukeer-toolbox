@@ -105,6 +105,7 @@ for menu in "$touch_feature_singles" "$gui_games"; do
     done
     assert_contains "$menu" 'Decky Music v1.0.2 完整包' "音乐播放器入口未说明完整包版本"
 done
+assert_not_contains "$touch_feature_singles" 'Switch to Windows' "Switch to Windows 不应继续显示在其余常用插件"
 assert_not_contains "$touch_plugin_page_2" '安装模拟器' "插件第二页仍显示模拟器入口"
 assert_not_contains "$gui_games" '安装模拟器' "GUI 游戏与插件仍显示模拟器入口"
 assert_contains "$touch_launcher_tools" 'right:11-12:repair' "启动器与封面子菜单缺少修复封面坐标"
@@ -346,9 +347,10 @@ gui_dual_more="$(function_source "$GUI_FILE" dual_system_more_menu)"
 touch_dual_all="${touch_dual}${touch_dual_more}"
 gui_dual_all="${gui_dual}${gui_dual_more}"
 for menu in "$touch_dual_all" "$gui_dual_all"; do
-    for item in '挂载双系统互通盘' '初始化并挂载 TF 卡' '修复 Steam 磁盘写入错误' '双系统互通盘保护' '双系统健康检查' '恢复互通盘写入' '清理第三方引导项' '修复双系统引导' '创建切换至 Windows 快捷方式' '隐藏 Clover 菜单' '重新显示 Clover 菜单' '默认进入 Windows' '默认进入 SteamOS'; do
+    for item in '挂载双系统互通盘' '初始化并挂载 TF 卡' '修复 Steam 磁盘写入错误' '双系统互通盘保护' '双系统健康检查' '恢复互通盘写入' '清理第三方引导项' '修复双系统引导' 'Switch to Windows' '隐藏 Clover 菜单' '重新显示 Clover 菜单' '默认进入 Windows' '默认进入 SteamOS'; do
         assert_contains "$menu" "$item" "双系统与互通盘缺少：$item"
     done
+    assert_contains "$menu" 'modules/plugin_store.sh" switch-to-windows' "双系统菜单缺少 Switch to Windows 安装动作"
     assert_contains "$menu" '下载失败和更新失败' "Steam 磁盘修复入口缺少故障范围说明"
     assert_contains "$menu" 'Proton compatdata' "Steam 磁盘修复入口缺少 compatdata 说明"
     assert_contains "$menu" 'modules/clover_boot.sh" hide-menu' "双系统菜单缺少隐藏 Clover 菜单动作"

@@ -1085,7 +1085,7 @@ dual_system_more_menu() {
         ui_touch_button 7 '\033[1;97;48;5;24m' "恢复互通盘写入" "退出只读保护并重新挂载"
         ui_touch_button 9 '\033[1;97;48;5;160m' "清理第三方引导项" "仅删选定 NVRAM，保留 EFI 文件"
         ui_touch_button 11 '\033[1;97;48;5;24m' "修复双系统引导" "补齐缺失引导项并恢复启动顺序"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "创建切换至 Windows 快捷方式" "仅创建桌面图标，本次不会重启"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "Switch to Windows" "安装一键重启插件 · 本人制作：RenAmamiya"
         ui_touch_button 15 '\033[1;97;48;5;160m' "隐藏 Clover 菜单" "等待时间设为 0 秒，不改变默认系统"
         ui_touch_button 17 '\033[1;97;48;5;24m' "重新显示 Clover 菜单" "恢复 8 秒开机选择时间"
         ui_touch_button 19 '\033[1;97;48;5;24m' "上一页：返回常用工具" "回到双系统常用功能"
@@ -1110,8 +1110,8 @@ dual_system_more_menu() {
                     bash "$PROJECT_ROOT/modules/clover_boot.sh" install
                 ;;
             switch-to-windows)
-                confirm_and_run "创建切换至 Windows 快捷方式" "只在桌面创建图标；本次不会设置 BootNext，也不会重启" \
-                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-shortcut
+                confirm_and_run "安装 Switch to Windows" "将安装 RenAmamiya 本人制作的 Decky 插件；安装完成后请在游戏模式的插件菜单点击它，即可设置单次启动项并立即重启进入 Windows。当前不会立即重启。是否继续？" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" switch-to-windows
                 ;;
             clover-hide)
                 confirm_and_run "隐藏 Clover 菜单" "会备份并修改 Clover config.plist：只把等待时间设为 0 秒，当前默认系统保持不变" \

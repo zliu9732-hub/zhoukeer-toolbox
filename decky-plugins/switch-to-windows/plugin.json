@@ -1,0 +1,10 @@
+{
+  "name": "Switch to Windows",
+  "author": "RenAmamiya",
+  "flags": ["root"],
+  "api_version": 1,
+  "publish": {
+    "tags": ["dual-boot", "windows", "boot"],
+    "description": "通过 UEFI BootNext 在下一次启动时进入 Windows；不修改默认启动顺序。"
+  }
+}

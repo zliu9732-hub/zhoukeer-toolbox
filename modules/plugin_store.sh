@@ -97,6 +97,10 @@ DECKY_FANTASTIC_SHA256="c2dbb0bf74dbea4a17c2cf5121941bc61176559eefdf033c7380c530
 DECKY_FANTASTIC_VERSION="0.5.1"
 DECKY_FANTASTIC_DIRECTORY="Fantastic"
 DECKY_FANTASTIC_INDEX_SHA256="409cfcd0f762ae9d8b6d2b27483839fab59eacced642ce980ec2d837bcb96487"
+# Switch to Windows 是 RenAmamiya 制作的本地插件，仅在 SteamOS 主线中提供。
+SWITCH_TO_WINDOWS_SOURCE_DIR="$PROJECT_ROOT/decky-plugins/switch-to-windows"
+SWITCH_TO_WINDOWS_DIRECTORY="switch-to-windows"
+SWITCH_TO_WINDOWS_VERSION="1.0.0"
 DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip"
 DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
 DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.2/DeckRecall.zip"
@@ -2145,6 +2149,41 @@ install_zhoukeer_localizer() {
     log "Renkit汉化修复版安装完成"
 }
 
+install_switch_to_windows() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local source_dir="$SWITCH_TO_WINDOWS_SOURCE_DIR"
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "Switch to Windows 仅支持原版 SteamOS，当前系统不会安装。"
+        return 1
+    fi
+    if [ -L "$source_dir" ] || \
+        [ ! -f "$source_dir/plugin.json" ] || \
+        [ ! -f "$source_dir/package.json" ] || \
+        [ ! -f "$source_dir/main.py" ] || \
+        [ ! -s "$source_dir/backend/src/switch_to_windows.py" ] || \
+        [ ! -s "$source_dir/dist/index.js" ] || \
+        [ ! -f "$source_dir/LICENSE" ]; then
+        echo "Switch to Windows 本地插件组件不完整，请更新 Renkit 后再试。"
+        return 1
+    fi
+    if feature_plugin_is_current "$plugin_root" "$SWITCH_TO_WINDOWS_DIRECTORY" \
+        "$SWITCH_TO_WINDOWS_VERSION" "Switch to Windows"; then
+        echo "[已安装] Switch to Windows v$SWITCH_TO_WINDOWS_VERSION 已存在且文件完整，无需重复安装。"
+        PLUGIN_INSTALL_CHANGED=0
+        return 0
+    fi
+    prepare_plugin_root "$plugin_root" || return 1
+    install_tree_atomically "$source_dir" "$plugin_root" "$SWITCH_TO_WINDOWS_DIRECTORY" || {
+        echo "Switch to Windows 安装失败，已尽量保留旧版本。"
+        return 1
+    }
+    echo "Switch to Windows v$SWITCH_TO_WINDOWS_VERSION 安装成功；本人制作：RenAmamiya。"
+    log "Switch to Windows v$SWITCH_TO_WINDOWS_VERSION 本地插件安装完成"
+    PLUGIN_INSTALL_CHANGED=1
+}
+
 uninstall_all_decky_plugins() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local entry
@@ -3697,6 +3736,9 @@ install_configured_plugin() {
                 echo "Fantastic v$DECKY_FANTASTIC_VERSION 已直接安装；原作者：NGnius；许可证：GPL-3.0；中文汉化：RenAmamiya。"
             fi
             ;;
+        switch-to-windows)
+            install_switch_to_windows
+            ;;
         steamgriddb)
             resolve_plugin_latest steamgriddb
             ;;
@@ -4228,6 +4270,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         friendeck) show_plugin_download_speed_tip; install_configured_plugin friendeck ;;
         deckymusic) show_plugin_download_speed_tip; install_configured_plugin deckymusic ;;
         fantastic) show_plugin_download_speed_tip; install_configured_plugin fantastic ;;
+        switch-to-windows) install_configured_plugin switch-to-windows ;;
         tomoon) show_plugin_download_speed_tip; install_configured_plugin tomoon ;;
         deckrecall) show_plugin_download_speed_tip; install_configured_plugin deckrecall ;;
         savepulse) show_plugin_download_speed_tip; install_configured_plugin savepulse ;;

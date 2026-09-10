@@ -421,6 +421,12 @@ printf '%s\n' "$feature_install_function" | grep -Fq '小黄鸭（LSFG-VK）'
 printf '%s\n' "$feature_install_function" | grep -Fq 'reload_decky_plugins'
 printf '%s\n' "$feature_install_function" | grep -Fq '常用插件会出现在插头菜单中'
 printf '%s\n' "$feature_install_function" | grep -Fq '八款常用功能插件已全部安装完成'
+grep -Fq 'SWITCH_TO_WINDOWS_SOURCE_DIR="$PROJECT_ROOT/decky-plugins/switch-to-windows"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'Switch to Windows v$SWITCH_TO_WINDOWS_VERSION 安装成功；本人制作：RenAmamiya。' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'switch-to-windows) install_configured_plugin switch-to-windows' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_FANTASTIC_URL="https://gitee.com/' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'fantastic) show_plugin_download_speed_tip; install_configured_plugin fantastic' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '正在直接安装 Fantastic v$DECKY_FANTASTIC_VERSION 汉化版' "$PROJECT_ROOT/modules/plugin_store.sh"

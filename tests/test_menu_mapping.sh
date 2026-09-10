@@ -201,6 +201,8 @@ assert_contains "$touch_memory" 'right:15-16:restore' "虚拟内存菜单缺少�
 assert_contains "$touch_advanced" 'right:22-23:home' "系统设置缺少返回首页"
 assert_contains "$touch_dual" 'right:19-20:next' "双系统常用工具页缺少下一页坐标"
 assert_contains "$touch_dual_more" 'right:19-20:previous' "双系统更多工具页缺少上一页坐标"
+assert_contains "$touch_dual_more" 'right:13-14:switch-to-windows' "双系统更多工具页缺少 Switch to Windows 坐标"
+assert_contains "$gui_dual_more" 'switch-to-windows "Switch to Windows' "双系统 GUI 更多工具页缺少 Switch to Windows 入口"
 assert_contains "$touch_dual" 'dual_system_more_menu' "双系统触控下一页没有进入独立子菜单"
 assert_contains "$touch_dual_more" 'previous) return 0' "双系统触控上一页没有返回常用工具"
 assert_contains "$gui_dual" 'next "下一页：更多双系统工具' "双系统 GUI 常用工具页缺少下一页入口"
@@ -318,8 +320,8 @@ for file in "$MAIN_FILE" "$GUI_FILE"; do
     assert_not_contains "$source_text" 'modules/clover_boot.sh" autoboot-windows' "Clover 菜单仍暴露绑定隐藏菜单与默认 Windows 的旧动作：$file"
     assert_not_contains "$source_text" 'modules/clover_boot.sh" delete' "Clover 删除动作不应直接暴露：$file"
     assert_contains "$source_text" 'modules/dual_system_tools.sh" health' "双系统健康检查动作错误：$file"
-    assert_contains "$source_text" 'modules/dual_system_tools.sh" windows-shortcut' "Windows 桌面快捷方式动作错误：$file"
-    assert_not_contains "$source_text" 'modules/dual_system_tools.sh" switch-to-windows' "工具箱菜单仍会立即切换 Windows：$file"
+    assert_contains "$source_text" 'modules/plugin_store.sh" switch-to-windows' "Switch to Windows 插件安装动作错误：$file"
+    assert_not_contains "$source_text" 'modules/dual_system_tools.sh" windows-shortcut' "双系统菜单仍显示旧桌面快捷方式动作：$file"
     assert_not_contains "$source_text" 'modules/dual_system_tools.sh" windows-next' "已移除的 Windows 立即切换仍可从菜单执行：$file"
 done
 

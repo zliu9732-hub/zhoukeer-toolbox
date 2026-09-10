@@ -681,7 +681,7 @@ dual_system_more_menu() {
             unprotect "恢复互通盘写入｜重新以可写方式挂载｜高级操作" \
             cleanup-boot "清理第三方引导项｜保护 SteamOS / Windows｜保留 EFI 文件" \
             repair-boot "修复双系统引导｜补齐缺失的 SteamOS / Windows / Clover 引导项｜高级操作" \
-            switch-to-windows "创建切换至 Windows 快捷方式｜仅创建桌面图标｜本次不重启" \
+            switch-to-windows "Switch to Windows｜安装一键重启插件｜本人制作：RenAmamiya" \
             clover-hide "隐藏 Clover 菜单｜等待时间设为 0 秒｜默认系统不变" \
             clover-menu "重新显示 Clover 菜单｜恢复 8 秒开机选择时间" \
             previous "上一页：返回常用工具｜回到磁盘与互通盘｜第 1/2 页" \
@@ -705,8 +705,9 @@ dual_system_more_menu() {
                     bash "$PROJECT_ROOT/modules/clover_boot.sh" install
                 ;;
             switch-to-windows)
-                run_gui_action "创建切换至 Windows 快捷方式" \
-                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" windows-shortcut
+                gui_confirm "将安装 RenAmamiya 本人制作的 Switch to Windows Decky 插件；安装完成后请在游戏模式插件菜单点击它，即可设置单次启动项并立即重启进入 Windows。当前不会立即重启。是否继续？" && \
+                    run_gui_action "安装 Switch to Windows" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" switch-to-windows
                 ;;
             clover-hide)
                 gui_confirm "将备份并修改 Clover config.plist，只把菜单等待时间设为 0 秒；当前默认系统保持不变。是否继续？" && \
