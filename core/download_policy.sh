@@ -30,6 +30,14 @@ download_progress_filter() {
     local label="${1:-下载}"
     local segment_index="${2:-0}"
     local segment_total="${3:-1}"
+    local progress_fd=1
+
+    # GUI 动作会经过日志管道。存在真实控制终端时直接刷新 Konsole，避免
+    # 管道或日志查看器把每次回车刷新展开成多行；无终端的测试仍走 stdout。
+    if [ "${ZHOUKEER_PROGRESS_DIRECT_TTY:-0}" = "1" ] && [ ! -t 1 ] && \
+        [ -c /dev/tty ] && exec 9>/dev/tty 2>/dev/null; then
+        progress_fd=9
+    fi
 
     tr '\r' '\n' | awk -v label="$label" \
         -v segment_index="$segment_index" -v segment_total="$segment_total" '
@@ -77,7 +85,8 @@ download_progress_filter() {
             if (line != "") print line
         }
         END { printf "\n" }
-    '
+    ' >&"$progress_fd"
+    [ "$progress_fd" -ne 9 ] || exec 9>&-
 }
 
 download_policy_github_repo_allowed() {

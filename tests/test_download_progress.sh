@@ -81,6 +81,28 @@ if grep -Eq 'Dload|% Total|curl: \(|warning:' <<< "$filtered"; then
     fail "curl 英文表头/警告/错误泄漏到终端"
 fi
 
+# GUI 动作会把程序输出接入日志管道；在真实 TTY 中，进度必须绕过该管道
+# 直接刷新终端，否则日志层可能把每次回车刷新展开成多行。
+if command -v script >/dev/null 2>&1; then
+    tty_test_root="$(mktemp -d)"
+    tty_runner="$tty_test_root/runner.sh"
+    tty_pipe_log="$tty_test_root/pipe.log"
+    tty_capture="$tty_test_root/tty.log"
+    printf '%s\n' \
+        '#!/bin/bash' \
+        'source "$PROJECT_ROOT/core/download_policy.sh"' \
+        "printf '%s\\n' '  42  1234  42  518    0     0   1531k      0 --:--:-- --:--:-- --:--:-- 1531k' | ZHOUKEER_PROGRESS_DIRECT_TTY=1 download_progress_filter 'TTY测试' | tee \"\$PIPE_CAPTURE\"" \
+        > "$tty_runner"
+    chmod +x "$tty_runner"
+    PROJECT_ROOT="$PROJECT_ROOT" PIPE_CAPTURE="$tty_pipe_log" \
+        script -qefc "bash '$tty_runner'" /dev/null > "$tty_capture"
+    [ ! -s "$tty_pipe_log" ] || fail "GUI 日志管道仍会收到每一帧下载进度"
+    tr '\r' '\n' < "$tty_capture" | \
+        grep -Fq '[########------------] 42%（1531 KB/s）' || \
+        fail "下载进度没有直接刷新控制终端"
+    rm -rf -- "$tty_test_root"
+fi
+
 # 版本查询、测速和 API 元数据请求不是安装包下载，必须继续保持静默，
 # 否则一次安装会闪出多个没有意义的 100%。
 function_section update.sh download_version_one valid_release_version | \
@@ -95,5 +117,9 @@ grep -Fq 'bar_width = 20' <<< "$bootstrap_progress" || \
     fail "bootstrap.sh 下载进度缺少 20 格进度条"
 grep -Fq 'percent, speed, unit' <<< "$bootstrap_progress" || \
     fail "bootstrap.sh 下载进度没有同时显示百分比和速度"
+grep -Fq 'exec 9>/dev/tty' <<< "$bootstrap_progress" || \
+    fail "bootstrap.sh 下载进度没有直接刷新控制终端"
+grep -Fq 'ZHOUKEER_PROGRESS_DIRECT_TTY=1 "$@"' "$PROJECT_ROOT/core/gui.sh" || \
+    fail "GUI 动作没有启用单行终端进度"
 
-echo "PASS: 软件、插件、启动器和更新包下载均显示进度条、百分比和实时速度，元数据请求保持静默"
+echo "PASS: 所有实际下载均以单行进度条显示百分比和实时速度，元数据请求保持静默"

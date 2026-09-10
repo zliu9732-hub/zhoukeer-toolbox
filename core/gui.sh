@@ -63,7 +63,7 @@ run_gui_action() {
     mkdir -p "$LOG_DIR" 2>/dev/null || true
     action_log="$(mktemp "$LOG_DIR/gui-action.XXXXXX" 2>/dev/null || true)"
     if [ -n "$action_log" ]; then
-        "$@" 2>&1 | tee "$action_log"
+        ZHOUKEER_PROGRESS_DIRECT_TTY=1 "$@" 2>&1 | tee "$action_log"
         status="${PIPESTATUS[0]}"
     else
         "$@"

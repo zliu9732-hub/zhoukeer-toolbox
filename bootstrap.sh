@@ -92,6 +92,14 @@ download_progress_filter() {
     local label="${1:-下载}"
     local segment_index="${2:-0}"
     local segment_total="${3:-1}"
+    local progress_fd=1
+
+    # 有控制终端时绕过外层日志管道直接刷新同一行；无终端时保留 stdout，
+    # 便于安装脚本重定向输出和自动测试。
+    if [ "${ZHOUKEER_PROGRESS_DIRECT_TTY:-0}" = "1" ] && [ ! -t 1 ] && \
+        [ -c /dev/tty ] && exec 9>/dev/tty 2>/dev/null; then
+        progress_fd=9
+    fi
 
     tr '\r' '\n' | awk -v label="$label" \
         -v segment_index="$segment_index" -v segment_total="$segment_total" '
@@ -139,7 +147,8 @@ download_progress_filter() {
             if (line != "") print line
         }
         END { printf "\n" }
-    '
+    ' >&"$progress_fd"
+    [ "$progress_fd" -ne 9 ] || exec 9>&-
 }
 
 download_one() {
