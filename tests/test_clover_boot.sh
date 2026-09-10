@@ -28,7 +28,7 @@ mkdir -p \
     "$ESP/EFI/BOOT" \
     "$ESP/EFI/CLOVER" \
     "$FIXTURE_ROOT/Clover/clover" \
-    "$FIXTURE_ROOT/Clover/custom" \
+    "$FIXTURE_ROOT/Clover/custom/themes/Apocalypse/icons" \
     "$STATE"
 printf 'steam\n' > "$ESP/EFI/steamos/steamcl.efi"
 # 模拟 1.2.7 已把 Windows 启动文件移走；1.2.8 重装必须自动恢复。
@@ -39,6 +39,11 @@ printf 'original-clover\n' > "$ESP/EFI/CLOVER/original.txt"
 mkdir -p "$ESP/EFI/CLOVER/themes/zhoukeer-phantom"
 printf 'old-background\n' > "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/background.png"
 printf 'clover-binary\n' > "$FIXTURE_ROOT/Clover/clover/cloverx64.efi"
+printf 'font-image\n' > "$FIXTURE_ROOT/Clover/custom/themes/Apocalypse/Font_DroidSans_16pt_WhiteFx.png"
+printf 'large-selection\n' > "$FIXTURE_ROOT/Clover/custom/themes/Apocalypse/Selection_big.png"
+printf 'small-selection\n' > "$FIXTURE_ROOT/Clover/custom/themes/Apocalypse/Selection_small.png"
+printf 'steamos-icon\n' > "$FIXTURE_ROOT/Clover/custom/themes/Apocalypse/icons/os_steamos.icns"
+printf 'windows-icon\n' > "$FIXTURE_ROOT/Clover/custom/themes/Apocalypse/icons/os_win.icns"
 cp -- "$PROJECT_ROOT/assets/clover/devices/SD-config.plist" \
     "$FIXTURE_ROOT/Clover/custom/SD-config.plist"
 (
@@ -144,6 +149,16 @@ fi
 [ -s "$ESP/EFI/CLOVER/CLOVERX64.efi" ] || fail "未写入 Clover EFI 文件"
 [ -f "$ESP/EFI/CLOVER/.zhoukeer-managed" ] || fail "未写入Renkit管理标记"
 [ -f "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/background.png" ] || fail "未写入怪盗主题背景"
+[ -s "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/icons/os_steamos.icns" ] || \
+    fail "未写入 SteamOS 专用图标"
+[ -s "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/icons/os_win.icns" ] || \
+    fail "未写入 Windows 专用图标"
+[ -s "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/Font_DroidSans_16pt_WhiteFx.png" ] || \
+    fail "未写入 Clover 主题字体"
+[ -s "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/Selection_big.png" ] || \
+    fail "未写入 Clover 大图标选中框"
+[ -s "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/Selection_small.png" ] || \
+    fail "未写入 Clover 小图标选中框"
 cmp -s "$PROJECT_ROOT/assets/clover/zhoukeer-phantom/background.png" \
     "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/background.png" || fail "开机背景与项目资源不一致"
 if command -v sha256sum >/dev/null 2>&1; then
@@ -157,6 +172,15 @@ grep -Fq 'steamcl.efi' "$ESP/EFI/CLOVER/config.plist" || \
     fail "SteamOS 不是默认启动器"
 grep -Fq 'zhoukeer-phantom' "$ESP/EFI/CLOVER/config.plist" || \
     fail "设备配置未指向Renkit主题"
+grep -Fq '<string>SteamOS</string>' "$ESP/EFI/CLOVER/config.plist" || \
+    fail "SteamOS 启动项名称缺失"
+grep -Fq '<string>os_steamos</string>' "$ESP/EFI/CLOVER/config.plist" || \
+    fail "SteamOS 启动项未绑定专用图标"
+grep -Fq '<string>os_win</string>' "$ESP/EFI/CLOVER/config.plist" || \
+    fail "Windows 启动项未绑定专用图标"
+grep -Fq '<string>Font_DroidSans_16pt_WhiteFx.png</string>' \
+    "$ESP/EFI/CLOVER/themes/zhoukeer-phantom/theme.plist" || \
+    fail "主题字体文件名与实际资源不一致"
 if grep -Fq '<key>ScreenResolution</key>' "$ESP/EFI/CLOVER/config.plist"; then
     fail "SteamOS Clover 安装后仍写死屏幕分辨率"
 fi

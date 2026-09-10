@@ -1,3 +1,9 @@
+## Renkit 2.4.2 Clover 系统图标修复 — 2026-09-10
+
+- 修复 Clover 安装启用的 `zhoukeer-phantom` 主题只包含背景和配置，导致 SteamOS、Windows 图标回退为通用 Linux/默认样式的问题。
+- 安装准备阶段从固定 SHA256 的 Clover 资源包继承完整 Apocalypse 主题，再覆盖 Renkit 背景与布局；SteamOS、Windows、字体、选中框及功能图标保持同一套视觉风格。
+- 完整主题资源缺失时在写入 EFI 前停止，并新增模拟安装与真实资源包组装检查；不会把 macOS `._` 元数据复制到 EFI。
+
 ## Renkit 2.3.7 SteamOS 双系统独立入口 — 2026-09-09
 
 - SteamOS 左侧主导航新增“**双系统用户专用**”，直接进入互通盘、Windows 切换与 Clover 设置，不再嵌套在“更多设置”中。

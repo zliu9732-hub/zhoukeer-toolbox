@@ -1173,9 +1173,16 @@ clover_prepend_boot_order() {
 
 clover_archive_is_safe() {
     local archive="$1"
+    local required_theme="${2:-}"
     local entry
+    local required_entry
     local count=0
     local listing
+
+    case "$required_theme" in
+        ''|complete-theme) ;;
+        *) echo "Clover 主题校验参数无效。"; return 1 ;;
+    esac
 
     listing="$(tar -tzf "$archive")" || return 1
     while IFS= read -r entry; do
@@ -1203,17 +1210,33 @@ clover_archive_is_safe() {
         echo "Clover 压缩包缺少设备配置文件。"
         return 1
     }
+    if [ "$required_theme" = "complete-theme" ]; then
+        for required_entry in \
+            'Clover/custom/themes/Apocalypse/Font_DroidSans_16pt_WhiteFx.png' \
+            'Clover/custom/themes/Apocalypse/Selection_big.png' \
+            'Clover/custom/themes/Apocalypse/Selection_small.png' \
+            'Clover/custom/themes/Apocalypse/icons/os_steamos.icns' \
+            'Clover/custom/themes/Apocalypse/icons/os_win.icns'; do
+            grep -Fx "$required_entry" <<< "$listing" >/dev/null || {
+                echo "Clover 压缩包缺少完整主题资源：$required_entry"
+                return 1
+            }
+        done
+    fi
 }
 
 clover_prepare_staging() {
     local archive="$1"
     local work_dir="$2"
+    local required_theme="${3:-}"
     local extracted="$work_dir/extracted"
     local staged="$work_dir/CLOVER"
     local source_clover="$extracted/Clover/clover"
-    local loader_source loader_temporary
+    local source_theme="$extracted/Clover/custom/themes/Apocalypse"
+    local staged_theme="$staged/themes/zhoukeer-phantom"
+    local loader_source loader_temporary theme_asset
 
-    clover_archive_is_safe "$archive" || return 1
+    clover_archive_is_safe "$archive" "$required_theme" || return 1
     mkdir -p "$extracted" "$staged/themes" || return 1
     tar -xzf "$archive" -C "$extracted" || return 1
 
@@ -1252,8 +1275,30 @@ clover_prepare_staging() {
     fi
     clover_configure_screen_resolution "$staged/config.plist" \
         "${CLOVER_SCREEN_RESOLUTION:-}" || return 1
-    mkdir -p "$staged/themes/zhoukeer-phantom" || return 1
-    cp -R -- "$CLOVER_THEME_SOURCE/." "$staged/themes/zhoukeer-phantom/" || return 1
+    mkdir -p "$staged_theme" || return 1
+    if [ -d "$source_theme" ]; then
+        # 设备配置使用 Apocalypse 的 SteamOS/Windows 等完整图标集；
+        # 先继承已固定 SHA256 的上游主题，再覆盖 Renkit 的背景和布局。
+        cp -R -- "$source_theme/." "$staged_theme/" || return 1
+        find "$staged_theme" -type f -name '._*' -delete || return 1
+    elif [ "$required_theme" = "complete-theme" ]; then
+        echo "解压后缺少 Clover Apocalypse 完整主题。" >&2
+        return 1
+    fi
+    cp -R -- "$CLOVER_THEME_SOURCE/." "$staged_theme/" || return 1
+    if [ "$required_theme" = "complete-theme" ]; then
+        for theme_asset in \
+            Font_DroidSans_16pt_WhiteFx.png \
+            Selection_big.png \
+            Selection_small.png \
+            icons/os_steamos.icns \
+            icons/os_win.icns; do
+            [ -s "$staged_theme/$theme_asset" ] || {
+                echo "Clover 启用主题缺少资源：$theme_asset" >&2
+                return 1
+            }
+        done
+    fi
     if [ -n "$CLOVER_EFI_DRIVER" ]; then
         [ -f "$CLOVER_DRIVER_DIR/$CLOVER_EFI_DRIVER" ] || {
             echo "Renkit缺少设备 Clover 驱动：$CLOVER_EFI_DRIVER" >&2
@@ -1525,7 +1570,7 @@ clover_install() {
         return 1
     fi
     staging_log="$work_dir/staging.log"
-    if ! clover_prepare_staging "$archive" "$work_dir" \
+    if ! clover_prepare_staging "$archive" "$work_dir" complete-theme \
         >/dev/null 2>"$staging_log"; then
         [ ! -s "$staging_log" ] || cat -- "$staging_log"
         rm -rf -- "$work_dir"

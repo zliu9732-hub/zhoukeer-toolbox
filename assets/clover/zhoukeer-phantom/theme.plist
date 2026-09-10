@@ -39,7 +39,7 @@
             <key>CharWidth</key>
             <integer>10</integer>
             <key>Path</key>
-            <string>font.png</string>
+            <string>Font_DroidSans_16pt_WhiteFx.png</string>
             <key>Proportional</key>
             <true/>
             <key>Type</key>
@@ -72,7 +72,7 @@
         <key>Selection</key>
         <dict>
             <key>Big</key>
-            <string>selection_big.png</string>
+            <string>Selection_big.png</string>
             <key>Color</key>
             <string>0xE63323CC</string>
             <key>Small</key>
