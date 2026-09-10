@@ -19,8 +19,10 @@ for action in refind-install refind-hide refind-show refind-remove; do
 done
 grep -Fq '该功能当前已停用。' "$DUAL_FILE" || fail "rEFInd 停用动作没有明确阻断"
 
-touch_dual="$(sed -n '/^dual_system_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
-gui_dual="$(sed -n '/^dual_system_menu()/,/^}/p' "$PROJECT_ROOT/core/gui.sh")"
+touch_dual="$(sed -n '/^dual_system_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")
+$(sed -n '/^dual_system_more_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
+gui_dual="$(sed -n '/^dual_system_menu()/,/^}/p' "$PROJECT_ROOT/core/gui.sh")
+$(sed -n '/^dual_system_more_menu()/,/^}/p' "$PROJECT_ROOT/core/gui.sh")"
 for menu in "$touch_dual" "$gui_dual"; do
     for action in mount protect unprotect; do
         contains_text "$menu" "modules/dual_system.sh\" $action" || fail "互通盘菜单动作缺失：$action"

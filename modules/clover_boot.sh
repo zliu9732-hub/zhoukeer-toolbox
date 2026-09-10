@@ -22,6 +22,9 @@ CLOVER_THEME_SOURCE="$PROJECT_ROOT/assets/clover/zhoukeer-phantom"
 CLOVER_CONFIG_SOURCE="$PROJECT_ROOT/assets/clover/config.plist"
 CLOVER_DEVICE_DIR="$PROJECT_ROOT/assets/clover/devices"
 CLOVER_DRIVER_DIR="$PROJECT_ROOT/assets/clover/drivers"
+CLOVER_CONTROLLER_DRIVER="UsbXbox360Dxe.efi"
+CLOVER_CONTROLLER_DRIVER_VERSION="1.8.0"
+CLOVER_CONTROLLER_DRIVER_SHA256="9651e547d2842369e69776ce5fd51e5a2562268af91ca3ccfb80bf3f492d14a2"
 CLOVER_BOOTMANAGER_DIR="$PROJECT_ROOT/assets/clover/bootmanager"
 CLOVER_BOOTMANAGER_SYSTEM_DIR="${ZHOUKEER_CLOVER_SYSTEM_DIR:-/etc/systemd/system}"
 CLOVER_BOOTMANAGER_WHITELIST_DIR="${ZHOUKEER_CLOVER_WHITELIST_DIR:-/etc/atomic-update.conf.d}"
@@ -36,6 +39,8 @@ CLOVER_ESP_MOUNT_DEVICE=""
 CLOVER_DEVICE_PREFIX=""
 CLOVER_DEVICE_NAME=""
 CLOVER_EFI_DRIVER=""
+CLOVER_EFI_DRIVER_SHA256=""
+CLOVER_LINUX_LOADER_PATH=""
 CLOVER_DEVICE_CONFIG=""
 CLOVER_SCREEN_RESOLUTION=""
 CLOVER_DEFAULT_OS=""
@@ -110,8 +115,31 @@ clover_candidate_is_esp() {
             clover_path_is_file "$candidate/EFI/CLOVER/CLOVERX64.efi"
     else
         clover_path_is_file "$candidate/EFI/steamos/steamcl.efi" || \
+            clover_path_is_file "$candidate/EFI/steamos/grubx64.efi" || \
+            clover_path_is_file "$candidate/EFI/steamos/shimx64.efi" || \
             clover_path_is_file "$candidate/EFI/CLOVER/CLOVERX64.efi"
     fi
+}
+
+clover_bootctl_candidate_is_esp() {
+    local candidate="$1"
+    local source filesystem
+
+    # bootctl 返回的是当前系统确认过的 ESP/XBOOTLDR 挂载点。新款掌机上的
+    # SteamOS 启动器名称可能变化，因此这里以块设备和 FAT 类型再次约束，
+    # 不再强制要求已经认识的 steamcl.efi 文件名。
+    [ -n "$candidate" ] || return 1
+    clover_path_is_dir "$candidate/EFI" || return 1
+    source="$(findmnt -rn -T "$candidate" -o SOURCE 2>/dev/null | head -n 1)"
+    filesystem="$(findmnt -rn -T "$candidate" -o FSTYPE 2>/dev/null | head -n 1)"
+    case "$source" in
+        /dev/*) ;;
+        *) return 1 ;;
+    esac
+    case "$filesystem" in
+        vfat|fat|fat32|msdos) return 0 ;;
+        *) return 1 ;;
+    esac
 }
 
 clover_nvram_partuuid() {
@@ -129,6 +157,24 @@ clover_nvram_partuuid() {
         ')"
         [ -z "$value" ] || { printf '%s\n' "$value"; return 0; }
     done
+    # 某些新固件会给 SteamOS 使用不同的启动器文件名。已知名称均未命中时，
+    # 只回退到固件明确报告的 BootCurrent，不猜测其他启动项或磁盘。
+    value="$(printf '%s\n' "$entries" | awk '
+        /^BootCurrent:[[:space:]]*/ {
+            current = $0
+            sub(/^BootCurrent:[[:space:]]*/, "", current)
+            current = toupper(substr(current, 1, 4))
+            next
+        }
+        current != "" && toupper(substr($1, 5, 4)) == current &&
+            match($0, /HD\([^,]+,GPT,[^,]+/) {
+            value = substr($0, RSTART, RLENGTH)
+            sub(/^.*GPT,/, "", value)
+            print tolower(value)
+            exit
+        }
+    ')"
+    [ -z "$value" ] || { printf '%s\n' "$value"; return 0; }
     return 1
 }
 
@@ -206,8 +252,8 @@ clover_find_esp() {
     if command -v bootctl >/dev/null 2>&1; then
         for candidate in "$(bootctl --print-esp-path 2>/dev/null || true)" \
             "$(bootctl --print-boot-path 2>/dev/null || true)"; do
-            [ -d "$candidate" ] || continue
-            clover_candidate_is_esp "$candidate" || continue
+            clover_path_is_dir "$candidate" || continue
+            clover_bootctl_candidate_is_esp "$candidate" || continue
             CLOVER_ESP_FOUND="$candidate"
             return 0
         done
@@ -350,6 +396,7 @@ clover_detect_device() {
     CLOVER_DEVICE_PREFIX=""
     CLOVER_DEVICE_NAME=""
     CLOVER_EFI_DRIVER=""
+    CLOVER_EFI_DRIVER_SHA256=""
     CLOVER_SCREEN_RESOLUTION=""
 
     case "$board_name:$product_name" in
@@ -367,25 +414,42 @@ clover_detect_device() {
         *:83N6|*:83L3|*:83Q2|*:83Q3)
             CLOVER_DEVICE_PREFIX="Legion-Go"
             CLOVER_DEVICE_NAME="Legion GO S ${product_name}"
+            CLOVER_EFI_DRIVER="$CLOVER_CONTROLLER_DRIVER"
+            CLOVER_EFI_DRIVER_SHA256="$CLOVER_CONTROLLER_DRIVER_SHA256"
+            CLOVER_SCREEN_RESOLUTION="1920x1200"
             ;;
         *:83E1)
             CLOVER_DEVICE_PREFIX="Legion-Go"
             CLOVER_DEVICE_NAME="Legion GO ${product_name}"
+            CLOVER_EFI_DRIVER="$CLOVER_CONTROLLER_DRIVER"
+            CLOVER_EFI_DRIVER_SHA256="$CLOVER_CONTROLLER_DRIVER_SHA256"
+            CLOVER_SCREEN_RESOLUTION="2560x1600"
+            ;;
+        *:83N0|*:83N1)
+            CLOVER_DEVICE_PREFIX="Legion-Go"
+            CLOVER_DEVICE_NAME="Legion GO 2 ${product_name}"
+            CLOVER_EFI_DRIVER="$CLOVER_CONTROLLER_DRIVER"
+            CLOVER_EFI_DRIVER_SHA256="$CLOVER_CONTROLLER_DRIVER_SHA256"
+            CLOVER_SCREEN_RESOLUTION="1920x1200"
             ;;
         RC71L:*)
             CLOVER_DEVICE_PREFIX="ROG-Ally"
             CLOVER_DEVICE_NAME="Asus ROG Ally ${board_name}"
-            CLOVER_EFI_DRIVER="asusrogally.efi"
+            CLOVER_EFI_DRIVER="$CLOVER_CONTROLLER_DRIVER"
+            CLOVER_EFI_DRIVER_SHA256="$CLOVER_CONTROLLER_DRIVER_SHA256"
             ;;
         RC72LA:*)
             CLOVER_DEVICE_PREFIX="ROG-Ally"
             CLOVER_DEVICE_NAME="Asus ROG Ally X ${board_name}"
-            CLOVER_EFI_DRIVER="asusrogallyx.efi"
+            CLOVER_EFI_DRIVER="$CLOVER_CONTROLLER_DRIVER"
+            CLOVER_EFI_DRIVER_SHA256="$CLOVER_CONTROLLER_DRIVER_SHA256"
             ;;
-        RC73XA:*)
+        RC73XA:*|RC73YA:*)
             CLOVER_DEVICE_PREFIX="ROG-Xbox-Ally"
-            CLOVER_DEVICE_NAME="Asus ROG XBOX Ally X ${board_name}"
-            CLOVER_EFI_DRIVER="asusrogallyx.efi"
+            CLOVER_DEVICE_NAME="Asus ROG Xbox Ally / Ally X ${board_name}"
+            CLOVER_EFI_DRIVER="$CLOVER_CONTROLLER_DRIVER"
+            CLOVER_EFI_DRIVER_SHA256="$CLOVER_CONTROLLER_DRIVER_SHA256"
+            CLOVER_SCREEN_RESOLUTION="1920x1080"
             ;;
         *)
             detect_platform
@@ -464,7 +528,7 @@ clover_configure_default_loader_path() {
     local temporary="${config}.loader.$$"
 
     case "$loader" in
-        \\EFI\\Microsoft\\Boot\\bootmgfw.efi|\\EFI\\Microsoft\\bootmgfw.efi|\\EFI\\STEAMOS\\STEAMCL.efi|\\EFI\\fedora\\shimx64.efi) ;;
+        \\EFI\\Microsoft\\Boot\\bootmgfw.efi|\\EFI\\Microsoft\\bootmgfw.efi|\\EFI\\STEAMOS\\STEAMCL.efi|\\EFI\\steamos\\grubx64.efi|\\EFI\\steamos\\shimx64.efi|\\EFI\\fedora\\shimx64.efi) ;;
         *)
             echo "EFI 启动路径不在允许列表中，Clover 配置未修改。" >&2
             return 1
@@ -487,6 +551,40 @@ clover_configure_default_loader_path() {
     ' "$config" > "$temporary" || {
         rm -f -- "$temporary"
         echo "无法安全更新 Clover 默认启动项，配置文件未修改。" >&2
+        return 1
+    }
+    mv -- "$temporary" "$config"
+}
+
+clover_configure_steamos_loader_path() {
+    local config="$1"
+    local loader="$2"
+    local temporary="${config}.steamos-loader.$$"
+
+    case "$loader" in
+        \\EFI\\STEAMOS\\STEAMCL.efi|\\EFI\\steamos\\grubx64.efi|\\EFI\\steamos\\shimx64.efi) ;;
+        *)
+            echo "SteamOS EFI 启动路径不在允许列表中，Clover 配置未修改。" >&2
+            return 1
+            ;;
+    esac
+
+    CLOVER_CONFIG_LOADER="$loader" awk '
+        BEGIN { loader = ENVIRON["CLOVER_CONFIG_LOADER"] }
+        {
+            lower = tolower($0)
+            if (lower ~ /^[[:space:]]*<string>\\efi\\steamos\\steamcl\.efi<\/string>[[:space:]]*$/) {
+                match($0, /^[[:space:]]*/)
+                print substr($0, 1, RLENGTH) "<string>" loader "</string>"
+                found++
+                next
+            }
+            print
+        }
+        END { if (found < 1) exit 2 }
+    ' "$config" > "$temporary" || {
+        rm -f -- "$temporary"
+        echo "无法安全更新 SteamOS 启动路径，Clover 配置未修改。" >&2
         return 1
     }
     mv -- "$temporary" "$config"
@@ -547,11 +645,16 @@ clover_linux_loader_path() {
         }
         printf '%s\n' '\EFI\fedora\shimx64.efi'
     else
-        clover_path_is_file "$CLOVER_ESP/EFI/steamos/steamcl.efi" || {
-            echo "未找到可用的 SteamOS EFI 启动文件。" >&2
+        if clover_path_is_file "$CLOVER_ESP/EFI/steamos/steamcl.efi"; then
+            printf '%s\n' '\EFI\STEAMOS\STEAMCL.efi'
+        elif clover_path_is_file "$CLOVER_ESP/EFI/steamos/grubx64.efi"; then
+            printf '%s\n' '\EFI\steamos\grubx64.efi'
+        elif clover_path_is_file "$CLOVER_ESP/EFI/steamos/shimx64.efi"; then
+            printf '%s\n' '\EFI\steamos\shimx64.efi'
+        else
+            echo "已定位 EFI 分区，但未找到 steamcl.efi、grubx64.efi 或 shimx64.efi，EFI 未修改。" >&2
             return 1
-        }
-        printf '%s\n' '\EFI\STEAMOS\STEAMCL.efi'
+        fi
     fi
 }
 
@@ -1225,6 +1328,43 @@ clover_archive_is_safe() {
     fi
 }
 
+clover_validate_efi_driver() {
+    local driver="$CLOVER_DRIVER_DIR/$CLOVER_EFI_DRIVER"
+    local magic size actual_sha
+
+    [ -n "$CLOVER_EFI_DRIVER" ] || return 0
+    [ -n "$CLOVER_EFI_DRIVER_SHA256" ] || {
+        echo "Clover 手柄驱动缺少固定 SHA256，已拒绝安装。" >&2
+        return 1
+    }
+    [ -f "$driver" ] && [ ! -L "$driver" ] || {
+        echo "Renkit缺少安全的设备 Clover 驱动：$CLOVER_EFI_DRIVER" >&2
+        return 1
+    }
+    magic=""
+    IFS= read -r -N 2 magic < "$driver" || true
+    [ "$magic" = "MZ" ] || {
+        echo "Clover 手柄驱动不是有效的 PE/UEFI 文件：$CLOVER_EFI_DRIVER" >&2
+        return 1
+    }
+    size="$(wc -c < "$driver" | tr -d '[:space:]')"
+    case "$size" in
+        ''|*[!0-9]*)
+            echo "无法确认 Clover 手柄驱动大小。" >&2
+            return 1
+            ;;
+    esac
+    [ "$size" -ge 16384 ] && [ "$size" -le 524288 ] || {
+        echo "Clover 手柄驱动大小异常：${size} 字节" >&2
+        return 1
+    }
+    actual_sha="$(sha256sum "$driver" | awk '{print $1}')" || return 1
+    [ "$actual_sha" = "$CLOVER_EFI_DRIVER_SHA256" ] || {
+        echo "Clover 手柄驱动 SHA256 校验失败，EFI 未修改。" >&2
+        return 1
+    }
+}
+
 clover_prepare_staging() {
     local archive="$1"
     local work_dir="$2"
@@ -1270,6 +1410,12 @@ clover_prepare_staging() {
     mv -- "$loader_temporary" "$staged/CLOVERX64.efi" || return 1
     cp -- "${CLOVER_DEVICE_CONFIG:-$CLOVER_CONFIG_SOURCE}" "$staged/config.plist" || return 1
     clover_configure_default_loader "$staged/config.plist" "${CLOVER_DEFAULT_OS:-SteamOS}" || return 1
+    if [ "${CLOVER_DEFAULT_OS:-SteamOS}" != "Bazzite" ] && \
+        [ -n "${CLOVER_LINUX_LOADER_PATH:-}" ] && \
+        [ "$CLOVER_LINUX_LOADER_PATH" != '\EFI\STEAMOS\STEAMCL.efi' ]; then
+        clover_configure_steamos_loader_path "$staged/config.plist" \
+            "$CLOVER_LINUX_LOADER_PATH" || return 1
+    fi
     if [ "${CLOVER_DEFAULT_OS:-SteamOS}" = "Bazzite" ]; then
         clover_remove_steamos_entries "$staged/config.plist" || return 1
     fi
@@ -1300,13 +1446,15 @@ clover_prepare_staging() {
         done
     fi
     if [ -n "$CLOVER_EFI_DRIVER" ]; then
-        [ -f "$CLOVER_DRIVER_DIR/$CLOVER_EFI_DRIVER" ] || {
-            echo "Renkit缺少设备 Clover 驱动：$CLOVER_EFI_DRIVER" >&2
-            return 1
-        }
+        clover_validate_efi_driver || return 1
         mkdir -p "$staged/drivers/uefi" || return 1
         cp -- "$CLOVER_DRIVER_DIR/$CLOVER_EFI_DRIVER" \
             "$staged/drivers/uefi/$CLOVER_EFI_DRIVER" || return 1
+        [ "$(sha256sum "$staged/drivers/uefi/$CLOVER_EFI_DRIVER" | awk '{print $1}')" = \
+            "$CLOVER_EFI_DRIVER_SHA256" ] || {
+            echo "复制后的 Clover 手柄驱动校验失败，EFI 未修改。" >&2
+            return 1
+        }
     fi
     find "$staged" -type d -exec chmod 0755 {} + || return 1
     find "$staged" -type f -exec chmod 0644 {} + || return 1
@@ -1468,6 +1616,9 @@ clover_show_install_risk() {
         echo "Bazzite 安装时若检测到旧 SteamOS 引导，会先备份再自动清理，不删除任何系统分区。"
     fi
     echo "安装完成后会启用 Clover 开机修复服务。"
+    if [ -n "$CLOVER_EFI_DRIVER" ]; then
+        echo "手柄：安装 UsbXbox360Dxe ${CLOVER_CONTROLLER_DRIVER_VERSION}，支持当前 ROG/Legion 掌机在开机菜单操作。"
+    fi
     echo "已有 CLOVER 目录和原 BootOrder 会先备份；恢复入口可撤销本次安装。"
     echo "若掌机按键在 Clover 中不可用，请连接 USB 键盘；倒计时后进入默认系统。"
 }
@@ -1509,11 +1660,12 @@ clover_install() {
     local existing_backup original_backup original_order current_order new_order staging_log
     local temporary_target boot_number new_boot_entry=0 create_output available_kb
     local inherited_steamos_backup inherited_steamos_numbers final_order
+    local default_os linux_loader
 
     echo "正在检查 Clover 安装环境…"
     require_supported_gaming_os || return 1
     clover_detect_device || return 1
-    for command_name in curl tar findmnt lsblk efibootmgr awk sed df sudo; do
+    for command_name in curl tar findmnt lsblk efibootmgr awk sed df sudo sha256sum wc; do
         require_command "$command_name" || return 1
     done
     [ -f "$CLOVER_THEME_SOURCE/background.png" ] || {
@@ -1525,6 +1677,8 @@ clover_install() {
         echo "无法定位可用 EFI 系统分区，EFI 和开机顺序均未修改。"
         return 1
     }
+    linux_loader="$(clover_linux_loader_path)" || return 1
+    CLOVER_LINUX_LOADER_PATH="$linux_loader"
     clover_windows_entry_exists || {
         echo "未检测到 Windows Boot Manager，已停止安装 Clover。"
         return 1
@@ -1879,6 +2033,9 @@ clover_status() {
         echo "版本：$(clover_marker_value "$target/.zhoukeer-managed" VERSION)"
         echo "EFI：$target"
         echo "NVRAM：${boot_number:-未检测到启动项}"
+        if clover_path_is_nonempty_file "$target/drivers/uefi/$CLOVER_CONTROLLER_DRIVER"; then
+            echo "开机菜单手柄驱动：UsbXbox360Dxe ${CLOVER_CONTROLLER_DRIVER_VERSION}"
+        fi
         [ -n "$boot_number" ]
         return
     fi
