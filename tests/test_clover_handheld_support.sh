@@ -15,6 +15,10 @@ fail() {
 # shellcheck disable=SC1090
 source "$MODULE"
 
+toolbox_sudo() {
+    "$@"
+}
+
 detect_platform() {
     IS_STEAMOS=1
     IS_BAZZITE=0
@@ -85,8 +89,7 @@ BOOTCTL_ESP="$TMP_ROOT/bootctl-esp"
 mkdir -p "$BOOTCTL_ESP/EFI/vendor"
 findmnt() {
     case " $* " in
-        *" -T $BOOTCTL_ESP -o SOURCE "*) printf '/dev/fakeesp\n' ;;
-        *" -T $BOOTCTL_ESP -o FSTYPE "*) printf 'vfat\n' ;;
+        *" -T $BOOTCTL_ESP -o SOURCE,FSTYPE "*) printf '/dev/fakeesp vfat\n' ;;
         *) return 1 ;;
     esac
 }

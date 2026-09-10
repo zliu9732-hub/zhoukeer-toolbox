@@ -108,30 +108,49 @@ clover_prepare_admin_access() {
 clover_candidate_is_esp() {
     local candidate="$1"
 
-    clover_path_is_dir "$candidate/EFI" || return 1
+    clover_path_is_dir "$candidate/EFI" || clover_path_is_dir "$candidate/efi" || return 1
     detect_platform
     if [ "$IS_BAZZITE" -eq 1 ]; then
         clover_path_is_file "$candidate/EFI/fedora/shimx64.efi" || \
+            clover_path_is_file "$candidate/efi/fedora/shimx64.efi" || \
             clover_path_is_file "$candidate/EFI/CLOVER/CLOVERX64.efi"
     else
         clover_path_is_file "$candidate/EFI/steamos/steamcl.efi" || \
+            clover_path_is_file "$candidate/efi/steamos/steamcl.efi" || \
             clover_path_is_file "$candidate/EFI/steamos/grubx64.efi" || \
+            clover_path_is_file "$candidate/efi/steamos/grubx64.efi" || \
             clover_path_is_file "$candidate/EFI/steamos/shimx64.efi" || \
+            clover_path_is_file "$candidate/efi/steamos/shimx64.efi" || \
             clover_path_is_file "$candidate/EFI/CLOVER/CLOVERX64.efi"
     fi
 }
 
+clover_fat_mount_info() {
+    local candidate="$1"
+
+    # SteamOS 的 /esp、/efi 有时由 systemd automount 覆盖。findmnt -T
+    # 可能同时给出 autofs 和真实挂载；只接受其中实际的 FAT 块设备。
+    [ -n "$candidate" ] || return 1
+    findmnt -rn -T "$candidate" -o SOURCE,FSTYPE 2>/dev/null | awk '
+        $1 ~ /^\/dev\// && $2 ~ /^(vfat|fat|fat32|msdos)$/ {
+            print $1, $2
+            exit
+        }
+    '
+}
+
 clover_bootctl_candidate_is_esp() {
     local candidate="$1"
-    local source filesystem
+    local mount_info source filesystem
 
     # bootctl 返回的是当前系统确认过的 ESP/XBOOTLDR 挂载点。新款掌机上的
     # SteamOS 启动器名称可能变化，因此这里以块设备和 FAT 类型再次约束，
     # 不再强制要求已经认识的 steamcl.efi 文件名。
     [ -n "$candidate" ] || return 1
-    clover_path_is_dir "$candidate/EFI" || return 1
-    source="$(findmnt -rn -T "$candidate" -o SOURCE 2>/dev/null | head -n 1)"
-    filesystem="$(findmnt -rn -T "$candidate" -o FSTYPE 2>/dev/null | head -n 1)"
+    clover_path_is_dir "$candidate/EFI" || clover_path_is_dir "$candidate/efi" || return 1
+    mount_info="$(clover_fat_mount_info "$candidate")" || return 1
+    [ -n "$mount_info" ] || return 1
+    read -r source filesystem <<< "$mount_info"
     case "$source" in
         /dev/*) ;;
         *) return 1 ;;
@@ -145,7 +164,7 @@ clover_bootctl_candidate_is_esp() {
 clover_nvram_partuuid() {
     local entries needle value
 
-    entries="$(efibootmgr -v 2>/dev/null)" || return 1
+    entries="$(toolbox_sudo efibootmgr -v 2>/dev/null)" || return 1
     for needle in 'cloverx64.efi' 'steamcl.efi' 'shimx64.efi'; do
         value="$(printf '%s\n' "$entries" | awk -v needle="$needle" '
             index(tolower($0), needle) && match($0, /HD\([^,]+,GPT,[^,]+/) {
@@ -244,10 +263,62 @@ clover_find_unmounted_esp() {
     return 1
 }
 
+clover_find_esp_from_nvram() {
+    local device mountpoint output
+
+    CLOVER_NVRAM_ESP_ATTEMPTED=0
+    device="$(clover_device_from_nvram || true)"
+    [ -n "$device" ] || return 1
+    CLOVER_NVRAM_ESP_ATTEMPTED=1
+
+    # 固件当前 SteamOS/Clover 启动项明确指向的 FAT 分区优先级最高；这能
+    # 区分 SteamOS A/B 的 /efi 启动槽与 Windows 共用的真正 ESP。
+    mountpoint="$(findmnt -rn -S "$device" -o TARGET 2>/dev/null | head -n 1)"
+    if [ -z "$mountpoint" ]; then
+        command -v udisksctl >/dev/null 2>&1 || {
+            echo "已从当前启动项定位到 EFI 分区 ${device}，但缺少 udisksctl，无法临时挂载。" >&2
+            return 1
+        }
+        output="$(udisksctl mount --block-device "$device" 2>&1)" || {
+            printf '%s\n' "$output" >&2
+            return 1
+        }
+        mountpoint="$(findmnt -rn -S "$device" -o TARGET 2>/dev/null | head -n 1)"
+        [ -n "$mountpoint" ] || \
+            mountpoint="$(printf '%s\n' "$output" | sed -n 's/^Mounted .* at \(.*\)\.$/\1/p' | tail -n 1)"
+        clover_candidate_is_esp "$mountpoint" || {
+            udisksctl unmount --block-device "$device" >/dev/null 2>&1 || true
+            if clover_path_is_dir "$mountpoint/EFI" || clover_path_is_dir "$mountpoint/efi"; then
+                echo "当前启动项指向的 EFI 分区不含可用的 SteamOS/Clover 启动文件。" >&2
+            else
+                echo "当前启动项指向的分区不含 EFI 目录。" >&2
+            fi
+            return 1
+        }
+        CLOVER_ESP_MOUNTED_BY_TOOLBOX=1
+        CLOVER_ESP_MOUNT_DEVICE="$device"
+    fi
+    clover_candidate_is_esp "$mountpoint" || {
+        if clover_path_is_dir "$mountpoint/EFI" || clover_path_is_dir "$mountpoint/efi"; then
+            echo "当前启动项指向的 EFI 分区不含可用的 SteamOS/Clover 启动文件：${mountpoint:-未知}。" >&2
+        else
+            echo "当前启动项指向的分区不含 EFI 目录：${mountpoint:-未知}。" >&2
+        fi
+        return 1
+    }
+    CLOVER_ESP_FOUND="$mountpoint"
+    return 0
+}
+
 clover_find_esp() {
-    local candidate detected device mountpoint output
+    local candidate
 
     CLOVER_ESP_FOUND=""
+
+    if clover_find_esp_from_nvram; then
+        return 0
+    fi
+    [ "$CLOVER_NVRAM_ESP_ATTEMPTED" = "0" ] || return 1
 
     if command -v bootctl >/dev/null 2>&1; then
         for candidate in "$(bootctl --print-esp-path 2>/dev/null || true)" \
@@ -269,45 +340,6 @@ clover_find_esp() {
     clover_find_mounted_esp && return 0
     clover_find_unmounted_esp && return 0
 
-    device="$(clover_device_from_nvram || true)"
-    if [ -n "$device" ]; then
-        mountpoint="$(findmnt -rn -S "$device" -o TARGET 2>/dev/null | head -n 1)"
-        if [ -z "$mountpoint" ]; then
-            command -v udisksctl >/dev/null 2>&1 || {
-                echo "已从启动项定位到 EFI 分区 ${device}，但缺少 udisksctl，无法临时挂载。" >&2
-                return 1
-            }
-            output="$(udisksctl mount --block-device "$device" 2>&1)" || {
-                printf '%s\n' "$output" >&2
-                return 1
-            }
-            mountpoint="$(findmnt -rn -S "$device" -o TARGET 2>/dev/null | head -n 1)"
-            [ -n "$mountpoint" ] || \
-                mountpoint="$(printf '%s\n' "$output" | sed -n 's/^Mounted .* at \(.*\)\.$/\1/p' | tail -n 1)"
-            clover_candidate_is_esp "$mountpoint" || {
-                udisksctl unmount --block-device "$device" >/dev/null 2>&1 || true
-                if clover_path_is_dir "$mountpoint/EFI"; then
-                    echo "临时挂载的分区不含当前系统的 EFI 启动文件。" >&2
-                else
-                    echo "临时挂载的分区不含 EFI 目录。" >&2
-                fi
-                return 1
-            }
-            CLOVER_ESP_MOUNTED_BY_TOOLBOX=1
-            CLOVER_ESP_MOUNT_DEVICE="$device"
-        fi
-        clover_candidate_is_esp "$mountpoint" || {
-            if clover_path_is_dir "$mountpoint/EFI"; then
-                echo "定位到 EFI 分区 ${device}，但其挂载位置不含当前系统启动文件：${mountpoint:-未知}。" >&2
-            else
-                echo "定位到 EFI 分区 ${device}，但其挂载位置不含 EFI 目录：${mountpoint:-未知}。" >&2
-            fi
-            return 1
-        }
-        CLOVER_ESP_FOUND="$mountpoint"
-        return 0
-    fi
-
     echo "未找到 Clover/SteamOS/Bazzite 启动项对应的 EFI 系统分区。" >&2
     return 1
 }
@@ -321,14 +353,21 @@ clover_release_esp_mount() {
 }
 
 clover_resolve_esp_device() {
-    local filesystem
+    local mount_info filesystem
     local parent
     local partition
 
     clover_find_esp || return 1
     CLOVER_ESP="$CLOVER_ESP_FOUND"
-    CLOVER_ESP_SOURCE="$(findmnt -rn -T "$CLOVER_ESP" -o SOURCE 2>/dev/null | head -n 1)"
-    filesystem="$(findmnt -rn -T "$CLOVER_ESP" -o FSTYPE 2>/dev/null | head -n 1)"
+    mount_info="$(clover_fat_mount_info "$CLOVER_ESP")" || {
+        echo "无法确认 EFI 系统分区对应的 FAT 块设备。"
+        return 1
+    }
+    [ -n "$mount_info" ] || {
+        echo "无法确认 EFI 系统分区对应的 FAT 块设备。"
+        return 1
+    }
+    read -r CLOVER_ESP_SOURCE filesystem <<< "$mount_info"
     case "$CLOVER_ESP_SOURCE" in
         /dev/*) ;;
         *) echo "无法确认 EFI 系统分区对应的块设备。"; return 1 ;;
@@ -354,14 +393,16 @@ clover_resolve_esp_device() {
 clover_windows_entry_exists() {
     local entries
 
-    entries="$(efibootmgr -v 2>/dev/null)" || return 1
+    entries="$(toolbox_sudo efibootmgr -v 2>/dev/null)" || return 1
     printf '%s\n' "$entries" | grep -Fi 'Windows Boot Manager' >/dev/null && return 0
     clover_path_is_file "$CLOVER_ESP/EFI/Microsoft/Boot/bootmgfw.efi" || \
+        clover_path_is_file "$CLOVER_ESP/efi/Microsoft/Boot/bootmgfw.efi" || \
+        clover_path_is_file "$CLOVER_ESP/efi/Microsoft/bootmgfw.efi" || \
         clover_path_is_file "$CLOVER_ESP/EFI/Microsoft/bootmgfw.efi"
 }
 
 clover_boot_number() {
-    efibootmgr -v 2>/dev/null | clover_boot_number_from_input
+    toolbox_sudo efibootmgr -v 2>/dev/null | clover_boot_number_from_input
 }
 
 clover_boot_number_from_input() {
@@ -626,7 +667,11 @@ clover_configure_timeout() {
 clover_windows_loader_path() {
     if clover_path_is_file "$CLOVER_ESP/EFI/Microsoft/Boot/bootmgfw.efi"; then
         printf '%s\n' '\EFI\Microsoft\Boot\bootmgfw.efi'
+    elif clover_path_is_file "$CLOVER_ESP/efi/Microsoft/Boot/bootmgfw.efi"; then
+        printf '%s\n' '\EFI\Microsoft\Boot\bootmgfw.efi'
     elif clover_path_is_file "$CLOVER_ESP/EFI/Microsoft/bootmgfw.efi"; then
+        printf '%s\n' '\EFI\Microsoft\bootmgfw.efi'
+    elif clover_path_is_file "$CLOVER_ESP/efi/Microsoft/bootmgfw.efi"; then
         printf '%s\n' '\EFI\Microsoft\bootmgfw.efi'
     else
         echo "未找到可用的 Windows EFI 启动文件；不会把 Clover 指向 .orig 或语言资源文件。" >&2
@@ -645,11 +690,14 @@ clover_linux_loader_path() {
         }
         printf '%s\n' '\EFI\fedora\shimx64.efi'
     else
-        if clover_path_is_file "$CLOVER_ESP/EFI/steamos/steamcl.efi"; then
+        if clover_path_is_file "$CLOVER_ESP/EFI/steamos/steamcl.efi" || \
+            clover_path_is_file "$CLOVER_ESP/efi/steamos/steamcl.efi"; then
             printf '%s\n' '\EFI\STEAMOS\STEAMCL.efi'
-        elif clover_path_is_file "$CLOVER_ESP/EFI/steamos/grubx64.efi"; then
+        elif clover_path_is_file "$CLOVER_ESP/EFI/steamos/grubx64.efi" || \
+            clover_path_is_file "$CLOVER_ESP/efi/steamos/grubx64.efi"; then
             printf '%s\n' '\EFI\steamos\grubx64.efi'
-        elif clover_path_is_file "$CLOVER_ESP/EFI/steamos/shimx64.efi"; then
+        elif clover_path_is_file "$CLOVER_ESP/EFI/steamos/shimx64.efi" || \
+            clover_path_is_file "$CLOVER_ESP/efi/steamos/shimx64.efi"; then
             printf '%s\n' '\EFI\steamos\shimx64.efi'
         else
             echo "已定位 EFI 分区，但未找到 steamcl.efi、grubx64.efi 或 shimx64.efi，EFI 未修改。" >&2
@@ -1142,7 +1190,7 @@ clover_remove_bootmanager() {
 }
 
 clover_boot_order() {
-    efibootmgr 2>/dev/null | sed -n 's/^BootOrder:[[:space:]]*//p' | head -n 1
+    toolbox_sudo efibootmgr 2>/dev/null | sed -n 's/^BootOrder:[[:space:]]*//p' | head -n 1
 }
 
 clover_boot_order_is_safe() {

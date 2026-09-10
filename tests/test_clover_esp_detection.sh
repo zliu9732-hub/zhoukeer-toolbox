@@ -21,6 +21,10 @@ printf 'clover\n' > "$ESP/EFI/CLOVER/CLOVERX64.efi"
 # shellcheck disable=SC1090
 source "$MODULE"
 
+toolbox_sudo() {
+    "$@"
+}
+
 efibootmgr() {
     printf 'Boot0007* Existing Clover HD(1,GPT,%s,0x800,0x100000)/File(\\EFI\\CLOVER\\CLOVERX64.efi)\n' "$GUID"
 }
@@ -37,6 +41,7 @@ lsblk() {
 findmnt() {
     case " $* " in
         *' -S /dev/fakeesp '*) return 1 ;;
+        *" -T $ESP -o SOURCE,FSTYPE "*) printf '/dev/fakeesp vfat\n' ;;
         *" -T $ESP -o SOURCE "*) printf '/dev/fakeesp\n' ;;
         *" -T $ESP -o FSTYPE "*) printf 'vfat\n' ;;
         *) return 1 ;;
@@ -138,4 +143,43 @@ toolbox_sudo() {
 clover_candidate_is_esp "$PROTECTED_ESP" || \
     fail "root-only 的 Bazzite EFI 被误判为不含 EFI 目录"
 
-echo "PASS: 可识别 root-only EFI，并从 NVRAM 反查、临时挂载和释放 EFI"
+# ROG Xbox Ally X 的 SteamOS 会把真正的 ESP 放在 /esp 下层的 vfat，
+# 顶层则是 systemd automount。NVRAM 指向 Windows 共用 ESP，不能误选
+# /efi 中仅包含 SteamOS A/B GRUB 的小分区。
+AUTOMOUNT_ESP="$TMP_ROOT/automount-esp"
+AUTOMOUNT_GUID='aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+mkdir -p "$AUTOMOUNT_ESP/efi/steamos"
+printf 'steam\n' > "$AUTOMOUNT_ESP/efi/steamos/steamcl.efi"
+efibootmgr() {
+    printf 'BootCurrent: 0004\n'
+    printf 'Boot0004* SteamOS HD(1,GPT,%s,0x800,0x100000)/File(\\EFI\\steamos\\steamcl.efi)\n' \
+        "$AUTOMOUNT_GUID"
+}
+clover_device_from_nvram() {
+    printf '%s\n' '/dev/automountesp'
+}
+lsblk() {
+    case " $* " in
+        *' NAME,PARTUUID,FSTYPE '*) printf '/dev/automountesp %s vfat\n' "$AUTOMOUNT_GUID" ;;
+        *' PKNAME /dev/automountesp '*) printf 'nvme0n1\n' ;;
+        *' PARTN /dev/automountesp '*) printf '1\n' ;;
+        *) return 1 ;;
+    esac
+}
+findmnt() {
+    case " $* " in
+        *' -S /dev/automountesp '*) printf '%s\n' "$AUTOMOUNT_ESP" ;;
+        *" -T $AUTOMOUNT_ESP -o SOURCE,FSTYPE "*)
+            printf 'systemd-1 autofs\n/dev/automountesp vfat\n'
+            ;;
+        *) return 1 ;;
+    esac
+}
+CLOVER_ESP_FOUND=""
+clover_resolve_esp_device || fail "autofs 下的真实 FAT ESP 未被识别"
+[ "$CLOVER_ESP" = "$AUTOMOUNT_ESP" ] || fail "NVRAM 当前 SteamOS ESP 选择错误"
+[ "$CLOVER_ESP_SOURCE" = '/dev/automountesp' ] || fail "autofs 覆盖时错误选择了非块设备来源"
+[ "$CLOVER_DISK" = '/dev/nvme0n1' ] || fail "autofs ESP 所在磁盘识别错误"
+[ "$CLOVER_PARTITION" = '1' ] || fail "autofs ESP 分区编号识别错误"
+
+echo "PASS: 可识别 root-only EFI，并从 NVRAM 反查、autofs 下的真实 ESP、临时挂载和释放 EFI"
