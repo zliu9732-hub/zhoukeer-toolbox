@@ -1,3 +1,9 @@
+## Renkit 2.4.6 Switch to Windows 插件 — 2026-09-10
+
+- 新增 `Switch to Windows` Decky 插件：在双系统专用菜单安装，游戏模式中点击一次即可设置一次性 Windows 启动项并重启。
+- 从常用插件组合与其余常用插件列表移除，避免非双系统用户误安装；保留 SteamOS 平台检测、Windows Boot Manager 校验、BootNext 单次启动与失败回滚。
+- 插件安装包、双系统触控/GUI 菜单和相关模拟测试已纳入 Renkit 发布包。
+
 ## Renkit 2.4.2 Clover 系统图标修复 — 2026-09-10
 
 - 修复 Clover 安装启用的 `zhoukeer-phantom` 主题只包含背景和配置，导致 SteamOS、Windows 图标回退为通用 Linux/默认样式的问题。
