@@ -43,6 +43,51 @@ grep -Fq 'download_decky_prerelease_component' "$PROJECT_ROOT/modules/plugin_sto
     echo "FAIL: Decky 测试版 Gitee 失败后缺少官方 Release 回退" >&2
     exit 1
 }
+grep -Fq 'download_decky_gitee_part' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: Decky Gitee 分块没有使用直接下载与实时进度" >&2
+    exit 1
+}
+gitee_loader_function="$(sed -n '/^download_decky_gitee_loader()/,/^}/p' \
+    "$PROJECT_ROOT/modules/plugin_store.sh")"
+if printf '%s\n' "$gitee_loader_function" | \
+    grep -Eq 'resolve_decky_(pre)?release_latest|GITHUB_QUIET'; then
+    echo "FAIL: Decky Gitee 分块下载前仍会访问 GitHub 或静默进度" >&2
+    exit 1
+fi
+GITEE_PART_CALLS="$TMP_ROOT/gitee-part-calls"
+GITEE_LOADER_OUTPUT="$TMP_ROOT/gitee-loader-output"
+PROJECT_ROOT="$PROJECT_ROOT" GITEE_PART_CALLS="$GITEE_PART_CALLS" \
+    GITEE_LOADER_OUTPUT="$GITEE_LOADER_OUTPUT" ZHOUKEER_TEST_MODE=1 bash -c '
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    DECKY_GITEE_PRERELEASE_VERSION="v-test"
+    DECKY_GITEE_PRERELEASE_PARTS="2"
+    DECKY_GITEE_PRERELEASE_SHA256="cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    DECKY_GITEE_PRERELEASE_PART_SHA256="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    resolve_decky_prerelease_latest() {
+        echo "FAIL: Gitee 下载前访问了 GitHub" >&2
+        exit 99
+    }
+    download_decky_gitee_part() {
+        printf "%s\n" "$1" >> "$GITEE_PART_CALLS"
+        printf "%s\n" "$1" > "$4"
+    }
+    calculate_decky_sha256() {
+        printf "%s\n" "$DECKY_GITEE_PRERELEASE_SHA256"
+    }
+    download_decky_gitee_loader prerelease "$GITEE_LOADER_OUTPUT"
+'
+grep -Fxq 'Decky PluginLoader 分块 1/2' "$GITEE_PART_CALLS" || {
+    echo "FAIL: Decky Gitee 第一个分块没有可见进度标签" >&2
+    exit 1
+}
+grep -Fxq 'Decky PluginLoader 分块 2/2' "$GITEE_PART_CALLS" || {
+    echo "FAIL: Decky Gitee 第二个分块没有可见进度标签" >&2
+    exit 1
+}
+[ -s "$GITEE_LOADER_OUTPUT" ] || {
+    echo "FAIL: Decky Gitee 模拟分块未完成重组" >&2
+    exit 1
+}
 grep -Fq 'ensure_steam302_for_download' "$PROJECT_ROOT/modules/plugin_store.sh" || {
     echo "FAIL: Decky 测试版下载缺少 Steam302 加速重试" >&2
     exit 1

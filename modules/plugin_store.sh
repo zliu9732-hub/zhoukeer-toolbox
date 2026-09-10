@@ -539,6 +539,60 @@ load_decky_gitee_mirror_meta() {
     return 0
 }
 
+download_decky_gitee_part() {
+    local name="$1"
+    local url="$2"
+    local expected_sha256="$3"
+    local output="$4"
+    local temporary_file="${output}.download.$$"
+    local actual_sha256 max_bytes
+
+    download_policy_url_allowed "$url" || {
+        echo "$name 的下载地址不在受控来源清单中，已停止。"
+        return 1
+    }
+    case "$expected_sha256" in
+        [0-9a-fA-F]*) ;;
+        *) return 1 ;;
+    esac
+    [ "${#expected_sha256}" -eq 64 ] || return 1
+    max_bytes="$(download_policy_max_bytes "$url")" || return 1
+    rm -f -- "$temporary_file" "$output"
+
+    echo "正在下载 $name..."
+    if ! curl --fail --location --show-error \
+        --proto '=https' --proto-redir '=https' \
+        --connect-timeout 15 --max-time 1200 \
+        --retry 5 --retry-delay 2 --retry-connrefused \
+        --speed-limit 65536 --speed-time 60 \
+        --max-filesize "$max_bytes" \
+        --output "$temporary_file" "$url" \
+        2> >(download_progress_filter "$name" >&2); then
+        rm -f -- "$temporary_file"
+        echo "$name 下载失败，将切换备用线路。"
+        return 1
+    fi
+    if ! download_policy_response_is_safe "$url" "$temporary_file"; then
+        rm -f -- "$temporary_file"
+        echo "$name 响应格式或大小异常，将切换备用线路。"
+        return 1
+    fi
+    actual_sha256="$(calculate_decky_sha256 "$temporary_file")" || {
+        rm -f -- "$temporary_file"
+        return 1
+    }
+    if [ "$actual_sha256" != "$expected_sha256" ]; then
+        rm -f -- "$temporary_file"
+        echo "$name SHA256 校验失败，将切换备用线路。"
+        return 1
+    fi
+    mv -f -- "$temporary_file" "$output" || {
+        rm -f -- "$temporary_file"
+        return 1
+    }
+    echo "$name 下载完成。"
+}
+
 download_decky_gitee_loader() {
     local channel="$1"
     local output="$2"
@@ -546,7 +600,6 @@ download_decky_gitee_loader() {
     local part_entries=()
     local i part_name part_file part_sha
 
-    DECKY_LATEST_GITHUB_VERSION=""
     case "$channel" in
         stable)
             version="$DECKY_GITEE_STABLE_VERSION"
@@ -564,33 +617,16 @@ download_decky_gitee_loader() {
             ;;
         *) return 1 ;;
     esac
-    if [ "$channel" = "stable" ]; then
-        resolve_decky_latest
-    else
-        resolve_decky_prerelease_latest
-    fi
-    if [ -n "$DECKY_LATEST_GITHUB_VERSION" ] && \
-        [ "$version" != "$DECKY_LATEST_GITHUB_VERSION" ]; then
-        if download_github_file \
-            "$DECKY_LATEST_GITHUB_URL" "$output" \
-            "$DECKY_LATEST_GITHUB_SHA256" "Decky PluginLoader"; then
-            DECKY_GITEE_SELECTED_VERSION="$DECKY_LATEST_GITHUB_VERSION"
-            echo "Decky Loader 已自动检测最新版 $DECKY_LATEST_GITHUB_VERSION。"
-            return 0
-        fi
-        echo "自动检测最新版下载失败，继续使用镜像版本 $version。"
-    fi
-    GITHUB_QUIET=1
     validate_decky_gitee_part_hashes "$parts" "$part_sha256" || return 1
     IFS=',' read -r -a part_entries <<< "$part_sha256"
     rm -f -- "$output"
     for ((i = 0; i < parts; i++)); do
         part_name="$(printf '%02d' "$i")"
         part_file="${output}.part.${i}"
-        if ! download_github_file \
+        if ! download_decky_gitee_part \
+            "Decky PluginLoader 分块 $((i + 1))/$parts" \
             "$DECKY_GITEE_MIRROR_BASE/${prefix}.part.${part_name}" \
-            "$part_file" "${part_entries[$i]}" "Decky PluginLoader分块${part_name}" \
-            >/dev/null 2>&1; then
+            "${part_entries[$i]}" "$part_file"; then
             rm -f -- "$output"
             return 1
         fi
@@ -1178,8 +1214,6 @@ install_plugin_store() (
             "$loader_sha256" \
             "$loader_download" || return 1
     fi
-    # 分块下载函数会静默每个分块；进入服务模板阶段后恢复进度输出。
-    GITHUB_QUIET=0
     echo "正在下载 Decky systemd 服务模板..."
     if [ "$gitee_meta_ok" -eq 1 ] && download_decky_gitee_service "$channel" "$service_template"; then
         echo "Decky systemd服务模板 已从国内镜像下载。"
