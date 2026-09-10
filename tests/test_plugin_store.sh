@@ -56,6 +56,7 @@ if printf '%s\n' "$gitee_loader_function" | \
 fi
 GITEE_PART_CALLS="$TMP_ROOT/gitee-part-calls"
 GITEE_LOADER_OUTPUT="$TMP_ROOT/gitee-loader-output"
+GITEE_VISIBLE_OUTPUT="$TMP_ROOT/gitee-visible-output"
 PROJECT_ROOT="$PROJECT_ROOT" GITEE_PART_CALLS="$GITEE_PART_CALLS" \
     GITEE_LOADER_OUTPUT="$GITEE_LOADER_OUTPUT" ZHOUKEER_TEST_MODE=1 bash -c '
     source "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -75,15 +76,19 @@ PROJECT_ROOT="$PROJECT_ROOT" GITEE_PART_CALLS="$GITEE_PART_CALLS" \
         printf "%s\n" "$DECKY_GITEE_PRERELEASE_SHA256"
     }
     download_decky_gitee_loader prerelease "$GITEE_LOADER_OUTPUT"
-'
-grep -Fxq 'Decky PluginLoader 分块 1/2' "$GITEE_PART_CALLS" || {
-    echo "FAIL: Decky Gitee 第一个分块没有可见进度标签" >&2
+' > "$GITEE_VISIBLE_OUTPUT"
+[ "$(grep -Fxc 'Decky PluginLoader' "$GITEE_PART_CALLS")" -eq 2 ] || {
+    echo "FAIL: Decky 国内下载没有统一使用公开名称" >&2
     exit 1
 }
-grep -Fxq 'Decky PluginLoader 分块 2/2' "$GITEE_PART_CALLS" || {
-    echo "FAIL: Decky Gitee 第二个分块没有可见进度标签" >&2
+grep -Fq '正在下载 Decky PluginLoader...' "$GITEE_VISIBLE_OUTPUT" || {
+    echo "FAIL: Decky 国内下载缺少统一进度提示" >&2
     exit 1
 }
+if grep -Eq '分块|[0-9]+/[0-9]+' "$GITEE_VISIBLE_OUTPUT"; then
+    echo "FAIL: Decky 下载界面暴露了内部传输细节" >&2
+    exit 1
+fi
 [ -s "$GITEE_LOADER_OUTPUT" ] || {
     echo "FAIL: Decky Gitee 模拟分块未完成重组" >&2
     exit 1

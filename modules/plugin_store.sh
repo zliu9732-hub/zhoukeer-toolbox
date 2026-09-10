@@ -559,7 +559,6 @@ download_decky_gitee_part() {
     max_bytes="$(download_policy_max_bytes "$url")" || return 1
     rm -f -- "$temporary_file" "$output"
 
-    echo "正在下载 $name..."
     if ! curl --fail --location --show-error \
         --proto '=https' --proto-redir '=https' \
         --connect-timeout 15 --max-time 1200 \
@@ -590,7 +589,6 @@ download_decky_gitee_part() {
         rm -f -- "$temporary_file"
         return 1
     }
-    echo "$name 下载完成。"
 }
 
 download_decky_gitee_loader() {
@@ -620,11 +618,12 @@ download_decky_gitee_loader() {
     validate_decky_gitee_part_hashes "$parts" "$part_sha256" || return 1
     IFS=',' read -r -a part_entries <<< "$part_sha256"
     rm -f -- "$output"
+    echo "正在下载 Decky PluginLoader..."
     for ((i = 0; i < parts; i++)); do
         part_name="$(printf '%02d' "$i")"
         part_file="${output}.part.${i}"
         if ! download_decky_gitee_part \
-            "Decky PluginLoader 分块 $((i + 1))/$parts" \
+            "Decky PluginLoader" \
             "$DECKY_GITEE_MIRROR_BASE/${prefix}.part.${part_name}" \
             "${part_entries[$i]}" "$part_file"; then
             rm -f -- "$output"
