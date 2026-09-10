@@ -361,6 +361,10 @@ for menu in "$touch_dual" "$gui_dual"; do
     assert_not_contains "$menu" 'modules/dual_system.sh" add' "双系统菜单仍可执行旧 systemd-boot 显示动作"
     assert_not_contains "$menu" 'modules/dual_system.sh" remove' "双系统菜单仍可执行旧 systemd-boot 隐藏动作"
 done
+assert_contains "$touch_dual" '第 1/2 页' "双系统触控菜单缺少第一页标识"
+assert_contains "$touch_dual" '第 2/2 页' "双系统触控菜单缺少第二页标识"
+assert_contains "$gui_dual" '第 1/2 页' "双系统 GUI 菜单缺少第一页标识"
+assert_contains "$gui_dual" '第 2/2 页' "双系统 GUI 菜单缺少第二页标识"
 
 for gui_menu_name in software_menu game_environment_gui_menu emulator_gui_menu support_gui_menu plugin_official_gui_pages dual_system_menu steam_accelerator_gui_menu console_accelerator_gui_menu maintenance_gui_menu help_gui_menu new_machine_gui_menu advanced_tools_gui_menu memory_gui_menu f1_screen_fix_gui_menu; do
     gui_menu="$(function_source "$GUI_FILE" "$gui_menu_name")"

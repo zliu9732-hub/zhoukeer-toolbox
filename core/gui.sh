@@ -673,26 +673,34 @@ plugin_official_gui_pages() {
 }
 
 dual_system_menu() {
-    local choice
+    local choice page=0
 
     while true; do
-        choice="$(gui_dialog --menu "双系统用户专用｜磁盘、互通盘和开机菜单设置｜高级操作" \
-            health "双系统健康检查｜识别 Clover、rEFInd、GRUB、OpenCore 等｜只读" \
-            mount "挂载双系统互通盘｜自动排除 Windows 系统分区｜高级操作" \
-            tf-format "初始化并挂载 TF 卡｜清空并格式化为 NTFS｜高风险" \
-            repair-drive "修复 Steam 磁盘写入错误｜NTFS/互通盘下载与 Proton compatdata｜高级操作" \
-            protect "双系统互通盘保护｜防止 SteamOS 误写入｜高级操作" \
-            unprotect "恢复互通盘写入｜重新以可写方式挂载｜高级操作" \
-            cleanup-boot "清理第三方引导项｜保护 SteamOS / Windows｜保留 EFI 文件" \
-            repair-boot "修复双系统引导｜补齐缺失的 SteamOS / Windows / Clover 引导项｜高级操作" \
-            switch-to-windows "创建切换至 Windows 快捷方式｜仅创建桌面图标｜本次不重启" \
-            clover-hide "隐藏 Clover 菜单｜等待时间设为 0 秒｜默认系统不变" \
-            clover-menu "重新显示 Clover 菜单｜恢复 8 秒开机选择时间" \
-            clover-windows "默认进入 Windows｜只修改 Clover 默认项｜菜单状态不变" \
-            clover-steamos "默认进入 SteamOS｜只修改 Clover 默认项｜菜单状态不变" \
-            clover-background "应用 Renkit 开机背景｜仅替换 Clover Apocalypse 主题背景" \
-            home "返回首页" \
-            nav-exit "退出Renkit")" || return 0
+        if [ "$page" -eq 0 ]; then
+            choice="$(gui_dialog --menu "双系统用户专用｜磁盘与互通盘｜第 1/2 页" \
+                mount "挂载双系统互通盘｜自动排除 Windows 系统分区｜高级操作" \
+                tf-format "初始化并挂载 TF 卡｜清空并格式化为 NTFS｜高风险" \
+                repair-drive "修复 Steam 磁盘写入错误｜NTFS/互通盘下载与 Proton compatdata｜高级操作" \
+                protect "双系统互通盘保护｜防止 SteamOS 误写入｜高级操作" \
+                clover-steamos "默认进入 SteamOS｜只修改 Clover 默认项｜菜单状态不变" \
+                clover-background "应用 Renkit 开机背景｜仅替换 Clover Apocalypse 主题背景" \
+                clover-windows "默认进入 Windows｜只修改 Clover 默认项｜菜单状态不变" \
+                next "更多双系统工具｜健康检查、恢复与引导清理｜第 2/2 页" \
+                home "返回首页" \
+                nav-exit "退出Renkit")" || return 0
+        else
+            choice="$(gui_dialog --menu "更多双系统工具｜只读检查、恢复与引导清理｜第 2/2 页" \
+                health "双系统健康检查｜识别 Clover、rEFInd、GRUB、OpenCore 等｜只读" \
+                unprotect "恢复互通盘写入｜重新以可写方式挂载｜高级操作" \
+                cleanup-boot "清理第三方引导项｜保护 SteamOS / Windows｜保留 EFI 文件" \
+                repair-boot "修复双系统引导｜补齐缺失的 SteamOS / Windows / Clover 引导项｜高级操作" \
+                switch-to-windows "创建切换至 Windows 快捷方式｜仅创建桌面图标｜本次不重启" \
+                clover-hide "隐藏 Clover 菜单｜等待时间设为 0 秒｜默认系统不变" \
+                clover-menu "重新显示 Clover 菜单｜恢复 8 秒开机选择时间" \
+                previous "返回常用工具｜回到磁盘与互通盘｜第 1/2 页" \
+                home "返回首页" \
+                nav-exit "退出Renkit")" || return 0
+        fi
         case "$choice" in
             health) run_gui_action "双系统健康检查" bash "$PROJECT_ROOT/modules/dual_system_tools.sh" health ;;
             mount)
@@ -759,6 +767,8 @@ dual_system_menu() {
                     run_gui_action "应用 Renkit 开机背景" \
                     bash "$PROJECT_ROOT/modules/clover_boot.sh" apply-background
                 ;;
+            next) page=1 ;;
+            previous) page=0 ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
         esac
