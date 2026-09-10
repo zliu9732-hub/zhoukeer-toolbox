@@ -158,7 +158,7 @@ ui_rule() {
 # 先收集当前页的显示内容，再决定排版；动作仍由原来的逻辑行号识别。
 # 含额外说明的页面保持纵向顺序，只有纯按钮页使用双列卡片。
 ui_prepare_layout() {
-    local index row count=0 notes=0 stride height slot=0 grid_rows card_width
+    local index row count=0 notes=0 stride height slot=0 grid_rows card_width sidebar_items=9
     UI_GRID=0 UI_HOME=0
     UI_LEFT_TOP=() UI_LEFT_BOTTOM=() UI_LEFT_COL=() UI_LEFT_WIDTH=()
     UI_RIGHT_TOP=() UI_RIGHT_BOTTOM=() UI_RIGHT_COL=() UI_RIGHT_WIDTH=()
@@ -169,17 +169,20 @@ ui_prepare_layout() {
             ui_panel_line) notes=$((notes + 1)) ;;
         esac
     done
-    if [ "$count" -eq 0 ] && [ "$notes" -eq 8 ] && [ -z "${UI_DRAW_ARG1[0]}${UI_DRAW_ARG2[0]}" ]; then
+    if [ "${RENKIT_STEAMOS_DUAL_NAV:-0}" = "1" ]; then
+        sidebar_items=10
+    fi
+    if [ "$count" -eq 0 ] && [ "$notes" -eq "$sidebar_items" ] && [ -z "${UI_DRAW_ARG1[0]}${UI_DRAW_ARG2[0]}" ]; then
         UI_HOME=1
         count="$notes"
     fi
     # 侧栏共用两侧竖线和相邻横线，均分可用高度，底边延伸到页脚上方。
     # 分隔线归下一个选项，末项包含底边，点击范围不重叠。
-    for ((index=0; index<9; index++)); do
+    for ((index=0; index<sidebar_items; index++)); do
         row=$((2 + index * 2))
-        UI_LEFT_TOP[row]=$((2 + index * (UI_CONTENT_ROWS - 2) / 9))
-        UI_LEFT_BOTTOM[row]=$((1 + (index + 1) * (UI_CONTENT_ROWS - 2) / 9))
-        [ "$index" -ne 8 ] || UI_LEFT_BOTTOM[row]="$UI_CONTENT_ROWS"
+        UI_LEFT_TOP[row]=$((2 + index * (UI_CONTENT_ROWS - 2) / sidebar_items))
+        UI_LEFT_BOTTOM[row]=$((1 + (index + 1) * (UI_CONTENT_ROWS - 2) / sidebar_items))
+        [ "$index" -ne "$((sidebar_items - 1))" ] || UI_LEFT_BOTTOM[row]="$UI_CONTENT_ROWS"
         UI_LEFT_COL[row]=3
         UI_LEFT_WIDTH[row]=$((UI_SIDEBAR_WIDTH - 2))
     done

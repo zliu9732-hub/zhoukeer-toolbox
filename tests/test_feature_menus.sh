@@ -340,8 +340,12 @@ for menu in "$touch_emulators" "$gui_emulators"; do
 done
 
 touch_dual="$(function_source "$MAIN_FILE" dual_system_menu)"
+touch_dual_more="$(function_source "$MAIN_FILE" dual_system_more_menu)"
 gui_dual="$(function_source "$GUI_FILE" dual_system_menu)"
-for menu in "$touch_dual" "$gui_dual"; do
+gui_dual_more="$(function_source "$GUI_FILE" dual_system_more_menu)"
+touch_dual_all="${touch_dual}${touch_dual_more}"
+gui_dual_all="${gui_dual}${gui_dual_more}"
+for menu in "$touch_dual_all" "$gui_dual_all"; do
     for item in '挂载双系统互通盘' '初始化并挂载 TF 卡' '修复 Steam 磁盘写入错误' '双系统互通盘保护' '双系统健康检查' '恢复互通盘写入' '清理第三方引导项' '修复双系统引导' '创建切换至 Windows 快捷方式' '隐藏 Clover 菜单' '重新显示 Clover 菜单' '默认进入 Windows' '默认进入 SteamOS'; do
         assert_contains "$menu" "$item" "双系统与互通盘缺少：$item"
     done
@@ -361,12 +365,12 @@ for menu in "$touch_dual" "$gui_dual"; do
     assert_not_contains "$menu" 'modules/dual_system.sh" add' "双系统菜单仍可执行旧 systemd-boot 显示动作"
     assert_not_contains "$menu" 'modules/dual_system.sh" remove' "双系统菜单仍可执行旧 systemd-boot 隐藏动作"
 done
-assert_contains "$touch_dual" '第 1/2 页' "双系统触控菜单缺少第一页标识"
-assert_contains "$touch_dual" '第 2/2 页' "双系统触控菜单缺少第二页标识"
-assert_contains "$gui_dual" '第 1/2 页' "双系统 GUI 菜单缺少第一页标识"
-assert_contains "$gui_dual" '第 2/2 页' "双系统 GUI 菜单缺少第二页标识"
+assert_contains "$touch_dual_all" '第 1/2 页' "双系统触控菜单缺少第一页标识"
+assert_contains "$touch_dual_all" '第 2/2 页' "双系统触控菜单缺少第二页标识"
+assert_contains "$gui_dual_all" '第 1/2 页' "双系统 GUI 菜单缺少第一页标识"
+assert_contains "$gui_dual_all" '第 2/2 页' "双系统 GUI 菜单缺少第二页标识"
 
-for gui_menu_name in software_menu game_environment_gui_menu emulator_gui_menu support_gui_menu plugin_official_gui_pages dual_system_menu steam_accelerator_gui_menu console_accelerator_gui_menu maintenance_gui_menu help_gui_menu new_machine_gui_menu advanced_tools_gui_menu memory_gui_menu f1_screen_fix_gui_menu; do
+for gui_menu_name in software_menu game_environment_gui_menu emulator_gui_menu support_gui_menu plugin_official_gui_pages dual_system_menu dual_system_more_menu steam_accelerator_gui_menu console_accelerator_gui_menu maintenance_gui_menu help_gui_menu new_machine_gui_menu advanced_tools_gui_menu memory_gui_menu f1_screen_fix_gui_menu; do
     gui_menu="$(function_source "$GUI_FILE" "$gui_menu_name")"
     assert_contains "$gui_menu" 'home "返回首页"' "GUI 页面缺少返回首页：$gui_menu_name"
     assert_contains "$gui_menu" 'nav-exit "退出Renkit"' "GUI 页面缺少退出Renkit：$gui_menu_name"

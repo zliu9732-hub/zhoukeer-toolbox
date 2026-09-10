@@ -108,8 +108,10 @@ def screen_cells(output):
 def box_bounds(output, label, cells, last=False):
     y, caption_col = item_position(output, label, last=last)
     left = caption_col - 1
-    top = max(r for (r, c), (char, _) in cells.items()
-              if c == left and r <= y and char == '╭')
+    top_candidates = [r for (r, c), (char, _) in cells.items()
+                      if c == left and r <= y and char == '╭']
+    check(top_candidates, f'{label}: no top-left border before caption at {y},{caption_col}')
+    top = max(top_candidates)
     right = next(c for (r, c), (char, _) in cells.items()
                  if r == top and c > left and char == '╮')
     bottom = min(r for (r, c), (char, _) in cells.items()
@@ -313,6 +315,57 @@ run_flow 2> >(filter_terminal_stderr >&2)
         os.close(master)
 
 
+def dual_system_flow_test(directory):
+    """Tap through both real dual-system menus; no disk or boot action may run."""
+    source = (ROOT / 'main.sh').read_text()
+    extract = lambda function: re.search(r'^' + function + r'\(\).*?^}', source, re.M | re.S).group()
+    fixture = directory / 'dual-system-flow.sh'
+    fixture.write_text(SHELL.split("draw_category_frame software '' ''")[0]
+                       + extract('read_touch_menu') + '\n'
+                       + extract('apply_navigation') + '\n'
+                       + extract('dual_system_more_menu') + '\n'
+                       + extract('dual_system_menu') + r'''
+confirm_and_run() { printf 'UNEXPECTED ACTION\n' >&2; exit 93; }
+NEXT_CATEGORY=dual
+dual_system_menu
+printf '\nDUAL_FLOW_DONE=%s\n' "$NEXT_CATEGORY"
+''')
+    for columns, rows in [(80, 24), (120, 32), (160, 48)]:
+        master, slave = pty.openpty()
+        tty.setraw(slave)
+        resize(master, columns, rows)
+        process = subprocess.Popen(['bash', str(fixture)],
+                                   env=dict(os.environ, UI_TEST_ROOT=str(ROOT), UI_TEST_MODE='live'),
+                                   stdin=slave, stdout=slave, stderr=slave)
+        os.close(slave)
+        try:
+            first = read_until(master, '下一页：更多双系统工具'.encode())
+            y, x = item_position(first, '下一页：更多双系统工具')
+            os.write(master, click(x + 2, y))
+            second = read_until(master, '上一页：返回常用工具'.encode())
+            check('双系统健康检查' in second and '第 2/2 页' in second,
+                  f'{columns}x{rows}: dual-system next did not render page 2')
+
+            y, x = item_position(second, '上一页：返回常用工具')
+            os.write(master, click(x + 2, y))
+            first = read_until(master, '下一页：更多双系统工具'.encode())
+            check('第 1/2 页' in first, f'{columns}x{rows}: dual-system previous did not return')
+
+            y, x = item_position(first, '下一页：更多双系统工具')
+            os.write(master, click(x + 2, y))
+            second = read_until(master, '上一页：返回常用工具'.encode())
+            y, x = item_position(second, '返回首页')
+            os.write(master, click(x + 2, y))
+            result = read_until(master, b'DUAL_FLOW_DONE=home')
+            check('UNEXPECTED' not in result, 'Dual-system paging dispatched an action')
+            check(process.wait(timeout=3) == 0, 'Dual-system page flow failed')
+        finally:
+            if process.poll() is None:
+                process.kill()
+            process.wait()
+            os.close(master)
+
+
 def plugin_page_tests(directory):
     """Use both real pagers, but replace every installation entry with a fatal mock."""
     prefix = SHELL.split("draw_category_frame software '' ''")[0]
@@ -509,10 +562,12 @@ def main():
         navigation = [('新机器设置', 'nav-init'), ('安装常用软件', 'nav-software'),
                       ('游戏与插件', 'nav-games'), ('模拟器', 'nav-emulators'),
                       ('检查与维护', 'nav-check'), ('更多设置', 'nav-advanced'),
-                      ('卸载已安装', 'nav-uninstall'), ('免责声明与使用须知', 'nav-notice')]
+                      ('双系统用户专用', 'nav-dual'), ('卸载已安装', 'nav-uninstall'),
+                      ('免责声明与使用须知', 'nav-notice'), ('退出Renkit', 'nav-exit')]
         mappings = ' '.join(f'left:{2 + i * 2}-{3 + i * 2}:{action}' for i, (_, action) in enumerate(navigation))
         home = Path(temp) / 'home.sh'
-        home.write_text(SHELL.split("draw_category_frame software '' ''")[0] + '\n'.join(home_lines) + '\n'
+        home.write_text(SHELL.split("draw_category_frame software '' ''")[0]
+                        + 'RENKIT_STEAMOS_DUAL_NAV=1\n' + '\n'.join(home_lines) + '\n'
                         + 'if [ "$UI_TEST_MODE" = render ]; then exit 0; fi\n'
                         + 'choice="$(read_menu_choice ' + mappings + ')"\nprintf "\\nRESULT=%s\\n" "$choice"\n')
         for cols, rows in [(80, 24), (120, 32), (160, 48)]:
@@ -568,8 +623,9 @@ ui_disclaimer_button 16 '' 'WELCOME' 'Read first and click to continue'
         live_test(fixture)
         input_stream_test(Path(temp))
         new_machine_flow_test(Path(temp))
+        dual_system_flow_test(Path(temp))
         plugin_page_tests(Path(temp))
-    print('PASS: 8 sizes, sidebar, card hits, resize, fragmented taps, initialization and both dynamic plugin pagers')
+    print('PASS: 8 sizes, sidebar, card hits, resize, fragmented taps, initialization, dual-system paging and both dynamic plugin pagers')
 
 
 if __name__ == '__main__':
