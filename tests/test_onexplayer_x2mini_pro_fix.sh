@@ -74,9 +74,9 @@ steamos-readonly() {
     case "${1:-}" in status) printf '%s\n' "$MOCK_READONLY" ;; disable) MOCK_READONLY=disabled ;; enable) MOCK_READONLY=enabled ;; *) return 1 ;; esac
 }
 toolbox_sudo() { printf 'sudo %s\n' "$*" >> "$CALLS"; "$@"; }
-download_github_file() {
-    local output="$2" expected="$3" name="$4" source
-    printf 'download %s\n' "$1" >> "$CALLS"
+download_with_gitee_mirror_fallback() {
+    local mirror_id="$1" output="$4" expected="$3" name="$5" source
+    printf 'download %s %s\n' "$mirror_id" "$2" >> "$CALLS"
     [ "$MOCK_DOWNLOAD_FAIL" = 0 ] || return 1
     case "$name" in
         *设备描述*) source="$TMP_ROOT/fixtures/device" ;;
@@ -135,5 +135,8 @@ if grep -Eq '(^|[[:space:]])(eval|bash -c|sh -c)([[:space:]]|$)' "$MODULE"; then
 grep -Fq 'ONEXPLAYER X2Mini PRO' "$MODULE" || fail "模块缺少精确 DMI 限制"
 grep -Fq 'deck-uhid' "$MODULE" || fail "模块缺少 SteamOS 虚拟设备目标校验"
 grep -Fq 'steamos-readonly enable' "$MODULE" || fail "模块缺少只读保护恢复"
+for mirror_id in oxpx2-device oxpx2-map oxpx2-manager; do
+    grep -Fq "$mirror_id" "$MODULE" || fail "模块缺少国内镜像：$mirror_id"
+done
 
 echo "PASS: X2 Mini Pro 三点菜单修复的 DMI/HHD 限制、固定配置校验、只读保护恢复与撤销模拟通过"

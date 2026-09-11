@@ -411,6 +411,12 @@ download_with_gitee_mirror_fallback() {
 
 gitee_mirror_id_for_url() {
     case "$1" in
+        *'/ShadowBlip/InputPlumber/releases/download/v0.79.2/inputplumber-x86_64.tar.gz') printf '%s\n' inputplumber ;;
+        *'/zliu9732-hub/zhoukeer-toolbox/releases/download/f1-bios-v1.14/ONEXFLY-F1-7840U-BIOS-V1.14.zip') printf '%s\n' f1-bios ;;
+        *'/dahui/onexplayer-x2-mini-pro-cachyos/'*'/etc/inputplumber/devices.d/50-onexplayer_x2_mini.yaml') printf '%s\n' oxpx2-device ;;
+        *'/dahui/onexplayer-x2-mini-pro-cachyos/'*'/etc/inputplumber/capability_maps.d/onexplayer_x2mini.yaml') printf '%s\n' oxpx2-map ;;
+        *'/dahui/onexplayer-x2-mini-pro-cachyos/'*'/usr/share/steamos-manager/devices/onexplayer-x2-mini.toml') printf '%s\n' oxpx2-manager ;;
+        *'/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-x86_64.AppImage') printf '%s\n' rustdesk ;;
         *'/zliu9732-hub/decky-lsfg-vk-zh/releases/download/'*) printf '%s\n' lsfg-zh-signed ;;
         *'/zliu9732-hub/decky-framegen-zh/releases/download/'*) printf '%s\n' fsr4-zh-signed ;;
         *'/eugeniosegala/MAKO/releases/download/'*) printf '%s\n' lsfg-mako ;;

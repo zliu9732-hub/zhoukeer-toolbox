@@ -55,9 +55,9 @@ DOWNLOAD_CALLS="$TMP_ROOT/download.log"
 detect_platform() { IS_STEAMOS=1; }
 require_command() { return 0; }
 log() { printf '%s\n' "$*" >> "$LOG_FILE"; }
-download_github_file() {
-    local url="$1" output="$2" sha="$3" name="$4"
-    printf '%s|%s|%s\n' "$url" "$sha" "$name" >> "$DOWNLOAD_CALLS"
+download_with_gitee_mirror_fallback() {
+    local mirror_id="$1" url="$2" sha="$3" output="$4" name="$5"
+    printf '%s|%s|%s|%s\n' "$mirror_id" "$url" "$sha" "$name" >> "$DOWNLOAD_CALLS"
     cp "$FIXTURE_ZIP" "$output"
 }
 # 行为测试使用等结构小型夹具；生产函数仍固定校验原厂 ZIP 和九个文件 SHA256。
@@ -110,6 +110,7 @@ TARGET="$SHARED_DRIVE/$F1_BIOS_TARGET_NAME"
 [ ! -d "$TARGET/$FIXTURE_ROOT_NAME" ] || fail "原始含 & 的目录名未被展平"
 grep -Fq '没有刷写 BIOS' "$TMP_ROOT/prepare.out" || fail "完成提示未说明 SteamOS 不刷 BIOS"
 grep -Fq "$F1_BIOS_ARCHIVE_SHA256" "$DOWNLOAD_CALLS" || fail "下载未使用固定原厂 ZIP SHA256"
+grep -Fq 'f1-bios|' "$DOWNLOAD_CALLS" || fail "BIOS 未优先使用 Gitee 分块镜像"
 grep -Fq '严禁用于：8840U、EVA、F1 Pro' "$TARGET/刷写前必读.txt" || fail "刷写说明缺少禁用机型"
 
 : > "$DOWNLOAD_CALLS"

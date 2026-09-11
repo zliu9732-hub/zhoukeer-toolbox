@@ -11,8 +11,8 @@ OWNER="zliu9732-hub"
 TOKEN="${GITEE_TOKEN:-}"
 MODE="${1:-}"
 case "$MODE" in
-    ''|--only-ge-proton|--only-proton-cachyos) ;;
-    *) echo "Usage: $0 [--only-ge-proton|--only-proton-cachyos]"; exit 2 ;;
+    ''|--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed) ;;
+    *) echo "Usage: $0 [--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed]"; exit 2 ;;
 esac
 [ -n "$TOKEN" ] || {
     echo "GITEE_TOKEN secret is missing"
@@ -40,12 +40,14 @@ prepare_empty_main() {
     fi
 }
 
-if [ "$MODE" != "--only-ge-proton" ] && [ "$MODE" != "--only-proton-cachyos" ]; then
+if [ -z "$MODE" ]; then
     git clone -q "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
     git clone -q "$BASE/zhoukeer-toolbox-mirror-2.git" "$MIRROR2"
     git clone -q "$BASE/zhoukeer-toolbox-mirror-3.git" "$MIRROR3"
+elif [ "$MODE" = "--only-steamos-fixed" ]; then
+    git clone -q "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
 fi
-if [ "$MODE" != "--only-proton-cachyos" ]; then
+if [ -z "$MODE" ] || [ "$MODE" = "--only-ge-proton" ]; then
     git clone -q "$BASE/zhoukeer-toolbox-mirror-8.git" "$MIRROR8"
     prepare_empty_main "$MIRROR8"
 fi
@@ -336,6 +338,39 @@ commit_and_push() {
     fi
 }
 
+sync_steamos_fixed_assets() {
+    sync_plugin inputplumber "ShadowBlip/InputPlumber" '^$' "InputPlumber" \
+        "v0.79.2" "inputplumber-x86_64.tar.gz" \
+        "https://github.com/ShadowBlip/InputPlumber/releases/download/v0.79.2/inputplumber-x86_64.tar.gz" \
+        "dc8a859b55047c1a78c99dfaa296c55eebfbf798057f519543fbc7f6215cf953"
+    sync_plugin f1-bios "zliu9732-hub/zhoukeer-toolbox" '^$' "飞行家 F1 V1.14 BIOS" \
+        "f1-bios-v1.14" "ONEXFLY-F1-7840U-BIOS-V1.14.zip" \
+        "https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/f1-bios-v1.14/ONEXFLY-F1-7840U-BIOS-V1.14.zip" \
+        "32b166cf34a59220b3f8c5f9d12fc1f23348dd3af63c5b5ced6c4d5150e8d51e"
+    sync_plugin oxpx2-device "dahui/onexplayer-x2-mini-pro-cachyos" '^$' "X2 Mini Pro 设备描述" \
+        "a0b76a1" "50-onexplayer_x2_mini.yaml" \
+        "https://raw.githubusercontent.com/dahui/onexplayer-x2-mini-pro-cachyos/a0b76a16471174ded80913a681357f43bfb17fa4/etc/inputplumber/devices.d/50-onexplayer_x2_mini.yaml" \
+        "833fdf2079011652a9cd6991eadff4655589dac1f6293ff53ab43fc35d0ff704"
+    sync_plugin oxpx2-map "dahui/onexplayer-x2-mini-pro-cachyos" '^$' "X2 Mini Pro 按键映射" \
+        "a0b76a1" "onexplayer_x2mini.yaml" \
+        "https://raw.githubusercontent.com/dahui/onexplayer-x2-mini-pro-cachyos/a0b76a16471174ded80913a681357f43bfb17fa4/etc/inputplumber/capability_maps.d/onexplayer_x2mini.yaml" \
+        "333d2dddd354fcb2ec2207745340c5d098dc8d173e76d8de02bf0648049f5079"
+    sync_plugin oxpx2-manager "dahui/onexplayer-x2-mini-pro-cachyos" '^$' "X2 Mini Pro SteamOS 设备目标" \
+        "a0b76a1" "onexplayer-x2-mini.toml" \
+        "https://raw.githubusercontent.com/dahui/onexplayer-x2-mini-pro-cachyos/a0b76a16471174ded80913a681357f43bfb17fa4/usr/share/steamos-manager/devices/onexplayer-x2-mini.toml" \
+        "67f1136c12c103855a34c498fc3438693da7a9043d045e7147323377ed4e831a"
+    sync_plugin rustdesk "rustdesk/rustdesk" '^$' "RustDesk AppImage" \
+        "1.4.9" "rustdesk-1.4.9-x86_64.AppImage" \
+        "https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-x86_64.AppImage" \
+        "7902cd60a4f29817eebe2668a15c9a1952ac690e8f7b07bfe7620fedd4e28217"
+}
+
+if [ "$MODE" = "--only-steamos-fixed" ]; then
+    sync_steamos_fixed_assets
+    commit_and_push "$MIRROR1"
+    exit 0
+fi
+
 if [ "$MODE" = "--only-ge-proton" ]; then
     sync_ge_proton
     commit_and_push_ge_proton_batches "$MIRROR8"
@@ -346,6 +381,9 @@ if [ "$MODE" = "--only-proton-cachyos" ]; then
     commit_and_push_proton_cachyos_batches "$MIRROR9"
     exit 0
 fi
+
+# SteamOS 主线中仍直接依赖 GitHub 的固定资产统一镜像到 mirror-1。
+sync_steamos_fixed_assets
 
 # 小黄鸭汉化叠加固定 v0.12.8，镜像必须与Renkit内置版本一致，否则 SHA 校验会拒绝。
 sync_plugin lsfg "xXJSONDeruloXx/decky-lsfg-vk" '^Decky[.]LSFG-VK[.]zip$' "Decky LSFG-VK" \

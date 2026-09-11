@@ -428,7 +428,8 @@ bash "$PROJECT_ROOT/modules/software.sh" uninstall chrome >/dev/null
 [ -e "$STATE_DIR/installed.com.microsoft.Edge" ]
 grep -Fq 'uninstall --user --noninteractive -y com.google.Chrome' "$STATE_DIR/commands"
 
-# RustDesk 使用作者 GitHub Release 的 AppImage，不依赖 Flatpak，并创建可点击的桌面图标。
+# RustDesk 使用 Gitee 分块镜像优先、作者 GitHub Release 回退的 AppImage，
+# 不依赖 Flatpak，并创建可点击的桌面图标。
 if command -v sha256sum >/dev/null 2>&1; then
     RUSTDESK_TEST_SHA256="$(printf '\177ELFtest-rustdesk-appimage\n' | sha256sum | awk '{print $1}')"
 else
@@ -451,6 +452,8 @@ grep -Fq "Exec=\"$STATE_DIR/apps/RustDesk.AppImage\"" "$RUSTDESK_SHORTCUT"
 grep -Fq 'Icon=rustdesk' "$RUSTDESK_SHORTCUT"
 grep -Fq 'https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-x86_64.AppImage' \
     "$STATE_DIR/curl-urls"
+grep -Fq 'download_with_gitee_mirror_fallback' "$PROJECT_ROOT/modules/software.sh" || \
+    fail "RustDesk 未接入 Gitee 分块镜像优先下载"
 # AnyDesk 与其他常用软件一样走用户级 Flatpak、国内缓存、已安装检测和桌面入口。
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \

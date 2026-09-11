@@ -1,6 +1,11 @@
 name: Sync Gitee mirror assets
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/sync_gitee_mirrors.sh
   schedule:
     - cron: '0 */6 * * *'
   workflow_dispatch:
@@ -14,4 +19,9 @@ jobs:
       - name: Sync plugin and GE-Proton Gitee mirrors
         env:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
-        run: bash scripts/sync_gitee_mirrors.sh
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            bash scripts/sync_gitee_mirrors.sh --only-steamos-fixed
+          else
+            bash scripts/sync_gitee_mirrors.sh
+          fi

@@ -39,6 +39,7 @@ OXPX2_MAP_TARGET="$(oxpx2_root_path etc/inputplumber/capability_maps.d/onexplaye
 OXPX2_MANAGER_TARGET="$(oxpx2_root_path usr/share/steamos-manager/devices/onexplayer-x2-mini.toml)"
 OXPX2_TARGETS=("$OXPX2_DEVICE_TARGET" "$OXPX2_MAP_TARGET" "$OXPX2_MANAGER_TARGET")
 OXPX2_NAMES=("设备描述" "按键映射" "SteamOS 设备目标")
+OXPX2_MIRROR_IDS=("oxpx2-device" "oxpx2-map" "oxpx2-manager")
 OXPX2_PATHS=(
     "etc/inputplumber/devices.d/50-onexplayer_x2_mini.yaml"
     "etc/inputplumber/capability_maps.d/onexplayer_x2mini.yaml"
@@ -156,7 +157,9 @@ oxpx2_download_sources() {
     for index in 0 1 2; do
         url="$(oxpx2_source_url "${OXPX2_PATHS[$index]}")"
         output="$work_dir/$index"
-        download_github_file "$url" "$output" "${OXPX2_SHA256[$index]}" "X2 Mini Pro ${OXPX2_NAMES[$index]}" || return 1
+        download_with_gitee_mirror_fallback "${OXPX2_MIRROR_IDS[$index]}" \
+            "$url" "${OXPX2_SHA256[$index]}" "$output" \
+            "X2 Mini Pro ${OXPX2_NAMES[$index]}" || return 1
         [ -f "$output" ] && [ ! -L "$output" ] || return 1
     done
     grep -Fq 'product_name: ONEXPLAYER X2Mini PRO' "$work_dir/0" && \

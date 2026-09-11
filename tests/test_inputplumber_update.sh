@@ -109,9 +109,9 @@ date() {
 }
 require_command() { return 0; }
 log() { printf '%s\n' "$*" >> "$LOG_FILE"; }
-download_github_file() {
-    local output="$2" expected="$3" actual
-    printf 'download %s\n' "$1" >> "$CALLS"
+download_with_gitee_mirror_fallback() {
+    local mirror_id="$1" output="$4" expected="$3" actual
+    printf 'download %s %s\n' "$mirror_id" "$2" >> "$CALLS"
     [ "$MOCK_DOWNLOAD_FAIL" -eq 0 ] || return 1
     actual="$(sha256sum "$FIXTURE_ARCHIVE" | awk '{print $1}')"
     [ "$actual" = "$expected" ] || return 1
@@ -203,7 +203,8 @@ MOCK_DATE=20260909-120002
 if ipu_update > "$TEST_ROOT/download-fail.out" 2>&1; then
     fail "下载失败后仍返回成功"
 fi
-grep -Fq 'download https://github.com/ShadowBlip/InputPlumber/' "$CALLS" || fail "未调用受控 GitHub 下载"
+grep -Fq 'download inputplumber https://github.com/ShadowBlip/InputPlumber/' "$CALLS" || \
+    fail "未优先调用 InputPlumber 国内分块镜像"
 if grep -Eq 'steamos-readonly (disable|enable)|systemctl (stop|enable|restart)' "$CALLS"; then
     fail "下载失败后修改了只读保护或服务"
 fi
@@ -227,7 +228,7 @@ grep -Fq '旧版备份保留在' "$TEST_ROOT/restart-fail.out" || fail "失败�
 for required in \
     'INPUTPLUMBER_UPDATE_VERSION="0.79.2"' \
     'INPUTPLUMBER_UPDATE_SHA256="dc8a859b55047c1a78c99dfaa296c55eebfbf798057f519543fbc7f6215cf953"' \
-    'download_github_file' \
+    'download_with_gitee_mirror_fallback inputplumber' \
     'steamos-readonly disable' \
     'steamos-readonly enable' \
     '50-onexplayer_mini_pro.yaml' \

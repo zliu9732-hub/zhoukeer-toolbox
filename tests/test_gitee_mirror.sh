@@ -159,6 +159,12 @@ grep -Fq 'mirror_mako_latest()' \
     "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || \
     FAIL "MAKO LSFG 手动镜像流程未复用最新 Release 解析"
 for mapping in \
+    'https://github.com/ShadowBlip/InputPlumber/releases/download/v0.79.2/inputplumber-x86_64.tar.gz|inputplumber' \
+    'https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/f1-bios-v1.14/ONEXFLY-F1-7840U-BIOS-V1.14.zip|f1-bios' \
+    'https://raw.githubusercontent.com/dahui/onexplayer-x2-mini-pro-cachyos/a0b76a16471174ded80913a681357f43bfb17fa4/etc/inputplumber/devices.d/50-onexplayer_x2_mini.yaml|oxpx2-device' \
+    'https://raw.githubusercontent.com/dahui/onexplayer-x2-mini-pro-cachyos/a0b76a16471174ded80913a681357f43bfb17fa4/etc/inputplumber/capability_maps.d/onexplayer_x2mini.yaml|oxpx2-map' \
+    'https://raw.githubusercontent.com/dahui/onexplayer-x2-mini-pro-cachyos/a0b76a16471174ded80913a681357f43bfb17fa4/usr/share/steamos-manager/devices/onexplayer-x2-mini.toml|oxpx2-manager' \
+    'https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-x86_64.AppImage|rustdesk' \
     'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3.zip|steamgriddb' \
     'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip|cssloader' \
     'https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip|friendeck' \
@@ -172,6 +178,11 @@ for mapping in \
     grep -Fq "$mapping_id|" "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || \
         FAIL "$mapping_id 缺少 Gitee 固定镜像清单"
 done
+grep -Fq -- '--only-steamos-fixed' "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
+    FAIL "SteamOS 固定 GitHub 资产缺少独立镜像同步模式"
+grep -Fq 'bash scripts/sync_gitee_mirrors.sh --only-steamos-fixed' \
+    "$PROJECT_ROOT/.github/workflows/sync-gitee-mirrors.yml" || \
+    FAIL "GitHub 推送后不会自动同步 SteamOS 固定资产到 Gitee"
 grep -Fq 'deckymusic|Decky Music 完整包|v1.0.2|Decky.Music.full.zip|' \
     "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || \
     FAIL "Decky Music v1.0.2 完整包缺少 Gitee 固定分块清单"

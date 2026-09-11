@@ -215,8 +215,9 @@ f1_bios_prepare() {
     archive="$F1_BIOS_TMP_ROOT/f1-bios-v1.14.zip"
     extract_dir="$F1_BIOS_TMP_ROOT/extracted"
     mkdir -p -- "$extract_dir" || return 1
-    if ! download_github_file "$F1_BIOS_RELEASE_URL" "$archive" \
-        "$F1_BIOS_ARCHIVE_SHA256" "飞行家 F1 V1.14 BIOS"; then
+    if ! download_with_gitee_mirror_fallback f1-bios \
+        "$F1_BIOS_RELEASE_URL" "$F1_BIOS_ARCHIVE_SHA256" "$archive" \
+        "飞行家 F1 V1.14 BIOS"; then
         echo "BIOS 下载或 SHA256 校验失败，没有写入互通盘。"
         return 1
     fi

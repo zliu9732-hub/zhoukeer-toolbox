@@ -9,8 +9,8 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | 项目 | 用途 | 上游地址 | 许可证 | 进入 Gitee 镜像 | 备注 |
 | --- | --- | --- | --- | --- | --- |
 | Decky Loader | Decky 插件商城加载器 | https://github.com/SteamDeckHomebrew/decky-loader | GPL-2.0 | 是 | 稳定版与测试版均来自同一上游 |
-| InputPlumber | 壹号掌机 SteamOS 输入路由与特殊按键支持更新 | https://github.com/ShadowBlip/InputPlumber | GPL-3.0-or-later | 否（官方 Release） | 固定官方 x86_64 原包与 SHA256；GitHub 代理仅作传输回退，不修改包内容 |
-| OneXPlayer X2 Mini Pro CachyOS 配置 | X2 Mini Pro 的 InputPlumber、QuickAccess 与 SteamOS 设备目标配置 | https://github.com/dahui/onexplayer-x2-mini-pro-cachyos | GPL-2.0 | 否（固定上游提交下载） | 固定提交 `a0b76a1` 的三份配置及 SHA256；仅用于精确 DMI `ONEXPLAYER X2Mini PRO` |
+| InputPlumber | 壹号掌机 SteamOS 输入路由与特殊按键支持更新 | https://github.com/ShadowBlip/InputPlumber | GPL-3.0-or-later | 否（官方 Release） | 固定官方 x86_64 原包与 SHA256；Gitee 分块镜像优先，GitHub Release 仅作校验回退，不修改包内容 |
+| OneXPlayer X2 Mini Pro CachyOS 配置 | X2 Mini Pro 的 InputPlumber、QuickAccess 与 SteamOS 设备目标配置 | https://github.com/dahui/onexplayer-x2-mini-pro-cachyos | GPL-2.0 | 否（固定上游提交下载） | 固定提交 `a0b76a1` 的三份配置及 SHA256；Gitee 镜像优先，仅用于精确 DMI `ONEXPLAYER X2Mini PRO` |
 | Decky LSFG-VK | 小黄鸭插件 | https://github.com/xXJSONDeruloXx/decky-lsfg-vk | BSD-3-Clause | 是 | 上游 License 明确允许再分发 |
 | MAKO（小黄鸭） | MAKO 帧生成插件 | https://github.com/eugeniosegala/MAKO | GPL-3.0-or-later | 是 | 跟随上游最新正式版；使用作者官方原包自带简体中文，保留 Eugenio Segala 与许可证，不叠加 Renkit 汉化或署名 |
 | Decky-Framegen | FSR4 插件 | https://github.com/xXJSONDeruloXx/Decky-Framegen | BSD-3-Clause | 是 | 基于 Decky 模板并保留 BSD-3 声明 |
@@ -44,7 +44,7 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | ROG White 白色主题 | SteamOS 游戏模式白色主题 | 原创（RenAmamia） | 原创随 Renkit 分发 | 否（Renkit 内置组件） | 仅包含 theme.json 与 shared.css；安装到 CSS Loader themes 目录后由用户在 CSS Loader 中开启 |
 | Handheld Pink 粉色主题 | SteamOS 游戏模式粉色主题 | 原创（RenAmamia） | 原创随 Renkit 分发 | 否（Renkit 内置组件） | 基于 ROG White 改色；仅包含 theme.json 与 shared.css |
 | Pink White Gradient 粉白渐变主题 | SteamOS 游戏模式浅粉渐变主题 | 原创（RenAmamia） | 原创随 Renkit 分发 | 否（Renkit 内置组件） | 独立保留浅粉白渐变版本 |
-| RustDesk | RustDesk AppImage | https://github.com/rustdesk/rustdesk | AGPL-3.0 | 否（官方源） | AppImage 走作者 GitHub Release，用户可另行提供安装包 |
+| RustDesk | RustDesk AppImage | https://github.com/rustdesk/rustdesk | AGPL-3.0 | 否（官方源） | 官方 AppImage 使用 Gitee 分块镜像优先、作者 GitHub Release 回退并固定 SHA256 |
 | GE-Proton | Steam 兼容层 | https://github.com/GloriousEggroll/proton-ge-custom | Proton 顶层 BSD-3-Clause，组件各自许可 | 是 | 镜像包含上游 LICENSE.proton 说明 |
 | ToDesk | ToDesk 官方安装包 | https://www.todesk.com/ | 专有软件 | 是 | 维护者确认仅用于非商业装机工具，保持官方包原样并保留官网回退 |
 | Epic Games 启动器 | Epic 官方 Windows 安装器 | https://www.epicgames.com/ | 专有软件 | 是 | 维护者要求镜像以解决官方下载失败，保持官方包原样并保留官方源回退 |

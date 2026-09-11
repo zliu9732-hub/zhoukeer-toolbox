@@ -128,7 +128,7 @@ ipu_print_plan() {
     echo "  - 机型：$INPUTPLUMBER_UPDATE_PRODUCT"
     echo "  - 当前版本：$(ipu_current_version)"
     echo "  - 目标版本：inputplumber ${INPUTPLUMBER_UPDATE_VERSION}"
-    echo "  - 来源：ShadowBlip/InputPlumber 官方固定 Release"
+    echo "  - 来源：Gitee 国内分块镜像优先，ShadowBlip/InputPlumber 官方固定 Release 回退"
     echo "  - 校验：SHA256 ${INPUTPLUMBER_UPDATE_SHA256}"
     echo "  - 写入范围：SteamOS /usr 下的 InputPlumber 二进制、配置、服务、udev 与 DBus/Polkit 文件"
     echo "  - 更新前会保存旧版备份；系统大版本更新可能覆盖本次手动更新"
@@ -389,8 +389,9 @@ ipu_update() {
     work_dir="$(mktemp -d)" || return 1
     archive="$work_dir/$INPUTPLUMBER_UPDATE_ARCHIVE"
 
-    if ! download_github_file "$INPUTPLUMBER_UPDATE_URL" "$archive" \
-        "$INPUTPLUMBER_UPDATE_SHA256" "InputPlumber ${INPUTPLUMBER_UPDATE_VERSION}"; then
+    if ! download_with_gitee_mirror_fallback inputplumber \
+        "$INPUTPLUMBER_UPDATE_URL" "$INPUTPLUMBER_UPDATE_SHA256" "$archive" \
+        "InputPlumber ${INPUTPLUMBER_UPDATE_VERSION}"; then
         rm -rf -- "$work_dir"
         return 1
     fi
