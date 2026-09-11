@@ -93,6 +93,7 @@ download_progress_filter() {
     local segment_index="${2:-0}"
     local segment_total="${3:-1}"
     local progress_fd=1
+    local progress_chunk=""
 
     # 有控制终端时绕过外层日志管道直接刷新同一行；无终端时保留 stdout，
     # 便于安装脚本重定向输出和自动测试。
@@ -101,7 +102,12 @@ download_progress_filter() {
         progress_fd=9
     fi
 
-    tr '\r' '\n' | awk -v label="$label" \
+    # curl 用回车符刷新进度。tr 的块缓冲会把这些刷新积压到下载结束；
+    # Bash read 每收到一个回车就立即输出一帧，让后面的 awk 实时渲染。
+    while IFS= read -r -d $'\r' progress_chunk || [ -n "$progress_chunk" ]; do
+        printf '%s\n' "$progress_chunk"
+        progress_chunk=""
+    done | awk -v label="$label" \
         -v segment_index="$segment_index" -v segment_total="$segment_total" '
         BEGIN {
             if (segment_index !~ /^[0-9]+$/) segment_index = 0

@@ -91,6 +91,35 @@ if grep -Eq 'Dload|% Total|curl: \(|warning:' <<< "$filtered"; then
     fail "curl 英文表头/警告/错误泄漏到终端"
 fi
 
+for progress_source in core/download_policy.sh bootstrap.sh; do
+    if grep -Fq "tr '\r' '\n'" "$PROJECT_ROOT/$progress_source"; then
+        fail "$progress_source 仍通过会缓冲的 tr 转换实时进度"
+    fi
+    grep -Fq "read -r -d \$'\r' progress_chunk" "$PROJECT_ROOT/$progress_source" || \
+        fail "$progress_source 没有按回车符实时读取 curl 进度"
+done
+
+stream_test_root="$(mktemp -d)"
+stream_fifo="$stream_test_root/curl-progress.fifo"
+stream_output="$stream_test_root/rendered.output"
+mkfifo "$stream_fifo"
+download_progress_filter "流式测试" < "$stream_fifo" > "$stream_output" &
+stream_filter_pid=$!
+exec 8>"$stream_fifo"
+printf '%s\r' '  42  1234  42  518    0     0   1531k      0 --:--:-- --:--:-- --:--:-- 1531k' >&8
+stream_visible=0
+for _ in 1 2 3 4 5 6 7 8 9 10; do
+    if grep -Fq '] 42%（1531 KB/s）' "$stream_output" 2>/dev/null; then
+        stream_visible=1
+        break
+    fi
+    sleep 0.02
+done
+exec 8>&-
+wait "$stream_filter_pid"
+rm -rf -- "$stream_test_root"
+[ "$stream_visible" -eq 1 ] || fail "上游下载尚未结束时，第一帧进度仍未实时显示"
+
 multi_segment="$({
     printf '%s\n' \
         '  100  1234  100  1234    0     0   1500k      0 --:--:-- --:--:-- --:--:-- 1500k' |
