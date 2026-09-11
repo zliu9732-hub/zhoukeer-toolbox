@@ -25,13 +25,13 @@ Renkit是面向 SteamOS、Bazzite 与 ChimeraOS 掌机的 Bash 工具集。同�
 ## 功能
 
 - 一键新机初始化：开始前可选择跳过 pacman、系统密钥环和 locale 更新；跳过时仍配置用户级 Flatpak 国内源并继续其余流程。初始化会检查 SteamOS、网络、电源和系统组件，安装中文输入法、常用软件、Decky、FreeDeck、Epic、常用插件、GE-Proton 10-29、虚拟内存和 Steamcommunity 302；机型匹配不到适用的 ROG、联想或 GPD 专用控制插件时，自动安装通用“掌机功耗控制”。流程结束后生成桌面报告与使用说明；战网、Ubisoft Connect 和黑盒工坊开始前可选。
-- 插件商城：Steam Deck 常用组合包含小黄鸭、FSR4、CheatDeck、游戏封面更换（SteamGridDB）、主题美化（CSS Loader 中文版）、文件传输助手（Friendeck）、音乐播放器（Decky Music）和 Fantastic 风扇控制汉化版；Fantastic 同时列在“其余常用插件”，由 Renkit 从国内分块镜像直接下载、校验并自动安装，不调用 Decky 商城弹窗。另提供 Decky 官方精选插件；支持整组或单项安装和八款文件状态检查。Decky Music 使用作者原版 v1.0.2 完整包，内置播放器与 QQ/网易云音乐源，不汉化、不重打。Decky Loader 子菜单提供 ROG White 白色主题一键安装，把主题文件放入 CSS Loader themes 目录后即可在 CSS Loader 中开启。独立提供 DeckRecall 与 SavePulse：SavePulse 可自动保留存档版本，并使用每位用户自己的坚果云或标准 WebDAV 做加密备份和换机恢复。固定版本均执行 SHA256、ZIP 结构与插件目录校验。安装或检测到功能插件后会在桌面补充风灵月影、小黄鸭和 FSR4 小白教程；检测到 FSR4 时另建 OptiScaler 官方 Wiki 已测试游戏清单。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
+- 插件商城：Steam Deck 常用组合包含小黄鸭、FSR4、CheatDeck、游戏封面更换（SteamGridDB）、主题美化（CSS Loader 中文版）、文件传输助手（Friendeck）、音乐播放器（Decky Music）和 Fantastic 风扇控制汉化版；Fantastic 同时列在“其余常用插件”，由 Renkit 从国内镜像直接下载、校验并自动安装，不调用 Decky 商城弹窗。另提供 Decky 官方精选插件；支持整组或单项安装和八款文件状态检查。Decky Music 使用作者原版 v1.0.2 完整包，内置播放器与 QQ/网易云音乐源，不汉化、不重打。Decky Loader 子菜单提供 ROG White 白色主题一键安装，把主题文件放入 CSS Loader themes 目录后即可在 CSS Loader 中开启。独立提供 DeckRecall 与 SavePulse：SavePulse 可自动保留存档版本，并使用每位用户自己的坚果云或标准 WebDAV 做加密备份和换机恢复。固定版本均执行 SHA256、ZIP 结构与插件目录校验。安装或检测到功能插件后会在桌面补充风灵月影、小黄鸭和 FSR4 小白教程；检测到 FSR4 时另建 OptiScaler 官方 Wiki 已测试游戏清单。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
 
 使用小黄鸭前，安装完成后请在 Steam 正版页面打开游戏右侧齿轮，进入“属性 → 测试版”，选择名称以 Linux 开头的可用版本；随后进入游戏模式，按 Steam Deck 机身右下角的“三个点（…）”按钮，在打开的菜单中依次点击插头图标 → 小黄鸭 → 安装 LSFG。
 - 常用软件与远程协助：微信使用腾讯官网官方 AppImage；QQ、Chrome、Edge、AnyDesk、百度网盘、LibreOffice、VLC、OBS Studio、LocalSend、PeaZip、WiliWili、QQ音乐、网易云音乐、YesPlayMusic、qBittorrent、Motrix、Free Download Manager、Media Downloader、Flameshot、OnlyOffice、Joplin、Protontricks、Bottles 通过上海交大和中科大 Flathub 国内缓存安装；Xbox 云游戏通过 Flathub 安装 Greenlight，云游戏需 Xbox 账号；Heroic、Lutris、Chiaki4Deck、Parsec 通过 Flathub 安装并自动加入 Steam 库；WiliWili 也会同步加入 Steam 库；Firefox 使用官方 Flathub 的 `org.mozilla.firefox`；RustDesk 使用作者 GitHub Release 提供的 AppImage。安装成功后会创建桌面快捷方式，不修改 SteamOS 只读分区。
 - 安装与卸载：软件、兼容层和插件会先检测现有完整安装，已安装时不重复下载；独立的七页卸载菜单可逐项移除，启动器卸载保留游戏与下载文件，模拟器卸载保留存档与配置，系统组件和全部插件仍需风险确认。
-- GE-Proton兼容层：安装入口提供“最新 GE 兼容层”和“修改器所需常用兼容层”两个选项；最新版通过专用国内分块镜像自动检测并下载，修改器兼容层仍沿用原仓库，可分别安装 GE-Proton 7-55、8-25、9-27、10-29。最新版安装不会删除本机已有旧版。下载后校验 SHA256，安装到 Steam 用户的 `compatibilitytools.d` 目录，不需要管理员权限；安装完成后自动重启 Steam 使其生效。
-- Proton-CachyOS兼容层：使用 CachyOS 上游普通 `x86_64` Steam Linux Runtime 包，通过独立国内分块镜像下载；校验清单、整体 SHA256、压缩包路径和必要文件后原子安装，与官方 Proton 和 GE-Proton 共存。
+- GE-Proton兼容层：安装入口提供“最新 GE 兼容层”和“修改器所需常用兼容层”两个选项；最新版通过专用国内镜像自动检测并下载，修改器兼容层仍沿用原仓库，可分别安装 GE-Proton 7-55、8-25、9-27、10-29。最新版安装不会删除本机已有旧版。下载后校验 SHA256，安装到 Steam 用户的 `compatibilitytools.d` 目录，不需要管理员权限；安装完成后自动重启 Steam 使其生效。
+- Proton-CachyOS兼容层：使用 CachyOS 上游普通 `x86_64` Steam Linux Runtime 包，通过独立国内镜像下载；校验清单、整体 SHA256、压缩包路径和必要文件后原子安装，与官方 Proton 和 GE-Proton 共存。
 - 壹号掌机适配：屏幕方向修复支持 `ONEXPLAYER F1` 7840U、8840U OLED 实机 DMI 名 `ONEXPLAYER F1L`，并保留 `ONEXPLAYER F1 OLED` 兼容名称。特殊按键修复严格支持实机验证过的 `ONEXPLAYER F1L` 与 `ONEXPLAYER X1Pro`，分别复用 SteamOS 自带的 ONEXFLY F1 与 X1 InputPlumber 配置，只在 `/etc/inputplumber/devices.d` 创建型号副本；`ONEXPLAYER X2Mini PRO` 使用独立的固定提交配置，补齐设备 DMI、`QuickAccess` 映射与 SteamOS 虚拟设备目标，修复机身 OXP 键的三点菜单。三机型均可查看状态和恢复原文件；X2 Mini Pro 需临时关闭只读保护以写入 steamos-manager 配置，完成后自动恢复。所有按键修复均不安装 HHD，且检测到 HHD 运行时会停止。另提供壹号掌机专用 InputPlumber 0.79.2 官方固定包更新，使用固定 SHA256、GitHub 多线路测速回退、包内路径/版本检查和旧版备份；该高级操作会临时关闭只读保护并写入 `/usr`，完成后恢复原只读状态，且可能被 SteamOS 大版本更新覆盖。V1.14 BIOS 文件准备入口仍仅适用于 ONEXPLAYER F1 / ONEXFLY 7840U 普通黑白版；Renkit 只校验并复制原厂文件，不会在 SteamOS 下刷写 BIOS。
 - ToDesk：使用固定的第三方SteamOS适配包并校验SHA256，安装完成后恢复只读保护。
 - Steam Deck 优化：清理 Steam 下载缓存、着色器缓存，并提供性能模式提示。
@@ -47,7 +47,7 @@ Renkit是面向 SteamOS、Bazzite 与 ChimeraOS 掌机的 Bash 工具集。同�
 - 一键修复模式：执行网络检测、Steam 下载缓存清理建议和 DNS 处理提示。
 - 一键体检：检查 SteamOS、剩余空间、网络与 Steam 域名解析、Decky、Flatpak 软件源和常用软件状态；不修改系统，并把报告保存到桌面。
 - 游戏启动诊断：检查 Steam 游戏库、可用空间、Steam 运行状态、兼容数据、自定义 Proton / GE 和日志目录；不删除游戏、兼容数据或缓存。
-- 游戏与掌机助手：一键下载 Epic、战网和育碧官方 Windows 安装包，自动创建带Renkit标识的桌面入口，并写入当前 Steam 账号的非 Steam 游戏库及完整封面。Windows 虚拟目录默认放在用户可见的 `~/游戏启动器`，Steam 条目直接绑定真实 EXE 与 Proton 10.0-4，并把 Steam compatdata 的 drive_c 链接到同一份目录，便于黑盒工坊等插件定位游戏文件。Epic 安装包先走国内分块镜像，失败后回退官方源与官方 CDN 固定版；MAKO 小黄鸭跟随上游最新正式版，优先从国内镜像下载作者官方中文原包，镜像尚未同步时回退作者 GitHub Release，全程校验作者 SHA256，保留 Eugenio Segala 与 GPL-3.0-or-later 许可证，不添加 Renkit 汉化署名；FSR4 仍使用国内分块镜像中的署名中文包。战网由 Steam 原生条目配合 Proton Experimental 完成安装并复用同一兼容环境；Epic 与育碧继续由Renkit自动准备兼容层，缺少时通过 Steam 补齐官方 Proton。
+- 游戏与掌机助手：一键下载 Epic、战网和育碧官方 Windows 安装包，自动创建带Renkit标识的桌面入口，并写入当前 Steam 账号的非 Steam 游戏库及完整封面。Windows 虚拟目录默认放在用户可见的 `~/游戏启动器`，Steam 条目直接绑定真实 EXE 与 Proton 10.0-4，并把 Steam compatdata 的 drive_c 链接到同一份目录，便于黑盒工坊等插件定位游戏文件。Epic 安装包先走国内镜像，失败后回退官方源与官方 CDN 固定版；MAKO 小黄鸭跟随上游最新正式版，优先从国内镜像下载作者官方中文原包，镜像尚未同步时回退作者 GitHub Release，全程校验作者 SHA256，保留 Eugenio Segala 与 GPL-3.0-or-later 许可证，不添加 Renkit 汉化署名；FSR4 仍使用国内镜像中的署名中文包。战网由 Steam 原生条目配合 Proton Experimental 完成安装并复用同一兼容环境；Epic 与育碧继续由Renkit自动准备兼容层，缺少时通过 Steam 补齐官方 Proton。
 - 实用指南：独立提供启动器、Proton、手柄、反作弊和性能空间的中文兼容攻略；可查看常用快捷键、外接设备状态、高风险操作说明，并将最近 80 条Renkit操作记录导出到桌面。
 - 更新日志：可在Renkit内用触屏查看当前版本的主要改动。
 - 自动更新Renkit：每次启动会快速检测版本，发现新版本后自动下载并校验更新；优先使用国内镜像，失败后切换 GitHub，断网或更新失败时继续启动现有版本。
@@ -76,7 +76,7 @@ curl -fsSL https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/
 
 ## 三款核心插件独立安装
 
-以下命令由Renkit下载器统一处理：国内分块镜像优先，失败后回退作者 GitHub Release；下载后校验 SHA256 并原子替换 Decky 插件目录，不使用或转存第三方 ZIP。运行前请先安装 Decky Loader。
+以下命令由Renkit下载器统一处理：国内镜像优先，失败后回退作者 GitHub Release；下载后校验 SHA256 并原子替换 Decky 插件目录，不使用或转存第三方 ZIP。运行前请先安装 Decky Loader。
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main/scripts/install-decky-plugin.sh | bash -s -- lsfg

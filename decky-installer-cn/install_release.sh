@@ -32,7 +32,7 @@ printf "Installing version %s...\n" "${VERSION}"
 rm -f "${HOMEBREW_FOLDER}/services/PluginLoader"
 for i in $(seq 0 $((DOWNLOAD_PARTS - 1))); do
     part=$(printf '%02d' "$i")
-    curl -fL "${MIRROR_BASE}/PluginLoader.part.${part}" >> "${HOMEBREW_FOLDER}/services/PluginLoader" || { echo "PluginLoader 分块下载失败: ${part}"; exit 1; }
+    curl -fL "${MIRROR_BASE}/PluginLoader.part.${part}" >> "${HOMEBREW_FOLDER}/services/PluginLoader" || { echo "PluginLoader 下载失败，请重试"; exit 1; }
 done
 chmod +x ${HOMEBREW_FOLDER}/services/PluginLoader
 actual_sha=$(sha256sum "${HOMEBREW_FOLDER}/services/PluginLoader" | cut -d' ' -f1)

@@ -248,7 +248,7 @@ ge_proton_gui_menu() {
         choice="$(gui_dialog --menu "游戏兼容层｜GE-Proton 与 Proton-CachyOS" \
             latest "安装最新 GE 兼容层｜自动检测最新版本，不再删除旧版" \
             trainer "安装修改器所需常用兼容层｜四个版本约1.72GB，下载较慢为正常现象" \
-            cachyos "安装 Proton-CachyOS｜上游普通 x86_64 SLR 版，独立国内分块镜像" \
+            cachyos "安装 Proton-CachyOS｜上游普通 x86_64 SLR 版，独立国内镜像" \
             back "返回游戏与插件" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
@@ -321,9 +321,9 @@ game_environment_gui_menu() {
                 ;;
             feature-singles)
                 feature_choice="$(gui_dialog --menu "其余常用插件｜可分别安装" \
-                    steamgriddb "游戏封面更换｜SteamGridDB｜国内分块优先" \
-                    cssloader "主题美化｜CSS Loader 中文版｜国内分块优先" \
-                    friendeck "文件传输助手｜Friendeck｜国内分块优先" \
+                    steamgriddb "游戏封面更换｜SteamGridDB｜国内镜像优先" \
+                    cssloader "主题美化｜CSS Loader 中文版｜国内镜像优先" \
+                    friendeck "文件传输助手｜Friendeck｜国内镜像优先" \
                     deckymusic "音乐播放器｜Decky Music v1.0.2 完整包｜音乐源已内置" \
                     fantastic "Fantastic 风扇控制｜完整汉化版｜汉化：RenAmamiya｜注意温度" \
                     back "返回游戏与插件")" || continue
@@ -376,7 +376,7 @@ game_environment_gui_menu() {
                     back "返回游戏与插件")" || continue
                 case "$game_info_choice" in
                     steamdb-info)
-                        gui_confirm "仅从国内分块镜像安装完整汉化包；在游戏模式 Steam 商店详情页显示价格史低和在线峰值入口，需要开启 CEF 远程调试。是否继续？" && \
+                        gui_confirm "仅从国内镜像安装完整汉化包；在游戏模式 Steam 商店详情页显示价格史低和在线峰值入口，需要开启 CEF 远程调试。是否继续？" && \
                             run_gui_action "安装 SteamDB 游戏数据" env ZHOUKEER_AUTO_CONFIRM=1 \
                                 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamdb-info
                         ;;

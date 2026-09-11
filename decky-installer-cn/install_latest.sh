@@ -111,9 +111,9 @@ case "$VERSION" in
     ''|*[!-0-9A-Za-z._]*) echo "版本号格式异常。"; exit 1 ;;
 esac
 case "$PARTS" in
-    ''|*[!0-9]*) echo "分块数量异常。"; exit 1 ;;
+    ''|*[!0-9]*) echo "下载清单数量异常。"; exit 1 ;;
 esac
-[ "$PARTS" -ge 1 ] 2>/dev/null || { echo "分块数量异常。"; exit 1; }
+[ "$PARTS" -ge 1 ] 2>/dev/null || { echo "下载清单数量异常。"; exit 1; }
 for value in "$LOADER_SHA256" "$SERVICE_SHA256"; do
     case "$value" in
         [0-9a-fA-F]*) ;;
@@ -126,13 +126,13 @@ old_ifs="$IFS"
 IFS=','
 set -- $PART_SHA256
 IFS="$old_ifs"
-[ "$#" -eq "$PARTS" ] || { echo "分块校验值数量异常。"; exit 1; }
+[ "$#" -eq "$PARTS" ] || { echo "下载数据校验值数量异常。"; exit 1; }
 for entry in "$@"; do
     case "$entry" in
         [0-9a-fA-F]*) ;;
-        *) echo "分块 SHA256 格式异常。"; exit 1 ;;
+        *) echo "下载数据 SHA256 格式异常。"; exit 1 ;;
     esac
-    [ "${#entry}" -eq 64 ] || { echo "分块 SHA256 格式异常。"; exit 1; }
+    [ "${#entry}" -eq 64 ] || { echo "下载数据 SHA256 格式异常。"; exit 1; }
 done
 
 VERSION_FILE="$HOMEBREW_FOLDER/services/.loader.version"
@@ -163,11 +163,11 @@ for part_sha in "$@"; do
     curl -fSL --proto '=https' --proto-redir '=https' --connect-timeout 15 --max-time 1200 \
         --retry 5 --retry-delay 2 --speed-limit 65536 --speed-time 60 \
         "${MIRROR_BASE}/${LOADER_PREFIX}.part.${part_name}" --output "$part_file" || {
-        echo "分块 ${part_name} 下载失败。"
+        echo "Decky Loader 下载失败，请重试。"
         exit 1
     }
     [ "$(sha256_of "$part_file")" = "$part_sha" ] || {
-        echo "分块 ${part_name} SHA256 校验失败。"
+        echo "Decky Loader 下载数据校验失败。"
         exit 1
     }
     cat "$part_file" >> "$PLUGIN_LOADER" || exit 1

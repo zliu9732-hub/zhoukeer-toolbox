@@ -2829,7 +2829,7 @@ install_lsfg_zh_from_gitee() {
         install_decky_zip_from_mirror "小黄鸭（LSFG-VK）" \
         "$LSFG_ZH_MIRROR_ID" "$LSFG_ZH_PACKAGE_SHA256" \
         "$LSFG_OFFICIAL_DIRECTORY" || {
-            echo "小黄鸭署名包的国内分块镜像不可用，已保留现有插件。"
+            echo "小黄鸭署名包的国内镜像不可用，已保留现有插件。"
             return 1
         }
     remove_legacy_lsfg_directories "$plugin_root"
@@ -2876,7 +2876,7 @@ install_fsr4_zh_from_gitee() {
         install_decky_zip_from_mirror "FSR4（Decky Framegen）" \
         "$FSR4_ZH_MIRROR_ID" "$FSR4_ZH_PACKAGE_SHA256" \
         "$FSR4_OFFICIAL_DIRECTORY" || {
-            echo "FSR4 署名包的国内分块镜像不可用，已保留现有插件。"
+            echo "FSR4 署名包的国内镜像不可用，已保留现有插件。"
             return 1
         }
     echo "FSR4 安装成功。"
@@ -3277,7 +3277,7 @@ ensure_handheld_overlay_current() {
 }
 
 restore_lsfg_official() {
-    echo "Renkit 只提供带 RenAmamiya 署名的国内分块版本。"
+    echo "Renkit 只提供带 RenAmamiya 署名的国内镜像版本。"
     install_lsfg_zh_from_gitee 1
 }
 
@@ -3984,15 +3984,15 @@ install_game_info_plugin_from_gitee() {
     fi
     if [ -d "$plugin_root/$directory" ]; then
         installed_version="$(decky_plugin_version "$plugin_root/$directory" || true)"
-        echo "检测到 $display_name 版本 ${installed_version:-未知}，将通过国内分块更新到 v${version}。"
+        echo "检测到 $display_name 版本 ${installed_version:-未知}，将通过国内镜像更新到 v${version}。"
     else
-        echo "正在通过国内分块镜像安装 $display_name v$version..."
+        echo "正在通过国内镜像安装 $display_name v$version..."
     fi
 
     GITEE_MIRROR_REPO="$DECKY_GAME_INFO_MIRROR_REPO" \
         install_decky_zip_from_mirror "$display_name" "$mirror_id" \
         "$package_sha256" "$directory" || {
-            echo "$display_name 的国内分块镜像不可用，已保留现有插件。"
+            echo "$display_name 的国内镜像不可用，已保留现有插件。"
             return 1
         }
 
@@ -4017,7 +4017,7 @@ install_game_info_plugin_from_gitee() {
     echo "$display_name v$version 已安装；汉化：RenAmamiya。"
     echo "$author_line"
     reload_decky_plugins "Decky 已重新加载；返回游戏模式即可打开 ${display_name}。"
-    log "$display_name v$version 通过 mirror-3 分块安装完成"
+    log "$display_name v$version 通过国内镜像安装完成"
 }
 
 print_feature_plugin_status() {

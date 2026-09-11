@@ -145,6 +145,19 @@ if grep -Eq 'flatpak install .*2>/dev/null' "$PROJECT_ROOT/modules/software.sh";
     fail "Flatpak 安装仍把原生百分比进度重定向隐藏"
 fi
 
+if grep -Eh '^[[:space:]]*(echo|printf|log|ui_touch_button|confirm_and_run|gui_confirm).*分块' \
+    "$PROJECT_ROOT/main.sh" \
+    "$PROJECT_ROOT/core/gui.sh" \
+    "$PROJECT_ROOT/core/download_policy.sh" \
+    "$PROJECT_ROOT/modules/plugin_store.sh" \
+    "$PROJECT_ROOT/modules/clover_boot.sh" \
+    "$PROJECT_ROOT/modules/ge_proton.sh" \
+    "$PROJECT_ROOT/decky-installer-cn/install_latest.sh" \
+    "$PROJECT_ROOT/decky-installer-cn/install_release.sh" \
+    "$PROJECT_ROOT/decky-installer-cn/install_prerelease.sh" >/dev/null; then
+    fail "SteamOS 用户界面仍显示内部文件拆分方式"
+fi
+
 bootstrap_progress="$(function_section bootstrap.sh download_progress_filter download_one)"
 grep -Fq 'bar_width = 20' <<< "$bootstrap_progress" || \
     fail "bootstrap.sh 下载进度缺少 20 格进度条"
