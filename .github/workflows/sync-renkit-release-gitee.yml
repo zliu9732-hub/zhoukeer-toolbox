@@ -35,7 +35,7 @@ jobs:
           fi
           sync_dir="$(mktemp -d)"
           trap 'rm -rf -- "$sync_dir"' EXIT
-          timeout -k 10 90 git -c http.version=HTTP/1.1 clone --depth 1 --filter=blob:none --sparse \
+          timeout -k 10 300 git -c http.version=HTTP/1.1 clone --depth 1 --filter=blob:none --sparse \
             "https://zliu9732-hub:${GITEE_TOKEN}@gitee.com/zliu9732-hub/zhoukeer-toolbox-v2.git" \
             "$sync_dir/repo"
           git -C "$sync_dir/repo" sparse-checkout set --no-cone \
@@ -59,7 +59,7 @@ jobs:
           else
             git -C "$sync_dir/repo" commit -m "release: sync Renkit $(cat VERSION)"
             attempt=1
-            while ! timeout -k 10 90 git -C "$sync_dir/repo" push origin main; do
+            while ! timeout -k 10 600 git -C "$sync_dir/repo" push origin main; do
               if [ "$attempt" -ge 3 ]; then
                 echo "Gitee v2 push failed after 3 attempts"
                 exit 1
