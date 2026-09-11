@@ -40,12 +40,23 @@ prepare_empty_main() {
     fi
 }
 
+# mirror-1 已积累大量分块文件；固定 SteamOS 资产同步无需把旧二进制下载到
+# Actions runner。服务端支持 Git partial clone，仅检出本次会写入的目录。
+prepare_steamos_fixed_mirror() {
+    git clone -q --depth 1 --filter=blob:none --no-checkout \
+        "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
+    git -C "$MIRROR1" sparse-checkout set --no-cone \
+        'inputplumber/**' 'f1-bios/**' 'oxpx2-device/**' 'oxpx2-map/**' \
+        'oxpx2-manager/**' 'rustdesk/**'
+    git -C "$MIRROR1" checkout -q main
+}
+
 if [ -z "$MODE" ]; then
     git clone -q "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
     git clone -q "$BASE/zhoukeer-toolbox-mirror-2.git" "$MIRROR2"
     git clone -q "$BASE/zhoukeer-toolbox-mirror-3.git" "$MIRROR3"
 elif [ "$MODE" = "--only-steamos-fixed" ]; then
-    git clone -q "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
+    prepare_steamos_fixed_mirror
 fi
 if [ -z "$MODE" ] || [ "$MODE" = "--only-ge-proton" ]; then
     git clone -q "$BASE/zhoukeer-toolbox-mirror-8.git" "$MIRROR8"
@@ -338,6 +349,23 @@ commit_and_push() {
     fi
 }
 
+commit_and_push_steamos_fixed() {
+    local repo="$1"
+
+    git -C "$repo" config user.name "zhoukeer-toolbox[bot]"
+    git -C "$repo" config user.email "bot@users.noreply.github.com"
+    git -C "$repo" add -A -- inputplumber f1-bios oxpx2-device oxpx2-map \
+        oxpx2-manager rustdesk
+    if git -C "$repo" diff --cached --quiet; then
+        echo "No SteamOS fixed-asset mirror changes"
+    else
+        git -C "$repo" -c commit.gpgsign=false commit -q \
+            -m "Sync SteamOS fixed mirror assets"
+        push_main_with_retry "$repo" "SteamOS fixed mirror assets" 900
+        echo "Pushed SteamOS fixed mirror assets"
+    fi
+}
+
 sync_steamos_fixed_assets() {
     sync_plugin inputplumber "ShadowBlip/InputPlumber" '^$' "InputPlumber" \
         "v0.79.2" "inputplumber-x86_64.tar.gz" \
@@ -367,7 +395,7 @@ sync_steamos_fixed_assets() {
 
 if [ "$MODE" = "--only-steamos-fixed" ]; then
     sync_steamos_fixed_assets
-    commit_and_push "$MIRROR1"
+    commit_and_push_steamos_fixed "$MIRROR1"
     exit 0
 fi
 
