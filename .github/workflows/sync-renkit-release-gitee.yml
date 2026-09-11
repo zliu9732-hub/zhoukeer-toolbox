@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: sync-renkit-release-gitee
+  group: sync-renkit-release-gitee-v2
   cancel-in-progress: true
 
 jobs:
