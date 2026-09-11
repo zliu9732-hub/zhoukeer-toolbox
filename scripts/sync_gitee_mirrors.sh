@@ -114,8 +114,11 @@ sync_plugin() {
     fi
     [ -n "$version" ] && [ -n "$file" ] && [ -n "$url" ] || return 1
 
-    curl -fsSL --proto '=https' --proto-redir '=https' \
-        --connect-timeout 15 --max-time 600 -o "$WORK/$file" "$url"
+    if ! curl -fsSL --proto '=https' --proto-redir '=https' \
+        --connect-timeout 15 --max-time 600 -o "$WORK/$file" "$url"; then
+        echo "Skip $id: source download failed"
+        return 1
+    fi
     [ "$(sha_of "$WORK/$file")" = "$sha" ] || {
         echo "$id SHA256 mismatch"
         exit 1
@@ -371,10 +374,12 @@ sync_steamos_fixed_assets() {
         "v0.79.2" "inputplumber-x86_64.tar.gz" \
         "https://github.com/ShadowBlip/InputPlumber/releases/download/v0.79.2/inputplumber-x86_64.tar.gz" \
         "dc8a859b55047c1a78c99dfaa296c55eebfbf798057f519543fbc7f6215cf953"
-    sync_plugin f1-bios "zliu9732-hub/zhoukeer-toolbox" '^$' "飞行家 F1 V1.14 BIOS" \
+    if ! sync_plugin f1-bios "zliu9732-hub/zhoukeer-toolbox" '^$' "飞行家 F1 V1.14 BIOS" \
         "f1-bios-v1.14" "ONEXFLY-F1-7840U-BIOS-V1.14.zip" \
         "https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/f1-bios-v1.14/ONEXFLY-F1-7840U-BIOS-V1.14.zip" \
-        "32b166cf34a59220b3f8c5f9d12fc1f23348dd3af63c5b5ced6c4d5150e8d51e"
+        "32b166cf34a59220b3f8c5f9d12fc1f23348dd3af63c5b5ced6c4d5150e8d51e"; then
+        echo "F1 BIOS source is currently unavailable; preserving existing mirror state"
+    fi
     sync_plugin oxpx2-device "dahui/onexplayer-x2-mini-pro-cachyos" '^$' "X2 Mini Pro 设备描述" \
         "a0b76a1" "50-onexplayer_x2_mini.yaml" \
         "https://raw.githubusercontent.com/dahui/onexplayer-x2-mini-pro-cachyos/a0b76a16471174ded80913a681357f43bfb17fa4/etc/inputplumber/devices.d/50-onexplayer_x2_mini.yaml" \
