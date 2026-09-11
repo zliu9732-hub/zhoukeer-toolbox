@@ -57,5 +57,14 @@ jobs:
             echo "Gitee v2 already has the current Renkit release"
           else
             git -C "$sync_dir/repo" commit -m "release: sync Renkit $(cat VERSION)"
-            git -C "$sync_dir/repo" push origin main
+            attempt=1
+            while ! git -C "$sync_dir/repo" push origin main; do
+              if [ "$attempt" -ge 3 ]; then
+                echo "Gitee v2 push failed after 3 attempts"
+                exit 1
+              fi
+              attempt=$((attempt + 1))
+              echo "Gitee v2 push failed; retrying ($attempt/3)"
+              sleep 5
+            done
           fi
