@@ -11,6 +11,7 @@ type Status = {
   available: boolean;
   message: string;
   boot_number?: string;
+  repairable?: boolean;
 };
 
 const getStatus = callable<[], Status>("get_status");
@@ -57,7 +58,7 @@ function SwitchPanel() {
       </PanelSectionRow>
       <PanelSectionRow>
         <div style={{ fontSize: "11px", lineHeight: "1.35", opacity: 0.62 }}>
-          点击按钮将立即重启进入 Windows，请先保存所有工作。
+          点击按钮将立即重启进入 Windows；启动项丢失时会安全补回，请先保存所有工作。
         </div>
       </PanelSectionRow>
       <PanelSectionRow>
@@ -66,7 +67,11 @@ function SwitchPanel() {
           disabled={!status.available || busy}
           onClick={() => { void reboot(); }}
         >
-          {busy ? "正在设置启动项…" : "重启进入 Windows"}
+          {busy
+            ? "正在设置启动项…"
+            : status.repairable
+              ? "修复并重启进入 Windows"
+              : "重启进入 Windows"}
         </ButtonItem>
       </PanelSectionRow>
       <PanelSectionRow>

@@ -5,6 +5,6 @@
   "api_version": 1,
   "publish": {
     "tags": ["dual-boot", "windows", "boot"],
-    "description": "通过 UEFI BootNext 在下一次启动时进入 Windows；不修改默认启动顺序。"
+    "description": "通过 UEFI BootNext 在下一次启动时进入 Windows；启动项丢失时可安全补回，不修改默认启动顺序。"
   }
 }

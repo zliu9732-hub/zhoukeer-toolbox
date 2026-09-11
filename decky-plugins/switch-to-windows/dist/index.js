@@ -117,7 +117,11 @@ function SwitchPanel() {
             setBusy(false);
         }
     };
-    return (SP_JSX.jsxs(DFL.PanelSection, { title: "Switch to Windows", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: { fontSize: "12px", lineHeight: "1.45", opacity: 0.75 }, children: status.message }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", lineHeight: "1.35", opacity: 0.62 }, children: "\u70B9\u51FB\u6309\u94AE\u5C06\u7ACB\u5373\u91CD\u542F\u8FDB\u5165 Windows\uFF0C\u8BF7\u5148\u4FDD\u5B58\u6240\u6709\u5DE5\u4F5C\u3002" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: !status.available || busy, onClick: () => { void reboot(); }, children: busy ? "正在设置启动项…" : "重启进入 Windows" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", lineHeight: "1.35", opacity: 0.62 }, children: "\u5236\u4F5C\u4EBA RenAmamiya" }) })] }));
+    return (SP_JSX.jsxs(DFL.PanelSection, { title: "Switch to Windows", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: { fontSize: "12px", lineHeight: "1.45", opacity: 0.75 }, children: status.message }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", lineHeight: "1.35", opacity: 0.62 }, children: "\u70B9\u51FB\u6309\u94AE\u5C06\u7ACB\u5373\u91CD\u542F\u8FDB\u5165 Windows\uFF1B\u542F\u52A8\u9879\u4E22\u5931\u65F6\u4F1A\u5B89\u5168\u8865\u56DE\uFF0C\u8BF7\u5148\u4FDD\u5B58\u6240\u6709\u5DE5\u4F5C\u3002" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: !status.available || busy, onClick: () => { void reboot(); }, children: busy
+                        ? "正在设置启动项…"
+                        : status.repairable
+                            ? "修复并重启进入 Windows"
+                            : "重启进入 Windows" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", lineHeight: "1.35", opacity: 0.62 }, children: "\u5236\u4F5C\u4EBA RenAmamiya" }) })] }));
 }
 var index = definePlugin(() => ({
     name: "Switch to Windows",
