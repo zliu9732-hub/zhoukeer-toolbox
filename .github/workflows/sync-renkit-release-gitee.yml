@@ -17,7 +17,7 @@ permissions:
 
 concurrency:
   group: sync-renkit-release-gitee
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   sync:
@@ -58,7 +58,7 @@ jobs:
           else
             git -C "$sync_dir/repo" commit -m "release: sync Renkit $(cat VERSION)"
             attempt=1
-            while ! git -C "$sync_dir/repo" push origin main; do
+            while ! timeout 90 git -C "$sync_dir/repo" push origin main; do
               if [ "$attempt" -ge 3 ]; then
                 echo "Gitee v2 push failed after 3 attempts"
                 exit 1
