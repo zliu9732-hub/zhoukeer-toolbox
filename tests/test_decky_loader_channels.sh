@@ -102,6 +102,15 @@ detected_channel="$(ZHOUKEER_OS_RELEASE_FILE="$TMP_ROOT/os-release-preview" dete
 [ "$detected_channel" = "stable" ] || fail "旧版 stable 分支未优先检测为稳定通道"
 MOCK_LEGACY_BRANCH=""
 
+ready_output="$({
+    detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
+    decky_plugin_store_is_installed() { return 0; }
+    install_plugin_store_auto() { echo 'TEST_VERSION_CHECK'; }
+    ensure_plugin_store_ready
+})"
+printf '%s\n' "$ready_output" | grep -Fq 'TEST_VERSION_CHECK' || \
+    fail "插件组合检测到已有商城后没有继续检查版本"
+
 mock_systemctl() {
     local scope="$1"
     shift
@@ -227,7 +236,7 @@ SERVICE
 MOCK_RELEASE_SERVICE_SHA="$(calculate_decky_sha256 "$TMP_ROOT/mock-release.service")"
 MOCK_PRERELEASE_SERVICE_SHA="$(calculate_decky_sha256 "$TMP_ROOT/mock-prerelease.service")"
 cat > "$TMP_ROOT/gitee-latest.txt" <<EOF
-stable_version=v3.2.6
+stable_version=v3.2.8
 stable_parts=1
 stable_sha256=$MOCK_LOADER_SHA
 stable_part_sha256=$MOCK_LOADER_SHA
@@ -323,7 +332,7 @@ install_plugin_store stable > "$TMP_ROOT/stable.output" || \
 if grep -Fq '分块' "$TMP_ROOT/stable.output"; then
     fail "稳定版插件商城仍显示分块下载提示"
 fi
-grep -Fxq 'v3.2.6' "$SERVICES_DIR/.loader.version" || \
+grep -Fxq 'v3.2.8' "$SERVICES_DIR/.loader.version" || \
     fail "稳定版安装未更新版本标记"
 grep -Eq '"branch"[[:space:]]*:[[:space:]]*0' "$SETTINGS_DIR/loader.json" || \
     fail "稳定版安装未切换到稳定分支"
@@ -349,6 +358,16 @@ stable_install_line="$(grep -n '^install -m 0755 .*PluginLoader.new' "$CALLS" | 
     [ "$stable_user_stop_line" -lt "$stable_install_line" ] || \
     fail "稳定版未在写入新文件前停用系统级和用户级旧服务"
 
+# 已是目标版本时只完成版本检查，不重新下载或重启服务。
+: > "$CALLS"
+install_plugin_store stable > "$TMP_ROOT/stable-current.output" || \
+    fail "当前稳定版的版本检查失败"
+grep -Fq '当前已是该系统通道的最新版本' "$TMP_ROOT/stable-current.output" || \
+    fail "当前稳定版未报告已经是最新版本"
+if grep -Eq 'gitee-part|system restart|^install ' "$CALLS"; then
+    fail "当前稳定版仍重复下载或重启服务"
+fi
+
 # 新服务启动失败时，必须恢复稳定版文件、通道和旧用户服务状态。
 : > "$SYSTEM_RESTART_FAIL"
 printf '[Service]\n' > "$USER_UNIT_PATH"
@@ -357,7 +376,7 @@ printf '[Service]\n' > "$USER_UNIT_PATH"
 if install_plugin_store prerelease > "$TMP_ROOT/rollback.output" 2>&1; then
     fail "测试版启动失败时仍报告安装成功"
 fi
-grep -Fxq 'v3.2.6' "$SERVICES_DIR/.loader.version" || \
+grep -Fxq 'v3.2.8' "$SERVICES_DIR/.loader.version" || \
     fail "测试版启动失败后未恢复稳定版版本标记"
 grep -Eq '"branch"[[:space:]]*:[[:space:]]*0' "$SETTINGS_DIR/loader.json" || \
     fail "测试版启动失败后未恢复稳定分支"
@@ -417,6 +436,14 @@ grep -Fq 'keep_existing_mirror' "$PROJECT_ROOT/scripts/sync_decky_gitee.sh" || \
     fail "Decky 上游暂时不可用时不会保留现有镜像"
 grep -Fq 'STAGED_DECKY_DIR' "$PROJECT_ROOT/scripts/sync_decky_gitee.sh" || \
     fail "Decky 自动镜像没有先完成双通道暂存校验"
+grep -Fq 'decky-loader-stable|Decky Loader 稳定版|v3.2.8|PluginLoader|' \
+    "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || \
+    fail "开发镜像清单仍指向旧版 Decky 稳定版"
+grep -Fq 'VERSION="v3.2.8"' "$PROJECT_ROOT/decky-installer-cn/install_release.sh" || \
+    fail "旧稳定版安装入口仍指向 v3.2.6"
+grep -Fq '当前已是所选通道的最新版本' \
+    "$PROJECT_ROOT/decky-installer-cn/install_latest.sh" || \
+    fail "独立最新版安装器缺少当前版本检测"
 if grep -Fq 'zhoukeer-toolbox.git"' "$SYNC_WORKFLOW" || \
    grep -Fq 'git push gitee main' "$SYNC_WORKFLOW"; then
     fail "Decky 自动镜像仍直接推送旧 Gitee 仓库或分叉历史"

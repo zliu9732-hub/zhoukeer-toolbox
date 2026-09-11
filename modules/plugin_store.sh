@@ -15,14 +15,14 @@ load_config
 
 # Decky 的认证接口固定为本机回环地址，不能从配置或环境覆盖。
 DECKY_API_BASE="http://127.0.0.1:1337"
-DECKY_LOADER_URL="${DECKY_LOADER_URL:-https://www.mhhf.com/Deck/decky/v.3.2.6/PluginLoader}"
-DECKY_LOADER_SHA256="${DECKY_LOADER_SHA256:-30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e}"
+DECKY_LOADER_URL="${DECKY_LOADER_URL:-https://www.mhhf.com/Deck/decky/v.3.2.8/PluginLoader}"
+DECKY_LOADER_SHA256="${DECKY_LOADER_SHA256:-4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2}"
 DECKY_SERVICE_URL="${DECKY_SERVICE_URL:-https://www.mhhf.com/Deck/decky/plugin_loader-release.service}"
 DECKY_SERVICE_SHA256="${DECKY_SERVICE_SHA256:-64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1}"
 # 国内镜像不可用时，只回退到 Decky 官方固定版本文件；两条线路共用同一组 SHA256。
-DECKY_LOADER_OFFICIAL_URL="https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.6/PluginLoader"
-DECKY_SERVICE_OFFICIAL_URL="https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service"
-DECKY_STABLE_VERSION="v3.2.6"
+DECKY_LOADER_OFFICIAL_URL="https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8/PluginLoader"
+DECKY_SERVICE_OFFICIAL_URL="https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.8/dist/plugin_loader-release.service"
+DECKY_STABLE_VERSION="v3.2.8"
 # 测试版优先使用 Gitee 国内镜像，失败后回退 Decky 官方 prerelease，并通过统一 GitHub 下载链路选择传输源。
 DECKY_PRERELEASE_VERSION="v3.2.8-pre1"
 DECKY_PRERELEASE_LOADER_URL="https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8-pre1/PluginLoader"
@@ -669,14 +669,15 @@ download_decky_gitee_service() {
 
 confirm_decky_install() {
     local channel="${1:-stable}"
+    local target_version="${2:-}"
     local answer
 
     echo "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，并重新进入桌面模式。"
     if [ "$channel" = "prerelease" ]; then
         echo "仅当 SteamOS 使用测试或预览通道、稳定版 Decky 不兼容时，才安装测试版插件商城。"
-        echo "将从国内镜像安装测试版 ${DECKY_PRERELEASE_VERSION}，失败自动回退 Decky 官方 Release，已有插件和设置会保留。"
+        echo "将从国内镜像安装或更新测试版 ${target_version:-$DECKY_PRERELEASE_VERSION}，失败自动回退 Decky 官方 Release，已有插件和设置会保留。"
     else
-        echo "将安装或更新 Decky Loader 稳定版（国内镜像优先），已有插件和设置会保留。"
+        echo "将安装或更新 Decky Loader 稳定版 ${target_version:-$DECKY_STABLE_VERSION}（国内镜像优先），已有插件和设置会保留。"
     fi
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
@@ -1093,6 +1094,7 @@ install_plugin_store() (
     local service_official_url
     local service_sha256
     local channel_branch
+    local installed_version=""
 
     case "$channel" in
         stable)
@@ -1147,11 +1149,6 @@ install_plugin_store() (
     for command_name in curl sudo install systemctl jq; do
         require_command "$command_name" || return 1
     done
-    confirm_decky_install "$channel" || {
-        echo "已取消插件商城更新。"
-        return 0
-    }
-
     tmp_dir="$(mktemp -d)" || return 1
     DECKY_TMP_DIR="$tmp_dir"
     loader_download="$tmp_dir/PluginLoader.download"
@@ -1163,7 +1160,32 @@ install_plugin_store() (
     gitee_meta_file="$tmp_dir/gitee-decky-mirror.txt"
     if load_decky_gitee_mirror_meta "$gitee_meta_file"; then
         gitee_meta_ok=1
+        case "$channel" in
+            stable) selected_version="$DECKY_GITEE_STABLE_VERSION" ;;
+            prerelease) selected_version="$DECKY_GITEE_PRERELEASE_VERSION" ;;
+        esac
     fi
+
+    installed_version="$(decky_plugin_store_version 2>/dev/null || true)"
+    if decky_plugin_store_is_installed && \
+       [ -n "$installed_version" ] && \
+       [ "$installed_version" = "$selected_version" ]; then
+        echo "已检测到 Decky Loader $installed_version，当前已是该系统通道的最新版本。"
+        cleanup_decky_tmp
+        return 0
+    fi
+    if decky_plugin_store_is_installed; then
+        if [ -n "$installed_version" ]; then
+            echo "检测到 Decky Loader $installed_version，目标版本为 $selected_version，将执行更新。"
+        else
+            echo "检测到 Decky Loader，但无法读取有效版本标记，将重新安装目标版本 $selected_version。"
+        fi
+    fi
+    confirm_decky_install "$channel" "$selected_version" || {
+        cleanup_decky_tmp
+        echo "已取消插件商城更新。"
+        return 0
+    }
 
     DECKY_INSTALL_COMMITTED=0
     DECKY_HOME_OP_SUDO=0
@@ -1350,6 +1372,21 @@ decky_plugin_store_is_installed() {
         [ -f "$DECKY_UNIT_PATH" ]
 }
 
+decky_plugin_store_version() {
+    local version_file="$DECKY_HOMEBREW_DIR/services/.loader.version"
+    local version=""
+
+    [ -f "$version_file" ] && [ ! -L "$version_file" ] && \
+        [ -r "$version_file" ] || return 1
+    IFS= read -r version < "$version_file" || [ -n "$version" ] || return 1
+    version="${version%$'\r'}"
+    [ "${#version}" -le 64 ] || return 1
+    case "$version" in
+        ''|*[!0-9A-Za-z._-]*) return 1 ;;
+    esac
+    printf '%s\n' "$version"
+}
+
 decky_plugin_loader_is_installed() {
     [ -x "$HOME/homebrew/services/PluginLoader" ] || \
         [ -x "$HOME/.local/share/decky-loader/services/PluginLoader" ]
@@ -1394,12 +1431,11 @@ ensure_plugin_store_ready() {
     fi
 
     if decky_plugin_store_is_installed; then
-        echo "已检测到插件商城，开始安装插件。"
-        return 0
+        echo "已检测到插件商城，正在检查版本。"
+    else
+        echo "未检测到插件商城，先安装插件商城。"
     fi
-
-    echo "未检测到插件商城，先安装插件商城。"
-    install_plugin_store || {
+    install_plugin_store_auto || {
         echo "插件商城未安装完成，已停止后续插件安装。"
         return 1
     }
@@ -1407,7 +1443,7 @@ ensure_plugin_store_ready() {
         echo "插件商城安装后未通过检查，已停止后续插件安装。"
         return 1
     }
-    echo "插件商城已安装完成，继续安装插件。"
+    echo "插件商城版本检查完成，继续安装插件。"
 }
 
 uninstall_plugin_store() {
@@ -2090,8 +2126,7 @@ install_decky_zip_from_mirror() {
     trap cleanup_decky_tmp EXIT INT TERM
 
     if ! download_gitee_mirror_file \
-        "$mirror_id" "$plugin_archive" "$plugin_sha256" "$display_name" \
-        >/dev/null 2>&1; then
+        "$mirror_id" "$plugin_archive" "$plugin_sha256" "$display_name"; then
         cleanup_decky_tmp
         trap - EXIT INT TERM
         echo "下载失败，切换备用源。"

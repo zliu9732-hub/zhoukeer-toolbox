@@ -60,6 +60,16 @@ launcher_progress="$(function_section modules/game_launchers.sh download_preinst
     verify_preinstalled_launcher_parts)"
 grep -Fq '"$((index - 1))"' <<< "$launcher_progress" || \
     fail "预装启动器下载没有换算连续总进度"
+plugin_archive_progress="$(function_section modules/plugin_store.sh install_decky_zip_from_mirror \
+    reload_decky_plugins)"
+if grep -Fq '"$display_name" >/dev/null 2>&1' <<< "$plugin_archive_progress"; then
+    fail "FSR4 等完整插件包仍然隐藏下载进度"
+fi
+launcher_cover_progress="$(function_section modules/game_launchers.sh ensure_launcher_covers_cached \
+    launcher_cover_path)"
+if grep -Fq '"$LAUNCHER_COVER_BUNDLE_NAME" >/dev/null 2>&1' <<< "$launcher_cover_progress"; then
+    fail "游戏启动器封面资源仍然隐藏下载进度"
+fi
 
 # curl --progress-meter 自带的英文表头、警告和错误不能漏到终端。
 # shellcheck disable=SC1090

@@ -23,10 +23,10 @@ sudo -u $SUDO_USER touch "${USER_DIR}/.steam/steam/.cef-enable-remote-debugging"
 [ -d "${USER_DIR}/.var/app/com.valvesoftware.Steam/data/Steam/" ] && sudo -u $SUDO_USER touch "${USER_DIR}/.var/app/com.valvesoftware.Steam/data/Steam/.cef-enable-remote-debugging"
 
 # Mirrored release on Gitee (large binary is split into 8MB chunks)
-VERSION="v3.2.6"
+VERSION="v3.2.8"
 MIRROR_BASE="https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn"
 DOWNLOAD_PARTS=4
-EXPECTED_SHA256="30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e"
+EXPECTED_SHA256="4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2"
 
 printf "Installing version %s...\n" "${VERSION}"
 rm -f "${HOMEBREW_FOLDER}/services/PluginLoader"
@@ -52,7 +52,7 @@ systemctl --user disable plugin_loader 2> /dev/null
 systemctl stop plugin_loader 2> /dev/null
 systemctl disable plugin_loader 2> /dev/null
 
-curl -L https://gitee.com/zliu9732-hub/zhoukeer-toolbox/raw/main/decky-installer-cn/plugin_loader-release.service  --output ${HOMEBREW_FOLDER}/services/plugin_loader-release.service
+curl -L https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn/plugin_loader-release.service  --output ${HOMEBREW_FOLDER}/services/plugin_loader-release.service
 
 cat > "${HOMEBREW_FOLDER}/services/plugin_loader-backup.service" <<- EOM
 [Unit]

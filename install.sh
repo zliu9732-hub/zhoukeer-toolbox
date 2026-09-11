@@ -112,6 +112,17 @@ assignment_is_retired_freedeck_url() {
     esac
 }
 
+assignment_is_retired_decky_loader_default() {
+    local key="$1"
+    local assignment="$2"
+
+    case "$key:$assignment" in
+        DECKY_LOADER_URL:*'/Deck/decky/v.3.2.6/PluginLoader'*) return 0 ;;
+        DECKY_LOADER_SHA256:*30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 assignment_is_retired_unifideck_default() {
     local key="$1"
     local assignment="$2"
@@ -188,6 +199,12 @@ prepare_config_migration() {
         fi
 
         if assignment_is_retired_freedeck_url "$key" "$current_assignment"; then
+            CONFIG_MIGRATION_KEYS+=("$key")
+            CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
+            continue
+        fi
+
+        if assignment_is_retired_decky_loader_default "$key" "$current_assignment"; then
             CONFIG_MIGRATION_KEYS+=("$key")
             CONFIG_MIGRATION_DEFAULTS+=("$default_assignment")
             continue

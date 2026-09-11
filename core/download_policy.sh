@@ -123,7 +123,7 @@ download_policy_url_allowed() {
             ;;
         https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/*) return 0 ;;
         https://raw.githubusercontent.com/dahui/onexplayer-x2-mini-pro-cachyos/a0b76a16471174ded80913a681357f43bfb17fa4/*) return 0 ;;
-        https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service) return 0 ;;
+        https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.8/dist/plugin_loader-release.service) return 0 ;;
         https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.8-pre1/dist/plugin_loader-prerelease.service) return 0 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox/*) return 0 ;;
         https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/*) return 0 ;;

@@ -135,6 +135,25 @@ for entry in "$@"; do
     [ "${#entry}" -eq 64 ] || { echo "分块 SHA256 格式异常。"; exit 1; }
 done
 
+VERSION_FILE="$HOMEBREW_FOLDER/services/.loader.version"
+CURRENT_VERSION=""
+if [ -f "$VERSION_FILE" ] && [ ! -L "$VERSION_FILE" ] && [ -r "$VERSION_FILE" ]; then
+    IFS= read -r CURRENT_VERSION < "$VERSION_FILE" || true
+    CURRENT_VERSION="${CURRENT_VERSION%$(printf '\r')}"
+    case "$CURRENT_VERSION" in
+        ''|*[!0-9A-Za-z._-]*) CURRENT_VERSION="" ;;
+    esac
+fi
+if [ "$CURRENT_VERSION" = "$VERSION" ] && \
+   [ -x "$HOMEBREW_FOLDER/services/PluginLoader" ] && \
+   [ -f /etc/systemd/system/plugin_loader.service ]; then
+    echo "已检测到 Decky Loader ${CURRENT_VERSION}，当前已是所选通道的最新版本。"
+    exit 0
+fi
+if [ -n "$CURRENT_VERSION" ]; then
+    echo "检测到 Decky Loader ${CURRENT_VERSION}，将更新到 ${VERSION}。"
+fi
+
 echo "正在从国内镜像下载 Decky Loader ${VERSION}..."
 : > "$PLUGIN_LOADER"
 i=0

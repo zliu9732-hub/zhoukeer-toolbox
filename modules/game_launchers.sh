@@ -1350,7 +1350,7 @@ ensure_launcher_covers_cached() {
     if ! ( GITEE_MIRROR_REPO="${ZHOUKEER_LAUNCHER_COVER_MIRROR_REPO:-zhoukeer-toolbox-v2}"; \
         export GITEE_MIRROR_REPO; \
         download_gitee_mirror_file "$LAUNCHER_COVER_MIRROR_ID" "$bundle" \
-            "" "$LAUNCHER_COVER_BUNDLE_NAME" >/dev/null 2>&1 ); then
+            "" "$LAUNCHER_COVER_BUNDLE_NAME" ); then
         return 1
     fi
     tmp_dir="$(mktemp -d 2>/dev/null)" || {

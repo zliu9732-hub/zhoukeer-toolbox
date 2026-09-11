@@ -87,7 +87,7 @@ test_blank_config_migration() {
     assert_value "$config_file" DECKY_LSFG_SHA256 \
         "322f6eec21a489ef9f12938ea2ec4e43c234093876f95b7245fbd260f882ce9c"
     assert_value "$config_file" DECKY_LOADER_SHA256 \
-        "30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e"
+        "4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2"
     assert_value "$config_file" DECKY_SERVICE_SHA256 \
         "64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1"
     assert_value "$config_file" DECKY_FSR4_SHA256 \
@@ -140,6 +140,26 @@ test_retired_freedeck_url_migrated() {
 
     assert_value "$config_file" DECKY_FREEDECK_URL \
         "https://github.com/panyiwei-home/Freedeck/releases/download/0.6/freedeck.v.0.6.zip"
+}
+
+test_retired_decky_loader_default_migrated() {
+    local case_root="$TMP_ROOT/retired-decky-loader-default"
+    local install_dir="$case_root/install"
+    local config_file="$install_dir/config/settings.conf"
+
+    mkdir -p "$(dirname "$config_file")"
+    cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
+    sed -i.bak \
+        -e 's|/Deck/decky/v.3.2.8/PluginLoader|/Deck/decky/v.3.2.6/PluginLoader|' \
+        -e 's/4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2/30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e/' \
+        "$config_file"
+
+    run_installer "$case_root/home" "$install_dir"
+
+    assert_value "$config_file" DECKY_LOADER_URL \
+        "https://www.mhhf.com/Deck/decky/v.3.2.8/PluginLoader"
+    assert_value "$config_file" DECKY_LOADER_SHA256 \
+        "4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2"
 }
 
 test_retired_unifideck_default_migrated() {
@@ -267,7 +287,7 @@ test_retired_decky_installer_config_removed() {
         fail "退役的Decky外层安装器配置仍留在用户配置中"
     fi
     assert_value "$config_file" DECKY_LOADER_SHA256 \
-        "30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e"
+        "4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2"
     assert_value "$config_file" DECKY_SERVICE_SHA256 \
         "64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1"
 }
@@ -381,6 +401,7 @@ test_install_from_replaced_workdir() {
 test_blank_config_migration
 test_retired_todesk_config_removed
 test_retired_freedeck_url_migrated
+test_retired_decky_loader_default_migrated
 test_retired_unifideck_default_migrated
 test_retired_deckrecall_default_migrated
 test_retired_savepulse_default_migrated

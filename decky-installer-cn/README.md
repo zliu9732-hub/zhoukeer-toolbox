@@ -4,7 +4,7 @@ Decky Loader 安装脚本和二进制的 Gitee 镜像，用于在无法直连 Gi
 
 ## 文件说明
 
-- `install_release.sh`：安装稳定版 Decky Loader（v3.2.6）
+- `install_release.sh`：安装稳定版 Decky Loader（v3.2.8）
 - `install_prerelease.sh`：安装预发布版 Decky Loader（v3.2.8-pre1，适合 SteamOS 测试版）
 - `install_latest.sh`：读取 `latest.txt` 自动安装最新版，Decky 更新后无需改命令
 - `latest.txt`：稳定版/预发布版版本、分块 SHA256 和服务模板 SHA256 清单

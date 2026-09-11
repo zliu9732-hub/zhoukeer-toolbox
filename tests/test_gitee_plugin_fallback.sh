@@ -41,8 +41,8 @@ if extract_gitee_plugin_archive "$TMP_ROOT/repository.zip" \
     fail "Gitee 插件包错误校验值仍被接受"
 fi
 
-# install_decky_zip_from_mirror 必须静默下载器自身的 Gitee 提示，
-# 只保留通用的安装结果，避免安装输出出现“通过 Gitee 下载”等描述。
+# install_decky_zip_from_mirror 必须保留下载器的单行百分比和速度，
+# 避免 FSR4 等完整插件包下载时没有任何进度反馈。
 PLUGIN_ROOT="$TMP_ROOT/plugins"
 mkdir -p "$PLUGIN_ROOT"
 (
@@ -50,16 +50,16 @@ mkdir -p "$PLUGIN_ROOT"
     export DECKY_PLUGIN_DIR
     download_gitee_mirror_file() {
         cp -- "$TMP_ROOT/plugin.zip" "$2"
-        echo "TestPlugin 通过 Gitee 镜像下载完成。"
+        echo "正在下载 TestPlugin... [##########----------] 50%（1500 KB/s）"
         return 0
     }
     install_output="$(install_decky_zip_from_mirror \
         "TestPlugin" "test" "$plugin_sha" "TestPlugin")"
-    if printf '%s\n' "$install_output" | grep -Fqi 'gitee'; then
-        fail "安装输出仍显示 Gitee 下载描述"
-    fi
+    printf '%s\n' "$install_output" | \
+        grep -Fq '正在下载 TestPlugin... [##########----------] 50%（1500 KB/s）' || \
+        fail "完整插件包下载进度被安装调用方隐藏"
     [ -f "$PLUGIN_ROOT/TestPlugin/plugin.json" ] || \
-        fail "静默下载后插件未安装"
+        fail "显示下载进度后插件未安装"
 )
 
 CALLS="$TMP_ROOT/strict-gitee.calls"

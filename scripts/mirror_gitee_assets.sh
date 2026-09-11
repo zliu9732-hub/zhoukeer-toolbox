@@ -437,9 +437,9 @@ mirror_mako_latest() {
 
 mirror_entries() {
     cat <<'EOF'
-decky-loader-stable|Decky Loader 稳定版|v3.2.6|PluginLoader|https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.6/PluginLoader|30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e|
+decky-loader-stable|Decky Loader 稳定版|v3.2.8|PluginLoader|https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8/PluginLoader|4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2|
 decky-loader-prerelease|Decky Loader 测试版|v3.2.8-pre1|PluginLoader|https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8-pre1/PluginLoader|9df160a81df3fc49c96e5665a1d1b3ba5c79de5bf271adc266d6bfedfda399d8|
-decky-loader-service-stable|Decky Loader 稳定版服务模板|v3.2.6|plugin_loader-release.service|https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.6/dist/plugin_loader-release.service|64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1|
+decky-loader-service-stable|Decky Loader 稳定版服务模板|v3.2.8|plugin_loader-release.service|https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.8/dist/plugin_loader-release.service|64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1|
 decky-loader-service-prerelease|Decky Loader 测试版服务模板|v3.2.8-pre1|plugin_loader-prerelease.service|https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.8-pre1/dist/plugin_loader-prerelease.service|f6fd73f68dca18a64e4cffa2962ae697b247aaf5f3fd9cd8526597f0291fb63e|
 lsfg|Decky LSFG-VK|v0.12.8|Decky.LSFG-VK.zip|https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip|322f6eec21a489ef9f12938ea2ec4e43c234093876f95b7245fbd260f882ce9c|
 lsfg-zh-signed|Decky LSFG-VK 署名中文插件|v0.12.8|Decky.LSFG-VK-zh-signed-v0.12.8-r4.zip|https://github.com/zliu9732-hub/decky-lsfg-vk-zh/releases/download/v0.12.8/Decky.LSFG-VK-zh-signed-v0.12.8-r4.zip|7f846c28bf5f9d08f6589a618c4e0c4ee4dffb05ad15938c39359c6460f1157b|

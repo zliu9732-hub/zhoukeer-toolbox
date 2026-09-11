@@ -6,8 +6,8 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf -- "$TMP_ROOT"' EXIT
 
-grep -Fq 'https://www.mhhf.com/Deck/decky/v.3.2.6/PluginLoader' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e' \
+grep -Fq 'https://www.mhhf.com/Deck/decky/v.3.2.8/PluginLoader' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'https://www.mhhf.com/Deck/decky/plugin_loader-release.service' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -469,6 +469,14 @@ feature_install_function="$(sed -n '/^install_feature_plugins()/,/^}/p' \
     "$PROJECT_ROOT/modules/plugin_store.sh")"
 printf '%s\n' "$feature_install_function" | grep -Fq 'ensure_plugin_store_ready || return 1' || {
     echo "FAIL: 常用插件组合未先检查插件商城" >&2
+    exit 1
+}
+grep -Fq 'install_plugin_store_auto || {' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: 插件组合没有调用按系统通道检测最新版的商城安装流程" >&2
+    exit 1
+}
+grep -Fq 'decky_plugin_store_version()' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: 插件商城缺少已安装版本读取" >&2
     exit 1
 }
 printf '%s\n' "$feature_install_function" | grep -Fq '小黄鸭（LSFG-VK）'
