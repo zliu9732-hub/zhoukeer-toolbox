@@ -178,11 +178,11 @@ for mapping in \
     grep -Fq "$mapping_id|" "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || \
         FAIL "$mapping_id 缺少 Gitee 固定镜像清单"
 done
-grep -Fq -- '--only-steamos-fixed' "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
-    FAIL "SteamOS 固定 GitHub 资产缺少独立镜像同步模式"
-grep -Fq 'bash scripts/sync_gitee_mirrors.sh --only-steamos-fixed' \
+grep -Fq -- '--only-inputplumber' "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
+    FAIL "InputPlumber 缺少独立镜像同步模式"
+grep -Fq 'bash scripts/sync_gitee_mirrors.sh --only-inputplumber' \
     "$PROJECT_ROOT/.github/workflows/sync-gitee-mirrors.yml" || \
-    FAIL "GitHub 推送后不会自动同步 SteamOS 固定资产到 Gitee"
+    FAIL "GitHub 推送后不会自动同步 InputPlumber 到 Gitee"
 grep -Fq 'deckymusic|Decky Music 完整包|v1.0.2|Decky.Music.full.zip|' \
     "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || \
     FAIL "Decky Music v1.0.2 完整包缺少 Gitee 固定分块清单"
