@@ -60,8 +60,11 @@ download_progress_filter() {
         {
             line = $0
             lowered = tolower(line)
-            if (lowered ~ /^curl: \(/ || \
-                lowered ~ /warning:/) {
+            if (lowered ~ /^curl: \(/) {
+                failed = 1
+                next
+            }
+            if (lowered ~ /warning:/) {
                 next
             }
             if (line ~ /% Total/ || line ~ /Dload/ || line ~ /Upload/) {
@@ -84,7 +87,9 @@ download_progress_filter() {
             }
             if (line != "") print line
         }
-        END { printf "\n" }
+        END {
+            if (failed || segment_index + 1 >= segment_total) printf "\n"
+        }
     ' >&"$progress_fd"
     [ "$progress_fd" -ne 9 ] || exec 9>&-
 }

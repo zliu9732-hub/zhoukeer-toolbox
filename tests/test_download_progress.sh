@@ -81,6 +81,29 @@ if grep -Eq 'Dload|% Total|curl: \(|warning:' <<< "$filtered"; then
     fail "curl 英文表头/警告/错误泄漏到终端"
 fi
 
+multi_segment="$({
+    printf '%s\n' \
+        '  100  1234  100  1234    0     0   1500k      0 --:--:-- --:--:-- --:--:-- 1500k' |
+        download_progress_filter "多文件测试" 0 2
+    printf '%s\n' \
+        '  100  1234  100  1234    0     0   1600k      0 --:--:-- --:--:-- --:--:-- 1600k' |
+        download_progress_filter "多文件测试" 1 2
+})"
+case "$multi_segment" in
+    *$'\n'*) fail "多文件下载在中间文件完成后仍然换行" ;;
+esac
+grep -Fq '] 50%（1500 KB/s）' <<< "$multi_segment" || \
+    fail "多文件下载首段总体百分比错误"
+grep -Fq '] 100%（1600 KB/s）' <<< "$multi_segment" || \
+    fail "多文件下载最终总体百分比错误"
+failure_joined="$({
+    printf '%s\n' 'curl: (28) Operation timed out' |
+        download_progress_filter "失败测试" 0 2
+    printf 'ERROR'
+})"
+[ "$failure_joined" = $'\nERROR' ] || \
+    fail "多文件下载失败后没有结束当前进度行"
+
 # GUI 动作会把程序输出接入日志管道；在真实 TTY 中，进度必须绕过该管道
 # 直接刷新终端，否则日志层可能把每次回车刷新展开成多行。
 if command -v script >/dev/null 2>&1; then
