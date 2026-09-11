@@ -21,7 +21,7 @@ jobs:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
         run: |
           if [ "$GITHUB_EVENT_NAME" = "push" ]; then
-            bash scripts/sync_gitee_mirrors.sh --only-steamos-fixed
+            bash scripts/sync_gitee_mirrors.sh --only-inputplumber
           else
             bash scripts/sync_gitee_mirrors.sh
           fi

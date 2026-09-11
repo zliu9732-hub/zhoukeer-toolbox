@@ -11,8 +11,8 @@ OWNER="zliu9732-hub"
 TOKEN="${GITEE_TOKEN:-}"
 MODE="${1:-}"
 case "$MODE" in
-    ''|--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed) ;;
-    *) echo "Usage: $0 [--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed]"; exit 2 ;;
+    ''|--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed|--only-inputplumber) ;;
+    *) echo "Usage: $0 [--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed|--only-inputplumber]"; exit 2 ;;
 esac
 [ -n "$TOKEN" ] || {
     echo "GITEE_TOKEN secret is missing"
@@ -51,12 +51,21 @@ prepare_steamos_fixed_mirror() {
     git -C "$MIRROR1" checkout -q main
 }
 
+prepare_inputplumber_mirror() {
+    git clone -q --depth 1 --filter=blob:none --no-checkout \
+        "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
+    git -C "$MIRROR1" sparse-checkout set --no-cone 'inputplumber/**'
+    git -C "$MIRROR1" checkout -q main
+}
+
 if [ -z "$MODE" ]; then
     git clone -q "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
     git clone -q "$BASE/zhoukeer-toolbox-mirror-2.git" "$MIRROR2"
     git clone -q "$BASE/zhoukeer-toolbox-mirror-3.git" "$MIRROR3"
 elif [ "$MODE" = "--only-steamos-fixed" ]; then
     prepare_steamos_fixed_mirror
+elif [ "$MODE" = "--only-inputplumber" ]; then
+    prepare_inputplumber_mirror
 fi
 if [ -z "$MODE" ] || [ "$MODE" = "--only-ge-proton" ]; then
     git clone -q "$BASE/zhoukeer-toolbox-mirror-8.git" "$MIRROR8"
@@ -369,6 +378,29 @@ commit_and_push_steamos_fixed() {
     fi
 }
 
+commit_and_push_inputplumber() {
+    local repo="$1"
+
+    git -C "$repo" config user.name "zhoukeer-toolbox[bot]"
+    git -C "$repo" config user.email "bot@users.noreply.github.com"
+    git -C "$repo" add -A -- inputplumber
+    if git -C "$repo" diff --cached --quiet; then
+        echo "No InputPlumber mirror changes"
+    else
+        git -C "$repo" -c commit.gpgsign=false commit -q \
+            -m "Sync InputPlumber mirror asset"
+        push_main_with_retry "$repo" "InputPlumber mirror asset" 300
+        echo "Pushed InputPlumber mirror asset"
+    fi
+}
+
+sync_inputplumber() {
+    sync_plugin inputplumber "ShadowBlip/InputPlumber" '^$' "InputPlumber" \
+        "v0.79.2" "inputplumber-x86_64.tar.gz" \
+        "https://github.com/ShadowBlip/InputPlumber/releases/download/v0.79.2/inputplumber-x86_64.tar.gz" \
+        "dc8a859b55047c1a78c99dfaa296c55eebfbf798057f519543fbc7f6215cf953"
+}
+
 sync_steamos_fixed_assets() {
     sync_plugin inputplumber "ShadowBlip/InputPlumber" '^$' "InputPlumber" \
         "v0.79.2" "inputplumber-x86_64.tar.gz" \
@@ -397,6 +429,12 @@ sync_steamos_fixed_assets() {
         "https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-x86_64.AppImage" \
         "7902cd60a4f29817eebe2668a15c9a1952ac690e8f7b07bfe7620fedd4e28217"
 }
+
+if [ "$MODE" = "--only-inputplumber" ]; then
+    sync_inputplumber
+    commit_and_push_inputplumber "$MIRROR1"
+    exit 0
+fi
 
 if [ "$MODE" = "--only-steamos-fixed" ]; then
     sync_steamos_fixed_assets
