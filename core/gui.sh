@@ -287,8 +287,8 @@ game_environment_gui_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
-            features "常用插件组合｜小黄鸭、FSR4、Fantastic等八款插件" \
-            all "常用插件加精选插件｜优先安装八款常用插件，已装则跳过；再补精选" \
+            features "常用插件组合｜两版小黄鸭、FSR4、Fantastic等九款插件" \
+            all "常用插件加精选插件｜优先安装九款常用插件，已装则跳过；再补精选" \
             feature-singles "其余常用插件｜封面、主题、Fantastic等插件单独安装" \
             lsfg "小黄鸭｜插帧神器（必装）｜国内镜像署名完整包｜汉化：RenAmamiya" \
             fsr4 "FSR4｜画质补丁（阅读桌面文档慎用）｜国内镜像署名完整包｜汉化：RenAmamiya" \
@@ -310,7 +310,7 @@ game_environment_gui_menu() {
             nav-exit "退出Renkit")" || return 0
         case "$choice" in
             features)
-                gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。未安装插件商城时会先安装插件商城，再继续安装八款常用插件。Fantastic 会覆盖默认风扇曲线；会使用管理员权限。是否继续？" && \
+                gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。未安装插件商城时会先安装插件商城，再继续安装九款常用插件（含 MAKO）。Fantastic 会覆盖默认风扇曲线；会使用管理员权限。是否继续？" && \
                     run_gui_action "安装常用插件组合" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" features
                 ;;

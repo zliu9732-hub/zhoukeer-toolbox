@@ -482,7 +482,8 @@ grep -Fq 'decky_plugin_store_version()' "$PROJECT_ROOT/modules/plugin_store.sh" 
 printf '%s\n' "$feature_install_function" | grep -Fq '小黄鸭（LSFG-VK）'
 printf '%s\n' "$feature_install_function" | grep -Fq 'reload_decky_plugins'
 printf '%s\n' "$feature_install_function" | grep -Fq '常用插件会出现在插头菜单中'
-printf '%s\n' "$feature_install_function" | grep -Fq '八款常用功能插件已全部安装完成'
+printf '%s\n' "$feature_install_function" | grep -Fq '九款常用功能插件'
+printf '%s\n' "$feature_install_function" | grep -Fq 'feature_plugins="lsfg fsr4 cheatdeck lsfg-mako'
 grep -Fq 'SWITCH_TO_WINDOWS_SOURCE_DIR="$PROJECT_ROOT/decky-plugins/switch-to-windows"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Switch to Windows v$SWITCH_TO_WINDOWS_VERSION 安装成功；本人制作：RenAmamiya。' \

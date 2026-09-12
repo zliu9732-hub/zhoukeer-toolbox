@@ -1,3 +1,9 @@
+## Renkit 2.6.2 常用插件组合加入 MAKO — 2026-09-12
+
+- SteamOS 的“常用插件组合”升级为九款：保留旧版小黄鸭，并新增 MAKO 小黄鸭。
+- 组合按 CheatDeck 在前、MAKO 在后的顺序执行，MAKO 安装时会自动创建 `Mako_Renkit` 启动项。
+- 组合完整性检查和状态页都会核验 MAKO；缺少 MAKO 时不会误报整组已完成。
+
 ## Renkit 2.6.1 MAKO CheatDeck 启动项 — 2026-09-12
 
 - 安装 MAKO 或执行新机初始化时，会在 CheatDeck 的“高级”自定义启动项中自动新增 `Mako_Renkit`。

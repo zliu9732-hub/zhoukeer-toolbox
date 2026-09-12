@@ -4253,6 +4253,14 @@ print_feature_plugin_status() {
         echo "✗ 小黄鸭（LSFG-VK）：未找到完整插件文件"
         missing=1
     fi
+    if [ "${IS_STEAMOS:-0}" = "1" ]; then
+        if mako_official_is_current "$plugin_root"; then
+            echo "✓ MAKO 小黄鸭：官方中文原包 v$LSFG_MAKO_VERSION，Mako_Renkit 启动项随安装处理"
+        else
+            echo "✗ MAKO 小黄鸭：缺失、版本不符或关键文件不完整"
+            missing=1
+        fi
+    fi
     if feature_plugin_is_present "$plugin_root" "Decky-Framegen" "Decky-Framegen" "FSR4" "Decky-Framegen(FSR4)" "Decky-Framegen（FSR4）"; then
         fsr4_version="$(decky_plugin_version "$plugin_root/$FSR4_OFFICIAL_DIRECTORY" || true)"
         if [ "$fsr4_version" = "$FSR4_OFFICIAL_VERSION" ]; then
@@ -4368,6 +4376,9 @@ install_feature_plugins() {
               2>/dev/null || true)" != "$DECKY_FANTASTIC_INDEX_SHA256" ]; }; then
         _all_installed=0
     fi
+    if [ "$IS_STEAMOS" -eq 1 ] && ! mako_official_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"; then
+        _all_installed=0
+    fi
     if [ "$_all_installed" = "1" ]; then
         if [ "$IS_STEAMOS" -eq 1 ]; then
             echo "八款常用功能插件已全部安装且校验通过，无需重复安装。"
@@ -4383,8 +4394,8 @@ install_feature_plugins() {
     fi
 
     if [ "$IS_STEAMOS" -eq 1 ]; then
-        echo "将依次直接安装：小黄鸭、FSR4、CheatDeck、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。"
-        feature_plugins="lsfg fsr4 cheatdeck steamgriddb cssloader friendeck deckymusic fantastic"
+        echo "将依次直接安装：旧版小黄鸭、FSR4、CheatDeck、MAKO 小黄鸭与 Mako_Renkit 启动项、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。"
+        feature_plugins="lsfg fsr4 cheatdeck lsfg-mako steamgriddb cssloader friendeck deckymusic fantastic"
     else
         echo "将依次直接安装：小黄鸭、FSR4、CheatDeck、游戏封面更换、主题美化、文件传输助手、音乐播放器。"
         feature_plugins="lsfg fsr4 cheatdeck steamgriddb cssloader friendeck deckymusic"
@@ -4420,6 +4431,10 @@ install_feature_plugins() {
                     failed=1
                     echo "该插件未完成，继续尝试其余插件。"
                 }
+                ;;
+            lsfg-mako)
+                echo "========== MAKO 小黄鸭与 Mako_Renkit 启动项 =========="
+                install_configured_plugin lsfg-mako 0 0 || failed=1
                 ;;
             steamgriddb)
                 echo "========== 游戏封面更换（SteamGridDB） =========="
