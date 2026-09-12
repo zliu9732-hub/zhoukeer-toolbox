@@ -29,8 +29,9 @@ source "$PROJECT_ROOT/core/download_policy.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/source_status.sh"
 GITEE_OWNER="${ZHOUKEER_GITEE_OWNER:-zliu9732-hub}"
-GITHUB_OWNER="${ZHOUKEER_GITHUB_OWNER:-}"
+GITHUB_OWNER="${ZHOUKEER_GITHUB_OWNER:-zliu9732-hub}"
 REPO_NAME="${ZHOUKEER_REPO_NAME:-zhoukeer-toolbox-v2}"
+GITHUB_REPO_NAME="${ZHOUKEER_GITHUB_REPO_NAME:-zhoukeer-toolbox}"
 BRANCH="${ZHOUKEER_BRANCH:-main}"
 
 # Gitee 首次跳转到国内 CDN 偶尔较慢，不能因一次短暂网络波动立刻改走 GitHub。
@@ -51,7 +52,7 @@ CACHE_BUSTER="${ZHOUKEER_CACHE_BUSTER:-$(date '+%s')-$$}"
 GITEE_RAW_BASE="${ZHOUKEER_GITEE_RAW_BASE:-https://gitee.com/$GITEE_OWNER/$REPO_NAME/raw/$BRANCH}"
 GITHUB_RAW_BASE="${ZHOUKEER_GITHUB_RAW_BASE:-}"
 if [ -z "$GITHUB_RAW_BASE" ] && [ -n "$GITHUB_OWNER" ]; then
-    GITHUB_RAW_BASE="https://raw.githubusercontent.com/$GITHUB_OWNER/$REPO_NAME/$BRANCH"
+    GITHUB_RAW_BASE="https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO_NAME/$BRANCH"
 fi
 DOMAIN_RAW_BASE="${ZHOUKEER_DOMAIN_RAW_BASE:-https://jktool.icu}"
 PACKAGE_NAME="${ZHOUKEER_PACKAGE_NAME:-renkit.tar.gz}"
