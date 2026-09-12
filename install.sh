@@ -578,11 +578,9 @@ copy_allycenter_chinese() {
     local source_dir="$SOURCE_ROOT/third_party/allycenter-zh-v1.2.0"
     local relative_file
 
-    # 携带已校验的风扇修复后台、中文前端及安装说明。
-    for relative_file in plugin.json package.json LICENSE main.py README.md; do
-        copy_file "$source_dir/$relative_file" \
-            "$STAGING_DIR/third_party/allycenter-zh-v1.2.0/$relative_file" || return 1
-    done
+    # Ally Center 保留作者原版后端、插件清单与配置；安装包只携带中文界面和许可证。
+    copy_file "$source_dir/LICENSE" \
+        "$STAGING_DIR/third_party/allycenter-zh-v1.2.0/LICENSE" || return 1
     copy_file "$source_dir/dist/index.js" \
         "$STAGING_DIR/third_party/allycenter-zh-v1.2.0/dist/index.js"
 }

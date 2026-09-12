@@ -384,16 +384,11 @@ grep -Fq 'DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'allycenter) show_plugin_download_speed_tip; install_configured_plugin allycenter' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'ALLYCENTER_ZH_INDEX_SHA256="cded3fda904117187a340c82b42668068aec185892ff4fdfc967c9d203633e41"' \
+grep -Fq 'ALLYCENTER_ZH_INDEX_SHA256="41693c96832e902ed39e8d384ca404af709eb45dfec96d53e4794c301c5c8b54"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'RenAmamiya' \
-    "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js" || {
-    echo "FAIL: Ally Center 中文构建缺少与小黄鸭一致的汉化署名" >&2
-    exit 1
-}
-grep -Fq '修补、汉化者：RenAmamiya' \
-    "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/src/index.tsx" || {
-    echo "FAIL: Ally Center 中文源码缺少完整汉化署名" >&2
+if grep -Eq '双风扇|全速|修补、汉化者|full_speed' \
+    "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js"; then
+    echo "FAIL: Ally Center 中文前端仍包含 Renkit 的风扇修补功能" >&2
     exit 1
 }
 grep -Fq '充电上限已设置为' \
@@ -408,7 +403,7 @@ grep -Fq 'RGB 灯光' \
 }
 allycenter_zh_actual_sha256="$(shasum -a 256 \
     "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js" | awk '{print $1}')"
-[ "$allycenter_zh_actual_sha256" = "cded3fda904117187a340c82b42668068aec185892ff4fdfc967c9d203633e41" ] || {
+[ "$allycenter_zh_actual_sha256" = "41693c96832e902ed39e8d384ca404af709eb45dfec96d53e4794c301c5c8b54" ] || {
     echo "FAIL: Ally Center 中文构建文件校验值不匹配" >&2
     exit 1
 }
@@ -1121,14 +1116,14 @@ ally_install_output="$(
     '
 )"
 printf '%s\n' "$ally_install_output" | grep -Fq 'Ally Center（ROG Ally / Ally X 控制中心） 安装成功。'
-printf '%s\n' "$ally_install_output" | grep -Fq 'Ally Center v1.2.0-renamamiya.2 中文版已安装。'
+printf '%s\n' "$ally_install_output" | grep -Fq 'Ally Center v1.2.0 中文版已安装。'
 printf '%s\n' "$ally_install_output" | grep -Fq 'TEST_RELOAD: Ally Center'
 [ -s "$ALLY_PLUGIN_ROOT/Ally Center/plugin.json" ] || {
     echo "FAIL: Ally Center 根目录结构未安装 plugin.json" >&2
     exit 1
 }
-grep -Fq '"name": "Ally 控制中心"' "$ALLY_PLUGIN_ROOT/Ally Center/plugin.json" || {
-    echo "FAIL: Ally Center 安装后插件清单未改为中文名称" >&2
+grep -Fq '"name":"Ally Center"' "$ALLY_PLUGIN_ROOT/Ally Center/plugin.json" || {
+    echo "FAIL: Ally Center 安装后未保留原版插件清单" >&2
     exit 1
 }
 [ -s "$ALLY_PLUGIN_ROOT/Ally Center/dist/index.js" ] || {
@@ -1141,11 +1136,11 @@ installed_allycenter_sha256="$(shasum -a 256 \
     echo "FAIL: Ally Center 安装后未覆盖为已校验的中文前端" >&2
     exit 1
 }
-cmp "$ALLY_PLUGIN_ROOT/Ally Center/main.py" "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/main.py" || {
-    echo "FAIL: Ally Center 未安装修复后台" >&2
+grep -Fq '# official backend fixture' "$ALLY_PLUGIN_ROOT/Ally Center/main.py" || {
+    echo "FAIL: Ally Center 安装后未保留原版后台" >&2
     exit 1
 }
-grep -Fq '"version": "1.2.0-renamamiya.2"' "$ALLY_PLUGIN_ROOT/Ally Center/package.json"
+grep -Fq '"version":"1.2.0"' "$ALLY_PLUGIN_ROOT/Ally Center/package.json"
 ally_repeat_output="$(
     DECKY_PLUGIN_DIR="$ALLY_PLUGIN_ROOT" \
     PROJECT_ROOT="$PROJECT_ROOT" \
@@ -1158,11 +1153,11 @@ ally_repeat_output="$(
     '
 )"
 printf '%s\n' "$ally_repeat_output" | \
-    grep -Fq '[已检测] Ally Center 已是最新汉化版 v1.2.0-renamamiya.2，无需处理。'
+    grep -Fq '[已检测] Ally Center 已是最新汉化版 v1.2.0，无需处理。'
 
 # A bad bundled backend must fail before any download or replacement.
 cp -R "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0" "$TMP_ROOT/bad-ally-bundle"
-printf 'broken backend\n' > "$TMP_ROOT/bad-ally-bundle/main.py"
+printf 'broken frontend\n' > "$TMP_ROOT/bad-ally-bundle/dist/index.js"
 PROJECT_ROOT="$PROJECT_ROOT" DECKY_PLUGIN_DIR="$ALLY_PLUGIN_ROOT" \
     BAD_BUNDLE="$TMP_ROOT/bad-ally-bundle" ZHOUKEER_TEST_MODE=1 bash -c '
     source "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -1172,20 +1167,10 @@ PROJECT_ROOT="$PROJECT_ROOT" DECKY_PLUGIN_DIR="$ALLY_PLUGIN_ROOT" \
     allycenter_chinese_is_current() { return 1; }
     download_verified_package() { echo "FAIL: bad bundle reached downloader" >&2; exit 99; }
     if ensure_allycenter_chinese_current; then
-        echo "FAIL: corrupt backend was accepted" >&2
+        echo "FAIL: corrupt frontend was accepted" >&2
         exit 1
     fi
-    cmp "$DECKY_PLUGIN_DIR/Ally Center/main.py" "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/main.py"
-'
-# Matching UI alone must not classify an old/broken backend as current.
-printf 'old backend\n' > "$ALLY_PLUGIN_ROOT/Ally Center/main.py"
-PROJECT_ROOT="$PROJECT_ROOT" DECKY_PLUGIN_DIR="$ALLY_PLUGIN_ROOT" \
-    ZHOUKEER_TEST_MODE=1 bash -c '
-    source "$PROJECT_ROOT/modules/plugin_store.sh"
-    if allycenter_chinese_is_current "$DECKY_PLUGIN_DIR"; then
-        echo "FAIL: old backend was classified current" >&2
-        exit 1
-    fi
+    grep -Fq "# official backend fixture" "$DECKY_PLUGIN_DIR/Ally Center/main.py"
 '
 
 echo "PASS: Decky国内源、独立功能插件和完整清单配置检查通过"

@@ -134,12 +134,11 @@ DECKY_NEWFREEDECK_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 # Ally Center 固定使用作者 v1.2.0 正式版；国内镜像与 NewFreedeck 共用 mirror-3。
 DECKY_ALLYCENTER_URL="${ZHOUKEER_DECKY_ALLYCENTER_URL:-https://github.com/PixelAddictUnlocked/allycenter/releases/download/v1.2.0/allycenter-v1.2.0.zip}"
 DECKY_ALLYCENTER_SHA256="${ZHOUKEER_DECKY_ALLYCENTER_SHA256:-a1059534de2a0e9556669adff3d933bcde802101faae7558f9b33db3a8e51bc7}"
-# 汉化包在保留官方 1.2.0 后端的同时使用带署名后缀的前端版本号。
-# 这里必须按最终安装到 Decky 的 package.json 版本判断，否则会把完整汉化包误报为版本不一致。
-DECKY_ALLYCENTER_VERSION="1.2.0-renamamiya.2"
+# Ally Center 保持作者 v1.2.0 的后端、清单与版本；Renkit 仅替换中文界面文件。
+DECKY_ALLYCENTER_VERSION="1.2.0"
 DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 ALLYCENTER_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0"
-ALLYCENTER_ZH_INDEX_SHA256="72bb93d1f1a2a02fbbf670661d7f76f324d8f7d2077d3e763559f03332332031"
+ALLYCENTER_ZH_INDEX_SHA256="41693c96832e902ed39e8d384ca404af709eb45dfec96d53e4794c301c5c8b54"
 # PowerControl 使用作者 v3.15.1 官方完整包，不修改名称、前端或后端。
 DECKY_POWERCONTROL_URL="${ZHOUKEER_DECKY_POWERCONTROL_URL:-https://github.com/mengmeet/PowerControl/releases/download/v3.15.1/PowerControl.zip}"
 DECKY_POWERCONTROL_SHA256="${ZHOUKEER_DECKY_POWERCONTROL_SHA256:-9c14eddbec7657a23e73eaf811bd8344198159d48303481cf70ebb7c1c1ebd7c}"
@@ -3243,7 +3242,7 @@ allycenter_chinese_is_current() {
     local actual_sha256
 
     feature_plugin_is_current "$plugin_root" "Ally Center" \
-        "$DECKY_ALLYCENTER_VERSION" "Ally 控制中心" || return 1
+        "$DECKY_ALLYCENTER_VERSION" "Ally Center" || return 1
     actual_sha256="$(calculate_decky_sha256 \
         "$plugin_root/Ally Center/dist/index.js" 2>/dev/null || true)"
     [ "$actual_sha256" = "$ALLYCENTER_ZH_INDEX_SHA256" ]
@@ -3252,7 +3251,7 @@ allycenter_chinese_is_current() {
 install_allycenter_chinese() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local reload_after="${1:-1}"
-    local bundled_version actual_sha256 official_source work_dir staged_source
+    local actual_sha256 official_source work_dir staged_source
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
@@ -3264,17 +3263,9 @@ install_allycenter_chinese() {
         return 0
     fi
     if [ -L "$ALLYCENTER_ZH_SOURCE_DIR" ] || \
-       [ ! -f "$ALLYCENTER_ZH_SOURCE_DIR/plugin.json" ] || \
-       [ ! -f "$ALLYCENTER_ZH_SOURCE_DIR/package.json" ] || \
        [ ! -s "$ALLYCENTER_ZH_SOURCE_DIR/dist/index.js" ] || \
        [ ! -f "$ALLYCENTER_ZH_SOURCE_DIR/LICENSE" ]; then
         echo "Ally Center v$DECKY_ALLYCENTER_VERSION 中文组件不完整，请更新Renkit后再试。"
-        return 1
-    fi
-    bundled_version="$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
-        "$ALLYCENTER_ZH_SOURCE_DIR/package.json" | head -n 1)"
-    if [ "$bundled_version" != "$DECKY_ALLYCENTER_VERSION" ]; then
-        echo "Ally Center 中文组件版本 $bundled_version 与目标 v$DECKY_ALLYCENTER_VERSION 不一致，已停止覆盖。"
         return 1
     fi
     actual_sha256="$(calculate_decky_sha256 "$ALLYCENTER_ZH_SOURCE_DIR/dist/index.js")" || return 1
@@ -3295,8 +3286,7 @@ install_allycenter_chinese() {
     if ! cp -a -- "$official_source" "$staged_source" || \
        ! rm -rf -- "$staged_source/dist" || \
        ! mkdir -p "$staged_source/dist" || \
-       ! cp -a -- "$ALLYCENTER_ZH_SOURCE_DIR/dist/index.js" "$staged_source/dist/index.js" || \
-       ! cp -a -- "$ALLYCENTER_ZH_SOURCE_DIR/plugin.json" "$staged_source/plugin.json"; then
+       ! cp -a -- "$ALLYCENTER_ZH_SOURCE_DIR/dist/index.js" "$staged_source/dist/index.js"; then
         rm -rf -- "$work_dir"
         echo "Ally Center 中文组件准备失败，原版未改动。"
         return 1
@@ -3308,7 +3298,6 @@ install_allycenter_chinese() {
     }
     rm -rf -- "$work_dir"
     echo "Ally Center v$DECKY_ALLYCENTER_VERSION 中文版已安装。"
-    echo "汉化作者：RenAmamiya，感谢支持！"
     echo "原作者：Keith Baker（Pixel Addict Games）；许可证：MIT。"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开 Ally Center 即可看到中文界面。"
