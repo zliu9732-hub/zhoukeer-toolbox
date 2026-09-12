@@ -100,7 +100,7 @@ DECKY_FANTASTIC_INDEX_SHA256="409cfcd0f762ae9d8b6d2b27483839fab59eacced642ce980e
 # Switch to Windows 是 RenAmamiya 制作的本地插件，仅在 SteamOS 主线中提供。
 SWITCH_TO_WINDOWS_SOURCE_DIR="$PROJECT_ROOT/decky-plugins/switch-to-windows"
 SWITCH_TO_WINDOWS_DIRECTORY="switch-to-windows"
-SWITCH_TO_WINDOWS_VERSION="1.0.1"
+SWITCH_TO_WINDOWS_VERSION="1.0.3"
 DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip"
 DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
 DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.2/DeckRecall.zip"

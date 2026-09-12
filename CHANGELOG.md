@@ -1,3 +1,9 @@
+## Renkit 2.5.8 Switch to Windows 1.0.3 — 2026-09-12
+
+- Switch to Windows 内置版本升级到 1.0.3，修复部分环境中重启命令受临时 OpenSSL 库影响而失败的问题。
+- 放宽 Windows Boot Manager 识别，兼容标准 Microsoft 启动项的常见路径和标签写法。
+- 修正 Renkit 对该插件的版本判断；已安装 1.0.1 的用户现在会正确提示并安装 1.0.3。
+
 ## Renkit 2.5.6 SteamOS 固定资产国内镜像 — 2026-09-11
 
 - InputPlumber 0.79.2、飞行家 F1 V1.14 BIOS、X2 Mini Pro 三份固定配置和 RustDesk AppImage 改为 Gitee 分块镜像优先，官方 GitHub 仅作失败回退。
