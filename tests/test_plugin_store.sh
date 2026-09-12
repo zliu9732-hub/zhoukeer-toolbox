@@ -827,6 +827,12 @@ grep -Fq 'DECKY_LSFG_MAKO_SHA256="621ad66bd40f12b416e8112bb78e1aae55a96bf7fe1443
 grep -Fq 'LSFG_MAKO_INDEX_SHA256="e615016e8d1bb89634be7b259e24a972537cef0238b9036a20235bfffc615e2e"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '正在安装小黄鸭' "$PROJECT_ROOT/modules/plugin_store.sh"
+configured_plugin_function="$(sed -n '/^install_configured_plugin()/,/^}/p' "$PROJECT_ROOT/modules/plugin_store.sh")"
+if printf '%s\n' "$configured_plugin_function" | grep -Fq 'remove_legacy_lsfg_directories'; then
+    echo "FAIL: 安装 MAKO 小黄鸭时不应删除旧版 LSFG-VK" >&2
+    exit 1
+fi
+
 grep -Fq '正在安装 FSR4' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '将依次直接安装：小黄鸭、FSR4、CheatDeck、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。' \
     "$PROJECT_ROOT/modules/plugin_store.sh"

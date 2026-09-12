@@ -3633,7 +3633,8 @@ install_configured_plugin() {
                     return 1
                 }
             fi
-            remove_legacy_lsfg_directories "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+            # MAKO 使用独立目录；保留 Decky LSFG-VK，让用户可同时使用两个小黄鸭版本。
+            :
             echo "上游作者：Eugenio Segala；许可证：GPL-3.0-or-later。"
             ;;
         fsr4)

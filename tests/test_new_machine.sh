@@ -61,9 +61,11 @@ for output in "$skip_output" "$update_output"; do
     if printf '%s\n' "$output" | grep -Eq 'install-trainer($|[|[:space:]])'; then
         fail "新机初始化仍会安装全部四个修改器兼容层"
     fi
-done
     printf '%s\n' "$output" | grep -Fq 'modules/plugin_store.sh lsfg-mako' || \
         fail "新机初始化没有安装 MAKO 小黄鸭"
+    printf '%s\n' "$output" | grep -Fq 'modules/plugin_store.sh features' || \
+        fail "新机初始化没有保留旧版小黄鸭所在的常用插件组合"
+done
 
 prompt_skip="$(
     source "$PROJECT_ROOT/modules/new_machine.sh"

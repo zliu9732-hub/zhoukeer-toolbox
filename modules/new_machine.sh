@@ -478,7 +478,7 @@ run_new_machine_initialization() {
     run_step "【07】八款常用插件（含主题美化与 Fantastic 汉化）" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" features
     run_step "【08】按机器型号应用安全配置" apply_machine_profile
-    # 常用插件组合安装旧版 LSFG-VK 后，由 MAKO 官方中文包接管并清理旧目录，最终只保留 MAKO。
+    # MAKO 使用独立目录；与常用插件组合中的旧版 LSFG-VK 同时保留，供用户自行选择。
     run_step "【07】MAKO 小黄鸭（官方简体中文）" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako
     run_step "【09】修改器所需 GE-Proton 10-29 兼容层" env ZHOUKEER_AUTO_CONFIRM=1 \
