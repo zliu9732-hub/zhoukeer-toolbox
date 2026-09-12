@@ -62,6 +62,8 @@ for output in "$skip_output" "$update_output"; do
         fail "新机初始化仍会安装全部四个修改器兼容层"
     fi
 done
+    printf '%s\n' "$output" | grep -Fq 'modules/plugin_store.sh lsfg-mako' || \
+        fail "新机初始化没有安装 MAKO 小黄鸭"
 
 prompt_skip="$(
     source "$PROJECT_ROOT/modules/new_machine.sh"
