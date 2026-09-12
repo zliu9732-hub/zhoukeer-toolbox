@@ -15,6 +15,7 @@ type Status = {
 };
 
 const getStatus = callable<[], Status>("get_status");
+const repairWindowsBoot = callable<[], Status>("repair_windows_boot_entry");
 const rebootToWindows = callable<[], Status>("reboot_to_windows");
 
 function SwitchPanel() {
@@ -33,6 +34,27 @@ function SwitchPanel() {
   };
 
   useEffect(() => { void refresh(); }, []);
+
+  const repair = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const result = await repairWindowsBoot();
+      if (result.available) {
+        toaster.toast({ title: "Windows 引导修复", body: result.message });
+        setStatus(result);
+      } else {
+        toaster.toast({ title: "无法修复 Windows 引导", body: result.message });
+        setStatus(result);
+      }
+    } catch (error) {
+      const message = String(error);
+      toaster.toast({ title: "无法修复 Windows 引导", body: message });
+      await refresh();
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const reboot = async () => {
     if (busy) return;
@@ -63,8 +85,17 @@ function SwitchPanel() {
       </PanelSectionRow>
       <PanelSectionRow>
         <div style={{ fontSize: "11px", lineHeight: "1.35", opacity: 0.62 }}>
-          点击按钮将立即重启进入 Windows；启动项丢失时会安全补回，请先保存所有工作。
+          “修复”只补建 Windows Boot Manager，不会重启；重启按钮会立即进入 Windows，请先保存所有工作。
         </div>
+      </PanelSectionRow>
+      <PanelSectionRow>
+        <ButtonItem
+          layout="below"
+          disabled={!status.available || busy}
+          onClick={() => { void repair(); }}
+        >
+          {busy ? "正在处理…" : "仅修复 Windows 引导"}
+        </ButtonItem>
       </PanelSectionRow>
       <PanelSectionRow>
         <ButtonItem
@@ -73,7 +104,7 @@ function SwitchPanel() {
           onClick={() => { void reboot(); }}
         >
           {busy
-            ? "正在设置启动项…"
+            ? "正在处理…"
             : status.repairable
               ? "修复并重启进入 Windows"
               : "重启进入 Windows"}

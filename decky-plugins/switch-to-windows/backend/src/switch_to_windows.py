@@ -255,6 +255,30 @@ class Plugin:
         except (OSError, subprocess.SubprocessError, RuntimeError) as error:
             return {"available": False, "message": str(error)}
 
+    async def repair_windows_boot_entry(self):
+        """Recreate a missing Windows UEFI entry without restarting."""
+        try:
+            self._preflight()
+            try:
+                number = self._windows_boot_number()
+            except WindowsBootEntryMissing:
+                number = self._create_windows_boot_entry()
+                return {
+                    "available": True,
+                    "boot_number": number,
+                    "message": (
+                        f"Windows Boot Manager 已修复（Boot{number}），"
+                        "未重启，原默认启动项保持不变。"
+                    ),
+                }
+            return {
+                "available": True,
+                "boot_number": number,
+                "message": f"Windows Boot Manager 已存在（Boot{number}），无需修复。",
+            }
+        except (OSError, subprocess.SubprocessError, RuntimeError) as error:
+            return {"available": False, "message": str(error)}
+
     async def reboot_to_windows(self):
         try:
             self._preflight()

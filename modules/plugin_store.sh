@@ -134,7 +134,9 @@ DECKY_NEWFREEDECK_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 # Ally Center 固定使用作者 v1.2.0 正式版；国内镜像与 NewFreedeck 共用 mirror-3。
 DECKY_ALLYCENTER_URL="${ZHOUKEER_DECKY_ALLYCENTER_URL:-https://github.com/PixelAddictUnlocked/allycenter/releases/download/v1.2.0/allycenter-v1.2.0.zip}"
 DECKY_ALLYCENTER_SHA256="${ZHOUKEER_DECKY_ALLYCENTER_SHA256:-a1059534de2a0e9556669adff3d933bcde802101faae7558f9b33db3a8e51bc7}"
-DECKY_ALLYCENTER_VERSION="1.2.0"
+# 汉化包在保留官方 1.2.0 后端的同时使用带署名后缀的前端版本号。
+# 这里必须按最终安装到 Decky 的 package.json 版本判断，否则会把完整汉化包误报为版本不一致。
+DECKY_ALLYCENTER_VERSION="1.2.0-renamamiya.2"
 DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 ALLYCENTER_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0"
 ALLYCENTER_ZH_INDEX_SHA256="72bb93d1f1a2a02fbbf670661d7f76f324d8f7d2077d3e763559f03332332031"
@@ -4381,7 +4383,7 @@ install_feature_plugins() {
     fi
     if [ "$_all_installed" = "1" ]; then
         if [ "$IS_STEAMOS" -eq 1 ]; then
-            echo "八款常用功能插件已全部安装且校验通过，无需重复安装。"
+            echo "九款常用功能插件已全部安装且校验通过，无需重复安装。"
         else
             echo "七款常用功能插件已全部安装且校验通过，无需重复安装。"
         fi
@@ -4475,7 +4477,7 @@ install_feature_plugins() {
 
     if [ "$failed" -eq 0 ]; then
         if [ "$IS_STEAMOS" -eq 1 ]; then
-            echo "八款常用功能插件已全部安装完成，名称、版本和关键文件均已确认。"
+            echo "九款常用功能插件已全部安装完成，名称、版本和关键文件均已确认。"
         else
             echo "七款常用功能插件已全部安装完成，名称、版本和关键文件均已确认。"
         fi
@@ -4489,7 +4491,7 @@ install_feature_plugins() {
 }
 
 install_all_plugin_packages() {
-    echo "将依次处理八款常用功能插件和精选插件，其中包括 Fantastic、SimpleDeckyTDP 与 Unifideck。"
+    echo "将依次处理九款常用功能插件和精选插件，其中包括 MAKO、Fantastic、SimpleDeckyTDP 与 Unifideck。"
     echo "官方推荐插件仍由 Decky 内置安装器在 Steam 界面中确认。"
 
     install_feature_plugins || return 1

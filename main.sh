@@ -523,7 +523,7 @@ game_environment_menu() {
     while true; do
         draw_category_frame games "游戏与插件｜插件商城" "浏览插件商城、运行组件和启动器" 0
         ui_touch_button 5 '\033[1;97;48;5;160m' "安装插件商城" "稳定版国内失败自动切换官方源 · 可选测试版 · 高级操作"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭、FSR4、Fantastic等八款插件"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭、FSR4、MAKO、Fantastic等九款插件"
         ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
         ui_touch_button 11 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
         ui_touch_button 13 '\033[1;97;48;5;24m' "小黄鸭" "插帧神器（必装）·旧版汉化或 MAKO 官方最新版"

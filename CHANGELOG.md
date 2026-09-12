@@ -924,3 +924,7 @@
 - “掌机控制插件”新增“OneXPlayer 机型工具”：提供 **X2 Mini Pro 亮度修复** 与既有 Apex 专用工具，终端触控和桌面 GUI 均保持可达。
 - 内置 LeGo2 Brightness Fix 2.0.0 简体中文组件，已实测适配 ONEXPLAYER X2 Mini Pro（Ryzen AI Max+ 388、三星 AMS881KB01-0 OLED）；在 SteamOS 游戏模式 HDR/PQ 下把原生亮度滑块交给 Gamescope，并为游戏提供真实 EDID 亮度数据。
 - 安装前校验前端与后端 SHA256，使用原子替换；首次配置会提示显示脚本、可能的短暂黑屏及重启游戏模式。修正 Decky-Framegen 非 UTF-8 进程名导致插件启动失败的问题。
+## Renkit 2.6.3 Ally Center 汉化版本识别修复 — 2026-09-12
+- 修复 Ally Center 中文包 `1.2.0-renamamiya.2` 被误判为版本不一致、导致安装流程显示 failed 的问题。
+- 保留中文前端 SHA-256 校验与官方后端完整性检查；只修正最终汉化包的版本识别。
+- 统一常用插件组合、新机初始化和触屏菜单中的“九款”数量及 MAKO 说明。

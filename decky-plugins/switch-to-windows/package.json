@@ -1,6 +1,6 @@
 {
   "name": "switch-to-windows-decky",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "A Decky plugin that reboots once into Windows through UEFI BootNext.",
   "type": "module",
   "scripts": {

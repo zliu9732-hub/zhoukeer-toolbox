@@ -169,7 +169,7 @@ show_initialization_plan() {
     fi
     echo "【04】安装 Fcitx5 中文输入法和中文插件"
     echo "【05-06】安装微信、QQ、Firefox并创建桌面图标"
-    echo "【07】安装 Decky Loader、FreeDeck、八款常用插件、MAKO 小黄鸭及 CheatDeck 的 Mako_Renkit 启动项（含 Fantastic 风扇控制）"
+    echo "【07】安装 Decky Loader、FreeDeck、九款常用插件（含 MAKO 与 Mako_Renkit 启动项，及 Fantastic 风扇控制）"
     echo "【08】识别机器型号；安装匹配的掌机控制插件组合，无合适专用插件时安装通用功耗控制"
     echo "【09】安装修改器所需兼容层：仅 GE-Proton 10-29"
     echo "【10】按物理内存设置 zram、8-16GB swap 和 swappiness"
@@ -476,7 +476,7 @@ run_new_machine_initialization() {
         bash "$PROJECT_ROOT/modules/plugin_store.sh" store-auto
     run_step "【07】FreeDeck 稳定版" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck
-    run_step "【07】八款常用插件（含主题美化与 Fantastic 汉化）" env ZHOUKEER_AUTO_CONFIRM=1 \
+    run_step "【07】九款常用插件（含 MAKO、主题美化与 Fantastic 汉化）" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" features
     run_step "【08】按机器型号应用安全配置" apply_machine_profile
     # MAKO 使用独立目录；与常用插件组合中的旧版 LSFG-VK 同时保留，供用户自行选择。

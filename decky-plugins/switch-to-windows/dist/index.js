@@ -84,6 +84,7 @@ function FaWindows (props) {
 }
 
 const getStatus = callable("get_status");
+const repairWindowsBoot = callable("repair_windows_boot_entry");
 const rebootToWindows = callable("reboot_to_windows");
 function SwitchPanel() {
     const [status, setStatus] = SP_REACT.useState({
@@ -100,6 +101,30 @@ function SwitchPanel() {
         }
     };
     SP_REACT.useEffect(() => { void refresh(); }, []);
+    const repair = async () => {
+        if (busy)
+            return;
+        setBusy(true);
+        try {
+            const result = await repairWindowsBoot();
+            if (result.available) {
+                toaster.toast({ title: "Windows 引导修复", body: result.message });
+                setStatus(result);
+            }
+            else {
+                toaster.toast({ title: "无法修复 Windows 引导", body: result.message });
+                setStatus(result);
+            }
+        }
+        catch (error) {
+            const message = String(error);
+            toaster.toast({ title: "无法修复 Windows 引导", body: message });
+            await refresh();
+        }
+        finally {
+            setBusy(false);
+        }
+    };
     const reboot = async () => {
         if (busy)
             return;
@@ -123,8 +148,8 @@ function SwitchPanel() {
             setBusy(false);
         }
     };
-    return (SP_JSX.jsxs(DFL.PanelSection, { title: "Switch to Windows", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: { fontSize: "12px", lineHeight: "1.45", opacity: 0.75 }, children: status.message }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", lineHeight: "1.35", opacity: 0.62 }, children: "\u70B9\u51FB\u6309\u94AE\u5C06\u7ACB\u5373\u91CD\u542F\u8FDB\u5165 Windows\uFF1B\u542F\u52A8\u9879\u4E22\u5931\u65F6\u4F1A\u5B89\u5168\u8865\u56DE\uFF0C\u8BF7\u5148\u4FDD\u5B58\u6240\u6709\u5DE5\u4F5C\u3002" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: !status.available || busy, onClick: () => { void reboot(); }, children: busy
-                        ? "正在设置启动项…"
+    return (SP_JSX.jsxs(DFL.PanelSection, { title: "Switch to Windows", children: [SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: { fontSize: "12px", lineHeight: "1.45", opacity: 0.75 }, children: status.message }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", lineHeight: "1.35", opacity: 0.62 }, children: "“修复”只补建 Windows Boot Manager，不会重启；重启按钮会立即进入 Windows，请先保存所有工作。" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: !status.available || busy, onClick: () => { void repair(); }, children: busy ? "正在处理…" : "仅修复 Windows 引导" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx(DFL.ButtonItem, { layout: "below", disabled: !status.available || busy, onClick: () => { void reboot(); }, children: busy
+                        ? "正在处理…"
                         : status.repairable
                             ? "修复并重启进入 Windows"
                             : "重启进入 Windows" }) }), SP_JSX.jsx(DFL.PanelSectionRow, { children: SP_JSX.jsx("div", { style: { fontSize: "11px", lineHeight: "1.35", opacity: 0.62 }, children: "\u5236\u4F5C\u4EBA RenAmamiya" }) })] }));

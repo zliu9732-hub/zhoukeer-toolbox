@@ -166,6 +166,68 @@ class SwitchToWindowsTests(unittest.TestCase):
             ["systemctl", "reboot"],
         ])
 
+    def test_repair_recreates_a_missing_entry_without_rebooting(self):
+        calls = []
+        created = False
+
+        def fake_run(args):
+            nonlocal created
+            calls.append(args)
+            if args == ["efibootmgr"]:
+                return Result(stdout="BootOrder: 0000,0001\n")
+            if args == ["efibootmgr", "-v"]:
+                if created:
+                    return Result(stdout=(
+                        "Boot0002* Windows Boot Manager "
+                        "HD/File(\\EFI\\Microsoft\\Boot\\bootmgfw.efi)\n"
+                    ))
+                return Result(stdout="Boot0000* Clover HD/File(\\EFI\\clover\\cloverx64.efi)\n")
+            if args[:2] == ["efibootmgr", "--create"]:
+                created = True
+            return Result()
+
+        self.plugin._run = fake_run
+        with patch.object(self.plugin, "_preflight"), \
+             patch.object(
+                 self.plugin,
+                 "_windows_loader_target",
+                 return_value=("/dev/nvme0n1", "1"),
+             ):
+            result = asyncio.run(self.plugin.repair_windows_boot_entry())
+
+        self.assertTrue(result["available"])
+        self.assertEqual(result["boot_number"], "0002")
+        self.assertIn("未重启", result["message"])
+        self.assertIn(
+            [
+                "efibootmgr", "--create", "--disk", "/dev/nvme0n1", "--part", "1",
+                "--label", "Windows Boot Manager", "--loader",
+                r"\EFI\Microsoft\Boot\bootmgfw.efi",
+            ],
+            calls,
+        )
+        self.assertFalse(any(args == ["systemctl", "reboot"] for args in calls))
+        self.assertFalse(any("--bootnext" in args for args in calls))
+
+    def test_repair_leaves_an_existing_windows_entry_alone(self):
+        calls = []
+
+        def fake_run(args):
+            calls.append(args)
+            return Result(stdout=(
+                "Boot0007* Windows Boot Manager "
+                "HD/File(\\EFI\\Microsoft\\Boot\\bootmgfw.efi)\n"
+            ))
+
+        self.plugin._run = fake_run
+        with patch.object(self.plugin, "_preflight"):
+            result = asyncio.run(self.plugin.repair_windows_boot_entry())
+
+        self.assertTrue(result["available"])
+        self.assertEqual(result["boot_number"], "0007")
+        self.assertIn("无需修复", result["message"])
+        self.assertEqual(calls, [["efibootmgr", "-v"]])
+
     def test_failed_order_restore_removes_created_entry(self):
         calls = []
         created = False
