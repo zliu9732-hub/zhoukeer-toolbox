@@ -63,6 +63,8 @@ for output in "$skip_output" "$update_output"; do
     fi
     printf '%s\n' "$output" | grep -Fq 'modules/plugin_store.sh lsfg-mako' || \
         fail "新机初始化没有安装 MAKO 小黄鸭"
+    printf '%s\n' "$output" | grep -Fq 'Mako_Renkit' || \
+        fail "新机初始化没有标注 CheatDeck Mako_Renkit 启动项"
     printf '%s\n' "$output" | grep -Fq 'modules/plugin_store.sh features' || \
         fail "新机初始化没有保留旧版小黄鸭所在的常用插件组合"
 done

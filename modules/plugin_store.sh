@@ -43,6 +43,10 @@ LSFG_OFFICIAL_VERSION="0.12.8"
 LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"
 LSFG_MAKO_DIRECTORY="Mako"
 LSFG_MAKO_VERSION="2.2.0"
+CHEATDECK_MAKO_OPTION_ID="renkit-mako"
+CHEATDECK_MAKO_LABEL="Mako_Renkit"
+CHEATDECK_MAKO_COMMAND="/home/deck/.local/bin/mako-run"
+CHEATDECK_MAKO_OPTION_CHANGED=0
 LSFG_MAKO_INDEX_SHA256="e615016e8d1bb89634be7b259e24a972537cef0238b9036a20235bfffc615e2e"
 DECKY_LSFG_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_MAKO_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
@@ -2194,9 +2198,124 @@ reload_decky_plugins() {
         echo "插件文件已变更，但 Decky 重载未完成。请完全退出游戏模式后重新进入一次。"
         return 0
     fi
-
     echo "插件文件已变更。请完全退出游戏模式后重新进入一次，让 Decky 重新扫描插件目录。"
 }
+install_cheatdeck_mako_launch_option() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local settings_root="${ZHOUKEER_CHEATDECK_SETTINGS_ROOT:-$HOME/homebrew/settings}"
+    local settings_dir="$settings_root/CheatDeck"
+    local settings_file="$settings_dir/settings.json"
+    local result
+
+    if ! feature_plugin_is_present "$plugin_root" "CheatDeck" "CheatDeck"; then
+        echo "未检测到 CheatDeck，暂不写入 Mako_Renkit 启动项；安装 CheatDeck 后再次安装 MAKO 即可自动补上。"
+        return 0
+    fi
+    if ! command -v python3 >/dev/null 2>&1; then
+        echo "系统缺少 python3，无法安全写入 CheatDeck 的 Mako_Renkit 启动项。"
+        return 1
+    fi
+    if [ -L "$settings_root" ] || { [ -e "$settings_root" ] && [ ! -d "$settings_root" ]; }; then
+        echo "CheatDeck 设置目录异常，未写入 Mako_Renkit 启动项：$settings_root"
+        return 1
+    fi
+    mkdir -p -- "$settings_dir" || return 1
+    if [ -L "$settings_dir" ] || [ ! -d "$settings_dir" ]; then
+        echo "CheatDeck 设置目录异常，未写入 Mako_Renkit 启动项：$settings_dir"
+        return 1
+    fi
+    if [ -L "$settings_file" ] || { [ -e "$settings_file" ] && [ ! -f "$settings_file" ]; }; then
+        echo "CheatDeck 设置文件异常，未写入 Mako_Renkit 启动项：$settings_file"
+        return 1
+    fi
+
+    result="$(python3 - "$settings_file" "$CHEATDECK_MAKO_OPTION_ID" \
+        "$CHEATDECK_MAKO_LABEL" "$CHEATDECK_MAKO_COMMAND" <<'PY'
+import json
+import os
+import stat
+import sys
+import tempfile
+
+settings_path, option_id, label, command = sys.argv[1:]
+
+if os.path.lexists(settings_path) and os.path.islink(settings_path):
+    raise SystemExit("CheatDeck 设置文件是符号链接")
+
+data = {}
+if os.path.exists(settings_path):
+    metadata = os.stat(settings_path)
+    if not stat.S_ISREG(metadata.st_mode):
+        raise SystemExit("CheatDeck 设置文件不是普通文件")
+    if metadata.st_size > 1024 * 1024:
+        raise SystemExit("CheatDeck 设置文件过大")
+    with open(settings_path, "r", encoding="utf-8") as source:
+        data = json.load(source)
+    if not isinstance(data, dict):
+        raise SystemExit("CheatDeck 设置根节点不是对象")
+
+options = data.get("CustomOptionsV6")
+if options is None:
+    # 与 CheatDeck 2.0.0 的首启迁移保持一致，避免只写 Mako_Renkit 而遗漏上游原有预设。
+    options = [
+        {"id": "preset-lossless-scaling", "label": "LSFG-VK Frame Generation",
+         "definition": {"kind": "prefix", "command": "~/lsfg", "argv": []}},
+        {"id": "preset-framegen-patch", "label": "Enable OptiScaler",
+         "definition": {"kind": "prefix", "command": "~/fgmod/fgmod", "argv": []}},
+        {"id": "preset-framegen-unpatch", "label": "Disable OptiScaler",
+         "definition": {"kind": "prefix", "command": "~/fgmod/fgmod-uninstaller.sh", "argv": []}},
+    ]
+    data["CustomOptionsV6"] = options
+elif not isinstance(options, list) or not all(isinstance(item, dict) for item in options):
+    raise SystemExit("CheatDeck 自定义选项格式异常")
+
+if any(item.get("id") == option_id for item in options):
+    print("RENKIT_CHEATDECK_MAKO_EXISTS")
+    raise SystemExit(0)
+
+options.append({
+    "id": option_id,
+    "label": label,
+    "definition": {"kind": "prefix", "command": command, "argv": []},
+})
+
+directory = os.path.dirname(settings_path)
+descriptor, temporary_path = tempfile.mkstemp(prefix=".renkit-cheatdeck-", dir=directory, text=True)
+try:
+    with os.fdopen(descriptor, "w", encoding="utf-8") as target:
+        json.dump(data, target, ensure_ascii=False, indent=4)
+        target.write("\n")
+        target.flush()
+        os.fsync(target.fileno())
+    os.chmod(temporary_path, 0o600)
+    os.replace(temporary_path, settings_path)
+finally:
+    if os.path.exists(temporary_path):
+        os.unlink(temporary_path)
+
+print("RENKIT_CHEATDECK_MAKO_ADDED")
+PY
+    )" || {
+        echo "CheatDeck 设置未修改：${result:-无法写入 Mako_Renkit 启动项。}"
+        return 1
+    }
+
+    case "$result" in
+        *RENKIT_CHEATDECK_MAKO_ADDED*)
+            CHEATDECK_MAKO_OPTION_CHANGED=1
+            echo "已在 CheatDeck 的自定义启动项中新增：Mako_Renkit → $CHEATDECK_MAKO_COMMAND"
+            ;;
+        *RENKIT_CHEATDECK_MAKO_EXISTS*)
+            echo "CheatDeck 已有 Mako_Renkit 启动项，保留用户现有设置。"
+            ;;
+        *)
+            echo "CheatDeck 设置未修改：未收到 Mako_Renkit 启动项写入结果。"
+            return 1
+            ;;
+    esac
+}
+
+
 
 install_zhoukeer_localizer() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
@@ -3497,7 +3616,13 @@ https://www.bilibili.com/video/BV1ew411J7ab?vd_source=f3a5ba0de4c855bec0e80711ba
 4. 找到“LSFG-VK”开关并打开，其他看不懂的高级选项保持原样。
 5. 点击页面底部“保存”，再启动游戏测试。异常时关闭 LSFG-VK 并恢复原设置。
 
-三、按录屏给当前游戏添加 FSR4（OptiScaler）
+三、给当前游戏启用 Mako_Renkit 帧生成
+1. 新机初始化或安装 MAKO 后，CheatDeck 的“高级”页会自动增加名为 “Mako_Renkit” 的启动项。
+2. 先在 Decky 的 MAKO 插件中点击“安装 MAKO Renderer”；只安装 MAKO 插件 ZIP 还不能启动帧生成。
+3. 在目标游戏页面点击齿轮 → CheatDeck → “高级”，打开 “Mako_Renkit” 并保存。
+4. 该项对应官方启动前缀 `/home/deck/.local/bin/mako-run %command%`；异常时关闭 “Mako_Renkit” 后保存即可恢复。
+
+四、按录屏给当前游戏添加 FSR4（OptiScaler）
 1. 先安装 FSR4/Decky-Framegen，并确认目标游戏位于桌面的《FSR4支持游戏名单》中。
 2. 在目标游戏页面点击齿轮 → CheatDeck → “高级”。
 3. 找到“OptiScaler”开关并打开，这就是录屏中添加 FSR4 的位置。
@@ -3636,6 +3761,10 @@ install_configured_plugin() {
             # MAKO 使用独立目录；保留 Decky LSFG-VK，让用户可同时使用两个小黄鸭版本。
             :
             echo "上游作者：Eugenio Segala；许可证：GPL-3.0-or-later。"
+            install_cheatdeck_mako_launch_option || {
+                echo "MAKO 已安装，但 CheatDeck 的 Mako_Renkit 启动项未能安全写入。"
+                return 1
+            }
             ;;
         fsr4)
             resolve_plugin_latest fsr4
@@ -3920,7 +4049,8 @@ install_configured_plugin() {
     # 文件已存在的用户再次执行时也会因幂等跳过而无法触发重载。只要确认
     # DeckRecall 目录完整，就允许重复执行专门修复 Decky 的扫描状态。
     if [ "$reload_after_install" = "1" ] && \
-       { [ "$PLUGIN_INSTALL_CHANGED" -eq 1 ] || [ "$deckrecall_ready" -eq 1 ]; }; then
+       { [ "$PLUGIN_INSTALL_CHANGED" -eq 1 ] || [ "$deckrecall_ready" -eq 1 ] || \
+         [ "${CHEATDECK_MAKO_OPTION_CHANGED:-0}" -eq 1 ]; }; then
         reload_decky_plugins "Decky 已重新加载，返回游戏模式后可在插头菜单看到新插件。"
     fi
 }

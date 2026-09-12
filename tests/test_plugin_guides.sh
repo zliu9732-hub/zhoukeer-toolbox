@@ -24,7 +24,7 @@ FSR4_GUIDE="$DESKTOP_DIR/FSR4支持游戏名单.txt"
     exit 1
 }
 for text in 'FSR/FSR4 不适合所有游戏' 'BV1ew411J7ab' '35 秒' '败家君的游戏屋' \
-    'LSFG-VK' 'OptiScaler' '齿轮 → CheatDeck → “高级”'; do
+    'LSFG-VK' 'OptiScaler' 'Mako_Renkit' '/home/deck/.local/bin/mako-run %command%' '齿轮 → CheatDeck → “高级”'; do
     grep -Fq "$text" "$COMMON_GUIDE" || {
         echo "FAIL: 总教程缺少：$text" >&2
         exit 1

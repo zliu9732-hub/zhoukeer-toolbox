@@ -1,3 +1,10 @@
+## Renkit 2.6.1 MAKO CheatDeck 启动项 — 2026-09-12
+
+- 安装 MAKO 或执行新机初始化时，会在 CheatDeck 的“高级”自定义启动项中自动新增 `Mako_Renkit`。
+- 该项使用 MAKO 官方启动前缀 `/home/deck/.local/bin/mako-run`；CheatDeck 会将它安全放在游戏的 `%command%` 前。
+- 保留原有 CheatDeck 自定义项及上游 LSFG-VK / OptiScaler 预设；重复执行不会创建重复项。
+- 新机交付说明与桌面教程已注明：先在 MAKO 中安装 Renderer，再对需要的游戏打开 `Mako_Renkit` 并保存。
+
 ## Renkit 2.6.0 新机初始化保留双版本小黄鸭 — 2026-09-12
 
 - 修正新机初始化：旧版 LSFG-VK 与 MAKO 小黄鸭会同时安装并保留，用户可在 Decky 中自行选择使用哪个版本。

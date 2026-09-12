@@ -169,7 +169,7 @@ show_initialization_plan() {
     fi
     echo "【04】安装 Fcitx5 中文输入法和中文插件"
     echo "【05-06】安装微信、QQ、Firefox并创建桌面图标"
-    echo "【07】安装 Decky Loader、FreeDeck、八款常用插件和 MAKO 小黄鸭（含 Fantastic 风扇控制）"
+    echo "【07】安装 Decky Loader、FreeDeck、八款常用插件、MAKO 小黄鸭及 CheatDeck 的 Mako_Renkit 启动项（含 Fantastic 风扇控制）"
     echo "【08】识别机器型号；安装匹配的掌机控制插件组合，无合适专用插件时安装通用功耗控制"
     echo "【09】安装修改器所需兼容层：仅 GE-Proton 10-29"
     echo "【10】按物理内存设置 zram、8-16GB swap 和 swappiness"
@@ -398,7 +398,8 @@ write_customer_handover_guide() {
 ======Steam Deck 新机交付与使用说明======
 
 1. Renkit：桌面双击 Renkit；启动时会自动检测更新，也可在“检查与维护”中手动检查更新。
-2. Decky / FreeDeck：返回游戏模式，按右下角“…”键，再打开插头图标；新机初始化会安装 MAKO 小黄鸭。插件不显示时请完全退出并重开 Steam。
+2. Decky / FreeDeck：返回游戏模式，按右下角“…”键，再打开插头图标；新机初始化会安装 MAKO 小黄鸭，并在 CheatDeck 高级页新增 “Mako_Renkit” 启动项。
+   先打开 MAKO 点击“安装 MAKO Renderer”，再在目标游戏的 齿轮 → CheatDeck → 高级 中启用 “Mako_Renkit” 并保存。插件不显示时请完全退出并重开 Steam。
 3. 修改器兼容层：新机初始化仅安装 GE-Proton 10-29；在游戏属性 → 兼容性中选择该版本。
 4. Epic：已按默认清单安装并加入 Steam 库；首次登录、验证码可用触控板，Steam + X 呼出键盘。
 5. 中文输入：桌面模式使用 Fcitx5；首次使用请在系统托盘确认输入法已启动。
@@ -479,7 +480,7 @@ run_new_machine_initialization() {
         bash "$PROJECT_ROOT/modules/plugin_store.sh" features
     run_step "【08】按机器型号应用安全配置" apply_machine_profile
     # MAKO 使用独立目录；与常用插件组合中的旧版 LSFG-VK 同时保留，供用户自行选择。
-    run_step "【07】MAKO 小黄鸭（官方简体中文）" env ZHOUKEER_AUTO_CONFIRM=1 \
+    run_step "【07】MAKO 小黄鸭及 CheatDeck Mako_Renkit 启动项（官方简体中文）" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako
     run_step "【09】修改器所需 GE-Proton 10-29 兼容层" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer-one "10-29"
