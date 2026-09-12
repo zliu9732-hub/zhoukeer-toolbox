@@ -126,10 +126,11 @@ udevadm() { printf 'udevadm %s\n' "$*" >> "$CALLS"; }
 mkfs.ntfs() { printf 'mkfs.ntfs %s\n' "$*" >> "$CALLS"; }
 
 efibootmgr() {
-    local order next omit label loader count boot_num
+    local order next omit windows_label label loader count boot_num
     order="$(cat "$STATE/bootorder" 2>/dev/null || printf '0000,0001\n')"
     next="$(cat "$STATE/bootnext" 2>/dev/null || true)"
     omit="$(cat "$STATE/omit" 2>/dev/null || true)"
+    windows_label="$(cat "$STATE/windows-label" 2>/dev/null || printf 'Windows Boot Manager')"
     case "${1:-}" in
         --delete-bootnum) printf 'delete %s\n' "$3" >> "$CALLS" ;;
         --bootnext)
@@ -164,7 +165,7 @@ efibootmgr() {
             if [ -n "$omit" ]; then
                 {
                     printf 'Boot0000* SteamOS HD(1,GPT,AAA)/File(\\EFI\\steamos\\steamcl.efi)\n'
-                    printf 'Boot0001* Windows Boot Manager HD(1,GPT,AAA)/File(\\EFI\\Microsoft\\Boot\\bootmgfw.efi)\n'
+                    printf 'Boot0001* %s HD(1,GPT,AAA)/File(\\EFI\\Microsoft\\Boot\\bootmgfw.efi)\n' "$windows_label"
                     printf 'Boot0002* Zhoukeer Clover HD(1,GPT,AAA)/File(\\EFI\\CLOVER\\CLOVERX64.efi)\n'
                     printf 'Boot0003* rEFInd Boot Manager HD(1,GPT,AAA)/File(\\EFI\\refind\\refind_x64.efi)\n'
                     printf 'Boot0004* OpenCore HD(1,GPT,AAA)/File(\\EFI\\OC\\OpenCore.efi)\n'
@@ -173,7 +174,7 @@ efibootmgr() {
                 } | grep -Ev -- "$omit"
             else
                 printf 'Boot0000* SteamOS HD(1,GPT,AAA)/File(\\EFI\\steamos\\steamcl.efi)\n'
-                printf 'Boot0001* Windows Boot Manager HD(1,GPT,AAA)/File(\\EFI\\Microsoft\\Boot\\bootmgfw.efi)\n'
+                printf 'Boot0001* %s HD(1,GPT,AAA)/File(\\EFI\\Microsoft\\Boot\\bootmgfw.efi)\n' "$windows_label"
                 printf 'Boot0002* Zhoukeer Clover HD(1,GPT,AAA)/File(\\EFI\\CLOVER\\CLOVERX64.efi)\n'
                 printf 'Boot0003* rEFInd Boot Manager HD(1,GPT,AAA)/File(\\EFI\\refind\\refind_x64.efi)\n'
                 printf 'Boot0004* OpenCore HD(1,GPT,AAA)/File(\\EFI\\OC\\OpenCore.efi)\n'
@@ -299,6 +300,12 @@ rm -f "$STATE/omit" "$STATE/created-entries" "$STATE/bootnext"
 switch_to_windows >/dev/null || fail "Windows 一键切换模拟失败"
 grep -Fq 'bootnext 0001' "$CALLS" || fail "未设置 BootNext"
 grep -Fq 'systemctl reboot' "$CALLS" || fail "未触发系统重启"
+
+printf 'Microsoft Boot Option\n' > "$STATE/windows-label"
+rm -f "$STATE/bootnext"
+switch_to_windows >/dev/null || fail "固件重命名 Windows 标签后仍应按官方 EFI 路径切换"
+grep -Fq 'bootnext 0001' "$CALLS" || fail "固件重命名 Windows 标签后未设置 BootNext"
+rm -f "$STATE/windows-label"
 
 printf 'Windows Boot Manager\n' > "$STATE/omit"
 rm -f "$STATE/created-entries" "$STATE/bootnext"

@@ -578,15 +578,35 @@ copy_allycenter_chinese() {
     local source_dir="$SOURCE_ROOT/third_party/allycenter-zh-v1.2.0"
     local relative_file
 
-    # 只携带 Ally 控制中心运行时覆盖中文界面所需的清单、版本、许可和前端。
-    for relative_file in plugin.json package.json LICENSE; do
-        if [ -f "$source_dir/$relative_file" ]; then
-            copy_file "$source_dir/$relative_file" \
-                "$STAGING_DIR/third_party/allycenter-zh-v1.2.0/$relative_file"
-        fi
+    # 携带已校验的风扇修复后台、中文前端及安装说明。
+    for relative_file in plugin.json package.json LICENSE main.py README.md; do
+        copy_file "$source_dir/$relative_file" \
+            "$STAGING_DIR/third_party/allycenter-zh-v1.2.0/$relative_file" || return 1
     done
     copy_file "$source_dir/dist/index.js" \
         "$STAGING_DIR/third_party/allycenter-zh-v1.2.0/dist/index.js"
+}
+
+copy_lego2_brightness_fix() {
+    local source_dir="$SOURCE_ROOT/third_party/lego2-brightness-fix-zh-v2.0.0"
+    local relative_file
+
+    # 亮度修复的后端会从插件目录读取两份 Gamescope 显示脚本。
+    for relative_file in \
+        plugin.json \
+        package.json \
+        README.md \
+        LICENSE \
+        NOTICE \
+        SOURCE.md \
+        main.py \
+        lego_updater.py \
+        gamescope/lenovo.legiongo2.oled.gamma22.lua \
+        gamescope/lenovo.legiongo2.oled.pq.lua \
+        dist/index.js; do
+        copy_file "$source_dir/$relative_file" \
+            "$STAGING_DIR/third_party/lego2-brightness-fix-zh-v2.0.0/$relative_file" || return 1
+    done
 }
 
 copy_handheld_frontend_overlay() {
@@ -627,6 +647,7 @@ copy_switch_to_windows || exit 1
 copy_cssloader_chinese
 copy_simpledeckytdp_chinese
 copy_allycenter_chinese
+copy_lego2_brightness_fix
 copy_handheld_frontend_overlay third_party/huesync-cn-v3.9.0
 copy_handheld_frontend_overlay third_party/legion-go-remapper-zh-v0.3.0
 copy_handheld_frontend_overlay third_party/gpd-control-zh-v0.0.2

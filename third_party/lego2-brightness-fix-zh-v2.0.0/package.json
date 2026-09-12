@@ -1,0 +1,22 @@
+{
+  "name": "lego2brightnessfix",
+  "version": "2.0.0",
+  "description": "DeckyLoader plugin: three OLED display modes, a working Steam brightness slider in PQ, and correct EDID metadata for games on Legion Go 2",
+  "license": "BSD-3-Clause",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c",
+    "watch": "rollup -c -w",
+    "typecheck": "tsc --noEmit",
+    "package": "npm run build && node scripts/package.mjs"
+  },
+  "devDependencies": {
+    "@decky/api": "^1.1.3",
+    "@decky/rollup": "^1.0.2",
+    "@decky/ui": "^4.12.0",
+    "@types/react": "^19.1.1",
+    "@types/react-dom": "^19.1.1",
+    "rollup": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -836,8 +836,41 @@ dual_boot_health_check() {
 boot_entry_line() {
     local boot_number="$1"
 
-    efibootmgr -v 2>/dev/null | awk -v number="$boot_number" '
+    toolbox_sudo efibootmgr -v 2>/dev/null | awk -v number="$boot_number" '
         toupper(substr($1, 1, 8)) == "BOOT" toupper(number) { print; exit }
+    '
+}
+
+windows_loader_path_in_esp() {
+    local esp="$1"
+    local candidate
+
+    for candidate in \
+        "$esp/EFI/Microsoft/Boot/bootmgfw.efi" \
+        "$esp/efi/Microsoft/Boot/bootmgfw.efi" \
+        "$esp/EFI/Microsoft/boot/bootmgfw.efi" \
+        "$esp/efi/Microsoft/boot/bootmgfw.efi"; do
+        [ -f "$candidate" ] || \
+            toolbox_sudo test -f "$candidate" >/dev/null 2>&1 || continue
+        printf '%s\n' '\EFI\Microsoft\Boot\bootmgfw.efi'
+        return 0
+    done
+    return 1
+}
+
+boot_entry_has_windows_loader() {
+    local entries="$1"
+
+    printf '%s\n' "$entries" | awk '
+        /^Boot[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]/ {
+            lower = tolower($0)
+            if (index(lower, "windows boot manager") ||
+                index(lower, "microsoft\\boot\\bootmgfw.efi")) {
+                found = 1
+                exit
+            }
+        }
+        END { exit(found ? 0 : 1) }
     '
 }
 
@@ -890,7 +923,7 @@ boot_entry_has() {
 }
 
 boot_order_current() {
-    efibootmgr 2>/dev/null | sed -n 's/^BootOrder:[[:space:]]*//p' | head -n 1
+    toolbox_sudo efibootmgr 2>/dev/null | sed -n 's/^BootOrder:[[:space:]]*//p' | head -n 1
 }
 
 boot_order_is_safe() {
@@ -941,7 +974,7 @@ create_boot_entry() {
         sed -n 's/^Boot\([0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]\)\*.*/\1/p' | \
         tail -n 1 | tr '[:lower:]' '[:upper:]')"
     if [ -z "$boot_number" ]; then
-        boot_number="$(efibootmgr -v 2>/dev/null | awk -v label="$label" '
+        boot_number="$(toolbox_sudo efibootmgr -v 2>/dev/null | awk -v label="$label" '
             toupper($0) ~ toupper(label) {
                 line = $0
                 sub(/^Boot/, "", line)
@@ -960,7 +993,7 @@ create_boot_entry() {
 
 repair_dual_boot() {
     local entries esp device disk_partition disk partition missing_count=0
-    local entry label loader boot_number clover_boot current_order new_order
+    local entry label loader boot_number clover_boot current_order new_order windows_loader
     local backup_file timestamp output
     local -a repair_entries=()
 
@@ -968,7 +1001,7 @@ repair_dual_boot() {
     for command_name in efibootmgr lsblk findmnt find sed awk tr grep; do
         require_command "$command_name" || return 1
     done
-    entries="$(efibootmgr -v 2>/dev/null)" || {
+    entries="$(toolbox_sudo efibootmgr -v 2>/dev/null)" || {
         echo "无法读取 UEFI NVRAM 启动项，引导修复已停止。"
         return 1
     }
@@ -982,9 +1015,13 @@ repair_dual_boot() {
     disk="${disk_partition%% *}"
     partition="${disk_partition##* }"
 
-    if [ -f "$esp/EFI/Microsoft/Boot/bootmgfw.efi" ] && \
-        ! boot_entry_has "$entries" 'Windows Boot Manager'; then
-        repair_entries+=("Windows Boot Manager|\EFI\Microsoft\Boot\bootmgfw.efi")
+    toolbox_sudo true || {
+        echo "管理员权限验证失败，引导项未修改。"
+        return 1
+    }
+    windows_loader="$(windows_loader_path_in_esp "$esp" || true)"
+    if [ -n "$windows_loader" ] && ! boot_entry_has_windows_loader "$entries"; then
+        repair_entries+=("Windows Boot Manager|$windows_loader")
         missing_count=$((missing_count + 1))
     fi
     if [ -f "$esp/EFI/steamos/steamcl.efi" ] && \
@@ -1045,7 +1082,7 @@ repair_dual_boot() {
         done
     fi
 
-    entries="$(efibootmgr -v 2>/dev/null)" || {
+    entries="$(toolbox_sudo efibootmgr -v 2>/dev/null)" || {
         echo "引导项已创建，但无法重新读取 NVRAM 清单。"
         return 1
     }
@@ -1081,17 +1118,20 @@ switch_to_windows() {
 
     require_steamos || return 1
     require_command efibootmgr || return 1
-    entries="$(efibootmgr -v 2>/dev/null)" || {
+    entries="$(toolbox_sudo efibootmgr -v 2>/dev/null)" || {
         echo "无法读取 UEFI NVRAM 启动项，无法一键切换。"
         return 1
     }
     line="$(printf '%s\n' "$entries" | awk '
-        index(tolower($0), "windows boot manager") &&
-        index(tolower($0), "microsoft\\boot\\bootmgfw.efi") { print; exit }
+        /^Boot[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]/ {
+            lower = tolower($0)
+            if (index(lower, "windows boot manager") ||
+                index(lower, "microsoft\\boot\\bootmgfw.efi")) {
+                print
+                exit
+            }
+        }
     ')"
-    if [ -z "$line" ]; then
-        line="$(printf '%s\n' "$entries" | awk '/Windows Boot Manager/ { print; exit }')"
-    fi
     if [ -z "$line" ]; then
         echo "未找到 Windows Boot Manager，无法一键切换。"
         return 1

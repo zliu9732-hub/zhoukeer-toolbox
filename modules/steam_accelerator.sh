@@ -283,6 +283,12 @@ print_steam302_ready_notice() {
     echo "Steam + GitHub 加速已开启（有效性检查通过）。"
 }
 
+print_steam302_started_notice() {
+    echo "Steam + GitHub 后台加速已启动。"
+    echo "有效性检测暂未完成，服务可能仍在初始化；这不代表启动失败。"
+    echo "可稍后选择“查看运行状态”确认，日志：$STEAM302_LOG_FILE"
+}
+
 start_steam302_service() {
     local display_value="${DISPLAY:-:0}"
     local xauthority_value="${XAUTHORITY:-$HOME/.Xauthority}"
@@ -299,8 +305,8 @@ start_steam302_service() {
         return 0
     fi
     if steam302_process_is_running; then
-        print_steam302_not_ready_help
-        return 1
+        print_steam302_started_notice
+        return 0
     fi
 
     confirm_steam302_service_start || {
@@ -315,8 +321,8 @@ start_steam302_service() {
             return 0
         fi
         if steam302_service_is_active; then
-            print_steam302_not_ready_help
-            return 1
+            print_steam302_started_notice
+            return 0
         fi
         echo "后台服务未保持运行，改用内置 CLI 重试。"
     fi
@@ -347,8 +353,8 @@ start_steam302_service() {
         return 0
     fi
     if steam302_cli_is_running; then
-        print_steam302_not_ready_help
-        return 1
+        print_steam302_started_notice
+        return 0
     fi
     echo "官方 CLI 未保持运行，请查看日志：$STEAM302_LOG_FILE"
     [ -n "$pid" ] && sed -n '1,20p' "$STEAM302_LOG_FILE" 2>/dev/null || true
@@ -923,8 +929,13 @@ install_steam302() (
     fi
     steam302_restart_after_install || return 1
     if ! steam302_wait_until_ready; then
-        echo "Steamcommunity 302 已安装，后台服务也已启动，但加速初始化未完成。"
-        print_steam302_not_ready_help
+        if steam302_process_is_running; then
+            echo "Steamcommunity 302 已安装。"
+            print_steam302_started_notice
+            return 0
+        fi
+        echo "Steamcommunity 302 已安装，但后台加速未能保持运行。"
+        echo "请查看日志：$STEAM302_LOG_FILE"
         return 1
     fi
     print_steam302_ready_notice

@@ -450,13 +450,18 @@ printf '%s\n' "$status_output" | grep -Fq '版本：14.0.02' || \
 printf '%s\n' "$status_output" | grep -Fq '加速状态：已就绪' || \
     fail "状态没有执行实际加速就绪检查"
 
-# 只有 systemd 进程、没有官方运行标记或本地监听时，不能再假报成功。
+# 只有 systemd 进程、没有官方运行标记或本地监听时，启动动作已经完成，
+# 但不能假报有效性检查通过，也不能让外层误报启动失败。
 rm -f "$TARGET/S302.run"
-if run_start_service > "$STATE_DIR/not-ready.output" 2>&1; then
-    fail "仅后台进程运行时仍错误报告加速成功"
+run_start_service > "$STATE_DIR/not-ready.output" 2>&1 || \
+    fail "后台服务已运行时不应误报启动失败"
+grep -Fq '后台加速已启动' "$STATE_DIR/not-ready.output" || \
+    fail "后台服务已运行时没有报告启动完成"
+grep -Fq '有效性检测暂未完成' "$STATE_DIR/not-ready.output" || \
+    fail "加速未确认就绪时没有说明检测状态"
+if grep -Fq '有效性检查通过' "$STATE_DIR/not-ready.output"; then
+    fail "加速未确认就绪时错误报告有效性检查通过"
 fi
-grep -Fq 'DNS/代理尚未真正就绪' "$STATE_DIR/not-ready.output" || \
-    fail "加速未真正就绪时没有给出修复指引"
 touch "$TARGET/S302.run"
 
 # 后台服务已经运行时，一键启动必须保持幂等，不能重复拉起第二个 CLI。

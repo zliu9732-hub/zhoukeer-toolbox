@@ -310,7 +310,7 @@ game_environment_gui_menu() {
             nav-exit "退出Renkit")" || return 0
         case "$choice" in
             features)
-                gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。未安装插件商城时会先安装插件商城，再继续安装八款常用插件。Fantastic 会覆盖默认风扇曲线，过低转速可能导致设备过热；会使用管理员权限。是否继续？" && \
+                gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。未安装插件商城时会先安装插件商城，再继续安装八款常用插件。Fantastic 会覆盖默认风扇曲线；会使用管理员权限。是否继续？" && \
                     run_gui_action "安装常用插件组合" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" features
                 ;;
@@ -411,7 +411,7 @@ game_environment_gui_menu() {
                     gpd-control "GPD 控制中心｜GPD Win 系列 RGB 与按游戏配置" \
                     lego-vibe "Legion Go 震动控制｜Go / Go 2 震动与触控板反馈" \
                     lego2-fan "Legion Go 2 风扇控制｜仅 Go 2·不受限风扇曲线" \
-                    onexplayer-apex "OneXPlayer Apex 工具｜仅 Apex·功耗、按键、灯光与休眠修复" \
+                    onexplayer-tools "OneXPlayer 机型工具｜X2 Mini Pro 亮度修复（已实测）/ Apex 工具" \
                     back "返回游戏与插件")" || continue
                 case "$handheld_plugin_choice" in
                     powercontrol)
@@ -460,6 +460,26 @@ game_environment_gui_menu() {
                             run_gui_action "安装 Legion Go 2 风扇控制" \
                                 env ZHOUKEER_AUTO_CONFIRM=1 \
                                 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego2-fan
+                        ;;
+                    onexplayer-tools)
+                        onexplayer_tool_choice="$(gui_dialog --menu "OneXPlayer 机型工具" \
+                            x2-mini-pro-brightness "X2 Mini Pro 亮度修复｜已实测·SteamOS 游戏模式 HDR/PQ 原生亮度滑块" \
+                            apex "OneXPlayer Apex 工具｜仅 Apex·功耗、按键、灯光与休眠修复" \
+                            back "返回掌机控制插件")" || continue
+                        case "$onexplayer_tool_choice" in
+                            x2-mini-pro-brightness)
+                                gui_confirm "已实测适配 ONEXPLAYER X2 Mini Pro（Ryzen AI Max+ 388、三星 AMS881KB01-0 OLED）原版 SteamOS 游戏模式。此独立 Decky 插件会在 HDR/PQ 时将 Steam 原生亮度滑块交给 Gamescope，并向游戏提供面板真实 EDID 数据；首次配置会安装 Gamescope 显示脚本，可能短暂黑屏且需重启游戏模式。不会修改 TDP、风扇或硬件功耗参数；已有同面板脚本会备份为 .backup。是否继续？" && \
+                                    run_gui_action "安装 X2 Mini Pro 亮度修复" \
+                                        env ZHOUKEER_AUTO_CONFIRM=1 \
+                                        bash "$PROJECT_ROOT/modules/plugin_store.sh" lego2-brightness-fix
+                                ;;
+                            apex)
+                                gui_confirm "高风险：仅适用于 OneXPlayer Apex（Strix Halo）原版 SteamOS。插件以 Decky root 权限修改硬件设置、按键/灯光与休眠相关配置，可能需要重启；请勿与其他功耗、风扇、按键或灯光控制插件同时启用。错误操作可能导致输入失效、休眠异常或系统不稳定。将校验安装包并自动接入 Renkit 汉化。确认理解风险后继续？" && \
+                                    run_gui_action "安装 OneXPlayer Apex 工具" \
+                                        env ZHOUKEER_AUTO_CONFIRM=1 \
+                                        bash "$PROJECT_ROOT/modules/plugin_store.sh" onexplayer-apex
+                                ;;
+                        esac
                         ;;
                     onexplayer-apex)
                         gui_confirm "高风险：仅适用于 OneXPlayer Apex（Strix Halo）原版 SteamOS。插件以 Decky root 权限修改硬件设置、按键/灯光与休眠相关配置，可能需要重启；请勿与其他功耗、风扇、按键或灯光控制插件同时启用。错误操作可能导致输入失效、休眠异常或系统不稳定。将校验安装包并自动接入 Renkit 汉化。确认理解风险后继续？" && \
@@ -700,9 +720,9 @@ dual_system_more_menu() {
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" cleanup-boot
                 ;;
             repair-boot)
-                gui_confirm "将按设备配置安装并修复 Clover 开机菜单、恢复 BootOrder，并启用开机修复服务；会修改 EFI/NVRAM。是否继续？" && \
-                    run_gui_action "修复双系统引导" env ZHOUKEER_AUTO_CONFIRM=1 \
-                    bash "$PROJECT_ROOT/modules/clover_boot.sh" install
+                gui_confirm "只补齐缺失的 SteamOS、Windows 或 Clover NVRAM 启动项，并备份修复前清单；不会安装 Clover 或修改 EFI 文件。是否继续？" && \
+                    run_gui_action "修复双系统引导项" \
+                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" repair-boot
                 ;;
             switch-to-windows)
                 gui_confirm "将安装 RenAmamiya 本人制作的 Switch to Windows Decky 插件；安装完成后请在游戏模式插件菜单点击它，即可设置单次启动项并立即重启进入 Windows。当前不会立即重启。是否继续？" && \

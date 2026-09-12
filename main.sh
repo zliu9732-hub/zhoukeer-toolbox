@@ -538,7 +538,7 @@ game_environment_menu() {
 
         case "$choice" in
             decky-install) NEXT_CATEGORY="decky_loader"; return 0 ;;
-            features) confirm_and_run "安装常用插件组合" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；未安装插件商城时会先安装插件商城，再继续安装八款常用插件；Fantastic 会覆盖默认风扇曲线，过低转速可能导致设备过热；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
+            features) confirm_and_run "安装常用插件组合" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；未安装插件商城时会先安装插件商城，再继续安装八款常用插件；Fantastic 会覆盖默认风扇曲线；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
             browse) plugin_official_touch_pages ;;
             cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             lsfg) NEXT_CATEGORY="lsfg_versions"; return 0 ;;
@@ -770,6 +770,34 @@ launcher_tools_menu() {
     done
 }
 
+onexplayer_tools_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame games "OneXPlayer 机型工具" "X2 Mini Pro 已实测亮度修复与 Apex 专用工具" 0
+        ui_touch_button 7 '\033[1;97;48;5;24m' "X2 Mini Pro 亮度修复" "已实测·SteamOS 游戏模式 HDR/PQ 原生亮度滑块"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "OneXPlayer Apex 工具" "仅 Apex·功耗、按键、灯光与休眠修复"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回掌机控制插件" "查看其他机型控制工具"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:7-8:x2-mini-pro-brightness right:11-12:onexplayer-apex right:19-20:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            x2-mini-pro-brightness)
+                confirm_and_run "安装 X2 Mini Pro 亮度修复" "已实测适配 ONEXPLAYER X2 Mini Pro（Ryzen AI Max+ 388、三星 AMS881KB01-0 OLED）原版 SteamOS 游戏模式；会在 HDR/PQ 时将 Steam 原生亮度滑块交给 Gamescope，并为游戏提供真实 EDID 数据。首次配置会安装 Gamescope 显示脚本，可能短暂黑屏且需重启游戏模式；不会修改 TDP、风扇或硬件功耗参数；已有同面板脚本会备份为 .backup" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego2-brightness-fix
+                ;;
+            onexplayer-apex)
+                confirm_and_run "安装 OneXPlayer Apex 工具" "高风险：仅适用于 OneXPlayer Apex（Strix Halo）原版 SteamOS；插件以 Decky root 权限修改硬件设置、按键/灯光与休眠相关配置，可能需要重启。请勿与其他功耗、风扇、按键或灯光控制插件同时启用；错误操作可能导致输入失效、休眠异常或系统不稳定。将校验安装包并自动接入 Renkit 汉化。确认理解风险后继续" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" onexplayer-apex
+                ;;
+            back) NEXT_CATEGORY="handheld_plugins"; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = "onexplayer_tools" ] || return 0
+    done
+}
+
 handheld_plugins_menu() {
     local choice
 
@@ -783,11 +811,11 @@ handheld_plugins_menu() {
         ui_touch_button 13 '\033[1;97;48;5;24m' "GPD 控制中心" "GPD Win 系列 RGB 与按游戏配置"
         ui_touch_button 15 '\033[1;97;48;5;24m' "Legion Go 震动控制" "Legion Go / Go 2 震动与触控板反馈"
         ui_touch_button 17 '\033[1;97;48;5;24m' "Legion Go 2 风扇控制" "仅 Legion Go 2·不受限风扇曲线"
-        ui_touch_button 19 '\033[1;97;48;5;24m' "OneXPlayer Apex 工具" "仅 Apex·功耗、按键、灯光与休眠修复"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "OneXPlayer 机型工具" "X2 Mini Pro 亮度修复（已实测）/ Apex 工具"
         ui_touch_button 21 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件第二页"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:3-4:powercontrol right:5-6:simpledeckytdp right:7-8:allycenter right:9-10:huesync right:11-12:legiongo-remapper right:13-14:gpd-control right:15-16:lego-vibe right:17-18:lego2-fan right:19-20:onexplayer-apex right:21-22:back right:23-24:home)"
+        choice="$(read_touch_menu right:3-4:powercontrol right:5-6:simpledeckytdp right:7-8:allycenter right:9-10:huesync right:11-12:legiongo-remapper right:13-14:gpd-control right:15-16:lego-vibe right:17-18:lego2-fan right:19-20:onexplayer-tools right:21-22:back right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             powercontrol)
@@ -822,10 +850,7 @@ handheld_plugins_menu() {
                 confirm_and_run "安装 Legion Go 2 风扇控制" "高风险：仅适用于 Legion Go 2；插件允许不受限制的风扇曲线，错误设置可能在高温时使用过低转速并损伤设备；需要 Decky root 权限。确认理解风险后继续" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego2-fan
                 ;;
-            onexplayer-apex)
-                confirm_and_run "安装 OneXPlayer Apex 工具" "高风险：仅适用于 OneXPlayer Apex（Strix Halo）原版 SteamOS；插件以 Decky root 权限修改硬件设置、按键/灯光与休眠相关配置，可能需要重启。请勿与其他功耗、风扇、按键或灯光控制插件同时启用；错误操作可能导致输入失效、休眠异常或系统不稳定。将校验安装包并自动接入 Renkit 汉化。确认理解风险后继续" \
-                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" onexplayer-apex
-                ;;
+            onexplayer-tools) NEXT_CATEGORY="onexplayer_tools"; return 0 ;;
             back) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -1106,8 +1131,8 @@ dual_system_more_menu() {
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" cleanup-boot
                 ;;
             repair-boot)
-                confirm_and_run "修复双系统引导" "将按设备安装/修复 Clover 开机菜单，并启用开机修复服务；会修改 EFI/NVRAM" \
-                    bash "$PROJECT_ROOT/modules/clover_boot.sh" install
+                confirm_and_run "修复双系统引导项" "只补齐缺失的 SteamOS、Windows 或 Clover NVRAM 启动项，并备份修复前清单；不会安装 Clover 或修改 EFI 文件" \
+                    bash "$PROJECT_ROOT/modules/dual_system_tools.sh" repair-boot
                 ;;
             switch-to-windows)
                 confirm_and_run "安装 Switch to Windows" "将安装 RenAmamiya 本人制作的 Decky 插件；安装完成后请在游戏模式的插件菜单点击它，即可设置单次启动项并立即重启进入 Windows。当前不会立即重启。是否继续？" \
@@ -1770,6 +1795,7 @@ while true; do
         game_info_plugins) game_info_plugins_menu ;;
         launcher_tools) launcher_tools_menu ;;
         handheld_plugins) handheld_plugins_menu ;;
+        onexplayer_tools) onexplayer_tools_menu ;;
         battlenet_submenu) battlenet_submenu ;;
         launcher_repair) launcher_repair_menu ;;
         emulators) emulator_menu ;;

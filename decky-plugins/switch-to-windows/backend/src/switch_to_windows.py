@@ -15,6 +15,7 @@ import decky
 
 
 WINDOWS_PATH = r"\efi\microsoft\boot\bootmgfw.efi"
+WINDOWS_LOADER_NAME = "bootmgfw.efi"
 BOOT_ENTRY = re.compile(r"^Boot([0-9A-Fa-f]{4})(?:\*|\s)")
 BOOT_NUMBER = re.compile(r"^[0-9A-Fa-f]{4}$")
 EFI_SYSTEM_PARTITION_GUID = "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
@@ -26,6 +27,18 @@ class WindowsBootEntryMissing(RuntimeError):
 
 class Plugin:
     @staticmethod
+    def _system_command_environment():
+        """Avoid leaking PyInstaller's bundled libraries into system tools."""
+        environment = os.environ.copy()
+        original_library_path = environment.pop("LD_LIBRARY_PATH_ORIG", None)
+        if original_library_path is None:
+            environment.pop("LD_LIBRARY_PATH", None)
+        else:
+            environment["LD_LIBRARY_PATH"] = original_library_path
+        environment.pop("LD_PRELOAD", None)
+        return environment
+
+    @staticmethod
     def _run(arguments):
         return subprocess.run(
             arguments,
@@ -34,6 +47,7 @@ class Plugin:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             timeout=10,
+            env=Plugin._system_command_environment(),
         )
 
     @staticmethod
@@ -66,24 +80,29 @@ class Plugin:
                 continue
             lowered = line.lower()
             number = match.group(1).upper()
-            has_windows_label = "windows boot manager" in lowered
-            has_official_loader = WINDOWS_PATH in lowered
+            normalized = lowered.replace("/", "\\")
+            has_loader_name = re.search(
+                r"\\bootmgfw[.]efi(?:[)]|\\s|$)", normalized
+            ) is not None
+            has_microsoft_efi_path = "\\efi\\microsoft\\" in normalized
+            has_official_loader = WINDOWS_PATH in normalized
+            has_windows_label = "windows" in lowered
+            has_microsoft_label = "microsoft" in lowered
+            has_file_path = "file(" in lowered
             # Some firmware keeps the Microsoft loader path but drops or
             # renames the human-readable NVRAM label. The path is the safer
             # identity check, while the label remains a compatibility fallback
             # for firmware that omits the File(...) path in -v output.
-            if has_official_loader:
+            if has_official_loader or (has_loader_name and has_microsoft_efi_path):
                 loader_candidates.append(number)
-            if has_windows_label:
-                labeled_candidates.append((number, has_official_loader))
+            elif has_windows_label or has_microsoft_label:
+                if not has_file_path:
+                    labeled_candidates.append(number)
 
         if loader_candidates:
             return loader_candidates[0]
-        for number, is_official in labeled_candidates:
-            if is_official:
-                return number
         if labeled_candidates:
-            return labeled_candidates[0][0]
+            return labeled_candidates[0]
         raise WindowsBootEntryMissing("未找到 Windows Boot Manager 启动项。")
 
     def _boot_order(self):
@@ -237,24 +256,27 @@ class Plugin:
             return {"available": False, "message": str(error)}
 
     async def reboot_to_windows(self):
-        self._preflight()
         try:
-            number = self._windows_boot_number()
-        except WindowsBootEntryMissing:
-            number = self._create_windows_boot_entry()
-        setting = self._run(["efibootmgr", "--bootnext", number])
-        if setting.returncode != 0:
-            raise RuntimeError(setting.stderr.strip() or "设置 Windows 单次启动项失败。")
+            self._preflight()
+            try:
+                number = self._windows_boot_number()
+            except WindowsBootEntryMissing:
+                number = self._create_windows_boot_entry()
+            setting = self._run(["efibootmgr", "--bootnext", number])
+            if setting.returncode != 0:
+                raise RuntimeError(setting.stderr.strip() or "设置 Windows 单次启动项失败。")
 
-        decky.logger.info("Switch to Windows: BootNext set to Boot%s", number)
-        reboot = self._run(["systemctl", "reboot"])
-        if reboot.returncode != 0:
-            # Do not leave an unexpected future Windows boot when reboot was refused.
-            self._run(["efibootmgr", "--delete-bootnext"])
-            detail = reboot.stderr.strip() or "系统未提供错误详情。"
-            raise RuntimeError(f"重启失败；已清除刚设置的单次启动项。{detail}")
-        return {
-            "available": True,
-            "boot_number": number,
-            "message": "正在重启进入 Windows。",
-        }
+            decky.logger.info("Switch to Windows: BootNext set to Boot%s", number)
+            reboot = self._run(["systemctl", "reboot"])
+            if reboot.returncode != 0:
+                # Do not leave an unexpected future Windows boot when reboot was refused.
+                self._run(["efibootmgr", "--delete-bootnext"])
+                detail = reboot.stderr.strip() or "系统未提供错误详情。"
+                raise RuntimeError(f"重启失败；已清除刚设置的单次启动项。{detail}")
+            return {
+                "available": True,
+                "boot_number": number,
+                "message": "正在重启进入 Windows。",
+            }
+        except (OSError, subprocess.SubprocessError, RuntimeError) as error:
+            return {"available": False, "message": str(error)}

@@ -1,6 +1,7 @@
 
 # macOS
 .DS_Store
+._*
 
 # 临时和备份文件
 *.save
@@ -27,3 +28,20 @@ apps/
 # Release版本化产物（dist中的稳定更新包和SHA256SUMS需要提交）
 dist/renkit-*.tar.gz
 dist/renkit-*.tar.gz.sha256
+
+# 仓库根目录只保留 Renkit 源码与正式更新包；下列内容为本机生成物或其他项目资料。
+.agents/
+.pet-runs/
+desktop-pet/
+assets/codex-pet-girlfriend.png
+create_exam_first4.py
+create_math_exam.py
+create_polynomial_practice.py
+output/
+outputs/
+tmp/
+mirrors/
+dist/*.zip
+dist/zhoukeer-battlenet-heihe-*.tar.gz
+dist/zhoukeer-battlenet-heihe-*.tar.gz.sha256
+dist/*.sh

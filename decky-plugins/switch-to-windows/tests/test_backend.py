@@ -40,6 +40,36 @@ class SwitchToWindowsTests(unittest.TestCase):
         ))
         self.assertEqual(self.plugin._windows_boot_number(), "0007")
 
+    def test_accepts_microsoft_loader_without_the_boot_directory(self):
+        self.plugin._run = lambda args: Result(stdout=(
+            "Boot0008* Windows HD(1)/File(\\EFI\\Microsoft\\bootmgfw.efi)\n"
+        ))
+        self.assertEqual(self.plugin._windows_boot_number(), "0008")
+
+    def test_does_not_select_a_custom_file_just_because_it_has_a_windows_label(self):
+        self.plugin._run = lambda args: Result(stdout=(
+            "Boot0008* Windows HD(1)/File(\\EFI\\Custom\\clover.efi)\n"
+        ))
+        with self.assertRaises(MODULE._backend.WindowsBootEntryMissing):
+            self.plugin._windows_boot_number()
+
+    def test_system_commands_restore_the_original_library_path(self):
+        with patch.dict(
+            MODULE._backend.os.environ,
+            {
+                "LD_LIBRARY_PATH": "/tmp/_MEI123",
+                "LD_LIBRARY_PATH_ORIG": "/usr/lib",
+                "LD_PRELOAD": "/tmp/_MEI123/preload.so",
+            },
+            clear=True,
+        ), patch.object(MODULE._backend.subprocess, "run", return_value=Result()) as run:
+            self.plugin._run(["systemctl", "reboot"])
+
+        environment = run.call_args.kwargs["env"]
+        self.assertEqual(environment["LD_LIBRARY_PATH"], "/usr/lib")
+        self.assertNotIn("LD_LIBRARY_PATH_ORIG", environment)
+        self.assertNotIn("LD_PRELOAD", environment)
+
     def test_status_offers_repair_without_writing_nvram(self):
         with patch.object(self.plugin, "_preflight"), \
              patch.object(
@@ -208,9 +238,10 @@ class SwitchToWindowsTests(unittest.TestCase):
         with patch.object(self.plugin, "_supported_platform", return_value=True), \
              patch.object(MODULE.os, "geteuid", return_value=0), \
              patch.object(MODULE.shutil, "which", return_value="/usr/bin/efibootmgr"):
-            with self.assertRaisesRegex(RuntimeError, "已清除"):
-                asyncio.run(self.plugin.reboot_to_windows())
+            result = asyncio.run(self.plugin.reboot_to_windows())
 
+        self.assertFalse(result["available"])
+        self.assertIn("已清除", result["message"])
         self.assertEqual(calls[-1], ["efibootmgr", "--delete-bootnext"])
 
 

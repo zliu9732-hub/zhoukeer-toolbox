@@ -384,14 +384,14 @@ grep -Fq 'DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'allycenter) show_plugin_download_speed_tip; install_configured_plugin allycenter' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'ALLYCENTER_ZH_INDEX_SHA256="72bb93d1f1a2a02fbbf670661d7f76f324d8f7d2077d3e763559f03332332031"' \
+grep -Fq 'ALLYCENTER_ZH_INDEX_SHA256="cded3fda904117187a340c82b42668068aec185892ff4fdfc967c9d203633e41"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'RenAmamiya' \
     "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js" || {
     echo "FAIL: Ally Center 中文构建缺少与小黄鸭一致的汉化署名" >&2
     exit 1
 }
-grep -Fq '中文汉化：RenAmamiya' \
+grep -Fq '修补、汉化者：RenAmamiya' \
     "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/src/index.tsx" || {
     echo "FAIL: Ally Center 中文源码缺少完整汉化署名" >&2
     exit 1
@@ -408,7 +408,7 @@ grep -Fq 'RGB 灯光' \
 }
 allycenter_zh_actual_sha256="$(shasum -a 256 \
     "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js" | awk '{print $1}')"
-[ "$allycenter_zh_actual_sha256" = "72bb93d1f1a2a02fbbf670661d7f76f324d8f7d2077d3e763559f03332332031" ] || {
+[ "$allycenter_zh_actual_sha256" = "cded3fda904117187a340c82b42668068aec185892ff4fdfc967c9d203633e41" ] || {
     echo "FAIL: Ally Center 中文构建文件校验值不匹配" >&2
     exit 1
 }
@@ -653,7 +653,7 @@ if grep -Eq '^copy_zhoukeer_localizer$' "$PROJECT_ROOT/install.sh"; then
     echo "FAIL: 已停用的扫描式汉化不应继续随安装器复制" >&2
     exit 1
 fi
-if rg -n 'copy_lsfg_chinese|copy_fsr4_chinese|decky-lsfg-vk-zh-v0[.]12[.]5|decky-framegen-zh-v0[.]17' \
+if grep -En 'copy_lsfg_chinese|copy_fsr4_chinese|decky-lsfg-vk-zh-v0[.]12[.]5|decky-framegen-zh-v0[.]17' \
     "$PROJECT_ROOT/install.sh" "$PROJECT_ROOT/scripts/package_release.sh"; then
     echo "FAIL: 安装或发布脚本仍携带旧本地中文覆盖层" >&2
     exit 1
@@ -940,7 +940,7 @@ grep -Fxq '0' "$MAKO_CALLS" || {
     echo "FAIL: MAKO 更新没有强制替换旧版本" >&2
     exit 1
 }
-if rg -n 'apply_mako_zh_patch|LSFG_MAKO_ZH_(JSON|EN_JSON)' \
+if grep -En 'apply_mako_zh_patch|LSFG_MAKO_ZH_(JSON|EN_JSON)' \
     "$PROJECT_ROOT/modules/plugin_store.sh" >/dev/null; then
     echo "FAIL: MAKO 官方中文原包仍会调用 Renkit 汉化覆盖层" >&2
     exit 1
@@ -1114,7 +1114,7 @@ ally_install_output="$(
     '
 )"
 printf '%s\n' "$ally_install_output" | grep -Fq 'Ally Center（ROG Ally / Ally X 控制中心） 安装成功。'
-printf '%s\n' "$ally_install_output" | grep -Fq 'Ally Center v1.2.0 中文版已安装。'
+printf '%s\n' "$ally_install_output" | grep -Fq 'Ally Center v1.2.0-renamamiya.2 中文版已安装。'
 printf '%s\n' "$ally_install_output" | grep -Fq 'TEST_RELOAD: Ally Center'
 [ -s "$ALLY_PLUGIN_ROOT/Ally Center/plugin.json" ] || {
     echo "FAIL: Ally Center 根目录结构未安装 plugin.json" >&2
@@ -1134,6 +1134,11 @@ installed_allycenter_sha256="$(shasum -a 256 \
     echo "FAIL: Ally Center 安装后未覆盖为已校验的中文前端" >&2
     exit 1
 }
+cmp "$ALLY_PLUGIN_ROOT/Ally Center/main.py" "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/main.py" || {
+    echo "FAIL: Ally Center 未安装修复后台" >&2
+    exit 1
+}
+grep -Fq '"version": "1.2.0-renamamiya.2"' "$ALLY_PLUGIN_ROOT/Ally Center/package.json"
 ally_repeat_output="$(
     DECKY_PLUGIN_DIR="$ALLY_PLUGIN_ROOT" \
     PROJECT_ROOT="$PROJECT_ROOT" \
@@ -1146,6 +1151,34 @@ ally_repeat_output="$(
     '
 )"
 printf '%s\n' "$ally_repeat_output" | \
-    grep -Fq '[已检测] Ally Center 已是最新汉化版 v1.2.0，无需处理。'
+    grep -Fq '[已检测] Ally Center 已是最新汉化版 v1.2.0-renamamiya.2，无需处理。'
+
+# A bad bundled backend must fail before any download or replacement.
+cp -R "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0" "$TMP_ROOT/bad-ally-bundle"
+printf 'broken backend\n' > "$TMP_ROOT/bad-ally-bundle/main.py"
+PROJECT_ROOT="$PROJECT_ROOT" DECKY_PLUGIN_DIR="$ALLY_PLUGIN_ROOT" \
+    BAD_BUNDLE="$TMP_ROOT/bad-ally-bundle" ZHOUKEER_TEST_MODE=1 bash -c '
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    detect_platform() { IS_STEAMOS=1; }
+    ALLYCENTER_ZH_SOURCE_DIR="$BAD_BUNDLE"
+    # Force the upgrade path while preserving the installed fixture.
+    allycenter_chinese_is_current() { return 1; }
+    download_verified_package() { echo "FAIL: bad bundle reached downloader" >&2; exit 99; }
+    if ensure_allycenter_chinese_current; then
+        echo "FAIL: corrupt backend was accepted" >&2
+        exit 1
+    fi
+    cmp "$DECKY_PLUGIN_DIR/Ally Center/main.py" "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/main.py"
+'
+# Matching UI alone must not classify an old/broken backend as current.
+printf 'old backend\n' > "$ALLY_PLUGIN_ROOT/Ally Center/main.py"
+PROJECT_ROOT="$PROJECT_ROOT" DECKY_PLUGIN_DIR="$ALLY_PLUGIN_ROOT" \
+    ZHOUKEER_TEST_MODE=1 bash -c '
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    if allycenter_chinese_is_current "$DECKY_PLUGIN_DIR"; then
+        echo "FAIL: old backend was classified current" >&2
+        exit 1
+    fi
+'
 
 echo "PASS: Decky国内源、独立功能插件和完整清单配置检查通过"

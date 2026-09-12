@@ -165,6 +165,12 @@ DECKY_LEGO2_FAN_SHA256="${ZHOUKEER_DECKY_LEGO2_FAN_SHA256:-a46af0c53eef63b1ad77f
 DECKY_LEGO2_FAN_VERSION="0.260430"
 LEGO2_FAN_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/lego2-fan-control-zh-v0.260430"
 LEGO2_FAN_ZH_INDEX_SHA256="9d93837925ccb2e95bf94942b291664f1cf645362d0f6b9972a03face0bb22d4"
+# LeGo2 Brightness Fix 已实机验证适配 ONEXPLAYER X2 Mini Pro（Ryzen AI Max+ 388）。
+LEGO2_BRIGHTNESS_FIX_DIRECTORY="LeGo2BrightnessFix"
+LEGO2_BRIGHTNESS_FIX_VERSION="2.0.0"
+LEGO2_BRIGHTNESS_FIX_SOURCE_DIR="$PROJECT_ROOT/third_party/lego2-brightness-fix-zh-v2.0.0"
+LEGO2_BRIGHTNESS_FIX_INDEX_SHA256="e0f1e77a24caf452515242d66b7012bc163895fcf1fcf4f2fcceb3bb4c48e490"
+LEGO2_BRIGHTNESS_FIX_MAIN_SHA256="1040aaa3981d1b749ec6dc7ac55e8a920ee29d9dabbc210dae10589eb5379822"
 # OneXPlayer Apex Tools 仅限 Apex（Strix Halo）；会操作硬件、休眠与内核相关配置。
 DECKY_ONEXPLAYER_APEX_URL="https://github.com/srsholmes/onexplayer-apex-bazzite-fixes/releases/download/build-b696161/OneXPlayer_Apex_Tools.zip"
 DECKY_ONEXPLAYER_APEX_SHA256="7c522bc8145697d78d6165f7f97671d4d67a5bf4f9e4ed5e6feccbb1154acb91"
@@ -362,6 +368,9 @@ resolve_plugin_latest() {
                         ;;
                 esac
             fi
+            ;;
+        lego2-brightness-fix)
+            install_lego2_brightness_fix
             ;;
         simpledeckytdp)
             [ -z "${ZHOUKEER_DECKY_SIMPLE_TDP_URL:-}" ] || return 0
@@ -3035,6 +3044,79 @@ ensure_simpledeckytdp_chinese_current() {
     install_simpledeckytdp_zh_from_gitee
 }
 
+lego2_brightness_fix_is_current() {
+    local plugin_root="$1"
+    local actual_index_sha256 actual_main_sha256
+
+    feature_plugin_is_current "$plugin_root" "$LEGO2_BRIGHTNESS_FIX_DIRECTORY" \
+        "$LEGO2_BRIGHTNESS_FIX_VERSION" "LeGo2 亮度修复" || return 1
+    actual_index_sha256="$(calculate_decky_sha256 \
+        "$plugin_root/$LEGO2_BRIGHTNESS_FIX_DIRECTORY/dist/index.js" 2>/dev/null || true)"
+    actual_main_sha256="$(calculate_decky_sha256 \
+        "$plugin_root/$LEGO2_BRIGHTNESS_FIX_DIRECTORY/main.py" 2>/dev/null || true)"
+    [ "$actual_index_sha256" = "$LEGO2_BRIGHTNESS_FIX_INDEX_SHA256" ] && \
+        [ "$actual_main_sha256" = "$LEGO2_BRIGHTNESS_FIX_MAIN_SHA256" ]
+}
+
+install_lego2_brightness_fix() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local bundled_version actual_index_sha256 actual_main_sha256 work_dir staged_source
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ]; then
+        echo "X2 Mini Pro 亮度修复仅支持原版 SteamOS 游戏模式，当前系统不会安装。"
+        return 1
+    fi
+    if lego2_brightness_fix_is_current "$plugin_root"; then
+        echo "[已安装] LeGo2 亮度修复 v$LEGO2_BRIGHTNESS_FIX_VERSION 已存在且文件校验通过。"
+        return 0
+    fi
+    if [ -L "$LEGO2_BRIGHTNESS_FIX_SOURCE_DIR" ] || \
+       [ ! -f "$LEGO2_BRIGHTNESS_FIX_SOURCE_DIR/plugin.json" ] || \
+       [ ! -f "$LEGO2_BRIGHTNESS_FIX_SOURCE_DIR/package.json" ] || \
+       [ ! -s "$LEGO2_BRIGHTNESS_FIX_SOURCE_DIR/main.py" ] || \
+       [ ! -s "$LEGO2_BRIGHTNESS_FIX_SOURCE_DIR/lego_updater.py" ] || \
+       [ ! -s "$LEGO2_BRIGHTNESS_FIX_SOURCE_DIR/dist/index.js" ] || \
+       [ ! -s "$LEGO2_BRIGHTNESS_FIX_SOURCE_DIR/gamescope/lenovo.legiongo2.oled.gamma22.lua" ] || \
+       [ ! -s "$LEGO2_BRIGHTNESS_FIX_SOURCE_DIR/gamescope/lenovo.legiongo2.oled.pq.lua" ] || \
+       [ ! -f "$LEGO2_BRIGHTNESS_FIX_SOURCE_DIR/LICENSE" ]; then
+        echo "LeGo2 亮度修复 v$LEGO2_BRIGHTNESS_FIX_VERSION 内置组件不完整，请更新 Renkit 后再试。"
+        return 1
+    fi
+    bundled_version="$(sed -n 's/.*\"version\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p' \
+        "$LEGO2_BRIGHTNESS_FIX_SOURCE_DIR/package.json" | head -n 1)"
+    bundled_version="$(grep -m 1 -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' \
+        "$LEGO2_BRIGHTNESS_FIX_SOURCE_DIR/package.json" | cut -d '"' -f 4)"
+    if [ "$bundled_version" != "$LEGO2_BRIGHTNESS_FIX_VERSION" ]; then
+        echo "LeGo2 亮度修复内置组件版本 $bundled_version 与目标 v$LEGO2_BRIGHTNESS_FIX_VERSION 不一致，已停止安装。"
+        return 1
+    fi
+    actual_index_sha256="$(calculate_decky_sha256 "$LEGO2_BRIGHTNESS_FIX_SOURCE_DIR/dist/index.js")" || return 1
+    actual_main_sha256="$(calculate_decky_sha256 "$LEGO2_BRIGHTNESS_FIX_SOURCE_DIR/main.py")" || return 1
+    if [ "$actual_index_sha256" != "$LEGO2_BRIGHTNESS_FIX_INDEX_SHA256" ] || \
+       [ "$actual_main_sha256" != "$LEGO2_BRIGHTNESS_FIX_MAIN_SHA256" ]; then
+        echo "LeGo2 亮度修复内置组件校验失败，已停止安装。"
+        return 1
+    fi
+    prepare_plugin_root "$plugin_root" || return 1
+    work_dir="$(mktemp -d)" || return 1
+    staged_source="$work_dir/$LEGO2_BRIGHTNESS_FIX_DIRECTORY"
+    if ! cp -a -- "$LEGO2_BRIGHTNESS_FIX_SOURCE_DIR" "$staged_source"; then
+        rm -rf -- "$work_dir"
+        echo "LeGo2 亮度修复组件准备失败，原插件未改动。"
+        return 1
+    fi
+    install_tree_atomically "$staged_source" "$plugin_root" "$LEGO2_BRIGHTNESS_FIX_DIRECTORY" || {
+        rm -rf -- "$work_dir"
+        echo "LeGo2 亮度修复安装失败，已尽量保留原插件。"
+        return 1
+    }
+    rm -rf -- "$work_dir"
+    echo "LeGo2 亮度修复 v$LEGO2_BRIGHTNESS_FIX_VERSION 已安装。"
+    echo "已实测适配：ONEXPLAYER X2 Mini Pro（Ryzen AI Max+ 388、三星 AMS881KB01-0 OLED）。"
+    reload_decky_plugins "Decky 已重新加载；返回游戏模式打开“LeGo2 亮度修复”，选择“混合模式”。首次配置安装显示脚本后，请按插件提示重启游戏模式。"
+}
+
 allycenter_chinese_is_current() {
     local plugin_root="$1"
     local actual_sha256
@@ -4356,6 +4438,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         lego-vibe) show_plugin_download_speed_tip; install_configured_plugin lego-vibe ;;
         lego2-fan) show_plugin_download_speed_tip; install_configured_plugin lego2-fan ;;
         onexplayer-apex) show_plugin_download_speed_tip; install_configured_plugin onexplayer-apex ;;
+        lego2-brightness-fix) install_lego2_brightness_fix ;;
         simpledeckytdp) show_plugin_download_speed_tip; install_configured_plugin simpledeckytdp ;;
         unifideck) show_plugin_download_speed_tip; install_configured_plugin unifideck ;;
         localizer)

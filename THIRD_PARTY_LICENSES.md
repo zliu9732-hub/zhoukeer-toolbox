@@ -26,13 +26,14 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | SavePulse | 自动版本存档与加密 WebDAV 换机恢复插件 | https://github.com/Ren-Amamiya-pixle/SavePulse | GPL-3.0-only | 是 | 作者 Release 分块镜像；每位用户绑定自己的坚果云或标准 WebDAV，下载重组后校验作者包 SHA256 |
 | Unifideck | Unifideck 插件 | https://github.com/mubaraknumann/unifideck | GPL-3.0 | 是 | |
 | Freedeck | Freedeck 插件 | https://github.com/panyiwei-home/Freedeck | BSD-3-Clause | 是 | LICENSE 文件为 BSD-3 文本 |
-| Ally Center | ROG Ally / Ally X 硬件控制插件 | https://github.com/PixelAddictUnlocked/allycenter | MIT | 是 | 上游 Release 原包，支持 RGB、TDP、风扇与充电上限 |
+| Ally Center | ROG Ally / Ally X 硬件控制插件 | https://github.com/PixelAddictUnlocked/allycenter | MIT | 是 | 基于上游 1.2.0；原作者 Keith Baker / Pixel Addict Games；修补、汉化者 RenAmamiya。修正风扇后台及双转速显示，RC71L 增加双风扇 100% 请求与恢复；保留原 MIT 许可 |
 | PowerControl | 通用掌机 CPU、GPU、TDP 与风扇控制插件 | https://github.com/mengmeet/PowerControl | BSD-3-Clause | 是 | 使用作者 v3.15.1 Release 原包；保留 yxx、honjow 与上游许可证，不叠加 Renkit 署名 |
 | HueSync | 多品牌掌机 RGB 控制插件 | https://github.com/honjow/HueSync | BSD-3-Clause | 是 | 上游已内置简体中文，保留作者原版 |
 | LegionGoRemapper | 初代 Legion Go 按键、RGB、充电与风扇控制 | https://github.com/aarron-lee/LegionGoRemapper | BSD-3-Clause | 是 | 上游 Release 原包；不支持 Legion Go S |
 | GpdControl | GPD Win 系列 RGB 控制 | https://github.com/aarron-lee/GpdControl | GPL-3.0 | 是 | 上游 Release 原包 |
 | LeGo Vibe Control | Legion Go / Go 2 震动与触控板控制 | https://github.com/Rayekkk/LeGo-Vibe-Control | BSD-3-Clause | 是 | 需要 hid-lenovo-go；不支持 Legion Go S |
 | LeGo2 Fan Control | Legion Go 2 风扇曲线控制 | https://github.com/Rodpad/LeGo2-Fan-Control | GPL-3.0 | 是 | 仅适用于 Legion Go 2；提供不受限风扇控制 |
+| LeGo2 Brightness Fix | HDR/PQ 面板亮度与游戏 EDID 修复 | https://github.com/Rayekkk/LeGo2BrightnessFix | BSD-3-Clause | 否（Renkit 内置组件） | 已实测适配 ONEXPLAYER X2 Mini Pro（Ryzen AI Max+ 388、三星 AMS881KB01-0 OLED）；保留 Rayek 原作者及许可证，中文汉化与非 UTF-8 进程名兼容修正：RenAmamiya |
 | Fantastic | Steam Deck 风扇曲线控制 | https://gitlab.com/NGnius/Fantastic | GPL-3.0 | 是 | 基于 Decky 商店 v0.5.1 完整包，仅汉化前端与清单并显示 `RenAmamiya` 署名；完整保留 NGnius、后端和许可证 |
 | OneXPlayer Apex Tools | OneXPlayer Apex 的 HHD、睡眠、风扇和按键修复 | https://github.com/srsholmes/onexplayer-apex-bazzite-fixes | MIT | 是 | 仅适用于 OneXPlayer Apex（Strix Halo），包含机型专用内核模块和系统修复 |
 | SimpleDeckyTDP | SimpleDeckyTDP 插件 | https://github.com/aarron-lee/SimpleDeckyTDP | BSD-3-Clause | 是 | |

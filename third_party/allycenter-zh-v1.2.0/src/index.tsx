@@ -176,7 +176,12 @@ interface ScreenState {
 
 interface FanInfo {
   mode: string;
-  speed: number;
+  speed: number | null;
+  speed2?: number | null;
+  full_speed_available?: boolean;
+  full_speed_active?: boolean;
+  recovery_pending?: boolean;
+  error?: string;
   available: boolean;
   policy_path?: string;
   current_policy?: number;
@@ -808,10 +813,11 @@ const RgbLightingSection: VFC = () => {
 };
 
 const FAN_MODES = [
-  { data: "auto", label: "自动" },
+  { data: "auto", label: "自动（均衡）" },
   { data: "quiet", label: "安静" },
   { data: "balanced", label: "均衡" },
   { data: "performance", label: "性能" },
+  { data: "full", label: "全速（双风扇 100%）" },
 ];
 
 const PerformanceSection: VFC = () => {
@@ -821,6 +827,8 @@ const PerformanceSection: VFC = () => {
   const [loading, setLoading] = useState(true);
   const [currentTdp, setCurrentTdp] = useState(15);
   const [currentFanMode, setCurrentFanMode] = useState("auto");
+  const [fanInfo, setFanInfo] = useState<FanInfo | null>(null);
+  const [fanApplying, setFanApplying] = useState(false);
   const [tdpOverride, setTdpOverrideState] = useState(false);
   const [useExternalTdp, setUseExternalTdpState] = useState(false);
 
@@ -836,6 +844,7 @@ const PerformanceSection: VFC = () => {
         setProfilesData(profiles);
         setTdpInfo(tdp);
         setCurrentFanMode(fan.mode);
+        setFanInfo(fan);
         setCurrentTdp(tdpSettings.tdp);
         setTdpOverrideState(tdpSettings.tdp_override || false);
         setUseExternalTdpState(tdpSettings.use_external_tdp || false);
@@ -848,12 +857,13 @@ const PerformanceSection: VFC = () => {
 
     const interval = setInterval(async () => {
       try {
-        const [profiles, tdp] = await Promise.all([
-          getPerformanceProfiles(),
-          getCurrentTdp(),
+        const [profiles, tdp, fan] = await Promise.all([
+          getPerformanceProfiles(), getCurrentTdp(), getFanInfo(),
         ]);
         setProfilesData(profiles);
         setTdpInfo(tdp);
+        setFanInfo(fan);
+        setCurrentFanMode(fan.mode);
       } catch (e) {
         console.error("Failed to update performance data:", e);
       }
@@ -870,9 +880,9 @@ const PerformanceSection: VFC = () => {
       const profile = profilesData?.profiles[profileId];
       const profileName = profile?.name || profileId;
       // Update fan mode UI to match profile's fan_curve
-      if (profile?.fan_curve) {
-        setCurrentFanMode(profile.fan_curve);
-      }
+      const actualFan = await getFanInfo();
+      setFanInfo(actualFan);
+      setCurrentFanMode(actualFan.mode);
       toaster.toast({ title: "Ally Center", body: `预设：${translateProfileName(profileName)}` });
       // Disable TDP override when selecting a preset (backend already does this)
       setTdpOverrideState(false);
@@ -884,11 +894,41 @@ const PerformanceSection: VFC = () => {
     await setTdp(tdp);
   };
 
-  const handleFanModeChange = async (mode: { data: string; label: string }) => {
-    setCurrentFanMode(mode.data);
-    await setFanMode(mode.data);
-    toaster.toast({ title: "Ally Center", body: `风扇：${mode.label}` });
-  };
+    const applyFanModeChange = async (mode: { data: string; label: string }) => {
+        if (fanApplying) return;
+        setFanApplying(true);
+        try {
+            const success = await setFanMode(mode.data);
+            const actual = await getFanInfo();
+            setFanInfo(actual);
+            setCurrentFanMode(actual.mode);
+            toaster.toast({ title: "Ally Center", body: success
+                ? (mode.data === "full" ? "已发送双风扇 100% 请求，请观察实际转速" : `散热档位已确认：${mode.label}`)
+                : (actual.error || "散热档位修改失败，已显示实际状态") });
+        } catch (error) {
+            console.error("Failed to set fan profile:", error);
+            toaster.toast({ title: "Ally Center", body: "散热设置失败，请检查实际档位" });
+        } finally {
+            setFanApplying(false);
+        }
+    };
+    const handleFanModeChange = async (mode: { data: string; label: string }) => {
+        if (fanApplying) return;
+        if (mode.data === "full") {
+            const modal = showModal(window.SP_REACT.createElement(ConfirmModal, {
+                strTitle: "启用双风扇全速？",
+                strDescription: "将先切换均衡原厂策略，再请求双风扇 100%。这可能改变固件功耗行为，并增加噪音和耗电；不修改已保存的 TDP/RGB 设置。选择自动可退出。",
+                strOKButtonText: "启用全速",
+                strCancelButtonText: "取消",
+                onOK: () => { modal.Close(); void applyFanModeChange(mode); },
+                onCancel: () => modal.Close(),
+                onEscKeypress: () => modal.Close()
+            }));
+            return;
+        }
+        await applyFanModeChange(mode);
+    };
+    const fanModes = FAN_MODES.filter((mode) => mode.data !== "full" || fanInfo?.full_speed_available || currentFanMode === "full");
 
   const handleTdpOverrideToggle = async (enabled: boolean) => {
     setTdpOverrideState(enabled);
@@ -1047,20 +1087,35 @@ const PerformanceSection: VFC = () => {
 
       <PanelSectionRow>
         <DropdownItem
-          label="风扇模式"
+          label="风扇控制"
           strDefaultLabel={
-            FAN_MODES.find((m) => m.data === currentFanMode)?.label || "自动"
+            fanModes.find((m) => m.data === currentFanMode)?.label || "自动"
           }
           menuLabel={
-            FAN_MODES.find((m) => m.data === currentFanMode)?.label || "自动"
+            fanModes.find((m) => m.data === currentFanMode)?.label || "自动"
           }
-          rgOptions={FAN_MODES}
+          rgOptions={fanModes}
           selectedOption={
-            FAN_MODES.find((m) => m.data === currentFanMode) || FAN_MODES[0]
+            fanModes.find((m) => m.data === currentFanMode) || fanModes[0]
           }
+          disabled={fanApplying || !fanInfo?.available}
           onChange={handleFanModeChange}
         />
       </PanelSectionRow>
+      <div style={sectionStyle}>
+        <div style={{ ...labelStyle, fontSize: "12px", marginBottom: "8px" }}>
+          性能是原厂档位；全速单独请求双风扇 100%，需数十秒升速。全速先切均衡，选择自动可退出；重启插件不自动续开。
+        </div>
+        {fanInfo?.error && <div style={{ color: "#ffcc66", fontSize: "12px", marginBottom: "8px" }}>{fanInfo.error}</div>}
+        <div style={infoRowStyle}>
+          <span style={labelStyle}>风扇 1</span>
+          <span style={valueStyle}>{Number.isFinite(fanInfo?.speed) ? `${fanInfo?.speed} RPM` : "不可用"}</span>
+        </div>
+        <div style={infoRowStyle}>
+          <span style={labelStyle}>风扇 2</span>
+          <span style={valueStyle}>{Number.isFinite(fanInfo?.speed2) ? `${fanInfo?.speed2} RPM` : "不可用"}</span>
+        </div>
+      </div>
     </PanelSection>
   );
 };
@@ -1234,7 +1289,7 @@ const AboutModal: VFC<{ closeModal: () => void }> = ({ closeModal }) => {
     >
       <div style={{ textAlign: "center", marginBottom: "12px" }}>
         <div style={{ fontSize: "18px", fontWeight: "bold", color: "#fff" }}>Ally 控制中心</div>
-        <div style={{ fontSize: "12px", color: "#8b929a" }}>版本 1.2.0</div>
+        <div style={{ fontSize: "12px", color: "#8b929a" }}>版本 1.2.0-renamamiya.2</div>
       </div>
       <div style={{ textAlign: "center" }}>
         <div style={{ color: "#8b929a", fontSize: "11px" }}>原作者</div>
@@ -1242,7 +1297,7 @@ const AboutModal: VFC<{ closeModal: () => void }> = ({ closeModal }) => {
         <div style={{ color: "#8b929a", fontSize: "11px", marginBottom: "12px" }}>Pixel Addict Games</div>
 
         <div style={{ color: "#ffcc66", fontSize: "12px", marginBottom: "12px" }}>
-          中文汉化：RenAmamiya
+          修补、汉化者：RenAmamiya
         </div>
 
         <div style={{ color: "#8b929a", fontSize: "11px", marginBottom: "4px", textAlign: "left" }}>特别感谢</div>
@@ -1287,7 +1342,7 @@ const AllyCenterContent: VFC = () => {
   return (
     <div>
       <div style={{ color: "#ffcc66", fontSize: "12px", textAlign: "center", padding: "6px 8px" }}>
-        中文汉化：RenAmamiya
+        原作者：Keith Baker / Pixel Addict Games · 修补、汉化者：RenAmamiya
       </div>
       <DownloadModeSection />
       <PerformanceSection />

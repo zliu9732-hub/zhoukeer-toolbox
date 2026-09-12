@@ -106,7 +106,13 @@ function SwitchPanel() {
         setBusy(true);
         try {
             const result = await rebootToWindows();
-            toaster.toast({ title: "Switch to Windows", body: result.message });
+            if (result.available) {
+                toaster.toast({ title: "Switch to Windows", body: result.message });
+            }
+            else {
+                toaster.toast({ title: "无法重启进入 Windows", body: result.message });
+                setStatus(result);
+            }
         }
         catch (error) {
             const message = String(error);
@@ -132,4 +138,3 @@ var index = definePlugin(() => ({
 }));
 
 export { index as default };
-//# sourceMappingURL=index.js.map

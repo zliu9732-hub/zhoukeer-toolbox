@@ -888,3 +888,8 @@
 - “更多设置 → 掌机适配”的特殊按键修复新增精确 DMI `ONEXPLAYER X2Mini PRO`（`ONE-NETBOOK`）支持。该机型补齐 InputPlumber 设备描述、`QuickAccess` 映射和 SteamOS `deck-uhid` 目标，机身 OXP 键可打开三点（QAM）菜单。
 - X2 Mini Pro 的三份上游配置固定到提交 `a0b76a1` 并逐份校验 SHA256；检测到 HHD、近似型号、符号链接或服务异常都会在写入前安全停止。原文件与服务状态可从既有状态/恢复入口撤销；写入 steamos-manager 前会临时关闭并恢复 SteamOS 只读保护。
 - 新增壹号掌机专用 InputPlumber 0.79.2 固定官方 Release 更新入口：下载源多线路回退、SHA256 与包结构/版本验证、旧版备份、失败恢复服务和只读保护，不影响 `/etc/inputplumber/devices.d` 自定义配置。
+## Renkit 2.5.7 OneXPlayer X2 Mini Pro 亮度修复 — 2026-09-12
+
+- “掌机控制插件”新增“OneXPlayer 机型工具”：提供 **X2 Mini Pro 亮度修复** 与既有 Apex 专用工具，终端触控和桌面 GUI 均保持可达。
+- 内置 LeGo2 Brightness Fix 2.0.0 简体中文组件，已实测适配 ONEXPLAYER X2 Mini Pro（Ryzen AI Max+ 388、三星 AMS881KB01-0 OLED）；在 SteamOS 游戏模式 HDR/PQ 下把原生亮度滑块交给 Gamescope，并为游戏提供真实 EDID 亮度数据。
+- 安装前校验前端与后端 SHA256，使用原子替换；首次配置会提示显示脚本、可能的短暂黑屏及重启游戏模式。修正 Decky-Framegen 非 UTF-8 进程名导致插件启动失败的问题。

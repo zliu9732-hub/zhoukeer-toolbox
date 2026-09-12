@@ -1,137 +1,62 @@
-# Ally Center
+# Ally 控制中心 · 风扇修补版
 
-A comprehensive Decky Loader plugin for the **ASUS ROG Ally** running SteamOS.
+版本：1.2.0-renamamiya.2
 
-Renkit 中文版基于作者官方 v1.2.0 构建，未修改硬件控制后端。
+- 原作者：Keith Baker / Pixel Addict Games
+- 修补、汉化者：RenAmamiya
+- 原项目：https://github.com/PixelAddictUnlocked/allycenter
+- 许可证：MIT；原作者版权声明和许可全文见 LICENSE。
 
-中文汉化：RenAmamiya
+这是基于 Ally Center 1.2.0 的预构建 Decky 插件包，保留原插件名称。
 
-## Features
+## 修复内容
 
-### Download Mode
+- 校正原厂散热档位：均衡 0、性能 1、安静 2；自动使用均衡原厂策略。
+- 写入后回读确认，失败不再提示成功；回读不一致时尝试恢复先前原厂档位。
+- 按设备名称和设备路径动态查找 ASUS hwmon，显示两路风扇 RPM。
+- 页面显示实际档位和定时更新的双风扇转速，失败不冒充成功。
+- 新增独立“全速（双风扇 100%）”选项，仅在已测试的 RC71L 且接口完整时开放。
+- 全速开始前先持久备份，采用已实测的“均衡 + 双路八点曲线 PWM 255”路径，不写普通 asus 的 pwmN_enable。
+- 选择自动/原厂档位、卸载插件或监控检测异常时尝试退出；插件重启时优先恢复，不自动续开全速。
 
-Turn off the display for background downloads to save battery. When enabled:
+“性能”仍是原厂散热档位，不代表满转。启用全速会先切换均衡策略，再发送双风扇 100% 请求；这可能影响固件功耗行为，噪音与耗电会上升。该过程不修改保存的 TDP/RGB 设置，不提供任意低速曲线编辑器。原有灯光、电池、功耗等模块保留，本次未全面验证其他模块。
 
-- Screen brightness set to 0 (OLED pixels off)
-- Automatically switches to 5W power profile
-- RGB lighting disabled
-- MCU powersave enabled (stops charging LED blink)
-- Open the Quick Access Menu to exit
+退出时先请求原厂策略并确认两路自定义曲线均已禁用，再恢复原来的曲线缓存。旧缓存只保存，不启用。若恢复失败，会保留备份和恢复标记并显示错误；不要接着运行其他写风扇脚本，应退出重负载、保留备份并排查。监控检测到其他程序改动时只尝试恢复一次，不反复抢写。
 
-### Performance
+选择“自动（均衡）”可主动退出。关闭插件面板不等于卸载插件，全速仍会持续；正常后端卸载会尝试恢复。突然断电、强制终止进程时无法保证执行清理，恢复标记供下次插件启动处理；未重启插件前有可能仍保持高转速。不要把退出恢复视为独立硬件保护。
 
-- **Use External TDP** - Disable Ally Center's TDP management to use SimpleDeckyTDP or other plugins
-- **Performance Presets** - Quick switch between Download (5W), Silent (15W), Performance (25W), and Turbo (30W) modes
-- **TDP Override** - Manually set TDP from 5W to 30W with fine-grained control
-- **Fan Mode** - Choose between Auto, Quiet, Balanced, and Performance fan profiles
-- **Live Monitoring** - View current CPU and GPU temperatures in real-time
+备份位于 Decky 为本插件提供的 settings 目录下 `fan-backups/`；未完成恢复的状态文件为 `fan-fullspeed-state.json`。它们不是插件安装包的一部分。不要删除尚未恢复的标记。
 
-### CPU Settings
+## 安装
 
-- **SMT (Hyper-Threading)** - Toggle on/off for better single-thread performance in some games
-- **CPU Boost** - Disable to reduce heat and power consumption
+1. 设备须已安装 Decky Loader。安装或替换同名插件前，先备份已有插件目录和个人配置。
+2. 使用 Decky 的本地 ZIP 安装功能选择本压缩包；入口位置随 Decky 版本可能不同。它是插件安装包，不是源码工程压缩包。
+3. 如果手动安装：压缩包内只有一个顶层文件夹 `Ally Center`。把这个文件夹放入当前 Decky 的 `homebrew/plugins/` 目录，避免多套一层同名文件夹。替换文件前先停止 Decky，完成后再启动。
+4. 重新打开 Decky 中的“Ally 控制中心”，在“风扇控制”下查看风扇 1 / 风扇 2；选择全速时会出现噪音与策略变化确认。
 
-### Battery
+常见安装路径为 `~/homebrew/plugins/Ally Center/`。个人配置位于 Decky 的 settings 目录；原机器使用 `~/homebrew/settings/Ally Center/settings.json`。本包不包含个人 settings.json，不要用 defaults/defaults.json 覆盖已有个人配置。
 
-- **Charge Level** - Current battery percentage and charging status
-- **Battery Health** - Monitor battery health percentage
-- **Detailed Stats** - View cycle count, voltage, design capacity, current capacity, and temperature
-- **Charge Limit** - Set maximum charge level (60-100%) to extend battery lifespan
+不要运行原项目的在线安装命令来安装本修补版，它会下载上游版本而非本压缩包。后续插件更新也可能覆盖本次修补。
 
-### RGB Lighting
+## 验证范围
 
-- **Color Selection** - Full color spectrum slider with preset colors (ROG Red, Cyan, Purple, Green, Orange, Pink, White, Blue)
-- **Brightness Control** - Adjust LED brightness from 0-100%
-- **Effects** - Static, Pulse, Spectrum, Wave, Flash, Battery Level, or Off
-- **Speed Control** - Adjust animation speed for animated effects
+已实测：ROG Ally RC71L、BIOS RC71L.342、SteamOS 3.8.16 的双风扇读取、性能/均衡切换，以及均衡下双路八点 PWM 255 的 20 秒短测。实测转速从 4100/3000 上升至 8000/7300 RPM，随后报告原厂策略与旧缓存恢复，3 秒后降至 7600/6900。20 秒时仍在升速，不能把该数值称为最高转速；界面显示的是 100% 请求和实际 RPM。
 
-### Device Info
+普通 asus 的 Full On/自动 PWM 模式写入在这台机器返回 I/O 错误，因此此版完全不使用该控制路径。自定义曲线的启用节点仅定位到 asus_custom_fan_curve。
 
-View detailed system information:
+完整新版插件尚未重新安装到实机；上述实机证据来自短测脚本与早先的原厂档位修复。新增的备份失败、第二路启用失败、恢复失败、外部覆盖、重启与监控中断分支已通过本地模拟测试，不能代替全部实机故障测试。Ally X 及其他机型不开放本次全速功能。此前远控出现的页面滚动跳动未包含在本次修复范围。
 
-- CPU model
-- GPU model
-- Memory total
-- BIOS version
-- Kernel version
+## 包含与排除
 
-## Requirements
+包含 main.py、已构建的 dist/index.js、插件元数据、默认值、原图标、许可证和说明。文件 SHA-256 见 SHA256SUMS。
 
-- ASUS ROG Ally or ROG Ally X
-- SteamOS (or compatible distro like Bazzite, ChimeraOS)
-- [Decky Loader](https://github.com/SteamDeckHomebrew/decky-loader) installed
+不包含个人设置、设备诊断日志、账号数据、缓存、原始备份或任何其他工具文件。
 
-## Installation
+## 回退
 
-### Quick Install (Recommended)
+停止 Decky 后恢复你在安装前备份的插件文件夹，再启动 Decky。不要把备份文件夹作为第二个插件放在 plugins 目录内。恢复代码不会自动恢复或启用自定义风扇曲线。
 
-**Important:** Run this directly on your ROG Ally or via SSH.
+## 打包格式依据
 
-**On your ROG Ally:**
-
-1. Switch to Desktop Mode
-2. Open Konsole (terminal)
-3. Run:
-
-```bash
-curl -L https://github.com/PixelAddictUnlocked/allycenter/raw/main/install.sh | sh
-```
-
-**Via SSH:**
-
-```bash
-ssh deck@<your-ally-ip>
-curl -L https://github.com/PixelAddictUnlocked/allycenter/raw/main/install.sh | sh
-```
-
-The installer will download the latest release, install it, and restart Decky Loader automatically.
-
-### Manual Install
-
-1. Download the latest release from the [Releases](https://github.com/PixelAddictUnlocked/allycenter/releases) page
-2. Extract to `~/homebrew/plugins/Ally Center/`
-3. Restart Decky Loader or reboot
-
-## Usage
-
-1. Press the **...** button on your ROG Ally to open the Quick Access Menu
-2. Navigate to the **Decky** plugin icon (plug icon)
-3. Select **Ally Center** from the plugin list
-4. Use the toggles, sliders, and buttons to control your device
-
-## Hardware Support
-
-| Feature             | ROG Ally | ROG Ally X |
-| ------------------- | -------- | ---------- |
-| Download Mode       | ✅       | ✅         |
-| Performance Presets | ✅       | ✅         |
-| TDP Override        | ✅       | ✅         |
-| Fan Control         | ✅       | ✅         |
-| CPU Settings        | ✅       | ✅         |
-| Battery Health      | ✅       | ✅         |
-| Charge Limit        | ✅       | ✅         |
-| RGB Lighting        | ✅       | ✅         |
-| Device Info         | ✅       | ✅         |
-
-## Settings
-
-Your preferences are automatically saved and restored between sessions. Settings are stored in:
-
-```
-~/homebrew/settings/Ally Center/settings.json
-```
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
-## Credits
-
-- [Decky Loader](https://github.com/SteamDeckHomebrew/decky-loader) - Plugin framework
-- [HueSync](https://github.com/honjow/HueSync) - RGB inspiration
-- [ASUS Linux](https://asus-linux.org) - Hardware documentation
-
-## Support
-
-- [GitHub Issues](https://github.com/PixelAddictUnlocked/allycenter/issues)
-- [Discord](https://discord.gg/pixeladdictgames)
+ZIP 使用单层插件根目录，符合 Decky 本地 ZIP 加载代码的结构：
+https://github.com/SteamDeckHomebrew/decky-loader/blob/main/backend/decky_loader/browser.py

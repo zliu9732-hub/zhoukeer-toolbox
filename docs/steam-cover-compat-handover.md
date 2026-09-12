@@ -49,7 +49,7 @@ Epic、战网、育碧、黑盒工坊四个启动器通过Renkit写入 Steam 库
 
 ## 用户提示
 
-四个启动器下载/安装完成后，Renkit会提示：若点击开始游戏没反应，请点启动器右侧的齿轮 → 属性 → 兼容性，勾选“强制使用兼容性工具”，选择 Proton Experimental 或 Proton 10.0.1 后重试。
+四个启动器下载/入库时由Renkit自动写入 Proton 10.0-4 兼容层，不再提示手动添加；若 Steam 未生效，按上文第 5 步核对 `CompatToolMapping`。
 
 ## 尚未确认的项
 

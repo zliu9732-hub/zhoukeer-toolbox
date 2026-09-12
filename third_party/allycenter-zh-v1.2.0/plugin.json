@@ -1,11 +1,20 @@
 {
   "name": "Ally 控制中心",
-  "author": "Keith Baker",
-  "flags": ["root"],
+  "author": "原作者：Keith Baker / Pixel Addict Games；修补、汉化者：RenAmamiya",
+  "flags": [
+    "root"
+  ],
   "api_version": 1,
   "publish": {
-    "tags": ["hardware", "rog-ally", "asus", "rgb", "battery", "performance"],
-    "description": "ASUS ROG Ally / Ally X 综合控制中心：RGB 灯光、电池健康、设备信息、性能预设与屏幕控制。",
+    "tags": [
+      "hardware",
+      "rog-ally",
+      "asus",
+      "rgb",
+      "battery",
+      "performance"
+    ],
+    "description": "ROG Ally 控制中心风扇修补版：校正原厂散热档位、显示双风扇转速，新增 RC71L 双风扇 100% 请求与退出恢复。原作者 Keith Baker / Pixel Addict Games；修补、汉化者 RenAmamiya。",
     "image": "https://github.com/PixelAddictUnlocked/allycenter/raw/main/icons/icon.png"
   }
 }

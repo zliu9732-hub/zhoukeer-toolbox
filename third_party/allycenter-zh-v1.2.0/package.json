@@ -1,7 +1,7 @@
 {
   "name": "ally-center",
-  "version": "1.2.0",
-  "description": "Decky Loader plugin for ASUS ROG Ally - RGB, battery health, device info, performance profiles, and screen control",
+  "version": "1.2.0-renamamiya.2",
+  "description": "Ally Center fan repair build; original author Keith Baker / Pixel Addict Games; 修补、汉化者 RenAmamiya",
   "author": "Keith Baker <Pixel Addict Games>",
   "license": "MIT",
   "type": "module",
@@ -37,5 +37,10 @@
         "react-dom"
       ]
     }
-  }
+  },
+  "contributors": [
+    {
+      "name": "RenAmamiya"
+    }
+  ]
 }
