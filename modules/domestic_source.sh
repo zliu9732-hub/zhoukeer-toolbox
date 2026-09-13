@@ -328,35 +328,36 @@ restore_discover_packagekit_backend() {
     fi
 }
 
-refresh_discover_after_source_setup() {
+run_discover_refresh_worker() {
     local launch_log="$LOG_DIR/discover-start.log"
+    local refresh_failed=0
 
     require_command flatpak || return 1
     require_command timeout || return 1
 
     echo "[3/3] 修复 Discover 用户仓库并刷新应用索引..."
     pkill -x plasma-discover >/dev/null 2>&1 || true
-    if ! flatpak repair --user; then
-        echo "Flatpak 用户仓库修复失败，Discover 修复未完成。"
-        return 1
+    if ! timeout 90 flatpak repair --user; then
+        echo "Flatpak 用户仓库修复失败或超时，将继续重建应用索引。"
+        refresh_failed=1
     fi
-    if ! timeout 180 flatpak update --user --appstream --noninteractive; then
-        echo "Flatpak 应用索引刷新失败或超时，Discover 修复未完成。"
-        return 1
+    if ! timeout 120 flatpak update --user --appstream --noninteractive; then
+        echo "Flatpak 应用索引刷新失败或超时，将继续重建 KDE 缓存。"
+        refresh_failed=1
     fi
 
     if command -v kbuildsycoca6 >/dev/null 2>&1; then
-        kbuildsycoca6 --noincremental || return 1
+        kbuildsycoca6 --noincremental || refresh_failed=1
     elif command -v kbuildsycoca5 >/dev/null 2>&1; then
-        kbuildsycoca5 --noincremental || return 1
+        kbuildsycoca5 --noincremental || refresh_failed=1
     else
-        echo "缺少 KDE 缓存重建命令，Discover 修复未完成。"
-        return 1
+        echo "缺少 KDE 缓存重建命令，将直接尝试启动 Discover。"
+        refresh_failed=1
     fi
 
     if [ "${ZHOUKEER_TEST_MODE:-0}" = "1" ]; then
         echo "Discover 应用商店修复模拟完成。"
-        return 0
+        return "$refresh_failed"
     fi
     require_command plasma-discover || return 1
     mkdir -p "$LOG_DIR" || return 1
@@ -368,6 +369,26 @@ refresh_discover_after_source_setup() {
         return 1
     fi
     echo "Discover 已修复并重新启动。"
+    return "$refresh_failed"
+}
+
+refresh_discover_after_source_setup() {
+    local refresh_log="$LOG_DIR/discover-refresh.log"
+
+    if [ "${ZHOUKEER_DISCOVER_DEFER:-0}" = "1" ]; then
+        echo "Discover 用户仓库与应用索引将在新机初始化结束时后台修复。"
+        return 0
+    fi
+
+    if [ "${ZHOUKEER_DISCOVER_BACKGROUND:-0}" = "1" ] && \
+        [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
+        mkdir -p "$LOG_DIR" || return 1
+        (run_discover_refresh_worker) </dev/null > "$refresh_log" 2>&1 &
+        echo "Discover 用户仓库与应用索引已转入后台修复，不阻塞新机初始化。"
+        echo "后台日志：$refresh_log"
+        return 0
+    fi
+    run_discover_refresh_worker
 }
 
 prepare_system_packages() (
@@ -551,6 +572,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         enable) configure_domestic_flatpak ;;
         restore) restore_official_flatpak ;;
         status) show_software_source_status ;;
-        *) echo "用法: $0 {init|enable|restore|status}"; exit 1 ;;
+        refresh-discover) require_steamos && refresh_discover_after_source_setup ;;
+        *) echo "用法: $0 {init|enable|restore|status|refresh-discover}"; exit 1 ;;
     esac
 fi

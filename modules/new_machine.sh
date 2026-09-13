@@ -462,7 +462,8 @@ run_new_machine_initialization() {
             env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/domestic_source.sh" enable
     else
         run_step "【02-03】更新必要系统组件并优化国内软件源" \
-            env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/domestic_source.sh" init
+            env ZHOUKEER_AUTO_CONFIRM=1 ZHOUKEER_DISCOVER_DEFER=1 \
+            bash "$PROJECT_ROOT/modules/domestic_source.sh" init
     fi
     run_step "【04】Fcitx5 中文输入法" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/software.sh" fcitx5
@@ -501,6 +502,11 @@ run_new_machine_initialization() {
     run_step "【15】Renkit 程序与快捷方式检查" check_toolbox_installation
     run_step "【16】Renkit 联网版本检测" bash "$PROJECT_ROOT/update.sh" --check-only
     run_step "【17-18】生成交付说明和后续咨询指引" write_customer_handover_guide
+    if [ "$NEW_MACHINE_SKIP_SYSTEM_UPDATE" != "1" ]; then
+        run_step "【19】后台修复 Discover 用户仓库与应用索引" \
+            env ZHOUKEER_DISCOVER_BACKGROUND=1 \
+            bash "$PROJECT_ROOT/modules/domestic_source.sh" refresh-discover
+    fi
 
     finish_new_machine_report
     echo ""

@@ -273,8 +273,10 @@ grep -Fq 'remote-add --user --if-not-exists --no-gpg-verify flathub-cn https://m
 grep -Fq 'remote-add --user --if-not-exists --no-gpg-verify flathub-ustc https://fallback.test.invalid/flathub' \
     "$STATE_DIR/commands" || fail "中科大用户级远程没有直接使用已确认的国内地址"
 [ ! -e "$STATE_DIR/sudo-calls" ] || fail "用户级国内源配置不应调用 sudo"
-grep -Fq -- 'flatpak update --user --appstream --noninteractive' "$PROJECT_ROOT/modules/domestic_source.sh" || \
+grep -Fq -- 'timeout 120 flatpak update --user --appstream --noninteractive' "$PROJECT_ROOT/modules/domestic_source.sh" || \
     fail "完整初始化没有刷新 Discover AppStream"
+grep -Fq -- 'timeout 90 flatpak repair --user' "$PROJECT_ROOT/modules/domestic_source.sh" || \
+    fail "Discover 用户仓库修复缺少超时保护"
 grep -Fq 'verify_domestic_flatpak_remote' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应保留应用索引验证"
 for command_text in 'packages_installed_without_known_upgrades' 'archlinuxcn_keyring_ready' 'configure_archlinuxcn_with_fallback' 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman-key --populate holo' 'run_pacman_without_metadata_warnings -Syyu --noconfirm' 'run_pacman_without_metadata_warnings -S --needed --noconfirm git flatpak' 'discover packagekit packagekit-qt6' 'run_pacman_without_metadata_warnings -S --noconfirm archlinux-keyring' 'run_pacman_without_metadata_warnings -S --noconfirm archlinuxcn-keyring' 'pacman -Sy --needed --noconfirm archlinuxcn-keyring' 'pacman-key --populate archlinuxcn' 'locale-gen' 'steamos-readonly disable' 'steamos-readonly enable'; do
@@ -314,6 +316,12 @@ grep -Fq '更新必要系统组件并优化国内软件源' "$PROJECT_ROOT/modul
     fail "新机初始化没有运行国内源与系统组件检测"
 grep -Fq 'modules/domestic_source.sh" enable' "$PROJECT_ROOT/modules/new_machine.sh" || \
     fail "新机初始化跳过系统更新时没有继续配置用户级 Flatpak 国内源"
+grep -Fq 'ZHOUKEER_DISCOVER_DEFER=1' "$PROJECT_ROOT/modules/new_machine.sh" || \
+    fail "新机初始化没有把 Discover 用户仓库刷新延后到安装结束"
+grep -Fq 'ZHOUKEER_DISCOVER_BACKGROUND=1' "$PROJECT_ROOT/modules/new_machine.sh" || \
+    fail "新机初始化结束时没有把 Discover 用户仓库刷新转入后台"
+grep -Fq 'modules/domestic_source.sh" refresh-discover' "$PROJECT_ROOT/modules/new_machine.sh" || \
+    fail "新机初始化缺少结束阶段的 Discover 后台修复动作"
 
 # 配置文件测试只操作临时目录，toolbox_sudo 被替换为直接调用假 install/locale-gen。
 SYSTEM_DIR="$TMP_ROOT/system"
