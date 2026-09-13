@@ -384,13 +384,13 @@ grep -Fq 'DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'allycenter) show_plugin_download_speed_tip; install_configured_plugin allycenter' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'ALLYCENTER_ZH_INDEX_SHA256="41693c96832e902ed39e8d384ca404af709eb45dfec96d53e4794c301c5c8b54"' \
+grep -Fq 'ALLYCENTER_ZH_INDEX_SHA256="1a937de0d4489663a436f165b0c872e770a21d1e34b58bf0a3ae52bde7ddb4cb"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Eq '双风扇|全速|修补、汉化者|full_speed' \
     "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js"; then
     echo "FAIL: Ally Center 中文前端仍包含 Renkit 的风扇修补功能" >&2
     exit 1
-}
+fi
 grep -Fq '充电上限已设置为' \
     "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js" || {
     echo "FAIL: Ally Center 中文构建缺少电池界面汉化" >&2
@@ -403,7 +403,7 @@ grep -Fq 'RGB 灯光' \
 }
 allycenter_zh_actual_sha256="$(shasum -a 256 \
     "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js" | awk '{print $1}')"
-[ "$allycenter_zh_actual_sha256" = "41693c96832e902ed39e8d384ca404af709eb45dfec96d53e4794c301c5c8b54" ] || {
+[ "$allycenter_zh_actual_sha256" = "1a937de0d4489663a436f165b0c872e770a21d1e34b58bf0a3ae52bde7ddb4cb" ] || {
     echo "FAIL: Ally Center 中文构建文件校验值不匹配" >&2
     exit 1
 }
@@ -1097,6 +1097,7 @@ printf '{"name":"Ally Center","author":"Keith Baker","flags":["root"],"api_versi
 printf '{"version":"1.2.0"}\n' > "$ALLY_BUILD/package.json"
 printf '# official backend fixture\n' > "$ALLY_BUILD/main.py"
 printf 'test bundle\n' > "$ALLY_BUILD/dist/index.js"
+printf 'official runtime asset\n' > "$ALLY_BUILD/dist/runtime.js"
 (
     cd "$ALLY_BUILD"
     zip -qr "$ALLY_ARCHIVE" .
@@ -1128,6 +1129,10 @@ grep -Fq '"name":"Ally Center"' "$ALLY_PLUGIN_ROOT/Ally Center/plugin.json" || {
 }
 [ -s "$ALLY_PLUGIN_ROOT/Ally Center/dist/index.js" ] || {
     echo "FAIL: Ally Center 根目录结构未安装前端文件" >&2
+    exit 1
+}
+grep -Fq 'official runtime asset' "$ALLY_PLUGIN_ROOT/Ally Center/dist/runtime.js" || {
+    echo "FAIL: Ally Center 汉化覆盖丢失了官方 dist 文件" >&2
     exit 1
 }
 installed_allycenter_sha256="$(shasum -a 256 \

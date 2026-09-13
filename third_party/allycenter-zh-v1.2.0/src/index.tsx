@@ -1278,6 +1278,24 @@ const AboutSection: VFC = () => {
 const AllyCenterContent: VFC = () => {
   return (
     <div>
+      <PanelSection>
+        <PanelSectionRow>
+          <div
+            style={{
+              backgroundColor: "#4a3b00",
+              border: "1px solid #d9a441",
+              borderRadius: "4px",
+              color: "#ffd54a",
+              fontSize: "13px",
+              fontWeight: "bold",
+              padding: "10px 12px",
+              width: "100%",
+            }}
+          >
+            中文汉化：RenAmamiya
+          </div>
+        </PanelSectionRow>
+      </PanelSection>
       <DownloadModeSection />
       <PerformanceSection />
       <CpuSettingsSection />

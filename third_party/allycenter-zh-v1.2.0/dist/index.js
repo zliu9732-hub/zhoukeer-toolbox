@@ -748,6 +748,9 @@ const AboutSection = () => {
 };
 const AllyCenterContent = () => {
     return (window.SP_REACT.createElement("div", null,
+        window.SP_REACT.createElement(DFL.PanelSection, null,
+            window.SP_REACT.createElement(DFL.PanelSectionRow, null,
+                window.SP_REACT.createElement("div", { style: { backgroundColor: "#4a3b00", border: "1px solid #d9a441", borderRadius: "4px", color: "#ffd54a", fontSize: "13px", fontWeight: "bold", padding: "10px 12px", width: "100%" } }, "\u4E2D\u6587\u6C49\u5316\uFF1ARenAmamiya"))),
         window.SP_REACT.createElement(DownloadModeSection, null),
         window.SP_REACT.createElement(PerformanceSection, null),
         window.SP_REACT.createElement(CpuSettingsSection, null),

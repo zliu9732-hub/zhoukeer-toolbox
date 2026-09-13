@@ -134,11 +134,12 @@ DECKY_NEWFREEDECK_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 # Ally Center 固定使用作者 v1.2.0 正式版；国内镜像与 NewFreedeck 共用 mirror-3。
 DECKY_ALLYCENTER_URL="${ZHOUKEER_DECKY_ALLYCENTER_URL:-https://github.com/PixelAddictUnlocked/allycenter/releases/download/v1.2.0/allycenter-v1.2.0.zip}"
 DECKY_ALLYCENTER_SHA256="${ZHOUKEER_DECKY_ALLYCENTER_SHA256:-a1059534de2a0e9556669adff3d933bcde802101faae7558f9b33db3a8e51bc7}"
-# Ally Center 保持作者 v1.2.0 的后端、清单与版本；Renkit 仅替换中文界面文件。
+# Ally Center 保持作者 v1.2.0 的后端、清单与版本；Renkit 只覆盖中文界面入口，
+# 并保留官方 dist 内的其余文件，避免上游新增资源在汉化时丢失。
 DECKY_ALLYCENTER_VERSION="1.2.0"
 DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 ALLYCENTER_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0"
-ALLYCENTER_ZH_INDEX_SHA256="41693c96832e902ed39e8d384ca404af709eb45dfec96d53e4794c301c5c8b54"
+ALLYCENTER_ZH_INDEX_SHA256="1a937de0d4489663a436f165b0c872e770a21d1e34b58bf0a3ae52bde7ddb4cb"
 # PowerControl 使用作者 v3.15.1 官方完整包，不修改名称、前端或后端。
 DECKY_POWERCONTROL_URL="${ZHOUKEER_DECKY_POWERCONTROL_URL:-https://github.com/mengmeet/PowerControl/releases/download/v3.15.1/PowerControl.zip}"
 DECKY_POWERCONTROL_SHA256="${ZHOUKEER_DECKY_POWERCONTROL_SHA256:-9c14eddbec7657a23e73eaf811bd8344198159d48303481cf70ebb7c1c1ebd7c}"
@@ -3284,8 +3285,6 @@ install_allycenter_chinese() {
     work_dir="$(mktemp -d)" || return 1
     staged_source="$work_dir/Ally Center"
     if ! cp -a -- "$official_source" "$staged_source" || \
-       ! rm -rf -- "$staged_source/dist" || \
-       ! mkdir -p "$staged_source/dist" || \
        ! cp -a -- "$ALLYCENTER_ZH_SOURCE_DIR/dist/index.js" "$staged_source/dist/index.js"; then
         rm -rf -- "$work_dir"
         echo "Ally Center 中文组件准备失败，原版未改动。"
