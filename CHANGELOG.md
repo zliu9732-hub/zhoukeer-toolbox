@@ -1,3 +1,9 @@
+## Renkit 2.6.9 Discover 应用商店修复 — 2026-09-14
+
+- “初始化国内源并检测系统组件”会同步重装匹配的 Discover、PackageKit 与 Qt6 运行库，修复系统更新后商店无法启动的问题。
+- 自动恢复曾被改名为 `.disabled` 的 PackageKit 后端；任何失败都会恢复 SteamOS 原有只读保护状态。
+- 国内 Flatpak 源配置完成后自动修复用户仓库、刷新 AppStream、重建 KDE 缓存并重新启动 Discover。
+
 ## Renkit 2.6.2 常用插件组合加入 MAKO — 2026-09-12
 
 - SteamOS 的“常用插件组合”升级为九款：保留旧版小黄鸭，并新增 MAKO 小黄鸭。

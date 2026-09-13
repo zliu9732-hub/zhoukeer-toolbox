@@ -17,6 +17,8 @@ ARCHLINUXCN_FALLBACK_URL="https://mirrors.ustc.edu.cn/archlinuxcn/\$arch"
 ARCHLINUXCN_OFFICIAL_URL="https://repo.archlinuxcn.org/\$arch"
 ARCHLINUXCN_BLOCK_BEGIN="# BEGIN ZHOUKEER ARCHLINUXCN"
 ARCHLINUXCN_BLOCK_END="# END ZHOUKEER ARCHLINUXCN"
+DISCOVER_PACKAGEKIT_BACKEND="${ZHOUKEER_DISCOVER_BACKEND_PATH:-/usr/lib/qt6/plugins/discover/packagekit-backend.so}"
+DISCOVER_PACKAGEKIT_BACKEND_DISABLED="${DISCOVER_PACKAGEKIT_BACKEND}.disabled"
 
 pacman_conf_has_archlinuxcn() {
     LC_ALL=C awk '
@@ -135,7 +137,7 @@ configure_domestic_flatpak() {
     if [ "$IS_BAZZITE" -eq 1 ]; then
         echo "配置 Bazzite 用户级 Flatpak 国内缓存..."
     else
-        echo "[2/2] 配置上海交大和中科大 Flatpak 国内缓存..."
+        echo "[2/3] 配置上海交大和中科大 Flatpak 国内缓存..."
     fi
     if ! ensure_flatpak_remotes; then
         if flatpak_any_remote_exists; then
@@ -311,6 +313,63 @@ run_pacman_without_metadata_warnings() {
     return "$pacman_status"
 }
 
+restore_discover_packagekit_backend() {
+    if [ -e "$DISCOVER_PACKAGEKIT_BACKEND" ]; then
+        return 0
+    fi
+    if [ -L "$DISCOVER_PACKAGEKIT_BACKEND_DISABLED" ]; then
+        echo "Discover 后端备份是符号链接，Renkit不会自动恢复：$DISCOVER_PACKAGEKIT_BACKEND_DISABLED"
+        return 1
+    fi
+    if [ -f "$DISCOVER_PACKAGEKIT_BACKEND_DISABLED" ]; then
+        echo "检测到被停用的 Discover PackageKit 后端，正在恢复..."
+        toolbox_sudo mv -- "$DISCOVER_PACKAGEKIT_BACKEND_DISABLED" \
+            "$DISCOVER_PACKAGEKIT_BACKEND" || return 1
+    fi
+}
+
+refresh_discover_after_source_setup() {
+    local launch_log="$LOG_DIR/discover-start.log"
+
+    require_command flatpak || return 1
+    require_command timeout || return 1
+
+    echo "[3/3] 修复 Discover 用户仓库并刷新应用索引..."
+    pkill -x plasma-discover >/dev/null 2>&1 || true
+    if ! flatpak repair --user; then
+        echo "Flatpak 用户仓库修复失败，Discover 修复未完成。"
+        return 1
+    fi
+    if ! timeout 180 flatpak update --user --appstream --noninteractive; then
+        echo "Flatpak 应用索引刷新失败或超时，Discover 修复未完成。"
+        return 1
+    fi
+
+    if command -v kbuildsycoca6 >/dev/null 2>&1; then
+        kbuildsycoca6 --noincremental || return 1
+    elif command -v kbuildsycoca5 >/dev/null 2>&1; then
+        kbuildsycoca5 --noincremental || return 1
+    else
+        echo "缺少 KDE 缓存重建命令，Discover 修复未完成。"
+        return 1
+    fi
+
+    if [ "${ZHOUKEER_TEST_MODE:-0}" = "1" ]; then
+        echo "Discover 应用商店修复模拟完成。"
+        return 0
+    fi
+    require_command plasma-discover || return 1
+    mkdir -p "$LOG_DIR" || return 1
+    nohup plasma-discover > "$launch_log" 2>&1 &
+    sleep 3
+    if command -v pgrep >/dev/null 2>&1 && ! pgrep -x plasma-discover >/dev/null 2>&1; then
+        echo "Discover 启动失败，最近日志："
+        tail -n 12 "$launch_log" 2>/dev/null || true
+        return 1
+    fi
+    echo "Discover 已修复并重新启动。"
+}
+
 prepare_system_packages() (
     local pacman_conf="${1:-/etc/pacman.conf}"
     local locale_gen="${2:-/etc/locale.gen}"
@@ -355,7 +414,7 @@ prepare_system_packages() (
     cp -- "$pacman_conf" "$pacman_backup" || return 1
     cp -- "$locale_gen" "$locale_backup" || return 1
 
-    echo "[1/2] 初始化 pacman 密钥环并完整更新系统组件..."
+    echo "[1/3] 初始化 pacman 密钥环并完整更新系统组件..."
     readonly_status="$(steamos-readonly status 2>/dev/null || true)"
     if printf '%s' "$readonly_status" | grep -qi 'enabled'; then
         toolbox_sudo steamos-readonly disable >/dev/null 2>&1 || return 1
@@ -403,6 +462,15 @@ prepare_system_packages() (
         echo "密钥环修复后的复查更新失败，已停止。"
         return 1
     fi
+    if ! restore_discover_packagekit_backend; then
+        echo "恢复 Discover PackageKit 后端失败，已停止。"
+        return 1
+    fi
+    if ! run_pacman_without_metadata_warnings -S --noconfirm \
+        discover packagekit packagekit-qt6; then
+        echo "Discover 系统组件同步重装失败，已停止。"
+        return 1
+    fi
 
     if ! configure_chinese_locales "$locale_gen"; then
         echo "中英文 locale 配置失败，已停止。"
@@ -431,15 +499,16 @@ initialize_software_sources() {
     echo "================================================"
     echo " 初始化国内源并检测系统组件"
     echo "================================================"
-    echo "将完整更新系统组件、配置 archlinuxcn 镜像回退和密钥环、生成中英文 locale，并配置 Flatpak 国内缓存。"
+    echo "将完整更新系统组件、配置 archlinuxcn 镜像回退和密钥环、生成中英文 locale，并修复 Discover 与 Flatpak 应用索引。"
     echo "可恢复：修改前会在本次临时目录备份 pacman 与语言配置；菜单提供“恢复官方软件源”。"
     echo "管理员权限会读取桌面管理员密码.txt，不会重复询问密码。"
 
     prepare_system_packages || return 1
     configure_domestic_flatpak || return 1
+    refresh_discover_after_source_setup || return 1
 
     echo ""
-    echo "国内源与系统组件初始化完成。现在可以继续使用Renkit安装软件。"
+    echo "国内源、系统组件与 Discover 应用商店初始化完成。现在可以继续安装软件。"
     if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" /etc/pacman.conf 2>/dev/null; then
         echo "Arch Linux CN：上海交大 → 中科大 → 官方源（GPG 密钥环已启用）"
     else
@@ -451,7 +520,7 @@ initialize_software_sources() {
         echo "上海交大：$FLATHUB_CN_URL"
         echo "中科大：$FLATHUB_CN_FALLBACK_URL"
     fi
-    log "国内源与系统组件初始化完成：已完整更新系统组件、处理archlinuxcn密钥环、配置中文locale和Flatpak国内双缓存"
+    log "国内源与系统组件初始化完成：已同步重装Discover组件、刷新AppStream、处理archlinuxcn密钥环、配置中文locale和Flatpak国内双缓存"
 }
 
 show_software_source_status() {

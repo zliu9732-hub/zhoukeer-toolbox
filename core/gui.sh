@@ -1054,12 +1054,12 @@ domestic_source_gui_preflight() {
     local choice
 
     choice="$(gui_dialog --menu "初始化国内源并检测系统组件｜Flatpak 缓存关闭 GPG；archlinuxcn 保持 GPG 验证" \
-        configure "初始化国内源并检测系统组件｜完整更新系统组件，配置 locale 与国内缓存" \
+        configure "初始化国内源并检测系统组件｜更新系统组件、配置国内缓存并修复 Discover" \
         restore "恢复官方软件源｜恢复 Flathub 并移除Renkit archlinuxcn" \
         back "返回系统设置")" || return 0
     case "$choice" in
         configure)
-            gui_confirm "将初始化国内源并检测系统组件：会完整更新系统组件（pacman -Syyu）、重装 archlinux/archlinuxcn 密钥环、修改 Flatpak 软件源、关闭 Flatpak 国内缓存的 GPG 验证、生成中英文 locale，并临时关闭 SteamOS 只读保护。
+            gui_confirm "将初始化国内源并检测系统组件：会完整更新系统组件（pacman -Syyu）、同步重装 Discover/PackageKit、重装 archlinux/archlinuxcn 密钥环、修改 Flatpak 软件源、修复用户仓库并刷新 AppStream、生成中英文 locale，并临时关闭 SteamOS 只读保护。
 
 pacman 仓库：archlinuxcn
 地址：https://mirrors.ustc.edu.cn/archlinuxcn/\$arch

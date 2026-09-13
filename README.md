@@ -2,7 +2,7 @@
 
 Renkit是面向 SteamOS、Bazzite 与 ChimeraOS 掌机的 Bash 工具集。同一条安装命令会自动选择独立版本：SteamOS 保留完整原版功能，Bazzite 使用单独菜单开放已适配功能，ChimeraOS 使用只包含用户级应用和插件安装的安全菜单。
 
-当前正式版：Renkit 2.6.8；从 Renkit 1.0 起按语义化版本递增。
+当前正式版：Renkit 2.6.9；从 Renkit 1.0 起按语义化版本递增。
 
 终端触控菜单会随窗口宽高自动铺开，放大、缩小或最大化后自动重绘。首页分类卡片可直接点击进入；达到 110 列时，首页和纯按钮菜单采用双列卡片，窄窗口保留单列。右侧按钮边框统一为柔和红色，危险确认用亮红文字提示；左侧当前分类加亮，采用两条贯通竖线与逐项横线分隔，菜单均分窗口可用高度，名称在各格内居中，底边延伸至页脚上方；含额外提示或风险说明的页面保持纵向顺序。较矮窗口采用紧凑红框，24 行窗口优先显示底部按钮而隐藏操作提示；小于 70 列 × 24 行时提示放大并暂停点击。
 
@@ -36,7 +36,7 @@ Renkit是面向 SteamOS、Bazzite 与 ChimeraOS 掌机的 Bash 工具集。同�
 - 壹号掌机适配：屏幕方向修复支持 `ONEXPLAYER F1` 7840U、8840U OLED 实机 DMI 名 `ONEXPLAYER F1L`，并保留 `ONEXPLAYER F1 OLED` 兼容名称。特殊按键修复严格支持实机验证过的 `ONEXPLAYER F1L` 与 `ONEXPLAYER X1Pro`，分别复用 SteamOS 自带的 ONEXFLY F1 与 X1 InputPlumber 配置，只在 `/etc/inputplumber/devices.d` 创建型号副本；`ONEXPLAYER X2Mini PRO` 使用独立的固定提交配置，补齐设备 DMI、`QuickAccess` 映射与 SteamOS 虚拟设备目标，修复机身 OXP 键的三点菜单。三机型均可查看状态和恢复原文件；X2 Mini Pro 需临时关闭只读保护以写入 steamos-manager 配置，完成后自动恢复。所有按键修复均不安装 HHD，且检测到 HHD 运行时会停止。另提供壹号掌机专用 InputPlumber 0.79.2 官方固定包更新，使用 Gitee 分块镜像优先、固定 SHA256、GitHub 官方回退、包内路径/版本检查和旧版备份；该高级操作会临时关闭只读保护并写入 `/usr`，完成后恢复原只读状态，且可能被 SteamOS 大版本更新覆盖。X2 Mini Pro 三份固定配置与 V1.14 BIOS 文件也优先使用 Gitee 镜像；BIOS 入口仍仅适用于 ONEXPLAYER F1 / ONEXFLY 7840U 普通黑白版，Renkit 只校验并复制原厂文件，不会在 SteamOS 下刷写 BIOS。
 - ToDesk：使用固定的第三方SteamOS适配包并校验SHA256，安装完成后恢复只读保护。
 - Steam Deck 优化：清理 Steam 下载缓存、着色器缓存，并提供性能模式提示。
-- 国内下载源与系统组件：先检测 SteamOS 基础组件，已安装且无对应更新时跳过 pacman 更新；archlinuxcn 使用上海交大、中科大和官方 HTTPS 镜像逐级回退，安装并加载 GPG 密钥环；三条线路均失败时撤销Renkit写入的该仓库并继续配置 locale 与 Flatpak 国内缓存，不阻断其他软件安装。pacman 对系统已裁剪可选文件产生的“无法获取文件信息”元数据警告会被过滤，真实错误和退出状态仍完整保留。完成后恢复只读保护，恢复入口不覆盖用户原有配置。
+- 国内下载源与系统组件：完整同步系统组件，重装匹配的 Discover、PackageKit 与 Qt6 运行库，并自动恢复曾被停用的 PackageKit 后端；archlinuxcn 使用上海交大、中科大和官方 HTTPS 镜像逐级回退，安装并加载 GPG 密钥环。完成 Flatpak 国内缓存配置后，会修复用户仓库、刷新 AppStream、重建 KDE 缓存并重新启动 Discover。pacman 对系统已裁剪可选文件产生的“无法获取文件信息”元数据警告会被过滤，真实错误和退出状态仍完整保留；任何失败都会恢复 SteamOS 原有只读保护状态。
 - Steam加速器：使用Steamcommunity 302官方Linux AMD64固定安装包；安装后自动启用 Steam 与 GitHub 规则、立即后台运行并设置开机自启，并检查官方就绪标记或本地 DNS/代理监听，避免只看到进程就误报成功。
 - 主机加速器：提供奇游、迅游、网易UU的官方主机加速安装与配置入口；三家没有 SteamOS 原生客户端，因此不会下载 Windows 包，只引导使用手机 App、路由插件或加速盒。
 - 更多设置：集中提供国内源、Steam302、zram 与磁盘 swap 一键优化、修改管理员密码和双系统工具。
@@ -223,6 +223,6 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 
 ## 当前版本与维护
 
-当前正式版为 Renkit 2.6.8，后续版本从 1.0 起按语义化版本递增。后续维护覆盖 SteamOS、Bazzite 与 ChimeraOS 的独立菜单；ChimeraOS 仅维护用户级应用和插件功能。rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
+当前正式版为 Renkit 2.6.9，后续版本从 1.0 起按语义化版本递增。后续维护覆盖 SteamOS、Bazzite 与 ChimeraOS 的独立菜单；ChimeraOS 仅维护用户级应用和插件功能。rEFInd 继续停用，Clover 通常由 UEFI GOP 自动选择分辨率，GPD WIN 3 会优先请求 1280x720 横屏模式；Bazzite 安装/修复 Clover 时会备份并清理检测到的旧 SteamOS 引导，但不会删除系统分区，其他通用 EFI 高风险工具不开放。
 
 安装包必须与同一来源的 `dist/SHA256SUMS` 匹配，否则安装或更新会停止。

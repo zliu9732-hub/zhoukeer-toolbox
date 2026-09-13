@@ -119,6 +119,9 @@ case "$command" in
     update)
         printf 'update %s\n' "$*" >> "$state/commands"
         ;;
+    repair)
+        printf 'repair %s\n' "$*" >> "$state/commands"
+        ;;
     *)
         echo "unexpected flatpak command: $command" >&2
         exit 1
@@ -153,6 +156,11 @@ EOF
 cat > "$BIN_DIR/locale-gen" <<'EOF'
 #!/bin/sh
 printf 'locale-gen\n' >> "${DOMESTIC_SOURCE_TEST_STATE:?}/commands"
+EOF
+
+cat > "$BIN_DIR/kbuildsycoca6" <<'EOF'
+#!/bin/sh
+printf 'kbuildsycoca6 %s\n' "$*" >> "${DOMESTIC_SOURCE_TEST_STATE:?}/commands"
 EOF
 
 cat > "$BIN_DIR/pacman" <<'EOF'
@@ -265,11 +273,11 @@ grep -Fq 'remote-add --user --if-not-exists --no-gpg-verify flathub-cn https://m
 grep -Fq 'remote-add --user --if-not-exists --no-gpg-verify flathub-ustc https://fallback.test.invalid/flathub' \
     "$STATE_DIR/commands" || fail "中科大用户级远程没有直接使用已确认的国内地址"
 [ ! -e "$STATE_DIR/sudo-calls" ] || fail "用户级国内源配置不应调用 sudo"
-grep -Fq -- '--appstream' "$PROJECT_ROOT/modules/domestic_source.sh" && \
-    fail "国内源模块不应包含 AppStream 强制刷新"
+grep -Fq -- 'flatpak update --user --appstream --noninteractive' "$PROJECT_ROOT/modules/domestic_source.sh" || \
+    fail "完整初始化没有刷新 Discover AppStream"
 grep -Fq 'verify_domestic_flatpak_remote' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应保留应用索引验证"
-for command_text in 'packages_installed_without_known_upgrades' 'archlinuxcn_keyring_ready' 'configure_archlinuxcn_with_fallback' 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman-key --populate holo' 'run_pacman_without_metadata_warnings -Syyu --noconfirm' 'run_pacman_without_metadata_warnings -S --needed --noconfirm git flatpak' 'run_pacman_without_metadata_warnings -S --noconfirm archlinux-keyring' 'run_pacman_without_metadata_warnings -S --noconfirm archlinuxcn-keyring' 'pacman -Sy --needed --noconfirm archlinuxcn-keyring' 'pacman-key --populate archlinuxcn' 'locale-gen' 'steamos-readonly disable' 'steamos-readonly enable'; do
+for command_text in 'packages_installed_without_known_upgrades' 'archlinuxcn_keyring_ready' 'configure_archlinuxcn_with_fallback' 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman-key --populate holo' 'run_pacman_without_metadata_warnings -Syyu --noconfirm' 'run_pacman_without_metadata_warnings -S --needed --noconfirm git flatpak' 'discover packagekit packagekit-qt6' 'run_pacman_without_metadata_warnings -S --noconfirm archlinux-keyring' 'run_pacman_without_metadata_warnings -S --noconfirm archlinuxcn-keyring' 'pacman -Sy --needed --noconfirm archlinuxcn-keyring' 'pacman-key --populate archlinuxcn' 'locale-gen' 'steamos-readonly disable' 'steamos-readonly enable'; do
     grep -Fq "$command_text" "$PROJECT_ROOT/modules/domestic_source.sh" || \
         fail "完整国内源初始化缺少：$command_text"
 done
@@ -390,7 +398,10 @@ EOF
     PATH="$STEAMOS_BIN_DIR:$BIN_DIR:$PATH"
     HOME="$HOME_DIR"
     DOMESTIC_SOURCE_TEST_STATE="$FLOW_STATE"
+    ZHOUKEER_DISCOVER_BACKEND_PATH="$FLOW_DIR/packagekit-backend.so"
     export PATH HOME DOMESTIC_SOURCE_TEST_STATE
+    export ZHOUKEER_DISCOVER_BACKEND_PATH
+    printf 'test backend\n' > "$FLOW_DIR/packagekit-backend.so.disabled"
     # shellcheck disable=SC1090
     source "$PROJECT_ROOT/modules/domestic_source.sh"
     toolbox_sudo() { "$@"; }
@@ -416,6 +427,10 @@ EOF
         fail "完整流程未执行两次 pacman -Syyu"
     grep -Fxq 'pacman -S --needed --noconfirm git flatpak' "$FLOW_STATE/commands" || \
         fail "完整流程未补齐 git 与 Flatpak"
+    grep -Fxq 'pacman -S --noconfirm discover packagekit packagekit-qt6' "$FLOW_STATE/commands" || \
+        fail "完整流程未同步重装 Discover 与 PackageKit"
+    [ -f "$FLOW_DIR/packagekit-backend.so" ] || \
+        fail "完整流程未恢复被停用的 Discover PackageKit 后端"
     grep -Fxq 'pacman -S --noconfirm archlinux-keyring' "$FLOW_STATE/commands" || \
         fail "完整流程未重装 archlinux-keyring"
     grep -Fxq 'pacman -S --noconfirm archlinuxcn-keyring' "$FLOW_STATE/commands" || \
@@ -427,6 +442,24 @@ EOF
     grep -Fq '[archlinuxcn]' "$FLOW_DIR/pacman.conf" || \
         fail "完整流程未保留 archlinuxcn 配置"
 )
+
+# 完整初始化的最后一步必须修复 Flatpak 用户仓库、刷新 AppStream 并重建 KDE 缓存。
+(
+    PATH="$STEAMOS_BIN_DIR:$BIN_DIR:$PATH"
+    HOME="$HOME_DIR"
+    DOMESTIC_SOURCE_TEST_STATE="$STATE_DIR"
+    ZHOUKEER_TEST_MODE=1
+    export PATH HOME DOMESTIC_SOURCE_TEST_STATE ZHOUKEER_TEST_MODE
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/domestic_source.sh"
+    refresh_discover_after_source_setup
+)
+grep -Fxq 'repair --user' "$STATE_DIR/commands" || \
+    fail "Discover 修复未执行 flatpak repair --user"
+grep -Fxq 'update --user --appstream --noninteractive' "$STATE_DIR/commands" || \
+    fail "Discover 修复未刷新用户级 AppStream"
+grep -Fxq 'kbuildsycoca6 --noincremental' "$STATE_DIR/commands" || \
+    fail "Discover 修复未重建 KDE 缓存"
 
 # 兼容旧版本遗留的系统级国内远程：沿用现有 flathub-cn，不能重复添加同名用户远程。
 LEGACY_STATE="$TMP_ROOT/legacy-state"
