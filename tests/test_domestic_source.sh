@@ -179,6 +179,9 @@ case "${1:-}" in
         ;;
     -Syyu)
         printf 'pacman %s\n' "$*" >> "$state/commands"
+        if [ "${DOMESTIC_SOURCE_PACMAN_METADATA_WARNING:-0}" = "1" ]; then
+            printf '警告：无法获取 usr/include/libnm/nm-device-veth.h 的文件信息\n' >&2
+        fi
         exit 0
         ;;
 esac
@@ -266,7 +269,7 @@ grep -Fq -- '--appstream' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应包含 AppStream 强制刷新"
 grep -Fq 'verify_domestic_flatpak_remote' "$PROJECT_ROOT/modules/domestic_source.sh" && \
     fail "国内源模块不应保留应用索引验证"
-for command_text in 'packages_installed_without_known_upgrades' 'archlinuxcn_keyring_ready' 'configure_archlinuxcn_with_fallback' 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman-key --populate holo' 'pacman -Syyu --noconfirm' 'pacman -S --needed --noconfirm git flatpak' 'pacman -S --noconfirm archlinux-keyring' 'pacman -S --noconfirm archlinuxcn-keyring' 'pacman -Sy --needed --noconfirm archlinuxcn-keyring' 'pacman-key --populate archlinuxcn' 'locale-gen' 'steamos-readonly disable' 'steamos-readonly enable'; do
+for command_text in 'packages_installed_without_known_upgrades' 'archlinuxcn_keyring_ready' 'configure_archlinuxcn_with_fallback' 'pacman-key --init' 'pacman-key --populate archlinux' 'pacman-key --populate holo' 'run_pacman_without_metadata_warnings -Syyu --noconfirm' 'run_pacman_without_metadata_warnings -S --needed --noconfirm git flatpak' 'run_pacman_without_metadata_warnings -S --noconfirm archlinux-keyring' 'run_pacman_without_metadata_warnings -S --noconfirm archlinuxcn-keyring' 'pacman -Sy --needed --noconfirm archlinuxcn-keyring' 'pacman-key --populate archlinuxcn' 'locale-gen' 'steamos-readonly disable' 'steamos-readonly enable'; do
     grep -Fq "$command_text" "$PROJECT_ROOT/modules/domestic_source.sh" || \
         fail "完整国内源初始化缺少：$command_text"
 done
@@ -392,8 +395,13 @@ EOF
     source "$PROJECT_ROOT/modules/domestic_source.sh"
     toolbox_sudo() { "$@"; }
 
-    prepare_system_packages "$FLOW_DIR/pacman.conf" "$FLOW_DIR/locale.gen" || \
+    DOMESTIC_SOURCE_PACMAN_METADATA_WARNING=1
+    export DOMESTIC_SOURCE_PACMAN_METADATA_WARNING
+    filtered_update_output="$(prepare_system_packages "$FLOW_DIR/pacman.conf" "$FLOW_DIR/locale.gen")" || \
         fail "完整系统更新流程未成功完成"
+    if printf '%s\n' "$filtered_update_output" | grep -Fq '无法获取'; then
+        fail "系统组件更新仍显示 pacman 可选文件元数据警告"
+    fi
     grep -Fxq 'steamos-readonly disable' "$FLOW_STATE/commands" || \
         fail "完整流程未临时关闭只读保护"
     grep -Fxq 'pacman-key --init' "$FLOW_STATE/commands" || \

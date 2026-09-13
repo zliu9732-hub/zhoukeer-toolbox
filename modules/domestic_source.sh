@@ -299,6 +299,18 @@ restore_official_flatpak() {
     fi
 }
 
+# SteamOS 的 pacman 有时会为已被系统裁剪的可选文件反复输出“无法获取文件信息”。
+# 这些只是元数据统计警告，不代表安装失败；保留所有其他输出和真实退出码。
+run_pacman_without_metadata_warnings() {
+    local pacman_status
+
+    toolbox_sudo pacman "$@" 2>&1 | sed -u -E \
+        -e '/warning: could not get file information for /d' \
+        -e '/警告：无法获取 .* 的文件信息/d'
+    pacman_status="${PIPESTATUS[0]}"
+    return "$pacman_status"
+}
+
 prepare_system_packages() (
     local pacman_conf="${1:-/etc/pacman.conf}"
     local locale_gen="${2:-/etc/locale.gen}"
@@ -328,7 +340,7 @@ prepare_system_packages() (
     trap cleanup_system_source_setup EXIT
     trap 'exit 130' INT TERM
 
-    for command_name in steamos-readonly pacman pacman-key awk grep install \
+    for command_name in steamos-readonly pacman pacman-key awk grep install sed \
         locale-gen mktemp; do
         require_command "$command_name" || return 1
     done
@@ -370,24 +382,24 @@ prepare_system_packages() (
 
     configure_archlinuxcn_with_fallback "$pacman_conf" || return 1
 
-    if ! toolbox_sudo pacman -Syyu --noconfirm; then
+    if ! run_pacman_without_metadata_warnings -Syyu --noconfirm; then
         echo "系统组件完整更新失败，已停止。"
         return 1
     fi
-    if ! toolbox_sudo pacman -S --needed --noconfirm git flatpak; then
+    if ! run_pacman_without_metadata_warnings -S --needed --noconfirm git flatpak; then
         echo "git 或 Flatpak 组件补齐失败，已停止。"
         return 1
     fi
-    if ! toolbox_sudo pacman -S --noconfirm archlinux-keyring; then
+    if ! run_pacman_without_metadata_warnings -S --noconfirm archlinux-keyring; then
         echo "archlinux-keyring 重装失败，已停止。"
         return 1
     fi
     if pacman_conf_has_archlinuxcn "$pacman_conf" 2>/dev/null && \
-        ! toolbox_sudo pacman -S --noconfirm archlinuxcn-keyring; then
+        ! run_pacman_without_metadata_warnings -S --noconfirm archlinuxcn-keyring; then
         echo "archlinuxcn-keyring 重装失败，已停止。"
         return 1
     fi
-    if ! toolbox_sudo pacman -Syyu --noconfirm; then
+    if ! run_pacman_without_metadata_warnings -Syyu --noconfirm; then
         echo "密钥环修复后的复查更新失败，已停止。"
         return 1
     fi
