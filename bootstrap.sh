@@ -125,6 +125,21 @@ download_progress_filter() {
             for (i = filled; i < bar_width; i++) result = result "-"
             return result
         }
+        function render_progress(raw_percent, raw_speed,    percent, speed, unit) {
+            if (raw_percent < 0) raw_percent = 0
+            if (raw_percent > 100) raw_percent = 100
+            percent = int((segment_index * 100 + raw_percent) / segment_total)
+            if (percent < last_percent) percent = last_percent
+            last_percent = percent
+            speed = raw_speed
+            unit = "B/s"
+            if (speed ~ /[kK]$/) { unit = "KB/s"; speed = substr(speed, 1, length(speed) - 1) }
+            else if (speed ~ /[mM]$/) { unit = "MB/s"; speed = substr(speed, 1, length(speed) - 1) }
+            else if (speed ~ /[gG]$/) { unit = "GB/s"; speed = substr(speed, 1, length(speed) - 1) }
+            printf "\r\033[2K正在下载 %s... [%s] %d%%（%s %s）", \
+                label, progress_bar(percent), percent, speed, unit
+            fflush()
+        }
         {
             line = $0
             lowered = tolower(line)
@@ -140,26 +155,46 @@ download_progress_filter() {
             }
             if (progress_line(line)) {
                 raw_percent = $1 + 0
-                if (raw_percent < 0) raw_percent = 0
-                if (raw_percent > 100) raw_percent = 100
-                percent = int((segment_index * 100 + raw_percent) / segment_total)
-                speed = $NF
-                unit = "B/s"
-                if (speed ~ /[kK]$/) { unit = "KB/s"; speed = substr(speed, 1, length(speed) - 1) }
-                else if (speed ~ /[mM]$/) { unit = "MB/s"; speed = substr(speed, 1, length(speed) - 1) }
-                else if (speed ~ /[gG]$/) { unit = "GB/s"; speed = substr(speed, 1, length(speed) - 1) }
-                printf "\r\033[2K正在下载 %s... [%s] %d%%（%s %s）", \
-                    label, progress_bar(percent), percent, speed, unit
-                fflush()
+                if (raw_percent >= 100) {
+                    pending_percent = raw_percent
+                    pending_speed = $NF
+                    have_pending = 1
+                    next
+                }
+                have_pending = 0
+                render_progress(raw_percent, $NF)
                 next
             }
             if (line != "") print line
         }
         END {
+            if (have_pending) render_progress(pending_percent, pending_speed)
             if (failed || segment_index + 1 >= segment_total) printf "\n"
         }
     ' >&"$progress_fd"
     [ "$progress_fd" -ne 9 ] || exec 9>&-
+}
+
+run_curl_with_progress() {
+    local label="$1" segment_index="${2:-0}" segment_total="${3:-1}"
+    local progress_dir progress_fifo progress_pid curl_status
+    shift 3
+
+    progress_dir="$(mktemp -d "${TMPDIR:-/tmp}/renkit-progress.XXXXXX")" || return 1
+    progress_fifo="$progress_dir/curl.stderr"
+    if ! mkfifo "$progress_fifo"; then
+        rmdir "$progress_dir" 2>/dev/null || true
+        return 1
+    fi
+    download_progress_filter "$label" "$segment_index" "$segment_total" \
+        < "$progress_fifo" >&2 &
+    progress_pid=$!
+    curl "$@" 2> "$progress_fifo"
+    curl_status=$?
+    wait "$progress_pid" 2>/dev/null || true
+    rm -f -- "$progress_fifo"
+    rmdir "$progress_dir" 2>/dev/null || true
+    return "$curl_status"
 }
 
 download_one() {
@@ -172,7 +207,7 @@ download_one() {
         echo "$label 地址不在受控来源清单中。"
         return 1
     }
-    curl \
+    run_curl_with_progress "$label" 0 1 \
         --fail \
         --location \
         --progress-meter \
@@ -185,8 +220,7 @@ download_one() {
         --retry-all-errors \
         --max-filesize 9437184 \
         --output "$output" \
-        "$url" \
-        2> >(download_progress_filter "$label" >&2) && \
+        "$url" && \
         bootstrap_response_safe "$url" "$output"
 }
 

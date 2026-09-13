@@ -91,6 +91,37 @@ if grep -Eq 'Dload|% Total|curl: \(|warning:' <<< "$filtered"; then
     fail "curl 英文表头/警告/错误泄漏到终端"
 fi
 
+# 跟随 HTTP 跳转时，小跳转响应的 100% 不能先显示；正式文件只允许
+# 从低百分比连续增长到最终 100%，不能出现 100%→5%→10%。
+redirect_filtered="$(
+    printf '%s\r' \
+        '100   478  100   478    0     0   1623      0 --:--:-- --:--:-- --:--:--  1625' \
+        '  5 4291k    5  214k    0     0   147k      0  0:00:29  0:00:01  0:00:28  147k' \
+        ' 10 4291k   10  429k    0     0   227k      0  0:00:18  0:00:02  0:00:16  227k' \
+        '100 4291k  100 4291k    0     0   984k      0  0:00:04  0:00:04 --:--:--  984k' |
+        download_progress_filter "跳转测试"
+)"
+if grep -Fq '100%（1625 B/s）' <<< "$redirect_filtered"; then
+    fail "HTTP 跳转响应被错误显示为提前完成"
+fi
+for expected_frame in '5%（147 KB/s）' '10%（227 KB/s）' '100%（984 KB/s）'; do
+    grep -Fq "$expected_frame" <<< "$redirect_filtered" || \
+        fail "连续下载进度缺少：$expected_frame"
+done
+
+# 统一包装器必须等待过滤进程写完最终换行，之后才能输出下一项。
+curl() {
+    printf '%s\r' \
+        ' 10  1000   10   100    0     0   100k      0 --:--:-- --:--:-- --:--:--  100k' \
+        '100  1000  100  1000    0     0   200k      0 --:--:-- --:--:-- --:--:--  200k' >&2
+}
+wrapped_progress="$({ run_curl_with_progress "同步测试" 0 1; printf 'NEXT'; } 2>&1)"
+case "$wrapped_progress" in
+    *$'\nNEXT') ;;
+    *) fail "下一项输出早于进度过滤器结束，仍可能发生进度重叠" ;;
+esac
+unset -f curl
+
 for progress_source in core/download_policy.sh bootstrap.sh; do
     if grep -Fq "tr '\r' '\n'" "$PROJECT_ROOT/$progress_source"; then
         fail "$progress_source 仍通过会缓冲的 tr 转换实时进度"
@@ -196,5 +227,13 @@ grep -Fq 'exec 9>/dev/tty' <<< "$bootstrap_progress" || \
     fail "bootstrap.sh 下载进度没有直接刷新控制终端"
 grep -Fq 'ZHOUKEER_PROGRESS_DIRECT_TTY=1 "$@"' "$PROJECT_ROOT/core/gui.sh" || \
     fail "GUI 动作没有启用单行终端进度"
+
+for payload_source in \
+    update.sh bootstrap.sh utils/github_download.sh utils/gitee_download.sh \
+    modules/software.sh modules/game_launchers.sh modules/plugin_store.sh modules/todesk.sh; do
+    if grep -Fq '2> >(download_progress_filter' "$PROJECT_ROOT/$payload_source"; then
+        fail "$payload_source 仍使用未等待的进度进程，可能与下一项重叠"
+    fi
+done
 
 echo "PASS: 所有实际下载均以单行进度条显示百分比和实时速度，元数据请求保持静默"

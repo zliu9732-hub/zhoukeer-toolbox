@@ -576,14 +576,14 @@ download_decky_gitee_part() {
     max_bytes="$(download_policy_max_bytes "$url")" || return 1
     rm -f -- "$temporary_file" "$output"
 
-    if ! curl --fail --location --show-error \
+    if ! run_curl_with_progress "$name" "$progress_index" "$progress_total" \
+        --fail --location --show-error --progress-meter \
         --proto '=https' --proto-redir '=https' \
         --connect-timeout 15 --max-time 1200 \
         --retry 5 --retry-delay 2 --retry-connrefused \
         --speed-limit 65536 --speed-time 60 \
         --max-filesize "$max_bytes" \
-        --output "$temporary_file" "$url" \
-        2> >(download_progress_filter "$name" "$progress_index" "$progress_total" >&2); then
+        --output "$temporary_file" "$url"; then
         rm -f -- "$temporary_file"
         echo "$name 下载失败，将切换备用线路。"
         return 1
@@ -861,11 +861,10 @@ download_decky_component() {
     if [ -n "${DECKY_DOWNLOAD_PROXY:-}" ]; then
         _dk_curl_options+=(--proxy "$DECKY_DOWNLOAD_PROXY")
     fi
-    if ! curl \
+    if ! run_curl_with_progress "$name" 0 1 \
         "${_dk_curl_options[@]}" \
         --output "$output" \
-        "$url" \
-        2> >(download_progress_filter "$name" >&2); then
+        "$url"; then
         rm -f -- "$output"
         log "$name 下载失败，未改动现有Decky安装。"
         return 1

@@ -229,9 +229,9 @@ _gitee_mirror_download_one() {
         fi
     else
         curl_options+=(--progress-meter)
-        if ! curl "${curl_options[@]}" --output "$output" "$url" \
-            2> >(download_progress_filter "${GITEE_MIRROR_LABEL:-下载}" \
-                "$progress_index" "$progress_total" >&2); then
+        if ! run_curl_with_progress "${GITEE_MIRROR_LABEL:-下载}" \
+            "$progress_index" "$progress_total" \
+            "${curl_options[@]}" --output "$output" "$url"; then
             return 1
         fi
     fi

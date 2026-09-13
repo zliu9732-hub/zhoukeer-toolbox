@@ -276,8 +276,8 @@ download_github_file() {
                 continue
             fi
         else
-            if ! curl "${curl_options[@]}" --output "$temp_file" "$resolved_url" \
-                2> >(_github_filter_curl_progress "$name" >&2); then
+            if ! run_curl_with_progress "$name" 0 1 \
+                "${curl_options[@]}" --output "$temp_file" "$resolved_url"; then
                 continue
             fi
         fi

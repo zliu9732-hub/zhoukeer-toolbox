@@ -794,7 +794,7 @@ install_official_qq_appimage() (
 
     echo "正在从腾讯国内CDN下载QQ，最长等待 $QQ_DOWNLOAD_TIMEOUT 秒..."
     download_policy_url_allowed "$appimage_url" || { echo "QQ 下载地址不在受控来源清单中。"; return 1; }
-    if ! curl \
+    if ! run_curl_with_progress "QQ" 0 1 \
         --fail \
         --location \
         --progress-meter \
@@ -809,8 +809,7 @@ install_official_qq_appimage() (
         -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
         --referer "https://im.qq.com/" \
         --output "$temp_file" \
-        "$appimage_url" \
-        2> >(download_progress_filter "QQ" >&2); then
+        "$appimage_url"; then
         echo "QQ下载失败或超时，已停止；原有版本未受影响。"
         return 1
     fi
@@ -875,7 +874,7 @@ install_official_wechat_appimage() (
 
     echo "正在从腾讯国内CDN下载微信，最长等待 $WECHAT_DOWNLOAD_TIMEOUT 秒..."
     download_policy_url_allowed "$WECHAT_APPIMAGE_URL" || { echo "微信下载地址不在受控来源清单中。"; return 1; }
-    if ! curl \
+    if ! run_curl_with_progress "微信" 0 1 \
         --fail \
         --location \
         --progress-meter \
@@ -888,8 +887,7 @@ install_official_wechat_appimage() (
         --retry-all-errors \
         --max-filesize "$(download_policy_max_bytes "$WECHAT_APPIMAGE_URL")" \
         --output "$temp_file" \
-        "$WECHAT_APPIMAGE_URL" \
-        2> >(download_progress_filter "微信" >&2); then
+        "$WECHAT_APPIMAGE_URL"; then
         echo "微信下载失败或超时，已停止；原有版本未受影响。"
         return 1
     fi
@@ -1028,7 +1026,7 @@ install_firefox_archive() (
     trap 'exit 130' INT TERM
 
     echo "正在下载Firefox完整安装包，最长等待 $FIREFOX_DOWNLOAD_TIMEOUT 秒..."
-    if ! curl \
+    if ! run_curl_with_progress "Firefox" 0 1 \
         --fail \
         --location \
         --progress-meter \
@@ -1040,8 +1038,7 @@ install_firefox_archive() (
         --retry-delay 2 \
         --retry-all-errors \
         --output "$archive_file" \
-        "$FIREFOX_DOWNLOAD_URL" \
-        2> >(download_progress_filter "Firefox" >&2); then
+        "$FIREFOX_DOWNLOAD_URL"; then
         echo "Firefox下载失败或超时，已停止；原有版本未受影响。"
         return 1
     fi

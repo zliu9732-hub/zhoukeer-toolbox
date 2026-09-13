@@ -121,8 +121,8 @@ if printf '%s\n' "$decky_component_download" | grep -Fq -- '--retry-all-errors';
     echo "FAIL: Decky 组件下载仍会重复重试确定的 404/403 错误" >&2
     exit 1
 fi
-grep -Fq 'download_progress_filter "$name"' "$PROJECT_ROOT/modules/plugin_store.sh" || {
-    echo "FAIL: Decky 组件下载未使用实时速度过滤" >&2
+grep -Fq 'run_curl_with_progress "$name"' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: Decky 组件下载未使用同步实时速度进度条" >&2
     exit 1
 }
 printf '%s\n' "$decky_component_download" | grep -Fq -- '--speed-limit 65536' || {

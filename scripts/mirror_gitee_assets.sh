@@ -192,13 +192,13 @@ mirror_download_source() {
         echo "镜像来源并行下载完成：$url"
         return 0
     fi
-    curl --fail --location --progress-meter \
+    run_curl_with_progress "镜像下载" 0 1 \
+        --fail --location --progress-meter \
         --proto '=https' --proto-redir '=https' \
         --connect-timeout "$CONNECT_TIMEOUT" --max-time "$MAX_TIME" \
         --retry "$RETRIES" --retry-delay 2 --retry-all-errors \
         --max-filesize "$(download_policy_max_bytes "$url")" \
-        --output "$output" "$url" \
-        2> >(download_progress_filter "镜像下载" >&2) || return 1
+        --output "$output" "$url" || return 1
     mirror_verify_source_file "$url" "$output" "$expected_sha256" "$expected_md5" || {
         rm -f -- "$output"
         return 1

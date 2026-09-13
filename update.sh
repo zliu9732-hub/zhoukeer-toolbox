@@ -105,7 +105,7 @@ download_one() {
         return 1
     }
     max_bytes="$(download_policy_max_bytes "$url")"
-    curl \
+    run_curl_with_progress "$label" 0 1 \
         --fail \
         --location \
         --progress-meter \
@@ -118,8 +118,7 @@ download_one() {
         --retry-all-errors \
         --max-filesize "$max_bytes" \
         --output "$output" \
-        "$request_url" \
-        2> >(download_progress_filter "$label" >&2) && \
+        "$request_url" && \
         download_policy_response_is_safe "$url" "$output"
 }
 

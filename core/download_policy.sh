@@ -63,6 +63,21 @@ download_progress_filter() {
             for (i = filled; i < bar_width; i++) result = result "-"
             return result
         }
+        function render_progress(raw_percent, raw_speed,    percent, speed, unit) {
+            if (raw_percent < 0) raw_percent = 0
+            if (raw_percent > 100) raw_percent = 100
+            percent = int((segment_index * 100 + raw_percent) / segment_total)
+            if (percent < last_percent) percent = last_percent
+            last_percent = percent
+            speed = raw_speed
+            unit = "B/s"
+            if (speed ~ /[kK]$/) { unit = "KB/s"; speed = substr(speed, 1, length(speed) - 1) }
+            else if (speed ~ /[mM]$/) { unit = "MB/s"; speed = substr(speed, 1, length(speed) - 1) }
+            else if (speed ~ /[gG]$/) { unit = "GB/s"; speed = substr(speed, 1, length(speed) - 1) }
+            printf "\r\033[2K正在下载 %s... [%s] %d%%（%s %s）", \
+                label, progress_bar(percent), percent, speed, unit
+            fflush()
+        }
         {
             line = $0
             lowered = tolower(line)
@@ -78,26 +93,52 @@ download_progress_filter() {
             }
             if (progress_line(line)) {
                 raw_percent = $1 + 0
-                if (raw_percent < 0) raw_percent = 0
-                if (raw_percent > 100) raw_percent = 100
-                percent = int((segment_index * 100 + raw_percent) / segment_total)
-                speed = $NF
-                unit = "B/s"
-                if (speed ~ /[kK]$/) { unit = "KB/s"; speed = substr(speed, 1, length(speed) - 1) }
-                else if (speed ~ /[mM]$/) { unit = "MB/s"; speed = substr(speed, 1, length(speed) - 1) }
-                else if (speed ~ /[gG]$/) { unit = "GB/s"; speed = substr(speed, 1, length(speed) - 1) }
-                printf "\r\033[2K正在下载 %s... [%s] %d%%（%s %s）", \
-                    label, progress_bar(percent), percent, speed, unit
-                fflush()
+                # curl 跟随重定向时，会先把几百字节的跳转响应报告为 100%，
+                # 随后正式文件又从 0% 开始。延迟一帧；检测到 100→低百分比
+                # 时丢弃跳转帧，避免进度提前完成或倒退。
+                if (raw_percent >= 100) {
+                    pending_percent = raw_percent
+                    pending_speed = $NF
+                    have_pending = 1
+                    next
+                }
+                # 低百分比紧跟在待定的 100% 后面，说明前一帧属于跳转响应。
+                have_pending = 0
+                render_progress(raw_percent, $NF)
                 next
             }
             if (line != "") print line
         }
         END {
+            if (have_pending) render_progress(pending_percent, pending_speed)
             if (failed || segment_index + 1 >= segment_total) printf "\n"
         }
     ' >&"$progress_fd"
     [ "$progress_fd" -ne 9 ] || exec 9>&-
+}
+
+# 通过命名管道等待进度渲染进程彻底结束，避免下一项输出抢先换行，造成
+# 5% 与 10% 等进度帧堆叠。调用参数为：名称、分段序号、总分段数、curl参数。
+run_curl_with_progress() {
+    local label="$1" segment_index="${2:-0}" segment_total="${3:-1}"
+    local progress_dir progress_fifo progress_pid curl_status
+    shift 3
+
+    progress_dir="$(mktemp -d "${TMPDIR:-/tmp}/renkit-progress.XXXXXX")" || return 1
+    progress_fifo="$progress_dir/curl.stderr"
+    if ! mkfifo "$progress_fifo"; then
+        rmdir "$progress_dir" 2>/dev/null || true
+        return 1
+    fi
+    download_progress_filter "$label" "$segment_index" "$segment_total" \
+        < "$progress_fifo" >&2 &
+    progress_pid=$!
+    curl "$@" 2> "$progress_fifo"
+    curl_status=$?
+    wait "$progress_pid" 2>/dev/null || true
+    rm -f -- "$progress_fifo"
+    rmdir "$progress_dir" 2>/dev/null || true
+    return "$curl_status"
 }
 
 download_policy_github_repo_allowed() {
