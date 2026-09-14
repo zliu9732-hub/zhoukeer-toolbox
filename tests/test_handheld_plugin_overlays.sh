@@ -44,6 +44,8 @@ check_overlay third_party/lego-vibe-control-zh-v1.5.0 "Legion Go 震动控制" \
     e8c285a05f975bbf7cede8e43f48bbb49854c37e60b173e4045df84e01b9c49e 1
 check_overlay third_party/lego2-fan-control-zh-v0.260430 "Legion Go 2 风扇控制" \
     9d93837925ccb2e95bf94942b291664f1cf645362d0f6b9972a03face0bb22d4 1
+check_overlay third_party/onexplayer-apex-tools-zh-v0.1.0 "OneXPlayer Apex 工具" \
+    a85f19f0f910ac9f400ab52b273c1e82080a1d1c22b5fa3f94c469fcf852ab85 1
 
 # 用假的官方后端验证覆盖过程只替换前端和清单，后端字节保持不变且重复执行幂等。
 PLUGIN_ROOT="$TMP_ROOT/plugins"
@@ -105,7 +107,8 @@ printf '%s\n' "$dispatch_output" | grep -Fq 'TAR:https://example.invalid/a.tar.g
     fail "官方包安装后未叠加两个前端"
 
 for relative_dir in huesync-cn-v3.9.0 legion-go-remapper-zh-v0.3.0 \
-    gpd-control-zh-v0.0.2 lego-vibe-control-zh-v1.5.0 lego2-fan-control-zh-v0.260430; do
+    gpd-control-zh-v0.0.2 lego-vibe-control-zh-v1.5.0 lego2-fan-control-zh-v0.260430 \
+    onexplayer-apex-tools-zh-v0.1.0; do
     grep -Fq "copy_handheld_frontend_overlay third_party/$relative_dir" "$PROJECT_ROOT/install.sh" || \
         fail "安装器白名单遗漏 $relative_dir"
     grep -Fq "third_party/$relative_dir/dist/index.js" "$PROJECT_ROOT/scripts/package_release.sh" || \

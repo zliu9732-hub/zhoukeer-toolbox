@@ -651,6 +651,7 @@ copy_handheld_frontend_overlay third_party/legion-go-remapper-zh-v0.3.0
 copy_handheld_frontend_overlay third_party/gpd-control-zh-v0.0.2
 copy_handheld_frontend_overlay third_party/lego-vibe-control-zh-v1.5.0
 copy_handheld_frontend_overlay third_party/lego2-fan-control-zh-v0.260430
+copy_handheld_frontend_overlay third_party/onexplayer-apex-tools-zh-v0.1.0
 
 # 标记由安装器管理的目录，启动器只在这类目录中执行自动更新。
 printf '%s\n' "zhoukeer-toolbox" > "$STAGING_DIR/.zhoukeer-installed"
