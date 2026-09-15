@@ -306,6 +306,16 @@ restore_official_flatpak() {
 run_pacman_without_metadata_warnings() {
     local pacman_status
 
+    # pacman 只有在标准输出或错误输出连接终端时才会显示真实的下载百分比和速度。
+    # 不要在交互式更新中把它接到 sed 管道，否则用户只能看到“正在获取软件包”。
+    # 自动测试和重定向日志仍走下面的过滤分支，保留原有无害元数据警告的隐藏规则。
+    if [ "${ZHOUKEER_FORCE_PACMAN_PROGRESS:-0}" = "1" ] || \
+        { [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && { [ -t 1 ] || [ -t 2 ]; }; }; then
+        echo "正在使用 pacman 原生下载进度（百分比和速度）..."
+        toolbox_sudo pacman "$@"
+        return $?
+    fi
+
     toolbox_sudo pacman "$@" 2>&1 | sed -u -E \
         -e '/warning: could not get file information for /d' \
         -e '/警告：无法获取 .* 的文件信息/d'

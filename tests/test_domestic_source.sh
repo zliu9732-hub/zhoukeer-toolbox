@@ -402,6 +402,25 @@ cat > "$FLOW_DIR/locale.gen" <<'EOF'
 #en_US.UTF-8 UTF-8
 #zh_CN.UTF-8 UTF-8
 EOF
+# 交互式运行不得给 pacman 套过滤管道，否则 pacman 会关闭原生百分比和速度。
+native_progress_output="$(
+    PATH="$STEAMOS_BIN_DIR:$BIN_DIR:$PATH"
+    HOME="$HOME_DIR"
+    DOMESTIC_SOURCE_TEST_STATE="$FLOW_STATE"
+    ZHOUKEER_FORCE_PACMAN_PROGRESS=1
+    DOMESTIC_SOURCE_PACMAN_METADATA_WARNING=1
+    export PATH HOME DOMESTIC_SOURCE_TEST_STATE ZHOUKEER_FORCE_PACMAN_PROGRESS
+    export DOMESTIC_SOURCE_PACMAN_METADATA_WARNING
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/domestic_source.sh"
+    toolbox_sudo() { "$@"; }
+    run_pacman_without_metadata_warnings -Syyu --noconfirm 2>&1
+)"
+printf '%s\n' "$native_progress_output" | grep -Fq '正在使用 pacman 原生下载进度（百分比和速度）...' || \
+    fail "交互式 pacman 未启用原生下载进度"
+printf '%s\n' "$native_progress_output" | grep -Fq '无法获取 usr/include/libnm/nm-device-veth.h 的文件信息' || \
+    fail "交互式 pacman 未保留真实终端输出"
+: > "$FLOW_STATE/commands"
 (
     PATH="$STEAMOS_BIN_DIR:$BIN_DIR:$PATH"
     HOME="$HOME_DIR"
