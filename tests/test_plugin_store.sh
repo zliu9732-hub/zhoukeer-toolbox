@@ -386,6 +386,8 @@ grep -Fq 'allycenter) show_plugin_download_speed_tip; install_configured_plugin 
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'ALLYCENTER_ZH_INDEX_SHA256="1a937de0d4489663a436f165b0c872e770a21d1e34b58bf0a3ae52bde7ddb4cb"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'ALLYCENTER_ZH_PLUGIN_SHA256="f7230538728b00cefa1d6c9c702206c59d2aea911c33e6c0c70e92ad62dc5225"' \
+    "$PROJECT_ROOT/modules/plugin_store.sh"
 if grep -Eq '双风扇|全速|修补、汉化者|full_speed' \
     "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0/dist/index.js"; then
     echo "FAIL: Ally Center 中文前端仍包含 Renkit 的风扇修补功能" >&2
@@ -1123,8 +1125,12 @@ printf '%s\n' "$ally_install_output" | grep -Fq 'TEST_RELOAD: Ally Center'
     echo "FAIL: Ally Center 根目录结构未安装 plugin.json" >&2
     exit 1
 }
-grep -Fq '"name":"Ally Center"' "$ALLY_PLUGIN_ROOT/Ally Center/plugin.json" || {
-    echo "FAIL: Ally Center 安装后未保留原版插件清单" >&2
+grep -Fq '"name": "Ally 控制中心"' "$ALLY_PLUGIN_ROOT/Ally Center/plugin.json" || {
+    echo "FAIL: Ally Center 安装后未应用中文插件名称" >&2
+    exit 1
+}
+grep -Fq '修补、汉化者：RenAmamiya' "$ALLY_PLUGIN_ROOT/Ally Center/plugin.json" || {
+    echo "FAIL: Ally Center 安装后缺少 RenAmamiya 汉化署名" >&2
     exit 1
 }
 [ -s "$ALLY_PLUGIN_ROOT/Ally Center/dist/index.js" ] || {
@@ -1139,6 +1145,12 @@ installed_allycenter_sha256="$(shasum -a 256 \
     "$ALLY_PLUGIN_ROOT/Ally Center/dist/index.js" | awk '{print $1}')"
 [ "$installed_allycenter_sha256" = "$allycenter_zh_actual_sha256" ] || {
     echo "FAIL: Ally Center 安装后未覆盖为已校验的中文前端" >&2
+    exit 1
+}
+installed_allycenter_plugin_sha256="$(shasum -a 256 \
+    "$ALLY_PLUGIN_ROOT/Ally Center/plugin.json" | awk '{print $1}')"
+[ "$installed_allycenter_plugin_sha256" = "f7230538728b00cefa1d6c9c702206c59d2aea911c33e6c0c70e92ad62dc5225" ] || {
+    echo "FAIL: Ally Center 安装后中文插件清单校验值不匹配" >&2
     exit 1
 }
 grep -Fq '# official backend fixture' "$ALLY_PLUGIN_ROOT/Ally Center/main.py" || {
@@ -1176,6 +1188,23 @@ PROJECT_ROOT="$PROJECT_ROOT" DECKY_PLUGIN_DIR="$ALLY_PLUGIN_ROOT" \
         exit 1
     fi
     grep -Fq "# official backend fixture" "$DECKY_PLUGIN_DIR/Ally Center/main.py"
+'
+
+# Missing Chinese plugin metadata must also be rejected before download or replacement.
+cp -R "$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0" "$TMP_ROOT/missing-ally-plugin-json"
+rm -f -- "$TMP_ROOT/missing-ally-plugin-json/plugin.json"
+PROJECT_ROOT="$PROJECT_ROOT" DECKY_PLUGIN_DIR="$ALLY_PLUGIN_ROOT" \
+    BAD_BUNDLE="$TMP_ROOT/missing-ally-plugin-json" ZHOUKEER_TEST_MODE=1 bash -c '
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    detect_platform() { IS_STEAMOS=1; }
+    ALLYCENTER_ZH_SOURCE_DIR="$BAD_BUNDLE"
+    allycenter_chinese_is_current() { return 1; }
+    download_verified_package() { echo "FAIL: incomplete bundle reached downloader" >&2; exit 99; }
+    if ensure_allycenter_chinese_current; then
+        echo "FAIL: missing Ally Center plugin.json was accepted" >&2
+        exit 1
+    fi
+    grep -Fq "修补、汉化者：RenAmamiya" "$DECKY_PLUGIN_DIR/Ally Center/plugin.json"
 '
 
 echo "PASS: Decky国内源、独立功能插件和完整清单配置检查通过"

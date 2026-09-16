@@ -134,12 +134,13 @@ DECKY_NEWFREEDECK_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 # Ally Center 固定使用作者 v1.2.0 正式版；国内镜像与 NewFreedeck 共用 mirror-3。
 DECKY_ALLYCENTER_URL="${ZHOUKEER_DECKY_ALLYCENTER_URL:-https://github.com/PixelAddictUnlocked/allycenter/releases/download/v1.2.0/allycenter-v1.2.0.zip}"
 DECKY_ALLYCENTER_SHA256="${ZHOUKEER_DECKY_ALLYCENTER_SHA256:-a1059534de2a0e9556669adff3d933bcde802101faae7558f9b33db3a8e51bc7}"
-# Ally Center 保持作者 v1.2.0 的后端、清单与版本；Renkit 只覆盖中文界面入口，
-# 并保留官方 dist 内的其余文件，避免上游新增资源在汉化时丢失。
+# Ally Center 保持作者 v1.2.0 的后端、运行时资源与版本；Renkit 仅覆盖中文
+# 界面和中文 plugin.json，使 Decky 显示“Ally 控制中心”且保留官方其余文件。
 DECKY_ALLYCENTER_VERSION="1.2.0"
 DECKY_ALLYCENTER_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 ALLYCENTER_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/allycenter-zh-v1.2.0"
 ALLYCENTER_ZH_INDEX_SHA256="1a937de0d4489663a436f165b0c872e770a21d1e34b58bf0a3ae52bde7ddb4cb"
+ALLYCENTER_ZH_PLUGIN_SHA256="f7230538728b00cefa1d6c9c702206c59d2aea911c33e6c0c70e92ad62dc5225"
 # PowerControl 使用作者 v3.15.1 官方完整包，不修改名称、前端或后端。
 DECKY_POWERCONTROL_URL="${ZHOUKEER_DECKY_POWERCONTROL_URL:-https://github.com/mengmeet/PowerControl/releases/download/v3.15.1/PowerControl.zip}"
 DECKY_POWERCONTROL_SHA256="${ZHOUKEER_DECKY_POWERCONTROL_SHA256:-9c14eddbec7657a23e73eaf811bd8344198159d48303481cf70ebb7c1c1ebd7c}"
@@ -3239,19 +3240,22 @@ install_lego2_brightness_fix() {
 
 allycenter_chinese_is_current() {
     local plugin_root="$1"
-    local actual_sha256
+    local actual_sha256 actual_plugin_sha256
 
     feature_plugin_is_current "$plugin_root" "Ally Center" \
         "$DECKY_ALLYCENTER_VERSION" "Ally Center" || return 1
     actual_sha256="$(calculate_decky_sha256 \
         "$plugin_root/Ally Center/dist/index.js" 2>/dev/null || true)"
-    [ "$actual_sha256" = "$ALLYCENTER_ZH_INDEX_SHA256" ]
+    [ "$actual_sha256" = "$ALLYCENTER_ZH_INDEX_SHA256" ] || return 1
+    actual_plugin_sha256="$(calculate_decky_sha256 \
+        "$plugin_root/Ally Center/plugin.json" 2>/dev/null || true)"
+    [ "$actual_plugin_sha256" = "$ALLYCENTER_ZH_PLUGIN_SHA256" ]
 }
 
 install_allycenter_chinese() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local reload_after="${1:-1}"
-    local actual_sha256 official_source work_dir staged_source
+    local actual_sha256 actual_plugin_sha256 official_source work_dir staged_source
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
@@ -3264,6 +3268,7 @@ install_allycenter_chinese() {
     fi
     if [ -L "$ALLYCENTER_ZH_SOURCE_DIR" ] || \
        [ ! -s "$ALLYCENTER_ZH_SOURCE_DIR/dist/index.js" ] || \
+       [ ! -s "$ALLYCENTER_ZH_SOURCE_DIR/plugin.json" ] || \
        [ ! -f "$ALLYCENTER_ZH_SOURCE_DIR/LICENSE" ]; then
         echo "Ally Center v$DECKY_ALLYCENTER_VERSION 中文组件不完整，请更新Renkit后再试。"
         return 1
@@ -3271,6 +3276,11 @@ install_allycenter_chinese() {
     actual_sha256="$(calculate_decky_sha256 "$ALLYCENTER_ZH_SOURCE_DIR/dist/index.js")" || return 1
     if [ "$actual_sha256" != "$ALLYCENTER_ZH_INDEX_SHA256" ]; then
         echo "Ally Center 中文组件校验失败，已停止覆盖。"
+        return 1
+    fi
+    actual_plugin_sha256="$(calculate_decky_sha256 "$ALLYCENTER_ZH_SOURCE_DIR/plugin.json")" || return 1
+    if [ "$actual_plugin_sha256" != "$ALLYCENTER_ZH_PLUGIN_SHA256" ]; then
+        echo "Ally Center 中文插件清单校验失败，已停止覆盖。"
         return 1
     fi
     official_source="$plugin_root/Ally Center"
@@ -3284,6 +3294,7 @@ install_allycenter_chinese() {
     work_dir="$(mktemp -d)" || return 1
     staged_source="$work_dir/Ally Center"
     if ! cp -a -- "$official_source" "$staged_source" || \
+       ! cp -a -- "$ALLYCENTER_ZH_SOURCE_DIR/plugin.json" "$staged_source/plugin.json" || \
        ! cp -a -- "$ALLYCENTER_ZH_SOURCE_DIR/dist/index.js" "$staged_source/dist/index.js"; then
         rm -rf -- "$work_dir"
         echo "Ally Center 中文组件准备失败，原版未改动。"

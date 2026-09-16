@@ -578,11 +578,14 @@ copy_allycenter_chinese() {
     local source_dir="$SOURCE_ROOT/third_party/allycenter-zh-v1.2.0"
     local relative_file
 
-    # Ally Center 保留作者原版后端、插件清单与配置；安装包只携带中文界面和许可证。
-    copy_file "$source_dir/LICENSE" \
-        "$STAGING_DIR/third_party/allycenter-zh-v1.2.0/LICENSE" || return 1
+    # 作者原版 ZIP 负责后端、运行时资源与版本；Renkit 覆盖已构建中文前端和
+    # 中文插件清单。plugin.json 不可遗漏，否则 Decky 仍显示英文 Ally Center。
+    for relative_file in plugin.json package.json LICENSE; do
+        copy_file "$source_dir/$relative_file" \
+            "$STAGING_DIR/third_party/allycenter-zh-v1.2.0/$relative_file" || return 1
+    done
     copy_file "$source_dir/dist/index.js" \
-        "$STAGING_DIR/third_party/allycenter-zh-v1.2.0/dist/index.js"
+        "$STAGING_DIR/third_party/allycenter-zh-v1.2.0/dist/index.js" || return 1
 }
 
 copy_lego2_brightness_fix() {
