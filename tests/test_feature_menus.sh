@@ -163,7 +163,9 @@ for menu in "$MAIN_FILE" "$GUI_FILE"; do
 done
 touch_lsfg="$(function_source "$MAIN_FILE" lsfg_versions_menu)"
 for menu in "$touch_lsfg" "$gui_games"; do
-    assert_contains "$menu" '旧版小黄鸭' "小黄鸭版本菜单缺少旧版"
+    assert_contains "$menu" '小黄鸭 1.0' "小黄鸭版本菜单缺少 1.0"
+    assert_contains "$menu" '小黄鸭 2.0' "小黄鸭版本菜单缺少 2.0"
+    assert_contains "$menu" 'RenAmamiya 汉化署名' "小黄鸭 2.0 缺少置顶署名说明"
     assert_contains "$menu" 'MAKO 小黄鸭' "小黄鸭版本菜单缺少 MAKO"
     assert_contains "$menu" '上游最新版' "MAKO 入口缺少自动跟随上游说明"
     assert_contains "$menu" '官方简体中文' "MAKO 入口缺少上游中文说明"

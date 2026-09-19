@@ -479,7 +479,7 @@ bazzite_feature_plugins_menu() {
     while true; do
         draw_category_frame games "汉化功能插件" "国内分块镜像优先 · 安装后核对真实插件文件"
         ui_touch_button 4 '\033[1;97;48;5;24m' "一键安装三款" "小黄鸭、FSR4 与 CheatDeck"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "小黄鸭版本选择" "旧版稳定汉化 · MAKO 官方最新版"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "小黄鸭版本选择" "1.0 稳定汉化 · 2.0 新版中文 · MAKO 官方最新版"
         ui_touch_button 10 '\033[1;97;48;5;24m' "安装 FSR4" "Decky-Framegen 汉化版"
         ui_touch_button 13 '\033[1;97;48;5;24m' "安装 CheatDeck" "修改器启动插件"
         ui_touch_button 16 '\033[1;97;48;5;24m' "更多功能插件" "Freedeck、ToMoon、Unifideck 与掌机控制"
@@ -527,18 +527,23 @@ bazzite_common_feature_singles_menu() {
 bazzite_lsfg_versions_menu() {
     local choice
     while true; do
-        draw_category_frame games "小黄鸭版本选择" "旧版稳定汉化 · MAKO 官方最新版"
-        ui_touch_button 4 '\033[1;97;48;5;24m' "旧版小黄鸭" "v0.12.8 汉化版·稳定"
-        ui_touch_button 7 '\033[1;97;48;5;160m' "MAKO 小黄鸭" "跟随上游最新版 · 官方简体中文"
+        draw_category_frame games "小黄鸭版本选择" "1.0 稳定汉化 · 2.0 新版中文 · MAKO 官方最新版"
+        ui_touch_button 4 '\033[1;97;48;5;24m' "小黄鸭 1.0" "v0.12.8 汉化版·稳定"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "小黄鸭 2.0" "v0.14.4 中文版·置顶 RenAmamiya 汉化署名"
+        ui_touch_button 10 '\033[1;97;48;5;160m' "MAKO 小黄鸭" "跟随上游最新版 · 官方简体中文"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回汉化功能插件" "查看其他功能插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:4-5:stable right:7-8:mako right:19-20:back right:22-23:home)"
+        choice="$(read_touch_menu right:4-5:stable right:7-8:v2 right:10-11:mako right:19-20:back right:22-23:home)"
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
             stable)
-                confirm_and_run "安装旧版小黄鸭" "v0.12.8 汉化版；仅从国内分块镜像安装署名完整包；汉化：RenAmamiya" \
+                confirm_and_run "安装小黄鸭 1.0" "v0.12.8 汉化版；仅从国内分块镜像安装署名完整包；汉化：RenAmamiya" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
+                ;;
+            v2)
+                confirm_and_run "安装小黄鸭 2.0" "v0.14.4 中文版；仅从国内分块镜像安装完整包并校验 SHA256；顶部显示 RenAmamiya 汉化署名，可与 1.0 和 MAKO 共存" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-v2
                 ;;
             mako)
                 confirm_and_run "安装或更新 MAKO 小黄鸭" "跟随 eugeniosegala/MAKO 最新正式版；优先从国内镜像下载，镜像尚未同步时回退作者 GitHub Release；全程校验作者 SHA256，保留作者与 GPL-3.0-or-later 许可证" \

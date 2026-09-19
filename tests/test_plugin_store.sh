@@ -824,6 +824,26 @@ grep -Fq 'DECKY_LSFG_MAKO_SHA256="621ad66bd40f12b416e8112bb78e1aae55a96bf7fe1443
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'LSFG_MAKO_INDEX_SHA256="e615016e8d1bb89634be7b259e24a972537cef0238b9036a20235bfffc615e2e"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'LSFG_V2_DIRECTORY="小黄鸭2.0"' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: 小黄鸭 2.0 未使用独立目录，可能覆盖 1.0 或 MAKO" >&2
+    exit 1
+}
+grep -Fq 'LSFG_V2_VERSION="0.14.4"' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: 小黄鸭 2.0 版本配置缺失" >&2
+    exit 1
+}
+grep -Fq 'LSFG_V2_MIRROR_ID="lsfg-v2-zh-signed"' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: 小黄鸭 2.0 未使用独立国内镜像标识" >&2
+    exit 1
+}
+grep -Fq 'install_lsfg_v2_from_gitee()' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: 小黄鸭 2.0 安装函数缺失" >&2
+    exit 1
+}
+grep -Fq 'lsfg-v2) install_lsfg_v2_from_gitee' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: 小黄鸭 2.0 命令入口缺失" >&2
+    exit 1
+}
 grep -Fq '正在安装小黄鸭' "$PROJECT_ROOT/modules/plugin_store.sh"
 configured_plugin_function="$(sed -n '/^install_configured_plugin()/,/^}/p' "$PROJECT_ROOT/modules/plugin_store.sh")"
 if printf '%s\n' "$configured_plugin_function" | grep -Fq 'remove_legacy_lsfg_directories'; then

@@ -40,6 +40,8 @@ DECKY_TMP_DIR=""
 PLUGIN_INSTALL_CHANGED=0
 LSFG_OFFICIAL_DIRECTORY="Decky LSFG-VK"
 LSFG_OFFICIAL_VERSION="0.12.8"
+LSFG_V2_DIRECTORY="小黄鸭2.0"
+LSFG_V2_VERSION="0.14.4"
 LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"
 LSFG_MAKO_DIRECTORY="Mako"
 LSFG_MAKO_VERSION="2.2.0"
@@ -53,6 +55,9 @@ DECKY_MAKO_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 LSFG_ZH_MIRROR_ID="lsfg-zh-signed"
 LSFG_ZH_PACKAGE_SHA256="7f846c28bf5f9d08f6589a618c4e0c4ee4dffb05ad15938c39359c6460f1157b"
 LSFG_ZH_INDEX_SHA256="49d475932c6508a2c58113f605857ba9d26b92646ae49f31804e8f1a913d7d1b"
+LSFG_V2_MIRROR_ID="lsfg-v2-zh-signed"
+LSFG_V2_PACKAGE_SHA256="b316a2cd5c34a329729a2312d6711fca8c7b4ad74ca56b80a08fbe4cae292963"
+LSFG_V2_INDEX_SHA256="838870dce448ee6d42db41c8239d3d061cf8117713500b9831259ab0dec42059"
 FSR4_OFFICIAL_DIRECTORY="Decky-Framegen"
 FSR4_OFFICIAL_VERSION="0.17"
 FSR4_ZH_MIRROR_ID="fsr4-zh-signed"
@@ -2971,6 +2976,63 @@ install_lsfg_zh_from_gitee() {
     log "小黄鸭 v$LSFG_OFFICIAL_VERSION 汉化完整包安装完成"
 }
 
+# 小黄鸭 2.0 使用独立目录，与 1.0 和 MAKO 共存；完整包固定从 Gitee
+# mirror-3 获取，校验失败时不回退到其他来源，也不改动已有插件。
+lsfg_v2_is_current() {
+    local plugin_root="$1"
+    local plugin_dir="$plugin_root/$LSFG_V2_DIRECTORY"
+    local actual_sha256
+
+    feature_plugin_is_current "$plugin_root" "$LSFG_V2_DIRECTORY" \
+        "$LSFG_V2_VERSION" "小黄鸭2.0" || return 1
+    [ -f "$plugin_dir/LICENSE" ] && [ ! -L "$plugin_dir/LICENSE" ] || return 1
+    [ -f "$plugin_dir/bin/lsfg-vk-2.0.0.tar.xz" ] && \
+        [ ! -L "$plugin_dir/bin/lsfg-vk-2.0.0.tar.xz" ] || return 1
+    [ -f "$plugin_dir/dist/index.js" ] && [ ! -L "$plugin_dir/dist/index.js" ] || return 1
+    actual_sha256="$(calculate_decky_sha256 "$plugin_dir/dist/index.js" 2>/dev/null || true)"
+    [ "$actual_sha256" = "$LSFG_V2_INDEX_SHA256" ]
+}
+
+install_lsfg_v2_from_gitee() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local reload_after="${1:-1}"
+    local installed_version
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "$IS_CHIMERAOS" -ne 1 ]; then
+        echo "小黄鸭 2.0 仅支持 SteamOS、Bazzite 或 ChimeraOS。"
+        return 1
+    fi
+    require_existing_chimera_plugin_environment || return 1
+    if lsfg_v2_is_current "$plugin_root"; then
+        echo "[已安装] 小黄鸭 2.0 v$LSFG_V2_VERSION 中文插件已存在且文件完整，无需重复安装。"
+        return 0
+    fi
+    if feature_plugin_is_present "$plugin_root" "$LSFG_V2_DIRECTORY" "小黄鸭2.0"; then
+        installed_version="$(decky_plugin_version "$plugin_root/$LSFG_V2_DIRECTORY" || true)"
+        echo "检测到现有小黄鸭 2.0 版本 ${installed_version:-未知}，正在更新到 $LSFG_V2_VERSION。"
+    fi
+
+    echo "正在安装小黄鸭 2.0..."
+    GITEE_MIRROR_REPO="$DECKY_LSFG_MIRROR_REPO" \
+        install_decky_zip_from_mirror "小黄鸭 2.0（LSFG-VK）" \
+        "$LSFG_V2_MIRROR_ID" "$LSFG_V2_PACKAGE_SHA256" \
+        "$LSFG_V2_DIRECTORY" || {
+            echo "小黄鸭 2.0 的国内镜像不可用，已保留现有插件。"
+            return 1
+        }
+    if ! lsfg_v2_is_current "$plugin_root"; then
+        echo "小黄鸭 2.0 安装后完整性校验失败，请重新安装。"
+        return 1
+    fi
+    echo "小黄鸭 2.0 安装成功。"
+    echo "汉化：RenAmamiya"
+    if [ "$reload_after" = "1" ]; then
+        reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭 2.0 即可使用。"
+    fi
+    log "小黄鸭 2.0 v$LSFG_V2_VERSION 汉化完整包安装完成"
+}
+
 install_fsr4_chinese() {
     install_fsr4_zh_from_gitee "${1:-1}"
 }
@@ -4236,7 +4298,7 @@ install_game_info_plugin_from_gitee() {
 print_feature_plugin_status() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local missing=0
-    local lsfg_version fsr4_version cheatdeck_version plugin_version
+    local lsfg_version lsfg_v2_version fsr4_version cheatdeck_version plugin_version
 
     echo ""
     echo "========== 常用功能插件状态 =========="
@@ -4252,6 +4314,15 @@ print_feature_plugin_status() {
     else
         echo "✗ 小黄鸭（LSFG-VK）：未找到完整插件文件"
         missing=1
+    fi
+    if lsfg_v2_is_current "$plugin_root"; then
+        lsfg_v2_version="$(decky_plugin_version "$plugin_root/$LSFG_V2_DIRECTORY" || true)"
+        echo "✓ 小黄鸭 2.0（LSFG-VK）：已写入 Decky，官方版本 $lsfg_v2_version"
+    elif feature_plugin_is_present "$plugin_root" "$LSFG_V2_DIRECTORY" "小黄鸭2.0"; then
+        lsfg_v2_version="$(decky_plugin_version "$plugin_root/$LSFG_V2_DIRECTORY" || true)"
+        echo "✗ 小黄鸭 2.0（LSFG-VK）：检测到版本 ${lsfg_v2_version:-未知}，请更新到 $LSFG_V2_VERSION"
+    else
+        echo "✗ 小黄鸭 2.0（LSFG-VK）：未找到完整插件文件"
     fi
     if [ "${IS_STEAMOS:-0}" = "1" ]; then
         if mako_official_is_current "$plugin_root"; then
@@ -4535,7 +4606,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     detect_platform
     if [ "$IS_CHIMERAOS" -eq 1 ]; then
         case "$requested_action" in
-            lsfg-mako|lsfg-zh|lsfg-zh-gitee|fsr4-zh|fsr4-zh-gitee|cheatdeck|steamgriddb|cssloader|friendeck|deckymusic|tomoon|deckrecall|savepulse|freedeck|newfreedeck|simpledeckytdp-zh|simpledeckytdp-zh-gitee|unifideck)
+            lsfg-mako|lsfg-v2|lsfg-zh|lsfg-zh-gitee|fsr4-zh|fsr4-zh-gitee|cheatdeck|steamgriddb|cssloader|friendeck|deckymusic|tomoon|deckrecall|savepulse|freedeck|newfreedeck|simpledeckytdp-zh|simpledeckytdp-zh-gitee|unifideck)
                 require_existing_chimera_plugin_environment || exit 1
                 ;;
             feature-status) ;;
@@ -4551,6 +4622,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         store-auto) show_plugin_download_speed_tip; install_plugin_store_auto ;;
         store-uninstall) uninstall_plugin_store ;;
         lsfg) install_lsfg_zh_from_gitee && refresh_feature_usage_guides ;;
+        lsfg-v2) install_lsfg_v2_from_gitee && refresh_feature_usage_guides ;;
         lsfg-mako) show_plugin_download_speed_tip; install_configured_plugin lsfg-mako ;;
         lsfg-zh) install_lsfg_zh_from_gitee && refresh_feature_usage_guides ;;
         lsfg-zh-gitee) install_lsfg_zh_from_gitee && refresh_feature_usage_guides ;;

@@ -133,10 +133,10 @@ grep -Fq 'chimera_plugin_environment_ready' \
     "$PROJECT_ROOT/main-chimera.sh" || fail "ChimeraOS 插件安装缺少现有环境检查"
 grep -Fq 'modules/plugin_store.sh" "$action"' \
     "$PROJECT_ROOT/main-chimera.sh" || fail "ChimeraOS 缺少直接插件安装入口"
-grep -Fq 'lsfg-zh-gitee lsfg-mako' \
-    "$PROJECT_ROOT/main-chimera.sh" || fail "ChimeraOS 小黄鸭菜单没有同时提供旧版与 MAKO"
-grep -Fq 'lsfg-mako|lsfg-zh|lsfg-zh-gitee|' \
-    "$PROJECT_ROOT/modules/plugin_store.sh" || fail "ChimeraOS 插件安全清单未放行旧版小黄鸭"
+grep -Fq 'lsfg-zh-gitee lsfg-v2 lsfg-mako' \
+    "$PROJECT_ROOT/main-chimera.sh" || fail "ChimeraOS 小黄鸭菜单没有同时提供 1.0、2.0 与 MAKO"
+grep -Fq 'lsfg-mako|lsfg-v2|lsfg-zh|lsfg-zh-gitee|' \
+    "$PROJECT_ROOT/modules/plugin_store.sh" || fail "ChimeraOS 插件安全清单未放行小黄鸭版本"
 grep -Fq 'run_action "$title" run_confirmed_action "$@"' \
     "$PROJECT_ROOT/main-chimera.sh" || fail "ChimeraOS 确认操作不能调用 Shell 函数"
 if grep -Fq 'run_action "$title" env ZHOUKEER_AUTO_CONFIRM=1 "$@"' \

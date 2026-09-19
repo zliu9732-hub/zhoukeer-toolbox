@@ -64,15 +64,15 @@ APP_DESCRIPTIONS=(
 )
 
 PLUGIN_ACTIONS=(
-    lsfg-zh-gitee lsfg-mako fsr4-zh-gitee cheatdeck deckrecall savepulse steamgriddb cssloader
+    lsfg-zh-gitee lsfg-v2 lsfg-mako fsr4-zh-gitee cheatdeck deckrecall savepulse steamgriddb cssloader
     friendeck deckymusic freedeck newfreedeck tomoon unifideck simpledeckytdp-zh-gitee
 )
 PLUGIN_TITLES=(
-    "旧版小黄鸭" "MAKO 小黄鸭" "FSR4 帧生成" "CheatDeck" "DeckRecall" "SavePulse" "游戏封面更换" "主题美化"
+    "小黄鸭 1.0" "小黄鸭 2.0" "MAKO 小黄鸭" "FSR4 帧生成" "CheatDeck" "DeckRecall" "SavePulse" "游戏封面更换" "主题美化"
     "文件传输助手" "音乐播放器" "Freedeck" "NewFreedeck" "ToMoon" "Unifideck" "掌机功耗控制"
 )
 PLUGIN_DESCRIPTIONS=(
-    "v0.12.8 汉化稳定版" "上游官方中文最新版" "Decky-Framegen 中文版" "游戏启动参数工具" "游戏录像与回放" "存档备份与恢复" "SteamGridDB" "CSS Loader 中文版"
+    "v0.12.8 汉化稳定版" "v0.14.4 中文版·置顶 RenAmamiya 汉化署名" "上游官方中文最新版" "Decky-Framegen 中文版" "游戏启动参数工具" "游戏录像与回放" "存档备份与恢复" "SteamGridDB" "CSS Loader 中文版"
     "Friendeck" "Decky Music 完整包" "功能扩展" "重构版功能扩展" "网络辅助插件" "功能整合插件" "SimpleDeckyTDP 中文版，请核对机型"
 )
 
