@@ -187,8 +187,15 @@ if command -v script >/dev/null 2>&1; then
         "printf '%s\\n' '  42  1234  42  518    0     0   1531k      0 --:--:-- --:--:-- --:--:-- 1531k' | ZHOUKEER_PROGRESS_DIRECT_TTY=1 download_progress_filter 'TTY测试' | tee \"\$PIPE_CAPTURE\"" \
         > "$tty_runner"
     chmod +x "$tty_runner"
-    PROJECT_ROOT="$PROJECT_ROOT" PIPE_CAPTURE="$tty_pipe_log" \
-        script -qefc "bash '$tty_runner'" /dev/null > "$tty_capture"
+    if script --help 2>&1 | grep -Fq -- '-c'; then
+        PROJECT_ROOT="$PROJECT_ROOT" PIPE_CAPTURE="$tty_pipe_log" \
+            script -qefc "bash '$tty_runner'" /dev/null > "$tty_capture"
+    else
+        # macOS 的 BSD script 不支持 GNU 的 -e/-f/-c 选项；其参数形式为
+        # script [-q] file command [args...]，同样可为本测试提供伪终端。
+        PROJECT_ROOT="$PROJECT_ROOT" PIPE_CAPTURE="$tty_pipe_log" \
+            script -q /dev/null bash "$tty_runner" > "$tty_capture"
+    fi
     [ ! -s "$tty_pipe_log" ] || fail "GUI 日志管道仍会收到每一帧下载进度"
     tr '\r' '\n' < "$tty_capture" | \
         grep -Fq '[########------------] 42%（1531 KB/s）' || \
@@ -227,6 +234,8 @@ grep -Fq 'exec 9>/dev/tty' <<< "$bootstrap_progress" || \
     fail "bootstrap.sh 下载进度没有直接刷新控制终端"
 grep -Fq 'ZHOUKEER_PROGRESS_DIRECT_TTY=1 "$@"' "$PROJECT_ROOT/core/gui.sh" || \
     fail "GUI 动作没有启用单行终端进度"
+grep -Fq 'ZHOUKEER_PROGRESS_DIRECT_TTY=1 "$@"' "$PROJECT_ROOT/main.sh" || \
+    fail "触控主界面动作没有启用单行终端进度"
 
 for payload_source in \
     update.sh bootstrap.sh utils/github_download.sh utils/gitee_download.sh \

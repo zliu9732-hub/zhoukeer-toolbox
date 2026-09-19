@@ -357,6 +357,22 @@ bash "$PROJECT_ROOT/modules/software.sh" qq >/dev/null
 [ -x "$QQ_SHORTCUT" ]
 [ "$(grep -c 'com.qq.QQ' "$STATE_DIR/commands")" -eq 1 ]
 
+# 若用户已有同一 Flatpak 的桌面入口，Renkit 不得再按自己的文件名创建重复项。
+rm -f "$QQ_SHORTCUT"
+cat > "$HOME_DIR/Desktop/我的QQ.desktop" <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=我的 QQ
+Exec=/usr/bin/flatpak run --branch=stable com.qq.QQ
+EOF
+PATH="$BIN_DIR:$PATH" \
+HOME="$HOME_DIR" \
+FLATPAK_TEST_STATE="$STATE_DIR" \
+ZHOUKEER_AUTO_CONFIRM=1 \
+bash "$PROJECT_ROOT/modules/software.sh" qq >/dev/null
+[ -f "$HOME_DIR/Desktop/我的QQ.desktop" ] || fail "已有 QQ 快捷方式被改写"
+[ ! -e "$QQ_SHORTCUT" ] || fail "已有 QQ 快捷方式时仍创建了重复入口"
+
 # Firefox 与 QQ 共用两个国内 Flathub 缓存，主缓存成功后不应继续切换来源。
 PATH="$BIN_DIR:$PATH" \
 HOME="$HOME_DIR" \

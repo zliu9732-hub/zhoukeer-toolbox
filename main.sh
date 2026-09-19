@@ -89,7 +89,9 @@ run_action() {
     print_header
     print_section_title "$title"
     echo ""
-    "$@"
+    # 启动器会把 stderr 送入日志过滤器；下载进度使用回车刷新，若经过该
+    # 管道会被 read 等到下载结束才输出。直接写入控制终端以实时显示进度。
+    ZHOUKEER_PROGRESS_DIRECT_TTY=1 "$@"
     status=$?
 
     cd "$HOME" 2>/dev/null || cd / || true

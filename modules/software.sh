@@ -1208,6 +1208,51 @@ remove_sunshine_additional_install() {
     fi
 }
 
+desktop_entry_launches_software() {
+    local desktop_entry="$1"
+    local exec_value=""
+    local field
+
+    # 只读取普通 .desktop 文件的 Exec 字段；不执行、也不 source 用户内容。
+    [ -f "$desktop_entry" ] && [ ! -L "$desktop_entry" ] || return 1
+    while IFS= read -r field || [ -n "$field" ]; do
+        case "$field" in
+            Exec=*) exec_value="${field#Exec=}"; break ;;
+        esac
+    done < "$desktop_entry"
+    [ -n "$exec_value" ] || return 1
+
+    case "$SOFTWARE_INSTALL_MODE" in
+        appimage) [ "$exec_value" = "\"$QQ_APPIMAGE_PATH\"" ] || [ "$exec_value" = "$QQ_APPIMAGE_PATH" ] ;;
+        wechat_appimage) [ "$exec_value" = "\"$WECHAT_APPIMAGE_PATH\"" ] || [ "$exec_value" = "$WECHAT_APPIMAGE_PATH" ] ;;
+        rustdesk_appimage) [ "$exec_value" = "\"$RUSTDESK_APPIMAGE_PATH\"" ] || [ "$exec_value" = "$RUSTDESK_APPIMAGE_PATH" ] ;;
+        *)
+            # Flatpak 导出的入口常带 --branch 等参数。只做模式比较，不解析或
+            # 执行用户可编辑的 Exec 内容；应用 ID 两侧必须是空白，避免子串误判。
+            case " $exec_value " in
+                *flatpak*" run "*" $SOFTWARE_APP_ID "*) return 0 ;;
+                *) return 1 ;;
+            esac
+            ;;
+    esac
+}
+
+desktop_has_existing_software_shortcut() {
+    local desktop_dir="$1"
+    local candidate
+
+    for candidate in "$desktop_dir"/*.desktop; do
+        [ -e "$candidate" ] || continue
+        # Renkit 自己的固定文件允许更新内容；其他同一应用入口属于用户，保留它。
+        [ "$candidate" = "$desktop_dir/$SOFTWARE_DESKTOP_NAME.desktop" ] && continue
+        if desktop_entry_launches_software "$candidate"; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
 create_software_shortcut() {
     local desktop_dir
     local desktop_file
@@ -1251,6 +1296,13 @@ create_software_shortcut() {
     esac
 
     mkdir -p "$desktop_dir" || return 1
+    local existing_shortcut
+    existing_shortcut="$(desktop_has_existing_software_shortcut "$desktop_dir" 2>/dev/null || true)"
+    if [ -n "$existing_shortcut" ]; then
+        echo "$SOFTWARE_NAME 已有桌面快捷方式，保留原文件：$existing_shortcut"
+        log "$SOFTWARE_NAME 已有用户桌面快捷方式，未重复创建: $existing_shortcut"
+        return 0
+    fi
     cat > "$desktop_file" <<EOF
 [Desktop Entry]
 Type=Application
