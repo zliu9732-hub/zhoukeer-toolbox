@@ -47,7 +47,7 @@ install_lsfg_v2_from_gitee 0 || fail "小黄鸭 2.0 没有完成安装"
 [ -f "$PLUGIN_ROOT/小黄鸭2.0/bin/lsfg-vk-2.0.0.tar.xz" ] || \
     fail "小黄鸭 2.0 没有保留运行文件"
 lsfg_v2_is_current "$PLUGIN_ROOT" || fail "小黄鸭 2.0 未通过完整性检查"
-grep -Fxq "小黄鸭 2.0（LSFG-VK）|$LSFG_V2_MIRROR_ID|$LSFG_V2_PACKAGE_SHA256|$LSFG_V2_DIRECTORY|$DECKY_LSFG_MIRROR_REPO" "$CALLS" || \
+grep -Fxq "小黄鸭 2.0（LSFG-VK）|$LSFG_V2_MIRROR_ID|$LSFG_V2_PACKAGE_SHA256|$LSFG_V2_DIRECTORY|$DECKY_LSFG_V2_MIRROR_REPO" "$CALLS" || \
     fail "小黄鸭 2.0 没有走固定国内镜像、SHA256 或独立目录"
 
 grep -Fq 'lsfg-v2) install_lsfg_v2_from_gitee' "$PROJECT_ROOT/modules/plugin_store.sh" || \

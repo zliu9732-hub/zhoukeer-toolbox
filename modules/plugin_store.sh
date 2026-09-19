@@ -51,6 +51,7 @@ CHEATDECK_MAKO_COMMAND="/home/deck/.local/bin/mako-run"
 CHEATDECK_MAKO_OPTION_CHANGED=0
 LSFG_MAKO_INDEX_SHA256="e615016e8d1bb89634be7b259e24a972537cef0238b9036a20235bfffc615e2e"
 DECKY_LSFG_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
+DECKY_LSFG_V2_MIRROR_REPO="zhoukeer-toolbox-mirror-4"
 DECKY_MAKO_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 LSFG_ZH_MIRROR_ID="lsfg-zh-signed"
 LSFG_ZH_PACKAGE_SHA256="7f846c28bf5f9d08f6589a618c4e0c4ee4dffb05ad15938c39359c6460f1157b"
@@ -2977,7 +2978,7 @@ install_lsfg_zh_from_gitee() {
 }
 
 # 小黄鸭 2.0 使用独立目录，与 1.0 和 MAKO 共存；完整包固定从 Gitee
-# mirror-3 获取，校验失败时不回退到其他来源，也不改动已有插件。
+# mirror-4 获取，校验失败时不回退到其他来源，也不改动已有插件。
 lsfg_v2_is_current() {
     local plugin_root="$1"
     local plugin_dir="$plugin_root/$LSFG_V2_DIRECTORY"
@@ -3014,7 +3015,7 @@ install_lsfg_v2_from_gitee() {
     fi
 
     echo "正在安装小黄鸭 2.0..."
-    GITEE_MIRROR_REPO="$DECKY_LSFG_MIRROR_REPO" \
+    GITEE_MIRROR_REPO="$DECKY_LSFG_V2_MIRROR_REPO" \
         install_decky_zip_from_mirror "小黄鸭 2.0（LSFG-VK）" \
         "$LSFG_V2_MIRROR_ID" "$LSFG_V2_PACKAGE_SHA256" \
         "$LSFG_V2_DIRECTORY" || {
