@@ -587,7 +587,7 @@ lsfg_versions_menu() {
     while true; do
         draw_category_frame games "小黄鸭版本选择" "1.0 稳定汉化 · 2.0 新版中文 · MAKO 官方最新版" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "小黄鸭 1.0" "v0.12.8 汉化版·稳定"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "小黄鸭 2.0" "v0.14.4 中文版·置顶 RenAmamiya 汉化署名"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "小黄鸭 2.0" "v0.14.4 中文版·可与 1.0 和 MAKO 共存"
         ui_touch_button 11 '\033[1;97;48;5;160m' "MAKO 小黄鸭" "跟随上游最新版 · 官方简体中文"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -600,7 +600,7 @@ lsfg_versions_menu() {
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                 ;;
             v2)
-                confirm_and_run "安装小黄鸭 2.0" "v0.14.4 中文版；仅从国内镜像安装完整包并校验 SHA256；顶部显示 RenAmamiya 汉化署名，可与 1.0 和 MAKO 共存" \
+                confirm_and_run "安装小黄鸭 2.0" "v0.14.4 中文版；仅从国内镜像安装完整包并校验 SHA256；可与 1.0 和 MAKO 共存" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-v2
                 ;;
             mako)

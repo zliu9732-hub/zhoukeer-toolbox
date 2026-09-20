@@ -341,7 +341,7 @@ game_environment_gui_menu() {
             lsfg)
                 lsfg_choice="$(gui_dialog --menu "小黄鸭版本选择" \
                     stable "小黄鸭 1.0｜v0.12.8 汉化版·稳定" \
-                    v2 "小黄鸭 2.0｜v0.14.4 中文版｜置顶 RenAmamiya 汉化署名" \
+                    v2 "小黄鸭 2.0｜v0.14.4 中文版｜可与 1.0 和 MAKO 共存" \
                     mako "MAKO 小黄鸭｜跟随上游最新版｜官方简体中文" \
                     back "返回游戏与插件")" || continue
                 case "$lsfg_choice" in
@@ -351,7 +351,7 @@ game_environment_gui_menu() {
                             bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                         ;;
                     v2)
-                        gui_confirm "小黄鸭 2.0 v0.14.4 将从国内镜像下载完整包并校验 SHA256；顶部显示 RenAmamiya 汉化署名，可与小黄鸭 1.0 和 MAKO 共存。是否继续？" && \
+                        gui_confirm "小黄鸭 2.0 v0.14.4 将从国内镜像下载完整包并校验 SHA256；可与小黄鸭 1.0 和 MAKO 共存。是否继续？" && \
                             run_gui_action "安装小黄鸭 2.0" \
                                 env ZHOUKEER_AUTO_CONFIRM=1 \
                                 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-v2
