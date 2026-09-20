@@ -49,3 +49,6 @@
    - `https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/dist/renkit.tar.gz`
 3. Gitee v2 历史不一致时，只能通过新增同步提交或其他非 force push 方式补齐；在 Gitee v2 校验通过前不得宣布发布成功。
 4. 出现更新失败时，必须记录根因并在发布前复验对应更新源，避免同一类发布遗漏再次发生。
+5. Gitee v2 仅作为自动更新源：只允许同步 `VERSION`、`dist/SHA256SUMS`、`dist/renkit.tar.gz` 与 `dist/zhoukeer-toolbox.tar.gz`。不得把完整开发仓库、历史发布包或无关资源推入该仓库。
+6. Gitee 拒绝推送并提示仓库容量/配额时，先记录服务器返回的容量与错误；不得 force push、改写历史或删除线上引用来绕过限制。确认 GitHub `main` 和当前版本 tag 均已可恢复后，必须取得明确确认才可在 Gitee 执行“存储库 GC”。
+7. 存储库 GC 完成后，必须以新增同步提交重新推送 `main`，并再次实际请求第 2 条列出的三个地址；版本号、`SHA256SUMS` 与下载包 SHA256 三者完全一致才算恢复发布能力。
