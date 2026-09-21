@@ -151,12 +151,13 @@ for entry in \
     'ui_sidebar_item 4 software "▣ 安装常用软件"' \
     'ui_sidebar_item 6 games "✦ 游戏与插件"' \
     'ui_sidebar_item 8 emulators "▦ 模拟器"' \
-    'ui_sidebar_item 10 support "◎ 检查与维护"' \
-    'ui_sidebar_item 12 advanced "! 更多设置"' \
-    'ui_sidebar_item 14 dual "◇ 双系统用户专用"' \
-    'ui_sidebar_item 16 uninstall "- 卸载已安装"' \
-    'ui_sidebar_item 18 notice "▧ 免责声明与须知"' \
-    'ui_sidebar_item 20 exit "× 退出Renkit"'; do
+    'ui_sidebar_item 10 help "? 帮助"' \
+    'ui_sidebar_item 12 support "◎ 检查与维护"' \
+    'ui_sidebar_item 14 advanced "! 更多设置"' \
+    'ui_sidebar_item 16 dual "◇ 双系统用户专用"' \
+    'ui_sidebar_item 18 uninstall "- 卸载已安装"' \
+    'ui_sidebar_item 20 notice "▧ 免责声明与须知"' \
+    'ui_sidebar_item 22 exit "× 退出Renkit"'; do
     printf '%s\n' "$frame" | grep -Fq -- "$entry" || fail "侧栏缺少：$entry"
 done
 
@@ -168,12 +169,13 @@ for mapping in \
     'left:4-5:nav-software' \
     'left:6-7:nav-games' \
     'left:8-9:nav-emulators' \
-    'left:10-11:nav-check' \
-    'left:12-13:nav-advanced' \
-    'left:14-15:nav-dual' \
-    'left:16-17:nav-uninstall' \
-    'left:18-19:nav-notice' \
-    'left:20-21:nav-exit'; do
+    'left:10-11:nav-help' \
+    'left:12-13:nav-check' \
+    'left:14-15:nav-advanced' \
+    'left:16-17:nav-dual' \
+    'left:18-19:nav-uninstall' \
+    'left:20-21:nav-notice' \
+    'left:22-23:nav-exit'; do
     printf '%s\n' "$touch_nav" | grep -Fq -- "$mapping" || fail "导航坐标缺失：$mapping"
 done
 
@@ -211,7 +213,8 @@ for aligned_line in \
     'ui_panel_line 14' \
     'ui_panel_line 16' \
     'ui_panel_line 18' \
-    'ui_panel_line 20'; do
+    'ui_panel_line 20' \
+    'ui_panel_line 22'; do
     printf '%s\n' "$home" | grep -Fq "$aligned_line" || fail "首页说明没有与左侧分类对齐：$aligned_line"
 done
 printf '%s\n' "$home" | grep -Fq '双系统用户专用' || fail "首页缺少双系统用户专用说明"

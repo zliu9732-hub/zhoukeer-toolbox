@@ -43,30 +43,31 @@ for mapping in \
     'left:4-5:nav-software' \
     'left:6-7:nav-games' \
     'left:8-9:nav-emulators' \
-    'left:10-11:nav-check' \
-    'left:12-13:nav-advanced' \
-    'left:14-15:nav-dual' \
-    'left:16-17:nav-uninstall' \
-    'left:18-19:nav-notice' \
-    'left:20-21:nav-exit'; do
+    'left:10-11:nav-help' \
+    'left:12-13:nav-check' \
+    'left:14-15:nav-advanced' \
+    'left:16-17:nav-dual' \
+    'left:18-19:nav-uninstall' \
+    'left:20-21:nav-notice' \
+    'left:22-23:nav-exit'; do
     assert_contains "$touch_nav" "$mapping" "触控首页映射缺失：$mapping"
 done
 
-for action in nav-init nav-software nav-games nav-emulators nav-check nav-advanced nav-dual nav-uninstall nav-notice nav-exit; do
+for action in nav-init nav-software nav-games nav-emulators nav-help nav-check nav-advanced nav-dual nav-uninstall nav-notice nav-exit; do
     assert_contains "$gui_home" "$action" "GUI 首页映射缺失：$action"
 done
 
-for old_action in nav-remote nav-plugins nav-settings nav-optimize nav-guides nav-changelog nav-update nav-network nav-help; do
+for old_action in nav-remote nav-plugins nav-settings nav-optimize nav-guides nav-changelog nav-update nav-network; do
     assert_not_contains "$touch_nav" "$old_action" "旧导航仍显示在触控首页：$old_action"
     assert_not_contains "$gui_home" "$old_action" "旧导航仍显示在 GUI 首页：$old_action"
 done
 
-for selected in init software games emulators support advanced dual uninstall notice exit; do
+for selected in init software games emulators help support advanced dual uninstall notice exit; do
     assert_contains "$sidebar" " $selected \"" "侧栏缺少分类：$selected"
 done
 
 assert_contains "$sidebar" 'RENKIT_STEAMOS_DUAL_NAV' "侧栏缺少 SteamOS 双系统入口隔离开关"
-assert_contains "$sidebar" 'ui_sidebar_item 14 dual "◇ 双系统用户专用"' "SteamOS 侧栏缺少双系统用户专用入口"
+assert_contains "$sidebar" 'ui_sidebar_item 16 dual "◇ 双系统用户专用"' "SteamOS 侧栏缺少双系统用户专用入口"
 assert_contains "$touch_nav" 'nav-dual' "SteamOS 触控首页缺少双系统用户专用动作"
 assert_contains "$gui_home" 'nav-dual "双系统用户专用' "SteamOS GUI 首页缺少双系统用户专用入口"
 

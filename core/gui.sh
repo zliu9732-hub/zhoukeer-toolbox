@@ -1389,6 +1389,7 @@ main_gui_menu() {
             nav-software "安装常用软件｜聊天、浏览器和远程工具" \
             nav-games "游戏与插件｜浏览插件商城和游戏组件" \
             nav-emulators "模拟器｜Switch、Wii U、PS1 至 3DS 模拟器" \
+            nav-help "帮助｜扫码联系、查看资讯与使用指南" \
             nav-check "检查与维护｜检查网络、常见问题并生成诊断包" \
             nav-advanced "更多设置｜国内下载、内存、密码和掌机适配" \
             nav-dual "双系统用户专用｜互通盘、Windows 与 Clover 设置" \
@@ -1401,6 +1402,7 @@ main_gui_menu() {
             nav-software) software_menu ;;
             nav-games) game_environment_gui_menu ;;
             nav-emulators) emulator_gui_menu ;;
+            nav-help) bash "$PROJECT_ROOT/modules/help.sh" ;;
             nav-check) support_gui_menu ;;
             nav-advanced) advanced_tools_gui_menu ;;
             nav-dual) dual_system_menu ;;

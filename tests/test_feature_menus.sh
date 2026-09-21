@@ -49,6 +49,7 @@ for item in \
     '安装常用软件｜聊天、浏览器和远程工具' \
     '游戏与插件｜浏览插件商城和游戏组件' \
     '模拟器｜Switch、Wii U、PS1 至 3DS 模拟器' \
+    '帮助｜扫码联系、查看资讯与使用指南' \
     '检查与维护｜检查网络、常见问题并生成诊断包' \
     '更多设置｜国内下载、内存、密码和掌机适配' \
     '双系统用户专用｜互通盘、Windows 与 Clover 设置' \
@@ -57,7 +58,8 @@ for item in \
     assert_contains "$gui_home" "$item" "GUI 首页缺少：$item"
 done
 
-assert_contains "$sidebar" 'ui_sidebar_item 14 dual "◇ 双系统用户专用"' "SteamOS 触控侧栏缺少双系统用户专用"
+assert_contains "$sidebar" 'ui_sidebar_item 10 help "? 帮助"' "SteamOS 触控侧栏缺少帮助"
+assert_contains "$sidebar" 'ui_sidebar_item 16 dual "◇ 双系统用户专用"' "SteamOS 触控侧栏缺少双系统用户专用"
 assert_contains "$sidebar" 'RENKIT_STEAMOS_DUAL_NAV' "SteamOS 双系统侧栏缺少平台隔离"
 
 touch_software="$(function_source "$MAIN_FILE" common_software_menu)"

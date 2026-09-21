@@ -170,7 +170,7 @@ ui_prepare_layout() {
         esac
     done
     if [ "${RENKIT_STEAMOS_DUAL_NAV:-0}" = "1" ]; then
-        sidebar_items=10
+        sidebar_items=11
     fi
     if [ "$count" -eq 0 ] && [ "$notes" -eq "$sidebar_items" ] && [ -z "${UI_DRAW_ARG1[0]}${UI_DRAW_ARG2[0]}" ]; then
         UI_HOME=1
@@ -435,6 +435,7 @@ ui_sidebar_item() {
         software) [ -z "${RENKIT_NAV_SOFTWARE_LABEL:-}" ] || label="$RENKIT_NAV_SOFTWARE_LABEL" ;;
         games) [ -z "${RENKIT_NAV_GAMES_LABEL:-}" ] || label="$RENKIT_NAV_GAMES_LABEL" ;;
         emulators) [ -z "${RENKIT_NAV_EMULATORS_LABEL:-}" ] || label="$RENKIT_NAV_EMULATORS_LABEL" ;;
+        help) [ -z "${RENKIT_NAV_HELP_LABEL:-}" ] || label="$RENKIT_NAV_HELP_LABEL" ;;
         support) [ -z "${RENKIT_NAV_SUPPORT_LABEL:-}" ] || label="$RENKIT_NAV_SUPPORT_LABEL" ;;
         advanced) [ -z "${RENKIT_NAV_ADVANCED_LABEL:-}" ] || label="$RENKIT_NAV_ADVANCED_LABEL" ;;
         dual) [ -z "${RENKIT_NAV_DUAL_LABEL:-}" ] || label="$RENKIT_NAV_DUAL_LABEL" ;;
@@ -455,7 +456,7 @@ ui_sidebar_item() {
     ui_button_rect left "$row" || return 1
     UI_BOX_COL="$UI_HIT_COL" UI_BOX_WIDTH="$UI_HIT_WIDTH"
     content_bottom="$UI_HIT_BOTTOM"
-    [ "${RENKIT_STEAMOS_DUAL_NAV:-0}" != "1" ] || sidebar_last_row=20
+    [ "${RENKIT_STEAMOS_DUAL_NAV:-0}" != "1" ] || sidebar_last_row=22
     [ "$row" -ne "$sidebar_last_row" ] || content_bottom=$((content_bottom - 1))
     UI_BOX_TEXT_ROW=$(((UI_HIT_TOP + 1 + content_bottom) / 2)) UI_BOX_HINT_ROW=0
     printf '\033[?7l'
@@ -525,14 +526,17 @@ draw_category_frame() {
     ui_sidebar_item 4 software "▣ 安装常用软件" "$selected"
     ui_sidebar_item 6 games "✦ 游戏与插件" "$selected"
     ui_sidebar_item 8 emulators "▦ 模拟器" "$selected"
-    ui_sidebar_item 10 support "◎ 检查与维护" "$selected"
-    ui_sidebar_item 12 advanced "! 更多设置" "$selected" 0
     if [ "${RENKIT_STEAMOS_DUAL_NAV:-0}" = "1" ]; then
-        ui_sidebar_item 14 dual "◇ 双系统用户专用" "$selected" 0
-        ui_sidebar_item 16 uninstall "- 卸载已安装" "$selected" 0
-        ui_sidebar_item 18 notice "▧ 免责声明与须知" "$selected" 0
-        ui_sidebar_item 20 exit "× 退出Renkit" "$selected" 0
+        ui_sidebar_item 10 help "? 帮助" "$selected"
+        ui_sidebar_item 12 support "◎ 检查与维护" "$selected"
+        ui_sidebar_item 14 advanced "! 更多设置" "$selected" 0
+        ui_sidebar_item 16 dual "◇ 双系统用户专用" "$selected" 0
+        ui_sidebar_item 18 uninstall "- 卸载已安装" "$selected" 0
+        ui_sidebar_item 20 notice "▧ 免责声明与须知" "$selected" 0
+        ui_sidebar_item 22 exit "× 退出Renkit" "$selected" 0
     else
+        ui_sidebar_item 10 support "◎ 检查与维护" "$selected"
+        ui_sidebar_item 12 advanced "! 更多设置" "$selected" 0
         ui_sidebar_item 14 uninstall "- 卸载已安装" "$selected" 0
         ui_sidebar_item 16 notice "▧ 免责声明与须知" "$selected" 0
         ui_sidebar_item 18 exit "× 退出Renkit" "$selected" 0
@@ -554,7 +558,7 @@ draw_category_frame() {
             case "$selected" in
                 init) title='新机器设置' ;; software) title='安装常用软件' ;;
                 games) title='游戏与插件' ;; emulators) title='模拟器' ;;
-                support) title='检查与维护' ;; advanced) title='更多设置' ;;
+                help) title='帮助' ;; support) title='检查与维护' ;; advanced) title='更多设置' ;;
                 uninstall) title='卸载已安装' ;; *) title='功能选择' ;;
             esac
         fi

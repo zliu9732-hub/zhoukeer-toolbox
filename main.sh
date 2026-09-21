@@ -193,12 +193,13 @@ read_touch_menu() {
         left:4-5:nav-software \
         left:6-7:nav-games \
         left:8-9:nav-emulators \
-        left:10-11:nav-check \
-        left:12-13:nav-advanced \
-        left:14-15:nav-dual \
-        left:16-17:nav-uninstall \
-        left:18-19:nav-notice \
-        left:20-21:nav-exit \
+        left:10-11:nav-help \
+        left:12-13:nav-check \
+        left:14-15:nav-advanced \
+        left:16-17:nav-dual \
+        left:18-19:nav-uninstall \
+        left:20-21:nav-notice \
+        left:22-23:nav-exit \
         "$@"
 }
 
@@ -208,7 +209,8 @@ apply_navigation() {
         nav-software) NEXT_CATEGORY="software" ;;
         nav-games) NEXT_CATEGORY="games" ;;
         nav-emulators) NEXT_CATEGORY="emulators" ;;
-        nav-network|nav-maintenance|nav-help|nav-check) NEXT_CATEGORY="support" ;;
+        nav-help) NEXT_CATEGORY="help-contact" ;;
+        nav-network|nav-maintenance|nav-check) NEXT_CATEGORY="support" ;;
         nav-advanced) NEXT_CATEGORY="advanced" ;;
         nav-dual) NEXT_CATEGORY="dual" ;;
         nav-uninstall) NEXT_CATEGORY="uninstall" ;;
@@ -1227,9 +1229,12 @@ domestic_source_preflight() {
         draw_category_frame advanced "初始化国内源并检测系统组件" "提高国内下载速度，更新组件并修复 Discover 商店"
         ui_panel_line 7 '\033[1;38;5;220m' "flathub-cn｜https://mirror.sjtu.edu.cn/flathub"
         ui_panel_line 9 '\033[1;38;5;220m' "flathub-ustc｜https://mirrors.ustc.edu.cn/flathub"
-        ui_panel_line 11 '\033[1;38;5;220m' "archlinuxcn｜上海交大 → 中科大 → 官方回退"
-        ui_panel_line 13 '\033[1;38;5;203m' "Flatpak 缓存关闭 GPG；archlinuxcn 保持 GPG 验证"
-        ui_panel_line 15 '\033[1;38;5;203m' "pacman 完整更新 + Discover 修复｜临时关闭只读保护"
+        ui_panel_line 10 '\033[1;38;5;220m' "archlinuxcn｜上海交大 → 中科大 → 官方回退"
+        ui_panel_line 11 '\033[1;38;5;250m' "https://mirror.sjtu.edu.cn/archlinux-cn/\$arch"
+        ui_panel_line 12 '\033[1;38;5;250m' "https://mirrors.ustc.edu.cn/archlinuxcn/\$arch"
+        ui_panel_line 13 '\033[1;38;5;250m' "https://repo.archlinuxcn.org/\$arch"
+        ui_panel_line 14 '\033[1;38;5;203m' "Flatpak 缓存关闭 GPG；archlinuxcn 保持 GPG 验证"
+        ui_panel_line 15 '\033[1;38;5;203m' "pacman 完整更新 + locale + Discover 修复｜临时关闭只读保护"
         ui_touch_button 17 '\033[1;97;48;5;160m' "初始化国内源并检测系统组件" "更新组件、配置国内缓存并刷新应用商店"
         ui_touch_button 19 '\033[1;97;48;5;30m' "恢复官方软件源" "恢复 Flathub 并移除Renkit archlinuxcn"
         ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "不做任何修改"
@@ -1632,6 +1637,26 @@ support_menu() {
     done
 }
 
+help_contact_menu() {
+    local choice
+
+    while true; do
+        draw_category_frame help "帮助" "扫码联系、查看资讯与使用指南"
+        ui_touch_button 6 '\033[1;97;48;5;24m' "打开帮助页面" "查看二维码、闲鱼主页与联系网址"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "使用帮助与设置" "查看指南、备份设置和Renkit更新"
+        ui_panel_line 15 '\033[1;38;5;220m' "联系网址：https://link3.cc/renamamiya"
+        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:6-7:open right:10-11:settings right:20-21:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            open) run_action "打开帮助页面" bash "$PROJECT_ROOT/modules/help.sh" ;;
+            settings) help_menu; return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+    done
+}
+
 maintenance_menu() {
     local choice
 
@@ -1773,12 +1798,13 @@ home_menu() {
     ui_panel_line 4 '\033[1;38;5;45m' "安装常用软件｜聊天、浏览器和远程工具"
     ui_panel_line 6 '\033[1;38;5;45m' "游戏与插件｜浏览插件商城和游戏组件"
     ui_panel_line 8 '\033[1;38;5;45m' "模拟器｜Switch、Wii U、PS1 至 3DS 模拟器"
-    ui_panel_line 10 '\033[1;38;5;114m' "检查与维护｜检查网络、常见问题并生成诊断包"
-    ui_panel_line 12 '\033[1;38;5;203m' "更多设置｜国内下载、内存、密码和掌机适配"
-    ui_panel_line 14 '\033[1;38;5;220m' "双系统用户专用｜互通盘、Windows 与 Clover 设置"
-    ui_panel_line 16 '\033[1;38;5;203m' "卸载已安装｜逐项安全移除软件和系统组件"
-    ui_panel_line 18 '\033[1;38;5;250m' "免责声明与使用须知｜查看完整图文说明"
-    ui_panel_line 20 '\033[1;38;5;250m' "退出Renkit｜关闭掌机工具箱"
+    ui_panel_line 10 '\033[1;38;5;220m' "帮助｜扫码联系、查看资讯与使用指南"
+    ui_panel_line 12 '\033[1;38;5;114m' "检查与维护｜检查网络、常见问题并生成诊断包"
+    ui_panel_line 14 '\033[1;38;5;203m' "更多设置｜国内下载、内存、密码和掌机适配"
+    ui_panel_line 16 '\033[1;38;5;220m' "双系统用户专用｜互通盘、Windows 与 Clover 设置"
+    ui_panel_line 18 '\033[1;38;5;203m' "卸载已安装｜逐项安全移除软件和系统组件"
+    ui_panel_line 20 '\033[1;38;5;250m' "免责声明与使用须知｜查看完整图文说明"
+    ui_panel_line 22 '\033[1;38;5;250m' "退出Renkit｜关闭掌机工具箱"
     ui_prompt
     choice="$(read_touch_menu)"
     apply_navigation "$choice" || true
@@ -1806,6 +1832,7 @@ while true; do
         battlenet_submenu) battlenet_submenu ;;
         launcher_repair) launcher_repair_menu ;;
         emulators) emulator_menu ;;
+        help-contact) help_contact_menu ;;
         network|support) support_menu ;;
         advanced) advanced_tools_menu ;;
         dual) dual_system_menu ;;
