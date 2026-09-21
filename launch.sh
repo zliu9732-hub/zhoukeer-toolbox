@@ -79,6 +79,7 @@ $message" >/dev/null 2>&1; then
 
 run_startup_update() {
     local default_install_dir="$HOME/.local/share/zhoukeer-toolbox"
+    local startup_update_max_seconds="${ZHOUKEER_STARTUP_UPDATE_MAX_SECONDS:-60}"
     local status
 
     [ "${ZHOUKEER_AUTO_UPDATE:-1}" != "0" ] || return 0
@@ -100,14 +101,23 @@ run_startup_update() {
     cd "$HOME" 2>/dev/null || cd / || true
     # 自动更新只写入启动日志。正常启动不回显下载、校验或安装器的底层输出，
     # 避免终端在进入Renkit前残留二进制/归档等技术信息。
-    bash "$PROJECT_ROOT/update.sh" --startup >> "$LAUNCH_LOG" 2>&1
+    if command -v timeout >/dev/null 2>&1; then
+        timeout -k 5 "$startup_update_max_seconds" \
+            bash "$PROJECT_ROOT/update.sh" --startup >> "$LAUNCH_LOG" 2>&1
+    else
+        bash "$PROJECT_ROOT/update.sh" --startup >> "$LAUNCH_LOG" 2>&1
+    fi
     status=$?
     cd "$PROJECT_ROOT" 2>/dev/null || cd "$HOME" 2>/dev/null || cd / || true
 
     if [ "$status" -eq 0 ]; then
         launcher_log "启动自动更新检测完成"
     else
-        launcher_log "启动自动更新检测失败：状态码=${status}；继续当前版本"
+        if [ "$status" -eq 124 ] || [ "$status" -eq 137 ]; then
+            launcher_log "启动自动更新超过${startup_update_max_seconds}秒，已停止并继续当前版本"
+        else
+            launcher_log "启动自动更新检测失败：状态码=${status}；继续当前版本"
+        fi
         printf '%s\n' "自动更新暂时不可用，继续启动当前版本。"
     fi
     return 0
