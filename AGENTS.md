@@ -52,3 +52,10 @@
 5. Gitee v2 仅作为自动更新源：只允许同步 `VERSION`、`dist/SHA256SUMS`、`dist/renkit.tar.gz` 与 `dist/zhoukeer-toolbox.tar.gz`。不得把完整开发仓库、历史发布包或无关资源推入该仓库。
 6. Gitee 拒绝推送并提示仓库容量/配额时，先记录服务器返回的容量与错误；不得 force push、改写历史或删除线上引用来绕过限制。确认 GitHub `main` 和当前版本 tag 均已可恢复后，必须取得明确确认才可在 Gitee 执行“存储库 GC”。
 7. 存储库 GC 完成后，必须以新增同步提交重新推送 `main`，并再次实际请求第 2 条列出的三个地址；版本号、`SHA256SUMS` 与下载包 SHA256 三者完全一致才算恢复发布能力。
+
+## 默认发布方式
+
+1. 用户所说的“提交并发布”“推送发布”或同义要求，默认且仅指：完成必要检查、生成发布包、提交改动、推送 GitHub `main`、推送当前版本 tag、等待 Gitee v2 自动同步，并按“发布前验证”实际校验 Gitee v2 更新源。
+2. 除非用户明确要求“创建 GitHub Release”或“上传 GitHub Release 附件”，不得创建、编辑或发布 GitHub Release，不得打开 GitHub Release 网页上传附件，也不得把普通 Git 推送擅自扩展成 GitHub Release 操作。
+3. 默认发布流程使用项目现有 Git 凭据和 `git` 命令；不得仅为普通提交、推送或发布安装、恢复或登录 GitHub CLI（`gh`）。只有用户明确要求使用 `gh` 或明确要求 GitHub Release 且现有方式无法完成时，才可处理 `gh`。
+4. 不得因为工具偏好重复已完成的发布步骤。GitHub `main`、版本 tag 与 Gitee v2 已验证一致后，应立即报告结果，避免无关网页操作、重复上传和额外 Token 消耗。
