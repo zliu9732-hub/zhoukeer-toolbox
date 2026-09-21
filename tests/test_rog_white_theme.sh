@@ -32,6 +32,13 @@ source "$MODULE"
 [ -f "$ROG_WHITE_SOURCE_DIR/theme.json" ] || fail "仓库缺少 ROG White theme.json"
 [ -f "$ROG_WHITE_SOURCE_DIR/shared.css" ] || fail "仓库缺少 ROG White shared.css"
 
+for broad_rule in '[class*="Menu"] *' '[class*="menu"] *' \
+    '[class*="gamepaduiappoverlay_"] *' '[class*="mainmenuapprunning_"] *'; do
+    if grep -Fq "$broad_rule" "$ROG_WHITE_SOURCE_DIR/shared.css"; then
+        fail "ROG White 仍包含会阻塞菜单动画的通配后代规则：$broad_rule"
+    fi
+done
+
 rm -f "$PLUGIN_DIR/SDH-CssLoader/plugin.json"
 if output="$(rog_white_install 2>&1)"; then
     fail "缺少 CSS Loader 时安装仍成功"
@@ -52,7 +59,7 @@ output="$(rog_white_install 2>&1)"
 printf '%s\n' "$output" | grep -Fq '无需重复安装' || fail "重复安装未跳过"
 
 status_output="$(rog_white_print_status)"
-printf '%s\n' "$status_output" | grep -Fq '已安装 v1.4.8' || fail "状态未显示已安装版本"
+printf '%s\n' "$status_output" | grep -Fq '已安装 v1.4.9' || fail "状态未显示已安装版本"
 printf '%s\n' "$status_output" | grep -Fq 'CSS Loader：已安装' || fail "状态未显示 CSS Loader 已安装"
 
 rog_white_uninstall >/dev/null || fail "ROG White 卸载失败"
