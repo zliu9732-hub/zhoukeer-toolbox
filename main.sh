@@ -1641,17 +1641,19 @@ help_contact_menu() {
     local choice
 
     while true; do
-        draw_category_frame help "帮助" "扫码联系、查看资讯与使用指南"
-        ui_touch_button 6 '\033[1;97;48;5;24m' "打开帮助页面" "查看二维码、闲鱼主页与联系网址"
-        ui_touch_button 10 '\033[1;97;48;5;24m' "使用帮助与设置" "查看指南、备份设置和Renkit更新"
-        ui_panel_line 15 '\033[1;38;5;220m' "联系网址：https://link3.cc/renamamiya"
-        ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        draw_category_frame help "" "" 0
+        ui_help_column_line 2 full '\033[1;38;5;220m' "一起为Linux游戏社区贡献一份力，帮助到你了欢迎来闲鱼支持我"
+        ui_help_column_line 4 left '\033[1;38;5;45m' "RenAmamiya"
+        ui_help_column_line 4 right '\033[1;38;5;45m' "闲鱼账号：RenAmamiya"
+        ui_help_image 6 left "$PROJECT_ROOT/assets/help/renamamiya-qr.sixel" 24
+        ui_help_image 6 right "$PROJECT_ROOT/assets/help/xianyu-renamamiya.sixel" 32
+        ui_help_column_line 19 left '\033[1;38;5;45m' "https://link3.cc/renamamiya"
+        ui_help_column_line 19 right '\033[1;38;5;45m' "闲鱼关注我了解更多资讯"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:6-7:open right:10-11:settings right:20-21:home)"
+        choice="$(read_touch_menu right:22-24:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
-            open) run_action "打开帮助页面" bash "$PROJECT_ROOT/modules/help.sh" ;;
-            settings) help_menu; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
     done

@@ -72,6 +72,22 @@ assert_contains "$help_page" '闲鱼账号：<strong>RenAmamiya</strong>' "帮�
 assert_contains "$help_page" 'https://link3.cc/renamamiya</a></figcaption>' "帮助页二维码下方缺少联系链接"
 assert_contains "$help_page" '闲鱼关注我了解更多资讯' "帮助页缺少闲鱼说明"
 
+touch_contact="$(function_source "$MAIN_FILE" help_contact_menu)"
+assert_contains "$touch_contact" 'draw_category_frame help "" "" 0' "帮助页没有释放右侧图片排版空间"
+assert_contains "$touch_contact" 'ui_help_image 6 left' "帮助页左侧缺少内嵌二维码"
+assert_contains "$touch_contact" 'ui_help_image 6 right' "帮助页右侧缺少内嵌闲鱼图片"
+assert_contains "$touch_contact" 'ui_help_column_line 19 left' "帮助页网址没有放在二维码下方"
+assert_contains "$touch_contact" 'right:22-24:home' "帮助页底部缺少返回首页"
+assert_not_contains "$touch_contact" '打开帮助页面' "帮助页仍要求打开外部页面"
+assert_not_contains "$touch_contact" '联系网址：' "二维码下方仍错误标注为联系网址"
+for image in \
+    "$PROJECT_ROOT/assets/help/renamamiya-qr.sixel" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya.sixel" \
+    "$PROJECT_ROOT/assets/help/renamamiya-qr.ansi" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya.ansi"; do
+    [ -s "$image" ] || fail "帮助页内嵌图片缺失：$image"
+done
+
 touch_software="$(function_source "$MAIN_FILE" common_software_menu)"
 gui_software="$(function_source "$GUI_FILE" software_menu)"
 touch_software_more="$(function_source "$MAIN_FILE" common_software_more_menu)"

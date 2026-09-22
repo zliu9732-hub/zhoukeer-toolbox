@@ -367,7 +367,7 @@ ui_replay_frame() {
     for ((index=0; index<UI_DRAW_COUNT; index++)); do
         function="${UI_DRAW_FUNCTION[index]}"
         case "$function" in
-            draw_category_frame|draw_disclaimer_frame|ui_panel_line|ui_touch_button|ui_disclaimer_line|ui_disclaimer_button|ui_prompt)
+            draw_category_frame|draw_disclaimer_frame|ui_panel_line|ui_help_column_line|ui_help_image|ui_touch_button|ui_disclaimer_line|ui_disclaimer_button|ui_prompt)
                 "$function" "${UI_DRAW_ARG1[index]}" "${UI_DRAW_ARG2[index]}" \
                     "${UI_DRAW_ARG3[index]}" "${UI_DRAW_ARG4[index]}" ;;
         esac
@@ -415,6 +415,67 @@ ui_panel_line() {
         *) printf '%s' "$text" ;;
     esac
     printf ' \033[0m\033[?7h'
+}
+
+# 帮助页的文字在左右两列内各自居中，与下方图片对齐。
+ui_help_column_line() {
+    ui_record_draw ui_help_column_line "$@"
+    [ "$UI_DEFERRED" = 0 ] || return 0
+    [ "$UI_LAYOUT_USABLE" = 1 ] || return 0
+    local row="$1" side="$2" color="$3" text="$4"
+    local half start width column
+
+    half=$((UI_PANEL_WIDTH / 2))
+    case "$side" in
+        left) start="$UI_PANEL_COL"; width=$((half - 1)) ;;
+        right) start=$((UI_PANEL_COL + half + 1)); width=$((UI_PANEL_WIDTH - half - 1)) ;;
+        full) start="$UI_PANEL_COL"; width="$UI_PANEL_WIDTH" ;;
+        *) return 1 ;;
+    esac
+    ui_resolve_text_color "$color"
+    ui_fit_button_text "$text" "$width"
+    column=$((start + (width - UI_FIT_USED) / 2))
+    ui_move "$row" "$column"
+    printf '\033[?7l%b%s\033[0m\033[?7h' "$UI_THEME_COLOR" "$UI_FIT_TEXT"
+}
+
+# Konsole 22.04 起可直接显示 Sixel 图片；旧终端改用包内 ANSI 预览。
+# 图片在当前右侧内容区左右并排，不打开浏览器或新窗口。
+ui_help_image() {
+    ui_record_draw ui_help_image "$@"
+    [ "$UI_DEFERRED" = 0 ] || return 0
+    [ "$UI_LAYOUT_USABLE" = 1 ] || return 0
+    local row="$1" side="$2" sixel_path="$3" image_columns="$4"
+    local half column version="${KONSOLE_VERSION:-0}" ansi_path ansi_row line
+
+    [ -r "$sixel_path" ] || return 0
+    half=$((UI_PANEL_WIDTH / 2))
+    case "$side" in
+        left) column=$((UI_PANEL_COL + (half - image_columns) / 2)) ;;
+        right) column=$((UI_PANEL_COL + half + 1 + (UI_PANEL_WIDTH - half - 1 - image_columns) / 2)) ;;
+        *) return 1 ;;
+    esac
+    [ "$column" -ge "$UI_PANEL_COL" ] || column="$UI_PANEL_COL"
+
+    case "$version" in ''|*[!0-9]*) version=0 ;; esac
+    if [ "$version" -ge 220400 ]; then
+        ui_move "$row" "$column"
+        printf '\033[?25l'
+        command cat -- "$sixel_path"
+        printf '\033[0m'
+        return 0
+    fi
+
+    ansi_path="${sixel_path%.sixel}.ansi"
+    [ -r "$ansi_path" ] || return 0
+    [ "$side" != "left" ] || column=$((UI_PANEL_COL + (half - 35) / 2))
+    ui_scale_row "$row"
+    ansi_row="$UI_SCALED_ROW"
+    while IFS= read -r line; do
+        ui_move "$ansi_row" "$column"
+        printf '%s\033[0m' "$line"
+        ansi_row=$((ansi_row + 1))
+    done < "$ansi_path"
 }
 
 # 分类共用一个红色外框，横线逐项分隔；右侧继续使用独立卡片。
