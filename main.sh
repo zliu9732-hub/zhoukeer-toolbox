@@ -1645,10 +1645,10 @@ help_contact_menu() {
         ui_help_column_line 2 full '\033[1;38;5;220m' "一起为Linux游戏社区贡献一份力，帮助到你了欢迎来闲鱼支持我"
         ui_help_column_line 4 left '\033[1;38;5;45m' "RenAmamiya"
         ui_help_column_line 4 right '\033[1;38;5;45m' "闲鱼账号：RenAmamiya"
-        ui_help_image 6 left "$PROJECT_ROOT/assets/help/renamamiya-qr.sixel" 24
-        ui_help_image 6 right "$PROJECT_ROOT/assets/help/xianyu-renamamiya.sixel" 32
-        ui_help_column_line 19 left '\033[1;38;5;45m' "https://link3.cc/renamamiya"
-        ui_help_column_line 19 right '\033[1;38;5;45m' "闲鱼关注我了解更多资讯"
+        ui_help_image 6 left "$PROJECT_ROOT/assets/help/renamamiya-qr.sixel" 18:30:42
+        ui_help_image 6 right "$PROJECT_ROOT/assets/help/xianyu-renamamiya.sixel" 24:40:56
+        ui_help_captions "如果二维码扫不出来请在浏览器浏览以下网址" \
+            "https://link3.cc/renamamiya" "闲鱼关注我了解更多资讯"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:22-24:home)"

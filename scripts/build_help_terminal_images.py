@@ -109,12 +109,17 @@ def build() -> None:
         if not source.is_file():
             raise FileNotFoundError(source)
 
-    qr = Image.open(qr_source).convert("RGB").resize((164, 164), Image.Resampling.NEAREST)
-    xianyu = fit_on_canvas(xianyu_source, (224, 164), "white")
-    write_sixel(qr, HELP_ASSETS / "renamamiya-qr.sixel", 2)
-    write_sixel(xianyu, HELP_ASSETS / "xianyu-renamamiya.sixel", 96)
-
     qr_modules = Image.open(qr_source).convert("L").resize((41, 41), Image.Resampling.NEAREST)
+    for suffix, qr_size, xianyu_size in (
+        ("-compact", 123, (168, 123)),
+        ("", 205, (280, 205)),
+        ("-large", 287, (392, 287)),
+    ):
+        qr = qr_modules.convert("RGB").resize((qr_size, qr_size), Image.Resampling.NEAREST)
+        xianyu = fit_on_canvas(xianyu_source, xianyu_size, "white")
+        write_sixel(qr, HELP_ASSETS / f"renamamiya-qr{suffix}.sixel", 2)
+        write_sixel(xianyu, HELP_ASSETS / f"xianyu-renamamiya{suffix}.sixel", 96)
+
     qr_modules = qr_modules.crop((3, 3, 38, 38)).convert("RGB")
     write_ansi(qr_modules, HELP_ASSETS / "renamamiya-qr.ansi")
     xianyu_ansi = fit_on_canvas(xianyu_source, (35, 34), "white")

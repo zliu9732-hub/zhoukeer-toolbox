@@ -367,7 +367,7 @@ ui_replay_frame() {
     for ((index=0; index<UI_DRAW_COUNT; index++)); do
         function="${UI_DRAW_FUNCTION[index]}"
         case "$function" in
-            draw_category_frame|draw_disclaimer_frame|ui_panel_line|ui_help_column_line|ui_help_image|ui_touch_button|ui_disclaimer_line|ui_disclaimer_button|ui_prompt)
+            draw_category_frame|draw_disclaimer_frame|ui_panel_line|ui_help_column_line|ui_help_image|ui_help_captions|ui_touch_button|ui_disclaimer_line|ui_disclaimer_button|ui_prompt)
                 "$function" "${UI_DRAW_ARG1[index]}" "${UI_DRAW_ARG2[index]}" \
                     "${UI_DRAW_ARG3[index]}" "${UI_DRAW_ARG4[index]}" ;;
         esac
@@ -445,9 +445,24 @@ ui_help_image() {
     ui_record_draw ui_help_image "$@"
     [ "$UI_DEFERRED" = 0 ] || return 0
     [ "$UI_LAYOUT_USABLE" = 1 ] || return 0
-    local row="$1" side="$2" sixel_path="$3" image_columns="$4"
+    local row="$1" side="$2" sixel_path="$3" column_spec="$4"
     local half column version="${KONSOLE_VERSION:-0}" ansi_path ansi_row line
+    local compact_columns medium_columns large_columns image_columns base_path
 
+    [ -r "$sixel_path" ] || return 0
+    compact_columns="${column_spec%%:*}"
+    column_spec="${column_spec#*:}"
+    medium_columns="${column_spec%%:*}"
+    large_columns="${column_spec#*:}"
+    image_columns="$medium_columns"
+    base_path="${sixel_path%.sixel}"
+    if [ "$UI_PANEL_WIDTH" -lt 68 ] || [ "$UI_CONTENT_ROWS" -lt 30 ]; then
+        sixel_path="${base_path}-compact.sixel"
+        image_columns="$compact_columns"
+    elif [ "$UI_PANEL_WIDTH" -ge 116 ] && [ "$UI_CONTENT_ROWS" -ge 40 ]; then
+        sixel_path="${base_path}-large.sixel"
+        image_columns="$large_columns"
+    fi
     [ -r "$sixel_path" ] || return 0
     half=$((UI_PANEL_WIDTH / 2))
     case "$side" in
@@ -466,7 +481,7 @@ ui_help_image() {
         return 0
     fi
 
-    ansi_path="${sixel_path%.sixel}.ansi"
+    ansi_path="${base_path}.ansi"
     [ -r "$ansi_path" ] || return 0
     [ "$side" != "left" ] || column=$((UI_PANEL_COL + (half - 35) / 2))
     ui_scale_row "$row"
@@ -476,6 +491,35 @@ ui_help_image() {
         printf '%s\033[0m' "$line"
         ansi_row=$((ansi_row + 1))
     done < "$ansi_path"
+    ui_move_absolute "$ansi_row" 1
+}
+
+# 紧接在第二张图片的实际底边后绘制说明，不使用固定行号留白。
+ui_help_captions() {
+    ui_record_draw ui_help_captions "$@"
+    [ "$UI_DEFERRED" = 0 ] || return 0
+    [ "$UI_LAYOUT_USABLE" = 1 ] || return 0
+    local instruction="$1" url="$2" xianyu_caption="$3"
+    local half start width column
+
+    printf '\033[?7l'
+    ui_fit_button_text "$instruction" "$UI_PANEL_WIDTH"
+    column=$((UI_PANEL_COL + (UI_PANEL_WIDTH - UI_FIT_USED) / 2))
+    printf '\033[%sG\033[38;5;250m%s\033[0m' "$column" "$UI_FIT_TEXT"
+
+    printf '\n'
+    half=$((UI_PANEL_WIDTH / 2))
+    start="$UI_PANEL_COL"
+    width=$((half - 1))
+    ui_fit_button_text "$url" "$width"
+    column=$((start + (width - UI_FIT_USED) / 2))
+    printf '\033[%sG\033[1;38;5;203m%s\033[0m' "$column" "$UI_FIT_TEXT"
+
+    start=$((UI_PANEL_COL + half + 1))
+    width=$((UI_PANEL_WIDTH - half - 1))
+    ui_fit_button_text "$xianyu_caption" "$width"
+    column=$((start + (width - UI_FIT_USED) / 2))
+    printf '\033[%sG\033[38;5;250m%s\033[0m\033[?7h' "$column" "$UI_FIT_TEXT"
 }
 
 # 分类共用一个红色外框，横线逐项分隔；右侧继续使用独立卡片。

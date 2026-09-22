@@ -66,6 +66,15 @@ sidebar_item="$(function_source "$UI_FILE" ui_sidebar_item)"
 assert_contains "$sidebar_item" '[ "$value" = "help" ]' "帮助主菜单缺少独立红字样式"
 assert_contains "$sidebar_item" "foreground='\\033[1;38;5;203m'" "帮助主菜单没有使用红字"
 
+help_image_renderer="$(function_source "$UI_FILE" ui_help_image)"
+assert_contains "$help_image_renderer" 'UI_PANEL_WIDTH" -lt 68' "帮助图片缺少小窗口宽度回退"
+assert_contains "$help_image_renderer" 'UI_CONTENT_ROWS" -lt 30' "帮助图片缺少小窗口高度回退"
+assert_contains "$help_image_renderer" 'UI_PANEL_WIDTH" -ge 116' "帮助图片缺少高分辨率放大"
+assert_contains "$help_image_renderer" 'UI_CONTENT_ROWS" -ge 40' "帮助图片高分辨率放大没有检查高度"
+
+help_captions="$(function_source "$UI_FILE" ui_help_captions)"
+assert_not_contains "$help_captions" 'ui_move ' "帮助页图片说明仍使用固定行号留白"
+
 help_page="$(cat "$PROJECT_ROOT/help.html")"
 assert_contains "$help_page" '一起为Linux游戏社区贡献一份力，帮助到你了欢迎来闲鱼支持我' "帮助页顶部标语不正确"
 assert_contains "$help_page" '闲鱼账号：<strong>RenAmamiya</strong>' "帮助页缺少闲鱼账号"
@@ -76,13 +85,18 @@ touch_contact="$(function_source "$MAIN_FILE" help_contact_menu)"
 assert_contains "$touch_contact" 'draw_category_frame help "" "" 0' "帮助页没有释放右侧图片排版空间"
 assert_contains "$touch_contact" 'ui_help_image 6 left' "帮助页左侧缺少内嵌二维码"
 assert_contains "$touch_contact" 'ui_help_image 6 right' "帮助页右侧缺少内嵌闲鱼图片"
-assert_contains "$touch_contact" 'ui_help_column_line 19 left' "帮助页网址没有放在二维码下方"
+assert_contains "$touch_contact" 'ui_help_captions "如果二维码扫不出来请在浏览器浏览以下网址"' "帮助页缺少二维码扫码失败说明"
+assert_contains "$touch_contact" '"https://link3.cc/renamamiya" "闲鱼关注我了解更多资讯"' "帮助页网址与闲鱼说明没有紧跟图片"
 assert_contains "$touch_contact" 'right:22-24:home' "帮助页底部缺少返回首页"
 assert_not_contains "$touch_contact" '打开帮助页面' "帮助页仍要求打开外部页面"
 assert_not_contains "$touch_contact" '联系网址：' "二维码下方仍错误标注为联系网址"
 for image in \
     "$PROJECT_ROOT/assets/help/renamamiya-qr.sixel" \
+    "$PROJECT_ROOT/assets/help/renamamiya-qr-compact.sixel" \
+    "$PROJECT_ROOT/assets/help/renamamiya-qr-large.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya.sixel" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya-compact.sixel" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya-large.sixel" \
     "$PROJECT_ROOT/assets/help/renamamiya-qr.ansi" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya.ansi"; do
     [ -s "$image" ] || fail "帮助页内嵌图片缺失：$image"
