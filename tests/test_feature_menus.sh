@@ -64,7 +64,8 @@ assert_contains "$sidebar" 'RENKIT_STEAMOS_DUAL_NAV' "SteamOS 双系统侧栏缺
 
 sidebar_item="$(function_source "$UI_FILE" ui_sidebar_item)"
 assert_contains "$sidebar_item" '[ "$value" = "help" ]' "帮助主菜单缺少独立红字样式"
-assert_contains "$sidebar_item" "foreground='\\033[1;38;5;203m'" "帮助主菜单没有使用红字"
+assert_contains "$sidebar_item" "label='帮　助'" "帮助主菜单没有使用加宽文字"
+assert_contains "$sidebar_item" "foreground='\\033[1;38;5;196m'" "帮助主菜单没有使用高亮粗体红字"
 
 help_image_renderer="$(function_source "$UI_FILE" ui_help_image)"
 assert_contains "$help_image_renderer" 'UI_PANEL_WIDTH" -lt 68' "帮助图片缺少小窗口宽度回退"

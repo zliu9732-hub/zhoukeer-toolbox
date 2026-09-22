@@ -551,6 +551,7 @@ ui_sidebar_item() {
 
     # 去掉不同字体下容易显示为方块的装饰图形，名称和导航 ID 保持不变。
     label="${label#* }"
+    [ "$value" != "help" ] || label='帮　助'
 
     if [ "$value" = "$selected" ]; then
         marker='› '
@@ -558,7 +559,7 @@ ui_sidebar_item() {
         border='\033[1;38;5;203m'
     fi
     if [ "$value" = "help" ]; then
-        foreground='\033[1;38;5;203m'
+        foreground='\033[1;38;5;196m'
     fi
 
     ui_button_rect left "$row" || return 1
