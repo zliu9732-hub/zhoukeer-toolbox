@@ -499,27 +499,34 @@ ui_help_captions() {
     ui_record_draw ui_help_captions "$@"
     [ "$UI_DEFERRED" = 0 ] || return 0
     [ "$UI_LAYOUT_USABLE" = 1 ] || return 0
-    local instruction="$1" url="$2" xianyu_caption="$3"
+    local instruction_first="$1" instruction_second="$2" url="$3" xianyu_caption="$4"
     local half start width column
 
     printf '\033[?7l'
-    ui_fit_button_text "$instruction" "$UI_PANEL_WIDTH"
-    column=$((UI_PANEL_COL + (UI_PANEL_WIDTH - UI_FIT_USED) / 2))
-    printf '\033[%sG\033[38;5;250m%s\033[0m' "$column" "$UI_FIT_TEXT"
-
-    printf '\n'
     half=$((UI_PANEL_WIDTH / 2))
     start="$UI_PANEL_COL"
     width=$((half - 1))
-    ui_fit_button_text "$url" "$width"
+    ui_fit_button_text "$instruction_first" "$width"
     column=$((start + (width - UI_FIT_USED) / 2))
-    printf '\033[%sG\033[1;38;5;203m%s\033[0m' "$column" "$UI_FIT_TEXT"
+    printf '\033[%sG\033[38;5;250m%s\033[0m' "$column" "$UI_FIT_TEXT"
 
     start=$((UI_PANEL_COL + half + 1))
     width=$((UI_PANEL_WIDTH - half - 1))
     ui_fit_button_text "$xianyu_caption" "$width"
     column=$((start + (width - UI_FIT_USED) / 2))
-    printf '\033[%sG\033[38;5;250m%s\033[0m\033[?7h' "$column" "$UI_FIT_TEXT"
+    printf '\033[%sG\033[38;5;250m%s\033[0m' "$column" "$UI_FIT_TEXT"
+
+    printf '\n'
+    start="$UI_PANEL_COL"
+    width=$((half - 1))
+    ui_fit_button_text "$instruction_second" "$width"
+    column=$((start + (width - UI_FIT_USED) / 2))
+    printf '\033[%sG\033[38;5;250m%s\033[0m' "$column" "$UI_FIT_TEXT"
+
+    printf '\n'
+    ui_fit_button_text "$url" "$width"
+    column=$((start + (width - UI_FIT_USED) / 2))
+    printf '\033[%sG\033[1;38;5;203m%s\033[0m\033[?7h' "$column" "$UI_FIT_TEXT"
 }
 
 # 分类共用一个红色外框，横线逐项分隔；右侧继续使用独立卡片。
