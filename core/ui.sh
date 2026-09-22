@@ -452,6 +452,9 @@ ui_sidebar_item() {
         foreground='\033[1;38;5;255m'
         border='\033[1;38;5;203m'
     fi
+    if [ "$value" = "help" ]; then
+        foreground='\033[1;38;5;203m'
+    fi
 
     ui_button_rect left "$row" || return 1
     UI_BOX_COL="$UI_HIT_COL" UI_BOX_WIDTH="$UI_HIT_WIDTH"
@@ -527,12 +530,12 @@ draw_category_frame() {
     ui_sidebar_item 6 games "✦ 游戏与插件" "$selected"
     ui_sidebar_item 8 emulators "▦ 模拟器" "$selected"
     if [ "${RENKIT_STEAMOS_DUAL_NAV:-0}" = "1" ]; then
-        ui_sidebar_item 10 help "? 帮助" "$selected"
-        ui_sidebar_item 12 support "◎ 检查与维护" "$selected"
-        ui_sidebar_item 14 advanced "! 更多设置" "$selected" 0
-        ui_sidebar_item 16 dual "◇ 双系统用户专用" "$selected" 0
-        ui_sidebar_item 18 uninstall "- 卸载已安装" "$selected" 0
-        ui_sidebar_item 20 notice "▧ 免责声明与须知" "$selected" 0
+        ui_sidebar_item 10 support "◎ 检查与维护" "$selected"
+        ui_sidebar_item 12 advanced "! 更多设置" "$selected" 0
+        ui_sidebar_item 14 dual "◇ 双系统用户专用" "$selected" 0
+        ui_sidebar_item 16 uninstall "- 卸载已安装" "$selected" 0
+        ui_sidebar_item 18 notice "▧ 免责声明与须知" "$selected" 0
+        ui_sidebar_item 20 help "? 帮助" "$selected" 0
         ui_sidebar_item 22 exit "× 退出Renkit" "$selected" 0
     else
         ui_sidebar_item 10 support "◎ 检查与维护" "$selected"

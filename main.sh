@@ -193,12 +193,12 @@ read_touch_menu() {
         left:4-5:nav-software \
         left:6-7:nav-games \
         left:8-9:nav-emulators \
-        left:10-11:nav-help \
-        left:12-13:nav-check \
-        left:14-15:nav-advanced \
-        left:16-17:nav-dual \
-        left:18-19:nav-uninstall \
-        left:20-21:nav-notice \
+        left:10-11:nav-check \
+        left:12-13:nav-advanced \
+        left:14-15:nav-dual \
+        left:16-17:nav-uninstall \
+        left:18-19:nav-notice \
+        left:20-21:nav-help \
         left:22-23:nav-exit \
         "$@"
 }
@@ -1798,12 +1798,12 @@ home_menu() {
     ui_panel_line 4 '\033[1;38;5;45m' "安装常用软件｜聊天、浏览器和远程工具"
     ui_panel_line 6 '\033[1;38;5;45m' "游戏与插件｜浏览插件商城和游戏组件"
     ui_panel_line 8 '\033[1;38;5;45m' "模拟器｜Switch、Wii U、PS1 至 3DS 模拟器"
-    ui_panel_line 10 '\033[1;38;5;220m' "帮助｜扫码联系、查看资讯与使用指南"
-    ui_panel_line 12 '\033[1;38;5;114m' "检查与维护｜检查网络、常见问题并生成诊断包"
-    ui_panel_line 14 '\033[1;38;5;203m' "更多设置｜国内下载、内存、密码和掌机适配"
-    ui_panel_line 16 '\033[1;38;5;220m' "双系统用户专用｜互通盘、Windows 与 Clover 设置"
-    ui_panel_line 18 '\033[1;38;5;203m' "卸载已安装｜逐项安全移除软件和系统组件"
-    ui_panel_line 20 '\033[1;38;5;250m' "免责声明与使用须知｜查看完整图文说明"
+    ui_panel_line 10 '\033[1;38;5;114m' "检查与维护｜检查网络、常见问题并生成诊断包"
+    ui_panel_line 12 '\033[1;38;5;203m' "更多设置｜国内下载、内存、密码和掌机适配"
+    ui_panel_line 14 '\033[1;38;5;220m' "双系统用户专用｜互通盘、Windows 与 Clover 设置"
+    ui_panel_line 16 '\033[1;38;5;203m' "卸载已安装｜逐项安全移除软件和系统组件"
+    ui_panel_line 18 '\033[1;38;5;250m' "免责声明与使用须知｜查看完整图文说明"
+    ui_panel_line 20 '\033[1;38;5;203m' "帮助｜扫码联系、查看资讯与使用指南"
     ui_panel_line 22 '\033[1;38;5;250m' "退出Renkit｜关闭掌机工具箱"
     ui_prompt
     choice="$(read_touch_menu)"

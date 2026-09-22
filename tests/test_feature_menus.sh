@@ -58,9 +58,19 @@ for item in \
     assert_contains "$gui_home" "$item" "GUI 首页缺少：$item"
 done
 
-assert_contains "$sidebar" 'ui_sidebar_item 10 help "? 帮助"' "SteamOS 触控侧栏缺少帮助"
-assert_contains "$sidebar" 'ui_sidebar_item 16 dual "◇ 双系统用户专用"' "SteamOS 触控侧栏缺少双系统用户专用"
+assert_contains "$sidebar" 'ui_sidebar_item 20 help "? 帮助"' "SteamOS 触控侧栏缺少帮助"
+assert_contains "$sidebar" 'ui_sidebar_item 14 dual "◇ 双系统用户专用"' "SteamOS 触控侧栏缺少双系统用户专用"
 assert_contains "$sidebar" 'RENKIT_STEAMOS_DUAL_NAV' "SteamOS 双系统侧栏缺少平台隔离"
+
+sidebar_item="$(function_source "$UI_FILE" ui_sidebar_item)"
+assert_contains "$sidebar_item" '[ "$value" = "help" ]' "帮助主菜单缺少独立红字样式"
+assert_contains "$sidebar_item" "foreground='\\033[1;38;5;203m'" "帮助主菜单没有使用红字"
+
+help_page="$(cat "$PROJECT_ROOT/help.html")"
+assert_contains "$help_page" '一起为Linux游戏社区贡献一份力，帮助到你了欢迎来闲鱼支持我' "帮助页顶部标语不正确"
+assert_contains "$help_page" '闲鱼账号：<strong>RenAmamiya</strong>' "帮助页缺少闲鱼账号"
+assert_contains "$help_page" 'https://link3.cc/renamamiya</a></figcaption>' "帮助页二维码下方缺少联系链接"
+assert_contains "$help_page" '闲鱼关注我了解更多资讯' "帮助页缺少闲鱼说明"
 
 touch_software="$(function_source "$MAIN_FILE" common_software_menu)"
 gui_software="$(function_source "$GUI_FILE" software_menu)"

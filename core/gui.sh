@@ -1389,12 +1389,12 @@ main_gui_menu() {
             nav-software "安装常用软件｜聊天、浏览器和远程工具" \
             nav-games "游戏与插件｜浏览插件商城和游戏组件" \
             nav-emulators "模拟器｜Switch、Wii U、PS1 至 3DS 模拟器" \
-            nav-help "帮助｜扫码联系、查看资讯与使用指南" \
             nav-check "检查与维护｜检查网络、常见问题并生成诊断包" \
             nav-advanced "更多设置｜国内下载、内存、密码和掌机适配" \
             nav-dual "双系统用户专用｜互通盘、Windows 与 Clover 设置" \
             nav-uninstall "卸载已安装｜逐项安全移除软件和系统组件" \
             nav-notice "免责声明与使用须知｜查看完整图文说明" \
+            nav-help "帮助｜扫码联系、查看资讯与使用指南" \
             nav-exit "退出Renkit")" || exit 0
 
         case "$choice" in

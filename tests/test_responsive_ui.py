@@ -561,10 +561,10 @@ def main():
                       if line.strip().startswith(('draw_category_frame ', 'ui_panel_line ')) or line.strip() == 'ui_prompt']
         navigation = [('新机器设置', 'nav-init'), ('安装常用软件', 'nav-software'),
                       ('游戏与插件', 'nav-games'), ('模拟器', 'nav-emulators'),
-                      ('帮助', 'nav-help'), ('检查与维护', 'nav-check'),
-                      ('更多设置', 'nav-advanced'),
+                      ('检查与维护', 'nav-check'), ('更多设置', 'nav-advanced'),
                       ('双系统用户专用', 'nav-dual'), ('卸载已安装', 'nav-uninstall'),
-                      ('免责声明与使用须知', 'nav-notice'), ('退出Renkit', 'nav-exit')]
+                      ('免责声明与使用须知', 'nav-notice'), ('帮助', 'nav-help'),
+                      ('退出Renkit', 'nav-exit')]
         mappings = ' '.join(f'left:{2 + i * 2}-{3 + i * 2}:{action}' for i, (_, action) in enumerate(navigation))
         home = Path(temp) / 'home.sh'
         home.write_text(SHELL.split("draw_category_frame software '' ''")[0]
