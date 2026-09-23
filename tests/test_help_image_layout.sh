@@ -36,4 +36,20 @@ check_layout '1080p' 47 150 14 451 616
 check_layout '2K' 65 160 16 615 840
 check_layout '4K' 90 240 20 779 1064
 
+# Steam Deck 矮窗口的左图应与本列标题/说明同轴；右图位置保持不变。
+MOCK_ROWS=28 MOCK_COLS=100 ZHOUKEER_FONT_SIZE=12
+ui_detect_layout
+ui_help_image 6 left "$PROJECT_ROOT/assets/help/renamamiya-qr.sixel" > "$capture_file"
+printf -v expected_move '\033[6;35H'
+LC_ALL=C grep -aFq "$expected_move" "$capture_file" || {
+    printf 'FAIL: Steam Deck 二维码未居中\n' >&2
+    exit 1
+}
+ui_help_image 6 right "$PROJECT_ROOT/assets/help/xianyu-renamamiya.sixel" > "$capture_file"
+printf -v expected_move '\033[6;69H'
+LC_ALL=C grep -aFq "$expected_move" "$capture_file" || {
+    printf 'FAIL: 闲鱼图片位置发生意外变化\n' >&2
+    exit 1
+}
+
 printf '帮助页图片尺寸模拟测试通过\n'

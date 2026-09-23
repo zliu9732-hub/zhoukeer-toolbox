@@ -447,7 +447,7 @@ ui_help_image() {
     [ "$UI_LAYOUT_USABLE" = 1 ] || return 0
     local row="$1" side="$2" sixel_path="$3"
     local half column version="${KONSOLE_VERSION:-0}" ansi_path ansi_row line
-    local base_path font_size cell_width cell_height available_width available_height
+    local base_path font_size cell_width display_cell_width cell_height available_width available_height
     local image_top button_top suffix image_height qr_width xianyu_width image_width image_columns preset
 
     [ -r "$sixel_path" ] || return 0
@@ -458,6 +458,7 @@ ui_help_image() {
     # Konsole 的字号是 pt，实际字符像素尺寸大于先前的保守估计；
     # 估得太小会让 800p 的矮窗口一直落在 123px 缩略图。
     cell_width="$font_size"
+    display_cell_width=$((font_size * 3 / 4))
     cell_height=$((font_size * 2))
     half=$((UI_PANEL_WIDTH / 2))
     available_width=$(((half - 1) * cell_width))
@@ -484,7 +485,13 @@ ui_help_image() {
         right) image_width="$xianyu_width" ;;
         *) return 1 ;;
     esac
-    image_columns=$(((image_width + cell_width - 1) / cell_width))
+    # 放得下与画面居中是两个估算：实拍显示二维码的像素/字符列比选号时更窄。
+    # 只校正左图，避免改变已对齐的右图位置。
+    if [ "$side" = left ]; then
+        image_columns=$(((image_width + display_cell_width - 1) / display_cell_width))
+    else
+        image_columns=$(((image_width + cell_width - 1) / cell_width))
+    fi
     [ -r "$sixel_path" ] || return 0
     case "$side" in
         left) column=$((UI_PANEL_COL + (half - image_columns) / 2)) ;;
