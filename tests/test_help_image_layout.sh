@@ -33,8 +33,8 @@ check_layout '窄窗口' 26 80 12 123 168
 check_layout 'Steam Deck 800p 矮窗口' 28 100 12 246 336
 check_layout 'Steam Deck 800p 较大窗口' 40 125 12 369 504
 check_layout '1080p' 47 150 14 451 616
-check_layout '2K' 65 160 16 615 840
-check_layout '4K' 90 240 20 779 1064
+check_layout '2K 保守档' 65 160 16 451 616
+check_layout '4K 保守档' 90 240 20 615 840
 
 # Steam Deck 矮窗口的左图应与本列标题/说明同轴；右图位置保持不变。
 MOCK_ROWS=28 MOCK_COLS=100 ZHOUKEER_FONT_SIZE=12

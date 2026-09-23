@@ -448,7 +448,7 @@ ui_help_image() {
     local row="$1" side="$2" sixel_path="$3"
     local half column version="${KONSOLE_VERSION:-0}" ansi_path ansi_row line
     local base_path font_size cell_width display_cell_width right_display_cell_width cell_height available_width available_height
-    local image_top button_top suffix image_height qr_width xianyu_width image_width image_columns preset
+    local image_top button_top suffix image_height qr_width xianyu_width image_width image_columns preset max_image_height
 
     [ -r "$sixel_path" ] || return 0
     base_path="${sixel_path%.sixel}"
@@ -469,13 +469,22 @@ ui_help_image() {
     ui_scale_row 22
     button_top="$UI_SCALED_ROW"
     available_height=$(((button_top - image_top - 4) * cell_height))
+    # 2K / 4K 尚无实机反馈：分别把最大档位限制在 1080p / 2K 档，优先避免裁边。
+    max_image_height=779
+    if [ "$font_size" -ge 20 ]; then
+        max_image_height=615
+    elif [ "$font_size" -ge 16 ]; then
+        max_image_height=451
+    fi
     # 左右图片选同一高度；以较宽的闲鱼图为基准，预留一列和四行给边距、说明文字。
     suffix=-compact image_height=123 qr_width=123 xianyu_width=168
     for preset in '4k:779:779:1064' '2k:615:615:840' 'full:451:451:616' \
         'wide:369:369:504' 'large:287:287:392' 'deck:246:246:336' \
         'base:205:205:280'; do
         IFS=: read -r suffix image_height qr_width xianyu_width <<< "$preset"
-        if [ "$xianyu_width" -le "$available_width" ] && [ "$image_height" -le "$available_height" ]; then
+        if [ "$xianyu_width" -le "$available_width" ] && \
+            [ "$image_height" -le "$available_height" ] && \
+            [ "$image_height" -le "$max_image_height" ]; then
             [ "$suffix" = base ] && suffix='' || suffix="-$suffix"
             break
         fi
