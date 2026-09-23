@@ -156,6 +156,24 @@ toolbox_sudo() {
     printf 'sudo %s\n' "$*" >> "$CALLS"
     "$@"
 }
+tar() {
+    local arg
+    local -a forwarded=()
+    for arg in "$@"; do
+        [ "$arg" = "--no-overwrite-dir" ] || forwarded+=("$arg")
+    done
+    command tar "${forwarded[@]}"
+}
+
+# 没有从 Renkit 界面传入确认时必须直接停止，不读取任何文字输入。
+ZHOUKEER_AUTO_CONFIRM=0
+if ipu_update </dev/null > "$TEST_ROOT/no-ui-confirm.out" 2>&1; then
+    fail "未收到界面确认仍允许更新 InputPlumber"
+fi
+grep -Fq '请从Renkit的“掌机适配 → 更新 InputPlumber”进入' "$TEST_ROOT/no-ui-confirm.out" || \
+    fail "未收到界面确认时缺少菜单引导"
+[ ! -s "$CALLS" ] || fail "未收到界面确认仍调用了下载或系统命令"
+ZHOUKEER_AUTO_CONFIRM=1
 
 # 非 SteamOS、root 和非壹号掌机必须在下载及系统修改前拒绝。
 MOCK_STEAMOS=0
@@ -235,6 +253,11 @@ for required in \
     '50-onexplayer_2.yaml'; do
     grep -Fq "$required" "$MODULE" || fail "模块缺少安全更新要素：$required"
 done
+grep -Fq '请从Renkit的“掌机适配 → 更新 InputPlumber”进入' "$MODULE" || \
+    fail "直接运行更新模块时缺少无输入安全提示"
+if grep -Eq '输入 (UPDATE|YES) 继续' "$MODULE"; then
+    fail "InputPlumber 更新仍要求输入文字确认"
+fi
 if grep -Eq '(^|[[:space:]])(eval|bash -c|sh -c)([[:space:]]|$)' "$MODULE"; then
     fail "InputPlumber 更新包含禁止的动态命令执行"
 fi

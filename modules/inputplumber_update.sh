@@ -137,19 +137,14 @@ ipu_print_plan() {
 }
 
 ipu_confirm_update() {
-    local answer
-
     ipu_print_plan || return 1
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         echo "已通过Renkit界面确认，继续执行。"
         return 0
     fi
-    printf '确认更新 InputPlumber？输入 UPDATE 继续：'
-    IFS= read -r answer || return 1
-    [ "$answer" = "UPDATE" ] || {
-        echo "已取消，未做任何修改。"
-        return 1
-    }
+    echo "请从Renkit的“掌机适配 → 更新 InputPlumber”进入，并在界面点一次确认。"
+    echo "未收到界面确认，已停止且未做任何修改。"
+    return 1
 }
 
 ipu_validate_archive() {

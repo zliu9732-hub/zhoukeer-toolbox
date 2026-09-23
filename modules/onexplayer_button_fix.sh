@@ -66,7 +66,7 @@ oxp_select_device() {
         "ONEXPLAYER F1L")
             OXP_PRODUCT_NAME="$product"
             OXP_DEVICE_KEY="f1l"
-            OXP_DEVICE_LABEL="飞行家 F1L 8840U"
+            OXP_DEVICE_LABEL="飞行家 F1L（F1 8840U）"
             OXP_SOURCE_CONFIG="${ZHOUKEER_OXP_F1L_SOURCE_CONFIG:-${ZHOUKEER_F1L_SOURCE_CONFIG:-/usr/share/inputplumber/devices/50-onexplayer_onexfly.yaml}}"
             OXP_TARGET_CONFIG="${ZHOUKEER_OXP_F1L_TARGET_CONFIG:-${ZHOUKEER_F1L_TARGET_CONFIG:-$OXP_CONFIG_DIR/50-onexplayer_f1l.yaml}}"
             OXP_SOURCE_DMI="ONEXPLAYER F1"
@@ -337,6 +337,10 @@ oxp_target_matches_managed_state() {
 oxp_print_install_plan() {
     echo "即将执行“壹号掌机 SteamOS 特殊按键修复”："
     echo "  - 检测机型：${OXP_DEVICE_LABEL}（${OXP_PRODUCT_NAME}）"
+    if [ "$OXP_DEVICE_KEY" = "f1l" ]; then
+        echo "  - 仅适用于 F1L（F1 8840U）"
+        echo "  - F1L 与普通 F1 使用同一套按键映射，因此复用普通 F1 配置并补充精确 DMI"
+    fi
     echo "  - 读取系统配置：$OXP_SOURCE_CONFIG"
     echo "  - 写入自定义配置：$OXP_TARGET_CONFIG"
     echo "  - 只把第一处 ${OXP_SOURCE_DMI} 替换为 ${OXP_PRODUCT_NAME}"

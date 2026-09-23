@@ -251,7 +251,9 @@ grep -Fxq 'product_name=ONEXPLAYER F1L' "$F1_STATE" || fail "F1L 状态未记录
 grep -Fxq 'target_existed=0' "$F1_STATE" || fail "F1L 首次安装错误记录了原文件"
 grep -Fq 'enable --now inputplumber.service' "$SYSTEMCTL_CALLS" || fail "F1L 未启用并启动 InputPlumber"
 grep -Fxq 'restart inputplumber.service' "$SYSTEMCTL_CALLS" || fail "F1L 未重启 InputPlumber"
-grep -Fq '检测到机型：飞行家 F1L 8840U' "$TMP_ROOT/f1-install.out" || fail "F1L 未显示检测机型"
+grep -Fq '检测到机型：飞行家 F1L（F1 8840U）' "$TMP_ROOT/f1-install.out" || fail "F1L 未显示检测机型"
+grep -Fq '仅适用于 F1L（F1 8840U）' "$TMP_ROOT/f1-install.out" || fail "F1L 缺少精确适用范围"
+grep -Fq 'F1L 与普通 F1 使用同一套按键映射' "$TMP_ROOT/f1-install.out" || fail "F1L 缺少复用普通 F1 映射说明"
 grep -Fq '已选择稍后重启' "$TMP_ROOT/f1-install.out" || fail "F1L 未提供稍后重启结果"
 for mapping in '橙色键短按为 Steam/Guide' 'Turbo 键为右侧快捷菜单' '键盘键呼出虚拟键盘' '橙色键长按为第二快捷菜单'; do
     grep -Fq "$mapping" "$TMP_ROOT/f1-install.out" || fail "F1L 完成提示缺少映射：$mapping"
