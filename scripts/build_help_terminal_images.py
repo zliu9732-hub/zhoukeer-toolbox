@@ -114,6 +114,10 @@ def build() -> None:
         ("-compact", 123, (168, 123)),
         ("", 205, (280, 205)),
         ("-large", 287, (392, 287)),
+        ("-wide", 369, (504, 369)),
+        ("-full", 451, (616, 451)),
+        ("-2k", 615, (840, 615)),
+        ("-4k", 779, (1064, 779)),
     ):
         qr = qr_modules.convert("RGB").resize((qr_size, qr_size), Image.Resampling.NEAREST)
         xianyu = fit_on_canvas(xianyu_source, xianyu_size, "white")

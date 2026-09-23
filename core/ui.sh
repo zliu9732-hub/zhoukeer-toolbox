@@ -445,30 +445,47 @@ ui_help_image() {
     ui_record_draw ui_help_image "$@"
     [ "$UI_DEFERRED" = 0 ] || return 0
     [ "$UI_LAYOUT_USABLE" = 1 ] || return 0
-    local row="$1" side="$2" sixel_path="$3" column_spec="$4"
+    local row="$1" side="$2" sixel_path="$3"
     local half column version="${KONSOLE_VERSION:-0}" ansi_path ansi_row line
-    local compact_columns medium_columns large_columns image_columns base_path
+    local base_path font_size cell_width cell_height available_width available_height
+    local image_top button_top suffix image_height qr_width xianyu_width image_width image_columns preset
 
     [ -r "$sixel_path" ] || return 0
-    compact_columns="${column_spec%%:*}"
-    column_spec="${column_spec#*:}"
-    medium_columns="${column_spec%%:*}"
-    large_columns="${column_spec#*:}"
-    image_columns="$medium_columns"
     base_path="${sixel_path%.sixel}"
-    if [ "$UI_PANEL_WIDTH" -lt 68 ] || [ "$UI_CONTENT_ROWS" -lt 30 ]; then
-        sixel_path="${base_path}-compact.sixel"
-        image_columns="$compact_columns"
-    elif [ "$UI_PANEL_WIDTH" -ge 116 ] && [ "$UI_CONTENT_ROWS" -ge 40 ]; then
-        sixel_path="${base_path}-large.sixel"
-        image_columns="$large_columns"
-    fi
-    [ -r "$sixel_path" ] || return 0
+    font_size="${ZHOUKEER_FONT_SIZE:-12}"
+    [[ "$font_size" =~ ^[0-9]+$ ]] || font_size=12
+    [ "$font_size" -ge 8 ] && [ "$font_size" -le 40 ] || font_size=12
+    cell_width=$((font_size * 3 / 4))
+    cell_height=$((font_size * 5 / 4))
     half=$((UI_PANEL_WIDTH / 2))
+    available_width=$(((half - 2) * cell_width))
+    ui_scale_row "$row"
+    image_top="$UI_SCALED_ROW"
+    ui_scale_row 22
+    button_top="$UI_SCALED_ROW"
+    available_height=$(((button_top - image_top - 4) * cell_height))
+    # 左右图片选同一高度；以较宽的闲鱼图为基准，预留两列和四行给边距、说明文字。
+    suffix=-compact image_height=123 qr_width=123 xianyu_width=168
+    for preset in '4k:779:779:1064' '2k:615:615:840' 'full:451:451:616' \
+        'wide:369:369:504' 'large:287:287:392' 'base:205:205:280'; do
+        IFS=: read -r suffix image_height qr_width xianyu_width <<< "$preset"
+        if [ "$xianyu_width" -le "$available_width" ] && [ "$image_height" -le "$available_height" ]; then
+            [ "$suffix" = base ] && suffix='' || suffix="-$suffix"
+            break
+        fi
+        suffix=-compact image_height=123 qr_width=123 xianyu_width=168
+    done
+    sixel_path="${base_path}${suffix}.sixel"
+    case "$side" in
+        left) image_width="$qr_width" ;;
+        right) image_width="$xianyu_width" ;;
+        *) return 1 ;;
+    esac
+    image_columns=$(((image_width + cell_width - 1) / cell_width))
+    [ -r "$sixel_path" ] || return 0
     case "$side" in
         left) column=$((UI_PANEL_COL + (half - image_columns) / 2)) ;;
         right) column=$((UI_PANEL_COL + half + 1 + (UI_PANEL_WIDTH - half - 1 - image_columns) / 2)) ;;
-        *) return 1 ;;
     esac
     [ "$column" -ge "$UI_PANEL_COL" ] || column="$UI_PANEL_COL"
 

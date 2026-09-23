@@ -68,10 +68,10 @@ assert_contains "$sidebar_item" "label='帮　助'" "帮助主菜单没有使用
 assert_contains "$sidebar_item" "foreground='\\033[1;38;5;196m'" "帮助主菜单没有使用高亮粗体红字"
 
 help_image_renderer="$(function_source "$UI_FILE" ui_help_image)"
-assert_contains "$help_image_renderer" 'UI_PANEL_WIDTH" -lt 68' "帮助图片缺少小窗口宽度回退"
-assert_contains "$help_image_renderer" 'UI_CONTENT_ROWS" -lt 30' "帮助图片缺少小窗口高度回退"
-assert_contains "$help_image_renderer" 'UI_PANEL_WIDTH" -ge 116' "帮助图片缺少高分辨率放大"
-assert_contains "$help_image_renderer" 'UI_CONTENT_ROWS" -ge 40' "帮助图片高分辨率放大没有检查高度"
+assert_contains "$help_image_renderer" 'ZHOUKEER_FONT_SIZE' "帮助图片未按终端字号估算实际空间"
+assert_contains "$help_image_renderer" 'available_width' "帮助图片没有检查左右列宽度"
+assert_contains "$help_image_renderer" 'available_height' "帮助图片没有为说明和返回按钮预留高度"
+assert_contains "$help_image_renderer" "'4k:779:779:1064'" "帮助图片缺少 4K 放大档位"
 
 help_captions="$(function_source "$UI_FILE" ui_help_captions)"
 assert_not_contains "$help_captions" 'ui_move ' "帮助页图片说明仍使用固定行号留白"
@@ -95,9 +95,17 @@ for image in \
     "$PROJECT_ROOT/assets/help/renamamiya-qr.sixel" \
     "$PROJECT_ROOT/assets/help/renamamiya-qr-compact.sixel" \
     "$PROJECT_ROOT/assets/help/renamamiya-qr-large.sixel" \
+    "$PROJECT_ROOT/assets/help/renamamiya-qr-wide.sixel" \
+    "$PROJECT_ROOT/assets/help/renamamiya-qr-full.sixel" \
+    "$PROJECT_ROOT/assets/help/renamamiya-qr-2k.sixel" \
+    "$PROJECT_ROOT/assets/help/renamamiya-qr-4k.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya-compact.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya-large.sixel" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya-wide.sixel" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya-full.sixel" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya-2k.sixel" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya-4k.sixel" \
     "$PROJECT_ROOT/assets/help/renamamiya-qr.ansi" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya.ansi"; do
     [ -s "$image" ] || fail "帮助页内嵌图片缺失：$image"
