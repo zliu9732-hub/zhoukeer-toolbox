@@ -20,7 +20,6 @@ ZHOUKEER_OXP_STATE_ROOT="$XDG_STATE_HOME/zhoukeer-toolbox"
 ZHOUKEER_OXP_F1L_SOURCE_CONFIG="$TMP_ROOT/usr/share/inputplumber/devices/50-onexplayer_onexfly.yaml"
 ZHOUKEER_OXP_X1PRO_SOURCE_CONFIG="$TMP_ROOT/usr/share/inputplumber/devices/50-onexplayer_x1.yaml"
 ZHOUKEER_AUTO_CONFIRM=1
-ZHOUKEER_REBOOT_CHOICE=later
 
 mkdir -p -- "$HOME" "$(dirname "$ZHOUKEER_OXP_F1L_SOURCE_CONFIG")" "$TMP_ROOT/logs"
 
@@ -54,6 +53,7 @@ source "$MODULE"
 LOG_DIR="$TMP_ROOT/logs"
 LOG_FILE="$LOG_DIR/toolbox.log"
 SYSTEMCTL_CALLS="$TMP_ROOT/systemctl.calls"
+SLEEP_CALLS="$TMP_ROOT/sleep.calls"
 MOCK_STEAMOS=1
 MOCK_UID=1000
 MOCK_USERNAME=deck
@@ -140,6 +140,9 @@ systemctl() {
     esac
 }
 toolbox_sudo() { "$@"; }
+sleep() {
+    printf '%s\n' "$1" >> "$SLEEP_CALLS"
+}
 
 use_f1l() { printf 'ONEXPLAYER F1L\n' > "$OXP_PRODUCT_FILE"; }
 use_x1pro() { printf 'ONEXPLAYER X1Pro\n' > "$OXP_PRODUCT_FILE"; }
@@ -149,6 +152,7 @@ reset_fixture() {
     mkdir -p -- "$(dirname "$ZHOUKEER_OXP_F1L_SOURCE_CONFIG")"
     write_source_fixtures
     : > "$SYSTEMCTL_CALLS"
+    : > "$SLEEP_CALLS"
     MOCK_STEAMOS=1
     MOCK_UID=1000
     MOCK_LOAD_STATE=loaded
@@ -162,7 +166,6 @@ reset_fixture() {
     MOCK_HHD_USER=0
     MOCK_REBOOT=0
     MOCK_MISSING_COMMAND=""
-    ZHOUKEER_REBOOT_CHOICE=later
     use_f1l
 }
 
@@ -254,7 +257,9 @@ grep -Fxq 'restart inputplumber.service' "$SYSTEMCTL_CALLS" || fail "F1L 未重�
 grep -Fq '检测到机型：飞行家 F1L（F1 8840U）' "$TMP_ROOT/f1-install.out" || fail "F1L 未显示检测机型"
 grep -Fq '仅适用于 F1L（F1 8840U）' "$TMP_ROOT/f1-install.out" || fail "F1L 缺少精确适用范围"
 grep -Fq 'F1L 与普通 F1 使用同一套按键映射' "$TMP_ROOT/f1-install.out" || fail "F1L 缺少复用普通 F1 映射说明"
-grep -Fq '已选择稍后重启' "$TMP_ROOT/f1-install.out" || fail "F1L 未提供稍后重启结果"
+grep -Fq '5 秒后自动重启 SteamOS；重启后生效' "$TMP_ROOT/f1-install.out" || fail "F1L 未提示自动重启"
+[ "$(cat "$SLEEP_CALLS")" = 5 ] || fail "F1L 自动重启延迟不是 5 秒"
+[ "$MOCK_REBOOT" -eq 1 ] || fail "F1L 安装后未自动请求重启"
 for mapping in '橙色键短按为 Steam/Guide' 'Turbo 键为右侧快捷菜单' '键盘键呼出虚拟键盘' '橙色键长按为第二快捷菜单'; do
     grep -Fq "$mapping" "$TMP_ROOT/f1-install.out" || fail "F1L 完成提示缺少映射：$mapping"
 done
@@ -389,7 +394,7 @@ fi
 [ ! -e "$OXP_CONFIG_DIR/50-onexplayer_x1pro.yaml.renkit-backup" ] || fail "restart 失败后遗留备份"
 [ ! -e "$OXP_STATE_ROOT/x1pro-button-fix.state" ] || fail "restart 失败后遗留状态"
 
-# 兼容 2.1.7 的 F1L 两行恢复记录，并提供立即/稍后重启选择。
+# 兼容 2.1.7 的 F1L 两行恢复记录，并验证修复后自动重启。
 reset_fixture
 mkdir -p -- "$OXP_CONFIG_DIR" "$OXP_STATE_ROOT"
 awk 'BEGIN { done=0 } {
@@ -404,10 +409,13 @@ grep -Fxq 'version=2' "$OXP_STATE_ROOT/f1l-button-fix.state" || fail "旧 F1L �
 grep -Fq '2.1.7' "$TMP_ROOT/legacy-install.out" || fail "旧 F1L 状态升级缺少提示"
 
 : > "$SYSTEMCTL_CALLS"
-ZHOUKEER_REBOOT_CHOICE=now
-oxp_offer_reboot > "$TMP_ROOT/reboot-now.out" || fail "立即重启选择失败"
-grep -Fxq 'reboot' "$SYSTEMCTL_CALLS" || fail "立即重启选择未调用 systemctl reboot"
-[ "$MOCK_REBOOT" -eq 1 ] || fail "立即重启模拟状态未更新"
+: > "$SLEEP_CALLS"
+MOCK_REBOOT=0
+oxp_offer_reboot > "$TMP_ROOT/reboot-now.out" || fail "5 秒后自动重启模拟失败"
+grep -Fxq 'reboot' "$SYSTEMCTL_CALLS" || fail "自动重启未调用 systemctl reboot"
+[ "$MOCK_REBOOT" -eq 1 ] || fail "自动重启模拟状态未更新"
+[ "$(cat "$SLEEP_CALLS")" = 5 ] || fail "自动重启前未等待 5 秒"
+grep -Fq '5 秒后自动重启 SteamOS；重启后生效' "$TMP_ROOT/reboot-now.out" || fail "自动重启提示文案错误"
 
 grep -Fq 'ONEXPLAYER F1L：SteamOS 3.10、InputPlumber 0.77.4' "$MODULE" || fail "模块缺少 F1L 实机验证说明"
 grep -Fq 'ONEXPLAYER X1Pro：InputPlumber 0.77.7' "$MODULE" || fail "模块缺少 X1 Pro 实机验证说明"
@@ -420,4 +428,4 @@ if grep -Eq '(^|[[:space:]])(eval|bash -c|sh -c)([[:space:]]|$)' "$MODULE"; then
     fail "特殊按键修复包含禁止的动态命令执行"
 fi
 
-echo "PASS: 壹号掌机 F1L/X1Pro 精确识别、唯一替换、HHD 冲突、备份恢复、幂等、回滚与重启选择模拟通过"
+echo "PASS: 壹号掌机 F1L/X1Pro 精确识别、唯一替换、HHD 冲突、备份恢复、幂等、回滚与 5 秒自动重启模拟通过"

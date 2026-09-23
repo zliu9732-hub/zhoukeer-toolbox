@@ -133,7 +133,7 @@ oxp_require_no_hhd_conflict() {
 oxp_require_install_dependencies() {
     local command_name load_state
 
-    for command_name in inputplumber systemctl sudo awk cmp grep install mktemp tr wc cp pgrep; do
+    for command_name in inputplumber systemctl sudo sleep awk cmp grep install mktemp tr wc cp pgrep; do
         require_command "$command_name" || {
             echo "壹号掌机特殊按键修复缺少必要组件，未做任何修改。"
             return 1
@@ -164,7 +164,7 @@ oxp_require_install_dependencies() {
 oxp_require_restore_dependencies() {
     local command_name load_state
 
-    for command_name in systemctl sudo awk grep tr wc cp pgrep; do
+    for command_name in systemctl sudo sleep awk grep tr wc cp pgrep; do
         require_command "$command_name" || return 1
     done
     oxp_require_hash_command || return 1
@@ -346,6 +346,7 @@ oxp_print_install_plan() {
     echo "  - 只把第一处 ${OXP_SOURCE_DMI} 替换为 ${OXP_PRODUCT_NAME}"
     echo "  - 启用、启动并重启 ${OXP_SERVICE}，随后验证配置与服务"
     echo "  - 如果目标文件原本存在，将先校验并备份，恢复时原样还原"
+    echo "  - 配置验证通过后等待 5 秒自动重启 SteamOS；请提前保存工作，重启后生效"
     echo "不会安装 HHD，不会关闭 SteamOS 只读保护，不会修改系统源配置、EFI 或 Windows 引导。"
 }
 
@@ -374,6 +375,7 @@ oxp_print_restore_plan() {
     fi
     echo "  - 恢复 InputPlumber 修复前的启用与运行状态"
     echo "  - 原服务此前运行时会重启；此前未运行时会保持停止"
+    echo "  - 恢复完成后等待 5 秒自动重启 SteamOS；请提前保存工作，重启后生效"
 }
 
 oxp_confirm_restore() {
@@ -524,25 +526,18 @@ oxp_rollback_install() {
 }
 
 oxp_offer_reboot() {
-    local choice="${ZHOUKEER_REBOOT_CHOICE:-}"
-
-    echo "必须重启机器后，SteamOS 才能完整重新识别特殊按键。"
-    if [ -z "$choice" ]; then
-        printf '请选择：输入 1 立即重启，输入 2 稍后重启：'
-        IFS= read -r choice || choice=2
-    fi
-    case "$choice" in
-        1|reboot|now)
-            echo "即将立即重启 SteamOS，请先确认工作已保存。"
-            toolbox_sudo systemctl reboot || {
-                echo "立即重启失败，请稍后从系统菜单手动重启。"
-                return 1
-            }
-            ;;
-        *)
-            echo "已选择稍后重启；请在使用特殊按键前手动重启机器。"
-            ;;
-    esac
+    echo "操作已完成，5 秒后自动重启 SteamOS；重启后生效，请提前保存工作。"
+    log "壹号掌机特殊按键修复后自动重启: model=$OXP_PRODUCT_NAME delay_seconds=5"
+    sleep 5 || {
+        echo "等待自动重启失败，请从 SteamOS 电源菜单手动重启。"
+        log "壹号掌机特殊按键修复后自动重启失败: model=$OXP_PRODUCT_NAME reason=sleep"
+        return 1
+    }
+    toolbox_sudo systemctl reboot || {
+        echo "自动重启失败，请从 SteamOS 电源菜单手动重启。"
+        log "壹号掌机特殊按键修复后自动重启失败: model=$OXP_PRODUCT_NAME reason=systemctl"
+        return 1
+    }
 }
 
 oxp_plan_install() {

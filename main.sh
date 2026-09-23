@@ -1303,9 +1303,9 @@ f1_handheld_menu() {
         ui_touch_button 2 '\033[1;97;48;5;24m' "安装屏幕修复" "适用于 F1 7840U 与 8840U OLED（F1L）"
         ui_touch_button 4 '\033[1;97;48;5;24m' "屏幕修复状态" "查看修复文件和 systemd override"
         ui_touch_button 6 '\033[1;97;48;5;160m' "卸载屏幕修复" "删除用户级修复并恢复原始启动方式"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "安装特殊按键修复" "F1L 仅限 F1 8840U · 另支持 X1 Pro 与 X2 Mini Pro"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "安装特殊按键修复" "F1L 仅限 F1 8840U · 确认后5秒自动重启"
         ui_touch_button 10 '\033[1;97;48;5;24m' "特殊按键修复状态" "验证机型、配置、备份与 InputPlumber"
-        ui_touch_button 12 '\033[1;97;48;5;160m' "恢复特殊按键修复" "还原原文件与 InputPlumber 原状态"
+        ui_touch_button 12 '\033[1;97;48;5;160m' "恢复特殊按键修复" "还原原文件 · 完成后5秒自动重启"
         ui_touch_button 14 '\033[1;97;48;5;160m' "更新 InputPlumber" "官方 0.79.2 · 固定 SHA256 · 会写入 SteamOS /usr"
         ui_touch_button 16 '\033[1;97;48;5;160m' "准备 V1.14 BIOS" "仅 F1/ONEXFLY 7840U 普通版 · 复制到互通盘"
         ui_touch_button 18 '\033[1;97;48;5;160m' "立即重启 SteamOS" "重启后生效 · 请先保存工作"
@@ -1330,7 +1330,7 @@ f1_handheld_menu() {
                 return 0
                 ;;
             button-install)
-                confirm_and_run "壹号掌机 SteamOS 特殊按键修复" "仅支持界面列出的实机验证型号；将写入对应配置、备份同名原文件并重启 InputPlumber" \
+                confirm_and_run "壹号掌机 SteamOS 特殊按键修复" "仅支持界面列出的实机验证型号；将写入对应配置、备份同名原文件。操作完成后等待5秒自动重启SteamOS，请提前保存工作" \
                     bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" install
                 return 0
                 ;;
@@ -1340,7 +1340,7 @@ f1_handheld_menu() {
                 return 0
                 ;;
             button-restore)
-                confirm_and_run "恢复壹号掌机 SteamOS 特殊按键修复" "将校验并恢复原配置，同时还原 InputPlumber 修复前的启用与运行状态" \
+                confirm_and_run "恢复壹号掌机 SteamOS 特殊按键修复" "将校验并恢复原配置，同时还原 InputPlumber 修复前的启用与运行状态。完成后等待5秒自动重启SteamOS，请提前保存工作" \
                     bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" restore
                 return 0
                 ;;

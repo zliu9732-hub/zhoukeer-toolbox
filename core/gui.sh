@@ -1134,9 +1134,9 @@ f1_screen_fix_gui_menu() {
             install "安装屏幕修复｜F1 7840U 与 8840U OLED（F1L）｜不使用 sudo" \
             status "屏幕修复状态｜查看修复文件和 systemd override" \
             uninstall "卸载屏幕修复｜删除用户级修复并恢复原始启动方式" \
-            button-install "安装特殊按键修复｜F1L 仅限 F1 8840U｜另支持 X1 Pro 与 X2 Mini Pro" \
+            button-install "安装特殊按键修复｜F1L 仅限 F1 8840U｜确认后5秒自动重启" \
             button-status "特殊按键修复状态｜验证机型、配置、备份与 InputPlumber" \
-            button-restore "恢复特殊按键修复｜还原原文件与 InputPlumber 原状态" \
+            button-restore "恢复特殊按键修复｜完成后5秒自动重启" \
             inputplumber-update "更新 InputPlumber｜官方 0.79.2｜固定 SHA256｜高级操作" \
             bios "准备 V1.14 BIOS｜仅 7840U 普通黑白版｜复制到互通盘" \
             reboot "立即重启 SteamOS｜重启后生效｜请先保存工作" \
