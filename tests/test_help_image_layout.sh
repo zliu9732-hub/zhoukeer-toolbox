@@ -32,9 +32,9 @@ check_layout() {
 check_layout '窄窗口' 26 80 12 123 168
 check_layout 'Steam Deck 800p 矮窗口' 28 100 12 246 336
 check_layout 'Steam Deck 800p 较大窗口' 40 125 12 369 504
-check_layout '1080p' 47 150 14 451 616
-check_layout '2K 保守档' 65 160 16 451 616
-check_layout '4K 保守档' 90 240 20 615 840
+check_layout '1080p' 47 150 14 451 540
+check_layout '2K 保守档' 65 160 16 451 540
+check_layout '4K 保守档' 90 240 20 615 740
 
 # Steam Deck 矮窗口的左图应与本列标题/说明同轴；右图位置保持不变。
 MOCK_ROWS=28 MOCK_COLS=100 ZHOUKEER_FONT_SIZE=12
@@ -52,7 +52,7 @@ LC_ALL=C grep -aFq "$expected_move" "$capture_file" || {
     exit 1
 }
 
-# 1080p 实拍中的右图应左移四列，完整留在终端右边界内，左图保持居中。
+# 1080p 右图改用较窄完整预览并居中；左图保持原位置。
 MOCK_ROWS=47 MOCK_COLS=150 ZHOUKEER_FONT_SIZE=14
 ui_detect_layout
 ui_help_image 6 left "$PROJECT_ROOT/assets/help/renamamiya-qr.sixel" > "$capture_file"
@@ -62,9 +62,13 @@ LC_ALL=C grep -aFq "$expected_move" "$capture_file" || {
     exit 1
 }
 ui_help_image 6 right "$PROJECT_ROOT/assets/help/xianyu-renamamiya.sixel" > "$capture_file"
-printf -v expected_move '\033[10;97H'
+printf -v expected_move '\033[10;95H'
 LC_ALL=C grep -aFq "$expected_move" "$capture_file" || {
     printf 'FAIL: 1080p 闲鱼图片右侧可能被裁切\n' >&2
+    exit 1
+}
+[ "$((95 + (540 + 9) / 10 - 1))" -le 149 ] || {
+    printf 'FAIL: 1080p 闲鱼图片超过内容区右边界\n' >&2
     exit 1
 }
 

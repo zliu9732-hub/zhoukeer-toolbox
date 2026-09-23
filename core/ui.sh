@@ -448,7 +448,7 @@ ui_help_image() {
     local row="$1" side="$2" sixel_path="$3"
     local half column version="${KONSOLE_VERSION:-0}" ansi_path ansi_row line
     local base_path font_size cell_width display_cell_width right_display_cell_width cell_height available_width available_height
-    local image_top button_top suffix image_height qr_width xianyu_width image_width image_columns preset max_image_height
+    local image_top button_top suffix image_height qr_width xianyu_width image_width image_columns preset max_image_height safe_right=0
 
     [ -r "$sixel_path" ] || return 0
     base_path="${sixel_path%.sixel}"
@@ -491,14 +491,22 @@ ui_help_image() {
         suffix=-compact image_height=123 qr_width=123 xianyu_width=168
     done
     sixel_path="${base_path}${suffix}.sixel"
+    if [ "$side" = right ]; then
+        case "$suffix" in
+            -full) sixel_path="${base_path}-full-safe.sixel"; xianyu_width=540; safe_right=1 ;;
+            -2k) sixel_path="${base_path}-2k-safe.sixel"; xianyu_width=740; safe_right=1 ;;
+        esac
+    fi
     case "$side" in
         left) image_width="$qr_width" ;;
         right) image_width="$xianyu_width" ;;
         *) return 1 ;;
     esac
     # 放得下与画面居中是两个估算：实拍的像素/字符列比选号时更窄。
-    # 1080p 的右图也需按显示列宽居中，否则最右侧会被终端裁掉。
+    # 右图在较高分辨率使用较窄的完整预览，避免仅平移时仍被终端裁边。
     if [ "$side" = left ]; then
+        image_columns=$(((image_width + display_cell_width - 1) / display_cell_width))
+    elif [ "$safe_right" = 1 ]; then
         image_columns=$(((image_width + display_cell_width - 1) / display_cell_width))
     else
         image_columns=$(((image_width + right_display_cell_width - 1) / right_display_cell_width))
@@ -508,6 +516,7 @@ ui_help_image() {
         left) column=$((UI_PANEL_COL + (half - image_columns) / 2)) ;;
         right) column=$((UI_PANEL_COL + half + 1 + (UI_PANEL_WIDTH - half - 1 - image_columns) / 2)) ;;
     esac
+    [ "$safe_right" != 1 ] || column=$((column - 1))
     [ "$column" -ge "$UI_PANEL_COL" ] || column="$UI_PANEL_COL"
 
     case "$version" in ''|*[!0-9]*) version=0 ;; esac
