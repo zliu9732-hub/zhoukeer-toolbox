@@ -48,7 +48,23 @@ LC_ALL=C grep -aFq "$expected_move" "$capture_file" || {
 ui_help_image 6 right "$PROJECT_ROOT/assets/help/xianyu-renamamiya.sixel" > "$capture_file"
 printf -v expected_move '\033[6;69H'
 LC_ALL=C grep -aFq "$expected_move" "$capture_file" || {
-    printf 'FAIL: 闲鱼图片位置发生意外变化\n' >&2
+    printf 'FAIL: Steam Deck 闲鱼图片位置发生意外变化\n' >&2
+    exit 1
+}
+
+# 1080p 实拍中的右图应左移四列，完整留在终端右边界内，左图保持居中。
+MOCK_ROWS=47 MOCK_COLS=150 ZHOUKEER_FONT_SIZE=14
+ui_detect_layout
+ui_help_image 6 left "$PROJECT_ROOT/assets/help/renamamiya-qr.sixel" > "$capture_file"
+printf -v expected_move '\033[10;47H'
+LC_ALL=C grep -aFq "$expected_move" "$capture_file" || {
+    printf 'FAIL: 1080p 二维码位置发生意外变化\n' >&2
+    exit 1
+}
+ui_help_image 6 right "$PROJECT_ROOT/assets/help/xianyu-renamamiya.sixel" > "$capture_file"
+printf -v expected_move '\033[10;97H'
+LC_ALL=C grep -aFq "$expected_move" "$capture_file" || {
+    printf 'FAIL: 1080p 闲鱼图片右侧可能被裁切\n' >&2
     exit 1
 }
 
