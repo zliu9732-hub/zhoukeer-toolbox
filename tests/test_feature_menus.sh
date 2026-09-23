@@ -94,6 +94,7 @@ assert_not_contains "$touch_contact" '联系网址：' "二维码下方仍错误
 for image in \
     "$PROJECT_ROOT/assets/help/renamamiya-qr.sixel" \
     "$PROJECT_ROOT/assets/help/renamamiya-qr-compact.sixel" \
+    "$PROJECT_ROOT/assets/help/renamamiya-qr-deck.sixel" \
     "$PROJECT_ROOT/assets/help/renamamiya-qr-large.sixel" \
     "$PROJECT_ROOT/assets/help/renamamiya-qr-wide.sixel" \
     "$PROJECT_ROOT/assets/help/renamamiya-qr-full.sixel" \
@@ -101,6 +102,7 @@ for image in \
     "$PROJECT_ROOT/assets/help/renamamiya-qr-4k.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya-compact.sixel" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya-deck.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya-large.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya-wide.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya-full.sixel" \

@@ -30,9 +30,10 @@ check_layout() {
 }
 
 check_layout '窄窗口' 26 80 12 123 168
-check_layout 'Steam Deck 800p' 42 125 12 205 280
-check_layout '1080p' 54 190 14 451 616
-check_layout '2K' 70 230 16 615 840
-check_layout '4K' 100 360 20 779 1064
+check_layout 'Steam Deck 800p 矮窗口' 28 100 12 246 336
+check_layout 'Steam Deck 800p 较大窗口' 40 125 12 369 504
+check_layout '1080p' 47 150 14 451 616
+check_layout '2K' 65 160 16 615 840
+check_layout '4K' 90 240 20 779 1064
 
 printf '帮助页图片尺寸模拟测试通过\n'

@@ -455,19 +455,22 @@ ui_help_image() {
     font_size="${ZHOUKEER_FONT_SIZE:-12}"
     [[ "$font_size" =~ ^[0-9]+$ ]] || font_size=12
     [ "$font_size" -ge 8 ] && [ "$font_size" -le 40 ] || font_size=12
-    cell_width=$((font_size * 3 / 4))
-    cell_height=$((font_size * 5 / 4))
+    # Konsole 的字号是 pt，实际字符像素尺寸大于先前的保守估计；
+    # 估得太小会让 800p 的矮窗口一直落在 123px 缩略图。
+    cell_width="$font_size"
+    cell_height=$((font_size * 2))
     half=$((UI_PANEL_WIDTH / 2))
-    available_width=$(((half - 2) * cell_width))
+    available_width=$(((half - 1) * cell_width))
     ui_scale_row "$row"
     image_top="$UI_SCALED_ROW"
     ui_scale_row 22
     button_top="$UI_SCALED_ROW"
     available_height=$(((button_top - image_top - 4) * cell_height))
-    # 左右图片选同一高度；以较宽的闲鱼图为基准，预留两列和四行给边距、说明文字。
+    # 左右图片选同一高度；以较宽的闲鱼图为基准，预留一列和四行给边距、说明文字。
     suffix=-compact image_height=123 qr_width=123 xianyu_width=168
     for preset in '4k:779:779:1064' '2k:615:615:840' 'full:451:451:616' \
-        'wide:369:369:504' 'large:287:287:392' 'base:205:205:280'; do
+        'wide:369:369:504' 'large:287:287:392' 'deck:246:246:336' \
+        'base:205:205:280'; do
         IFS=: read -r suffix image_height qr_width xianyu_width <<< "$preset"
         if [ "$xianyu_width" -le "$available_width" ] && [ "$image_height" -le "$available_height" ]; then
             [ "$suffix" = base ] && suffix='' || suffix="-$suffix"
