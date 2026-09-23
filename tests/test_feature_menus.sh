@@ -75,6 +75,9 @@ assert_contains "$help_image_renderer" "'4k:779:779:1064'" "帮助图片缺少 4
 
 help_captions="$(function_source "$UI_FILE" ui_help_captions)"
 assert_not_contains "$help_captions" 'ui_move ' "帮助页图片说明仍使用固定行号留白"
+assert_not_contains "$help_captions" 'xianyu_caption' "二维码说明仍跟随较矮的闲鱼图绘制"
+help_replay="$(function_source "$UI_FILE" ui_replay_frame)"
+assert_contains "$help_replay" 'ui_help_right_caption' "窗口缩放重绘遗漏闲鱼图说明"
 
 help_page="$(cat "$PROJECT_ROOT/help.html")"
 assert_contains "$help_page" '一起为Linux游戏社区贡献一份力，帮助到你了欢迎来闲鱼支持我' "帮助页顶部标语不正确"
@@ -87,7 +90,11 @@ assert_contains "$touch_contact" 'draw_category_frame help "" "" 0' "帮助页�
 assert_contains "$touch_contact" 'ui_help_image 6 left' "帮助页左侧缺少内嵌二维码"
 assert_contains "$touch_contact" 'ui_help_image 6 right' "帮助页右侧缺少内嵌闲鱼图片"
 assert_contains "$touch_contact" 'ui_help_captions "如果二维码扫不出来" "请在浏览器浏览以下网址"' "帮助页扫码失败说明没有收回二维码下方"
-assert_contains "$touch_contact" '"https://link3.cc/renamamiya" "闲鱼关注我了解更多资讯"' "帮助页网址与闲鱼说明没有紧跟图片"
+assert_contains "$touch_contact" 'ui_help_right_caption "闲鱼关注我了解更多资讯"' "闲鱼说明没有紧跟右图"
+case "$touch_contact" in
+    *'ui_help_image 6 right'*'ui_help_right_caption "闲鱼关注我了解更多资讯"'*'ui_help_image 6 left'*'ui_help_captions "如果二维码扫不出来"'*) ;;
+    *) fail "帮助页两栏说明没有分别跟在各自图片下方" ;;
+esac
 assert_contains "$touch_contact" 'right:22-24:home' "帮助页底部缺少返回首页"
 assert_not_contains "$touch_contact" '打开帮助页面' "帮助页仍要求打开外部页面"
 assert_not_contains "$touch_contact" '联系网址：' "二维码下方仍错误标注为联系网址"

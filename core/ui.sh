@@ -367,7 +367,7 @@ ui_replay_frame() {
     for ((index=0; index<UI_DRAW_COUNT; index++)); do
         function="${UI_DRAW_FUNCTION[index]}"
         case "$function" in
-            draw_category_frame|draw_disclaimer_frame|ui_panel_line|ui_help_column_line|ui_help_image|ui_help_captions|ui_touch_button|ui_disclaimer_line|ui_disclaimer_button|ui_prompt)
+            draw_category_frame|draw_disclaimer_frame|ui_panel_line|ui_help_column_line|ui_help_image|ui_help_right_caption|ui_help_captions|ui_touch_button|ui_disclaimer_line|ui_disclaimer_button|ui_prompt)
                 "$function" "${UI_DRAW_ARG1[index]}" "${UI_DRAW_ARG2[index]}" \
                     "${UI_DRAW_ARG3[index]}" "${UI_DRAW_ARG4[index]}" ;;
         esac
@@ -541,12 +541,27 @@ ui_help_image() {
     ui_move_absolute "$ansi_row" 1
 }
 
-# 紧接在第二张图片的实际底边后绘制说明，不使用固定行号留白。
+# 每栏的说明分别跟在该栏图片后面，避免较矮的右图决定二维码下方的行号。
+ui_help_right_caption() {
+    ui_record_draw ui_help_right_caption "$@"
+    [ "$UI_DEFERRED" = 0 ] || return 0
+    [ "$UI_LAYOUT_USABLE" = 1 ] || return 0
+    local caption="$1"
+    local half start width column
+
+    half=$((UI_PANEL_WIDTH / 2))
+    start=$((UI_PANEL_COL + half + 1))
+    width=$((UI_PANEL_WIDTH - half - 1))
+    ui_fit_button_text "$caption" "$width"
+    column=$((start + (width - UI_FIT_USED) / 2))
+    printf '\033[?7l\033[%sG\033[38;5;250m%s\033[0m\033[?7h' "$column" "$UI_FIT_TEXT"
+}
+
 ui_help_captions() {
     ui_record_draw ui_help_captions "$@"
     [ "$UI_DEFERRED" = 0 ] || return 0
     [ "$UI_LAYOUT_USABLE" = 1 ] || return 0
-    local instruction_first="$1" instruction_second="$2" url="$3" xianyu_caption="$4"
+    local instruction_first="$1" instruction_second="$2" url="$3"
     local half start width column
 
     printf '\033[?7l'
@@ -554,12 +569,6 @@ ui_help_captions() {
     start="$UI_PANEL_COL"
     width=$((half - 1))
     ui_fit_button_text "$instruction_first" "$width"
-    column=$((start + (width - UI_FIT_USED) / 2))
-    printf '\033[%sG\033[38;5;250m%s\033[0m' "$column" "$UI_FIT_TEXT"
-
-    start=$((UI_PANEL_COL + half + 1))
-    width=$((UI_PANEL_WIDTH - half - 1))
-    ui_fit_button_text "$xianyu_caption" "$width"
     column=$((start + (width - UI_FIT_USED) / 2))
     printf '\033[%sG\033[38;5;250m%s\033[0m' "$column" "$UI_FIT_TEXT"
 
