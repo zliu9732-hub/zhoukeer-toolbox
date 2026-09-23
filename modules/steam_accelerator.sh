@@ -139,21 +139,32 @@ steam302_cli_is_running() {
 
 steam302_config_has_download_targets() {
     [ -r "$STEAM302_CONFIG_FILE" ] || return 1
-    awk '
-        BEGIN { in_setting = 0; store = 0; github = 0 }
-        /^\[Setting\][[:space:]]*$/ { in_setting = 1; next }
-        /^\[/ { in_setting = 0 }
-        in_setting && /^[[:space:]]*Steam_store[[:space:]]*=/ {
+    awk -v enabled="$STEAM302_ENABLED_RULES" '
+        BEGIN { in_setting = 0; in_rules = 0; count = split(enabled, required, ",") }
+        /^\[Setting\][[:space:]]*$/ { in_setting = 1; in_rules = 0; next }
+        /^\[Rules\][[:space:]]*$/ { in_setting = 0; in_rules = 1; next }
+        /^\[/ { in_setting = 0; in_rules = 0 }
+        in_setting && /^[[:space:]]*[[:alnum:]_]+[[:space:]]*=/ {
+            key = $0
+            sub(/^[[:space:]]*/, "", key)
+            sub(/[[:space:]]*=.*/, "", key)
             value = $0
             sub(/^[^=]*=[[:space:]]*/, "", value)
-            if (value == "1") store = 1
+            if (value == "1") settings[key] = 1
         }
-        in_setting && /^[[:space:]]*github[[:space:]]*=/ {
-            value = $0
-            sub(/^[^=]*=[[:space:]]*/, "", value)
-            if (value == "1") github = 1
+        in_rules && /^[[:space:]]*enabled[[:space:]]*=/ {
+            configured = $0
+            sub(/^[^=]*=[[:space:]]*/, "", configured)
+            gsub(/[[:space:]]/, "", configured)
         }
-        END { exit !(store && github) }
+        END {
+            for (i = 1; i <= count; i++) {
+                if (settings[required[i]] != 1) exit 1
+            }
+            expected = enabled
+            gsub(/[[:space:]]/, "", expected)
+            exit !(configured == expected)
+        }
     ' "$STEAM302_CONFIG_FILE"
 }
 
@@ -252,8 +263,12 @@ steam302_runtime_is_ready() {
 
 steam302_wait_until_ready() {
     local attempt
+    local max_attempts=30
 
-    for attempt in 1 2 3 4 5; do
+    # 首次后台初始化会创建证书并应用网络规则，给它最多 30 秒完成。
+    # 离线模拟测试缩短等待，避免测试超时。
+    [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] || max_attempts=2
+    for ((attempt = 1; attempt <= max_attempts; attempt++)); do
         steam302_runtime_is_ready && return 0
         sleep 1
     done
@@ -261,9 +276,9 @@ steam302_wait_until_ready() {
 }
 
 print_steam302_not_ready_help() {
-    echo "Steamcommunity 302 进程已启动，但 DNS/代理尚未真正就绪。"
-    echo "请打开一次“官方配置界面”，按官方提示完成证书和 DNS 初始化并启动服务。"
-    echo "完成后回到Renkit选择“重置加速”，再查看运行状态。"
+    echo "Steamcommunity 302 后台进程已启动，但未检测到有效代理状态。"
+    echo "Renkit 已自动生成 Steam/GitHub 规则并直接启动官方后台程序。"
+    echo "请检查端口占用、系统依赖和官方日志；修复后在Renkit选择“重置加速”。"
     echo "日志：$STEAM302_LOG_FILE"
 }
 
@@ -284,9 +299,7 @@ print_steam302_ready_notice() {
 }
 
 print_steam302_started_notice() {
-    echo "Steam + GitHub 后台加速已启动。"
-    echo "有效性检测暂未完成，服务可能仍在初始化；这不代表启动失败。"
-    echo "可稍后选择“查看运行状态”确认，日志：$STEAM302_LOG_FILE"
+    print_steam302_not_ready_help
 }
 
 start_steam302_service() {
@@ -305,8 +318,20 @@ start_steam302_service() {
         return 0
     fi
     if steam302_process_is_running; then
-        print_steam302_started_notice
-        return 0
+        if steam302_service_is_active && steam302_service_is_toolbox_managed; then
+            confirm_steam302_service_start || {
+                echo "已取消重启加速服务。"
+                return 0
+            }
+            steam302_setup_autostart || return 1
+            steam302_restart_after_install || return 1
+            if steam302_wait_until_ready; then
+                print_steam302_ready_notice
+                return 0
+            fi
+        fi
+        print_steam302_not_ready_help
+        return 1
     fi
 
     confirm_steam302_service_start || {
@@ -314,7 +339,7 @@ start_steam302_service() {
         return 0
     }
 
-    # 优先按参考逻辑走Renkit托管的 systemd 后台服务；不可用时回退内置 CLI。
+    # 优先启动Renkit托管的 systemd 后台服务；不可用时回退内置 CLI。
     if steam302_setup_autostart; then
         if steam302_wait_until_ready; then
             print_steam302_ready_notice
@@ -322,7 +347,7 @@ start_steam302_service() {
         fi
         if steam302_service_is_active; then
             print_steam302_started_notice
-            return 0
+            return 1
         fi
         echo "后台服务未保持运行，改用内置 CLI 重试。"
     fi
@@ -354,7 +379,7 @@ start_steam302_service() {
     fi
     if steam302_cli_is_running; then
         print_steam302_started_notice
-        return 0
+        return 1
     fi
     echo "官方 CLI 未保持运行，请查看日志：$STEAM302_LOG_FILE"
     [ -n "$pid" ] && sed -n '1,20p' "$STEAM302_LOG_FILE" 2>/dev/null || true
@@ -410,7 +435,8 @@ ensure_steam302_for_download() {
 
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         echo "下载较慢，正在启用加速，请耐心等待..."
-        if enable_output="$(ZHOUKEER_PREFLIGHT_QUIET_SUCCESS=1 enable_steam302 2>&1)"; then
+        if enable_output="$(ZHOUKEER_PREFLIGHT_QUIET_SUCCESS=1 enable_steam302 2>&1)" &&
+            steam302_download_acceleration_is_ready; then
             echo "加速已开启，正在重试下载。"
             return 0
         fi
@@ -436,7 +462,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=$STEAM302_CLI Service
+ExecStart=$STEAM302_CLI
 WorkingDirectory=$STEAM302_INSTALL_DIR
 Restart=always
 RestartSec=10
@@ -930,9 +956,8 @@ install_steam302() (
     steam302_restart_after_install || return 1
     if ! steam302_wait_until_ready; then
         if steam302_process_is_running; then
-            echo "Steamcommunity 302 已安装。"
             print_steam302_started_notice
-            return 0
+            return 1
         fi
         echo "Steamcommunity 302 已安装，但后台加速未能保持运行。"
         echo "请查看日志：$STEAM302_LOG_FILE"
@@ -958,11 +983,11 @@ show_steam302_status() {
     if steam302_runtime_is_ready; then
         echo "加速状态：已就绪（运行与本地代理检查通过）"
     elif steam302_service_is_active; then
-        echo "加速状态：服务进程正在运行，但 DNS/代理未检测到就绪"
-        echo "处理方法：打开一次官方配置界面完成证书和 DNS 初始化，再重置加速"
+        echo "加速状态：后台进程正在运行，但尚未检测到有效代理"
+        echo "处理方法：检查日志、端口占用和系统依赖，再重置加速"
     elif steam302_cli_is_running; then
-        echo "加速状态：内置进程正在运行，但 DNS/代理未检测到就绪"
-        echo "处理方法：打开一次官方配置界面完成证书和 DNS 初始化，再重置加速"
+        echo "加速状态：后台进程正在运行，但尚未检测到有效代理"
+        echo "处理方法：检查日志、端口占用和系统依赖，再重置加速"
     elif steam302_service_is_enabled; then
         echo "后台服务：已设为开机启动，但当前未运行"
     else

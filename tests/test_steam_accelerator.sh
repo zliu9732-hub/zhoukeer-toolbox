@@ -206,7 +206,9 @@ case "${1:-}" in
         rm -f "$STEAM302_TEST_STATE/service-active"
         [ -f "$STEAM302_TEST_SYSTEMD_DIR/steamcommunity302.service" ] || exit 96
         touch "$STEAM302_TEST_STATE/service-active"
-        touch "$ZHOUKEER_APP_DIR/steamcommunity302/S302.run"
+        if [ "${STEAM302_TEST_NO_READY:-0}" != "1" ]; then
+            touch "$ZHOUKEER_APP_DIR/steamcommunity302/S302.run"
+        fi
         ;;
     stop)
         rm -f "$STEAM302_TEST_STATE/service-active"
@@ -263,7 +265,10 @@ run_start_service() {
         HOME="$HOME_DIR" \
         ZHOUKEER_APP_DIR="$APP_ROOT" \
         ZHOUKEER_AUTO_CONFIRM=1 \
+        ZHOUKEER_TEST_MODE=1 \
         STEAM302_TEST_STATE="$STATE_DIR" \
+        STEAM302_TEST_SYSTEMD_DIR="$STATE_DIR/systemd" \
+        ZHOUKEER_SYSTEMD_DIR="$STATE_DIR/systemd" \
         MODULE="$MODULE" \
         bash -c 'source "$MODULE"; toolbox_sudo() { "$@"; }; start_steam302_service'
 }
@@ -278,16 +283,16 @@ fi
 grep -Fq '4b9994102b2256ca5fdf2e806a2c7035' "$MODULE" || fail "缺少官方 MD5"
 grep -Fq '5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f' \
     "$MODULE" || fail "缺少固定 SHA256"
-grep -Fq 'steamcommunity_302.cli Service' "$PROJECT_ROOT/modules/steam302_root_start.sh" || \
-    fail "内置启动器没有使用 Service 参数"
-grep -Fq 'ExecStart=$STEAM302_CLI Service' "$MODULE" || \
-    fail "后台服务没有使用 Service 参数"
+grep -Fq 'nohup ./steamcommunity_302.cli >>' "$PROJECT_ROOT/modules/steam302_root_start.sh" || \
+    fail "内置启动器没有直接运行官方 CLI"
+grep -Fq 'ExecStart=$STEAM302_CLI' "$MODULE" || \
+    fail "后台服务没有直接运行官方 CLI"
 grep -Fq 'Restart=always' "$MODULE" || fail "后台服务没有按官方逻辑常驻重启"
 grep -Fq 'ensure_steam302_for_download()' "$MODULE" || fail "缺少 Steamcommunity 302 工具函数"
 grep -Fq '下载较慢，正在启用加速，请耐心等待' "$MODULE" || fail "缺少简洁的自动加速提示"
 grep -Fq '加速已开启，正在重试下载' "$MODULE" || fail "缺少自动加速完成提示"
 grep -Fq 'steam302_runtime_is_ready()' "$MODULE" || fail "缺少实际加速就绪检查"
-grep -Fq 'DNS/代理尚未真正就绪' "$MODULE" || fail "缺少假启动修复提示"
+grep -Fq '未检测到有效代理状态' "$MODULE" || fail "缺少假启动修复提示"
 
 fallback_output="$(MODULE="$MODULE" bash -c '
     source "$MODULE"
@@ -382,8 +387,10 @@ if printf '%s\n' "$install_output" | grep -Eq '内置加速规则|校验均通�
 fi
 [ -f "$TARGET/S302.ini" ] || fail "没有生成内置配置"
 grep -Fq '[Setting]' "$TARGET/S302.ini" || fail "内置配置缺少 Setting 开关"
-grep -Eq '^Steam_store=1' "$TARGET/S302.ini" || fail "内置配置没有启用 Steam 规则"
-grep -Eq '^github=1' "$TARGET/S302.ini" || fail "内置配置没有启用 GitHub 规则"
+grep -Eq '^Steam_store[[:space:]]*=[[:space:]]*1$' "$TARGET/S302.ini" || \
+    fail "内置配置没有启用 Steam 规则"
+grep -Eq '^github[[:space:]]*=[[:space:]]*1$' "$TARGET/S302.ini" || \
+    fail "内置配置没有启用 GitHub 规则"
 
 # 官方 S302.ini 缺失时，仍要生成可用的 [Setting] 配置，不能覆盖成只有规则列表。
 rm -f "$TARGET/S302.ini"
@@ -397,6 +404,25 @@ grep -Eq '^Steam_store[[:space:]]*=[[:space:]]*1' "$TARGET/S302.ini" || \
     fail "生成配置没有启用 Steam 规则"
 grep -Eq '^github[[:space:]]*=[[:space:]]*1' "$TARGET/S302.ini" || \
     fail "生成配置没有启用 GitHub 规则"
+cat > "$TARGET/S302.ini" <<'INI'
+[Setting]
+Steam_store = 1
+github = 1
+
+[Rules]
+enabled = Steam_store,github
+INI
+env PATH="$BIN_DIR:/usr/bin:/bin:/usr/sbin:/sbin" HOME="$HOME_DIR" \
+    ZHOUKEER_APP_DIR="$APP_ROOT" MODULE="$MODULE" \
+    bash -c 'source "$MODULE"; ensure_steam302_config' || \
+    fail "部分 Steam302 配置没有自动修复"
+for rule in Steam_store Steam_store_unlock Steam_community Steam_API \
+    Steam_API_unlock Steam_community_unlock steamchat steamchat_unlock \
+    Steam_cloud_google steam_update Steam_broadcast_redir \
+    Steam_broadcast_redir_unlock imgfix imgfix_fastly github; do
+    grep -Eq "^$rule[[:space:]]*=[[:space:]]*1$" "$TARGET/S302.ini" || \
+        fail "自动修复配置缺少启用项：$rule"
+done
 [ -f "$STATE_DIR/systemd/steamcommunity302.service" ] || fail "没有创建后台自启服务"
 grep -Fqx '# Managed by Zhoukeer Toolbox' "$STATE_DIR/systemd/steamcommunity302.service" || \
     fail "后台服务缺少Renkit管理标记"
@@ -450,15 +476,27 @@ printf '%s\n' "$status_output" | grep -Fq '版本：14.0.02' || \
 printf '%s\n' "$status_output" | grep -Fq '加速状态：已就绪' || \
     fail "状态没有执行实际加速就绪检查"
 
-# 只有 systemd 进程、没有官方运行标记或本地监听时，启动动作已经完成，
-# 但不能假报有效性检查通过，也不能让外层误报启动失败。
+# 只有 systemd 进程、没有官方运行标记或本地监听时，必须报告未就绪并返回失败。
 rm -f "$TARGET/S302.run"
-run_start_service > "$STATE_DIR/not-ready.output" 2>&1 || \
-    fail "后台服务已运行时不应误报启动失败"
-grep -Fq '后台加速已启动' "$STATE_DIR/not-ready.output" || \
-    fail "后台服务已运行时没有报告启动完成"
-grep -Fq '有效性检测暂未完成' "$STATE_DIR/not-ready.output" || \
+cat > "$STATE_DIR/systemd/steamcommunity302.service" <<'SERVICE'
+# Managed by Zhoukeer Toolbox
+[Service]
+ExecStart=/tmp/steamcommunity_302.cli Service
+SERVICE
+if STEAM302_TEST_NO_READY=1 run_start_service > "$STATE_DIR/not-ready.output" 2>&1; then
+    fail "后台服务未就绪时仍报告成功"
+fi
+grep -Fq '未检测到有效代理状态' "$STATE_DIR/not-ready.output" || \
     fail "加速未确认就绪时没有说明检测状态"
+grep -Fq 'restart steamcommunity302.service' "$STATE_DIR/systemctl.calls" || \
+    fail "未就绪的Renkit服务没有自动重启修复"
+grep -Eq '^ExecStart=.*/steamcommunity_302\.cli$' \
+    "$STATE_DIR/systemd/steamcommunity302.service" || \
+    fail "既有后台服务没有更新为直接运行 CLI"
+if grep -Eq '^ExecStart=.*/steamcommunity_302\.cli Service$' \
+    "$STATE_DIR/systemd/steamcommunity302.service"; then
+    fail "既有后台服务仍保留多余的 Service 参数"
+fi
 if grep -Fq '有效性检查通过' "$STATE_DIR/not-ready.output"; then
     fail "加速未确认就绪时错误报告有效性检查通过"
 fi

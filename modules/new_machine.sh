@@ -403,7 +403,7 @@ write_customer_handover_guide() {
 3. 修改器兼容层：新机初始化仅安装 GE-Proton 10-29；在游戏属性 → 兼容性中选择该版本。
 4. Epic：已按默认清单安装并加入 Steam 库；首次登录、验证码可用触控板，Steam + X 呼出键盘。
 5. 中文输入：桌面模式使用 Fcitx5；首次使用请在系统托盘确认输入法已启动。
-6. Steam 加速：Steamcommunity 302 已设置后台运行和开机自启；规则或证书未就绪时，在Renkit中打开一次官方配置界面。
+6. Steam 加速：Renkit 会生成 Steam 与 GitHub 规则并自动初始化后台服务；若状态未就绪，请在Renkit查看日志、端口占用和依赖提示。
 7. 虚拟内存：zram、磁盘 swap 和 swappiness 已按机器内存设置，重启后完全生效。
 8. 遇到问题：先运行“网络检查”“游戏启动诊断”；需要咨询时生成“Renkit诊断包”并发给安装服务人员。
 
