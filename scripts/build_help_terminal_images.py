@@ -124,11 +124,13 @@ def build() -> None:
         xianyu = fit_on_canvas(xianyu_source, xianyu_size, "white")
         write_sixel(qr, HELP_ASSETS / f"renamamiya-qr{suffix}.sixel", 2)
         write_sixel(xianyu, HELP_ASSETS / f"xianyu-renamamiya{suffix}.sixel", 96)
-
-    # 保持与二维码相同的画布高度，只收窄右图，说明仍会出现在两图下方。
-    for suffix, size in (("-full-safe", (540, 451)), ("-2k-safe", (740, 615))):
-        xianyu = fit_on_canvas(xianyu_source, size, "white")
-        write_sixel(xianyu, HELP_ASSETS / f"xianyu-renamamiya{suffix}.sixel", 96)
+        safe_size = (xianyu_size[0] * 3 // 4, xianyu_size[1] * 3 // 4)
+        small_xianyu = xianyu.resize(safe_size, Image.Resampling.LANCZOS)
+        write_sixel(
+            small_xianyu,
+            HELP_ASSETS / f"xianyu-renamamiya{suffix}-safe.sixel",
+            96,
+        )
 
     qr_modules = qr_modules.crop((3, 3, 38, 38)).convert("RGB")
     write_ansi(qr_modules, HELP_ASSETS / "renamamiya-qr.ansi")

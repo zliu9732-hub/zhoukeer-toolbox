@@ -102,12 +102,20 @@ for image in \
     "$PROJECT_ROOT/assets/help/renamamiya-qr-4k.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya-compact.sixel" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya-compact-safe.sixel" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya-safe.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya-deck.sixel" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya-deck-safe.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya-large.sixel" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya-large-safe.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya-wide.sixel" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya-wide-safe.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya-full.sixel" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya-full-safe.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya-2k.sixel" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya-2k-safe.sixel" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya-4k.sixel" \
+    "$PROJECT_ROOT/assets/help/xianyu-renamamiya-4k-safe.sixel" \
     "$PROJECT_ROOT/assets/help/renamamiya-qr.ansi" \
     "$PROJECT_ROOT/assets/help/xianyu-renamamiya.ansi"; do
     [ -s "$image" ] || fail "帮助页内嵌图片缺失：$image"

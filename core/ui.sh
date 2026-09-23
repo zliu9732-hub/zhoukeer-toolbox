@@ -447,8 +447,9 @@ ui_help_image() {
     [ "$UI_LAYOUT_USABLE" = 1 ] || return 0
     local row="$1" side="$2" sixel_path="$3"
     local half column version="${KONSOLE_VERSION:-0}" ansi_path ansi_row line
-    local base_path font_size cell_width display_cell_width right_display_cell_width cell_height available_width available_height
-    local image_top button_top suffix image_height qr_width xianyu_width image_width image_columns preset max_image_height safe_right=0
+    local base_path font_size cell_width display_cell_width cell_height available_width available_height
+    local image_top button_top suffix image_height qr_width xianyu_width image_width image_columns preset max_image_height
+    local image_row right_image_height vertical_offset
 
     [ -r "$sixel_path" ] || return 0
     base_path="${sixel_path%.sixel}"
@@ -459,8 +460,6 @@ ui_help_image() {
     # 估得太小会让 800p 的矮窗口一直落在 123px 缩略图。
     cell_width="$font_size"
     display_cell_width=$((font_size * 3 / 4))
-    right_display_cell_width="$cell_width"
-    [ "$font_size" -lt 14 ] || right_display_cell_width=$((font_size * 6 / 7))
     cell_height=$((font_size * 2))
     half=$((UI_PANEL_WIDTH / 2))
     available_width=$(((half - 1) * cell_width))
@@ -492,36 +491,38 @@ ui_help_image() {
     done
     sixel_path="${base_path}${suffix}.sixel"
     if [ "$side" = right ]; then
-        case "$suffix" in
-            -full) sixel_path="${base_path}-full-safe.sixel"; xianyu_width=540; safe_right=1 ;;
-            -2k) sixel_path="${base_path}-2k-safe.sixel"; xianyu_width=740; safe_right=1 ;;
-        esac
+        # 闲鱼图统一缩小 25%，按缩小后的像素宽度居中；为右图生成的
+        # safe 资源使用真实缩小尺寸，而非带空白边的原尺寸画布。
+        sixel_path="${base_path}${suffix}-safe.sixel"
+        xianyu_width=$((xianyu_width * 3 / 4))
+        right_image_height=$((image_height * 3 / 4))
+        vertical_offset=$(((image_height - right_image_height) / (2 * cell_height)))
     fi
     case "$side" in
         left) image_width="$qr_width" ;;
         right) image_width="$xianyu_width" ;;
         *) return 1 ;;
     esac
-    # 放得下与画面居中是两个估算：实拍的像素/字符列比选号时更窄。
-    # 右图在较高分辨率使用较窄的完整预览，避免仅平移时仍被终端裁边。
-    if [ "$side" = left ]; then
-        image_columns=$(((image_width + display_cell_width - 1) / display_cell_width))
-    elif [ "$safe_right" = 1 ]; then
+    case "$version" in ''|*[!0-9]*) version=0 ;; esac
+    if [ "$version" -ge 220400 ]; then
+        # 两侧图片统一按 Konsole 字符列宽换算；右图缩小后共享右栏中心，
+        # 避免用偏宽的字符估值导致它贴到终端边缘。
         image_columns=$(((image_width + display_cell_width - 1) / display_cell_width))
     else
-        image_columns=$(((image_width + right_display_cell_width - 1) / right_display_cell_width))
+        image_columns=35
     fi
     [ -r "$sixel_path" ] || return 0
     case "$side" in
         left) column=$((UI_PANEL_COL + (half - image_columns) / 2)) ;;
         right) column=$((UI_PANEL_COL + half + 1 + (UI_PANEL_WIDTH - half - 1 - image_columns) / 2)) ;;
     esac
-    [ "$safe_right" != 1 ] || column=$((column - 1))
     [ "$column" -ge "$UI_PANEL_COL" ] || column="$UI_PANEL_COL"
 
-    case "$version" in ''|*[!0-9]*) version=0 ;; esac
     if [ "$version" -ge 220400 ]; then
-        ui_move "$row" "$column"
+        ui_scale_row "$row"
+        image_row="$UI_SCALED_ROW"
+        [ "$side" != right ] || image_row=$((image_row + vertical_offset))
+        ui_move_absolute "$image_row" "$column"
         printf '\033[?25l'
         command cat -- "$sixel_path"
         printf '\033[0m'
@@ -530,7 +531,6 @@ ui_help_image() {
 
     ansi_path="${base_path}.ansi"
     [ -r "$ansi_path" ] || return 0
-    [ "$side" != "left" ] || column=$((UI_PANEL_COL + (half - 35) / 2))
     ui_scale_row "$row"
     ansi_row="$UI_SCALED_ROW"
     while IFS= read -r line; do

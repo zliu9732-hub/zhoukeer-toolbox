@@ -180,7 +180,9 @@ failed_legion_output="$({
     source "$PROJECT_ROOT/modules/new_machine.sh"
     env() {
         printf 'PLUGIN|%s\n' "$*"
-        case "$*" in *legiongo-remapper) return 1 ;; esac
+        if [[ "$*" == *legiongo-remapper ]]; then
+            return 1
+        fi
     }
     install_initial_legion_go_plugins
 } 2>&1)" && fail "Legion Go 控制中心失败后错误报告为全部成功"
