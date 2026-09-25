@@ -535,6 +535,10 @@ initialize_software_sources() {
     echo "管理员权限会读取桌面管理员密码.txt，不会重复询问密码。"
 
     prepare_system_packages || return 1
+    if [ -r "$PROJECT_ROOT/modules/inputplumber_update.sh" ]; then
+        bash "$PROJECT_ROOT/modules/inputplumber_update.sh" auto ||
+            echo "InputPlumber 自动更新未完成，继续处理其他系统功能。"
+    fi
     configure_domestic_flatpak || return 1
     refresh_discover_after_source_setup || return 1
 

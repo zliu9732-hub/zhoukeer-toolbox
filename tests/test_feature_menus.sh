@@ -356,7 +356,7 @@ done
 touch_f1="$(function_source "$MAIN_FILE" f1_handheld_menu)"
 gui_f1="$(function_source "$GUI_FILE" f1_screen_fix_gui_menu)"
 for menu in "$touch_f1" "$gui_f1"; do
-    for item in '安装屏幕修复' '屏幕修复状态' '卸载屏幕修复' '安装特殊按键修复' '特殊按键修复状态' '恢复特殊按键修复' '更新 InputPlumber' '官方 0.79.2' '准备 V1.14 BIOS' '立即重启 SteamOS' 'F1L 仅限 F1 8840U' '5秒自动重启' 'ONEXPLAYER F1' '不使用 sudo'; do
+    for item in '安装屏幕修复' '屏幕修复状态' '卸载屏幕修复' '安装特殊按键修复' '特殊按键修复状态' '恢复特殊按键修复' '更新 InputPlumber' '系统软件源' '准备 V1.14 BIOS' '立即重启 SteamOS' 'F1L 仅限 F1 8840U' '5秒自动重启' 'ONEXPLAYER F1' '不使用 sudo'; do
         assert_contains "$menu" "$item" "飞行家 F1 子菜单缺少：$item"
     done
     assert_contains "$touch_f1" 'right:2-3:install' "飞行家 F1 屏幕修复安装坐标错误"
@@ -372,7 +372,7 @@ for menu in "$touch_f1" "$gui_f1"; do
     assert_contains "$menu" 'modules/onexplayer_button_fix.sh" restore' "壹号掌机按键恢复动作错误"
     assert_contains "$menu" 'modules/inputplumber_update.sh" update' "InputPlumber 更新动作错误"
 done
-assert_contains "$touch_f1" 'confirm_and_run "更新壹号掌机 InputPlumber"' "触控菜单的 InputPlumber 更新缺少单次确认"
+assert_contains "$touch_f1" 'confirm_and_run "更新 InputPlumber"' "触控菜单的 InputPlumber 更新缺少单次确认"
 assert_contains "$touch_f1" 'confirm_and_run "壹号掌机 SteamOS 特殊按键修复"' "触控菜单的特殊按键安装缺少单次确认"
 assert_contains "$touch_f1" '等待5秒自动重启SteamOS' "触控菜单没有提前说明自动重启"
 assert_contains "$touch_f1" 'confirm_and_run "恢复壹号掌机 SteamOS 特殊按键修复"' "触控菜单的特殊按键恢复缺少单次确认"

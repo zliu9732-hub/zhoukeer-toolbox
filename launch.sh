@@ -158,6 +158,11 @@ run_main() {
     # 更新检查尚未结束时只留下空白背景而被误认为Renkit已经卡死。
     printf '\033[0m\033[r\033[3J\033[2J\033[H\n\n  Renkit启动中，请耐心等待…\n  若启动较慢，Renkit可能正在更新，请耐心等待。\n'
     run_startup_update
+    if [ "$(uname -s 2>/dev/null || echo unknown)" = Linux ] &&
+        [ -r "$PROJECT_ROOT/modules/inputplumber_update.sh" ]; then
+        bash "$PROJECT_ROOT/modules/inputplumber_update.sh" auto >> "$LAUNCH_LOG" 2>&1 ||
+            launcher_log "InputPlumber 自动检查或更新失败；继续启动 RenKit"
+    fi
     # 自动更新与主界面复用同一个终端；进入触控 UI 前清除更新输出和滚动残影。
     printf '\033[0m\033[r\033[3J\033[2J\033[H'
     launcher_log "主程序开始：$MAIN_PROGRAM --touch"
