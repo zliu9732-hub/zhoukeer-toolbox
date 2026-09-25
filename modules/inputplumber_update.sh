@@ -48,7 +48,7 @@ ipu_detect_package() {
 }
 
 ipu_check() {
-    local available pending line name found=0
+    local available package_info pending line name found=0
     IPU_CHECK_STATE="skip"
     if [ "$(uname -s 2>/dev/null)" != Linux ]; then
         ipu_message "当前不是 Linux，跳过。"
@@ -74,8 +74,16 @@ ipu_check() {
     case "$IPU_MANAGER" in
         pacman)
             command -v vercmp >/dev/null 2>&1 || { ipu_message "缺少 vercmp，无法安全比较版本。"; return 1; }
-            available="$(pacman -Si inputplumber 2>/dev/null | awk '$1 == "Version" {print $3; exit}')"
-            [ -n "$available" ] || { ipu_message "当前软件源没有 InputPlumber 包，跳过。"; return 0; }
+            # pacman -Si 会翻译字段名；中文环境不能用英文 Version 直接解析。
+            if ! package_info="$(LC_ALL=C pacman -Si inputplumber 2>&1)"; then
+                ipu_message "已安装 ${IPU_INSTALLED}，但当前软件源查询失败或没有该包；本次未更新。"
+                return 0
+            fi
+            available="$(printf '%s\n' "$package_info" | awk '$1 == "Version" && $2 == ":" {print $3; exit}')"
+            if [ -z "$available" ]; then
+                ipu_message "已安装 ${IPU_INSTALLED}，但无法解析软件源版本；本次未更新。"
+                return 1
+            fi
             if [ "$(vercmp "$available" "$IPU_INSTALLED")" -le 0 ]; then
                 IPU_CHECK_STATE="current"
                 ipu_message "已是当前软件源最新版本（${IPU_INSTALLED}）。"
@@ -99,7 +107,7 @@ ipu_check() {
             ;;
         apt)
             command -v apt-cache >/dev/null 2>&1 && command -v dpkg >/dev/null 2>&1 || return 1
-            available="$(apt-cache policy inputplumber 2>/dev/null | awk '/^[[:space:]]*Candidate:/ {print $2; exit}')"
+            available="$(LC_ALL=C apt-cache policy inputplumber 2>/dev/null | awk '/^[[:space:]]*Candidate:/ {print $2; exit}')"
             [ -n "$available" ] && [ "$available" != '(none)' ] || { ipu_message "软件源没有可安装版本，跳过。"; return 0; }
             if ! dpkg --compare-versions "$available" gt "$IPU_INSTALLED"; then
                 IPU_CHECK_STATE="current"

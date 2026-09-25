@@ -17,6 +17,7 @@ MOCK_ENABLED=1
 MOCK_INSTALLED=1
 MOCK_VERSION=0.70.0-1
 MOCK_AVAILABLE=0.79.2-1
+MOCK_REPO_MISSING=0
 MOCK_PENDING='inputplumber 0.70.0-1 -> 0.79.2-1'
 MOCK_INSTALL_FAIL=0
 MOCK_RESTART_FAIL=0
@@ -34,7 +35,14 @@ pacman() {
     printf 'pacman %s\n' "$*" >> "$CALLS"
     case "$1" in
         -Q) [ "$MOCK_INSTALLED" -eq 1 ] && echo "inputplumber $MOCK_VERSION" ;;
-        -Si) printf 'Name : inputplumber\nVersion : %s\n' "$MOCK_AVAILABLE" ;;
+        -Si)
+            [ "$MOCK_REPO_MISSING" -eq 0 ] || return 1
+            if [ "${LC_ALL:-}" = C ]; then
+                printf 'Name : inputplumber\nVersion : %s\n' "$MOCK_AVAILABLE"
+            else
+                printf '名称 : inputplumber\n版本 : %s\n' "$MOCK_AVAILABLE"
+            fi
+            ;;
         -Qu) printf '%s\n' "$MOCK_PENDING" ;;
         -S) [ "$MOCK_INSTALL_FAIL" -eq 0 ] && MOCK_VERSION="$MOCK_AVAILABLE" ;;
     esac
@@ -75,6 +83,11 @@ MOCK_INSTALLED=1
 MOCK_AVAILABLE="$MOCK_VERSION"
 ipu_update > "$TEST_ROOT/current" || fail '最新版本检查失败'
 ! grep -Fq 'pacman -S --' "$CALLS" || fail '最新版本却被更新'
+MOCK_REPO_MISSING=1
+ipu_update > "$TEST_ROOT/repo-missing" || fail '软件源无包时应安全跳过'
+grep -Fq '已安装 0.70.0-1' "$TEST_ROOT/repo-missing" || fail '软件源无包时未显示已安装版本'
+! grep -Fq 'pacman -S --' "$CALLS" || fail '软件源无包时仍尝试安装'
+MOCK_REPO_MISSING=0
 MOCK_AVAILABLE=0.79.2-1
 MOCK_PENDING='inputplumber 0.70.0-1 -> 0.79.2-1
 linux 1 -> 2'
