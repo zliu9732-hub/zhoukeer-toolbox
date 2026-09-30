@@ -60,7 +60,7 @@ proton_cachyos_config_is_valid() {
     esac
     case "$PROTON_CACHYOS_FILE" in
         proton-cachyos-*-slr-x86_64.tar.xz) ;;
-        *) echo "Proton-CachyOS 文件名不符合普通 x86_64 SLR 包规则。"; return 1 ;;
+        *) echo "游戏运行工具的安装文件不适用于本机。"; return 1 ;;
     esac
     case "$PROTON_CACHYOS_FILE" in
         *'/'*|*'..'*|*[!0-9A-Za-z._-]*)
@@ -69,10 +69,10 @@ proton_cachyos_config_is_valid() {
             ;;
     esac
     case "$PROTON_CACHYOS_SHA256" in
-        ''|*[!0-9A-Fa-f]*) echo "Proton-CachyOS SHA256 无效。"; return 1 ;;
+        ''|*[!0-9A-Fa-f]*) echo "Proton-CachyOS 文件安全检查信息无效。"; return 1 ;;
     esac
     [ "${#PROTON_CACHYOS_SHA256}" -eq 64 ] || {
-        echo "Proton-CachyOS SHA256 长度无效。"
+        echo "Proton-CachyOS 文件安全检查信息无效。"
         return 1
     }
 }
@@ -213,7 +213,7 @@ install_proton_cachyos() {
     done
     command -v sha256sum >/dev/null 2>&1 || \
         command -v shasum >/dev/null 2>&1 || {
-            echo "缺少 SHA256 校验工具。"
+            echo "缺少检查下载文件所需的组件。"
             return 1
         }
     resolve_proton_cachyos_latest
@@ -225,7 +225,7 @@ install_proton_cachyos() {
         return 0
     fi
 
-    echo "将安装 CachyOS 上游发布的普通 x86_64 SLR 兼容层，不会删除其他 Proton。"
+    echo "将安装另一款运行 Windows 游戏的工具，保留现有版本。"
     PROTON_CACHYOS_TMP_DIR="$(mktemp -d "${compatibility_dir}/.proton-cachyos-tmp.XXXXXX")" || return 1
     archive="$PROTON_CACHYOS_TMP_DIR/$PROTON_CACHYOS_FILE"
     extract_dir="$PROTON_CACHYOS_TMP_DIR/extracted"
@@ -234,12 +234,12 @@ install_proton_cachyos() {
         download_with_gitee_mirror_fallback "$PROTON_CACHYOS_MIRROR_ID" \
         "$PROTON_CACHYOS_URL" "$PROTON_CACHYOS_SHA256" "$archive" \
         "Proton-CachyOS"; then
-        echo "Proton-CachyOS 下载失败，已有兼容层保持不变。"
+        echo "Proton-CachyOS 下载失败，已有运行工具保持不变。"
         return 1
     fi
     actual_sha="$(proton_cachyos_sha256 "$archive")" || return 1
     [ "$actual_sha" = "$(printf '%s' "$PROTON_CACHYOS_SHA256" | tr '[:upper:]' '[:lower:]')" ] || {
-        echo "Proton-CachyOS SHA256 校验失败，已有兼容层保持不变。"
+        echo "Proton-CachyOS 文件检查未通过，已有运行工具保持不变。"
         return 1
     }
     validate_proton_cachyos_archive "$archive" || return 1

@@ -37,7 +37,7 @@ write_managed_archlinuxcn_repo() {
     fi
     if ! grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" "$pacman_conf" && \
         pacman_conf_has_archlinuxcn "$pacman_conf"; then
-        echo "检测到用户已有 archlinuxcn 配置，保持原配置不变。"
+        echo "检测到原有系统下载设置，已保留。"
         return 0
     fi
 
@@ -59,11 +59,11 @@ write_managed_archlinuxcn_repo() {
 
     if ! toolbox_sudo install -m 0644 -- "$tmp_file" "$pacman_conf"; then
         rm -f -- "$tmp_file"
-        echo "写入 archlinuxcn 国内仓库失败。"
+        echo "设置系统软件下载加速失败。"
         return 1
     fi
     rm -f -- "$tmp_file"
-    echo "已配置 archlinuxcn 镜像回退：上海交大 → 中科大 → 官方源"
+    echo "系统软件下载设置已配置。"
 }
 
 remove_managed_archlinuxcn_repo() {
@@ -72,7 +72,7 @@ remove_managed_archlinuxcn_repo() {
 
     [ -f "$pacman_conf" ] && [ ! -L "$pacman_conf" ] || return 1
     if ! grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" "$pacman_conf"; then
-        echo "未发现Renkit管理的 archlinuxcn 配置，无需移除。"
+        echo "没有发现 Renkit 添加的系统下载设置，无需移除。"
         return 0
     fi
 
@@ -89,7 +89,7 @@ remove_managed_archlinuxcn_repo() {
         return 1
     fi
     rm -f -- "$tmp_file"
-    echo "已移除Renkit管理的 archlinuxcn 配置。"
+    echo "已移除 Renkit 添加的系统下载设置。"
 }
 
 configure_chinese_locales() {
@@ -137,17 +137,17 @@ configure_domestic_flatpak() {
     if [ "$IS_BAZZITE" -eq 1 ]; then
         echo "配置 Bazzite 用户级 Flatpak 国内缓存..."
     else
-        echo "[2/3] 配置上海交大和中科大 Flatpak 国内缓存..."
+        echo "[2/3] 正在设置软件下载加速..."
     fi
     if ! ensure_flatpak_remotes; then
         if flatpak_any_remote_exists; then
             DOMESTIC_FLATPAK_SKIPPED=1
             export DOMESTIC_FLATPAK_SKIPPED
-            echo "Flatpak 国内缓存本次已跳过，继续使用现有软件源，不影响其他功能。"
+            echo "本次已跳过下载加速，继续使用现有设置。"
             log "Flatpak国内缓存配置未完成；检测到现有远程，按可选项跳过"
             return 0
         fi
-        echo "未检测到任何可用的 Flatpak 软件源，后续应用安装无法继续。"
+        echo "没有可用的软件下载设置，暂时无法安装应用。"
         return 1
     fi
 
@@ -179,38 +179,38 @@ configure_archlinuxcn_with_fallback() {
     local populate_output
 
     if ! write_managed_archlinuxcn_repo "$pacman_conf"; then
-        echo "- archlinuxcn 本次未启用，已跳过并继续配置 Flatpak 国内缓存。"
+        echo "- 本次已跳过系统软件下载加速，继续配置应用下载。"
         return 0
     fi
 
     if archlinuxcn_keyring_ready; then
-        echo "✓ 已检测到 archlinuxcn 密钥环，无需重复安装。"
+        echo "✓ 系统软件安全检查组件已准备好。"
     else
-        echo "正在通过上海交大、中科大和官方回退源安装 archlinuxcn 密钥环..."
+        echo "正在准备系统软件的安全检查..."
         if ! toolbox_sudo pacman -Sy --needed --noconfirm archlinuxcn-keyring; then
             if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" "$pacman_conf" 2>/dev/null && \
                 ! remove_managed_archlinuxcn_repo "$pacman_conf"; then
-                echo "archlinuxcn 密钥环安装失败，且Renkit配置移除失败。"
+                echo "系统软件安全检查准备失败，恢复下载设置也未完成。"
                 return 1
             fi
-            echo "- archlinuxcn 密钥环本次未启用，已撤销并跳过；将继续配置 Flatpak 国内缓存。"
+            echo "- 系统软件安全检查准备未完成，已撤销改动，继续设置应用下载加速。"
             return 0
         fi
     fi
 
     if populate_output="$(toolbox_sudo pacman-key --populate archlinuxcn 2>&1)"; then
         [ -z "$populate_output" ] || log "archlinuxcn 密钥导入明细: ${populate_output//$'\n'/；}"
-        echo "✓ archlinuxcn 密钥环可用，已保持软件包 GPG 验证。"
+        echo "✓ 系统软件安全检查已准备好，签名检查仍保持开启。"
         return 0
     fi
     [ -z "$populate_output" ] || log "archlinuxcn 密钥导入未完成: ${populate_output//$'\n'/；}"
 
     if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" "$pacman_conf" 2>/dev/null && \
         ! remove_managed_archlinuxcn_repo "$pacman_conf"; then
-        echo "archlinuxcn 密钥导入失败，且Renkit配置移除失败。"
+        echo "系统软件安全检查准备失败，恢复下载设置也未完成。"
         return 1
     fi
-    echo "- archlinuxcn 密钥本次未启用，已撤销并跳过；将继续配置 Flatpak 国内缓存。"
+    echo "- 系统软件安全检查准备未完成，已撤销改动，继续设置应用下载加速。"
     return 0
 }
 
@@ -222,7 +222,7 @@ restore_official_flatpak() {
     require_command timeout || return 1
     require_command curl || return 1
     confirm_official_flatpak_restore || {
-        echo "已取消恢复官方 Flatpak 源，未修改任何远程源。"
+        echo "已取消恢复默认下载设置，现有设置保持不变。"
         return 1
     }
 
@@ -243,7 +243,7 @@ restore_official_flatpak() {
 
     if ! timeout --foreground 30 flatpak remote-modify --user --gpg-verify \
         --url=https://dl.flathub.org/repo/ flathub; then
-        echo "恢复 Flathub 官方地址和 GPG 验证失败。"
+        echo "恢复默认下载设置和软件签名检查失败。"
         return 1
     fi
     if flatpak_remote_exists "$FLATHUB_CN_REMOTE" && \
@@ -293,7 +293,7 @@ restore_official_flatpak() {
     fi
 
     if [ "$IS_STEAMOS" -eq 1 ]; then
-        echo "已恢复 Flathub 官方源并启用 GPG 验证，同时移除Renkit管理的 archlinuxcn 配置。"
+        echo "已恢复默认下载设置，并重新开启软件签名检查。"
         log "已恢复Flathub官方源并移除国内缓存源和Renkit管理的archlinuxcn配置"
     else
         echo "已恢复 Bazzite 官方 Flathub 并启用 GPG 验证；系统更新源保持不变。"
@@ -311,7 +311,7 @@ run_pacman_without_metadata_warnings() {
     # 自动测试和重定向日志仍走下面的过滤分支，保留原有无害元数据警告的隐藏规则。
     if [ "${ZHOUKEER_FORCE_PACMAN_PROGRESS:-0}" = "1" ] || \
         { [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && { [ -t 1 ] || [ -t 2 ]; }; }; then
-        echo "正在使用 pacman 原生下载进度（百分比和速度）..."
+        echo "正在下载系统所需组件，请等待..."
         toolbox_sudo pacman "$@"
         return $?
     fi
@@ -332,7 +332,7 @@ restore_discover_packagekit_backend() {
         return 1
     fi
     if [ -f "$DISCOVER_PACKAGEKIT_BACKEND_DISABLED" ]; then
-        echo "检测到被停用的 Discover PackageKit 后端，正在恢复..."
+        echo "正在恢复应用商店所需组件..."
         toolbox_sudo mv -- "$DISCOVER_PACKAGEKIT_BACKEND_DISABLED" \
             "$DISCOVER_PACKAGEKIT_BACKEND" || return 1
     fi
@@ -345,14 +345,14 @@ run_discover_refresh_worker() {
     require_command flatpak || return 1
     require_command timeout || return 1
 
-    echo "[3/3] 修复 Discover 用户仓库并刷新应用索引..."
+    echo "[3/3] 正在修复应用商店..."
     pkill -x plasma-discover >/dev/null 2>&1 || true
     if ! timeout 90 flatpak repair --user; then
-        echo "Flatpak 用户仓库修复失败或超时，将继续重建应用索引。"
+        echo "软件安装设置修复未完成，正在继续修复应用列表。"
         refresh_failed=1
     fi
     if ! timeout 120 flatpak update --user --appstream --noninteractive; then
-        echo "Flatpak 应用索引刷新失败或超时，将继续重建 KDE 缓存。"
+        echo "应用列表刷新未完成，正在继续修复桌面显示。"
         refresh_failed=1
     fi
 
@@ -437,7 +437,7 @@ prepare_system_packages() (
 
     if [ ! -f "$pacman_conf" ] || [ -L "$pacman_conf" ] || \
         [ ! -f "$locale_gen" ] || [ -L "$locale_gen" ]; then
-        echo "pacman 或 locale 配置文件异常，未修改系统。"
+        echo "系统安装或语言设置异常，已停止操作。"
         return 1
     fi
     pacman_backup="$(mktemp)" || return 1
@@ -445,7 +445,7 @@ prepare_system_packages() (
     cp -- "$pacman_conf" "$pacman_backup" || return 1
     cp -- "$locale_gen" "$locale_backup" || return 1
 
-    echo "[1/3] 初始化 pacman 密钥环并完整更新系统组件..."
+    echo "[1/3] 正在检查并更新系统所需组件..."
     readonly_status="$(steamos-readonly status 2>/dev/null || true)"
     if printf '%s' "$readonly_status" | grep -qi 'enabled'; then
         toolbox_sudo steamos-readonly disable >/dev/null 2>&1 || return 1
@@ -458,7 +458,7 @@ prepare_system_packages() (
     fi
 
     if ! toolbox_sudo pacman-key --init; then
-        echo "pacman 密钥环初始化失败，已停止。"
+        echo "软件安全检查准备失败，已停止。"
         return 1
     fi
     if ! toolbox_sudo pacman-key --populate archlinux; then
@@ -477,7 +477,7 @@ prepare_system_packages() (
         return 1
     fi
     if ! run_pacman_without_metadata_warnings -S --needed --noconfirm git flatpak; then
-        echo "git 或 Flatpak 组件补齐失败，已停止。"
+        echo "软件安装所需组件准备失败，已停止。"
         return 1
     fi
     if ! run_pacman_without_metadata_warnings -S --noconfirm archlinux-keyring; then
@@ -494,7 +494,7 @@ prepare_system_packages() (
         return 1
     fi
     if ! restore_discover_packagekit_backend; then
-        echo "恢复 Discover PackageKit 后端失败，已停止。"
+        echo "恢复应用商店所需组件失败，已停止。"
         return 1
     fi
     if ! run_pacman_without_metadata_warnings -S --noconfirm \
@@ -504,7 +504,7 @@ prepare_system_packages() (
     fi
 
     if ! configure_chinese_locales "$locale_gen"; then
-        echo "中英文 locale 配置失败，已停止。"
+        echo "中英文显示设置失败，已停止。"
         return 1
     fi
 
@@ -530,8 +530,8 @@ initialize_software_sources() {
     echo "================================================"
     echo " 初始化国内源并检测系统组件"
     echo "================================================"
-    echo "将完整更新系统组件、配置 archlinuxcn 镜像回退和密钥环、生成中英文 locale，并修复 Discover 与 Flatpak 应用索引。"
-    echo "可恢复：修改前会在本次临时目录备份 pacman 与语言配置；菜单提供“恢复官方软件源”。"
+    echo "将更新系统所需组件、设置软件下载加速、配置中英文显示并修复应用商店。"
+    echo "修改前会备份系统和语言设置；可在菜单选择“恢复默认下载设置”。"
     echo "管理员权限会读取桌面管理员密码.txt，不会重复询问密码。"
 
     prepare_system_packages || return 1
@@ -547,10 +547,10 @@ initialize_software_sources() {
     if grep -Fqx "$ARCHLINUXCN_BLOCK_BEGIN" /etc/pacman.conf 2>/dev/null; then
         echo "Arch Linux CN：上海交大 → 中科大 → 官方源（GPG 密钥环已启用）"
     else
-        echo "Arch Linux CN：本次未启用；Flatpak 国内缓存已继续配置"
+        echo "系统软件下载加速本次未启用，应用下载设置已继续配置。"
     fi
     if [ "${DOMESTIC_FLATPAK_SKIPPED:-0}" = "1" ]; then
-        echo "Flatpak 国内缓存：本次已跳过，继续使用原有软件源"
+        echo "本次已跳过下载加速，继续使用原有设置。"
     else
         echo "上海交大：$FLATHUB_CN_URL"
         echo "中科大：$FLATHUB_CN_FALLBACK_URL"

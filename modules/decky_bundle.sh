@@ -64,7 +64,7 @@ append_custom_plugin_json() {
 
     [ -n "$url" ] || return 0
     if ! valid_https_url "$url" || ! valid_sha256 "$sha256"; then
-        echo "$name 的 GitHub Release 地址或SHA256配置无效，已停止。"
+        echo "$name 下载信息无效，已停止，请更新 Renkit 后重试。"
         return 1
     fi
     [ ! -s "$output" ] || separator=","
@@ -297,7 +297,7 @@ apply_steam_compat_via_decky() {
             "$DECKY_API_BASE" "zhoukeer-compat" "$DECKY_EXECUTE_TIMEOUT")"; then
             rm -f -- "$payload_file"
             if [[ "$response" == *"zhoukeer-compat-ok"* ]]; then
-                echo "已通过 Steam 界面启用 Proton 10.0-4 兼容层 (AppID $app_id)。"
+                echo "已通过 Steam 界面启用 Proton 10.0-4 运行工具 (AppID $app_id)。"
                 return 0
             fi
         else
@@ -454,7 +454,7 @@ confirm_bundle_install() {
     local plugin_count="${1:-23}"
     local include_custom="${2:-1}"
 
-    echo "将从Decky官方商店读取 $plugin_count 个插件的最新版本，并交给Decky内置安装器。"
+    echo "正在准备安装 $plugin_count 款插件。"
     if [ "$include_custom" = "1" ]; then
         echo "SimpleDeckyTDP、Unifideck和Freedeck使用固定国内镜像加入安装队列。"
     fi

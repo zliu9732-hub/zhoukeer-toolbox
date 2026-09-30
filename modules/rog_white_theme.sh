@@ -66,11 +66,11 @@ rog_white_source_ok() {
     css_sha="$(rog_white_file_sha256 "$ROG_WHITE_SOURCE_DIR/shared.css")" || return 1
 
     [ "$json_sha" = "$ROG_WHITE_THEME_JSON_SHA256" ] || {
-        echo "ROG White 主题清单校验失败，已停止。" >&2
+        echo "ROG White 主题清单检查未通过，已停止。" >&2
         return 1
     }
     [ "$css_sha" = "$ROG_WHITE_SHARED_CSS_SHA256" ] || {
-        echo "ROG White 样式文件校验失败，已停止。" >&2
+        echo "ROG White 样式文件检查未通过，已停止。" >&2
         return 1
     }
     return 0
@@ -148,7 +148,7 @@ rog_white_install() {
     fi
 
     if ! rog_white_source_ok; then
-        echo "ROG White 内置文件缺失或校验失败，请更新 Renkit 后重试。"
+        echo "ROG White 内置文件缺失或检查未通过，请更新 Renkit 后重试。"
         return 1
     fi
 

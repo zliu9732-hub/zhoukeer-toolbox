@@ -370,7 +370,7 @@ confirm_install_all_emulators() {
 
     echo "将一键安装 Yuzu、Cemu、DuckStation、PCSX2、RPCS3 和 ShadPS4 共 6 款模拟器。"
     echo "只安装模拟器本体，不包含游戏、BIOS、固件或密钥；已完整安装的项目会跳过。"
-    echo "每款模拟器都会使用固定 SHA256 校验，创建桌面图标并添加到 Steam 库。"
+    echo "安装后会创建桌面图标，并添加到 Steam 游戏库。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi

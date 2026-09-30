@@ -106,7 +106,7 @@ assert_contains "$touch_decky_loader" 'right:5-6:stable' "Decky Loader 子菜单
 assert_contains "$touch_decky_loader" 'right:7-8:test' "Decky Loader 子菜单缺少测试版动作"
 assert_contains "$touch_decky_loader" 'right:9-10:auto' "Decky Loader 子菜单缺少自动安装动作"
 assert_contains "$touch_decky_loader" 'modules/plugin_store.sh" store-test' "测试版 Decky Loader 动作错误"
-assert_contains "$touch_decky_loader" '仅当 SteamOS 使用测试或预览通道' "测试版 Decky Loader 缺少适用范围说明"
+assert_contains "$touch_decky_loader" '仅在测试版或预览版系统无法使用稳定版插件商城时安装' "测试版 Decky Loader 缺少适用范围说明"
 assert_contains "$touch_decky_loader" 'right:12-13:rog-white-install' "Decky Loader 子菜单缺少 ROG White 安装坐标"
 assert_contains "$touch_decky_loader" 'modules/rog_white_theme.sh" install' "ROG White 安装动作错误"
 assert_contains "$touch_decky_loader" 'ROG White 白色主题' "Decky Loader 子菜单缺少 ROG White 白色主题入口"
@@ -150,11 +150,11 @@ gui_games="$(function_source "$GUI_FILE" game_environment_gui_menu)"
 assert_contains "$touch_game_info" 'right:6-7:steamdb-info' "游戏数据子菜单缺少 SteamDB 坐标"
 assert_contains "$touch_game_info" 'modules/plugin_store.sh" steamdb-info' "SteamDB 菜单动作错误"
 assert_not_contains "$touch_game_info" 'decky-translator' "触控菜单仍显示沉浸式翻译入口"
-assert_contains "$touch_game_info" '国内镜像' "游戏数据插件缺少国内镜像说明"
+assert_contains "$touch_game_info" '查看游戏历史最低价格' "游戏数据插件缺少用途说明"
 assert_contains "$gui_games" 'game-info-tools' "GUI 插件页缺少游戏数据与翻译入口"
 assert_contains "$gui_games" 'modules/plugin_store.sh" steamdb-info' "GUI SteamDB 菜单动作错误"
 assert_not_contains "$gui_games" 'decky-translator' "GUI 仍显示沉浸式翻译入口"
-assert_contains "$gui_games" '国内镜像' "GUI 游戏数据插件缺少国内镜像说明"
+assert_contains "$gui_games" '游戏历史最低价格' "GUI 游戏数据插件缺少用途说明"
 touch_handheld_plugins="$(function_source "$MAIN_FILE" handheld_plugins_menu)"
 touch_onexplayer_tools="$(function_source "$MAIN_FILE" onexplayer_tools_menu)"
 assert_contains "$touch_handheld_plugins" 'right:5-6:simpledeckytdp' "掌机控制子菜单缺少功耗控制坐标"
@@ -164,7 +164,7 @@ assert_contains "$touch_handheld_plugins" 'right:19-20:onexplayer-tools' "掌机
 assert_contains "$touch_handheld_plugins" 'NEXT_CATEGORY="onexplayer_tools"' "OneXPlayer 机型工具跳转错误"
 assert_contains "$touch_onexplayer_tools" 'right:7-8:x2-mini-pro-brightness' "X2 Mini Pro 亮度修复坐标错误"
 assert_contains "$touch_onexplayer_tools" 'modules/plugin_store.sh" lego2-brightness-fix' "X2 Mini Pro 亮度修复动作错误"
-assert_contains "$touch_onexplayer_tools" '已实测适配 ONEXPLAYER X2 Mini Pro' "X2 Mini Pro 亮度修复缺少实测标注"
+assert_contains "$touch_onexplayer_tools" '原版 SteamOS，已实测' "X2 Mini Pro 亮度修复缺少实测标注"
 assert_contains "$touch_onexplayer_tools" 'modules/plugin_store.sh" onexplayer-apex' "OneXPlayer Apex 动作错误"
 for mapping in 'right:9-10:huesync' 'right:11-12:legiongo-remapper' \
     'right:13-14:gpd-control' 'right:15-16:lego-vibe' 'right:17-18:lego2-fan'; do
@@ -186,7 +186,7 @@ assert_contains "$touch_freedeck" 'right:5-6:stable' "Freedeck 子菜单缺少 0
 assert_contains "$touch_freedeck" 'right:9-10:new' "Freedeck 子菜单缺少 NewFreedeck 动作"
 assert_contains "$touch_freedeck" 'modules/plugin_store.sh" freedeck' "Freedeck 稳定版动作错误"
 assert_contains "$touch_freedeck" 'modules/plugin_store.sh" newfreedeck' "NewFreedeck 动作错误"
-assert_contains "$touch_freedeck" '个别模拟器仍不可用' "NewFreedeck 缺少上游状态提示"
+assert_contains "$touch_freedeck" '部分模拟器暂时无法使用' "NewFreedeck 缺少上游状态提示"
 touch_emulators="$(function_source "$MAIN_FILE" emulator_menu)"
 for mapping in 'right:2-3:install-all' 'right:5-6:yuzu' 'right:7-8:cemu' 'right:9-10:duckstation' 'right:11-12:pcsx2' 'right:13-14:rpcs3' 'right:15-16:shadps4' 'right:17-18:ppsspp' 'right:19-20:mgba' 'right:21-22:azahar' 'right:23-24:home'; do
     assert_contains "$touch_emulators" "$mapping" "模拟器触控坐标错误：$mapping"
@@ -232,8 +232,8 @@ gui_ge_proton="$(function_source "$GUI_FILE" ge_proton_gui_menu)"
 touch_trainer_ge_proton="$(function_source "$MAIN_FILE" trainer_ge_proton_menu)"
 gui_trainer_ge_proton="$(function_source "$GUI_FILE" trainer_ge_proton_gui_menu)"
 for menu in "$touch_ge_proton" "$gui_ge_proton"; do
-    assert_contains "$menu" '安装最新 GE 兼容层' "GE 兼容层子菜单缺少最新版入口"
-    assert_contains "$menu" '安装修改器所需常用兼容层' "GE 兼容层子菜单缺少修改器常用入口"
+    assert_contains "$menu" '安装最新游戏运行工具（GE）' "GE 兼容层子菜单缺少最新版入口"
+    assert_contains "$menu" '安装修改器常用运行工具' "GE 兼容层子菜单缺少修改器常用入口"
     assert_contains "$menu" '安装 Proton-CachyOS' "游戏兼容层菜单缺少 Proton-CachyOS 入口"
     assert_contains "$menu" 'modules/proton_cachyos.sh" install' "Proton-CachyOS 安装动作错误"
 done
@@ -247,7 +247,7 @@ for menu in "$touch_trainer_ge_proton" "$gui_trainer_ge_proton"; do
         assert_contains "$menu" "安装 GE-Proton $version" "修改器兼容层子菜单缺少 $version"
         assert_contains "$menu" "install-trainer-one \"\$version\"" "修改器兼容层 $version 未接单版本动作"
     done
-    assert_contains "$menu" '安装全部四个兼容层' "修改器兼容层子菜单缺少第五项全部安装"
+    assert_contains "$menu" '安装全部四个运行工具' "修改器兼容层子菜单缺少第五项全部安装"
     assert_contains "$menu" 'install-trainer' "修改器兼容层全部安装动作缺失"
 done
 for mapping in \

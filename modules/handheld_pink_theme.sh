@@ -66,11 +66,11 @@ handheld_pink_source_ok() {
     css_sha="$(handheld_pink_file_sha256 "$HANDHELD_PINK_SOURCE_DIR/shared.css")" || return 1
 
     [ "$json_sha" = "$HANDHELD_PINK_THEME_JSON_SHA256" ] || {
-        echo "Handheld Pink 主题清单校验失败，已停止。" >&2
+        echo "Handheld Pink 主题清单检查未通过，已停止。" >&2
         return 1
     }
     [ "$css_sha" = "$HANDHELD_PINK_SHARED_CSS_SHA256" ] || {
-        echo "Handheld Pink 样式文件校验失败，已停止。" >&2
+        echo "Handheld Pink 样式文件检查未通过，已停止。" >&2
         return 1
     }
     return 0
@@ -148,7 +148,7 @@ handheld_pink_install() {
     fi
 
     if ! handheld_pink_source_ok; then
-        echo "Handheld Pink 内置文件缺失或校验失败，请更新 Renkit 后重试。"
+        echo "Handheld Pink 内置文件缺失或检查未通过，请更新 Renkit 后重试。"
         return 1
     fi
 

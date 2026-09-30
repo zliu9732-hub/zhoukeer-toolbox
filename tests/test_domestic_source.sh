@@ -312,7 +312,7 @@ for repo_url in \
     grep -Fq "$repo_url" "$PROJECT_ROOT/modules/domestic_source.sh" || \
         fail "缺少 archlinuxcn 镜像回退：$repo_url"
 done
-grep -Fq '更新必要系统组件并优化国内软件源' "$PROJECT_ROOT/modules/new_machine.sh" || \
+grep -Fq '更新必要系统组件并优化软件下载加速' "$PROJECT_ROOT/modules/new_machine.sh" || \
     fail "新机初始化没有运行国内源与系统组件检测"
 grep -Fq 'modules/domestic_source.sh" enable' "$PROJECT_ROOT/modules/new_machine.sh" || \
     fail "新机初始化跳过系统更新时没有继续配置用户级 Flatpak 国内源"
@@ -370,7 +370,7 @@ EOF
     DOMESTIC_SOURCE_FAIL_PACMAN_INSTALL=1
     export DOMESTIC_SOURCE_FAIL_PACMAN_INSTALL
     failure_output="$(configure_archlinuxcn_with_fallback "$SYSTEM_DIR/pacman.conf")"
-    printf '%s\n' "$failure_output" | grep -Fq '将继续配置 Flatpak 国内缓存' || \
+    printf '%s\n' "$failure_output" | grep -Fq '继续设置应用下载加速' || \
         fail "archlinuxcn 安装失败时未说明继续配置 Flatpak"
     ! grep -Fq '[archlinuxcn]' "$SYSTEM_DIR/pacman.conf" || \
         fail "archlinuxcn 安装失败后仍保留Renkit仓库配置"
@@ -416,7 +416,7 @@ native_progress_output="$(
     toolbox_sudo() { "$@"; }
     run_pacman_without_metadata_warnings -Syyu --noconfirm 2>&1
 )"
-printf '%s\n' "$native_progress_output" | grep -Fq '正在使用 pacman 原生下载进度（百分比和速度）...' || \
+printf '%s\n' "$native_progress_output" | grep -Fq '正在下载系统所需组件，请等待...' || \
     fail "交互式 pacman 未启用原生下载进度"
 printf '%s\n' "$native_progress_output" | grep -Fq '无法获取 usr/include/libnm/nm-device-veth.h 的文件信息' || \
     fail "交互式 pacman 未保留真实终端输出"
@@ -531,7 +531,7 @@ skip_output="$(
     ZHOUKEER_TEST_MODE=1 \
         bash "$PROJECT_ROOT/modules/domestic_source.sh" enable
 )"
-printf '%s\n' "$skip_output" | grep -Fq '本次已跳过，继续使用现有软件源' || \
+printf '%s\n' "$skip_output" | grep -Fq '本次已跳过下载加速，继续使用现有设置' || \
     fail "国内缓存不可用但已有软件源时没有按可选项跳过"
 if printf '%s\n' "$skip_output" | grep -Fq '失败'; then
     fail "可选国内缓存跳过时仍向用户显示失败"
@@ -554,7 +554,7 @@ printf '%s\n' "$status_output" | grep -Fq 'flathub-cn' || fail "状态输出缺�
 printf '%s\n' "$status_output" | grep -Fq 'flathub-ustc' || fail "状态输出缺少国内备用源"
 
 restore_output="$(run_restore)"
-printf '%s\n' "$restore_output" | grep -Fq '已恢复 Flathub 官方源并启用 GPG 验证，同时移除Renkit管理的 archlinuxcn 配置' || \
+printf '%s\n' "$restore_output" | grep -Fq '已恢复默认下载设置，并重新开启软件签名检查' || \
     fail "恢复官方源缺少成功提示"
 grep -Fxq 'flathub' "$STATE_DIR/remotes" || fail "恢复时未添加官方 Flathub"
 if grep -Eq '^flathub-(cn|ustc)$' "$STATE_DIR/remotes"; then

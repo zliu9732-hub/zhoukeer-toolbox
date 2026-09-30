@@ -40,7 +40,7 @@ run_simulated_flow() (
 
 # 本测试覆盖的是函数替身和命令记录，不执行网络、提权、pacman、Flatpak 或 SteamOS 操作。
 skip_output="$(run_simulated_flow 1)"
-printf '%s\n' "$skip_output" | grep -Fq 'SKIP|【02】更新系统组件、密钥环和 locale|已按开始前选择跳过' || \
+printf '%s\n' "$skip_output" | grep -Fq 'SKIP|【02】更新系统所需组件和语言设置|已按开始前选择跳过' || \
     fail "选择跳过后仍执行系统组件更新"
 printf '%s\n' "$skip_output" | grep -Fq 'modules/domestic_source.sh enable' || \
     fail "跳过系统更新后没有继续配置用户级 Flatpak 国内源"

@@ -105,7 +105,7 @@ oxp_require_hash_command() {
     if command -v sha256sum >/dev/null 2>&1 || command -v shasum >/dev/null 2>&1; then
         return 0
     fi
-    echo "缺少 SHA256 校验命令，未做任何修改。"
+    echo "缺少文件安全检查信息 校验命令，未做任何修改。"
     return 1
 }
 
@@ -308,7 +308,7 @@ oxp_backup_original_target() {
     fi
     backup_sha="$(oxp_sha256 "$OXP_BACKUP_FILE")" || return 1
     if [ "$backup_sha" != "$original_sha" ]; then
-        echo "原有配置备份校验失败，已停止。"
+        echo "原有配置备份检查未通过，已停止。"
         return 1
     fi
 }
@@ -449,7 +449,7 @@ oxp_restore_original_config() {
 
     if [ "$OXP_STATE_TARGET_EXISTED" = "1" ]; then
         oxp_validate_saved_backup || {
-            echo "原有配置备份缺失或校验失败，已停止恢复。"
+            echo "原有配置备份缺失或检查未通过，已停止恢复。"
             return 1
         }
         if [ -e "$OXP_TARGET_CONFIG" ] || [ -L "$OXP_TARGET_CONFIG" ]; then
@@ -470,7 +470,7 @@ oxp_restore_original_config() {
         }
         current_sha="$(oxp_sha256 "$OXP_TARGET_CONFIG")" || return 1
         [ "$current_sha" = "$OXP_STATE_ORIGINAL_SHA" ] || {
-            echo "原有自定义配置还原校验失败。"
+            echo "原有自定义配置还原检查未通过。"
             return 1
         }
     else
@@ -710,7 +710,7 @@ oxp_install() {
         return 1
     fi
     if ! oxp_target_matches_managed_state; then
-        echo "自定义配置文件、目标 DMI 或内容校验失败，安装已停止。"
+        echo "自定义配置文件、目标 DMI 或内容检查未通过，安装已停止。"
         oxp_rollback_install "$state_created_now"
         rm -rf -- "$tmp_dir"
         return 1

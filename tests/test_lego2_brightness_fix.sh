@@ -49,7 +49,7 @@ grep -Fq 'lego2-brightness-fix-zh-v2.0.0/main.py' "$PROJECT_ROOT/scripts/package
     fail "发布包未校验亮度修复后端"
 
 repeat_output="$(install_lego2_brightness_fix)" || fail "同版重复执行失败"
-printf '%s\n' "$repeat_output" | grep -Fq '[已安装] LeGo2 亮度修复 v2.0.0 已存在且文件校验通过。' || \
+printf '%s\n' "$repeat_output" | grep -Fq '[已安装] LeGo2 亮度修复 v2.0.0 已存在且文件检查通过。' || \
     fail "同版重复执行未进入幂等路径"
 [ "$(wc -l < "$CALLS")" -eq 1 ] || fail "同版重复执行仍重载 Decky"
 

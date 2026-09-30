@@ -187,7 +187,7 @@ download_github_file() {
     local url="$1"
     local output="$2"
     local expected_sha256="${3:-}"
-    local name="${4:-GitHub文件}"
+    local name="${4:-安装文件}"
     local connect_timeout max_time retries min_speed min_speed_time
     local proxy="${GITHUB_DOWNLOAD_PROXY:-${DECKY_DOWNLOAD_PROXY:-}}"
     local ranked_sources source resolved_url temp_file actual_sha256 max_bytes
@@ -203,13 +203,13 @@ download_github_file() {
 
     if declare -F download_policy_url_allowed >/dev/null 2>&1 && \
         ! download_policy_url_allowed "$url"; then
-        echo "$name 下载地址不在受控来源清单中，已拒绝下载。"
+        echo "$name 下载地址不可信，已拒绝下载。"
         return 1
     fi
     case "${url%%\?*}" in
         *.zip|*.tar.gz|*.AppImage|*.exe|*.msi)
             if [ -z "$expected_sha256" ]; then
-                echo "$name 缺少固定 SHA256，已拒绝下载。"
+                echo "$name 缺少文件安全检查信息，已拒绝下载。"
                 return 1
             fi
             ;;
@@ -289,7 +289,7 @@ download_github_file() {
         if [ -n "$expected_sha256" ]; then
             actual_sha256="$(_github_sha256 "$temp_file")" || {
                 rm -f -- "$temp_file"
-                echo "$name 缺少 SHA256 校验工具，已停止下载。"
+                echo "$name 缺少检查下载文件所需的组件，已停止下载。"
                 return 1
             }
             if [ "$actual_sha256" != "$expected_sha256" ]; then
@@ -369,7 +369,7 @@ _parse_latest_github_release() {
 resolve_latest_github_release() {
     local repo="$1"
     local asset_pattern="$2"
-    local name="${3:-Release文件}"
+    local name="${3:-安装文件}"
     local api_url="https://api.github.com/repos/$repo/releases/latest"
     local temp_file
 
@@ -380,12 +380,12 @@ resolve_latest_github_release() {
 
     if declare -F download_policy_github_repo_allowed >/dev/null 2>&1 && \
         ! download_policy_github_repo_allowed "$repo"; then
-        echo "$name 最新 Release 仓库不在受控来源清单中。"
+        echo "$name 新版本下载地址不可信，已停止。"
         return 1
     fi
     if declare -F download_policy_url_allowed >/dev/null 2>&1 && \
         ! download_policy_url_allowed "$api_url"; then
-        echo "$name 最新 Release 元数据地址不在受控来源清单中。"
+        echo "$name 新版本下载地址不可信，已停止。"
         return 1
     fi
 
@@ -399,17 +399,17 @@ resolve_latest_github_release() {
         { declare -F download_policy_response_is_safe >/dev/null 2>&1 && \
           ! download_policy_response_is_safe "$api_url" "$temp_file"; }; then
         rm -f -- "$temp_file"
-        echo "$name 最新 Release 元数据获取失败。"
+        echo "$name 新版本信息获取失败。"
         return 1
     fi
 
     if ! _parse_latest_github_release "$temp_file" "$asset_pattern"; then
         rm -f -- "$temp_file"
-        echo "$name 最新 Release 中未找到匹配资产或缺少 SHA256。"
+        echo "$name 未找到适合本机且可安全安装的新版本。"
         return 1
     fi
     rm -f -- "$temp_file"
-    echo "$name 最新 Release: $_LATEST_RELEASE_TAG / $_LATEST_RELEASE_ASSET"
+    echo "$name 最新版本：$_LATEST_RELEASE_TAG"
     return 0
 }
 
@@ -417,7 +417,7 @@ download_latest_github_release() {
     local repo="$1"
     local asset_pattern="$2"
     local output="$3"
-    local name="${4:-Release文件}"
+    local name="${4:-安装文件}"
 
     resolve_latest_github_release "$repo" "$asset_pattern" "$name" || return 1
     download_github_release "$repo" "$_LATEST_RELEASE_TAG" "$_LATEST_RELEASE_ASSET" \

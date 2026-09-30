@@ -101,7 +101,7 @@ grep -Fq 'ensure_steam302_for_download' "$PROJECT_ROOT/modules/plugin_store.sh" 
     echo "FAIL: Decky 测试版下载缺少 Steam302 加速重试" >&2
     exit 1
 }
-grep -Fq '强烈建议进入 游戏与插件，安装修改器所需兼容层' \
+grep -Fq '强烈建议进入 游戏与插件，安装修改器所需运行工具' \
     "$PROJECT_ROOT/modules/plugin_store.sh" || {
     echo "FAIL: CheatDeck 下载缺少修改器兼容层提示" >&2
     exit 1
@@ -137,7 +137,7 @@ printf '%s\n' "$decky_component_download" | grep -Fq -- '--progress-meter' || {
     echo "FAIL: Decky 组件下载缺少实时速度显示" >&2
     exit 1
 }
-grep -Fq '下载失败，切换备用源。' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+grep -Fq '下载失败，将切换备用线路。' "$PROJECT_ROOT/modules/plugin_store.sh" || {
     echo "FAIL: Decky 插件下载缺少原有备用源提示" >&2
     exit 1
 }
@@ -525,9 +525,9 @@ grep -Fq 'LSFG_ZH_INDEX_SHA256="49d475932c6508a2c58113f605857ba9d26b92646ae49f31
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'FSR4_ZH_INDEX_SHA256="961d4571a5068f8410885617f3fdf1016ea7b1284a9c9cc6311dc1251de21515"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '小黄鸭署名包的国内镜像不可用，已保留现有插件。' \
+grep -Fq '小黄鸭下载失败，已保留现有插件。' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'FSR4 署名包的国内镜像不可用，已保留现有插件。' \
+grep -Fq 'FSR4 下载失败，已保留现有插件。' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '"name": "掌机功耗控制"' \
     "$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7/plugin.json"

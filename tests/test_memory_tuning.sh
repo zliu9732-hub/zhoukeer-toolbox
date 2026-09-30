@@ -89,7 +89,7 @@ grep -Fq '配置路径不是普通文件' "$TMP_ROOT/directory-target-output" ||
     fi
     [ "$MEMORY_SWAPFILE_PATH" = "$PROTECTED_FALLBACK" ] || \
         fail "成功降级后没有切换到Renkit独立 swap 路径"
-    grep -Fq '独立 swap 已安全启用，继续配置' "$TMP_ROOT/protected-fallback.output" || \
+    grep -Fq '独立 虚拟内存 已安全启用，继续配置' "$TMP_ROOT/protected-fallback.output" || \
         fail "成功降级后没有说明将继续完成其余配置"
 )
 

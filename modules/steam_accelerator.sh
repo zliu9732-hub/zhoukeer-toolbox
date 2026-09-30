@@ -598,11 +598,11 @@ reset_steam302() {
 download_steam302_archive() {
     local destination="$1"
 
-    echo "正在从自有国内镜像下载 Steamcommunity 302 V$STEAM302_VERSION..."
+    echo "正在下载网络加速工具 V$STEAM302_VERSION..."
     if ! download_gitee_mirror_file \
         "steam302" "$destination" "$STEAM302_ARCHIVE_SHA256" \
         "Steamcommunity 302"; then
-        echo "Steamcommunity 302 镜像下载失败；不会连接其他来源。"
+        echo "Steamcommunity 302 下载失败；不会连接其他来源。"
         return 1
     fi
 }
@@ -613,24 +613,24 @@ verify_steam302_archive() {
     local actual_sha256
 
     actual_md5="$(calculate_steam302_md5 "$archive")" || {
-        echo "无法计算安装包 MD5。"
+        echo "无法检查安装文件，已停止。"
         return 1
     }
     if [ "$actual_md5" != "$STEAM302_ARCHIVE_MD5" ]; then
-        echo "Steamcommunity 302 MD5 校验失败，拒绝安装。"
-        echo "期望：$STEAM302_ARCHIVE_MD5"
-        echo "实际：$actual_md5"
+        echo "网络加速工具的文件安全检查未通过，已停止安装。"
+        log "期望：$STEAM302_ARCHIVE_MD5"
+        log "实际：$actual_md5"
         return 1
     fi
 
     actual_sha256="$(calculate_steam302_sha256 "$archive")" || {
-        echo "无法计算安装包 SHA256。"
+        echo "无法检查安装文件，已停止。"
         return 1
     }
     if [ "$actual_sha256" != "$STEAM302_ARCHIVE_SHA256" ]; then
-        echo "Steamcommunity 302 SHA256 校验失败，拒绝安装。"
-        echo "期望：$STEAM302_ARCHIVE_SHA256"
-        echo "实际：$actual_sha256"
+        echo "网络加速工具的文件安全检查未通过，已停止安装。"
+        log "期望：$STEAM302_ARCHIVE_SHA256"
+        log "实际：$actual_sha256"
         return 1
     fi
 
@@ -843,11 +843,11 @@ install_steam302() (
     require_command tar || return 1
     require_command awk || return 1
     if ! command -v md5sum >/dev/null 2>&1 && ! command -v md5 >/dev/null 2>&1; then
-        echo "缺少 MD5 校验工具。"
+        echo "缺少检查安装文件所需的组件。"
         return 1
     fi
     if ! command -v sha256sum >/dev/null 2>&1 && ! command -v shasum >/dev/null 2>&1; then
-        echo "缺少 SHA256 校验工具。"
+        echo "缺少检查下载文件所需的组件。"
         return 1
     fi
 

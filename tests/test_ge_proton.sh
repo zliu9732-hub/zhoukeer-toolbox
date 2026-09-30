@@ -262,7 +262,7 @@ trainer_output="$(
     echo "FAIL: 修改器常用兼容层已安装时仍重启 Steam"
     exit 1
 }
-printf '%s\n' "$trainer_output" | grep -Fq '修改器所需常用兼容层安装完成' || {
+printf '%s\n' "$trainer_output" | grep -Fq '修改器所需常用运行工具安装完成' || {
     echo "FAIL: 修改器常用兼容层缺少完成提示"
     exit 1
 }

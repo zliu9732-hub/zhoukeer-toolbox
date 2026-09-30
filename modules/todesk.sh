@@ -70,12 +70,12 @@ validate_todesk_settings() {
         return 1
     }
     [ "${#TODESK_OFFICIAL_DEB_SHA256}" -eq 64 ] || {
-        echo "ToDesk SHA256必须是64位十六进制字符串。"
+        echo "ToDesk 文件安全检查信息无效，请更新 Renkit 后重试。"
         return 1
     }
     case "$TODESK_OFFICIAL_DEB_SHA256" in
         *[!0-9A-Fa-f]*)
-            echo "ToDesk SHA256包含无效字符。"
+            echo "ToDesk 文件安全检查信息无效，请更新 Renkit 后重试。"
             return 1
             ;;
     esac
@@ -104,7 +104,7 @@ show_todesk_warning() {
     echo "================================"
     echo " ToDesk SteamOS 安装说明"
     echo "================================"
-    echo "来源：ToDesk 官方 Linux 安装包"
+    echo "功能：远程操作机器，协助解决问题"
     echo "版本：$TODESK_VERSION"
     echo ""
     echo "使用前必须先在游戏模式完成："
@@ -114,16 +114,16 @@ show_todesk_warning() {
     echo "4. 重新进入桌面模式后再安装并启动ToDesk"
     echo ""
     echo "该操作将："
-    echo "- 通过Renkit受控镜像下载未修改的ToDesk官方DEB并校验固定SHA256"
-    echo "- 在本机转换为SteamOS软件包，不执行官方DEB自带的维护脚本"
+    echo "- 下载并检查 ToDesk 安装文件"
+    echo "- 准备适用于本机系统的安装文件"
     echo "- 优先读取桌面管理员密码.txt自动验证，记录不可用时由系统询问"
     echo "- 临时关闭SteamOS只读保护"
-    echo "- 使用pacman安装系统软件并启用todeskd服务"
-    echo "- 不安装yay、AUR或第三方ToDesk软件包"
+    echo "- 安装 ToDesk 并启用后台运行"
+    echo "- 保留原有 ToDesk 设置"
     echo "- 完成后恢复SteamOS只读保护"
     echo ""
-    echo "SteamOS系统更新可能移除通过pacman安装的软件。"
-    echo "本工具不会删除已有ToDesk配置，也不会使用 chmod 777。"
+    echo "系统更新后可能需要重新安装 ToDesk。"
+    echo "已有 ToDesk 设置会保留。"
 }
 
 confirm_todesk_install() {
@@ -307,7 +307,7 @@ download_todesk_package() {
             download_github_file "$TODESK_RELEASE_DEB_URL" "$deb_file" \
                 "$expected_sha256" "ToDesk官方安装包"; then
             rm -f -- "$deb_file"
-            echo "ToDesk镜像下载失败，正在尝试官网..."
+            echo "ToDesk下载失败，正在尝试官网..."
             if ! run_curl_with_progress "ToDesk" 0 1 \
                 --fail --location --progress-meter \
                 --proto '=https' --proto-redir '=https' \
@@ -336,10 +336,10 @@ download_todesk_package() {
     }
     actual_sha256="$(calculate_sha256 "$deb_file")" || return 1
     [ "$actual_sha256" = "$expected_sha256" ] || {
-        echo "ToDesk官方包SHA256校验失败，已停止安装。"
+        echo "ToDesk官方包文件检查未通过，已停止安装。"
         return 1
     }
-    echo "ToDesk官方包校验通过，正在生成SteamOS本地安装包..."
+    echo "ToDesk官方包检查通过，正在生成SteamOS本地安装包..."
     build_todesk_pacman_package "$deb_file" || {
         echo "ToDesk官方包转换失败，现有安装保持不变。"
         return 1

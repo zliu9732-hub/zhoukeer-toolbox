@@ -316,7 +316,7 @@ restore_settings_backup() {
         archive="$(find "$SETTINGS_BACKUP_OUTPUT_DIR" -maxdepth 1 -type f -name 'Renkit设置备份-*.tar.gz' -print 2>/dev/null | sort | tail -n 1)"
     }
     [ -n "$archive" ] || { echo "未找到Renkit设置备份。"; return 1; }
-    settings_verify_archive "$archive" || { echo "备份文件校验失败或结构不安全，已拒绝恢复。"; return 1; }
+    settings_verify_archive "$archive" || { echo "备份文件检查未通过或结构不安全，已拒绝恢复。"; return 1; }
     SETTINGS_BACKUP_TMP_DIR="$(mktemp -d)" || return 1
     trap settings_backup_cleanup EXIT INT TERM
     extracted="$SETTINGS_BACKUP_TMP_DIR/extracted"
@@ -329,7 +329,7 @@ restore_settings_backup() {
     [ ! -s "$root/config/settings.conf" ] || echo "- Renkit配置（不含代理认证）"
     [ ! -s "$root/sources/managed.state" ] || echo "- Renkit管理的国内源状态；Flatpak 国内缓存会关闭 GPG 验证"
     [ ! -s "$root/steam302/rules.state" ] || echo "- Steam302 的Renkit规则"
-    [ ! -d "$root/memory" ] || echo "- Renkit管理的内存参数（不包含 swap 文件本体）"
+    [ ! -d "$root/memory" ] || echo "- Renkit管理的内存参数（不包含 虚拟内存 文件本体）"
     [ ! -d "$root/shortcuts" ] || echo "- Renkit创建的快捷方式"
     echo "远程名称：flathub-cn｜https://mirror.sjtu.edu.cn/flathub"
     echo "备用名称：flathub-ustc｜https://mirrors.ustc.edu.cn/flathub"

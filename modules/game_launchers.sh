@@ -175,7 +175,7 @@ download_hmcl_artifact() {
     download_github_file "$url" "$output" "$expected_sha" "$name" || return 1
     hmcl_artifact_valid "$output" "$min_bytes" "$magic_prefix" || {
         rm -f -- "$output"
-        echo "$name 下载响应格式或大小校验失败。"
+        echo "$name 下载响应格式或大小检查未通过。"
         return 1
     }
 }
@@ -208,10 +208,10 @@ download_launcher_installer() {
             return 0
         fi
         rm -f -- "$temporary"
-        echo "$LAUNCHER_NAME 镜像下载失败，切换官方源。"
+        echo "$LAUNCHER_NAME 下载失败，正在重新尝试。"
     fi
     download_policy_url_allowed "$LAUNCHER_URL" || {
-        echo "$LAUNCHER_NAME 下载地址不在受控来源清单中。"
+        echo "$LAUNCHER_NAME 下载地址不可信。"
         return 1
     }
     for attempt in 1 2 3; do
@@ -243,7 +243,7 @@ download_launcher_installer() {
     done
     if [ -n "${LAUNCHER_FALLBACK_URL:-}" ] && [ -n "${LAUNCHER_FALLBACK_SHA256:-}" ]; then
         rm -f -- "$temporary"
-        echo "正在从 $LAUNCHER_NAME 官方 CDN 备用线路下载…"
+        echo "正在重新下载 $LAUNCHER_NAME…"
         if download_policy_url_allowed "$LAUNCHER_FALLBACK_URL" && \
             run_curl_with_progress "$LAUNCHER_NAME" 0 1 \
                 --fail --location --progress-meter --proto '=https' --proto-redir '=https' \
@@ -271,7 +271,7 @@ download_preinstalled_launcher_parts() {
     local -a curl_options
 
     [ "$LAUNCHER_PREINSTALLED_PARTS" -gt 0 ] || {
-        echo "$LAUNCHER_NAME 客户端分卷配置无效。"
+        echo "$LAUNCHER_NAME 客户端文件片段配置无效。"
         return 1
     }
     mkdir -p "$workdir" || return 1
@@ -282,7 +282,7 @@ download_preinstalled_launcher_parts() {
         expected_size="${LAUNCHER_PREINSTALLED_BYTES[$((index - 1))]}"
         expected_sha="${LAUNCHER_PREINSTALLED_SHA256[$((index - 1))]}"
         download_policy_url_allowed "$part_url" || {
-            echo "$LAUNCHER_NAME 下载地址不在受控来源清单中。"
+            echo "$LAUNCHER_NAME 下载地址不可信。"
             return 1
         }
         curl_options=(
@@ -296,31 +296,31 @@ download_preinstalled_launcher_parts() {
         if ! run_curl_with_progress "$LAUNCHER_NAME 预装客户端" \
             "$((index - 1))" "$LAUNCHER_PREINSTALLED_PARTS" \
             "${curl_options[@]}" --output "$part_file" "$part_url"; then
-            echo "$LAUNCHER_NAME 客户端下载失败，已保留已下载分卷。"
+            echo "$LAUNCHER_NAME 客户端下载失败，已保留已下载文件片段。"
             return 1
         fi
         download_policy_response_is_safe "$part_url" "$part_file" || {
-            echo "$LAUNCHER_NAME 客户端响应异常，已保留已下载分卷。"
+            echo "$LAUNCHER_NAME 客户端响应异常，已保留已下载文件片段。"
             return 1
         }
         actual_size="$(wc -c < "$part_file" | tr -d ' ')"
         [ "$actual_size" = "$expected_size" ] || {
-            echo "$LAUNCHER_NAME 客户端分卷大小校验失败：${LAUNCHER_PREINSTALLED_FILE}.$(printf '%03d' "$index")"
+            echo "$LAUNCHER_NAME 客户端文件片段大小检查未通过：${LAUNCHER_PREINSTALLED_FILE}.$(printf '%03d' "$index")"
             return 1
         }
         if [ "$index" -eq 1 ]; then
             magic="$(od -An -tx1 -N6 "$part_file" | tr -d ' \n')"
             [ "$magic" = "377abcaf271c" ] || {
-                echo "$LAUNCHER_NAME 客户端分卷格式校验失败：${LAUNCHER_PREINSTALLED_FILE}.001"
+                echo "$LAUNCHER_NAME 客户端文件片段格式检查未通过：${LAUNCHER_PREINSTALLED_FILE}.001"
                 return 1
             }
         fi
         actual_sha="$(launcher_file_sha256 "$part_file")" || {
-            echo "无法计算 $LAUNCHER_NAME 客户端分卷校验值。"
+            echo "无法计算 $LAUNCHER_NAME 客户端文件片段校验值。"
             return 1
         }
         [ "$actual_sha" = "$expected_sha" ] || {
-            echo "$LAUNCHER_NAME 客户端分卷 SHA256 校验失败：${LAUNCHER_PREINSTALLED_FILE}.$(printf '%03d' "$index")"
+            echo "$LAUNCHER_NAME 客户端文件片段 文件检查未通过：${LAUNCHER_PREINSTALLED_FILE}.$(printf '%03d' "$index")"
             return 1
         }
     done
@@ -331,7 +331,7 @@ download_preinstalled_launcher_parts() {
             >> "$workdir/$LAUNCHER_PREINSTALLED_FILE" || return 1
     done
     [ "$(launcher_file_sha256 "$workdir/$LAUNCHER_PREINSTALLED_FILE")" = "$LAUNCHER_PREINSTALLED_ARCHIVE_SHA256" ] || {
-        echo "$LAUNCHER_NAME 客户端重组后校验失败。"
+        echo "$LAUNCHER_NAME 客户端重组后检查未通过。"
         return 1
     }
     echo "$LAUNCHER_NAME 预装客户端下载完成。"
@@ -442,7 +442,7 @@ link_steam_compatdata_drive() {
     local drive_c compat_pfx backup
 
     case "$app_id" in
-        ''|*[!0-9]*) echo "Steam 兼容层编号无效。"; return 1 ;;
+        ''|*[!0-9]*) echo "Steam 运行工具编号无效。"; return 1 ;;
     esac
     drive_c="$prefix_dir/pfx/drive_c"
     [ -d "$drive_c" ] || return 0
@@ -450,7 +450,7 @@ link_steam_compatdata_drive() {
     mkdir -p "$compat_pfx" || return 1
     if [ -L "$compat_pfx/drive_c" ]; then
         [ "$(readlink "$compat_pfx/drive_c")" = "$drive_c" ] || {
-            echo "Steam 兼容层已有其他 drive_c 链接，已停止覆盖。"
+            echo "Steam 运行工具已有其他 drive_c 链接，已停止覆盖。"
             return 1
         }
         return 0
@@ -458,7 +458,7 @@ link_steam_compatdata_drive() {
     if [ -e "$compat_pfx/drive_c" ]; then
         backup="$compat_pfx/.zhoukeer-drive-c-backup"
         [ ! -e "$backup" ] || {
-            echo "Steam 兼容层已有旧目录备份，请先检查后重试。"
+            echo "Steam 运行工具已有旧目录备份，请先检查后重试。"
             return 1
         }
         mv -- "$compat_pfx/drive_c" "$backup" || return 1
@@ -1557,7 +1557,7 @@ prepare_launcher_steam_installer() {
     install_launcher_steam_artwork "$target" "$shortcut_file" "$app_id" "$artwork_alt_app_id" "$game_id" || {
         echo "$LAUNCHER_NAME 封面写入未完成，不影响 Steam 条目；可稍后运行“修复启动器封面”。"
     }
-    echo "Steam 已停止，安装条目、兼容层和封面已写入文件。"
+    echo "Steam 已停止，安装条目、运行工具和封面已写入文件。"
     echo "正在启动 Steam..."
     start_steam
     ZHOUKEER_STEAM_STOPPED=0
@@ -1623,14 +1623,14 @@ finish_launcher_steam_entry() {
     if [ "$target" = "battlenet" ]; then
         remove_legacy_battlenet_desktop_installer || return 1
     fi
-    echo "正在写入 Proton 10.0-4 兼容层..."
+    echo "正在写入 Proton 10.0-4 运行工具..."
     set_steam_proton_10 "$steam_root" "$app_id" || return 1
     set_steam_proton_10 "$steam_root" "$artwork_alt_app_id" || true
-    echo "正式条目、兼容层和封面已写入文件。"
+    echo "正式条目、运行工具和封面已写入文件。"
     echo "正在启动 Steam..."
     start_steam
     ZHOUKEER_STEAM_STOPPED=0
-    echo "Steam 已启动；兼容层和封面已写入文件，Steam 读取后生效。"
+    echo "Steam 已启动；运行工具和封面已写入文件，Steam 读取后生效。"
     echo "若库中封面仍是旧图，请在游戏模式运行“修复启动器封面”。"
     if [ "$target" = "battlenet" ]; then
         echo "战网登录页：https://account.battle.net/login"
@@ -1649,7 +1649,7 @@ install_hmcl_jar() {
     mkdir -p "$hmcl_base" || return 1
     if [ -f "$hmcl_base/HMCL.jar" ] && [ ! -L "$hmcl_base/HMCL.jar" ] && \
         [ "$(launcher_file_sha256 "$hmcl_base/HMCL.jar")" = "$LAUNCHER_SHA256" ]; then
-        echo "[已安装] HMCL 主程序已存在且校验通过，无需重复下载。"
+        echo "[已安装] HMCL 主程序已存在且检查通过，无需重复下载。"
         return 0
     fi
     temporary="$hmcl_base/.HMCL.jar.new.$$"
@@ -1755,7 +1755,7 @@ EOF
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" verify \
         --name "$LAUNCHER_NAME" --exe "$wrapper" --icon "$icon_path" \
         >/dev/null || {
-            echo "$LAUNCHER_NAME 的 Steam 条目写入后校验失败，桌面图标仍可使用。"
+            echo "$LAUNCHER_NAME 的 Steam 条目写入后检查未通过，桌面图标仍可使用。"
             return 1
         }
     app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" find-appid \
@@ -1845,7 +1845,7 @@ install_launcher() {
                 }
             else
                 rm -rf -- "$workdir"
-                echo "$LAUNCHER_NAME 预装客户端不可用，正在回退到 Steam 库安装流程。"
+                echo "$LAUNCHER_NAME 预装客户端不可用，正在改用 Steam 安装方式。"
                 installer_file="$app_dir/$LAUNCHER_FILE_NAME"
                 download_launcher_installer "$installer_file" || return 1
                 prepare_launcher_steam_installer "$target" "$steam_root" "$installer_file" "$shortcut_file"
@@ -1882,7 +1882,7 @@ install_launcher() {
             epic|ubisoft|uplay)
                 launcher_exe="$(run_launcher_installer "$target" "$steam_root" "$installer_file" "$prefix" "$runner" 120 silent || true)"
                 if [ -z "$launcher_exe" ]; then
-                    echo "$LAUNCHER_NAME 静默安装未完成，正在回退到官方可见安装窗口。"
+                    echo "$LAUNCHER_NAME 静默安装未完成，正在打开安装窗口继续处理。"
                     launcher_exe="$(run_launcher_installer "$target" "$steam_root" "$installer_file" "$prefix" "$runner")" || return 1
                 fi
                 ;;
@@ -1915,7 +1915,7 @@ install_launcher() {
         --name "$LAUNCHER_NAME" --exe "$launcher_exe" --icon "$icon_path" >/dev/null || return 1
     python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" verify \
         --name "$LAUNCHER_NAME" --exe "$launcher_exe" --icon "$icon_path" >/dev/null || {
-        echo "$LAUNCHER_NAME 的 Steam 条目写入后校验失败，桌面图标仍可使用。"
+        echo "$LAUNCHER_NAME 的 Steam 条目写入后检查未通过，桌面图标仍可使用。"
         return 1
     }
     app_id="$(python3 "$STEAM_SHORTCUT_HELPER" --shortcut-file "$shortcut_file" find-appid \

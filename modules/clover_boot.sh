@@ -1382,7 +1382,7 @@ clover_validate_efi_driver() {
 
     [ -n "$CLOVER_EFI_DRIVER" ] || return 0
     [ -n "$CLOVER_EFI_DRIVER_SHA256" ] || {
-        echo "Clover 手柄驱动缺少固定 SHA256，已拒绝安装。" >&2
+        echo "Clover 手柄驱动缺少文件安全检查信息，已拒绝安装。" >&2
         return 1
     }
     [ -f "$driver" ] && [ ! -L "$driver" ] || {
@@ -1408,7 +1408,7 @@ clover_validate_efi_driver() {
     }
     actual_sha="$(sha256sum "$driver" | awk '{print $1}')" || return 1
     [ "$actual_sha" = "$CLOVER_EFI_DRIVER_SHA256" ] || {
-        echo "Clover 手柄驱动 SHA256 校验失败，EFI 未修改。" >&2
+        echo "Clover 手柄驱动 文件检查未通过，EFI 未修改。" >&2
         return 1
     }
 }
@@ -1500,7 +1500,7 @@ clover_prepare_staging() {
             "$staged/drivers/uefi/$CLOVER_EFI_DRIVER" || return 1
         [ "$(sha256sum "$staged/drivers/uefi/$CLOVER_EFI_DRIVER" | awk '{print $1}')" = \
             "$CLOVER_EFI_DRIVER_SHA256" ] || {
-            echo "复制后的 Clover 手柄驱动校验失败，EFI 未修改。" >&2
+            echo "复制后的 Clover 手柄驱动检查未通过，EFI 未修改。" >&2
             return 1
         }
     fi

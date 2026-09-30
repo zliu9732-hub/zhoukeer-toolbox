@@ -142,7 +142,7 @@ for menu in "$touch_software" "$gui_software"; do
 done
 
 for menu in "$touch_software_more" "$gui_software"; do
-    for item in 'LibreOffice 办公套件' 'VLC 播放器' 'OBS Studio' 'LocalSend 局域网传文件' 'PeaZip 压缩工具' 'WiliWili' '中文输入法' 'Xbox 云游戏' 'QQ音乐' '网易云音乐' 'YesPlayMusic' 'qBittorrent' 'Motrix 下载器' 'Free Download Manager' 'Media Downloader' 'Flameshot 截图' 'OnlyOffice 办公套件' 'Joplin 笔记' 'Heroic 游戏启动器' 'Lutris' 'Chiaki4Deck（PS5串流）' 'Parsec' 'Sunshine 串流服务端'; do
+    for item in 'LibreOffice 办公套件' 'VLC 播放器' 'OBS Studio' 'LocalSend 局域网传文件' 'PeaZip 压缩工具' 'WiliWili' '中文输入法' 'Xbox 云游戏' 'QQ音乐' '网易云音乐' 'YesPlayMusic' 'qBittorrent' 'Motrix 下载器' 'Free Download Manager' 'Media Downloader' 'Flameshot 截图' 'OnlyOffice 办公套件' 'Joplin 笔记' 'Heroic 游戏启动器' 'Lutris' 'Chiaki4Deck（PS5串流）' 'Parsec' 'Sunshine 游戏画面共享'; do
         assert_contains "$menu" "$item" "更多常用软件缺少：$item"
     done
 done
@@ -172,7 +172,7 @@ for menu in "$touch_feature_singles" "$gui_games"; do
     for action in steamgriddb cssloader friendeck deckymusic fantastic; do
         assert_contains "$menu" "modules/plugin_store.sh\" $action" "其余常用插件动作错误：$action"
     done
-    assert_contains "$menu" 'Decky Music v1.0.2 完整包' "音乐播放器入口未说明完整包版本"
+    assert_contains "$menu" '支持 QQ 音乐和网易云音乐' "音乐播放器入口未说明支持的音乐平台"
 done
 assert_not_contains "$touch_feature_singles" 'Switch to Windows' "Switch to Windows 不应继续显示在其余常用插件"
 assert_not_contains "$touch_plugin_page_2" '安装模拟器' "插件第二页仍显示模拟器入口"
@@ -185,15 +185,15 @@ assert_contains "$gui_games" 'modules/plugin_store.sh" tomoon' "GUI ToMoon 未�
 assert_contains "$touch_plugin_page_2" 'right:9-10:handheld-plugins' "插件第二页缺少掌机控制插件子菜单"
 for menu in "$touch_handheld_plugins" "$gui_games"; do
     assert_contains "$menu" 'PowerControl 功耗控制' "掌机控制插件菜单缺少 PowerControl"
-    assert_contains "$menu" 'CPU、GPU、TDP 与风扇' "PowerControl 入口缺少功能说明"
+    assert_contains "$menu" '调节性能、耗电和风扇转速' "PowerControl 入口缺少功能说明"
     assert_contains "$menu" 'modules/plugin_store.sh" powercontrol' "PowerControl 未调用独立插件安装动作"
-    assert_contains "$menu" 'Decky root 权限' "PowerControl 入口缺少 root 权限风险说明"
-    assert_contains "$menu" '请勿与其他功耗或风扇插件同时启用' "PowerControl 入口缺少同类插件冲突提示"
+    assert_contains "$menu" '管理员权限' "PowerControl 入口缺少 root 权限风险说明"
+    assert_contains "$menu" '不要与其他功耗或风扇插件同时启用' "PowerControl 入口缺少同类插件冲突提示"
     assert_contains "$menu" 'Ally 控制中心' "掌机控制插件菜单缺少中文名称"
     assert_contains "$menu" 'ROG Ally / Ally X' "Ally Center 入口缺少适用机型"
-    assert_contains "$menu" 'RGB' "Ally Center 入口缺少 RGB 功能说明"
+    assert_contains "$menu" '灯光' "Ally Center 入口缺少 RGB 功能说明"
     assert_contains "$menu" 'modules/plugin_store.sh" allycenter' "Ally Center 未调用独立插件安装动作"
-    for item in '通用掌机 RGB' 'Legion Go 控制中心' 'GPD 控制中心' \
+    for item in '通用掌机灯光' 'Legion Go 控制中心' 'GPD 控制中心' \
         'Legion Go 震动控制' 'Legion Go 2 风扇控制'; do
         assert_contains "$menu" "$item" "掌机控制插件菜单缺少：$item"
     done
@@ -214,8 +214,8 @@ assert_contains "$gui_games" 'modules/plugin_store.sh" lego2-brightness-fix' "GU
 for menu in "$touch_freedeck" "$gui_games"; do
     assert_contains "$menu" 'Freedeck 0.6 稳定版' "Freedeck 版本菜单缺少稳定版"
     assert_contains "$menu" 'NewFreedeck' "Freedeck 版本菜单缺少重构版"
-    assert_contains "$menu" '自动检测最新版' "NewFreedeck 入口缺少自动更新说明"
-    assert_contains "$menu" '个别模拟器仍不可用' "NewFreedeck 入口缺少上游状态提示"
+    assert_contains "$menu" '自动更新到最新版' "NewFreedeck 入口缺少自动更新说明"
+    assert_contains "$menu" '部分模拟器暂时无法使用' "NewFreedeck 入口缺少上游状态提示"
 done
 for menu in "$touch_feature_singles" "$gui_games"; do
     assert_contains "$menu" 'Fantastic 风扇控制' "其余常用插件缺少 Fantastic"
@@ -237,8 +237,8 @@ for menu in "$touch_lsfg" "$gui_games"; do
     assert_contains "$menu" '替代 1.0 小黄鸭' "小黄鸭 2.0 缺少替代 1.0 说明"
     assert_contains "$menu" '可与 MAKO 共存' "小黄鸭 2.0 缺少与 MAKO 共存说明"
     assert_contains "$menu" 'MAKO 小黄鸭' "小黄鸭版本菜单缺少 MAKO"
-    assert_contains "$menu" '上游最新版' "MAKO 入口缺少自动跟随上游说明"
-    assert_contains "$menu" '官方简体中文' "MAKO 入口缺少上游中文说明"
+    assert_contains "$menu" '自动检查新版本' "MAKO 入口缺少自动跟随上游说明"
+    assert_contains "$menu" '中文界面' "MAKO 入口缺少上游中文说明"
 done
 assert_not_contains "$touch_lsfg" 'MAKO 小黄鸭" "实验仓库尝鲜版·Renkit 汉化' "MAKO 触控入口仍标注 Renkit 汉化"
 assert_not_contains "$gui_games" 'MAKO 小黄鸭｜实验仓库尝鲜版·Renkit 汉化' "MAKO GUI 入口仍标注 Renkit 汉化"
@@ -265,20 +265,20 @@ for menu in "$touch_games" "$gui_games"; do
         assert_contains "$menu" "$item" "游戏环境缺少：$item"
     done
     assert_contains "$menu" '黑盒工坊' "战网子菜单缺少黑盒工坊"
-    assert_contains "$menu" '预装客户端' "战网子菜单缺少预装客户端提示"
+    assert_contains "$menu" '添加到 Steam' "战网子菜单缺少使用入口提示"
     assert_contains "$gui_games" '常用插件加精选插件' "GUI 缺少常用加精选插件入口"
-    assert_contains "$menu" '插帧神器（必装）' "小黄鸭缺少功能说明"
-    assert_contains "$menu" '画质补丁（阅读桌面文档慎用）' "FSR4 缺少功能说明"
-    assert_contains "$menu" 'Linux 原生' "HMCL 启动器入口缺少 Linux 原生说明"
-    assert_contains "$menu" '国内镜像' "小黄鸭/FSR4 缺少国内镜像说明"
+    assert_contains "$menu" '让游戏画面更流畅' "小黄鸭缺少功能说明"
+    assert_contains "$menu" '请先阅读使用说明' "FSR4 缺少功能说明"
+    assert_contains "$menu" '安装和启动 Minecraft' "HMCL 启动器入口缺少 安装和启动 Minecraft说明"
+    assert_not_contains "$menu" '国内镜像' "插件菜单仍显示安装来源"
     assert_not_contains "$menu" 'Gitee' "插件菜单仍显示内部镜像平台名称"
     assert_contains "$menu" '汉化：RenAmamiya' "小黄鸭/FSR4 缺少最终汉化署名"
     assert_not_contains "$menu" 'v0.12.8 汉化版；国内源优先，失败自动改用 GitHub Release' "小黄鸭仍显示 GitHub 回退"
-    assert_not_contains "$menu" '画质补丁（阅读桌面文档慎用）·国内源优先，失败自动改用 GitHub Release' "FSR4 仍显示 GitHub 回退"
-    assert_contains "$menu" '国内失败自动切换官方源' "插件商城缺少国内到官方源的自动回退说明"
-    assert_contains "$menu" '高级操作' "Decky Loader 缺少高级说明"
+    assert_not_contains "$menu" '请先阅读使用说明·国内源优先，失败自动改用 GitHub Release' "FSR4 仍显示 GitHub 回退"
+    assert_contains "$menu" '给游戏模式增加插件功能' "插件商城缺少用途说明"
+    assert_contains "$menu" '需要管理员权限' "插件商城缺少权限说明"
     assert_contains "$menu" '安装测试版插件商城' "Decky Loader 缺少测试版入口"
-    assert_contains "$menu" '测试或预览' "Decky 测试版入口缺少系统通道说明"
+    assert_contains "$menu" '测试版或预览版' "Decky 测试版入口缺少系统通道说明"
     assert_contains "$menu" 'ROG White 白色主题' "Decky Loader 子菜单缺少 ROG White 白色主题"
     assert_contains "$menu" '掌机 Pink 粉色主题' "Decky Loader 子菜单缺少 掌机 Pink 粉色主题"
     assert_not_contains "$menu" '25 个精选插件' "plugin_store all 仍被错误描述为 25 个精选插件"
@@ -332,14 +332,14 @@ touch_advanced="$(function_source "$MAIN_FILE" advanced_tools_menu)"
 gui_advanced="$(function_source "$GUI_FILE" advanced_tools_gui_menu)"
 for menu in "$touch_advanced" "$gui_advanced"; do
     assert_contains "$menu" '国内下载、网络加速、内存、密码与掌机适配' "更多设置缺少功能概览"
-    for item in '国内软件源' 'Steamcommunity 302' '虚拟内存' '修改管理员密码' '掌机适配'; do
+    for item in '软件下载加速' 'Steamcommunity 302' '虚拟内存' '修改管理员密码' '掌机适配'; do
         assert_contains "$menu" "$item" "系统设置缺少：$item"
     done
     assert_not_contains "$menu" '双系统与互通盘' "双系统入口仍嵌套在更多设置"
     for removed in '设置管理员密码' '安装插件商城' '安装 ToDesk'; do
         assert_not_contains "$menu" "$removed" "系统设置仍显示重复入口：$removed"
     done
-    for risk_text in 'Flatpak 软件源' '修改 DNS' 'zram' '管理密码' '不使用 sudo'; do
+    for risk_text in '风险说明' '修改 DNS' '虚拟内存' '管理密码' '无需管理员权限'; do
         assert_contains "$menu" "$risk_text" "系统设置缺少风险说明：$risk_text"
     done
 done
@@ -347,7 +347,7 @@ done
 touch_memory="$(function_source "$MAIN_FILE" memory_touch_menu)"
 gui_memory="$(function_source "$GUI_FILE" memory_gui_menu)"
 for menu in "$touch_memory" "$gui_memory"; do
-    for item in '一键优化' '查看状态' '撤销Renkit优化' '系统原 swap'; do
+    for item in '一键优化' '查看状态' '撤销Renkit优化' '系统原有虚拟内存'; do
         assert_contains "$menu" "$item" "虚拟内存子菜单缺少：$item"
     done
     assert_contains "$menu" 'modules/memory_tuning.sh" restore' "虚拟内存子菜单未调用安全撤销动作"
@@ -356,7 +356,7 @@ done
 touch_f1="$(function_source "$MAIN_FILE" f1_handheld_menu)"
 gui_f1="$(function_source "$GUI_FILE" f1_screen_fix_gui_menu)"
 for menu in "$touch_f1" "$gui_f1"; do
-    for item in '安装屏幕修复' '屏幕修复状态' '卸载屏幕修复' '安装特殊按键修复' '特殊按键修复状态' '恢复特殊按键修复' '更新 InputPlumber' '系统软件源' '准备 V1.14 BIOS' '立即重启 SteamOS' 'F1L 仅限 F1 8840U' '5秒自动重启' 'ONEXPLAYER F1' '不使用 sudo'; do
+    for item in '安装屏幕修复' '屏幕修复状态' '卸载屏幕修复' '安装特殊按键修复' '特殊按键修复状态' '恢复特殊按键修复' '更新 InputPlumber' '系统软件源' '准备 V1.14 BIOS' '立即重启 SteamOS' 'F1L 仅限 F1 8840U' '5秒自动重启' 'ONEXPLAYER F1' '无需管理员权限'; do
         assert_contains "$menu" "$item" "飞行家 F1 子菜单缺少：$item"
     done
     assert_contains "$touch_f1" 'right:2-3:install' "飞行家 F1 屏幕修复安装坐标错误"
@@ -440,7 +440,7 @@ for menu in "$touch_dual_all" "$gui_dual_all"; do
     done
     assert_contains "$menu" 'modules/plugin_store.sh" switch-to-windows' "双系统菜单缺少 Switch to Windows 安装动作"
     assert_contains "$menu" '下载失败和更新失败' "Steam 磁盘修复入口缺少故障范围说明"
-    assert_contains "$menu" 'Proton compatdata' "Steam 磁盘修复入口缺少 compatdata 说明"
+    assert_contains "$menu" '游戏启动设置' "Steam 磁盘修复入口缺少 compatdata 说明"
     assert_contains "$menu" 'modules/clover_boot.sh" hide-menu' "双系统菜单缺少隐藏 Clover 菜单动作"
     assert_contains "$menu" 'modules/clover_boot.sh" show-menu' "双系统菜单缺少恢复 Clover 菜单动作"
     assert_contains "$menu" 'modules/clover_boot.sh" default-windows' "双系统菜单缺少默认 Windows 动作"
@@ -480,19 +480,19 @@ done
 touch_ge_proton="$(function_source "$MAIN_FILE" ge_proton_menu)"
 gui_ge_proton="$(function_source "$GUI_FILE" ge_proton_gui_menu)"
 for menu in "$touch_ge_proton" "$gui_ge_proton"; do
-    assert_contains "$menu" '安装最新 GE 兼容层' "GE 兼容层子菜单缺少最新版入口"
-    assert_contains "$menu" '安装修改器所需常用兼容层' "GE 兼容层子菜单缺少修改器常用入口"
+    assert_contains "$menu" '安装最新游戏运行工具（GE）' "GE 兼容层子菜单缺少最新版入口"
+    assert_contains "$menu" '安装修改器常用运行工具' "GE 兼容层子菜单缺少修改器常用入口"
     assert_contains "$menu" '1.72GB' "GE 兼容层子菜单缺少下载体积提示"
 done
 
 touch_source="$(function_source "$MAIN_FILE" domestic_source_preflight)"
 gui_source="$(function_source "$GUI_FILE" domestic_source_gui_preflight)"
 for menu in "$touch_source" "$gui_source"; do
-    for detail in 'flathub-cn' 'https://mirror.sjtu.edu.cn/flathub' 'flathub-ustc' 'https://mirrors.ustc.edu.cn/flathub' 'archlinuxcn' 'GPG' 'pacman' 'locale' '只读' '恢复'; do
+    for detail in 'flathub-cn' 'https://mirror.sjtu.edu.cn/flathub' 'flathub-ustc' 'https://mirrors.ustc.edu.cn/flathub' 'archlinux' '签名检查' '系统组件' '系统保护' '恢复'; do
         assert_contains "$menu" "$detail" "国内源风险页缺少：$detail"
     done
 done
-assert_contains "$touch_source" '上海交大 → 中科大 → 官方回退' "触控国内源页缺少 archlinuxcn 回退顺序"
+assert_contains "$touch_source" 'https://mirror.sjtu.edu.cn/archlinux-cn/' "触控风险页缺少系统组件下载地址"
 for repo_url in 'https://mirror.sjtu.edu.cn/archlinux-cn/' 'https://mirrors.ustc.edu.cn/archlinuxcn/' 'https://repo.archlinuxcn.org/'; do
     assert_contains "$gui_source" "$repo_url" "GUI 国内源页缺少 archlinuxcn 回退地址：$repo_url"
 done

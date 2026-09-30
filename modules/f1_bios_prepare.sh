@@ -218,7 +218,7 @@ f1_bios_prepare() {
     if ! download_with_gitee_mirror_fallback f1-bios \
         "$F1_BIOS_RELEASE_URL" "$F1_BIOS_ARCHIVE_SHA256" "$archive" \
         "飞行家 F1 V1.14 BIOS"; then
-        echo "BIOS 下载或 SHA256 校验失败，没有写入互通盘。"
+        echo "BIOS 下载或 文件检查未通过，没有写入互通盘。"
         return 1
     fi
     if ! f1_bios_archive_layout_valid "$archive"; then
@@ -232,7 +232,7 @@ f1_bios_prepare() {
     source_dir="$extract_dir/$F1_BIOS_ARCHIVE_ROOT"
     if ! f1_bios_vendor_files_valid "$source_dir" || \
         find "$source_dir" -type l -print -quit 2>/dev/null | grep -q .; then
-        echo "BIOS 文件完整性校验失败，已停止。"
+        echo "BIOS 文件文件不完整，已停止。"
         return 1
     fi
 
@@ -243,7 +243,7 @@ f1_bios_prepare() {
     cp -R -- "$source_dir/." "$F1_BIOS_STAGE_DIR/" || return 1
     f1_bios_write_notice "$F1_BIOS_STAGE_DIR" || return 1
     if ! f1_bios_vendor_files_valid "$F1_BIOS_STAGE_DIR"; then
-        echo "复制到互通盘后的 BIOS 校验失败，已停止。"
+        echo "复制到互通盘后的 BIOS 检查未通过，已停止。"
         return 1
     fi
     if ! mv -- "$F1_BIOS_STAGE_DIR" "$target"; then

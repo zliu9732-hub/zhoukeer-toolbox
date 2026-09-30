@@ -73,22 +73,22 @@ memory_clear_immutable_attribute() {
     case "$attributes" in
         *i*)
             toolbox_sudo chattr -i -- "$path" 2>/dev/null || {
-                echo "现有 swap 带不可变保护且无法临时解除，未做替换。"
+                echo "现有 虚拟内存 带不可变保护且无法临时解除，未做替换。"
                 return 1
             }
             MEMORY_SWAPFILE_WAS_IMMUTABLE=1
-            echo "已临时解除现有 swap 的不可变保护。"
+            echo "已临时解除现有 虚拟内存 的不可变保护。"
             ;;
     esac
     case "$attributes" in
         *a*)
             toolbox_sudo chattr -a -- "$path" 2>/dev/null || {
                 memory_restore_immutable_attribute "$path" || true
-                echo "现有 swap 带只追加保护且无法临时解除，未做替换。"
+                echo "现有 虚拟内存 带只追加保护且无法临时解除，未做替换。"
                 return 1
             }
             MEMORY_SWAPFILE_WAS_APPEND_ONLY=1
-            echo "已临时解除现有 swap 的只追加保护。"
+            echo "已临时解除现有 虚拟内存 的只追加保护。"
             ;;
     esac
 }
@@ -100,13 +100,13 @@ memory_restore_immutable_attribute() {
     toolbox_sudo test -e "$path" || return 0
     if [ "$MEMORY_SWAPFILE_WAS_APPEND_ONLY" -eq 1 ]; then
         toolbox_sudo chattr +a -- "$path" || {
-            echo "警告：原 swap 已恢复，但只追加属性未能恢复：$path"
+            echo "警告：原 虚拟内存 已恢复，但只追加属性未能恢复：$path"
             restore_status=1
         }
     fi
     if [ "$MEMORY_SWAPFILE_WAS_IMMUTABLE" -eq 1 ]; then
         toolbox_sudo chattr +i -- "$path" || {
-            echo "警告：原 swap 已恢复，但不可变属性未能恢复：$path"
+            echo "警告：原 虚拟内存 已恢复，但不可变属性未能恢复：$path"
             restore_status=1
         }
     fi
@@ -117,7 +117,7 @@ memory_move_swapfile_after_forced_immutable_clear() {
     local source_path="$1"
     local backup_path="$2"
 
-    echo "现有 swap 首次移动失败，正在再次解除不可变/只追加保护后重试..."
+    echo "现有 虚拟内存 首次移动失败，正在再次解除不可变/只追加保护后重试..."
     toolbox_sudo chattr -i -- "$source_path" || return 1
     toolbox_sudo chattr -a -- "$source_path" || return 1
     toolbox_sudo mv -- "$source_path" "$backup_path" || return 1
@@ -126,7 +126,7 @@ memory_move_swapfile_after_forced_immutable_clear() {
     # 清除 immutable 与 append-only，回滚时按保守策略恢复两种保护。
     MEMORY_SWAPFILE_WAS_IMMUTABLE=1
     MEMORY_SWAPFILE_WAS_APPEND_ONLY=1
-    echo "已解除现有 swap 的文件保护并完成备份。"
+    echo "已解除现有 虚拟内存 的文件保护并完成备份。"
 }
 
 memory_activate_fallback_swapfile() {
@@ -138,7 +138,7 @@ memory_activate_fallback_swapfile() {
     if toolbox_sudo test -e "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
         if ! toolbox_sudo test -f "$MEMORY_FALLBACK_SWAPFILE_PATH" || \
             toolbox_sudo test -L "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
-            echo "Renkit备用 swap 路径不是安全的普通文件，已保留原内容。"
+            echo "Renkit备用 虚拟内存 路径不是安全的普通文件，已保留原内容。"
             return 1
         fi
         if memory_swap_is_active "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
@@ -172,7 +172,7 @@ memory_activate_fallback_swapfile() {
     fi
     toolbox_sudo rm -f -- "$backup_file" || true
     MEMORY_SWAPFILE_PATH="$MEMORY_FALLBACK_SWAPFILE_PATH"
-    echo "旧 swap 受系统保护无法移动，已保留原文件并启用Renkit独立 swap：$MEMORY_SWAPFILE_PATH"
+    echo "旧 虚拟内存 受系统保护无法移动，已保留原文件并启用Renkit独立 虚拟内存：$MEMORY_SWAPFILE_PATH"
     return 0
 }
 
@@ -210,7 +210,7 @@ memory_validate_paths() {
         return 1
     }
     [ "$MEMORY_SWAPFILE_PATH" != "$MEMORY_FALLBACK_SWAPFILE_PATH" ] || {
-        echo "主 swap 与Renkit备用 swap 路径不能相同。"
+        echo "主 虚拟内存 与Renkit备用 虚拟内存 路径不能相同。"
         return 1
     }
 }
@@ -228,10 +228,10 @@ memory_show_status() {
 
     target_gib="$(recommended_swap_gib 2>/dev/null || true)"
     echo "========== 虚拟内存状态 =========="
-    echo "推荐组合：zram = 物理内存的一半，磁盘 swap = ${target_gib:-8-16}GB"
-    echo "优先级：zram 100，磁盘 swap 10"
+    echo "推荐组合：内存压缩 = 物理内存的一半，虚拟内存 = ${target_gib:-8-16}GB"
+    echo "优先使用内存，内存不足时再使用存储空间"
     current_swappiness="$(sysctl -n vm.swappiness 2>/dev/null || true)"
-    echo "当前 swappiness：${current_swappiness:-无法读取}"
+    echo "当前 内存使用设置：${current_swappiness:-无法读取}"
     if command -v zramctl >/dev/null 2>&1; then
         zramctl 2>/dev/null || true
     fi
@@ -243,8 +243,8 @@ memory_show_status() {
 memory_confirm_optimize() {
     local answer
 
-    echo "将设置 zram、8-16GB 磁盘 swap 和 swappiness。"
-    echo "原 swap 会先安全停用并备份，失败时自动恢复。"
+    echo "将设置内存优化，并使用 8-16GB 存储空间补充内存。"
+    echo "原 虚拟内存 会先安全停用并备份，失败时自动恢复。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
     fi
@@ -255,7 +255,7 @@ memory_confirm_optimize() {
 memory_confirm_restore() {
     local answer
 
-    echo "将删除Renkit创建的 zram、swappiness 和独立 swap；系统原 swap 会保留。"
+    echo "将删除Renkit创建的 内存压缩、内存使用设置 和独立 虚拟内存；系统原 虚拟内存 会保留。"
     echo "撤销将在重启后完全生效。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
@@ -348,7 +348,7 @@ memory_disable_managed_unit() {
     case "$unit_state" in
         disabled|static|indirect|masked|not-found) return 0 ;;
     esac
-    echo "无法停用Renkit swap 开机配置，未继续删除：$unit_name"
+    echo "无法停用Renkit 虚拟内存 开机配置，未继续删除：$unit_name"
     log "虚拟内存撤销失败: systemd单元无法停用 unit=$unit_name state=${unit_state:-unknown}"
     return 1
 }
@@ -358,7 +358,7 @@ memory_restore_managed_unit_enablement() {
 
     [ "$MEMORY_UNIT_WAS_ENABLED" -eq 1 ] || return 0
     toolbox_sudo systemctl enable "$unit_name" >/dev/null 2>&1 || {
-        echo "警告：无法恢复 swap 开机启用状态：$unit_name"
+        echo "警告：无法恢复 虚拟内存 开机启用状态：$unit_name"
         return 1
     }
 }
@@ -371,13 +371,13 @@ memory_remove_managed_main_unit() {
         return 0
     fi
     if ! memory_swap_unit_is_toolbox_managed "$unit_path" "$MEMORY_SWAPFILE_PATH"; then
-        echo "发现非Renkit swap 配置，已保留：$unit_path"
+        echo "发现非Renkit 虚拟内存 配置，已保留：$unit_path"
         return 0
     fi
     memory_disable_managed_unit "$unit_name" || return 1
     if ! toolbox_sudo rm -f -- "$unit_path"; then
         memory_restore_managed_unit_enablement "$unit_name" || true
-        echo "Renkit swap 开机配置删除失败：$unit_path"
+        echo "Renkit 虚拟内存 开机配置删除失败：$unit_path"
         return 1
     fi
 }
@@ -392,20 +392,20 @@ memory_remove_managed_fallback_swap() {
         return 0
     fi
     if ! memory_swap_unit_is_toolbox_managed "$unit_path" "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
-        echo "发现非Renkit swap 配置，已保留：$unit_path"
+        echo "发现非Renkit 虚拟内存 配置，已保留：$unit_path"
         return 0
     fi
     if toolbox_sudo test -e "$MEMORY_FALLBACK_SWAPFILE_PATH" || \
        toolbox_sudo test -L "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
         if ! toolbox_sudo test -f "$MEMORY_FALLBACK_SWAPFILE_PATH" || \
            toolbox_sudo test -L "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
-            echo "Renkit独立 swap 路径异常，已保留。"
+            echo "Renkit独立 虚拟内存 路径异常，已保留。"
             return 1
         fi
         swap_type="$(toolbox_sudo blkid -p -s TYPE -o value \
             "$MEMORY_FALLBACK_SWAPFILE_PATH" 2>/dev/null || true)"
         if [ "$swap_type" != "swap" ]; then
-            echo "Renkit独立 swap 内容异常，已保留。"
+            echo "Renkit独立 虚拟内存 内容异常，已保留。"
             return 1
         fi
     fi
@@ -414,7 +414,7 @@ memory_remove_managed_fallback_swap() {
         fallback_was_active=1
         if ! toolbox_sudo swapoff "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
             memory_restore_managed_unit_enablement "$unit_name" || true
-            echo "Renkit独立 swap 正在使用，无法安全停用。"
+            echo "Renkit独立 虚拟内存 正在使用，无法安全停用。"
             return 1
         fi
     fi
@@ -423,7 +423,7 @@ memory_remove_managed_fallback_swap() {
             [ "$fallback_was_active" -eq 0 ] || \
                 toolbox_sudo swapon --priority 10 "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
             memory_restore_managed_unit_enablement "$unit_name" || true
-            echo "Renkit独立 swap 的文件保护无法解除，未删除。"
+            echo "Renkit独立 虚拟内存 的文件保护无法解除，未删除。"
             return 1
         }
         if ! toolbox_sudo rm -f -- "$MEMORY_FALLBACK_SWAPFILE_PATH"; then
@@ -436,7 +436,7 @@ memory_remove_managed_fallback_swap() {
                     [ "$fallback_was_active" -eq 0 ] || \
                         toolbox_sudo swapon --priority 10 "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
                     memory_restore_managed_unit_enablement "$unit_name" || true
-                    echo "Renkit独立 swap 所在目录受保护，未自动解除：$(dirname "$MEMORY_FALLBACK_SWAPFILE_PATH")"
+                    echo "Renkit独立 虚拟内存 所在目录受保护，未自动解除：$(dirname "$MEMORY_FALLBACK_SWAPFILE_PATH")"
                     return 1
                     ;;
             esac
@@ -451,13 +451,13 @@ memory_remove_managed_fallback_swap() {
                 [ "$fallback_was_active" -eq 0 ] || \
                     toolbox_sudo swapon --priority 10 "$MEMORY_FALLBACK_SWAPFILE_PATH" || true
                 memory_restore_managed_unit_enablement "$unit_name" || true
-                echo "Renkit独立 swap 删除失败，已尝试恢复原状态。"
+                echo "Renkit独立 虚拟内存 删除失败，已尝试恢复原状态。"
                 return 1
             fi
         fi
     fi
     toolbox_sudo rm -f -- "$unit_path" || {
-        echo "Renkit swap 开机配置删除失败：$unit_path"
+        echo "Renkit 虚拟内存 开机配置删除失败：$unit_path"
         return 1
     }
 }
@@ -480,11 +480,11 @@ memory_create_swapfile() {
     memory_value_is_positive_integer "$free_kib" || return 1
     required_kib=$(((target_gib + MEMORY_MIN_FREE_GIB) * 1024 * 1024))
     [ "$free_kib" -ge "$required_kib" ] || {
-        echo "内部存储空间不足：创建 ${target_gib}GB swap 后至少还需保留 ${MEMORY_MIN_FREE_GIB}GB。"
+        echo "内部存储空间不足：创建 ${target_gib}GB 虚拟内存 后至少还需保留 ${MEMORY_MIN_FREE_GIB}GB。"
         return 1
     }
 
-    echo "正在创建 ${target_gib}GB 磁盘 swap 临时文件..."
+    echo "正在创建 ${target_gib}GB 虚拟内存 临时文件..."
     toolbox_sudo fallocate -l "${target_gib}G" "$new_file" || return 1
     toolbox_sudo chmod 0600 "$new_file" || {
         toolbox_sudo rm -f -- "$new_file"
@@ -499,12 +499,12 @@ memory_create_swapfile() {
         was_active=1
         toolbox_sudo swapoff "$MEMORY_SWAPFILE_PATH" || {
             toolbox_sudo rm -f -- "$new_file"
-            echo "现有 swap 正在使用且无法安全停用，未做替换。"
+            echo "现有 虚拟内存 正在使用且无法安全停用，未做替换。"
             return 1
         }
         if memory_swap_is_active "$MEMORY_SWAPFILE_PATH"; then
             toolbox_sudo rm -f -- "$new_file"
-            echo "现有 swap 停用后被系统立即重新启用，未做替换。请重启后再试。"
+            echo "现有 虚拟内存 停用后被系统立即重新启用，未做替换。请重启后再试。"
             return 1
         fi
     fi
@@ -521,10 +521,10 @@ memory_create_swapfile() {
                 memory_activate_fallback_swapfile "$new_file" || {
                     toolbox_sudo rm -f -- "$new_file"
                     [ "$was_active" -eq 0 ] || toolbox_sudo swapon "$MEMORY_SWAPFILE_PATH" || true
-                    echo "现有 swap 无法安全移动，已保留原文件。"
+                    echo "现有 虚拟内存 无法安全移动，已保留原文件。"
                     return 1
                 }
-                echo "独立 swap 已安全启用，继续配置 zram、swappiness 和开机自动启用。"
+                echo "独立 虚拟内存 已安全启用，继续配置 内存压缩、内存使用设置 和开机自动启用。"
                 return 0
             }
         fi
@@ -543,7 +543,7 @@ memory_create_swapfile() {
             memory_restore_immutable_attribute "$MEMORY_SWAPFILE_PATH" || true
             [ "$was_active" -eq 0 ] || toolbox_sudo swapon "$MEMORY_SWAPFILE_PATH" || true
         fi
-        echo "新 swap 无法启用，已恢复原文件。"
+        echo "新 虚拟内存 无法启用，已恢复原文件。"
         return 1
     fi
     toolbox_sudo rm -f -- "$backup_file" || true
@@ -589,14 +589,14 @@ memory_optimize() {
     if ! memory_swapfile_is_complete "$MEMORY_SWAPFILE_PATH" "$target_gib" && \
        memory_swapfile_is_complete "$MEMORY_FALLBACK_SWAPFILE_PATH" "$target_gib"; then
         MEMORY_SWAPFILE_PATH="$MEMORY_FALLBACK_SWAPFILE_PATH"
-        echo "检测到Renkit独立 swap，继续使用：$MEMORY_SWAPFILE_PATH"
+        echo "检测到Renkit独立 虚拟内存，继续使用：$MEMORY_SWAPFILE_PATH"
     fi
     unit_name="$(memory_swap_unit_name)" || {
-        echo "无法生成磁盘 swap 的开机配置名称，当前 swap 文件保持不变。"
+        echo "无法生成虚拟内存 的开机配置名称，当前 虚拟内存 文件保持不变。"
         return 1
     }
     fallback_unit_name="$(memory_swap_unit_name_for_path "$MEMORY_FALLBACK_SWAPFILE_PATH")" || {
-        echo "无法生成Renkit独立 swap 的开机配置名称，未修改现有配置。"
+        echo "无法生成Renkit独立 虚拟内存 的开机配置名称，未修改现有配置。"
         return 1
     }
     memory_config_target_is_safe "$MEMORY_ZRAM_CONFIG" || return 1
@@ -605,7 +605,7 @@ memory_optimize() {
     [ "$fallback_unit_name" = "$unit_name" ] || \
         memory_config_target_is_safe "$MEMORY_SYSTEMD_DIR/$fallback_unit_name" || return 1
     if memory_swapfile_is_complete "$MEMORY_SWAPFILE_PATH" "$target_gib"; then
-        echo "[已设置] ${target_gib}GB 磁盘 swap 文件完整，无需重复创建。"
+        echo "[已设置] ${target_gib}GB 虚拟内存 文件完整，无需重复创建。"
     else
         memory_create_swapfile "$target_gib" || return 1
     fi
@@ -643,40 +643,40 @@ Priority=10
 WantedBy=swap.target
 EOF
     memory_write_config "$MEMORY_ZRAM_CONFIG" "$zram_file" || {
-        echo "zram 配置写入失败，当前 swap 文件保持不变。"
+        echo "内存压缩 配置写入失败，当前 虚拟内存 文件保持不变。"
         return 1
     }
     memory_write_config "$MEMORY_SYSCTL_CONFIG" "$sysctl_file" || {
-        echo "swappiness 配置写入失败，当前 swap 文件保持不变。"
+        echo "内存使用设置 配置写入失败，当前 虚拟内存 文件保持不变。"
         return 1
     }
     memory_write_config "$MEMORY_SYSTEMD_DIR/$unit_name" "$unit_file" || {
-        echo "磁盘 swap 开机配置写入失败，当前 swap 仍保持启用。"
+        echo "虚拟内存 开机配置写入失败，当前 虚拟内存 仍保持启用。"
         return 1
     }
 
     toolbox_sudo sysctl -w vm.swappiness=1 >/dev/null || {
-        echo "swappiness 即时设置失败，配置文件已保留供重启后应用。"
+        echo "内存使用设置 即时设置失败，配置文件已保留供重启后应用。"
         return 1
     }
     toolbox_sudo systemctl daemon-reload || {
-        echo "systemd 刷新失败，磁盘 swap 当前仍保持启用。"
+        echo "systemd 刷新失败，虚拟内存 当前仍保持启用。"
         return 1
     }
     if memory_swap_is_active "$MEMORY_SWAPFILE_PATH"; then
         toolbox_sudo systemctl enable "$unit_name" >/dev/null || {
-            echo "磁盘 swap 当前已启用，但开机自动启用设置失败。"
+            echo "虚拟内存 当前已启用，但开机自动启用设置失败。"
             return 1
         }
     else
         toolbox_sudo systemctl enable --now "$unit_name" >/dev/null || {
-            echo "磁盘 swap 开机配置已写入，但本次启用失败。"
+            echo "虚拟内存 开机配置已写入，但本次启用失败。"
             return 1
         }
     fi
 
-    echo "虚拟内存最佳组合已设置：zram 优先，${target_gib}GB 磁盘 swap 兜底。"
-    echo "swappiness 已立即设为 1；zram 配置将在下次重启后完全应用。"
+    echo "虚拟内存最佳组合已设置：内存压缩 优先，${target_gib}GB 虚拟内存 兜底。"
+    echo "内存使用设置 已立即设为 1；内存压缩 配置将在下次重启后完全应用。"
     log "虚拟内存最佳组合已设置: zram=ram/2 swap=${target_gib}GB swappiness=1"
     rm -rf -- "$tmp_dir"
     trap - EXIT INT TERM
@@ -713,12 +713,12 @@ memory_restore_toolbox() {
     }
 
     main_unit_name="$(memory_swap_unit_name_for_path "$MEMORY_SWAPFILE_PATH")" || {
-        echo "无法识别系统原 swap 的开机配置名称。"
+        echo "无法识别系统原 虚拟内存 的开机配置名称。"
         return 1
     }
     fallback_unit_name="$(memory_swap_unit_name_for_path \
         "$MEMORY_FALLBACK_SWAPFILE_PATH")" || {
-        echo "无法识别Renkit独立 swap 的开机配置名称。"
+        echo "无法识别Renkit独立 虚拟内存 的开机配置名称。"
         return 1
     }
     memory_remove_managed_fallback_swap "$fallback_unit_name" || return 1
@@ -732,7 +732,7 @@ memory_restore_toolbox() {
         return 1
     }
 
-    echo "Renkit虚拟内存优化已撤销；系统原 swap 已保留，请重启。"
+    echo "Renkit虚拟内存优化已撤销；系统原 虚拟内存 已保留，请重启。"
     log "Renkit虚拟内存优化已撤销，系统原 swap 已保留"
 }
 

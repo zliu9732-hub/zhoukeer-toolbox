@@ -83,11 +83,11 @@ validate_ge_proton_config() {
     esac
 
     if [ "${#GE_PROTON_SHA256}" -ne 64 ]; then
-        echo "GE-Proton SHA256必须是64位十六进制字符串。"
+        echo "GE-Proton 文件安全检查信息无效，请更新 Renkit 后重试。"
         return 1
     fi
     case "$GE_PROTON_SHA256" in
-        *[!0-9A-Fa-f]*) echo "GE-Proton SHA256包含无效字符。"; return 1 ;;
+        *[!0-9A-Fa-f]*) echo "GE-Proton 文件安全检查信息无效，请更新 Renkit 后重试。"; return 1 ;;
     esac
 }
 
@@ -291,12 +291,12 @@ install_ge_proton_package() {
     done
     command -v sha256sum >/dev/null 2>&1 || \
         command -v shasum >/dev/null 2>&1 || {
-            echo "缺少SHA256校验工具。"
+            echo "缺少检查下载文件所需的组件。"
             return 1
         }
 
     mkdir -p "$compatibility_dir" || {
-        echo "无法创建Steam兼容层目录：$compatibility_dir"
+        echo "无法创建Steam运行工具目录：$compatibility_dir"
         return 1
     }
     cleanup_stale_ge_proton_temp "$compatibility_dir"
@@ -337,7 +337,7 @@ install_ge_proton_package() {
 
     actual_sha256="$(calculate_ge_proton_sha256 "$archive")" || return 1
     if [ "$actual_sha256" != "$(printf '%s' "$GE_PROTON_SHA256" | tr '[:upper:]' '[:lower:]')" ]; then
-        echo "$GE_PROTON_VERSION SHA256校验失败，已有兼容层保持不变。"
+        echo "$GE_PROTON_VERSION 文件检查未通过，已有运行工具保持不变。"
         return 1
     fi
     validate_archive_members "$archive" || return 1
@@ -386,14 +386,14 @@ restart_steam_after_ge_proton() {
     fi
 
     if pgrep -x steam >/dev/null 2>&1; then
-        echo "正在重启 Steam，使兼容层生效..."
+        echo "正在重启 Steam，使运行工具生效..."
         "$steam_bin" -shutdown >/dev/null 2>&1 || true
         for attempt in 1 2 3 4 5 6 7 8 9 10; do
             pgrep -x steam >/dev/null 2>&1 || break
             sleep 1
         done
     else
-        echo "正在启动 Steam，使兼容层生效..."
+        echo "正在启动 Steam，使运行工具生效..."
     fi
     nohup "$steam_bin" >/dev/null 2>&1 &
     echo "Steam 已重新启动。"
@@ -423,7 +423,7 @@ install_trainer_ge_proton() {
     local sha256
     local installed_any=0
 
-    echo "正在安装修改器所需常用兼容层。"
+    echo "正在安装修改器所需常用运行工具。"
     echo "包含 GE-Proton 7-55、8-25、9-27、10-29，合计约 1.72GB；下载较慢为正常现象，请耐心等待。"
     compatibility_dir="$(resolve_compatibilitytools_dir)" || return 1
     mkdir -p "$compatibility_dir" || return 1
@@ -445,7 +445,7 @@ install_trainer_ge_proton() {
     if [ "$installed_any" -eq 1 ]; then
         restart_steam_after_ge_proton
     fi
-    echo "修改器所需常用兼容层安装完成。"
+    echo "修改器所需常用运行工具安装完成。"
 }
 
 install_single_trainer_ge_proton() {
@@ -462,7 +462,7 @@ install_single_trainer_ge_proton() {
     case "$requested_version" in
         7-55|8-25|9-27|10-29) expected_version="GE-Proton$requested_version" ;;
         *)
-            echo "修改器兼容层版本无效，可选：7-55、8-25、9-27、10-29。"
+            echo "修改器运行工具版本无效，可选：7-55、8-25、9-27、10-29。"
             return 1
             ;;
     esac
@@ -479,11 +479,11 @@ install_single_trainer_ge_proton() {
             echo "[已安装] $version 已存在且文件完整，无需重复安装。"
             return 0
         fi
-        echo "正在单独安装 ${version}，不会下载其他三个修改器兼容层。"
+        echo "正在单独安装 ${version}，不会下载其他三个修改器运行工具。"
         install_ge_proton_package "$mirror_id" "$mirror_repo" \
             "mirror" "$compatibility_dir" || return 1
         restart_steam_after_ge_proton
-        echo "${version} 修改器兼容层安装完成。"
+        echo "${version} 修改器运行工具安装完成。"
         return 0
     done
 

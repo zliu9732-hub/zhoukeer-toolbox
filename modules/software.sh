@@ -308,7 +308,7 @@ SOFTWARE_TARGETS=(
 
 software_print_domestic_source_hint() {
     if [ "$FLATPAK_SOURCE_MODE" = "official" ]; then
-        echo "提示：当前使用官方 Flathub；也可使用系统自带应用商店安装。"
+        echo "提示：也可以在系统自带的应用商店安装。"
     else
         detect_platform
         if [ "$IS_CHIMERAOS" -eq 1 ]; then
@@ -327,19 +327,19 @@ confirm_software_install() {
     fi
     case "$SOFTWARE_INSTALL_MODE" in
         appimage)
-            echo "将从腾讯QQ官网国内CDN下载官方AppImage：$SOFTWARE_NAME"
+            echo "将安装 $SOFTWARE_NAME，用于聊天和收发文件。"
             ;;
         wechat_appimage)
-            echo "将从微信Linux版官网下载官方x86_64 AppImage。"
+            echo "将安装微信，用于聊天和收发文件。"
             ;;
         flatpak_official)
-            echo "将从官方 Flathub 安装 Firefox（org.mozilla.firefox）。"
+            echo "将安装 Firefox，用于浏览网页。"
             ;;
         rustdesk_appimage)
-            echo "将从 RustDesk 作者 GitHub Release 下载 x86_64 AppImage。"
+            echo "将安装 RustDesk，用于远程协助。"
             ;;
         sunshine_flatpak)
-            echo "将通过 Flatpak 安装 Sunshine 串流服务端。"
+            echo "将安装 Sunshine，把这台机器的画面传到其他设备游玩。"
             echo "安装后会读取 Sunshine 官方包内的服务和输入规则，并使用桌面管理员密码记录自动配置，不重复弹出验证窗口。"
             ;;
         baidunetdisk)
@@ -347,13 +347,13 @@ confirm_software_install() {
             SOFTWARE_DESKTOP_NAME="百度网盘"
             SOFTWARE_APP_ID="com.baidu.NetDisk"
             SOFTWARE_CATEGORIES="Network;FileTransfer;"
-            echo "将通过 Flatpak 国内源安装：$SOFTWARE_NAME"
+            echo "将安装：$SOFTWARE_NAME"
             ;;
         *)
             if [ "$FLATPAK_SOURCE_MODE" = "official" ]; then
-                echo "将通过官方 Flathub 安装：$SOFTWARE_NAME"
+                echo "将安装：$SOFTWARE_NAME"
             else
-                echo "将通过 Flatpak 国内源安装：$SOFTWARE_NAME"
+                echo "将安装：$SOFTWARE_NAME"
             fi
             ;;
     esac
@@ -368,7 +368,7 @@ confirm_software_install() {
 download_official_flathub_repo_file() {
     local destination="$1"
 
-    echo "正在获取 Flathub 官方签名配置..."
+    echo "正在准备软件安装..."
     download_policy_url_allowed "$FLATHUB_OFFICIAL_REPO_FILE" || return 1
     if curl \
         --fail \
@@ -387,7 +387,7 @@ download_official_flathub_repo_file() {
         return 0
     fi
     rm -f -- "$destination"
-    echo "无法获取 Flathub 官方签名配置。"
+    echo "软件安装准备失败，请稍后重试。"
     return 1
 }
 
@@ -417,7 +417,7 @@ flatpak_any_remote_exists() {
 confirm_domestic_flatpak_risk() {
     local answer
 
-    echo "警告：以下国内 Flatpak 远程源将关闭软件包签名验证："
+    echo "警告：以下下载地址将不再检查软件签名，可能增加安装不可信软件的风险："
     echo "- $FLATHUB_CN_REMOTE: $FLATHUB_CN_URL"
     echo "- $FLATHUB_CN_FALLBACK_REMOTE: $FLATHUB_CN_FALLBACK_URL"
     detect_platform
@@ -438,15 +438,15 @@ confirm_official_flatpak_restore() {
     local answer
 
     echo "将恢复官方 Flathub：https://dl.flathub.org/repo/"
-    echo "将重新启用 GPG 验证，并移除 $FLATHUB_CN_REMOTE 和 $FLATHUB_CN_FALLBACK_REMOTE。"
+    echo "将重新开启软件签名检查，并移除 $FLATHUB_CN_REMOTE 和 $FLATHUB_CN_FALLBACK_REMOTE。"
     detect_platform
     if [ "$IS_STEAMOS" -eq 1 ]; then
-        echo "同时会移除由Renkit写入的 archlinuxcn 配置；用户原有配置不会被删除。"
+        echo "同时移除 Renkit 添加的系统软件下载设置；原有设置会保留。"
     else
         echo "不会修改 Bazzite 系统更新源。"
     fi
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
-        echo "已通过Renkit界面确认，正在恢复官方源。"
+        echo "已确认，正在恢复默认下载设置。"
         return 0
     fi
     read -r -p "确认恢复官方源请输入 RESTORE：" answer
@@ -512,7 +512,7 @@ ensure_flatpak_remotes() {
         fi
     fi
     confirm_domestic_flatpak_risk || {
-        echo "已取消国内 Flatpak 源配置，未修改任何远程源。"
+        echo "已取消下载加速设置，现有设置保持不变。"
         return 1
     }
 
@@ -532,7 +532,7 @@ enable_chimera_domestic_flatpak_remotes() {
         echo "国内缓存已配置，但保存下载线路选择失败。"
         return 1
     }
-    echo "Flatpak 国内下载已启用：上海交大 → 中科大。"
+    echo "软件下载加速已开启。"
     echo "仅修改当前用户的 Flatpak 远程源；未修改 ChimeraOS 系统。"
 }
 
@@ -552,7 +552,7 @@ restore_chimera_official_flatpak_remote() {
             "$FLATHUB_CN_FALLBACK_REMOTE" || return 1
     fi
     write_managed_flatpak_source_mode official || return 1
-    echo "已恢复官方 Flathub，并重新启用 GPG 验证。"
+    echo "已恢复默认下载设置，并重新开启软件签名检查。"
     echo "仅修改当前用户的 Flatpak 远程源；未修改 ChimeraOS 系统。"
 }
 
@@ -608,12 +608,12 @@ ensure_official_flathub_remote() {
         "$repo_file" | base64 -d > "$gpg_key_file" 2>/dev/null || \
        [ ! -s "$gpg_key_file" ]; then
         rm -f -- "$repo_file" "$gpg_key_file"
-        echo "Flathub 官方配置中的签名密钥无效，已停止。"
+        echo "软件签名检查准备失败，已停止安装。"
         return 1
     fi
 
     if flatpak_remote_exists "$FLATHUB_OFFICIAL_REMOTE"; then
-        echo "正在校准官方 Flathub 地址与签名密钥..."
+        echo "正在准备软件安装..."
         if ! timeout --foreground 30 flatpak remote-modify --user \
             --url=https://dl.flathub.org/repo/ --gpg-verify \
             --gpg-import="$gpg_key_file" "$FLATHUB_OFFICIAL_REMOTE"; then
@@ -621,7 +621,7 @@ ensure_official_flathub_remote() {
             return 1
         fi
     else
-        echo "正在添加官方 Flathub 源与签名密钥..."
+        echo "正在准备软件安装..."
         if ! timeout --foreground 30 flatpak remote-add --user --if-not-exists \
             --from "$FLATHUB_OFFICIAL_REMOTE" "$repo_file"; then
             rm -f -- "$repo_file" "$gpg_key_file"
@@ -632,13 +632,13 @@ ensure_official_flathub_remote() {
 }
 
 install_official_firefox_flatpak() {
-    echo "正在从官方 Flathub 安装 Firefox..."
+    echo "正在安装 Firefox..."
     if ! ensure_official_flathub_remote; then
-        echo "官方 Flathub 源配置失败，已停止。"
+        echo "软件安装准备失败，已停止。"
         return 1
     fi
     if ! run_flatpak_install "$FLATHUB_OFFICIAL_REMOTE"; then
-        echo "Firefox 官方 Flathub 安装失败或超时，已停止。"
+        echo "Firefox 安装失败或超时，已停止。"
         return 1
     fi
 }
@@ -766,14 +766,14 @@ install_official_qq_appimage() (
             SOFTWARE_CATEGORIES="Network;FileTransfer;"
             ;;
         *)
-            echo "腾讯官网当前未提供适用于 $architecture 的QQ AppImage安装入口。"
+            echo "暂时没有适合本机的 QQ 安装文件。"
             return 1
             ;;
     esac
 
     echo "正在向腾讯官网查询最新版QQ下载地址..."
     appimage_url="$(resolve_qq_appimage_url)" || {
-        echo "未能从腾讯官网获取QQ下载地址，请稍后重试。"
+        echo "暂时无法下载 QQ，请稍后重试。"
         return 1
     }
 
@@ -792,8 +792,8 @@ install_official_qq_appimage() (
     }
     trap cleanup_qq_download EXIT INT TERM
 
-    echo "正在从腾讯国内CDN下载QQ，最长等待 $QQ_DOWNLOAD_TIMEOUT 秒..."
-    download_policy_url_allowed "$appimage_url" || { echo "QQ 下载地址不在受控来源清单中。"; return 1; }
+    echo "正在下载 QQ，最长等待 $QQ_DOWNLOAD_TIMEOUT 秒..."
+    download_policy_url_allowed "$appimage_url" || { echo "QQ 下载地址不可信。"; return 1; }
     if ! run_curl_with_progress "QQ" 0 1 \
         --fail \
         --location \
@@ -851,7 +851,7 @@ install_official_wechat_appimage() (
             SOFTWARE_CATEGORIES="Network;FileTransfer;"
             ;;
         *)
-            echo "当前微信官方AppImage不适用于 $architecture 架构。"
+            echo "此微信版本不适用于本机。"
             return 1
             ;;
     esac
@@ -872,8 +872,8 @@ install_official_wechat_appimage() (
     trap cleanup_wechat_download EXIT
     trap 'exit 130' INT TERM
 
-    echo "正在从腾讯国内CDN下载微信，最长等待 $WECHAT_DOWNLOAD_TIMEOUT 秒..."
-    download_policy_url_allowed "$WECHAT_APPIMAGE_URL" || { echo "微信下载地址不在受控来源清单中。"; return 1; }
+    echo "正在下载微信，最长等待 $WECHAT_DOWNLOAD_TIMEOUT 秒..."
+    download_policy_url_allowed "$WECHAT_APPIMAGE_URL" || { echo "微信下载地址不可信。"; return 1; }
     if ! run_curl_with_progress "微信" 0 1 \
         --fail \
         --location \
@@ -950,7 +950,7 @@ install_rustdesk_appimage() (
     trap cleanup_rustdesk_download EXIT
     trap 'exit 130' INT TERM
 
-    echo "正在从 Gitee 国内分块镜像下载 RustDesk，失败时回退作者 GitHub Release..."
+    echo "正在下载 RustDesk..."
     if ! GITHUB_MAX_TIME="$RUSTDESK_DOWNLOAD_TIMEOUT" download_with_gitee_mirror_fallback \
         rustdesk "$RUSTDESK_DOWNLOAD_URL" "$RUSTDESK_SHA256" "$temp_file" "RustDesk AppImage"; then
         echo "RustDesk下载失败或超时，已停止；原有版本未受影响。"
@@ -964,7 +964,7 @@ install_rustdesk_appimage() (
     actual_sha256="$(calculate_sha256 "$temp_file" || true)"
     if [ -z "$actual_sha256" ] || \
         [ "$actual_sha256" != "$(printf '%s' "$RUSTDESK_SHA256" | tr '[:upper:]' '[:lower:]')" ]; then
-        echo "RustDesk安装包校验失败，已丢弃；原有版本未受影响。"
+        echo "RustDesk安装包检查未通过，已丢弃；原有版本未受影响。"
         return 1
     fi
     chmod 0755 "$temp_file" || return 1
@@ -1144,7 +1144,7 @@ complete_sunshine_install() (
     udev_file="$temp_dir/60-sunshine.rules"
     service_target="$HOME/.config/systemd/user/app-dev.lizardbyte.app.Sunshine.service"
 
-    echo "正在从已安装的 Sunshine 官方 Flatpak 读取必要配置..."
+    echo "正在准备 Sunshine 的手柄和键鼠控制..."
     sunshine_export_package_file \
         /app/share/sunshine/systemd/user/app-dev.lizardbyte.app.Sunshine.service \
         "$service_file" || return 1
@@ -1184,7 +1184,7 @@ complete_sunshine_install() (
     toolbox_sudo install -m 0644 "$udev_file" \
         /etc/udev/rules.d/60-sunshine.rules || return 1
 
-    echo "Sunshine 附加安装完成；没有调用 pkexec。若输入设备暂不可用，请重启 Steam Deck。"
+    echo "Sunshine 的手柄和键鼠控制已配置；若暂时无法操作，请重启 Steam Deck。"
     log "Sunshine Flatpak附加安装完成：使用桌面密码记录配置，无pkexec弹窗"
 )
 
@@ -1544,19 +1544,19 @@ install_software() {
     fi
     if [ "$FLATPAK_SOURCE_MODE" = "official" ]; then
         if ! ensure_official_flathub_remote; then
-            echo "官方 Flathub 源配置失败，已停止。"
+            echo "软件安装准备失败，已停止。"
             return 1
         fi
-        echo "正在从官方 Flathub 安装 $SOFTWARE_NAME..."
+        echo "正在安装 $SOFTWARE_NAME..."
         if ! run_flatpak_install "$FLATHUB_OFFICIAL_REMOTE"; then
-            echo "官方 Flathub 安装失败或超时，已停止。"
+            echo "安装失败或超时，已停止。"
             software_print_domestic_source_hint
             log "$SOFTWARE_NAME 官方Flatpak安装失败"
             return 1
         fi
     else
         if ! ensure_flatpak_remotes; then
-            echo "国内Flathub缓存源配置失败，已停止，不会转连官方源。"
+            echo "下载加速准备失败，已停止安装。"
             echo "提示：请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。"
             return 1
         fi
@@ -1572,7 +1572,7 @@ install_software() {
                 break
             fi
             if [ "$_fr_retry" -eq 0 ]; then
-                echo "检测到下载源不可用，正在切换至国内源，请耐心等待..."
+                echo "检测到下载源不可用，正在重新尝试，请耐心等待..."
                 detect_platform
                 if [ "$IS_CHIMERAOS" -eq 1 ]; then
                     ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
@@ -1585,7 +1585,7 @@ install_software() {
                 choose_install_remotes 2>/dev/null || true
                 _fr_retry=1
             else
-                echo "两个国内缓存均失败或超时，已停止。"
+                echo "多次下载失败或超时，已停止。"
                 echo "提示：请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。"
                 log "$SOFTWARE_NAME Flatpak安装失败"
                 return 1
@@ -1666,7 +1666,7 @@ install_firefox_pacman() {
         require_command "$cmd" || return 1
     done
 
-    echo "将通过 pacman 安装 Firefox 到系统分区。"
+    echo "将安装 Firefox；需要管理员权限并修改系统文件。"
     echo "将临时关闭 SteamOS 只读保护，安装完成后恢复。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
         local answer
@@ -1679,9 +1679,9 @@ install_firefox_pacman() {
     echo "第 1 步：关闭 SteamOS 只读保护..."
     toolbox_sudo steamos-readonly disable || { echo "关闭只读保护失败。"; return 1; }
 
-    echo "第 2 步：初始化 pacman 密钥..."
-    toolbox_sudo pacman-key --init || { echo "pacman-key 初始化失败。"; toolbox_sudo steamos-readonly enable 2>/dev/null; return 1; }
-    toolbox_sudo pacman-key --populate || { echo "pacman-key 填充失败。"; toolbox_sudo steamos-readonly enable 2>/dev/null; return 1; }
+    echo "第 2 步：准备软件安全检查..."
+    toolbox_sudo pacman-key --init || { echo "软件安全检查准备失败。"; toolbox_sudo steamos-readonly enable 2>/dev/null; return 1; }
+    toolbox_sudo pacman-key --populate || { echo "软件安全检查准备失败。"; toolbox_sudo steamos-readonly enable 2>/dev/null; return 1; }
 
     echo "第 3 步：安装 Firefox..."
     toolbox_sudo pacman -S firefox --noconfirm || {
@@ -1695,7 +1695,7 @@ install_firefox_pacman() {
         echo "警告：未恢复只读保护，请手动执行: sudo steamos-readonly enable"
     }
 
-    echo "Firefox 安装完成（系统级 pacman 安装）。"
+    echo "Firefox 安装完成。"
     log "Firefox 通过 pacman 安装完成"
 }
 
@@ -1706,8 +1706,8 @@ install_firefox_sjtu() {
     is_linux || { echo "仅支持 Linux/SteamOS。"; return 1; }
     require_command flatpak || return 1
 
-    echo "将从上海交大镜像源安装 Firefox（Flatpak 版）。"
-    echo "需要先配置交大镜像源（系统设置 → 交大 Flatpak 镜像）。"
+    echo "将安装 Firefox，用于浏览网页。"
+    echo "请先在“系统设置”中开启“软件下载加速与系统修复”。"
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" != "1" ]; then
         local answer
         read -r -p "确认安装请输入 INSTALL：" answer
@@ -1715,18 +1715,18 @@ install_firefox_sjtu() {
     fi
 
     if ! flatpak remote-ls --user Sjtu 2>/dev/null | grep -q .; then
-        echo "交大镜像源未配置或不可用，请先在系统设置中添加。"
+        echo "下载准备失败，请先在“系统设置”中开启软件下载加速。"
         echo "命令：bash modules/domestic_source.sh sjtu"
         return 1
     fi
 
-    echo "正在从 Sjtu 源安装 Firefox..."
+    echo "正在安装 Firefox..."
     flatpak install Sjtu org.mozilla.firefox -y || {
         echo "Firefox 安装失败。"
         return 1
     }
 
-    echo "Firefox（Flatpak）安装完成。"
+    echo "Firefox 安装完成。"
     log "Firefox Flatpak 通过交大镜像安装完成"
 }
 
@@ -1750,7 +1750,7 @@ system_setup() {
     echo "  - 关闭 SteamOS 只读保护"
     $SUDO_CMD steamos-readonly disable || { echo "关闭只读保护失败。"; return 1; }
 
-    echo "  - 初始化 pacman 密钥"
+    echo "  - 准备软件安全检查"
     $SUDO_CMD pacman-key --init || true
     $SUDO_CMD pacman-key --populate archlinux || true
 
@@ -1764,7 +1764,7 @@ system_setup() {
         }
     fi
 
-    echo "  - 配置国内 Flatpak 镜像"
+    echo "  - 设置软件下载加速"
     $SUDO_CMD flatpak remote-add --if-not-exists Sjtu \
         https://mirror.sjtu.edu.cn/flathub/flathub.flatpakrepo || true
     flatpak remote-modify Sjtu --url=https://mirror.sjtu.edu.cn/flathub || true
@@ -1797,10 +1797,10 @@ install_flatpak_app() {
         require_command flatpak || return 1
         require_command timeout || return 1
         ensure_official_flathub_remote || {
-            echo "官方 Flathub 源配置失败，已停止。"
+            echo "软件安装准备失败，已停止。"
             return 1
         }
-        echo "正在从官方 Flathub 安装 $app_name..."
+        echo "正在安装 $app_name..."
         SOFTWARE_APP_ID="$app_id"
         if run_flatpak_install "$FLATHUB_OFFICIAL_REMOTE"; then
             echo "$app_name 安装完成。"
@@ -1809,15 +1809,15 @@ install_flatpak_app() {
             log "$app_name 官方 Flatpak 安装完成"
             return 0
         fi
-        echo "$app_name 官方 Flathub 安装失败。"
+        echo "$app_name 安装失败。"
         return 1
     fi
 
-    echo "提示：如遇下载缓慢，请在Renkit【系统设置 → 国内源】中初始化国内 Flathub 源。"
+    echo "提示：下载缓慢时，可在“系统设置”中开启“软件下载加速与系统修复”。"
     echo "正在安装 $app_name..."
     for _fp_src in Sjtu Ustc flathub; do
         if flatpak remote-list --user 2>/dev/null | grep -q "$_fp_src"; then
-            echo "  从 $_fp_src 安装..."
+            echo "  正在安装，请等待..."
             if flatpak install -y "$_fp_src" "$app_id"; then
                 echo "$app_name 安装完成。"
                 _fp_desk="$(find "$HOME/.local/share/flatpak/exports/share/applications" /var/lib/flatpak/exports/share/applications -name "${app_id}.desktop" 2>/dev/null | head -1)"
@@ -1827,7 +1827,7 @@ install_flatpak_app() {
             fi
         fi
         if flatpak remote-list --system 2>/dev/null | grep -q "$_fp_src"; then
-            echo "  从 $_fp_src 安装(system)..."
+            echo "  正在安装，请等待..."
             if toolbox_sudo flatpak install -y "$_fp_src" "$app_id"; then
                 echo "$app_name 安装完成。"
                 _fp_desk="$(find "$HOME/.local/share/flatpak/exports/share/applications" /var/lib/flatpak/exports/share/applications -name "${app_id}.desktop" 2>/dev/null | head -1)"
@@ -1836,12 +1836,12 @@ install_flatpak_app() {
                 return 0
             fi
         fi
-        echo "  $_fp_src 不可用，尝试下一个..."
+        echo "  下载失败，正在重新尝试..."
     done
 
     # 兜底
     if command -v flatpak >/dev/null 2>&1; then
-        echo "  尝试从 flathub 官方源安装..."
+        echo "  正在重新尝试安装..."
         if toolbox_sudo flatpak install --system -y flathub "$app_id" || \
            flatpak install --user -y flathub "$app_id"; then
             echo "$app_name 安装完成。"
@@ -1978,7 +1978,7 @@ uninstall_software() {
                 return 0
             fi
             if ! flatpak info --user "$SOFTWARE_APP_ID" >/dev/null 2>&1; then
-                echo "Sunshine 是系统级 Flatpak，Renkit 不会自动提权或改动它的附加组件。"
+                echo "此 Sunshine 由系统管理，Renkit 无法直接修改。"
                 echo "请按 Sunshine 官方说明维护该系统级安装。"
                 return 1
             fi
@@ -1986,7 +1986,7 @@ uninstall_software() {
             require_command timeout || return 1
             echo "正在使用桌面密码记录移除 Sunshine 虚拟输入设备规则..."
             if ! remove_sunshine_additional_install; then
-                echo "Sunshine 附加组件清理失败，已停止卸载 Flatpak，避免遗留系统规则。"
+                echo "Sunshine 的附加设置清理失败，已停止卸载，请稍后重试。"
                 log "Sunshine Flatpak附加组件清理失败"
                 return 1
             fi
@@ -2007,7 +2007,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         source-status) show_chimera_flatpak_source_status ;;
         wechat|qq|browser|chrome|edge|rustdesk|bottles|protontricks|anydesk|baidunetdisk|libreoffice|vlc|obs|localsend|peazip|willwill|fcitx5|xbox-cloud|qqmusic|netease-music|yesplaymusic|qbittorrent|motrix|freedownloadmanager|media-downloader|flameshot|onlyoffice|joplin|heroic|lutris|chiaki4deck|parsec|sunshine) install_software "$1" ;;
         firefox-pacman|firefox-sjtu|system-setup)
-            echo "该旧版系统级功能已停用，请使用当前 Flatpak 菜单功能。"
+            echo "此旧版功能已停用，请在常用软件菜单安装。"
             exit 1
             ;;
         uninstall)

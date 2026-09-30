@@ -82,7 +82,7 @@ sha256_file() {
     elif command -v shasum >/dev/null 2>&1; then
         shasum -a 256 "$1" | awk '{print $1}'
     else
-        echo "缺少 SHA256 校验命令: sha256sum 或 shasum"
+        echo "缺少文件安全检查信息 校验命令: sha256sum 或 shasum"
         exit 1
     fi
 }
@@ -255,14 +255,14 @@ verify_package() {
     local actual
 
     if ! valid_sha256 "$expected"; then
-        echo "SHA256格式无效或校验文件中缺少 $PACKAGE_NAME"
+        echo "安装文件安全检查信息无效，请稍后重试。"
         return 1
     fi
 
     actual="$(sha256_file "$package_file")"
     expected="$(printf '%s' "$expected" | tr '[:upper:]' '[:lower:]')"
     if [ "$actual" != "$expected" ]; then
-        echo "SHA256校验失败"
+        echo "文件检查未通过"
         echo "期望: $expected"
         echo "实际: $actual"
         return 1
@@ -352,7 +352,7 @@ download_verified_package() {
         return 0
     fi
 
-    echo "国内镜像不可用，切换GitHub备用源。"
+    echo "下载暂时不可用，正在重新尝试。"
     if download_verified_package_from \
         "GitHub" "$GITHUB_PACKAGE_URL" "$GITHUB_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
@@ -360,7 +360,7 @@ download_verified_package() {
         return 0
     fi
 
-    echo "GitHub不可用，切换域名源。"
+    echo "下载暂时不可用，正在重新尝试。"
     if download_verified_package_from \
         "域名" "$DOMAIN_PACKAGE_URL" "$DOMAIN_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
@@ -384,13 +384,13 @@ download_with_fallback() {
         return 0
     fi
 
-    echo "国内镜像不可用，切换GitHub备用源。"
+    echo "下载暂时不可用，正在重新尝试。"
     if download_one "$github_url" "$output" "GitHub"; then
         DOWNLOAD_SOURCE="GitHub"
         return 0
     fi
 
-    echo "GitHub不可用，切换域名源。"
+    echo "下载暂时不可用，正在重新尝试。"
     if download_one "$domain_url" "$output" "域名"; then
         DOWNLOAD_SOURCE="域名"
         return 0

@@ -103,7 +103,7 @@ select_system_component_update() {
 
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ] && command -v kdialog >/dev/null 2>&1; then
         selection="$(kdialog --menu \
-            "是否需要跳过前面的系统组件更新？\n\n选择跳过后，不会修改 pacman、系统密钥环和 locale；仍会配置用户级 Flatpak 国内源，并继续安装其他项目。" \
+            "是否需要跳过前面的系统组件更新？\n\n选择跳过后，保留现有系统组件和语言设置；仍会设置软件下载加速，并继续安装其他项目。" \
             update "不跳过，完整更新系统组件（推荐新机使用）" \
             skip "跳过系统组件更新，继续其余初始化" 2>/dev/null)" || {
                 echo "已取消系统组件更新选择，新机初始化未开始。"
@@ -123,8 +123,8 @@ select_system_component_update() {
     fi
 
     echo ""
-    echo "系统组件更新会处理 pacman、系统密钥环和 locale，并临时关闭 SteamOS 只读保护。"
-    echo "跳过后仍会配置用户级 Flatpak 国内源，并继续安装其他项目。"
+    echo "系统组件更新会修复安装软件所需组件和语言设置，并临时关闭系统保护。"
+    echo "跳过后仍会配置软件下载加速，并继续安装其他项目。"
     read -r -p "是否需要跳过系统组件更新？输入 y 跳过，直接回车继续更新 [y/N]：" selection
     case "$selection" in
         y|Y|yes|YES|Yes) NEW_MACHINE_SKIP_SYSTEM_UPDATE=1 ;;
@@ -162,17 +162,17 @@ show_initialization_plan() {
     echo "默认处理："
     echo "【01】检查 SteamOS、网络、电源、空间和系统保护状态"
     if [ "$NEW_MACHINE_SKIP_SYSTEM_UPDATE" = "1" ]; then
-        echo "【02】跳过 pacman、系统密钥环和 locale 更新（按本次选择）"
-        echo "【03】仅配置用户级 Flatpak 国内软件源"
+        echo "【02】按本次选择跳过系统组件更新"
+        echo "【03】配置软件下载加速"
     else
-        echo "【02-03】更新必要组件并初始化国内软件源"
+        echo "【02-03】更新必要组件并初始化软件下载加速"
     fi
-    echo "【04】安装 Fcitx5 中文输入法和中文插件"
+    echo "【04】安装中文输入法"
     echo "【05-06】安装微信、QQ、Firefox并创建桌面图标"
-    echo "【07】安装 Decky Loader、FreeDeck、九款常用插件（含 MAKO 与 Mako_Renkit 启动项，及 Fantastic 风扇控制）"
+    echo "【07】安装插件商城、游戏下载工具和九款常用插件"
     echo "【08】识别机器型号；安装匹配的掌机控制插件组合，无合适专用插件时安装通用功耗控制"
-    echo "【09】安装修改器所需兼容层：仅 GE-Proton 10-29"
-    echo "【10】按物理内存设置 zram、8-16GB swap 和 swappiness"
+    echo "【09】准备游戏修改器所需运行工具"
+    echo "【10】优化内存使用，并用 8-16GB 存储空间补充内存"
     echo "【11-12】安装 Steamcommunity 302，后台运行并设置开机自启"
     echo "【13-14】清理未完成下载，并复查网络、系统和游戏启动环境"
     echo "【15-16】检查 Renkit 安装、桌面入口和联网版本检测"
@@ -400,11 +400,11 @@ write_customer_handover_guide() {
 1. Renkit：桌面双击 Renkit；启动时会自动检测更新，也可在“检查与维护”中手动检查更新。
 2. Decky / FreeDeck：返回游戏模式，按右下角“…”键，再打开插头图标；新机初始化会安装 MAKO 小黄鸭，并在 CheatDeck 高级页新增 “Mako_Renkit” 启动项。
    先打开 MAKO 点击“安装 MAKO Renderer”，再在目标游戏的 齿轮 → CheatDeck → 高级 中启用 “Mako_Renkit” 并保存。插件不显示时请完全退出并重开 Steam。
-3. 修改器兼容层：新机初始化仅安装 GE-Proton 10-29；在游戏属性 → 兼容性中选择该版本。
+3. 修改器运行工具：新机初始化仅安装 GE-Proton 10-29；在游戏属性 → 兼容性中选择该版本。
 4. Epic：已按默认清单安装并加入 Steam 库；首次登录、验证码可用触控板，Steam + X 呼出键盘。
-5. 中文输入：桌面模式使用 Fcitx5；首次使用请在系统托盘确认输入法已启动。
-6. Steam 加速：Renkit 会生成 Steam 与 GitHub 规则并自动初始化后台服务；若状态未就绪，请在Renkit查看日志、端口占用和依赖提示。
-7. 虚拟内存：zram、磁盘 swap 和 swappiness 已按机器内存设置，重启后完全生效。
+5. 中文输入：首次使用请确认桌面右下角的输入法图标已出现。
+6. 网络加速：会自动开启 Steam 社区和游戏下载加速；无法使用时，请在“检查与维护”中检查网络。
+7. 内存优化：已根据机器内存配置，重启后完全生效。
 8. 遇到问题：先运行“网络检查”“游戏启动诊断”；需要咨询时生成“Renkit诊断包”并发给安装服务人员。
 
 本次执行报告：${NEW_MACHINE_REPORT_FILE:-未生成}
@@ -457,15 +457,15 @@ run_new_machine_initialization() {
 
     run_step "【01】网络线路复查" check_network
     if [ "$NEW_MACHINE_SKIP_SYSTEM_UPDATE" = "1" ]; then
-        skip_step "【02】更新系统组件、密钥环和 locale" "已按开始前选择跳过"
-        run_step "【03】优化用户级 Flatpak 国内软件源" \
+        skip_step "【02】更新系统所需组件和语言设置" "已按开始前选择跳过"
+        run_step "【03】设置软件下载加速" \
             env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/domestic_source.sh" enable
     else
-        run_step "【02-03】更新必要系统组件并优化国内软件源" \
+        run_step "【02-03】更新必要系统组件并优化软件下载加速" \
             env ZHOUKEER_AUTO_CONFIRM=1 ZHOUKEER_DISCOVER_DEFER=1 \
             bash "$PROJECT_ROOT/modules/domestic_source.sh" init
     fi
-    run_step "【04】Fcitx5 中文输入法" env ZHOUKEER_AUTO_CONFIRM=1 \
+    run_step "【04】中文输入法" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/software.sh" fcitx5
     run_step "【05】微信" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/software.sh" wechat
@@ -483,12 +483,12 @@ run_new_machine_initialization() {
     # MAKO 使用独立目录；与常用插件组合中的旧版 LSFG-VK 同时保留，供用户自行选择。
     run_step "【07】MAKO 小黄鸭及 CheatDeck Mako_Renkit 启动项（官方简体中文）" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako
-    run_step "【09】修改器所需 GE-Proton 10-29 兼容层" env ZHOUKEER_AUTO_CONFIRM=1 \
+    run_step "【09】修改器运行工具（GE-Proton 10-29）" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer-one "10-29"
     run_step "【第三方平台】Epic Games 启动器（默认）" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
     install_optional_launchers
-    run_step "【10】zram、Swap 和虚拟内存优化" env ZHOUKEER_AUTO_CONFIRM=1 \
+    run_step "【10】内存优化与虚拟内存设置" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/memory_tuning.sh" optimize
     run_step "【11-12】Steamcommunity 302 后台加速与开机自启" \
         env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/steam_accelerator.sh" install

@@ -86,7 +86,7 @@ sha256_file() {
     elif command -v shasum >/dev/null 2>&1; then
         shasum -a 256 "$1" | awk '{print $1}'
     else
-        echo "缺少 SHA256 校验命令: sha256sum 或 shasum"
+        echo "缺少文件安全检查信息 校验命令: sha256sum 或 shasum"
         exit 1
     fi
 }
@@ -101,7 +101,7 @@ download_one() {
     request_url="$(cache_busted_url "$url")"
     local max_bytes
     download_policy_url_allowed "$url" || {
-        echo "$label 下载地址不在受控来源清单中。"
+        echo "$label 下载地址不可信。"
         return 1
     }
     max_bytes="$(download_policy_max_bytes "$url")"
@@ -257,7 +257,7 @@ verify_package() {
     local actual
 
     if ! valid_sha256 "$expected"; then
-        echo "SHA256格式无效或校验文件中缺少 $PACKAGE_NAME"
+        echo "安装文件安全检查信息无效，请稍后重试。"
         return 1
     fi
 
@@ -362,7 +362,7 @@ download_verified_package() {
         fi
         source_status_record update-github fail "更新包或校验文件不可用" >/dev/null 2>&1 || true
 
-        echo "GitHub包或校验文件不可用，切换域名源。"
+        echo "更新下载失败，正在重新尝试。"
         if download_verified_package_from \
             "域名" "$DOMAIN_PACKAGE_URL" "$DOMAIN_CHECKSUM_URL" \
             "$package_file" "$checksum_file"; then
@@ -371,7 +371,7 @@ download_verified_package() {
             return 0
         fi
         source_status_record update-domain fail "更新包或校验文件不可用" >/dev/null 2>&1 || true
-        echo "域名源不可用，切换国内镜像备用源。"
+        echo "更新下载失败，正在重新尝试。"
         if download_verified_package_from \
             "国内镜像" "$GITEE_PACKAGE_URL" "$GITEE_CHECKSUM_URL" \
             "$package_file" "$checksum_file"; then
@@ -381,7 +381,7 @@ download_verified_package() {
         fi
         source_status_record update-gitee fail "更新包或校验文件不可用" >/dev/null 2>&1 || true
 
-        echo "更新包验证失败：GitHub、域名源和国内镜像均不可用。旧版本不会被覆盖。"
+        echo "未能下载可用的更新文件，请稍后重试。现有版本已保留。"
         return 1
     fi
 
@@ -394,7 +394,7 @@ download_verified_package() {
     fi
     source_status_record update-gitee fail "更新包或校验文件不可用" >/dev/null 2>&1 || true
 
-    echo "国内镜像包或校验文件不可用，切换域名源。"
+    echo "更新下载失败，正在重新尝试。"
     if download_verified_package_from \
         "域名" "$DOMAIN_PACKAGE_URL" "$DOMAIN_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
@@ -404,7 +404,7 @@ download_verified_package() {
     fi
     source_status_record update-domain fail "更新包或校验文件不可用" >/dev/null 2>&1 || true
 
-    echo "域名源不可用，切换GitHub备用源。"
+    echo "更新下载失败，正在重新尝试。"
     if download_verified_package_from \
         "GitHub" "$GITHUB_PACKAGE_URL" "$GITHUB_CHECKSUM_URL" \
         "$package_file" "$checksum_file"; then
@@ -414,7 +414,7 @@ download_verified_package() {
     fi
     source_status_record update-github fail "更新包或校验文件不可用" >/dev/null 2>&1 || true
 
-    echo "更新包验证失败：国内镜像、域名源和GitHub均不可用。旧版本不会被覆盖。"
+    echo "未能下载可用的更新文件，请稍后重试。现有版本已保留。"
     return 1
 }
 
@@ -457,7 +457,7 @@ download_version_with_fallback() {
     done
 
     if [ -z "$best" ]; then
-        echo "版本检测失败：国内镜像、GitHub 和域名源均不可用。旧版本不会被覆盖。"
+        echo "暂时无法检查新版本，请稍后重试。现有版本已保留。"
         return 1
     fi
 

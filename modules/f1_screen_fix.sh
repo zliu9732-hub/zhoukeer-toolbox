@@ -97,7 +97,7 @@ f1_status() {
         echo "飞行家 F1 屏幕方向修复：已安装。"
         if systemctl --user show gamescope-session.service -p ExecStart --value 2>/dev/null | \
             grep -Fq "$F1_SESSION_WRAPPER"; then
-            echo "systemd override：已生效。"
+            echo "屏幕启动设置：已生效。"
         else
             echo "注意：文件存在，但 systemd 当前未确认 override；重启或重新登录后应生效。"
         fi

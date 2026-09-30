@@ -139,7 +139,7 @@ grep -Fq 'swapoff' "$SWAP_LOG" || fail "运行中的Renkit独立 swap 未停用"
 grep -Fq 'disable fallback.swap' "$SYSTEMCTL_LOG" || fail "独立 swap 单元未禁用"
 grep -Fq 'disable main.swap' "$SYSTEMCTL_LOG" || fail "主 swap Renkit单元未禁用"
 grep -Fq 'daemon-reload' "$SYSTEMCTL_LOG" || fail "删除单元后未刷新 systemd"
-grep -Fq '系统原 swap 已保留' "$TMP_ROOT/restore.output" || fail "撤销成功提示不明确"
+grep -Fq '系统原 虚拟内存 已保留' "$TMP_ROOT/restore.output" || fail "撤销成功提示不明确"
 
 # 重复撤销应保持成功，不能触碰系统原 swap。
 FALLBACK_ACTIVE=0
@@ -190,7 +190,7 @@ if memory_restore_toolbox > "$TMP_ROOT/disable-fail.output" 2>&1; then
 fi
 [ -f "$MEMORY_FALLBACK_SWAPFILE_PATH" ] || fail "停用单元失败后删除了独立 swap"
 [ -f "$ZHOUKEER_SYSTEMD_DIR/fallback.swap" ] || fail "停用单元失败后删除了独立 swap 单元"
-grep -Fq '无法停用Renkit swap 开机配置' "$TMP_ROOT/disable-fail.output" || \
+grep -Fq '无法停用Renkit 虚拟内存 开机配置' "$TMP_ROOT/disable-fail.output" || \
     fail "开机单元停用失败仍没有明确提示"
 
 # rm 首次被文件保护拒绝时，应尝试解除 immutable 并重试删除。
@@ -205,6 +205,6 @@ memory_restore_toolbox > "$TMP_ROOT/protected-rm.output" || \
 [ ! -e "$MEMORY_FALLBACK_SWAPFILE_PATH" ] || fail "解除保护后Renkit独立 swap 仍未删除"
 [ -f "$MEMORY_SWAPFILE_PATH" ] || fail "只读保护重试场景删除了系统原 swap"
 grep -Fq -- '-i --' "$CHATTR_LOG" || fail "删除失败后没有尝试解除不可变保护"
-grep -Fq '系统原 swap 已保留' "$TMP_ROOT/protected-rm.output" || fail "重试成功缺少完成提示"
+grep -Fq '系统原 虚拟内存 已保留' "$TMP_ROOT/protected-rm.output" || fail "重试成功缺少完成提示"
 
 echo "PASS: Renkit虚拟内存撤销、原 swap 保留、幂等与失败回滚模拟通过"

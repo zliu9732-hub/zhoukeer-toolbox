@@ -242,13 +242,13 @@ _gitee_mirror_download_one() {
 }
 
 download_gitee_mirror_file() {
-    local id="$1" output="$2" expected_sha256="${3:-}" name="${4:-镜像文件}"
+    local id="$1" output="$2" expected_sha256="${3:-}" name="${4:-安装文件}"
     local manifest manifest_file base_url file_url temp_file temp_dir part_name part_file
     local actual_sha256 index actual_size
     local GITEE_MIRROR_LABEL="$name"
 
     gitee_mirror_id_is_valid "$id" || {
-        echo "$name 镜像标识无效。"
+        echo "$name 下载信息无效。"
         return 1
     }
     manifest_file="$(mktemp 2>/dev/null)" || {
@@ -257,7 +257,7 @@ download_gitee_mirror_file() {
     }
     if ! download_gitee_mirror_manifest "$id" "$manifest_file"; then
         rm -f -- "$manifest_file"
-        echo "$name 镜像清单不可用，切换备用源。"
+        echo "$name 暂时无法获取下载信息，正在重新尝试。"
         return 1
     fi
     rm -f -- "$manifest_file"
@@ -266,15 +266,15 @@ download_gitee_mirror_file() {
         expected_sha256="$(printf '%s' "$expected_sha256" | tr '[:upper:]' '[:lower:]')"
         actual_sha256="$(printf '%s' "$_GITEE_MIRROR_SHA256" | tr '[:upper:]' '[:lower:]')"
         if [ "$actual_sha256" != "$expected_sha256" ]; then
-            echo "$name 镜像清单校验值与当前固定版本不一致，切换备用源。"
+            echo "$name 安装文件版本不匹配，正在重新尝试。"
             return 1
         fi
     fi
     case "$_GITEE_MIRROR_VERSION" in
-        ''|*'/'*|*'..'*) echo "$name 镜像版本路径不安全。"; return 1 ;;
+        ''|*'/'*|*'..'*) echo "$name 下载地址异常，已停止。"; return 1 ;;
     esac
     case "$_GITEE_MIRROR_FILE" in
-        ''|*'/'*|*'..'*) echo "$name 镜像文件名不安全。"; return 1 ;;
+        ''|*'/'*|*'..'*) echo "$name 下载文件名称异常，已停止。"; return 1 ;;
     esac
 
     base_url="$(gitee_mirror_raw_base "$(gitee_mirror_manifest_repo "$id")")/$id/$_GITEE_MIRROR_VERSION"
@@ -286,14 +286,14 @@ download_gitee_mirror_file() {
 
     if [ "$_GITEE_MIRROR_CHUNKS" = "0" ]; then
         if [ "$_GITEE_MIRROR_SIZE" -gt "$GITEE_MIRROR_DIRECT_MAX_BYTES" ]; then
-            echo "$name 镜像清单把小文件标记为直接文件，但体积超限。"
+            echo "$name 下载文件大小异常，已停止。"
             return 1
         fi
         file_url="$base_url/$_GITEE_MIRROR_FILE"
         if ! _gitee_mirror_download_one "$file_url" "$temp_file" \
             "$_GITEE_MIRROR_SIZE"; then
             rm -f -- "$temp_file"
-            echo "$name 镜像下载失败，切换备用源。"
+            echo "$name 下载失败，正在重新尝试。"
             return 1
         fi
     else
@@ -321,7 +321,7 @@ download_gitee_mirror_file() {
                 "$_GITEE_MIRROR_CHUNKS"; then
                 rm -rf -- "$temp_dir"
                 rm -f -- "$temp_file"
-                echo "$name 镜像下载失败，切换备用源。"
+                echo "$name 下载失败，正在重新尝试。"
                 return 1
             fi
             index=$((index + 1))
@@ -342,17 +342,17 @@ download_gitee_mirror_file() {
     actual_size="$(wc -c < "$temp_file" | tr -d ' ')"
     if [ "$actual_size" != "$_GITEE_MIRROR_SIZE" ]; then
         rm -f -- "$temp_file"
-        echo "$name 镜像大小校验失败，切换备用源。"
+        echo "$name 下载文件不完整，正在重新尝试。"
         return 1
     fi
     actual_sha256="$(_gitee_mirror_sha256 "$temp_file")" || {
         rm -f -- "$temp_file"
-        echo "$name 缺少 SHA256 校验工具。"
+        echo "$name 缺少检查下载文件所需的组件。"
         return 1
     }
     if [ "$actual_sha256" != "$(printf '%s' "$_GITEE_MIRROR_SHA256" | tr '[:upper:]' '[:lower:]')" ]; then
         rm -f -- "$temp_file"
-        echo "$name 镜像 SHA256 校验失败，切换备用源。"
+        echo "$name 文件检查未通过，正在重新尝试。"
         return 1
     fi
     if ! mv -f -- "$temp_file" "$output"; then
@@ -367,14 +367,14 @@ download_gitee_mirror_file() {
 }
 
 resolve_latest_gitee_mirror() {
-    local id="$1" asset_pattern="$2" name="${3:-镜像}"
+    local id="$1" asset_pattern="$2" name="${3:-安装文件}"
     local manifest_file base_url
 
     gitee_mirror_id_is_valid "$id" || return 1
     manifest_file="$(mktemp 2>/dev/null)" || return 1
     if ! download_gitee_mirror_manifest "$id" "$manifest_file"; then
         rm -f -- "$manifest_file"
-        echo "$name 镜像清单不可用，改用 GitHub 检测最新版本。"
+        echo "$name 暂时无法获取下载信息，继续检查新版本。"
         return 1
     fi
     rm -f -- "$manifest_file"
@@ -385,7 +385,7 @@ resolve_latest_gitee_mirror() {
         ''|*'/'*|*'..'*) return 1 ;;
     esac
     if [[ ! "$_GITEE_MIRROR_FILE" =~ $asset_pattern ]]; then
-        echo "$name 镜像清单中的文件不匹配版本规则。"
+        echo "$name 安装文件版本不匹配，已停止。"
         return 1
     fi
     _GITEE_MIRROR_LATEST_VERSION="$_GITEE_MIRROR_VERSION"
@@ -397,7 +397,7 @@ resolve_latest_gitee_mirror() {
         base_url="$(gitee_mirror_raw_base "$(gitee_mirror_manifest_repo "$id")")/$id/$_GITEE_MIRROR_VERSION"
         _GITEE_MIRROR_LATEST_URL="$base_url/$_GITEE_MIRROR_FILE"
     fi
-    echo "$name 镜像最新版本: $_GITEE_MIRROR_LATEST_VERSION"
+    echo "$name 最新版本：$_GITEE_MIRROR_LATEST_VERSION"
 }
 
 download_with_gitee_mirror_fallback() {

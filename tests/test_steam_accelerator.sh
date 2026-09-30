@@ -563,7 +563,7 @@ fi
 [ -f "$TARGET/old-version.txt" ] || fail "SHA256 错误破坏了旧版本"
 [ "$(sed -n '1p' "$TARGET/.zhoukeer-version")" = "13.0.00" ] || \
     fail "SHA256 错误替换了旧版本标记"
-grep -Fq 'SHA256 校验失败' "$STATE_DIR/bad-sha.output" || \
+grep -Fq '检查未通过' "$STATE_DIR/bad-sha.output" || \
     fail "SHA256 错误提示不明确"
 assert_no_staging_leftovers
 
@@ -572,7 +572,7 @@ if HASH_MODE=bad_md5 run_module install > "$STATE_DIR/bad-md5.output" 2>&1; then
     fail "MD5 错误时安装仍成功"
 fi
 [ -f "$TARGET/old-version.txt" ] || fail "MD5 错误破坏了旧版本"
-grep -Fq 'MD5 校验失败' "$STATE_DIR/bad-md5.output" || fail "MD5 错误提示不明确"
+grep -Fq '检查未通过' "$STATE_DIR/bad-md5.output" || fail "MD5 错误提示不明确"
 assert_no_staging_leftovers
 
 # 解压失败时同样保留旧版本。

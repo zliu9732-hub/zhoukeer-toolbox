@@ -63,8 +63,8 @@ DECKY_OFFICIAL_PLUGIN_NAMES=(
 DECKY_OFFICIAL_PLUGIN_DESCRIPTIONS=(
     "自定义界面样式" "调整界面配色" "更换开机动画" "更换系统音效" "自动补游戏封面"
     "性能与功耗控制" "清理游戏缓存" "自动更新应用" "管理蓝牙设备"
-    "更多 Deck 设置" "显示通关时长" "记录游玩次数" "整理游戏库标签"
-    "管理 Wine 与 Proton" "后台自动暂停游戏" "手柄辅助工具" "分应用调节音量" "查看电池状态"
+    "更多掌机设置" "显示通关时长" "记录游玩次数" "整理游戏库标签"
+    "管理 Windows 游戏运行工具" "后台自动暂停游戏" "手柄辅助工具" "分应用调节音量" "查看电池状态"
     "记录游戏时长" "下载功能扩展" "USB 文件传输" "优化 Steam 界面"
 )
 DECKY_TOUCH_PAGE_SIZE=5
@@ -258,11 +258,11 @@ common_software_menu() {
         ui_touch_button 6 '\033[1;97;48;5;24m' "Firefox 浏览器"
         ui_touch_button 8 '\033[1;97;48;5;24m' "Chrome 浏览器"
         ui_touch_button 10 '\033[1;97;48;5;24m' "Edge 浏览器"
-        ui_touch_button 12 '\033[1;97;48;5;24m' "RustDesk 远程协助" "安装开源远程工具"
+        ui_touch_button 12 '\033[1;97;48;5;24m' "RustDesk 远程协助" "远程操作机器，协助解决问题"
         ui_touch_button 14 '\033[1;97;48;5;24m' "ToDesk 远程协助" "安装前需完成系统设置"
-        ui_touch_button 16 '\033[1;97;48;5;24m' "Windows 软件工具" "安装 Bottles 运行工具"
-        ui_touch_button 18 '\033[1;97;48;5;24m' "游戏兼容设置" "安装 Protontricks"
-        ui_touch_button 20 '\033[1;97;48;5;24m' "AnyDesk 远程协助" "Flathub 国内镜像安装"
+        ui_touch_button 16 '\033[1;97;48;5;24m' "Windows 软件工具" "运行 Windows 软件和游戏"
+        ui_touch_button 18 '\033[1;97;48;5;24m' "游戏兼容设置" "安装游戏修复工具（Protontricks）"
+        ui_touch_button 20 '\033[1;97;48;5;24m' "AnyDesk 远程协助" "远程操作机器，协助解决问题"
         ui_touch_button 22 '\033[1;97;48;5;238m' "更多常用软件" "百度网盘等更多工具"
         ui_prompt
         choice="$(read_touch_menu right:2-3:wechat right:4-5:qq right:6-7:browser right:8-9:chrome right:10-11:edge right:12-13:rustdesk right:14-15:todesk right:16-17:bottles right:18-19:protontricks right:20-21:anydesk right:22-23:more)"
@@ -271,16 +271,16 @@ common_software_menu() {
         esac
 
         case "$choice" in
-            wechat) confirm_and_run "安装微信" "腾讯官网AppImage；失败时保留原有版本" bash "$PROJECT_ROOT/modules/software.sh" wechat ;;
-            qq) confirm_and_run "安装QQ" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" qq ;;
-            browser) confirm_and_run "安装 Firefox 浏览器" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" browser ;;
-            chrome) confirm_and_run "安装 Google Chrome" "Flathub 安装，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" chrome ;;
-            edge) confirm_and_run "安装 Microsoft Edge" "Flathub 安装，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" edge ;;
-            rustdesk) confirm_and_run "安装 RustDesk 远程协助" "从作者 GitHub Release 安装，不会修改服务器配置" bash "$PROJECT_ROOT/modules/software.sh" rustdesk ;;
+            wechat) confirm_and_run "安装微信" "聊天、语音通话和收发文件" bash "$PROJECT_ROOT/modules/software.sh" wechat ;;
+            qq) confirm_and_run "安装QQ" "聊天、群聊和收发文件" bash "$PROJECT_ROOT/modules/software.sh" qq ;;
+            browser) confirm_and_run "安装 Firefox 浏览器" "浏览网页、搜索资料和下载文件" bash "$PROJECT_ROOT/modules/software.sh" browser ;;
+            chrome) confirm_and_run "安装 Google Chrome" "浏览网页、搜索资料和下载文件" bash "$PROJECT_ROOT/modules/software.sh" chrome ;;
+            edge) confirm_and_run "安装 Microsoft Edge" "浏览网页、搜索资料和下载文件" bash "$PROJECT_ROOT/modules/software.sh" edge ;;
+            rustdesk) confirm_and_run "安装 RustDesk 远程协助" "让别人远程操作这台机器，协助解决问题" bash "$PROJECT_ROOT/modules/software.sh" rustdesk ;;
             todesk) todesk_preflight software ;;
-            protontricks) confirm_and_run "安装 Protontricks" "修复与配置 Steam 游戏 Proton 环境" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
-            bottles) confirm_and_run "安装 Bottles" "独立运行第三方 Windows 应用与游戏" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
-            anydesk) confirm_and_run "安装 AnyDesk 远程协助" "通过 Flathub 国内镜像以当前用户身份安装" bash "$PROJECT_ROOT/modules/software.sh" anydesk ;;
+            protontricks) confirm_and_run "安装游戏修复工具（Protontricks）" "为打不开的 Windows 游戏补充所需组件" bash "$PROJECT_ROOT/modules/software.sh" protontricks ;;
+            bottles) confirm_and_run "安装 Bottles" "运行 Windows 软件和游戏" bash "$PROJECT_ROOT/modules/software.sh" bottles ;;
+            anydesk) confirm_and_run "安装 AnyDesk 远程协助" "让别人远程操作这台机器，协助解决问题" bash "$PROJECT_ROOT/modules/software.sh" anydesk ;;
             more) common_software_more_menu || return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "software" ] || return 0
@@ -298,11 +298,11 @@ common_software_more_menu() {
                 ui_touch_button 4 '\033[1;97;48;5;24m' "VLC 播放器" "本地视频与音频播放"
                 ui_touch_button 6 '\033[1;97;48;5;24m' "OBS Studio" "录屏、直播与视频采集"
                 ui_touch_button 8 '\033[1;97;48;5;24m' "LocalSend 局域网传文件" "手机与电脑免登录互传"
-                ui_touch_button 10 '\033[1;97;48;5;24m' "百度网盘" "Flathub 安装百度网盘 Linux 版"
+                ui_touch_button 10 '\033[1;97;48;5;24m' "百度网盘" "上传、下载和管理网盘文件"
                 ui_touch_button 12 '\033[1;97;48;5;24m' "PeaZip 压缩工具" "解压与压缩常用格式"
-                ui_touch_button 14 '\033[1;97;48;5;24m' "WiliWili" "Flathub 安装 WiliWili（B站客户端）"
-                ui_touch_button 16 '\033[1;97;48;5;24m' "中文输入法" "Flathub 安装 Fcitx5 及中文输入插件"
-                ui_touch_button 18 '\033[1;97;48;5;24m' "下一页" "音乐、下载与游戏串流"
+                ui_touch_button 14 '\033[1;97;48;5;24m' "WiliWili" "观看 B 站视频"
+                ui_touch_button 16 '\033[1;97;48;5;24m' "中文输入法" "用拼音等方式输入中文"
+                ui_touch_button 18 '\033[1;97;48;5;24m' "下一页" "音乐、下载与远程游玩游戏"
                 ui_touch_button 20 '\033[1;97;48;5;238m' "返回常用软件" "查看常用软件第一页"
                 ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
                 ui_prompt
@@ -310,22 +310,22 @@ common_software_more_menu() {
                 ;;
             1)
                 draw_category_frame software "更多常用软件" "音乐、下载与云游戏 · 第 2/3 页"
-                ui_touch_button 2 '\033[1;97;48;5;24m' "Xbox 云游戏" "Flathub 安装 Greenlight，云游戏需 Xbox 账号"
-                ui_touch_button 4 '\033[1;97;48;5;24m' "QQ音乐" "Flathub 安装 QQ音乐"
-                ui_touch_button 6 '\033[1;97;48;5;24m' "网易云音乐" "Flathub 安装网易云音乐"
-                ui_touch_button 8 '\033[1;97;48;5;24m' "YesPlayMusic" "Flathub 安装第三方网易云音乐客户端"
+                ui_touch_button 2 '\033[1;97;48;5;24m' "Xbox 云游戏" "在线游玩 Xbox 游戏，需要账号及相应订阅"
+                ui_touch_button 4 '\033[1;97;48;5;24m' "QQ音乐" "听 QQ 音乐"
+                ui_touch_button 6 '\033[1;97;48;5;24m' "网易云音乐" "听网易云音乐"
+                ui_touch_button 8 '\033[1;97;48;5;24m' "YesPlayMusic" "用另一款播放器听网易云音乐"
                 ui_touch_button 10 '\033[1;97;48;5;24m' "qBittorrent" "BT 种子与磁力下载"
-                ui_touch_button 12 '\033[1;97;48;5;24m' "Motrix 下载器" "多协议下载管理"
+                ui_touch_button 12 '\033[1;97;48;5;24m' "Motrix 下载器" "管理文件下载任务"
                 ui_touch_button 14 '\033[1;97;48;5;24m' "Free Download Manager" "下载管理工具"
                 ui_touch_button 16 '\033[1;97;48;5;24m' "Media Downloader" "视频与媒体下载"
                 ui_touch_button 18 '\033[1;97;48;5;24m' "上一页" "办公与常用工具"
-                ui_touch_button 20 '\033[1;97;48;5;24m' "下一页" "截图、笔记与游戏串流"
+                ui_touch_button 20 '\033[1;97;48;5;24m' "下一页" "截图、笔记与远程游玩游戏"
                 ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
                 ui_prompt
                 choice="$(read_touch_menu right:2-3:xbox-cloud right:4-5:qqmusic right:6-7:netease-music right:8-9:yesplaymusic right:10-11:qbittorrent right:12-13:motrix right:14-15:freedownloadmanager right:16-17:media-downloader right:18-19:previous right:20-21:next right:22-23:home)"
                 ;;
             *)
-                draw_category_frame software "更多常用软件" "截图、办公、笔记与游戏串流 · 第 3/3 页"
+                draw_category_frame software "更多常用软件" "截图、办公、笔记与远程游玩游戏 · 第 3/3 页"
                 ui_touch_button 2 '\033[1;97;48;5;24m' "Flameshot 截图" "截图与标注"
                 ui_touch_button 4 '\033[1;97;48;5;24m' "OnlyOffice 办公套件" "兼容 Office 文档"
                 ui_touch_button 6 '\033[1;97;48;5;24m' "Joplin 笔记" "笔记与待办管理"
@@ -333,7 +333,7 @@ common_software_more_menu() {
                 ui_touch_button 10 '\033[1;97;48;5;24m' "Lutris" "多平台游戏管理"
                 ui_touch_button 12 '\033[1;97;48;5;24m' "Chiaki4Deck（PS5串流）" "PS5 远程串流"
                 ui_touch_button 14 '\033[1;97;48;5;24m' "Parsec" "远程串流与协作"
-                ui_touch_button 16 '\033[1;97;48;5;24m' "Sunshine 串流服务端" "Moonlight 串流主机 · 需配置输入权限"
+                ui_touch_button 16 '\033[1;97;48;5;24m' "Sunshine 游戏画面共享" "把游戏画面传到其他设备 · 需要管理员权限"
                 ui_touch_button 18 '\033[1;97;48;5;24m' "上一页" "音乐与下载工具"
                 ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
                 ui_prompt
@@ -344,30 +344,30 @@ common_software_more_menu() {
             nav-*) apply_navigation "$choice"; return 0 ;;
         esac
         case "$choice" in
-            libreoffice) confirm_and_run "安装 LibreOffice 办公套件" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" libreoffice ;;
-            vlc) confirm_and_run "安装 VLC 播放器" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" vlc ;;
-            obs) confirm_and_run "安装 OBS Studio" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" obs ;;
-            localsend) confirm_and_run "安装 LocalSend 局域网传文件" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" localsend ;;
-            baidunetdisk) confirm_and_run "安装百度网盘" "Flathub 安装百度网盘 Linux 版，通过国内镜像加速" bash "$PROJECT_ROOT/modules/software.sh" baidunetdisk ;;
-            peazip) confirm_and_run "安装 PeaZip 压缩工具" "通过上海交大与中科大 Flathub 国内缓存安装" bash "$PROJECT_ROOT/modules/software.sh" peazip ;;
-            willwill) confirm_and_run "安装 WiliWili" "Flathub 安装 WiliWili（B站客户端），完成后加入 Steam 库" bash "$PROJECT_ROOT/modules/software.sh" willwill ;;
-            fcitx5) confirm_and_run "安装中文输入法" "通过 Flathub 国内缓存安装 Fcitx5 及中文输入插件" bash "$PROJECT_ROOT/modules/software.sh" fcitx5 ;;
-            xbox-cloud) confirm_and_run "安装 Xbox 云游戏" "通过 Flathub 安装 Greenlight，云游戏需 Xbox 账号" bash "$PROJECT_ROOT/modules/software.sh" xbox-cloud ;;
-            qqmusic) confirm_and_run "安装 QQ音乐" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" qqmusic ;;
-            netease-music) confirm_and_run "安装网易云音乐" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" netease-music ;;
-            yesplaymusic) confirm_and_run "安装 YesPlayMusic" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" yesplaymusic ;;
-            qbittorrent) confirm_and_run "安装 qBittorrent" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" qbittorrent ;;
-            motrix) confirm_and_run "安装 Motrix 下载器" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" motrix ;;
-            freedownloadmanager) confirm_and_run "安装 Free Download Manager" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" freedownloadmanager ;;
-            media-downloader) confirm_and_run "安装 Media Downloader" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" media-downloader ;;
-            flameshot) confirm_and_run "安装 Flameshot 截图" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" flameshot ;;
-            onlyoffice) confirm_and_run "安装 OnlyOffice 办公套件" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" onlyoffice ;;
-            joplin) confirm_and_run "安装 Joplin 笔记" "通过 Flathub 国内缓存安装，自动创建桌面图标" bash "$PROJECT_ROOT/modules/software.sh" joplin ;;
-            heroic) confirm_and_run "安装 Heroic 游戏启动器" "通过 Flathub 国内缓存安装，完成后加入 Steam 库" bash "$PROJECT_ROOT/modules/software.sh" heroic ;;
-            lutris) confirm_and_run "安装 Lutris" "通过 Flathub 国内缓存安装，完成后加入 Steam 库" bash "$PROJECT_ROOT/modules/software.sh" lutris ;;
-            chiaki4deck) confirm_and_run "安装 Chiaki4Deck（PS5串流）" "通过 Flathub 国内缓存安装，完成后加入 Steam 库" bash "$PROJECT_ROOT/modules/software.sh" chiaki4deck ;;
-            parsec) confirm_and_run "安装 Parsec" "通过 Flathub 国内缓存安装，完成后加入 Steam 库" bash "$PROJECT_ROOT/modules/software.sh" parsec ;;
-            sunshine) confirm_and_run "安装 Sunshine 串流服务端" "通过 Flathub 国内缓存安装；随后读取官方包内规则，并使用桌面管理员密码记录自动配置输入权限，不重复弹窗" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" sunshine ;;
+            libreoffice) confirm_and_run "安装 LibreOffice 办公套件" "编辑文档、表格和演示文稿" bash "$PROJECT_ROOT/modules/software.sh" libreoffice ;;
+            vlc) confirm_and_run "安装 VLC 播放器" "播放视频和音乐" bash "$PROJECT_ROOT/modules/software.sh" vlc ;;
+            obs) confirm_and_run "安装 OBS Studio" "录制屏幕和直播" bash "$PROJECT_ROOT/modules/software.sh" obs ;;
+            localsend) confirm_and_run "安装 LocalSend 局域网传文件" "在同一 Wi-Fi 下与手机、电脑互传文件" bash "$PROJECT_ROOT/modules/software.sh" localsend ;;
+            baidunetdisk) confirm_and_run "安装百度网盘" "上传、下载和管理百度网盘文件" bash "$PROJECT_ROOT/modules/software.sh" baidunetdisk ;;
+            peazip) confirm_and_run "安装 PeaZip 压缩工具" "压缩和解压文件" bash "$PROJECT_ROOT/modules/software.sh" peazip ;;
+            willwill) confirm_and_run "安装 WiliWili" "观看 B 站视频，安装后可从 Steam 打开" bash "$PROJECT_ROOT/modules/software.sh" willwill ;;
+            fcitx5) confirm_and_run "安装中文输入法" "用拼音等方式输入中文" bash "$PROJECT_ROOT/modules/software.sh" fcitx5 ;;
+            xbox-cloud) confirm_and_run "安装 Xbox 云游戏" "在线游玩 Xbox 游戏，需要 Xbox 账号及相应订阅" bash "$PROJECT_ROOT/modules/software.sh" xbox-cloud ;;
+            qqmusic) confirm_and_run "安装 QQ音乐" "听 QQ 音乐" bash "$PROJECT_ROOT/modules/software.sh" qqmusic ;;
+            netease-music) confirm_and_run "安装网易云音乐" "听网易云音乐" bash "$PROJECT_ROOT/modules/software.sh" netease-music ;;
+            yesplaymusic) confirm_and_run "安装 YesPlayMusic" "用另一款播放器听网易云音乐" bash "$PROJECT_ROOT/modules/software.sh" yesplaymusic ;;
+            qbittorrent) confirm_and_run "安装 qBittorrent" "下载种子文件和磁力链接" bash "$PROJECT_ROOT/modules/software.sh" qbittorrent ;;
+            motrix) confirm_and_run "安装 Motrix 下载器" "管理下载任务，支持种子和磁力链接" bash "$PROJECT_ROOT/modules/software.sh" motrix ;;
+            freedownloadmanager) confirm_and_run "安装 Free Download Manager" "管理下载任务" bash "$PROJECT_ROOT/modules/software.sh" freedownloadmanager ;;
+            media-downloader) confirm_and_run "安装 Media Downloader" "下载视频和音频" bash "$PROJECT_ROOT/modules/software.sh" media-downloader ;;
+            flameshot) confirm_and_run "安装 Flameshot 截图" "截图、画箭头和添加文字" bash "$PROJECT_ROOT/modules/software.sh" flameshot ;;
+            onlyoffice) confirm_and_run "安装 OnlyOffice 办公套件" "编辑 Office 文档、表格和演示文稿" bash "$PROJECT_ROOT/modules/software.sh" onlyoffice ;;
+            joplin) confirm_and_run "安装 Joplin 笔记" "记录笔记和待办事项" bash "$PROJECT_ROOT/modules/software.sh" joplin ;;
+            heroic) confirm_and_run "安装 Heroic 游戏启动器" "安装和管理 Epic、GOG 游戏，安装后可从 Steam 打开" bash "$PROJECT_ROOT/modules/software.sh" heroic ;;
+            lutris) confirm_and_run "安装 Lutris" "集中安装和管理多个平台的游戏" bash "$PROJECT_ROOT/modules/software.sh" lutris ;;
+            chiaki4deck) confirm_and_run "安装 Chiaki4Deck（PS5串流）" "在掌机上远程游玩自己的 PS5 游戏" bash "$PROJECT_ROOT/modules/software.sh" chiaki4deck ;;
+            parsec) confirm_and_run "安装 Parsec" "远程游玩电脑游戏" bash "$PROJECT_ROOT/modules/software.sh" parsec ;;
+            sunshine) confirm_and_run "安装 Sunshine 游戏画面共享" "把这台机器的画面传到其他设备游玩；会使用管理员权限配置手柄和键鼠控制" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" sunshine ;;
             next) page=$((page + 1)); [ "$page" -le 2 ] || page=2 ;;
             previous) page=$((page - 1)); [ "$page" -ge 0 ] || page=0 ;;
             back) return 0 ;;
@@ -381,7 +381,7 @@ remote_assistance_menu() {
 
     while true; do
         draw_category_frame remote "远程协助" "安装完成后会自动在桌面创建启动图标"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "下载 RustDesk" "作者 GitHub Release；无需系统权限"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "下载 RustDesk" "远程操作机器，协助解决问题"
         ui_touch_button 11 '\033[1;97;48;5;24m' "查看设置步骤并安装 ToDesk" "需先开启开发者模式和旧版 X11 桌面模式"
         ui_touch_button 21 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -389,7 +389,7 @@ remote_assistance_menu() {
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            rustdesk) confirm_and_run "下载 RustDesk" "从作者 GitHub Release 安装，不会写入或修改你的 RustDesk 服务器配置" bash "$PROJECT_ROOT/modules/software.sh" rustdesk ;;
+            rustdesk) confirm_and_run "下载 RustDesk" "让别人远程操作这台机器，协助解决问题" bash "$PROJECT_ROOT/modules/software.sh" rustdesk ;;
             todesk) todesk_preflight remote ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -405,7 +405,7 @@ todesk_preflight() {
     [ "$return_target" != "remote" ] || return_label="返回远程协助"
 
     while true; do
-        draw_category_frame advanced "安装 ToDesk" "会修改 SteamOS 只读系统 · 高级操作"
+        draw_category_frame advanced "安装 ToDesk" "需要管理员权限，会临时关闭系统保护"
         ui_panel_line 7 '\033[1;38;5;220m' "① 按 Steam 键 → 设置 → 系统"
         ui_panel_line 9 '\033[1;38;5;45m' "② 开启“启用开发者模式”"
         ui_panel_line 11 '\033[1;38;5;45m' "③ 设置侧栏进入“开发者” → 找到“杂项”"
@@ -450,13 +450,13 @@ new_machine_preflight() {
     local choice
 
     while true; do
-        draw_category_frame init "新机初始化" "系统组件可选跳过，再安装常用软件并初始化国内源"
+        draw_category_frame init "新机初始化" "按需更新系统，再安装常用软件并设置下载加速"
         ui_panel_line 7 '\033[1;38;5;220m' "① Steam 键 → 设置 → 启用开发者模式"
         ui_panel_line 9 '\033[1;38;5;45m' "② 设置左侧出现“开发者”后 → 开发者 → 杂项"
         ui_panel_line 11 '\033[1;38;5;220m' "③ 开启“CEF 远程调试”（Decky 插件商城）"
         ui_panel_line 13 '\033[1;38;5;45m' "④ 重新进入桌面模式，再开始初始化"
         ui_panel_line 15 '\033[1;38;5;45m' "继续后会询问是否跳过系统组件更新，并安装软件、插件、MAKO 小黄鸭和 Epic"
-        ui_panel_line 16 '\033[1;38;5;45m' "修改器兼容层仅安装 GE-Proton 10-29；其他版本可在兼容层菜单安装"
+        ui_panel_line 16 '\033[1;38;5;45m' "自动准备修改器常用运行工具，其他版本可单独安装"
         ui_panel_line 17 '\033[1;38;5;45m' "Epic 与 FreeDeck 默认安装；战网、育碧、黑盒工坊按需选择"
         ui_touch_button 18 '\033[1;30;48;5;114m' "设置已完成，开始新机初始化" "点击即确认已开启开发者模式和 CEF 远程调试"
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回新机必备" "暂不初始化"
@@ -505,7 +505,7 @@ clean_touch_menu() {
         draw_category_frame optimize "系统清理" "只处理可重建的缓存，不删除游戏和个人文件"
         ui_touch_button 8 '\033[1;97;48;5;24m' "清理 Steam 下载残留" "释放未完成下载占用的空间"
         ui_touch_button 11 '\033[1;97;48;5;24m' "清理 Steam 着色器缓存" "下次运行游戏时会自动重建"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "清理 Linux 用户缓存" "不触碰 SteamOS 只读系统分区"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "清理 应用临时文件" "不触碰 SteamOS 只读系统分区"
         ui_touch_button 17 '\033[1;97;48;5;238m' "返回系统优化" "查看其他优化功能"
         ui_prompt
         choice="$(read_touch_menu right:8-9:download-cache right:11-12:shader-cache right:14-15:user-cache right:17-18:back)"
@@ -525,14 +525,14 @@ game_environment_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "游戏与插件｜插件商城" "浏览插件商城、运行组件和启动器" 0
-        ui_touch_button 5 '\033[1;97;48;5;160m' "安装插件商城" "稳定版国内失败自动切换官方源 · 可选测试版 · 高级操作"
+        draw_category_frame games "游戏与插件｜插件商城" "给游戏增加功能，安装其他平台的游戏" 0
+        ui_touch_button 5 '\033[1;97;48;5;160m' "安装插件商城" "给游戏模式增加插件功能 · 需要管理员权限"
         ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭、FSR4、MAKO、Fantastic等九款插件"
         ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
         ui_touch_button 11 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "小黄鸭" "插帧神器（必装）·旧版汉化或 MAKO 官方最新版"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "FSR4" "画质补丁（阅读桌面文档慎用）·汉化：RenAmamiya"
-        ui_touch_button 17 '\033[1;97;48;5;24m' "Freedeck 版本选择" "0.6 稳定版或 NewFreedeck 重构版"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "小黄鸭" "让游戏画面更流畅·按需选择版本"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "FSR4" "改善支持游戏的画面·请先阅读使用说明"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "Freedeck 版本选择" "下载和管理游戏，按需选择版本"
         ui_touch_button 19 '\033[1;97;48;5;24m' "其余常用插件" "封面、主题、Fantastic等插件单独安装"
         ui_touch_button 21 '\033[1;97;48;5;238m' "下一页…" "查看剩余插件"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -544,9 +544,9 @@ game_environment_menu() {
             decky-install) NEXT_CATEGORY="decky_loader"; return 0 ;;
             features) confirm_and_run "安装常用插件组合" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；未安装插件商城时会先安装插件商城，再继续安装九款常用插件（含 MAKO）；Fantastic 会覆盖默认风扇曲线；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
             browse) plugin_official_touch_pages ;;
-            cheatdeck) confirm_and_run "安装 CheatDeck" "风灵月影修改器和启动项启动插件；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
+            cheatdeck) confirm_and_run "安装 CheatDeck" "在游戏启动时同时打开修改器或其他辅助程序" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             lsfg) NEXT_CATEGORY="lsfg_versions"; return 0 ;;
-            fsr4) confirm_and_run "安装 FSR4" "画质补丁（阅读桌面文档慎用）·仅从国内镜像安装署名完整包；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
+            fsr4) confirm_and_run "安装 FSR4" "改善支持游戏的画面；请先阅读桌面上的使用说明；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             freedeck) NEXT_CATEGORY="freedeck_versions"; return 0 ;;
             feature-singles) feature_plugin_singles_menu ;;
             next) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
@@ -561,9 +561,9 @@ feature_plugin_singles_menu() {
 
     while true; do
         draw_category_frame games "其余常用插件" "组合安装中的五款插件也可分别安装" 0
-        ui_touch_button 5 '\033[1;97;48;5;24m' "游戏封面更换" "SteamGridDB · 国内镜像优先"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "主题美化" "CSS Loader 中文版 · 国内镜像优先"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "文件传输助手" "Friendeck · 国内镜像优先"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "游戏封面更换" "更换 Steam 游戏封面"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "主题美化" "更换游戏模式的界面主题和样式"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "文件传输助手" "在掌机和其他设备之间传文件"
         ui_touch_button 14 '\033[1;97;48;5;24m' "音乐播放器" "Decky Music v1.0.2 完整包 · 音乐源已内置"
         ui_touch_button 17 '\033[1;97;48;5;160m' "Fantastic 风扇控制" "完整汉化版 · 汉化：RenAmamiya · 注意温度"
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回插件列表" "不进行安装"
@@ -572,10 +572,10 @@ feature_plugin_singles_menu() {
         choice="$(read_touch_menu right:5-6:steamgriddb right:8-9:cssloader right:11-12:friendeck right:14-15:deckymusic right:17-18:fantastic right:20-21:back right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
-            steamgriddb) confirm_and_run "安装游戏封面更换" "安装 SteamGridDB；国内镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
-            cssloader) confirm_and_run "安装主题美化" "安装 CSS Loader 中文版；国内镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
-            friendeck) confirm_and_run "安装文件传输助手" "安装 Friendeck；国内镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
-            deckymusic) confirm_and_run "安装音乐播放器" "安装 Decky Music v1.0.2 完整包；播放器和 QQ/网易云音乐源已内置，使用国内镜像并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
+            steamgriddb) confirm_and_run "安装游戏封面更换" "更换 Steam 游戏封面" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
+            cssloader) confirm_and_run "安装主题美化" "更换游戏模式的界面主题和样式" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
+            friendeck) confirm_and_run "安装文件传输助手" "在掌机和其他设备之间传文件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
+            deckymusic) confirm_and_run "安装音乐播放器" "在游戏模式听音乐，支持 QQ 音乐和网易云音乐" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
             fantastic) confirm_and_run "安装 Fantastic 风扇控制" "高风险：Fantastic 会覆盖 SteamOS 默认风扇曲线，过低转速可能导致设备过热；仅适用于 Steam Deck。将直接安装带 RenAmamiya 署名的完整汉化包" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fantastic ;;
             back) return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
@@ -590,7 +590,7 @@ lsfg_versions_menu() {
         draw_category_frame games "小黄鸭版本选择" "1.0 稳定汉化 · 2.0 新版中文 · MAKO 官方最新版" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "小黄鸭 1.0" "v0.12.8 汉化版·稳定"
         ui_touch_button 8 '\033[1;97;48;5;24m' "小黄鸭 2.0" "仅正版小黄鸭用户用·替代 1.0 小黄鸭·可与 MAKO 共存"
-        ui_touch_button 11 '\033[1;97;48;5;160m' "MAKO 小黄鸭" "跟随上游最新版 · 官方简体中文"
+        ui_touch_button 11 '\033[1;97;48;5;160m' "MAKO 小黄鸭" "让游戏画面更流畅 · 自动检查新版本 · 中文界面"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -598,15 +598,15 @@ lsfg_versions_menu() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             stable)
-                confirm_and_run "安装小黄鸭 1.0" "v0.12.8 汉化版；仅从国内镜像安装署名完整包；汉化：RenAmamiya" \
+                confirm_and_run "安装小黄鸭 1.0" "让游戏画面更流畅；需要正版小黄鸭；汉化：RenAmamiya" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                 ;;
             v2)
-                confirm_and_run "安装小黄鸭 2.0" "仅正版小黄鸭用户用；替代 1.0 小黄鸭，可与 MAKO 共存；仅从国内镜像安装完整包并校验 SHA256" \
+                confirm_and_run "安装小黄鸭 2.0" "让游戏画面更流畅；仅供正版小黄鸭用户使用，可与 MAKO 一起保留" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-v2
                 ;;
             mako)
-                confirm_and_run "安装或更新 MAKO 小黄鸭" "跟随 eugeniosegala/MAKO 最新正式版；优先从国内镜像下载，镜像尚未同步时回退作者 GitHub Release；全程校验作者 SHA256，保留作者与 GPL-3.0-or-later 许可证" \
+                confirm_and_run "安装或更新 MAKO 小黄鸭" "安装或更新 MAKO，让游戏画面更流畅；请按桌面使用说明完成设置" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako
                 ;;
             back) NEXT_CATEGORY="games"; return 0 ;;
@@ -620,9 +620,9 @@ freedeck_versions_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "Freedeck 版本选择" "稳定版与独立重构版" 0
+        draw_category_frame games "Freedeck 版本选择" "下载和管理游戏，按需选择版本" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "Freedeck 0.6 稳定版" "现有稳定版本·感谢作者b站一苇Isidf"
-        ui_touch_button 9 '\033[1;97;48;5;160m' "NewFreedeck" "重构版·自动检测最新版·个别模拟器仍不可用"
+        ui_touch_button 9 '\033[1;97;48;5;160m' "NewFreedeck" "自动更新到最新版·部分模拟器暂时无法使用"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -634,7 +634,7 @@ freedeck_versions_menu() {
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck
                 ;;
             new)
-                confirm_and_run "安装/更新 NewFreedeck" "自动检测作者最新版；上游注明个别模拟器仍不可用" \
+                confirm_and_run "安装/更新 NewFreedeck" "下载和管理游戏，自动更新到最新版；部分模拟器暂时无法使用" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" newfreedeck
                 ;;
             back) NEXT_CATEGORY="games"; return 0 ;;
@@ -648,9 +648,9 @@ decky_loader_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "安装插件商城｜Decky Loader" "稳定版适合正式系统 · 测试版只适合测试或预览系统 · 也可根据系统版本自动选择" 0
-        ui_touch_button 5 '\033[1;97;48;5;24m' "安装稳定版插件商城" "国内失败自动切换 Decky 官方 Release"
-        ui_touch_button 7 '\033[1;97;48;5;160m' "安装测试版插件商城" "仅用于 SteamOS 测试或预览通道 · 国内源优先"
+        draw_category_frame games "安装插件商城｜Decky Loader" "给游戏模式增加插件功能，可自动选择适合本机的版本" 0
+        ui_touch_button 5 '\033[1;97;48;5;24m' "安装稳定版插件商城" "适合使用正式版系统的玩家"
+        ui_touch_button 7 '\033[1;97;48;5;160m' "安装测试版插件商城" "仅适合测试版或预览版系统"
         ui_touch_button 9 '\033[1;97;48;5;24m' "根据系统版本安装" "自动检测正式或测试通道并安装对应版本"
         ui_touch_button 12 '\033[1;97;48;5;24m' "安装 ROG White 白色主题" "白色主题美化 · 需先安装主题美化（CSS Loader）"
         ui_touch_button 14 '\033[1;97;48;5;24m' "安装 掌机 Pink 粉色主题" "粉色主题美化 · 需先安装主题美化（CSS Loader）"
@@ -667,11 +667,11 @@ decky_loader_menu() {
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store-auto
                 ;;
             stable)
-                confirm_and_run "安装稳定版插件商城" "适合 SteamOS 正式系统；优先使用国内线路，失败自动切换 Decky 官方 Release；会停用旧版用户服务并切换到稳定通道，已有插件和设置保留" \
+                confirm_and_run "安装稳定版插件商城" "给游戏模式增加插件功能；适合正式版系统，会重新启动插件商城，已有插件和设置保留" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store
                 ;;
             test)
-                confirm_and_run "安装测试版插件商城" "仅当 SteamOS 使用测试或预览通道、稳定版 Decky 明确不兼容时使用；优先从国内镜像下载，失败自动回退 Decky 官方 prerelease Release；已有插件和设置保留" \
+                confirm_and_run "安装测试版插件商城" "仅在测试版或预览版系统无法使用稳定版插件商城时安装；已有插件和设置保留" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" store-test
                 ;;
             rog-white-install)
@@ -703,7 +703,7 @@ plugin_page_2_menu() {
         ui_touch_button 9 '\033[1;97;48;5;24m' "掌机控制插件" "掌机功耗控制与 ROG Ally Center"
         ui_touch_button 11 '\033[1;97;48;5;24m' "Unifideck" "入库第三方平台游戏"
         ui_touch_button 13 '\033[1;97;48;5;24m' "ToMoon" "网络工具"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "安装 GE 兼容层" "提高 Windows 游戏兼容性"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "安装游戏运行工具（GE）" "提高 Windows 游戏兼容性"
         ui_touch_button 17 '\033[1;97;48;5;24m' "启动器与封面" "Epic、战网、育碧及封面修复"
         ui_touch_button 19 '\033[1;97;48;5;24m' "SteamDB 游戏数据" "价格史低与在线峰值"
         ui_touch_button 21 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
@@ -713,11 +713,11 @@ plugin_page_2_menu() {
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
-            deckrecall) confirm_and_run "安装 DeckRecall" "添加启动项及恢复游戏可玩状态；来自作者 GitHub Release，下载后会校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckrecall ;;
-            savepulse) confirm_and_run "安装 SavePulse" "自动版本存档、个人坚果云或标准 WebDAV 云备份与换机恢复；来自作者 GitHub Release，下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" savepulse ;;
+            deckrecall) confirm_and_run "安装 DeckRecall" "添加游戏到 Steam，并恢复游戏启动设置" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckrecall ;;
+            savepulse) confirm_and_run "安装 SavePulse" "自动备份游戏存档，支持自己的坚果云或其他网盘，方便换机恢复" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" savepulse ;;
             handheld-plugins) NEXT_CATEGORY="handheld_plugins"; return 0 ;;
-            unifideck) confirm_and_run "安装 Unifideck" "入库第三方平台游戏；来自作者 GitHub Release" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
-            tomoon) confirm_and_run "安装 ToMoon" "网络工具插件，下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon ;;
+            unifideck) confirm_and_run "安装 Unifideck" "把其他平台的游戏添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
+            tomoon) confirm_and_run "安装 ToMoon" "在游戏模式管理网络连接和加速设置" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon ;;
             ge-proton) ge_proton_menu ;;
             launchers) NEXT_CATEGORY="launcher_tools"; return 0 ;;
             game-info-tools) NEXT_CATEGORY="game_info_plugins"; return 0 ;;
@@ -741,7 +741,7 @@ game_info_plugins_menu() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             steamdb-info)
-                confirm_and_run "安装 SteamDB 游戏数据" "仅从国内镜像安装完整汉化包；在游戏模式 Steam 商店详情页显示价格史低和在线峰值入口；需要开启 CEF 远程调试；汉化：RenAmamiya" \
+                confirm_and_run "安装 SteamDB 游戏数据" "查看游戏历史最低价格和最多同时在线人数；需要开启“CEF 远程调试”；汉化：RenAmamiya" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamdb-info
                 ;;
             back) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
@@ -770,7 +770,7 @@ launcher_tools_menu() {
             epic) confirm_and_run "安装 Epic 游戏启动器" "安装并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
             battlenet) NEXT_CATEGORY="battlenet_submenu"; return 0 ;;
             ubisoft) confirm_and_run "安装育碧" "自动安装育碧游戏平台、创建桌面入口并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft ;;
-            hmcl) confirm_and_run "安装 HMCL 启动器" "Linux 原生 Minecraft 启动器；自动下载 HMCL 与 Java 运行环境并校验 SHA256，加入 Steam 与桌面" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" hmcl ;;
+            hmcl) confirm_and_run "安装 HMCL 启动器" "安装和启动 Minecraft，并自动准备运行所需组件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" hmcl ;;
             repair) NEXT_CATEGORY="launcher_repair"; return 0 ;;
             back) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
@@ -784,7 +784,7 @@ onexplayer_tools_menu() {
 
     while true; do
         draw_category_frame games "OneXPlayer 机型工具" "X2 Mini Pro 已实测亮度修复与 Apex 专用工具" 0
-        ui_touch_button 7 '\033[1;97;48;5;24m' "X2 Mini Pro 亮度修复" "已实测·SteamOS 游戏模式 HDR/PQ 原生亮度滑块"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "X2 Mini Pro 亮度修复" "已实测·游戏模式下的屏幕亮度调节"
         ui_touch_button 11 '\033[1;97;48;5;24m' "OneXPlayer Apex 工具" "仅 Apex·功耗、按键、灯光与休眠修复"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回掌机控制插件" "查看其他机型控制工具"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -793,11 +793,11 @@ onexplayer_tools_menu() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             x2-mini-pro-brightness)
-                confirm_and_run "安装 X2 Mini Pro 亮度修复" "已实测适配 ONEXPLAYER X2 Mini Pro（Ryzen AI Max+ 388、三星 AMS881KB01-0 OLED）原版 SteamOS 游戏模式；会在 HDR/PQ 时将 Steam 原生亮度滑块交给 Gamescope，并为游戏提供真实 EDID 数据。首次配置会安装 Gamescope 显示脚本，可能短暂黑屏且需重启游戏模式；不会修改 TDP、风扇或硬件功耗参数；已有同面板脚本会备份为 .backup" \
+                confirm_and_run "安装 X2 Mini Pro 亮度修复" "仅适用于 ONEXPLAYER X2 Mini Pro（388 处理器、三星 AMS881KB01-0 OLED 屏幕）的原版 SteamOS，已实测；可修复开启 HDR 后游戏模式无法调节亮度的问题。首次设置可能短暂黑屏，需要重启游戏模式；不会调整耗电或风扇，已有屏幕设置会先备份" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego2-brightness-fix
                 ;;
             onexplayer-apex)
-                confirm_and_run "安装 OneXPlayer Apex 工具" "高风险：仅适用于 OneXPlayer Apex（Strix Halo）原版 SteamOS；插件以 Decky root 权限修改硬件设置、按键/灯光与休眠相关配置，可能需要重启。请勿与其他功耗、风扇、按键或灯光控制插件同时启用；错误操作可能导致输入失效、休眠异常或系统不稳定。将校验安装包并自动接入 Renkit 汉化。确认理解风险后继续" \
+                confirm_and_run "安装 OneXPlayer Apex 工具" "高风险：仅适用于 OneXPlayer Apex（Strix Halo）原版 SteamOS；插件以管理员权限修改硬件设置、按键/灯光与休眠相关配置，可能需要重启。请勿与其他功耗、风扇、按键或灯光控制插件同时启用；错误操作可能导致输入失效、休眠异常或系统不稳定。将校验安装包并自动接入 Renkit 汉化。确认理解风险后继续" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" onexplayer-apex
                 ;;
             back) NEXT_CATEGORY="handheld_plugins"; return 0 ;;
@@ -812,12 +812,12 @@ handheld_plugins_menu() {
 
     while true; do
         draw_category_frame games "掌机控制插件" "功耗、灯光、按键、震动与风扇控制" 0
-        ui_touch_button 3 '\033[1;97;48;5;24m' "PowerControl 功耗控制" "通用 CPU、GPU、TDP 与风扇控制"
-        ui_touch_button 5 '\033[1;97;48;5;24m' "掌机功耗控制" "SimpleDeckyTDP 汉化版·自动检测版本"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "Ally 控制中心" "ROG Ally / Ally X 的 RGB、TDP、风扇与充电上限"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "通用掌机 RGB" "HueSync 官方简体中文·支持多品牌掌机"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "Legion Go 控制中心" "初代 Legion Go 的按键、RGB、充电与风扇控制"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "GPD 控制中心" "GPD Win 系列 RGB 与按游戏配置"
+        ui_touch_button 3 '\033[1;97;48;5;24m' "PowerControl 功耗控制" "调节性能、耗电和风扇转速"
+        ui_touch_button 5 '\033[1;97;48;5;24m' "掌机功耗控制" "调节游戏性能和耗电·中文界面"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "Ally 控制中心" "调节灯光、耗电、风扇和充电上限"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "通用掌机灯光" "调节掌机灯光·中文界面"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "Legion Go 控制中心" "调节按键、灯光、充电和风扇"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "GPD 控制中心" "调节灯光，并为每个游戏保存设置"
         ui_touch_button 15 '\033[1;97;48;5;24m' "Legion Go 震动控制" "Legion Go / Go 2 震动与触控板反馈"
         ui_touch_button 17 '\033[1;97;48;5;24m' "Legion Go 2 风扇控制" "仅 Legion Go 2·不受限风扇曲线"
         ui_touch_button 19 '\033[1;97;48;5;24m' "OneXPlayer 机型工具" "X2 Mini Pro 亮度修复（已实测）/ Apex 工具"
@@ -828,35 +828,35 @@ handheld_plugins_menu() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             powercontrol)
-                confirm_and_run "安装 PowerControl" "高风险：PowerControl 以 Decky root 权限修改 CPU、GPU、TDP 与风扇参数；仅适用于受支持的掌机，请勿与其他功耗或风扇插件同时启用，错误设置可能导致不稳定或过热；安装作者 v3.15.1 官方原包并校验 SHA256" \
+                confirm_and_run "安装 PowerControl" "高风险：调节掌机性能、耗电和风扇，需要管理员权限；仅适用于支持的机型。不要与其他功耗或风扇插件同时启用，设置不当可能导致过热或系统不稳定" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" powercontrol
                 ;;
             simpledeckytdp)
-                confirm_and_run "安装/修复掌机功耗控制汉化版" "自动检测版本：非最新汉化版或检测到原版/旧版会自动替换；国内源优先，失败自动改用 GitHub Release；汉化作者：RenAmamiya" \
+                confirm_and_run "安装/修复掌机功耗控制汉化版" "自动检测版本：非最新汉化版或检测到原版/旧版会自动替换；汉化作者：RenAmamiya" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee
                 ;;
             allycenter)
-                confirm_and_run "安装 Ally Center" "仅适用于 ROG Ally / Ally X；可控制摇杆 RGB、TDP、风扇和充电上限，插件需要 Decky root 权限；国内源优先，失败自动改用作者 GitHub Release" \
+                confirm_and_run "安装 Ally Center" "仅适用于 ROG Ally / Ally X；可控制摇杆 灯光和耗电、风扇和充电上限，插件需要管理员权限" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter
                 ;;
             huesync)
-                confirm_and_run "安装通用掌机 RGB" "HueSync 官方已内置简体中文；支持多品牌掌机 RGB；需要 Decky root 权限；请勿与其他灯光插件同时控制同一设备；国内源优先，失败自动改用作者 GitHub Release" \
+                confirm_and_run "安装通用掌机灯光" "HueSync 官方已内置简体中文；支持多品牌掌机灯光；需要管理员权限；请勿与其他灯光插件同时控制同一设备" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" huesync
                 ;;
             legiongo-remapper)
-                confirm_and_run "安装 Legion Go 控制中心" "仅适用于初代 Legion Go，不支持 Legion Go S；可控制按键、RGB、80% 充电上限及实验性风扇曲线；需要 Decky root 权限；HHD 可能覆盖灯光设置" \
+                confirm_and_run "安装 Legion Go 控制中心" "仅适用于初代 Legion Go，不支持 Legion Go S；可控制按键、RGB、80% 充电上限及实验性风扇曲线；需要管理员权限；HHD 可能覆盖灯光设置" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" legiongo-remapper
                 ;;
             gpd-control)
-                confirm_and_run "安装 GPD 控制中心" "适用于支持的 GPD Win 掌机 RGB，支持按游戏配置；需要 Decky root 权限；国内源优先，失败自动改用作者 GitHub Release" \
+                confirm_and_run "安装 GPD 控制中心" "适用于支持的 GPD Win 掌机 灯光，支持按游戏配置；需要管理员权限" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" gpd-control
                 ;;
             lego-vibe)
-                confirm_and_run "安装 Legion Go 震动控制" "适用于 Legion Go / Go 2，不支持 Go S；需要 SteamOS 3.8+、内核 6.18+ 和 hid-lenovo-go 驱动；需要 Decky root 权限" \
+                confirm_and_run "安装 Legion Go 震动控制" "适用于 Legion Go / Go 2，不支持 Go S；需要 SteamOS 3.8+、内核 6.18+ 和 hid-lenovo-go 驱动；需要管理员权限" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego-vibe
                 ;;
             lego2-fan)
-                confirm_and_run "安装 Legion Go 2 风扇控制" "高风险：仅适用于 Legion Go 2；插件允许不受限制的风扇曲线，错误设置可能在高温时使用过低转速并损伤设备；需要 Decky root 权限。确认理解风险后继续" \
+                confirm_and_run "安装 Legion Go 2 风扇控制" "高风险：仅适用于 Legion Go 2；插件允许不受限制的风扇曲线，错误设置可能在高温时使用过低转速并损伤设备；需要管理员权限。确认理解风险后继续" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego2-fan
                 ;;
             onexplayer-tools) NEXT_CATEGORY="onexplayer_tools"; return 0 ;;
@@ -871,13 +871,13 @@ trainer_ge_proton_menu() {
     local choice version
 
     while true; do
-        draw_category_frame games "修改器兼容层" "单独安装一个版本，或一次安装全部四个" 0
+        draw_category_frame games "修改器运行工具" "单独安装一个版本，或一次安装全部四个" 0
         ui_touch_button 3 '\033[1;97;48;5;24m' "安装 GE-Proton 7-55" "只下载并安装此版本"
         ui_touch_button 6 '\033[1;97;48;5;24m' "安装 GE-Proton 8-25" "只下载并安装此版本"
         ui_touch_button 9 '\033[1;97;48;5;24m' "安装 GE-Proton 9-27" "只下载并安装此版本"
         ui_touch_button 12 '\033[1;97;48;5;24m' "安装 GE-Proton 10-29" "只下载并安装此版本"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "安装全部四个兼容层" "原一键安装功能；合计约1.72GB"
-        ui_touch_button 19 '\033[1;97;48;5;238m' "返回 GE 兼容层" "返回上一页"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "安装全部四个运行工具" "一次准备四个常用版本，约1.72GB"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回游戏运行工具" "返回上一页"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:3-4:trainer-7-55 right:6-7:trainer-8-25 right:9-10:trainer-9-27 right:12-13:trainer-10-29 right:15-16:trainer-all right:19-20:back right:22-23:home)"
@@ -885,11 +885,11 @@ trainer_ge_proton_menu() {
         case "$choice" in
             trainer-7-55|trainer-8-25|trainer-9-27|trainer-10-29)
                 version="${choice#trainer-}"
-                confirm_and_run "安装 GE-Proton $version" "只安装 GE-Proton $version，不下载其他三个修改器兼容层" \
+                confirm_and_run "安装 GE-Proton $version" "只安装所选的游戏运行工具，不下载其他版本" \
                     bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer-one "$version"
                 ;;
             trainer-all)
-                confirm_and_run "安装全部四个修改器兼容层" "安装 GE-Proton 7-55、8-25、9-27、10-29；约1.72GB，下载较慢为正常现象" \
+                confirm_and_run "安装全部四个修改器运行工具" "安装 GE-Proton 7-55、8-25、9-27、10-29；约1.72GB，下载较慢为正常现象" \
                     bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer
                 ;;
             back) return 0 ;;
@@ -902,10 +902,10 @@ ge_proton_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "游戏兼容层" "安装 GE-Proton、修改器常用版本或 Proton-CachyOS" 0
-        ui_touch_button 5 '\033[1;97;48;5;24m' "安装最新 GE 兼容层" "自动检测最新版本，不再删除旧版"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "安装修改器所需常用兼容层" "四个版本约1.72GB，下载较慢为正常现象"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "安装 Proton-CachyOS" "上游 x86_64 SLR 版；独立国内镜像"
+        draw_category_frame games "游戏运行工具" "帮助运行 Windows 游戏和修改器" 0
+        ui_touch_button 5 '\033[1;97;48;5;24m' "安装最新游戏运行工具（GE）" "帮助运行 Windows 游戏，保留已有版本"
+        ui_touch_button 9 '\033[1;97;48;5;24m' "安装修改器常用运行工具" "四个版本约1.72GB，下载较慢为正常现象"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "安装 Proton-CachyOS" "另一款运行 Windows 游戏的工具"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "查看其他游戏组件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -913,14 +913,14 @@ ge_proton_menu() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             latest)
-                confirm_and_run "安装最新 GE 兼容层" "自动检测最新版本，不再删除旧版兼容层" bash "$PROJECT_ROOT/modules/ge_proton.sh" install
+                confirm_and_run "安装最新游戏运行工具（GE）" "帮助运行 Windows 游戏，保留已有版本运行工具" bash "$PROJECT_ROOT/modules/ge_proton.sh" install
                 ;;
             trainer)
                 trainer_ge_proton_menu
                 [ "$NEXT_CATEGORY" = "home" ] && return 0
                 ;;
             cachyos)
-                confirm_and_run "安装 Proton-CachyOS" "安装上游普通 x86_64 SLR 版，不删除现有 Proton" \
+                confirm_and_run "安装 Proton-CachyOS" "安装另一款运行 Windows 游戏的工具，保留现有版本" \
                     bash "$PROJECT_ROOT/modules/proton_cachyos.sh" install
                 ;;
             back) NEXT_CATEGORY="plugin_page_2"; return 0 ;;
@@ -943,8 +943,8 @@ battlenet_submenu() {
         choice="$(read_touch_menu right:5-6:battlenet right:7-8:heihe right:19-20:back right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
-            battlenet) confirm_and_run "安装战网启动器" "自动下载预装客户端并绑定 Proton 10.0-4，写入 Steam 库" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
-            heihe) confirm_and_run "安装黑盒工坊" "自动下载预装客户端并绑定 Proton 10.0-4，写入 Steam 库；需要先安装战网启动器" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" heihe ;;
+            battlenet) confirm_and_run "安装战网启动器" "安装战网并添加到 Steam，方便下载和游玩暴雪游戏" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" battlenet ;;
+            heihe) confirm_and_run "安装黑盒工坊" "安装黑盒工坊并添加到 Steam；需要先安装战网" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" heihe ;;
             back) NEXT_CATEGORY="launcher_tools"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -968,9 +968,9 @@ launcher_repair_menu() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             epic) confirm_and_run "重新应用 Epic 封面" "重写 Steam 库封面并重启 Steam，不依赖 Decky" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" apply-artwork epic ;;
-            battlenet) confirm_and_run "重新应用战网封面" "重写 Steam 库封面并重启 Steam，不依赖 Decky" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" apply-artwork battlenet ;;
+            battlenet) confirm_and_run "重新应用战网封面" "更换 Steam 库里的战网封面，完成后需要重启 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" apply-artwork battlenet ;;
             ubisoft) confirm_and_run "重新应用育碧封面" "重写 Steam 库封面并重启 Steam，不依赖 Decky" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" apply-artwork ubisoft ;;
-            heihe) confirm_and_run "重新应用黑盒工坊封面" "重写 Steam 库封面并重启 Steam，不依赖 Decky" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" apply-artwork heihe ;;
+            heihe) confirm_and_run "重新应用黑盒工坊封面" "更换 Steam 库里的黑盒工坊封面，完成后需要重启 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" apply-artwork heihe ;;
             back) NEXT_CATEGORY="launcher_tools"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
@@ -1136,7 +1136,7 @@ dual_system_more_menu() {
                     bash "$PROJECT_ROOT/modules/dual_system.sh" unprotect
                 ;;
             cleanup-boot)
-                confirm_and_run "清理第三方引导项" "SteamOS、Windows 和 systemd-boot 受保护；其他项还需输入 Boot 编号和完整删除口令" \
+                confirm_and_run "清理第三方引导项" "系统正常启动所需的项目会保留；删除其他项目必须输入编号和删除口令" \
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" cleanup-boot
                 ;;
             repair-boot)
@@ -1170,7 +1170,7 @@ dual_system_menu() {
         draw_category_frame dual "双系统用户专用" "磁盘与互通盘 · 第 1/2 页"
         ui_touch_button 5 '\033[1;97;48;5;24m' "挂载双系统互通盘" "自动排除 Windows 系统分区"
         ui_touch_button 7 '\033[1;97;48;5;160m' "初始化并挂载 TF 卡" "会清空目标卡并格式化为 NTFS"
-        ui_touch_button 9 '\033[1;97;48;5;160m' "修复 Steam 磁盘写入错误" "修复 NTFS/互通游戏盘下载与 compatdata"
+        ui_touch_button 9 '\033[1;97;48;5;160m' "修复 Steam 磁盘写入错误" "修复共享游戏盘下载失败和更新失败"
         ui_touch_button 11 '\033[1;97;48;5;30m' "双系统互通盘保护" "重新挂载为只读，防止升级后掉盘"
         ui_touch_button 13 '\033[1;97;48;5;24m' "默认进入 SteamOS" "只修改 Clover 默认项，不改变菜单显示"
         ui_touch_button 15 '\033[1;97;48;5;24m' "应用 Renkit 开机背景" "替换 Clover Apocalypse 主题背景"
@@ -1192,7 +1192,7 @@ dual_system_menu() {
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" tf-format-mount
                 ;;
             repair-drive)
-                confirm_and_run "修复 Steam 磁盘写入错误" "修复 SteamOS 下 NTFS/互通游戏盘出现的磁盘写入错误、下载失败和更新失败，并自动处理 Proton compatdata 兼容问题" \
+                confirm_and_run "修复 Steam 磁盘写入错误" "修复 Windows 和 SteamOS 共享游戏盘的写入错误、游戏下载失败和更新失败，并检查游戏启动设置" \
                     bash "$PROJECT_ROOT/modules/dual_system_tools.sh" repair-drive
                 ;;
             protect)
@@ -1226,17 +1226,17 @@ domestic_source_preflight() {
     local choice
 
     while true; do
-        draw_category_frame advanced "初始化国内源并检测系统组件" "提高国内下载速度，更新组件并修复 Discover 商店"
+        draw_category_frame advanced "软件下载加速与系统修复" "提高软件下载速度，并修复应用商店"
         ui_panel_line 7 '\033[1;38;5;220m' "flathub-cn｜https://mirror.sjtu.edu.cn/flathub"
         ui_panel_line 9 '\033[1;38;5;220m' "flathub-ustc｜https://mirrors.ustc.edu.cn/flathub"
-        ui_panel_line 10 '\033[1;38;5;220m' "archlinuxcn｜上海交大 → 中科大 → 官方回退"
+        ui_panel_line 10 '\033[1;38;5;220m' "同时更新系统组件并修复应用商店"
         ui_panel_line 11 '\033[1;38;5;250m' "https://mirror.sjtu.edu.cn/archlinux-cn/\$arch"
         ui_panel_line 12 '\033[1;38;5;250m' "https://mirrors.ustc.edu.cn/archlinuxcn/\$arch"
         ui_panel_line 13 '\033[1;38;5;250m' "https://repo.archlinuxcn.org/\$arch"
-        ui_panel_line 14 '\033[1;38;5;203m' "Flatpak 缓存关闭 GPG；archlinuxcn 保持 GPG 验证"
-        ui_panel_line 15 '\033[1;38;5;203m' "pacman 完整更新 + locale + Discover 修复｜临时关闭只读保护"
-        ui_touch_button 17 '\033[1;97;48;5;160m' "初始化国内源并检测系统组件" "更新组件、配置国内缓存并刷新应用商店"
-        ui_touch_button 19 '\033[1;97;48;5;30m' "恢复官方软件源" "恢复 Flathub 并移除Renkit archlinuxcn"
+        ui_panel_line 14 '\033[1;38;5;203m' "注意：加速下载会关闭部分软件的签名检查，存在安全风险"
+        ui_panel_line 15 '\033[1;38;5;203m' "更新系统组件和语言设置；会临时关闭系统保护"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "软件下载加速与系统修复" "更新系统所需组件，提高下载速度"
+        ui_touch_button 19 '\033[1;97;48;5;30m' "恢复默认下载设置" "恢复默认下载设置和安全检查"
         ui_touch_button 21 '\033[1;97;48;5;238m' "返回系统设置" "不做任何修改"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -1244,13 +1244,13 @@ domestic_source_preflight() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             confirm-source)
-                run_action "初始化国内源并检测系统组件" env ZHOUKEER_AUTO_CONFIRM=1 \
+                run_action "软件下载加速与系统修复" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/domestic_source.sh" init
                 NEXT_CATEGORY="advanced"
                 return 0
                 ;;
             restore-source)
-                run_action "恢复官方软件源" env ZHOUKEER_AUTO_CONFIRM=1 \
+                run_action "恢复默认下载设置" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/domestic_source.sh" restore
                 NEXT_CATEGORY="advanced"
                 return 0
@@ -1266,9 +1266,9 @@ memory_touch_menu() {
 
     while true; do
         draw_category_frame advanced "虚拟内存" "优化、查看或撤销Renkit设置"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "一键优化" "设置 zram 与磁盘 swap"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "查看状态" "查看当前 zram 与 swap"
-        ui_touch_button 15 '\033[1;97;48;5;160m' "撤销Renkit优化" "保留系统原 swap"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "一键优化" "设置 内存压缩 与虚拟内存"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "查看状态" "查看当前 内存压缩 与 虚拟内存"
+        ui_touch_button 15 '\033[1;97;48;5;160m' "撤销Renkit优化" "保留系统原有虚拟内存"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回更多设置" "查看其他系统功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
@@ -1276,7 +1276,7 @@ memory_touch_menu() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             optimize)
-                confirm_and_run "一键优化虚拟内存" "会设置 zram、磁盘 swap 和 swappiness；失败时自动恢复" \
+                confirm_and_run "一键优化虚拟内存" "会设置 内存压缩、虚拟内存 和 内存使用设置；失败时自动恢复" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/memory_tuning.sh" optimize
                 return 0
                 ;;
@@ -1285,7 +1285,7 @@ memory_touch_menu() {
                 return 0
                 ;;
             restore)
-                confirm_and_run "撤销Renkit虚拟内存优化" "只删除Renkit创建的配置和独立 swap；系统原 swap 会保留" \
+                confirm_and_run "撤销Renkit虚拟内存优化" "只删除Renkit创建的配置和虚拟内存；系统原有虚拟内存会保留" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/memory_tuning.sh" restore
                 return 0
                 ;;
@@ -1301,7 +1301,7 @@ f1_handheld_menu() {
     while true; do
         draw_category_frame advanced "掌机适配" "飞行家 F1 屏幕/BIOS · 特殊按键 · 通用 InputPlumber 更新"
         ui_touch_button 2 '\033[1;97;48;5;24m' "安装屏幕修复" "适用于 F1 7840U 与 8840U OLED（F1L）"
-        ui_touch_button 4 '\033[1;97;48;5;24m' "屏幕修复状态" "查看修复文件和 systemd override"
+        ui_touch_button 4 '\033[1;97;48;5;24m' "查看屏幕修复状态" "查看屏幕方向修复是否已启用"
         ui_touch_button 6 '\033[1;97;48;5;160m' "卸载屏幕修复" "删除用户级修复并恢复原始启动方式"
         ui_touch_button 8 '\033[1;97;48;5;24m' "安装特殊按键修复" "F1L 仅限 F1 8840U · 确认后5秒自动重启"
         ui_touch_button 10 '\033[1;97;48;5;24m' "特殊按键修复状态" "验证机型、配置、备份与 InputPlumber"
@@ -1316,7 +1316,7 @@ f1_handheld_menu() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             install)
-                confirm_and_run "安装飞行家 F1 屏幕方向修复" "适用于 ONEXPLAYER F1 7840U 与 F1L OLED 8840U；使用用户级 systemd override，不使用 sudo" \
+                confirm_and_run "安装飞行家 F1 屏幕方向修复" "适用于 ONEXPLAYER F1 7840U 与 F1L OLED 8840U；使用用户级 屏幕启动设置，无需管理员权限" \
                     bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" install
                 return 0
                 ;;
@@ -1325,7 +1325,7 @@ f1_handheld_menu() {
                 return 0
                 ;;
             uninstall)
-                confirm_and_run "卸载飞行家 F1 屏幕方向修复" "将删除用户级修复文件并刷新 systemd，不使用 sudo" \
+                confirm_and_run "卸载飞行家 F1 屏幕方向修复" "将删除用户级修复文件并刷新启动设置，无需管理员权限" \
                     bash "$PROJECT_ROOT/modules/f1_screen_fix.sh" uninstall
                 return 0
                 ;;
@@ -1370,11 +1370,11 @@ advanced_tools_menu() {
 
     while true; do
         draw_category_frame advanced "更多设置" "国内下载、网络加速、内存、密码与掌机适配"
-        ui_touch_button 7 '\033[1;97;48;5;160m' "国内软件源" "会修改 Flatpak 软件源 · 高级操作"
+        ui_touch_button 7 '\033[1;97;48;5;160m' "软件下载加速" "提高软件下载速度 · 请先阅读风险说明"
         ui_touch_button 9 '\033[1;97;48;5;160m' "Steamcommunity 302" "可能修改 DNS 和证书 · 高级操作"
-        ui_touch_button 11 '\033[1;97;48;5;160m' "虚拟内存" "设置 zram、swap 或撤销 · 高级操作"
+        ui_touch_button 11 '\033[1;97;48;5;160m' "虚拟内存" "设置 内存压缩、swap 或撤销 · 高级操作"
         ui_touch_button 13 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "掌机适配" "F1 屏幕修复不使用 sudo · 壹号掌机特殊按键"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "掌机适配" "F1 屏幕修复无需管理员权限 · 壹号掌机特殊按键"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:memory right:13-14:change-password right:15-16:handheld right:22-23:home)"
@@ -1398,14 +1398,14 @@ uninstall_software_menu() {
         case "$page" in
             0)
                 draw_category_frame uninstall "卸载已安装" "聊天、浏览器与远程工具 · 第 1/7 页"
-                ui_touch_button 2 '\033[1;97;48;5;160m' "卸载微信" "只删除微信 AppImage 和快捷方式"
-                ui_touch_button 4 '\033[1;97;48;5;160m' "卸载 QQ" "卸载 QQ Flatpak"
-                ui_touch_button 6 '\033[1;97;48;5;160m' "卸载 Firefox" "卸载 Firefox Flatpak"
-                ui_touch_button 8 '\033[1;97;48;5;160m' "卸载 Chrome" "卸载 Google Chrome Flatpak"
-                ui_touch_button 10 '\033[1;97;48;5;160m' "卸载 Edge" "卸载 Microsoft Edge Flatpak"
+                ui_touch_button 2 '\033[1;97;48;5;160m' "卸载微信" "只删除微信 和快捷方式"
+                ui_touch_button 4 '\033[1;97;48;5;160m' "卸载 QQ" "卸载 QQ"
+                ui_touch_button 6 '\033[1;97;48;5;160m' "卸载 Firefox" "卸载 Firefox"
+                ui_touch_button 8 '\033[1;97;48;5;160m' "卸载 Chrome" "卸载 Google Chrome"
+                ui_touch_button 10 '\033[1;97;48;5;160m' "卸载 Edge" "卸载 Microsoft Edge"
                 ui_touch_button 12 '\033[1;97;48;5;160m' "卸载 RustDesk" "保留用户自行配置的数据"
                 ui_touch_button 14 '\033[1;97;48;5;160m' "卸载 ToDesk" "停止服务并卸载系统软件包"
-                ui_touch_button 16 '\033[1;97;48;5;160m' "卸载百度网盘" "卸载百度网盘 Flatpak"
+                ui_touch_button 16 '\033[1;97;48;5;160m' "卸载百度网盘" "卸载百度网盘"
                 ui_touch_button 18 '\033[1;97;48;5;24m' "下一页" "办公与创作工具"
                 ui_touch_button 20 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
                 ui_prompt
@@ -1413,14 +1413,14 @@ uninstall_software_menu() {
                 ;;
             1)
                 draw_category_frame uninstall "卸载已安装" "办公与创作 · 第 2/7 页"
-                ui_touch_button 2 '\033[1;97;48;5;160m' "卸载 AnyDesk" "卸载 AnyDesk Flatpak"
-                ui_touch_button 4 '\033[1;97;48;5;160m' "卸载 WiliWili" "卸载 WiliWili Flatpak 与 Steam 条目"
-                ui_touch_button 6 '\033[1;97;48;5;160m' "卸载 Xbox 云游戏" "卸载 Greenlight Flatpak"
-                ui_touch_button 8 '\033[1;97;48;5;160m' "卸载 LibreOffice" "卸载 LibreOffice Flatpak"
-                ui_touch_button 10 '\033[1;97;48;5;160m' "卸载 VLC" "卸载 VLC Flatpak"
-                ui_touch_button 12 '\033[1;97;48;5;160m' "卸载 OBS Studio" "卸载 OBS Studio Flatpak"
-                ui_touch_button 14 '\033[1;97;48;5;160m' "卸载 LocalSend" "卸载 LocalSend Flatpak"
-                ui_touch_button 16 '\033[1;97;48;5;160m' "卸载 PeaZip" "卸载 PeaZip Flatpak"
+                ui_touch_button 2 '\033[1;97;48;5;160m' "卸载 AnyDesk" "卸载 AnyDesk"
+                ui_touch_button 4 '\033[1;97;48;5;160m' "卸载 WiliWili" "卸载 WiliWili 与 Steam 条目"
+                ui_touch_button 6 '\033[1;97;48;5;160m' "卸载 Xbox 云游戏" "卸载 Greenlight"
+                ui_touch_button 8 '\033[1;97;48;5;160m' "卸载 LibreOffice" "卸载 LibreOffice"
+                ui_touch_button 10 '\033[1;97;48;5;160m' "卸载 VLC" "卸载 VLC"
+                ui_touch_button 12 '\033[1;97;48;5;160m' "卸载 OBS Studio" "卸载 OBS Studio"
+                ui_touch_button 14 '\033[1;97;48;5;160m' "卸载 LocalSend" "卸载 LocalSend"
+                ui_touch_button 16 '\033[1;97;48;5;160m' "卸载 PeaZip" "卸载 PeaZip"
                 ui_touch_button 18 '\033[1;97;48;5;24m' "上一页" "返回常用应用"
                 ui_touch_button 20 '\033[1;97;48;5;24m' "下一页" "兼容、音乐与下载工具"
                 ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
@@ -1430,26 +1430,26 @@ uninstall_software_menu() {
             2)
                 draw_category_frame uninstall "卸载已安装" "兼容、音乐与下载 · 第 3/7 页"
                 ui_touch_button 2 '\033[1;97;48;5;160m' "卸载中文输入法" "卸载 Fcitx5 及中文输入插件"
-                ui_touch_button 4 '\033[1;97;48;5;160m' "卸载 Protontricks" "卸载 Protontricks Flatpak"
-                ui_touch_button 6 '\033[1;97;48;5;160m' "卸载 Bottles" "卸载 Bottles Flatpak"
-                ui_touch_button 8 '\033[1;97;48;5;160m' "卸载 QQ音乐" "卸载 QQ音乐 Flatpak"
-                ui_touch_button 10 '\033[1;97;48;5;160m' "卸载网易云音乐" "卸载网易云音乐 Flatpak"
-                ui_touch_button 12 '\033[1;97;48;5;160m' "卸载 YesPlayMusic" "卸载 YesPlayMusic Flatpak"
-                ui_touch_button 14 '\033[1;97;48;5;160m' "卸载 qBittorrent" "卸载 qBittorrent Flatpak"
-                ui_touch_button 16 '\033[1;97;48;5;160m' "卸载 Motrix" "卸载 Motrix 下载器 Flatpak"
+                ui_touch_button 4 '\033[1;97;48;5;160m' "卸载 Protontricks" "卸载 Protontricks"
+                ui_touch_button 6 '\033[1;97;48;5;160m' "卸载 Bottles" "卸载 Bottles"
+                ui_touch_button 8 '\033[1;97;48;5;160m' "卸载 QQ音乐" "卸载 QQ音乐"
+                ui_touch_button 10 '\033[1;97;48;5;160m' "卸载网易云音乐" "卸载网易云音乐"
+                ui_touch_button 12 '\033[1;97;48;5;160m' "卸载 YesPlayMusic" "卸载 YesPlayMusic"
+                ui_touch_button 14 '\033[1;97;48;5;160m' "卸载 qBittorrent" "卸载 qBittorrent"
+                ui_touch_button 16 '\033[1;97;48;5;160m' "卸载 Motrix" "卸载 Motrix 下载器"
                 ui_touch_button 18 '\033[1;97;48;5;24m' "上一页" "返回办公与创作"
-                ui_touch_button 20 '\033[1;97;48;5;24m' "下一页" "下载、笔记与游戏串流"
+                ui_touch_button 20 '\033[1;97;48;5;24m' "下一页" "下载、笔记与远程游玩游戏"
                 ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "不卸载任何软件"
                 ui_prompt
                 choice="$(read_touch_menu right:2-3:fcitx5 right:4-5:protontricks right:6-7:bottles right:8-9:qqmusic right:10-11:netease-music right:12-13:yesplaymusic right:14-15:qbittorrent right:16-17:motrix right:18-19:previous right:20-21:next right:22-23:home)"
                 ;;
             3)
                 draw_category_frame uninstall "卸载已安装" "下载、办公、笔记与串流 · 第 4/7 页"
-                ui_touch_button 2 '\033[1;97;48;5;160m' "卸载 Free Download Manager" "卸载 Free Download Manager Flatpak"
-                ui_touch_button 4 '\033[1;97;48;5;160m' "卸载 Media Downloader" "卸载 Media Downloader Flatpak"
-                ui_touch_button 6 '\033[1;97;48;5;160m' "卸载 Flameshot 截图" "卸载 Flameshot Flatpak"
-                ui_touch_button 8 '\033[1;97;48;5;160m' "卸载 OnlyOffice" "卸载 OnlyOffice Flatpak"
-                ui_touch_button 10 '\033[1;97;48;5;160m' "卸载 Joplin 笔记" "卸载 Joplin Flatpak"
+                ui_touch_button 2 '\033[1;97;48;5;160m' "卸载 Free Download Manager" "卸载 Free Download Manager"
+                ui_touch_button 4 '\033[1;97;48;5;160m' "卸载 Media Downloader" "卸载 Media Downloader"
+                ui_touch_button 6 '\033[1;97;48;5;160m' "卸载 Flameshot 截图" "卸载 Flameshot"
+                ui_touch_button 8 '\033[1;97;48;5;160m' "卸载 OnlyOffice" "卸载 OnlyOffice"
+                ui_touch_button 10 '\033[1;97;48;5;160m' "卸载 Joplin 笔记" "卸载 Joplin"
                 ui_touch_button 12 '\033[1;97;48;5;160m' "卸载 Heroic" "移除 Heroic 及 Steam 库条目"
                 ui_touch_button 14 '\033[1;97;48;5;160m' "卸载 Lutris" "移除 Lutris 及 Steam 库条目"
                 ui_touch_button 16 '\033[1;97;48;5;160m' "卸载 Chiaki4Deck" "移除 Chiaki4Deck 及 Steam 库条目"
@@ -1546,9 +1546,9 @@ steam_accelerator_touch_menu() {
     local choice
 
     while true; do
-        draw_category_frame advanced "Steamcommunity 302" "加速 Steam 和 GitHub"
+        draw_category_frame advanced "网络加速" "加速 Steam 社区和游戏下载"
         ui_touch_button 5 '\033[1;97;48;5;24m' "安装或更新" "安装 Steamcommunity 302"
-        ui_touch_button 7 '\033[1;97;48;5;30m' "一键开启加速" "自动准备并启动 Steam + GitHub 后台加速"
+        ui_touch_button 7 '\033[1;97;48;5;30m' "一键开启加速" "自动加速 Steam 社区和游戏下载"
         ui_touch_button 9 '\033[1;97;48;5;24m' "打开官方配置界面" "官方配置窗口"
         ui_touch_button 11 '\033[1;97;48;5;24m' "重置加速" "停止并重新启动后台加速服务"
         ui_touch_button 13 '\033[1;97;48;5;24m' "查看运行状态" "检查加速是否开启"
@@ -1574,7 +1574,7 @@ steam_accelerator_touch_menu() {
                 ;;
             status) run_action "Steamcommunity 302 状态" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" status ;;
             uninstall)
-                confirm_and_run "卸载 Steamcommunity 302" "会停止Renkit启动的进程；官方 systemd、hosts、DNS 和证书需按官方程序另行处理" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
+                confirm_and_run "卸载 Steamcommunity 302" "会停止 Renkit 开启的加速；其他工具修改过的网络设置需要另行恢复" bash "$PROJECT_ROOT/modules/steam_accelerator.sh" uninstall
                 ;;
             console-accelerators) console_accelerator_touch_menu ;;
             advanced) NEXT_CATEGORY="advanced"; return 0 ;;

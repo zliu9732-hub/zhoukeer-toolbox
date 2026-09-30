@@ -265,7 +265,7 @@ resolve_plugin_latest() {
             fi
             ;;
         lsfg-mako)
-            echo "正在检查 MAKO 小黄鸭的国内镜像版本..."
+            echo "正在检查 MAKO 小黄鸭的新版本..."
             if GITEE_MIRROR_REPO="$DECKY_MAKO_MIRROR_REPO" \
                 GITEE_MIRROR_CONNECT_TIMEOUT=5 \
                 GITEE_MIRROR_MAX_TIME=8 \
@@ -281,7 +281,7 @@ resolve_plugin_latest() {
                     return 0
                 fi
             fi
-            echo "MAKO 国内镜像版本检查未完成，短时检查作者 GitHub Release..."
+            echo "正在继续检查 MAKO 小黄鸭的新版本..."
             if GITHUB_API_CONNECT_TIMEOUT=5 GITHUB_API_MAX_TIME=8 \
                 resolve_latest_github_release "eugeniosegala/MAKO" \
                     '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO 小黄鸭"; then
@@ -572,7 +572,7 @@ download_decky_gitee_part() {
     local actual_sha256 max_bytes
 
     download_policy_url_allowed "$url" || {
-        echo "$name 的下载地址不在受控来源清单中，已停止。"
+        echo "$name 的下载地址不可信，已停止。"
         return 1
     }
     case "$expected_sha256" in
@@ -606,7 +606,7 @@ download_decky_gitee_part() {
     }
     if [ "$actual_sha256" != "$expected_sha256" ]; then
         rm -f -- "$temporary_file"
-        echo "$name SHA256 校验失败，将切换备用线路。"
+        echo "$name 文件检查未通过，将切换备用线路。"
         return 1
     fi
     mv -f -- "$temporary_file" "$output" || {
@@ -697,9 +697,9 @@ confirm_decky_install() {
     echo "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，并重新进入桌面模式。"
     if [ "$channel" = "prerelease" ]; then
         echo "仅当 SteamOS 使用测试或预览通道、稳定版 Decky 不兼容时，才安装测试版插件商城。"
-        echo "将从国内镜像安装或更新测试版 ${target_version:-$DECKY_PRERELEASE_VERSION}，失败自动回退 Decky 官方 Release，已有插件和设置会保留。"
+        echo "将安装或更新测试版插件商城 ${target_version:-$DECKY_PRERELEASE_VERSION}，已有插件和设置会保留。"
     else
-        echo "将安装或更新 Decky Loader 稳定版 ${target_version:-$DECKY_STABLE_VERSION}（国内镜像优先），已有插件和设置会保留。"
+        echo "将安装或更新稳定版插件商城 ${target_version:-$DECKY_STABLE_VERSION}，已有插件和设置会保留。"
     fi
     if [ "${ZHOUKEER_AUTO_CONFIRM:-0}" = "1" ]; then
         return 0
@@ -846,7 +846,7 @@ download_decky_component() {
         return 1
     fi
     download_policy_url_allowed "$url" || {
-        echo "$name 的下载地址不在受控来源清单中，已停止。"
+        echo "$name 的下载地址不可信，已停止。"
         return 1
     }
 
@@ -929,7 +929,7 @@ download_decky_prerelease_component() {
     local output="$4"
 
     if ! download_github_file "$url" "$output" "$expected_sha256" "$name"; then
-        echo "$name 下载失败，正在启用 Steam + GitHub 加速后重试..."
+        echo "$name 下载失败，正在开启网络加速后重试..."
         ensure_steam302_for_download || true
         download_github_file "$url" "$output" "$expected_sha256" "$name"
     fi
@@ -1242,7 +1242,7 @@ install_plugin_store() (
 
     if [ "$gitee_meta_ok" -eq 1 ] && download_decky_gitee_loader "$channel" "$loader_download"; then
         selected_version="$DECKY_GITEE_SELECTED_VERSION"
-        echo "Decky PluginLoader 已从国内镜像下载。"
+        echo "插件商城安装文件已下载。"
         log "Decky下载成功: Decky PluginLoader source=domestic-mirror"
     elif [ "$channel" = "prerelease" ]; then
         download_decky_prerelease_component \
@@ -1258,9 +1258,9 @@ install_plugin_store() (
             "$loader_sha256" \
             "$loader_download" || return 1
     fi
-    echo "正在下载 Decky systemd 服务模板..."
+    echo "正在下载插件商城所需文件..."
     if [ "$gitee_meta_ok" -eq 1 ] && download_decky_gitee_service "$channel" "$service_template"; then
-        echo "Decky systemd服务模板 已从国内镜像下载。"
+        echo "插件商城运行所需文件已下载。"
         log "Decky下载成功: Decky systemd服务模板 source=domestic-mirror"
     elif [ "$channel" = "prerelease" ]; then
         download_decky_prerelease_component \
@@ -1804,7 +1804,7 @@ PY
         grep -Fq 'systemBrowser.OpenInSystemBrowser("https://flingtrainer.com/");' "$temporary" || \
         [ "$(grep -Foc 'DFL.Navigation.NavigateToExternalWeb("https://flingtrainer.com/");' "$temporary")" -ne 1 ]; then
         rm -f -- "$temporary"
-        echo "DeckRecall 浏览器兼容补丁校验失败，原文件保持不变。"
+        echo "DeckRecall 浏览器兼容补丁检查未通过，原文件保持不变。"
         return 1
     fi
 
@@ -1933,7 +1933,7 @@ ensure_cssloader_chinese_current() {
     if feature_plugin_is_current "$plugin_root" "$CSSLOADER_OFFICIAL_DIRECTORY" \
         "$CSSLOADER_OFFICIAL_VERSION" "主题美化" && \
        [ "$actual_sha256" = "$CSSLOADER_ZH_INDEX_SHA256" ]; then
-        echo "[已安装] 主题美化 v$CSSLOADER_OFFICIAL_VERSION 中文版已存在且校验通过。"
+        echo "[已安装] 主题美化 v$CSSLOADER_OFFICIAL_VERSION 中文版已存在且检查通过。"
         PLUGIN_INSTALL_CHANGED=0
         return 0
     fi
@@ -1950,7 +1950,7 @@ ensure_cssloader_chinese_current() {
        [ ! -f "$CSSLOADER_ZH_SOURCE_DIR/LICENSE" ] || \
        [ "$(calculate_decky_sha256 "$CSSLOADER_ZH_SOURCE_DIR/dist/index.js" || true)" \
             != "$CSSLOADER_ZH_INDEX_SHA256" ]; then
-        echo "主题美化中文组件不完整或校验失败，官方后端保持不变。"
+        echo "主题美化中文组件不完整或检查未通过，运行组件保持不变。"
         return 1
     fi
     prepare_plugin_root "$plugin_root" || return 1
@@ -1960,18 +1960,18 @@ ensure_cssloader_chinese_current() {
        ! cp -- "$CSSLOADER_ZH_SOURCE_DIR/dist/index.js" "$staged_source/dist/index.js" || \
        ! cp -- "$CSSLOADER_ZH_SOURCE_DIR/plugin.json" "$staged_source/plugin.json"; then
         rm -rf -- "$work_dir"
-        echo "主题美化中文前端准备失败，官方插件保持不变。"
+        echo "主题美化中文界面准备失败，官方插件保持不变。"
         return 1
     fi
     install_tree_atomically "$staged_source" "$plugin_root" \
         "$CSSLOADER_OFFICIAL_DIRECTORY" || {
         rm -rf -- "$work_dir"
-        echo "主题美化中文前端安装失败，已尽量保留官方版本。"
+        echo "主题美化中文界面安装失败，已尽量保留官方版本。"
         return 1
     }
     rm -rf -- "$work_dir"
     PLUGIN_INSTALL_CHANGED=1
-    echo "CSS Loader v$CSSLOADER_OFFICIAL_VERSION 已完成中文化并显示为“主题美化”；官方后端未改动。"
+    echo "CSS Loader v$CSSLOADER_OFFICIAL_VERSION 已完成中文化并显示为“主题美化”；运行组件未改动。"
 }
 
 install_decky_tar_gz() {
@@ -2051,12 +2051,12 @@ extract_gitee_plugin_archive() {
     esac
     archive_paths_are_safe "$repository_archive" zip || return 1
     unzip -Z1 "$repository_archive" | grep -Fxq -- "$archive_member" || {
-        echo "国内镜像下载失败。"
+        echo "国内下载失败。"
         return 1
     }
     if ! unzip -p "$repository_archive" "$archive_member" > "$output"; then
         rm -f -- "$output"
-        echo "下载失败，切换备用源。"
+        echo "下载失败，正在重新尝试。"
         return 1
     fi
     actual_sha256="$(calculate_decky_sha256 "$output")" || {
@@ -2065,7 +2065,7 @@ extract_gitee_plugin_archive() {
     }
     if [ "$actual_sha256" != "$expected_sha256" ]; then
         rm -f -- "$output"
-        echo "下载失败，切换备用源。"
+        echo "下载失败，正在重新尝试。"
         return 1
     fi
     archive_paths_are_safe "$output" zip || {
@@ -2150,7 +2150,7 @@ install_decky_zip_from_mirror() {
         "$mirror_id" "$plugin_archive" "$plugin_sha256" "$display_name"; then
         cleanup_decky_tmp
         trap - EXIT INT TERM
-        echo "下载失败，切换备用源。"
+        echo "下载失败，正在重新尝试。"
         return 1
     fi
     archive_paths_are_safe "$plugin_archive" zip || {
@@ -2965,7 +2965,7 @@ install_lsfg_zh_from_gitee() {
         install_decky_zip_from_mirror "小黄鸭（LSFG-VK）" \
         "$LSFG_ZH_MIRROR_ID" "$LSFG_ZH_PACKAGE_SHA256" \
         "$LSFG_OFFICIAL_DIRECTORY" || {
-            echo "小黄鸭署名包的国内镜像不可用，已保留现有插件。"
+            echo "小黄鸭下载失败，已保留现有插件。"
             return 1
         }
     remove_legacy_lsfg_directories "$plugin_root"
@@ -3019,11 +3019,11 @@ install_lsfg_v2_from_gitee() {
         install_decky_zip_from_mirror "小黄鸭 2.0（LSFG-VK）" \
         "$LSFG_V2_MIRROR_ID" "$LSFG_V2_PACKAGE_SHA256" \
         "$LSFG_V2_DIRECTORY" || {
-            echo "小黄鸭 2.0 的国内镜像不可用，已保留现有插件。"
+            echo "小黄鸭 2.0 的国内下载暂时不可用，已保留现有插件。"
             return 1
         }
     if ! lsfg_v2_is_current "$plugin_root"; then
-        echo "小黄鸭 2.0 安装后完整性校验失败，请重新安装。"
+        echo "小黄鸭 2.0 安装后文件不完整，请重新安装。"
         return 1
     fi
     echo "小黄鸭 2.0 安装成功。"
@@ -3069,7 +3069,7 @@ install_fsr4_zh_from_gitee() {
         install_decky_zip_from_mirror "FSR4（Decky Framegen）" \
         "$FSR4_ZH_MIRROR_ID" "$FSR4_ZH_PACKAGE_SHA256" \
         "$FSR4_OFFICIAL_DIRECTORY" || {
-            echo "FSR4 署名包的国内镜像不可用，已保留现有插件。"
+            echo "FSR4 下载失败，已保留现有插件。"
             return 1
         }
     echo "FSR4 安装成功。"
@@ -3126,7 +3126,7 @@ install_simpledeckytdp_chinese() {
     fi
     actual_sha256="$(calculate_decky_sha256 "$SIMPLEDECKYTDP_ZH_SOURCE_DIR/dist/index.js")" || return 1
     if [ "$actual_sha256" != "$SIMPLEDECKYTDP_ZH_INDEX_SHA256" ]; then
-        echo "SimpleDeckyTDP 中文组件校验失败，已停止覆盖。"
+        echo "SimpleDeckyTDP 中文组件检查未通过，已停止覆盖。"
         return 1
     fi
     official_bin_dir="$plugin_root/$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY/bin"
@@ -3252,7 +3252,7 @@ install_lego2_brightness_fix() {
         return 1
     fi
     if lego2_brightness_fix_is_current "$plugin_root"; then
-        echo "[已安装] LeGo2 亮度修复 v$LEGO2_BRIGHTNESS_FIX_VERSION 已存在且文件校验通过。"
+        echo "[已安装] LeGo2 亮度修复 v$LEGO2_BRIGHTNESS_FIX_VERSION 已存在且文件检查通过。"
         return 0
     fi
     if [ -L "$LEGO2_BRIGHTNESS_FIX_SOURCE_DIR" ] || \
@@ -3279,7 +3279,7 @@ install_lego2_brightness_fix() {
     actual_main_sha256="$(calculate_decky_sha256 "$LEGO2_BRIGHTNESS_FIX_SOURCE_DIR/main.py")" || return 1
     if [ "$actual_index_sha256" != "$LEGO2_BRIGHTNESS_FIX_INDEX_SHA256" ] || \
        [ "$actual_main_sha256" != "$LEGO2_BRIGHTNESS_FIX_MAIN_SHA256" ]; then
-        echo "LeGo2 亮度修复内置组件校验失败，已停止安装。"
+        echo "LeGo2 亮度修复内置组件检查未通过，已停止安装。"
         return 1
     fi
     prepare_plugin_root "$plugin_root" || return 1
@@ -3338,19 +3338,19 @@ install_allycenter_chinese() {
     fi
     actual_sha256="$(calculate_decky_sha256 "$ALLYCENTER_ZH_SOURCE_DIR/dist/index.js")" || return 1
     if [ "$actual_sha256" != "$ALLYCENTER_ZH_INDEX_SHA256" ]; then
-        echo "Ally Center 中文组件校验失败，已停止覆盖。"
+        echo "Ally Center 中文组件检查未通过，已停止覆盖。"
         return 1
     fi
     actual_plugin_sha256="$(calculate_decky_sha256 "$ALLYCENTER_ZH_SOURCE_DIR/plugin.json")" || return 1
     if [ "$actual_plugin_sha256" != "$ALLYCENTER_ZH_PLUGIN_SHA256" ]; then
-        echo "Ally Center 中文插件清单校验失败，已停止覆盖。"
+        echo "Ally Center 中文插件清单检查未通过，已停止覆盖。"
         return 1
     fi
     official_source="$plugin_root/Ally Center"
     if [ ! -f "$official_source/main.py" ] || \
        [ ! -f "$official_source/plugin.json" ] || \
        [ ! -f "$official_source/package.json" ]; then
-        echo "Ally Center 官方后端不完整，请重新安装后再试。"
+        echo "Ally Center 运行组件不完整，请重新安装后再试。"
         return 1
     fi
     prepare_plugin_root "$plugin_root" || return 1
@@ -3465,13 +3465,13 @@ install_handheld_frontend_overlay() {
     fi
     actual_sha256="$(calculate_decky_sha256 "$overlay_source/dist/index.js")" || return 1
     if [ "$actual_sha256" != "$expected_sha256" ]; then
-        echo "$display_name 中文组件校验失败，已停止覆盖。"
+        echo "$display_name 中文组件检查未通过，已停止覆盖。"
         return 1
     fi
     if [ ! -f "$official_source/main.py" ] || \
        [ ! -f "$official_source/plugin.json" ] || \
        [ ! -f "$official_source/package.json" ]; then
-        echo "$display_name 官方后端不完整，请重新安装后再试。"
+        echo "$display_name 运行组件不完整，请重新安装后再试。"
         return 1
     fi
 
@@ -3497,7 +3497,7 @@ install_handheld_frontend_overlay() {
     if [ "$translated" = "1" ]; then
         echo "汉化作者：RenAmamiya，感谢支持！"
     else
-        echo "该插件由上游自带简体中文；Renkit 仅适配中文显示名。"
+        echo "该插件已支持中文界面。"
     fi
     echo "$author_line"
     reload_decky_plugins "Decky 已重新加载；返回游戏模式即可打开 ${display_name}。"
@@ -3541,7 +3541,7 @@ ensure_handheld_overlay_current() {
 }
 
 restore_lsfg_official() {
-    echo "Renkit 只提供带 RenAmamiya 署名的国内镜像版本。"
+    echo "中文汉化：RenAmamiya。"
     install_lsfg_zh_from_gitee 1
 }
 
@@ -3813,11 +3813,11 @@ install_configured_plugin() {
                     "$DECKY_LSFG_MAKO_URL" \
                     "$DECKY_LSFG_MAKO_SHA256" \
                     "$LSFG_MAKO_DIRECTORY" 0 || {
-                        echo "MAKO 的国内镜像和作者 GitHub Release 均不可用，已保留现有插件。"
+                        echo "MAKO 下载失败，已保留现有插件。"
                         return 1
                     }
                 mako_official_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" || {
-                    echo "MAKO 官方包安装后完整性校验失败，请重新安装。"
+                    echo "MAKO 官方包安装后文件不完整，请重新安装。"
                     return 1
                 }
             fi
@@ -3850,7 +3850,7 @@ install_configured_plugin() {
             fi
             ;;
         cheatdeck)
-            echo "提示：强烈建议进入 游戏与插件，安装修改器所需兼容层。"
+            echo "提示：强烈建议进入 游戏与插件，安装修改器所需运行工具。"
             resolve_plugin_latest cheatdeck
             if feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
                 "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then
@@ -3943,7 +3943,7 @@ install_configured_plugin() {
                     "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/NewFreedeck" || true)"
                 [ -z "$installed_version" ] || \
                     echo "检测到 NewFreedeck 旧版本 ${installed_version}，将更新到 ${DECKY_NEWFREEDECK_VERSION}。"
-                echo "提示：NewFreedeck v$DECKY_NEWFREEDECK_VERSION 为作者重构版，上游注明个别模拟器仍不可用。"
+                echo "提示：NewFreedeck v$DECKY_NEWFREEDECK_VERSION 为作者重构版，作者说明个别模拟器仍不可用。"
                 GITEE_MIRROR_REPO="$DECKY_NEWFREEDECK_MIRROR_REPO" \
                     install_decky_zip \
                     "NewFreedeck（重构版）" \
@@ -3977,7 +3977,7 @@ install_configured_plugin() {
                 feature_plugin_is_current \
                     "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
                     "PowerControl" "$DECKY_POWERCONTROL_VERSION" "PowerControl" || {
-                        echo "PowerControl 安装后版本或目录校验失败，未显示为成功。"
+                        echo "PowerControl 安装后版本或目录检查未通过，未显示为成功。"
                         return 1
                     }
             fi
@@ -4060,7 +4060,7 @@ install_configured_plugin() {
                [ "$(calculate_decky_sha256 \
                     "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/$DECKY_FANTASTIC_DIRECTORY/dist/index.js" \
                     2>/dev/null || true)" = "$DECKY_FANTASTIC_INDEX_SHA256" ]; then
-                echo "[已安装] Fantastic v$DECKY_FANTASTIC_VERSION 汉化版已存在且校验通过。"
+                echo "[已安装] Fantastic v$DECKY_FANTASTIC_VERSION 汉化版已存在且检查通过。"
                 PLUGIN_INSTALL_CHANGED=0
             else
                 echo "正在直接安装 Fantastic v$DECKY_FANTASTIC_VERSION 汉化版……"
@@ -4075,7 +4075,7 @@ install_configured_plugin() {
                    [ "$(calculate_decky_sha256 \
                         "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/$DECKY_FANTASTIC_DIRECTORY/dist/index.js" \
                         2>/dev/null || true)" != "$DECKY_FANTASTIC_INDEX_SHA256" ]; then
-                    echo "Fantastic 安装后汉化文件校验失败，未显示为成功。"
+                    echo "Fantastic 安装后汉化文件检查未通过，未显示为成功。"
                     return 1
                 fi
                 echo "Fantastic v$DECKY_FANTASTIC_VERSION 已直接安装；原作者：NGnius；许可证：GPL-3.0；中文汉化：RenAmamiya。"
@@ -4179,7 +4179,7 @@ ensure_deckymusic_full_current() {
         PLUGIN_INSTALL_CHANGED=0
         return 0
     fi
-    echo "正在安装 Decky Music v$DECKY_DECKYMUSIC_VERSION 完整包；播放器和 QQ/网易云音乐源已内置，无需首次启动再下载。"
+    echo "正在安装音乐播放器 v$DECKY_DECKYMUSIC_VERSION，支持 QQ 音乐和网易云音乐。"
     GITEE_MIRROR_REPO="$DECKY_DECKYMUSIC_MIRROR_REPO" \
     install_decky_zip "音乐播放器（Decky Music 完整包）" \
         "$DECKY_DECKYMUSIC_URL" "$DECKY_DECKYMUSIC_SHA256" \
@@ -4255,20 +4255,20 @@ install_game_info_plugin_from_gitee() {
         [ "$actual_backend_sha256" = "$backend_sha256" ] && \
         { [ -z "${dependencies_sha256:-}" ] || \
           [ "$actual_dependencies_sha256" = "$dependencies_sha256" ]; }; then
-        echo "[已安装] $display_name v$version 已存在且校验通过，无需重复安装。"
+        echo "[已安装] $display_name v$version 已存在且检查通过，无需重复安装。"
         return 0
     fi
     if [ -d "$plugin_root/$directory" ]; then
         installed_version="$(decky_plugin_version "$plugin_root/$directory" || true)"
-        echo "检测到 $display_name 版本 ${installed_version:-未知}，将通过国内镜像更新到 v${version}。"
+        echo "检测到 $display_name 版本 ${installed_version:-未知}，将更新到 v${version}。"
     else
-        echo "正在通过国内镜像安装 $display_name v$version..."
+        echo "正在安装 $display_name v$version..."
     fi
 
     GITEE_MIRROR_REPO="$DECKY_GAME_INFO_MIRROR_REPO" \
         install_decky_zip_from_mirror "$display_name" "$mirror_id" \
         "$package_sha256" "$directory" || {
-            echo "$display_name 的国内镜像不可用，已保留现有插件。"
+            echo "$display_name 的国内下载暂时不可用，已保留现有插件。"
             return 1
         }
 
@@ -4287,7 +4287,7 @@ install_game_info_plugin_from_gitee() {
         [ "$actual_backend_sha256" != "$backend_sha256" ] || \
         { [ -n "${dependencies_sha256:-}" ] && \
           [ "$actual_dependencies_sha256" != "$dependencies_sha256" ]; }; then
-        echo "$display_name 安装后校验失败，请更新Renkit后重试。"
+        echo "$display_name 安装后检查未通过，请更新Renkit后重试。"
         return 1
     fi
     echo "$display_name v$version 已安装；汉化：RenAmamiya。"
@@ -4369,9 +4369,9 @@ print_feature_plugin_status() {
         "$CSSLOADER_OFFICIAL_VERSION" "主题美化" && \
        [ "$(calculate_decky_sha256 "$plugin_root/$CSSLOADER_OFFICIAL_DIRECTORY/dist/index.js" \
             2>/dev/null || true)" = "$CSSLOADER_ZH_INDEX_SHA256" ]; then
-        echo "✓ 主题美化（CSS Loader）：官方后端 $plugin_version，中文前端校验通过"
+        echo "✓ 主题美化（CSS Loader）：运行组件 $plugin_version，中文界面检查通过"
     else
-        echo "✗ 主题美化（CSS Loader）：缺失、版本不符或中文前端校验失败"
+        echo "✗ 主题美化（CSS Loader）：缺失、版本不符或中文界面检查未通过"
         missing=1
     fi
     if feature_plugin_is_current "$plugin_root" "Friendeck-plugin" \
@@ -4393,9 +4393,9 @@ print_feature_plugin_status() {
            [ "$(calculate_decky_sha256 \
                 "$plugin_root/$DECKY_FANTASTIC_DIRECTORY/dist/index.js" \
                 2>/dev/null || true)" = "$DECKY_FANTASTIC_INDEX_SHA256" ]; then
-            echo "✓ Fantastic 风扇控制：v$DECKY_FANTASTIC_VERSION 汉化版校验通过，汉化：RenAmamiya"
+            echo "✓ Fantastic 风扇控制：v$DECKY_FANTASTIC_VERSION 汉化版检查通过，汉化：RenAmamiya"
         else
-            echo "✗ Fantastic 风扇控制：缺失、版本不符或汉化前端校验失败"
+            echo "✗ Fantastic 风扇控制：缺失、版本不符或汉化前端检查未通过"
             missing=1
         fi
     fi
@@ -4453,9 +4453,9 @@ install_feature_plugins() {
     fi
     if [ "$_all_installed" = "1" ]; then
         if [ "$IS_STEAMOS" -eq 1 ]; then
-            echo "九款常用功能插件已全部安装且校验通过，无需重复安装。"
+            echo "九款常用功能插件已全部安装且检查通过，无需重复安装。"
         else
-            echo "七款常用功能插件已全部安装且校验通过，无需重复安装。"
+            echo "七款常用功能插件已全部安装且检查通过，无需重复安装。"
         fi
         write_flingtrainer_desktop_note || \
             echo "常用插件已存在，但未能在桌面生成风灵月影网址.txt。"
@@ -4493,7 +4493,7 @@ install_feature_plugins() {
                 ;;
             cheatdeck)
                 echo "========== CheatDeck =========="
-                echo "提示：强烈建议进入 游戏与插件，安装修改器所需兼容层。"
+                echo "提示：强烈建议进入 游戏与插件，安装修改器所需运行工具。"
                 if feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
                     "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then
                     echo "[已安装] CheatDeck v$DECKY_CHEATDECK_VERSION 已安装，跳过。"
@@ -4591,7 +4591,7 @@ install_25_plugins() {
         echo "精选插件安装仅支持真实 SteamOS 环境。"
         return 1
     fi
-    echo "将从 Decky 官方商店批量安装 26 款精选插件，其中包括 SimpleDeckyTDP 与 Unifideck。"
+    echo "将安装 26 款精选插件，包含掌机功耗控制和其他平台游戏管理。"
     echo "不会安装小黄鸭、FSR4 和 CheatDeck（请在常用功能插件中单独安装）。"
     echo "官方推荐插件仍由 Decky 内置安装器在 Steam 界面中确认。"
     if ! bash "$PROJECT_ROOT/modules/decky_bundle.sh" install; then

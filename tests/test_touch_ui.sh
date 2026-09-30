@@ -134,7 +134,7 @@ printf '%s\n' "$new_machine_preflight" | grep -Fq 'CEF 远程调试' || fail "�
 printf '%s\n' "$new_machine_preflight" | grep -Fq 'right:18-19:start' || fail "新机初始化确认按钮坐标错误"
 printf '%s\n' "$new_machine_preflight" | grep -Fq 'right:20-21:init' || fail "新机初始化返回按钮坐标错误"
 printf '%s\n' "$new_machine_preflight" | grep -Fq '是否跳过系统组件更新' || fail "新机初始化入口没有提示系统组件更新可跳过"
-printf '%s\n' "$new_machine_preflight" | grep -Fq 'GE-Proton 10-29' || fail "新机初始化入口没有说明只安装 GE-Proton 10-29"
+printf '%s\n' "$new_machine_preflight" | grep -Fq '自动准备修改器常用运行工具' || fail "新机初始化入口没有说明会准备修改器运行工具"
 grep -Fq 'CEF 远程调试' "$PROJECT_ROOT/modules/new_machine.sh" || fail "新机初始化终端说明没有提示 CEF 远程调试"
 
 touch_button="$(sed -n '/^ui_touch_button()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
@@ -200,7 +200,7 @@ printf '%s\n' "$more_software" | grep -Fq 'right:16-17:sunshine' || fail "Sunshi
 printf '%s\n' "$more_software" | grep -Fq 'modules/software.sh" sunshine' || fail "Sunshine 安装动作缺失"
 
 games="$(sed -n '/^game_environment_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
-printf '%s\n' "$games" | grep -Fq 'draw_category_frame games "游戏与插件｜插件商城" "浏览插件商城、运行组件和启动器" 0' || fail "游戏与插件仍显示与首个按钮重叠的分类文字"
+printf '%s\n' "$games" | grep -Fq 'draw_category_frame games "游戏与插件｜插件商城" "给游戏增加功能，安装其他平台的游戏" 0' || fail "游戏与插件仍显示与首个按钮重叠的分类文字"
 
 home="$(sed -n '/^home_menu()/,/^}/p' "$PROJECT_ROOT/main.sh")"
 for aligned_line in \
