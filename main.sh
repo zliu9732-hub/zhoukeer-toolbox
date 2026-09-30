@@ -589,7 +589,7 @@ lsfg_versions_menu() {
     while true; do
         draw_category_frame games "小黄鸭版本选择" "1.0 稳定汉化 · 2.0 新版中文 · MAKO 官方最新版" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "小黄鸭 1.0" "v0.12.8 汉化版·稳定"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "小黄鸭 2.0" "仅正版小黄鸭用户用·替代 1.0 小黄鸭·可与 MAKO 共存"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "小黄鸭 2.0" "仅正版小黄鸭用户用·覆盖 1.0 小黄鸭·可与 MAKO 共存"
         ui_touch_button 11 '\033[1;97;48;5;160m' "MAKO 小黄鸭" "让游戏画面更流畅 · 自动检查新版本 · 中文界面"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -602,7 +602,7 @@ lsfg_versions_menu() {
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                 ;;
             v2)
-                confirm_and_run "安装小黄鸭 2.0" "让游戏画面更流畅；仅供正版小黄鸭用户使用，可与 MAKO 一起保留" \
+                confirm_and_run "安装小黄鸭 2.0" "让游戏画面更流畅；仅供正版小黄鸭用户使用；会替换 1.0，小黄鸭 1.0 和 2.0 只保留一个，可与 MAKO 一起保留" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-v2
                 ;;
             mako)
@@ -703,7 +703,7 @@ plugin_page_2_menu() {
         ui_touch_button 9 '\033[1;97;48;5;24m' "掌机控制插件" "掌机功耗控制与 ROG Ally Center"
         ui_touch_button 11 '\033[1;97;48;5;24m' "Unifideck" "入库第三方平台游戏"
         ui_touch_button 13 '\033[1;97;48;5;24m' "ToMoon" "网络工具"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "安装游戏运行工具（GE）" "提高 Windows 游戏兼容性"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "安装 GE 兼容层" "提高 Windows 游戏兼容性"
         ui_touch_button 17 '\033[1;97;48;5;24m' "启动器与封面" "Epic、战网、育碧及封面修复"
         ui_touch_button 19 '\033[1;97;48;5;24m' "SteamDB 游戏数据" "价格史低与在线峰值"
         ui_touch_button 21 '\033[1;97;48;5;238m' "上一页" "返回插件列表"
@@ -877,7 +877,7 @@ trainer_ge_proton_menu() {
         ui_touch_button 9 '\033[1;97;48;5;24m' "安装 GE-Proton 9-27" "只下载并安装此版本"
         ui_touch_button 12 '\033[1;97;48;5;24m' "安装 GE-Proton 10-29" "只下载并安装此版本"
         ui_touch_button 15 '\033[1;97;48;5;24m' "安装全部四个运行工具" "一次准备四个常用版本，约1.72GB"
-        ui_touch_button 19 '\033[1;97;48;5;238m' "返回游戏运行工具" "返回上一页"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回 GE 兼容层" "返回上一页"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:3-4:trainer-7-55 right:6-7:trainer-8-25 right:9-10:trainer-9-27 right:12-13:trainer-10-29 right:15-16:trainer-all right:19-20:back right:22-23:home)"
@@ -885,7 +885,7 @@ trainer_ge_proton_menu() {
         case "$choice" in
             trainer-7-55|trainer-8-25|trainer-9-27|trainer-10-29)
                 version="${choice#trainer-}"
-                confirm_and_run "安装 GE-Proton $version" "只安装所选的游戏运行工具，不下载其他版本" \
+                confirm_and_run "安装 GE-Proton $version" "只安装所选的 GE 兼容层，不下载其他版本" \
                     bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer-one "$version"
                 ;;
             trainer-all)
@@ -902,8 +902,8 @@ ge_proton_menu() {
     local choice
 
     while true; do
-        draw_category_frame games "游戏运行工具" "帮助运行 Windows 游戏和修改器" 0
-        ui_touch_button 5 '\033[1;97;48;5;24m' "安装最新游戏运行工具（GE）" "帮助运行 Windows 游戏，保留已有版本"
+        draw_category_frame games "GE 兼容层" "帮助运行 Windows 游戏和修改器" 0
+        ui_touch_button 5 '\033[1;97;48;5;24m' "安装最新 GE 兼容层" "帮助运行 Windows 游戏，保留已有版本"
         ui_touch_button 9 '\033[1;97;48;5;24m' "安装修改器常用运行工具" "四个版本约1.72GB，下载较慢为正常现象"
         ui_touch_button 13 '\033[1;97;48;5;24m' "安装 Proton-CachyOS" "另一款运行 Windows 游戏的工具"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "查看其他游戏组件"
@@ -913,7 +913,7 @@ ge_proton_menu() {
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             latest)
-                confirm_and_run "安装最新游戏运行工具（GE）" "帮助运行 Windows 游戏，保留已有版本运行工具" bash "$PROJECT_ROOT/modules/ge_proton.sh" install
+                confirm_and_run "安装最新 GE 兼容层" "帮助运行 Windows 游戏，保留已有 GE 兼容层" bash "$PROJECT_ROOT/modules/ge_proton.sh" install
                 ;;
             trainer)
                 trainer_ge_proton_menu

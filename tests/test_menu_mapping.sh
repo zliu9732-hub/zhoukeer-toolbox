@@ -232,7 +232,7 @@ gui_ge_proton="$(function_source "$GUI_FILE" ge_proton_gui_menu)"
 touch_trainer_ge_proton="$(function_source "$MAIN_FILE" trainer_ge_proton_menu)"
 gui_trainer_ge_proton="$(function_source "$GUI_FILE" trainer_ge_proton_gui_menu)"
 for menu in "$touch_ge_proton" "$gui_ge_proton"; do
-    assert_contains "$menu" '安装最新游戏运行工具（GE）' "GE 兼容层子菜单缺少最新版入口"
+    assert_contains "$menu" '安装最新 GE 兼容层' "GE 兼容层子菜单缺少最新版入口"
     assert_contains "$menu" '安装修改器常用运行工具' "GE 兼容层子菜单缺少修改器常用入口"
     assert_contains "$menu" '安装 Proton-CachyOS' "游戏兼容层菜单缺少 Proton-CachyOS 入口"
     assert_contains "$menu" 'modules/proton_cachyos.sh" install' "Proton-CachyOS 安装动作错误"

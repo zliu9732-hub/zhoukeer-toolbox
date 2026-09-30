@@ -824,8 +824,8 @@ grep -Fq 'DECKY_LSFG_MAKO_SHA256="621ad66bd40f12b416e8112bb78e1aae55a96bf7fe1443
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'LSFG_MAKO_INDEX_SHA256="e615016e8d1bb89634be7b259e24a972537cef0238b9036a20235bfffc615e2e"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'LSFG_V2_DIRECTORY="小黄鸭2.0"' "$PROJECT_ROOT/modules/plugin_store.sh" || {
-    echo "FAIL: 小黄鸭 2.0 未使用独立目录，可能覆盖 1.0 或 MAKO" >&2
+grep -Fq 'LSFG_V2_DIRECTORY="$LSFG_OFFICIAL_DIRECTORY"' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: 小黄鸭 2.0 未复用 1.0 目录" >&2
     exit 1
 }
 grep -Fq 'LSFG_V2_VERSION="0.14.4"' "$PROJECT_ROOT/modules/plugin_store.sh" || {

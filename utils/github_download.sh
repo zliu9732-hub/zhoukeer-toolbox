@@ -195,6 +195,8 @@ download_github_file() {
     local quiet="${GITHUB_QUIET:-0}"
     local curl_options=()
 
+    DOWNLOAD_LOCAL_IO_FAILED=0
+
     connect_timeout="$(_github_setting "${GITHUB_CONNECT_TIMEOUT:-}" 10)"
     max_time="$(_github_setting "${GITHUB_MAX_TIME:-}" 1200)"
     retries="$(_github_setting "${GITHUB_RETRIES:-}" 2)"
@@ -235,8 +237,10 @@ download_github_file() {
             ;;
     esac
 
-    temp_file="$(mktemp "${output}.part.XXXXXX" 2>/dev/null)" || {
-        echo "$name 无法创建临时下载文件。"
+    temp_file="$(mktemp "${output}.part.XXXXXX" 2>&1)" || {
+        DOWNLOAD_LOCAL_IO_FAILED=1
+        declare -F log >/dev/null 2>&1 && log "临时下载文件创建失败: output=$output error=$temp_file"
+        echo "$name 的临时文件无法写入，请检查剩余空间后重试。"
         return 1
     }
     curl_options=(
@@ -269,7 +273,12 @@ download_github_file() {
         fi
 
         rm -f -- "$temp_file"
-        temp_file="$(mktemp "${output}.part.XXXXXX" 2>/dev/null)" || return 1
+        temp_file="$(mktemp "${output}.part.XXXXXX" 2>&1)" || {
+            DOWNLOAD_LOCAL_IO_FAILED=1
+            declare -F log >/dev/null 2>&1 && log "临时下载文件创建失败: output=$output error=$temp_file"
+            echo "$name 的临时文件无法写入，请检查剩余空间后重试。"
+            return 1
+        }
         if [ "$quiet" = "1" ]; then
             if ! curl "${curl_options[@]}" --output "$temp_file" "$resolved_url" \
                 2>/dev/null; then

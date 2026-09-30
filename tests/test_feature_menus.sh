@@ -234,7 +234,7 @@ for menu in "$touch_lsfg" "$gui_games"; do
     assert_contains "$menu" '小黄鸭 1.0' "小黄鸭版本菜单缺少 1.0"
     assert_contains "$menu" '小黄鸭 2.0' "小黄鸭版本菜单缺少 2.0"
     assert_contains "$menu" '仅正版小黄鸭用户用' "小黄鸭 2.0 缺少正版使用说明"
-    assert_contains "$menu" '替代 1.0 小黄鸭' "小黄鸭 2.0 缺少替代 1.0 说明"
+    assert_contains "$menu" '覆盖 1.0 小黄鸭' "小黄鸭 2.0 缺少替代 1.0 说明"
     assert_contains "$menu" '可与 MAKO 共存' "小黄鸭 2.0 缺少与 MAKO 共存说明"
     assert_contains "$menu" 'MAKO 小黄鸭' "小黄鸭版本菜单缺少 MAKO"
     assert_contains "$menu" '自动检查新版本' "MAKO 入口缺少自动跟随上游说明"
@@ -480,7 +480,7 @@ done
 touch_ge_proton="$(function_source "$MAIN_FILE" ge_proton_menu)"
 gui_ge_proton="$(function_source "$GUI_FILE" ge_proton_gui_menu)"
 for menu in "$touch_ge_proton" "$gui_ge_proton"; do
-    assert_contains "$menu" '安装最新游戏运行工具（GE）' "GE 兼容层子菜单缺少最新版入口"
+    assert_contains "$menu" '安装最新 GE 兼容层' "GE 兼容层子菜单缺少最新版入口"
     assert_contains "$menu" '安装修改器常用运行工具' "GE 兼容层子菜单缺少修改器常用入口"
     assert_contains "$menu" '1.72GB' "GE 兼容层子菜单缺少下载体积提示"
 done

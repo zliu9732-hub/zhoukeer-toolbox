@@ -24,7 +24,10 @@ first_output="$(install_cheatdeck_mako_launch_option)"
 printf '%s\n' "$first_output" | grep -Fq 'Mako_Renkit' || fail "首次安装没有报告 Mako_Renkit"
 settings_file="$HOME/homebrew/settings/CheatDeck/settings.json"
 [ -f "$settings_file" ] || fail "首次安装没有创建 CheatDeck 设置"
-[ "$(stat -c '%a' "$settings_file")" = "600" ] || fail "CheatDeck 设置文件权限不安全"
+python3 - "$settings_file" <<'PYMODE'
+import os, stat, sys
+assert stat.S_IMODE(os.stat(sys.argv[1]).st_mode) == 0o600
+PYMODE
 
 python3 - "$settings_file" <<'PY'
 import json
@@ -76,5 +79,34 @@ with open(sys.argv[1], encoding="utf-8") as source:
 assert sum(item.get("id") == "renkit-mako" for item in options) == 1
 assert any(item.get("id") == "customer-option" for item in options)
 PY
+
+# 新建空文件、空白和 UTF-8 BOM 不应打印回溯。
+for empty_content in '' '   '; do
+    printf '%s' "$empty_content" > "$settings_file"
+    empty_output="$(install_cheatdeck_mako_launch_option 2>&1)" || fail "空设置文件未能安全初始化"
+    printf '%s\n' "$empty_output" | grep -Fq 'Mako_Renkit' || fail "空文件没有新增启动项"
+done
+python3 - "$settings_file" <<'PYBOM'
+import json, sys
+with open(sys.argv[1], 'w', encoding='utf-8-sig') as f:
+    json.dump({'unrelated': '用户设置'}, f)
+PYBOM
+install_cheatdeck_mako_launch_option || fail "带 BOM 的合法设置未被读取"
+python3 - "$settings_file" <<'PYCHECK'
+import json, sys
+with open(sys.argv[1], encoding='utf-8') as f:
+    assert json.load(f)['unrelated'] == '用户设置'
+PYCHECK
+# 损坏的非空配置不能被静默覆盖，用户界面不能泄漏回溯。
+printf 'not valid json' > "$settings_file"
+cp "$settings_file" "$TMP_ROOT/original-settings"
+if bad_output="$(install_cheatdeck_mako_launch_option 2>&1)"; then
+    fail "损坏的设置被当成成功处理"
+fi
+cmp -s "$settings_file" "$TMP_ROOT/original-settings" || fail "损坏的用户设置被覆盖"
+printf '%s\n' "$bad_output" | grep -Fq '原文件已保留' || fail "失败缺少中文提示"
+if printf '%s\n' "$bad_output" | grep -Eq 'Traceback|JSONDecodeError'; then
+    fail "用户界面仍显示程序回溯"
+fi
 
 echo "PASS: CheatDeck Mako_Renkit 启动项创建、保留与幂等测试通过"

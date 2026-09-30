@@ -219,13 +219,13 @@ trainer_ge_proton_gui_menu() {
             trainer-9-27 "安装 GE-Proton 9-27｜只安装此版本" \
             trainer-10-29 "安装 GE-Proton 10-29｜只安装此版本" \
             trainer-all "安装全部四个运行工具｜原一键安装功能，约1.72GB" \
-            back "返回游戏运行工具" \
+            back "返回 GE 兼容层" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
         case "$choice" in
             trainer-7-55|trainer-8-25|trainer-9-27|trainer-10-29)
                 version="${choice#trainer-}"
-                gui_confirm "将只安装所选的游戏运行工具，不下载其他版本。是否继续？" && \
+                gui_confirm "将只安装所选的 GE 兼容层，不下载其他版本。是否继续？" && \
                     run_gui_action "安装 GE-Proton $version" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer-one "$version"
                 ;;
@@ -245,8 +245,8 @@ ge_proton_gui_menu() {
     local choice
 
     while true; do
-        choice="$(gui_dialog --menu "游戏运行工具｜GE-Proton 与 Proton-CachyOS" \
-            latest "安装最新游戏运行工具（GE）｜帮助运行 Windows 游戏，保留已有版本" \
+        choice="$(gui_dialog --menu "GE 兼容层｜选择需要的版本" \
+            latest "安装最新 GE 兼容层｜帮助运行 Windows 游戏，保留已有版本" \
             trainer "安装修改器常用运行工具｜四个版本约1.72GB，下载较慢为正常现象" \
             cachyos "安装 Proton-CachyOS｜另一款运行 Windows 游戏的工具" \
             back "返回游戏与插件" \
@@ -254,8 +254,8 @@ ge_proton_gui_menu() {
             nav-exit "退出Renkit")" || return 0
         case "$choice" in
             latest)
-                gui_confirm "将自动检测并安装最新 GE-Proton，不会删除已安装的旧版运行工具。是否继续？" && \
-                    run_gui_action "安装最新游戏运行工具（GE）" env ZHOUKEER_AUTO_CONFIRM=1 \
+                gui_confirm "将自动检测并安装最新 GE-Proton，不会删除已安装的旧版 GE 兼容层。是否继续？" && \
+                    run_gui_action "安装最新 GE 兼容层" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/ge_proton.sh" install
                 ;;
             trainer)
@@ -295,7 +295,7 @@ game_environment_gui_menu() {
             browse "浏览官方插件｜逐个查看插件作用" \
             freedeck "Freedeck｜选择 0.6 稳定版或 NewFreedeck" \
             handheld-plugins "掌机控制插件｜掌机功耗控制与 ROG Ally Center" \
-            ge-proton "安装游戏运行工具（GE）｜提高 Windows 游戏兼容性" \
+            ge-proton "安装 GE 兼容层｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
             tomoon "ToMoon｜在游戏模式管理网络连接和加速设置" \
             battlenet "战网启动器｜安装战网并添加到 Steam，方便下载和游玩暴雪游戏" \
@@ -341,7 +341,7 @@ game_environment_gui_menu() {
             lsfg)
                 lsfg_choice="$(gui_dialog --menu "小黄鸭版本选择" \
                     stable "小黄鸭 1.0｜v0.12.8 汉化版·稳定" \
-                    v2 "小黄鸭 2.0｜仅正版小黄鸭用户用｜替代 1.0 小黄鸭｜可与 MAKO 共存" \
+                    v2 "小黄鸭 2.0｜仅正版小黄鸭用户用｜覆盖 1.0 小黄鸭｜可与 MAKO 共存" \
                     mako "MAKO 小黄鸭｜让游戏画面更流畅｜自动检查新版本｜中文界面" \
                     back "返回游戏与插件")" || continue
                 case "$lsfg_choice" in
@@ -351,7 +351,7 @@ game_environment_gui_menu() {
                             bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                         ;;
                     v2)
-                        gui_confirm "小黄鸭 2.0 可让游戏画面更流畅；仅供正版小黄鸭用户使用，可与 MAKO 一起保留。是否继续？" && \
+                        gui_confirm "小黄鸭 2.0 可让游戏画面更流畅；仅供正版小黄鸭用户使用；会替换 1.0，小黄鸭 1.0 和 2.0 只保留一个，可与 MAKO 一起保留。是否继续？" && \
                             run_gui_action "安装小黄鸭 2.0" \
                                 env ZHOUKEER_AUTO_CONFIRM=1 \
                                 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-v2

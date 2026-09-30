@@ -40,7 +40,8 @@ DECKY_TMP_DIR=""
 PLUGIN_INSTALL_CHANGED=0
 LSFG_OFFICIAL_DIRECTORY="Decky LSFG-VK"
 LSFG_OFFICIAL_VERSION="0.12.8"
-LSFG_V2_DIRECTORY="小黄鸭2.0"
+LSFG_V2_DIRECTORY="$LSFG_OFFICIAL_DIRECTORY"
+LSFG_V2_ARCHIVE_DIRECTORY="小黄鸭2.0"
 LSFG_V2_VERSION="0.14.4"
 LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"
 LSFG_MAKO_DIRECTORY="Mako"
@@ -1556,6 +1557,7 @@ download_verified_package() {
         echo "$name 的下载配置不完整，请先更新Renkit。"
         return 1
     fi
+    DOWNLOAD_LOCAL_IO_FAILED=0
     mirror_id="$(gitee_mirror_id_for_url "$url" 2>/dev/null || true)"
     if [ -n "$mirror_id" ]; then
         download_with_gitee_mirror_fallback \
@@ -1855,41 +1857,53 @@ install_decky_zip() {
     done
     prepare_plugin_root "$plugin_root" || return 1
 
-    tmp_dir="$(mktemp -d)" || return 1
-    DECKY_TMP_DIR="$tmp_dir"
-    archive="$tmp_dir/plugin.zip"
-    extract_dir="$tmp_dir/extracted"
-    mkdir -p "$extract_dir"
-    trap cleanup_decky_tmp EXIT INT TERM
+    # 失败与正常结束都只清理本次安装，避免遗留下载占满空间或覆盖调用方清理动作。
+    if (
+        local DECKY_TMP_DIR=""
+        tmp_dir="$(mktemp -d)" || return 1
+        DECKY_TMP_DIR="$tmp_dir"
+        archive="$tmp_dir/plugin.zip"
+        extract_dir="$tmp_dir/extracted"
+        mkdir -p "$extract_dir"
+        trap cleanup_decky_tmp EXIT
+        trap 'exit 130' INT
+        trap 'exit 143' TERM
 
-    if ! download_verified_package "$display_name" "$url" "$sha256" "$archive"; then
-        bash "$PROJECT_ROOT/modules/steam_accelerator.sh" ensure || true
-        download_verified_package "$display_name" "$url" "$sha256" "$archive" || return 1
-    fi
-    archive_paths_are_safe "$archive" zip || return 1
-    unzip -q "$archive" -d "$extract_dir" || {
-        echo "$display_name 解压失败，未改动现有插件。"
-        return 1
-    }
-    plugin_source="$(find_plugin_source "$extract_dir")" || {
-        echo "$display_name 压缩包中没有找到 plugin.json。"
-        return 1
-    }
-    if [ "$plugin_source" != "$extract_dir" ] && \
-        [ "$(basename "$plugin_source")" != "$expected_dir" ]; then
-        echo "$display_name 的目录结构不符合预期，已停止安装。"
-        return 1
-    fi
+        if ! download_verified_package "$display_name" "$url" "$sha256" "$archive"; then
+            if [ "${DOWNLOAD_LOCAL_IO_FAILED:-0}" = "1" ]; then
+                echo "$display_name 的临时文件无法写入，请检查剩余空间后重试。"
+                return 1
+            fi
+            bash "$PROJECT_ROOT/modules/steam_accelerator.sh" ensure || true
+            download_verified_package "$display_name" "$url" "$sha256" "$archive" || return 1
+        fi
+        archive_paths_are_safe "$archive" zip || return 1
+        unzip -q "$archive" -d "$extract_dir" || {
+            echo "$display_name 解压失败，未改动现有插件。"
+            return 1
+        }
+        plugin_source="$(find_plugin_source "$extract_dir")" || {
+            echo "$display_name 压缩包中没有找到 plugin.json。"
+            return 1
+        }
+        if [ "$plugin_source" != "$extract_dir" ] && \
+            [ "$(basename "$plugin_source")" != "$expected_dir" ]; then
+            echo "$display_name 的目录结构不符合预期，已停止安装。"
+            return 1
+        fi
 
-    install_tree_atomically "$plugin_source" "$plugin_root" "$expected_dir" || {
-        echo "$display_name 安装失败，已尽量保留旧版本。"
-        return 1
-    }
-    echo "$display_name 安装成功。"
-    log "$display_name 安装完成"
-    PLUGIN_INSTALL_CHANGED=1
-    cleanup_decky_tmp
-    trap - EXIT INT TERM
+        install_tree_atomically "$plugin_source" "$plugin_root" "$expected_dir" || {
+            echo "$display_name 安装失败，已尽量保留旧版本。"
+            return 1
+        }
+        echo "$display_name 安装成功。"
+        log "$display_name 安装完成"
+        PLUGIN_INSTALL_CHANGED=1
+    ); then
+        PLUGIN_INSTALL_CHANGED=1
+        return 0
+    fi
+    return 1
 }
 
 ensure_official_plugin_current() {
@@ -2134,6 +2148,7 @@ install_decky_zip_from_mirror() {
     local mirror_id="$2"
     local plugin_sha256="$3"
     local expected_dir="$4"
+    local archive_dir="${5:-$expected_dir}"
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local tmp_dir plugin_archive extract_dir plugin_source
 
@@ -2170,7 +2185,7 @@ install_decky_zip_from_mirror() {
         echo "$display_name 压缩包中没有找到 plugin.json。"
         return 1
     }
-    if [ "$(basename "$plugin_source")" != "$expected_dir" ]; then
+    if [ "$(basename "$plugin_source")" != "$archive_dir" ]; then
         cleanup_decky_tmp
         trap - EXIT INT TERM
         echo "$display_name 的目录结构不符合预期，已停止安装。"
@@ -2238,7 +2253,7 @@ install_cheatdeck_mako_launch_option() {
     fi
 
     result="$(python3 - "$settings_file" "$CHEATDECK_MAKO_OPTION_ID" \
-        "$CHEATDECK_MAKO_LABEL" "$CHEATDECK_MAKO_COMMAND" <<'PY'
+        "$CHEATDECK_MAKO_LABEL" "$CHEATDECK_MAKO_COMMAND" 2>&1 <<'PY'
 import json
 import os
 import stat
@@ -2251,14 +2266,21 @@ if os.path.lexists(settings_path) and os.path.islink(settings_path):
     raise SystemExit("CheatDeck 设置文件是符号链接")
 
 data = {}
+initial_content = None
 if os.path.exists(settings_path):
     metadata = os.stat(settings_path)
     if not stat.S_ISREG(metadata.st_mode):
         raise SystemExit("CheatDeck 设置文件不是普通文件")
     if metadata.st_size > 1024 * 1024:
         raise SystemExit("CheatDeck 设置文件过大")
-    with open(settings_path, "r", encoding="utf-8") as source:
-        data = json.load(source)
+    try:
+        with open(settings_path, "r", encoding="utf-8-sig") as source:
+            content = source.read()
+        # CheatDeck 首次启动可能先创建空文件；空文件尚无用户设置，可以安全初始化。
+        data = json.loads(content) if content.strip() else {}
+        initial_content = content
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        raise SystemExit("CheatDeck 设置暂时无法读取，原文件已保留")
     if not isinstance(data, dict):
         raise SystemExit("CheatDeck 设置根节点不是对象")
 
@@ -2296,6 +2318,15 @@ try:
         target.flush()
         os.fsync(target.fileno())
     os.chmod(temporary_path, 0o600)
+    # 不覆盖 CheatDeck 在本次读写期间刚创建或更改的设置。
+    if os.path.islink(settings_path):
+        raise SystemExit("CheatDeck 设置文件发生变化，原文件已保留")
+    if os.path.exists(settings_path):
+        with open(settings_path, "r", encoding="utf-8-sig") as source:
+            if source.read() != initial_content:
+                raise SystemExit("CheatDeck 正在更新设置，请稍后重试")
+    elif initial_content is not None:
+        raise SystemExit("CheatDeck 设置文件发生变化，请稍后重试")
     os.replace(temporary_path, settings_path)
 finally:
     if os.path.exists(temporary_path):
@@ -2304,7 +2335,8 @@ finally:
 print("RENKIT_CHEATDECK_MAKO_ADDED")
 PY
     )" || {
-        echo "CheatDeck 设置未修改：${result:-无法写入 Mako_Renkit 启动项。}"
+        log "CheatDeck MAKO 启动项写入失败: $result"
+        echo "CheatDeck 设置暂时无法读取或保存，原文件已保留；请打开 CheatDeck 后再次安装 MAKO。"
         return 1
     }
 
@@ -2977,7 +3009,7 @@ install_lsfg_zh_from_gitee() {
     log "小黄鸭 v$LSFG_OFFICIAL_VERSION 汉化完整包安装完成"
 }
 
-# 小黄鸭 2.0 使用独立目录，与 1.0 和 MAKO 共存；完整包固定从 Gitee
+# 小黄鸭 1.0 与 2.0 共用安装目录，互相替换；MAKO 保持独立。完整包固定从 Gitee
 # mirror-4 获取，校验失败时不回退到其他来源，也不改动已有插件。
 lsfg_v2_is_current() {
     local plugin_root="$1"
@@ -3006,19 +3038,20 @@ install_lsfg_v2_from_gitee() {
     fi
     require_existing_chimera_plugin_environment || return 1
     if lsfg_v2_is_current "$plugin_root"; then
+        remove_legacy_lsfg_directories "$plugin_root"
         echo "[已安装] 小黄鸭 2.0 v$LSFG_V2_VERSION 中文插件已存在且文件完整，无需重复安装。"
         return 0
     fi
-    if feature_plugin_is_present "$plugin_root" "$LSFG_V2_DIRECTORY" "小黄鸭2.0"; then
+    if feature_plugin_is_present "$plugin_root" "$LSFG_V2_DIRECTORY" "小黄鸭2.0" "Decky LSFG-VK" "小黄鸭"; then
         installed_version="$(decky_plugin_version "$plugin_root/$LSFG_V2_DIRECTORY" || true)"
-        echo "检测到现有小黄鸭 2.0 版本 ${installed_version:-未知}，正在更新到 $LSFG_V2_VERSION。"
+        echo "检测到现有小黄鸭版本 ${installed_version:-未知}，正在更新到 $LSFG_V2_VERSION。"
     fi
 
     echo "正在安装小黄鸭 2.0..."
     GITEE_MIRROR_REPO="$DECKY_LSFG_V2_MIRROR_REPO" \
         install_decky_zip_from_mirror "小黄鸭 2.0（LSFG-VK）" \
         "$LSFG_V2_MIRROR_ID" "$LSFG_V2_PACKAGE_SHA256" \
-        "$LSFG_V2_DIRECTORY" || {
+        "$LSFG_V2_DIRECTORY" "$LSFG_V2_ARCHIVE_DIRECTORY" || {
             echo "小黄鸭 2.0 的国内下载暂时不可用，已保留现有插件。"
             return 1
         }
@@ -3026,7 +3059,8 @@ install_lsfg_v2_from_gitee() {
         echo "小黄鸭 2.0 安装后文件不完整，请重新安装。"
         return 1
     fi
-    echo "小黄鸭 2.0 安装成功。"
+    remove_legacy_lsfg_directories "$plugin_root"
+    echo "小黄鸭 2.0 安装成功，已替换 1.0。"
     echo "汉化：RenAmamiya"
     if [ "$reload_after" = "1" ]; then
         reload_decky_plugins "Decky 已重新加载；返回游戏模式打开小黄鸭 2.0 即可使用。"
@@ -3554,18 +3588,19 @@ remove_legacy_lsfg_directories() {
 
     # 旧Renkit曾把同一插件安装在中文或仓库名目录。Decky 会把它们当成
     # 独立插件继续加载，导致界面仍显示旧版本；只删除名称和清单都能确认的旧副本。
-    for legacy_name in "小黄鸭" "LSFG-VK" "decky-lsfg-vk" "Decky.LSFG-VK"; do
+    for legacy_name in "小黄鸭" "LSFG-VK" "decky-lsfg-vk" "Decky.LSFG-VK" "$LSFG_V2_ARCHIVE_DIRECTORY"; do
         legacy_dir="$plugin_root/$legacy_name"
         [ -e "$legacy_dir" ] || [ -L "$legacy_dir" ] || continue
         if [ -L "$legacy_dir" ]; then
             echo "发现旧小黄鸭符号链接，未自动删除：$legacy_dir"
             continue
         fi
-        [ -d "$legacy_dir" ] && [ -f "$legacy_dir/plugin.json" ] || continue
+        [ -d "$legacy_dir" ] && [ -f "$legacy_dir/plugin.json" ] && \
+            [ ! -L "$legacy_dir/plugin.json" ] || continue
         manifest_name="$(sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
             "$legacy_dir/plugin.json" | head -n 1)"
         case "$manifest_name" in
-            "Decky LSFG-VK"|"LSFG-VK"|"小黄鸭") ;;
+            "Decky LSFG-VK"|"LSFG-VK"|"小黄鸭"|"小黄鸭2.0") ;;
             *) continue ;;
         esac
         run_plugin_file_operation rm -rf -- "$legacy_dir" || {
@@ -3575,7 +3610,7 @@ remove_legacy_lsfg_directories() {
         removed=$((removed + 1))
     done
     if [ "$removed" -gt 0 ]; then
-        echo "已清理 $removed 个旧小黄鸭目录，只保留官方 $LSFG_OFFICIAL_DIRECTORY。"
+        echo "已清理 $removed 个旧小黄鸭目录，只保留官方 ${LSFG_OFFICIAL_DIRECTORY}。"
     fi
 }
 
@@ -4303,7 +4338,9 @@ print_feature_plugin_status() {
 
     echo ""
     echo "========== 常用功能插件状态 =========="
-    if feature_plugin_is_present \
+    if lsfg_v2_is_current "$plugin_root"; then
+        echo "✓ 小黄鸭 2.0（LSFG-VK）：已写入 Decky，官方版本 $LSFG_V2_VERSION"
+    elif feature_plugin_is_present \
         "$plugin_root" "Decky LSFG-VK" "Decky LSFG-VK" "小黄鸭"; then
         lsfg_version="$(decky_plugin_version "$plugin_root/$LSFG_OFFICIAL_DIRECTORY" || true)"
         if [ "$lsfg_version" = "$LSFG_OFFICIAL_VERSION" ]; then
@@ -4315,15 +4352,6 @@ print_feature_plugin_status() {
     else
         echo "✗ 小黄鸭（LSFG-VK）：未找到完整插件文件"
         missing=1
-    fi
-    if lsfg_v2_is_current "$plugin_root"; then
-        lsfg_v2_version="$(decky_plugin_version "$plugin_root/$LSFG_V2_DIRECTORY" || true)"
-        echo "✓ 小黄鸭 2.0（LSFG-VK）：已写入 Decky，官方版本 $lsfg_v2_version"
-    elif feature_plugin_is_present "$plugin_root" "$LSFG_V2_DIRECTORY" "小黄鸭2.0"; then
-        lsfg_v2_version="$(decky_plugin_version "$plugin_root/$LSFG_V2_DIRECTORY" || true)"
-        echo "✗ 小黄鸭 2.0（LSFG-VK）：检测到版本 ${lsfg_v2_version:-未知}，请更新到 $LSFG_V2_VERSION"
-    else
-        echo "✗ 小黄鸭 2.0（LSFG-VK）：未找到完整插件文件"
     fi
     if [ "${IS_STEAMOS:-0}" = "1" ]; then
         if mako_official_is_current "$plugin_root"; then
@@ -4421,7 +4449,8 @@ install_feature_plugins() {
 
     # 先检测整组是否都已安装且本地名称/中文前端正确，是则跳过。
     local _all_installed=1
-    if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "$LSFG_OFFICIAL_VERSION" "小黄鸭"; then _all_installed=0; fi
+    if ! lsfg_v2_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" && \
+       ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "$LSFG_OFFICIAL_VERSION" "小黄鸭"; then _all_installed=0; fi
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$FSR4_OFFICIAL_DIRECTORY" "$FSR4_OFFICIAL_VERSION" "Decky-Framegen（FSR4）"; then _all_installed=0; fi
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
         "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then _all_installed=0; fi
@@ -4477,6 +4506,10 @@ install_feature_plugins() {
         case "$plugin" in
             lsfg)
                 echo "========== 小黄鸭（LSFG-VK） =========="
+                if lsfg_v2_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"; then
+                    echo "[已安装] 小黄鸭 2.0 已安装，保留所选版本。"
+                    continue
+                fi
                 if feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "$LSFG_OFFICIAL_VERSION" "小黄鸭"; then
                     echo "[已安装] 小黄鸭 v$LSFG_OFFICIAL_VERSION 已安装，跳过。"
                     continue

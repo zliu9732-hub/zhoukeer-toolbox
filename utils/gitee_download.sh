@@ -203,7 +203,7 @@ _gitee_mirror_sha256() {
 _gitee_mirror_download_one() {
     local url="$1" output="$2" max_bytes="$3"
     local progress_index="${4:-0}" progress_total="${5:-1}"
-    local connect_timeout max_time retries
+    local connect_timeout max_time retries curl_status
     local quiet="${GITEE_MIRROR_QUIET:-0}"
     local curl_options=()
 
@@ -224,14 +224,22 @@ _gitee_mirror_download_one() {
     )
     if [ "$quiet" = "1" ]; then
         curl_options+=(--silent)
-        if ! curl "${curl_options[@]}" --output "$output" "$url" 2>/dev/null; then
+        if curl "${curl_options[@]}" --output "$output" "$url" 2>/dev/null; then
+            :
+        else
+            curl_status=$?
+            [ "$curl_status" -ne 23 ] || DOWNLOAD_LOCAL_IO_FAILED=1
             return 1
         fi
     else
         curl_options+=(--progress-meter)
-        if ! run_curl_with_progress "${GITEE_MIRROR_LABEL:-下载}" \
+        if run_curl_with_progress "${GITEE_MIRROR_LABEL:-下载}" \
             "$progress_index" "$progress_total" \
             "${curl_options[@]}" --output "$output" "$url"; then
+            :
+        else
+            curl_status=$?
+            [ "$curl_status" -ne 23 ] || DOWNLOAD_LOCAL_IO_FAILED=1
             return 1
         fi
     fi
@@ -246,6 +254,8 @@ download_gitee_mirror_file() {
     local manifest manifest_file base_url file_url temp_file temp_dir part_name part_file
     local actual_sha256 index actual_size
     local GITEE_MIRROR_LABEL="$name"
+
+    DOWNLOAD_LOCAL_IO_FAILED=0
 
     gitee_mirror_id_is_valid "$id" || {
         echo "$name 下载信息无效。"
@@ -278,8 +288,10 @@ download_gitee_mirror_file() {
     esac
 
     base_url="$(gitee_mirror_raw_base "$(gitee_mirror_manifest_repo "$id")")/$id/$_GITEE_MIRROR_VERSION"
-    temp_file="$(mktemp "${output}.part.XXXXXX" 2>/dev/null)" || {
-        echo "$name 无法创建临时下载文件。"
+    temp_file="$(mktemp "${output}.part.XXXXXX" 2>&1)" || {
+        DOWNLOAD_LOCAL_IO_FAILED=1
+        declare -F log >/dev/null 2>&1 && log "临时下载文件创建失败: output=$output error=$temp_file"
+        echo "$name 的临时文件无法写入，请检查剩余空间后重试。"
         return 1
     }
     rm -f -- "$temp_file"
@@ -324,16 +336,14 @@ download_gitee_mirror_file() {
                 echo "$name 下载失败，正在重新尝试。"
                 return 1
             fi
-            index=$((index + 1))
-        done
-        index=1
-        while [ "$index" -le "$_GITEE_MIRROR_CHUNKS" ]; do
-            part_name="$(printf 'part.%04d' "$index")"
-            cat "$temp_dir/$part_name" >> "$temp_file" || {
+            cat "$part_file" >> "$temp_file" || {
+                DOWNLOAD_LOCAL_IO_FAILED=1
                 rm -rf -- "$temp_dir"
                 rm -f -- "$temp_file"
+                echo "$name 的临时文件无法写入，请检查剩余空间后重试。"
                 return 1
             }
+            rm -f -- "$part_file"
             index=$((index + 1))
         done
         rm -rf -- "$temp_dir"
@@ -406,6 +416,7 @@ download_with_gitee_mirror_fallback() {
     if download_gitee_mirror_file "$id" "$output" "$sha256" "$name"; then
         return 0
     fi
+    [ "${DOWNLOAD_LOCAL_IO_FAILED:-0}" != "1" ] || return 1
     download_github_file "$github_url" "$output" "$sha256" "$name"
 }
 
