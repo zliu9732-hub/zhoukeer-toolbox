@@ -77,3 +77,15 @@ PNG 格式转换，不改变图形内容；各图标沿用对应上游项目的�
 - 普通镜像压缩包保持上游原始内容；名称中明确标注“署名中文插件”的
   Renkit 汉化包只替换同版本前端与清单，完整保留上游后端、作者和许可证。
   所有镜像下载后均校验固定 SHA256。
+
+### 微星 Claw 8 EX RT721 音频修复
+
+作者：stevedamnvan 及贡献者；许可证：GPL-2.0-only。
+来源：https://github.com/lamb2k/msi-claw-8-ex-linux
+（原 stevedamnvan 地址重定向至此），固定提交
+`11909dbca067cdc8a14d77ec1a80909b1cda14dc`。
+原始音频源码、构建文件、服务、睡眠钩子和完整许可证随 Renkit 分发于
+`third_party/claw-rt721-fix-v0.1.0/`；未捆绑编译后的内核模块。
+SteamOS 的 GCC 与 Launch Pack 型号修改在临时构建副本中完成；保留精确主板和
+音频硬件限制，重新计算包内校验值，不跳过完整性检查。
+上游验证环境是 CachyOS，Renkit 的 SteamOS 入口为实验性适配。

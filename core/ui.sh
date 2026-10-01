@@ -29,6 +29,8 @@ UI_DEFERRED=0
 UI_GRID=0
 UI_HOME=0
 UI_TERMINAL_OUTPUT_READY=0
+UI_MENU_SCREEN_ACTIVE=0
+UI_MENU_SCREEN_ENABLED=0
 UI_LEFT_TOP=() UI_LEFT_BOTTOM=() UI_LEFT_COL=() UI_LEFT_WIDTH=()
 UI_RIGHT_TOP=() UI_RIGHT_BOTTOM=() UI_RIGHT_COL=() UI_RIGHT_WIDTH=()
 TOOLBOX_VERSION="$(tr -d '\r\n' < "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/VERSION" 2>/dev/null || true)"
@@ -121,6 +123,7 @@ logo() {
 }
 
 print_header() {
+    ui_leave_menu_screen
     clear
     logo
 }
@@ -332,6 +335,7 @@ ui_begin_frame() {
             exec 9>&1
             UI_TERMINAL_OUTPUT_READY=1
         fi
+        ui_enter_menu_screen
         ui_wait_for_minimum_canvas || true
         ui_discard_pending_input
         UI_DRAW_COUNT=0
@@ -377,8 +381,30 @@ ui_replay_frame() {
 }
 
 ui_reset_screen() {
-    # 重置滚动区域并清除可视区和历史残影，避免启动更新输出挤乱首屏。
-    printf '\033[0m\033[r\033[3J\033[2J\033[H'
+    # 菜单使用无历史的独立画面；不能清除正常画面的安装日志。
+    printf '\033[0m\033[r\033[2J\033[H'
+}
+
+ui_enter_menu_screen() {
+    [ "$UI_MENU_SCREEN_ENABLED" = 1 ] || return 0
+    [ "$UI_MENU_SCREEN_ACTIVE" = 0 ] || return 0
+    [ -t 1 ] || return 0
+    # 普通画面可翻看历史，滚动后显示行与鼠标报告的窗口行会错位。
+    # 1049 保存正常画面并进入无历史的备用画面，菜单和命中区域始终同屏。
+    printf '\033[?1049h'
+    UI_MENU_SCREEN_ACTIVE=1
+}
+
+ui_leave_menu_screen() {
+    [ "$UI_MENU_SCREEN_ACTIVE" = 1 ] || return 0
+    disable_mouse_tracking
+    printf '\033[0m\033[r\033[?7h\033[?1049l'
+    UI_MENU_SCREEN_ACTIVE=0
+}
+
+ui_restore_terminal() {
+    disable_mouse_tracking
+    ui_leave_menu_screen
 }
 
 # 将旧页面传入的多种强调色统一成红、白、灰三档，和红黑背景保持一致。

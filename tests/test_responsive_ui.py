@@ -369,8 +369,7 @@ printf '\nDUAL_FLOW_DONE=%s\n' "$NEXT_CATEGORY"
 def plugin_page_tests(directory):
     """Use both real pagers, but replace every installation entry with a fatal mock."""
     prefix = SHELL.split("draw_category_frame software '' ''")[0]
-    for filename, name in [('main.sh', 'plugin_official_touch_pages'),
-                           ('main-bazzite.sh', 'bazzite_official_plugin_pages')]:
+    for filename, name in [('main.sh', 'plugin_official_touch_pages')]:
         source = (ROOT / filename).read_text()
         extract = lambda function: re.search(r'^' + function + r'\(\).*?^}', source, re.M | re.S).group()
         pager = extract(name)
@@ -626,7 +625,7 @@ ui_disclaimer_button 16 '' 'WELCOME' 'Read first and click to continue'
         new_machine_flow_test(Path(temp))
         dual_system_flow_test(Path(temp))
         plugin_page_tests(Path(temp))
-    print('PASS: 8 sizes, sidebar, card hits, resize, fragmented taps, initialization, dual-system paging and both dynamic plugin pagers')
+    print('PASS: 8 sizes, sidebar, card hits, resize, fragmented taps, initialization, dual-system paging and SteamOS dynamic plugin pager')
 
 
 if __name__ == '__main__':

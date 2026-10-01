@@ -339,7 +339,7 @@ for menu in "$touch_advanced" "$gui_advanced"; do
     for removed in '设置管理员密码' '安装插件商城' '安装 ToDesk'; do
         assert_not_contains "$menu" "$removed" "系统设置仍显示重复入口：$removed"
     done
-    for risk_text in '风险说明' '修改 DNS' '虚拟内存' '管理密码' '无需管理员权限'; do
+    for risk_text in '风险说明' '修改 DNS' '虚拟内存' '管理密码'; do
         assert_contains "$menu" "$risk_text" "系统设置缺少风险说明：$risk_text"
     done
 done
@@ -353,7 +353,8 @@ for menu in "$touch_memory" "$gui_memory"; do
     assert_contains "$menu" 'modules/memory_tuning.sh" restore' "虚拟内存子菜单未调用安全撤销动作"
 done
 
-touch_f1="$(function_source "$MAIN_FILE" f1_handheld_menu)"
+touch_f1="$(function_source "$MAIN_FILE" f1_handheld_menu)
+$(function_source "$MAIN_FILE" handheld_more_menu)"
 gui_f1="$(function_source "$GUI_FILE" f1_screen_fix_gui_menu)"
 for menu in "$touch_f1" "$gui_f1"; do
     for item in '安装屏幕修复' '屏幕修复状态' '卸载屏幕修复' '安装特殊按键修复' '特殊按键修复状态' '恢复特殊按键修复' '更新 InputPlumber' '系统软件源' '准备 V1.14 BIOS' '立即重启 SteamOS' 'F1L 仅限 F1 8840U' '5秒自动重启' 'ONEXPLAYER F1' '无需管理员权限'; do
@@ -365,7 +366,7 @@ for menu in "$touch_f1" "$gui_f1"; do
     assert_contains "$touch_f1" 'right:12-13:button-restore' "壹号掌机按键恢复坐标错误"
     assert_contains "$touch_f1" 'right:14-15:inputplumber-update' "InputPlumber 更新坐标错误"
     assert_contains "$touch_f1" 'right:16-17:bios' "飞行家 F1 BIOS 坐标错误"
-    assert_contains "$touch_f1" 'right:18-19:reboot' "飞行家 F1 重启坐标错误"
+    assert_contains "$touch_f1" 'right:12-13:reboot' "飞行家 F1 重启坐标错误"
     assert_contains "$menu" 'modules/f1_bios_prepare.sh" prepare' "飞行家 F1 BIOS 准备动作错误"
     assert_contains "$menu" 'modules/onexplayer_button_fix.sh" install' "壹号掌机按键安装动作错误"
     assert_contains "$menu" 'modules/onexplayer_button_fix.sh" status' "壹号掌机按键状态动作错误"

@@ -1131,7 +1131,7 @@ f1_screen_fix_gui_menu() {
     local choice plan_output
 
     while true; do
-        choice="$(gui_dialog --menu "掌机适配｜飞行家 F1 问题" \
+        choice="$(gui_dialog --menu "掌机适配" \
             install "安装屏幕修复｜F1 7840U 与 8840U OLED（F1L）｜无需管理员权限" \
             status "查看屏幕修复状态｜查看屏幕方向修复是否已启用" \
             uninstall "卸载屏幕修复｜删除用户级修复并恢复原始启动方式" \
@@ -1140,6 +1140,7 @@ f1_screen_fix_gui_menu() {
             button-restore "恢复特殊按键修复｜完成后5秒自动重启" \
             inputplumber-update "更新 InputPlumber｜通过当前系统软件源升级" \
             bios "准备 V1.14 BIOS｜仅 7840U 普通黑白版｜复制到互通盘" \
+            g3e-audio "微星 G3E 无声音修复｜仅 Claw 8 EX｜实验性" \
             reboot "立即重启 SteamOS｜重启后生效｜请先保存工作" \
             back "返回更多设置" \
             home "返回首页" \
@@ -1205,6 +1206,17 @@ f1_screen_fix_gui_menu() {
                     run_gui_action "准备飞行家 F1 V1.14 BIOS" bash "$PROJECT_ROOT/modules/f1_bios_prepare.sh" prepare
                 return 0
                 ;;
+            g3e-audio)
+                if ! plan_output="$(bash "$PROJECT_ROOT/modules/claw_g3e_audio.sh" plan 2>&1)"; then
+                    gui_dialog --error "$plan_output"
+                    return 0
+                fi
+                gui_confirm "$plan_output
+
+确认继续？" && run_gui_action "修复微星 G3E 无声音" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/claw_g3e_audio.sh" install
+                return 0
+                ;;
             reboot)
                 gui_confirm "将立即重启 SteamOS；请先保存所有工作。确认继续？" && \
                     run_gui_action "立即重启 SteamOS" bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" reboot
@@ -1226,7 +1238,7 @@ advanced_tools_gui_menu() {
             accelerator "Steamcommunity 302｜可能修改 DNS 和证书｜高级操作" \
             memory "虚拟内存｜改善内存不足，支持撤销｜高级操作" \
             change-password "修改管理员密码｜会更换 SteamOS 管理密码｜高级操作" \
-            handheld "掌机适配｜F1 屏幕修复无需管理员权限｜壹号掌机特殊按键" \
+            handheld "掌机适配｜F1 屏幕、壹号掌机按键与微星 G3E 音频" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
         case "$choice" in

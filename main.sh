@@ -45,8 +45,12 @@ case "${1:-}" in
     *) echo "请从桌面的“Renkit”图标启动。"; exit 1 ;;
 esac
 
+UI_MENU_SCREEN_ENABLED=1
 enable_mouse_tracking
-trap 'disable_mouse_tracking' EXIT INT TERM
+trap 'ui_restore_terminal' EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 NEXT_CATEGORY="home"
 RENKIT_STEAMOS_DUAL_NAV=1
@@ -1295,11 +1299,59 @@ memory_touch_menu() {
     done
 }
 
+claw_g3e_audio_confirm() {
+    local choice
+    if ! bash "$PROJECT_ROOT/modules/claw_g3e_audio.sh" plan >/dev/null 2>&1; then
+        run_action "检查 G3E 音频修复是否适用" bash "$PROJECT_ROOT/modules/claw_g3e_audio.sh" plan
+        return 0
+    fi
+    draw_category_frame advanced "确认修复 G3E 无声音" "请先阅读以下说明" 0
+    ui_panel_line 5 '' "仅 EX CG3EM / Launch Pack"
+    ui_panel_line 6 '' "MS-1T91；仅 SteamOS 7.2"
+    ui_panel_line 8 '' "实验性修复，需要管理员权限"
+    ui_panel_line 9 '' "安装系统组件和开机音频修复"
+    ui_panel_line 11 '' "暂时关闭只读保护，结束后恢复"
+    ui_panel_line 12 '' "可能增加待机耗电"
+    ui_panel_line 14 '' "系统更新后可能需要重新修复"
+    ui_panel_line 15 '' "完成后手动重启，请先保存工作"
+    ui_touch_button 18 '' "确认修复" "尝试恢复内置扬声器和麦克风"
+    ui_touch_button 22 '' "返回" "查看其他掌机功能"
+    ui_prompt
+    choice="$(read_touch_menu right:18-19:yes right:22-23:back)"
+    if apply_navigation "$choice"; then return 1; fi
+    if [ "$choice" = yes ]; then
+        run_action "修复微星 G3E 无声音" env ZHOUKEER_AUTO_CONFIRM=1 \
+            bash "$PROJECT_ROOT/modules/claw_g3e_audio.sh" install
+    fi
+}
+
+claw_g3e_audio_menu() {
+    local choice
+    while true; do
+        draw_category_frame advanced "微星 G3E 无声音修复" "仅 Claw 8 EX AI+ CG3EM / Launch Pack · 实验性修复"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "修复 G3E 无声音" "尝试恢复内置扬声器和麦克风"
+        ui_touch_button 12 '\033[1;97;48;5;24m' "检查是否适用" "检查这台掌机和系统版本"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回掌机适配" "查看其他机型的功能"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:8-9:install right:12-13:check right:18-19:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 1; fi
+        case "$choice" in
+            install)
+                claw_g3e_audio_confirm || return 1
+                ;;
+            check) run_action "检查 G3E 音频修复是否适用" bash "$PROJECT_ROOT/modules/claw_g3e_audio.sh" plan ;;
+            back) return 0 ;;
+            home) NEXT_CATEGORY=home; return 1 ;;
+        esac
+    done
+}
+
 f1_handheld_menu() {
     local choice
 
     while true; do
-        draw_category_frame advanced "掌机适配" "飞行家 F1 屏幕/BIOS · 特殊按键 · 通用 InputPlumber 更新"
+        draw_category_frame advanced "掌机适配" "飞行家 F1 · 特殊按键 · 微星 G3E 音频"
         ui_touch_button 2 '\033[1;97;48;5;24m' "安装屏幕修复" "适用于 F1 7840U 与 8840U OLED（F1L）"
         ui_touch_button 4 '\033[1;97;48;5;24m' "查看屏幕修复状态" "查看屏幕方向修复是否已启用"
         ui_touch_button 6 '\033[1;97;48;5;160m' "卸载屏幕修复" "删除用户级修复并恢复原始启动方式"
@@ -1308,11 +1360,11 @@ f1_handheld_menu() {
         ui_touch_button 12 '\033[1;97;48;5;160m' "恢复特殊按键修复" "还原原文件 · 完成后5秒自动重启"
         ui_touch_button 14 '\033[1;97;48;5;160m' "更新 InputPlumber" "已安装且启用时，通过系统软件源升级"
         ui_touch_button 16 '\033[1;97;48;5;160m' "准备 V1.14 BIOS" "仅 F1/ONEXFLY 7840U 普通版 · 复制到互通盘"
-        ui_touch_button 18 '\033[1;97;48;5;160m' "立即重启 SteamOS" "重启后生效 · 请先保存工作"
+        ui_touch_button 18 '\033[1;97;48;5;24m' "更多掌机功能" "微星 G3E 无声音修复 · 重启系统"
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回更多设置" "查看其他系统功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:2-3:install right:4-5:status right:6-7:uninstall right:8-9:button-install right:10-11:button-status right:12-13:button-restore right:14-15:inputplumber-update right:16-17:bios right:18-19:reboot right:20-21:advanced right:22-23:home)"
+        choice="$(read_touch_menu right:2-3:install right:4-5:status right:6-7:uninstall right:8-9:button-install right:10-11:button-status right:12-13:button-restore right:14-15:inputplumber-update right:16-17:bios right:18-19:more right:20-21:advanced right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             install)
@@ -1354,13 +1406,32 @@ f1_handheld_menu() {
                     bash "$PROJECT_ROOT/modules/f1_bios_prepare.sh" prepare
                 return 0
                 ;;
+            more) handheld_more_menu || return 0 ;;
+            advanced) return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
+    done
+}
+
+handheld_more_menu() {
+    local choice
+    while true; do
+        draw_category_frame advanced "更多掌机功能" "微星 G3E 音频与系统重启"
+        ui_touch_button 8 '\033[1;97;48;5;24m' "微星 G3E 无声音修复" "仅 Claw 8 EX · 内置扬声器和麦克风"
+        ui_touch_button 12 '\033[1;97;48;5;160m' "立即重启 SteamOS" "请先保存工作"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回掌机适配" "查看其他机型的功能"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:8-9:g3e right:12-13:reboot right:18-19:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 1; fi
+        case "$choice" in
+            g3e) claw_g3e_audio_menu || return 1 ;;
             reboot)
                 confirm_and_run "立即重启 SteamOS" "将立即重启；请先保存所有工作" \
                     bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" reboot
-                return 0
-                ;;
-            advanced) return 0 ;;
-            home) NEXT_CATEGORY="home"; return 0 ;;
+                return 0 ;;
+            back) return 0 ;;
+            home) NEXT_CATEGORY=home; return 1 ;;
         esac
     done
 }
@@ -1374,7 +1445,7 @@ advanced_tools_menu() {
         ui_touch_button 9 '\033[1;97;48;5;160m' "Steamcommunity 302" "可能修改 DNS 和证书 · 高级操作"
         ui_touch_button 11 '\033[1;97;48;5;160m' "虚拟内存" "设置 内存压缩、swap 或撤销 · 高级操作"
         ui_touch_button 13 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "掌机适配" "F1 屏幕修复无需管理员权限 · 壹号掌机特殊按键"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "掌机适配" "F1 屏幕 · 壹号掌机按键 · 微星 G3E 音频"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
         choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:memory right:13-14:change-password right:15-16:handheld right:22-23:home)"
