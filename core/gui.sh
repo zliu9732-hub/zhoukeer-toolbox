@@ -1138,7 +1138,7 @@ f1_screen_fix_gui_menu() {
             button-install "安装特殊按键修复｜F1L 仅限 F1 8840U｜确认后5秒自动重启" \
             button-status "特殊按键修复状态｜验证机型、配置、备份与 InputPlumber" \
             button-restore "恢复特殊按键修复｜完成后5秒自动重启" \
-            inputplumber-update "更新 InputPlumber｜通过当前系统软件源升级" \
+            inputplumber-update "更新 InputPlumber｜更新并启用手柄功能" \
             bios "准备 V1.14 BIOS｜仅 7840U 普通黑白版｜复制到互通盘" \
             g3e-audio "微星 G3E 无声音修复｜仅 Claw 8 EX｜实验性" \
             reboot "立即重启 SteamOS｜重启后生效｜请先保存工作" \

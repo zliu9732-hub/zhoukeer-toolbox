@@ -49,8 +49,8 @@ pacman() {
 }
 vercmp() {
     if [ "$1" = "$2" ]; then echo 0
-    elif [ "$1" = "$MOCK_AVAILABLE" ]; then echo 1
-    else echo -1; fi
+    elif [ "$(printf '%s\n' "$1" "$2" | LC_ALL=C sort -n -t . -k1,1 -k2,2 -k3,3 | head -1)" = "$1" ]; then echo -1
+    else echo 1; fi
 }
 steamos-readonly() {
     printf 'steamos-readonly %s\n' "$*" >> "$CALLS"
@@ -73,9 +73,28 @@ command() {
 }
 
 MOCK_ACTIVE=0 MOCK_ENABLED=0
-ipu_update > "$TEST_ROOT/skip" || fail '停用服务应跳过'
+ipu_update auto > "$TEST_ROOT/skip" || fail '自动更新应跳过停用服务'
 ! grep -Fq 'pacman -S --' "$CALLS" || fail '停用服务却安装了包'
+ipu_check > "$TEST_ROOT/plan" || fail '手动检查停用服务失败'
+[ "$IPU_CHECK_STATE" = upgrade ] || fail '手动检查仍跳过已安装程序'
+ipu_update > "$TEST_ROOT/stopped" || fail '手动更新停用服务失败'
+grep -Fq 'pacman -S --needed --noconfirm inputplumber' "$CALLS" || fail '手动更新仍跳过停用服务'
+! grep -Fq 'systemctl restart inputplumber.service' "$CALLS" || fail '手动更新擅自启动停用服务'
+[ "$MOCK_ACTIVE:$MOCK_ENABLED" = 0:0 ] || fail '停用状态被改变'
+grep -Fq '保持原设置' "$TEST_ROOT/stopped" || fail '未说明保留停用状态'
+[ "$MOCK_READONLY" = enabled ] || fail '手动更新停用服务后未恢复只读'
+: > "$CALLS"
+MOCK_VERSION=0.70.0-1
+MOCK_ACTIVE=0 MOCK_ENABLED=1
+ipu_update auto > "$TEST_ROOT/enabled-idle" || fail '已启用但未运行的自动更新失败'
+grep -Fq 'systemctl restart inputplumber.service' "$CALLS" || fail '原已启用的功能没有重新启动'
+MOCK_VERSION=0.70.0-1
+: > "$CALLS"
 MOCK_ACTIVE=1 MOCK_ENABLED=1
+ipu_runtime_version() { echo 0.90.0; }
+ipu_update auto > "$TEST_ROOT/newer-runtime" || fail '较新官方程序检查失败'
+! grep -Fq 'pacman -S --' "$CALLS" || fail '自动更新降级了较新程序'
+unset -f ipu_runtime_version
 MOCK_INSTALLED=0
 ipu_update > "$TEST_ROOT/absent" || fail '未安装应跳过'
 ! grep -Fq 'pacman -S --' "$CALLS" || fail '未安装却安装了包'
@@ -106,7 +125,7 @@ if ipu_update > "$TEST_ROOT/install-fail"; then fail '包更新失败被报告�
 MOCK_INSTALL_FAIL=0 MOCK_RESTART_FAIL=1
 if ipu_update > "$TEST_ROOT/restart-fail"; then fail '服务失败被报告为成功'; fi
 grep -Fq '模拟服务错误' "$TEST_ROOT/restart-fail" || fail '缺少 journal 摘要'
-if rg -n 'DMI|ONEXPLAYER|OXP|APEX|\.yaml|github.com|tar -x' "$PROJECT_ROOT/modules/inputplumber_update.sh" | rg -v '不会写入设备 YAML'; then
+if rg -n 'DMI|ONEXPLAYER|OXP|APEX|\.yaml|github.com|tar -x' "$PROJECT_ROOT/modules/inputplumber_update.sh"; then
     fail '更新模块包含机型限制、配置写入或独立下载路径'
 fi
 echo 'PASS: InputPlumber 通用软件包更新、跳过与故障模拟'

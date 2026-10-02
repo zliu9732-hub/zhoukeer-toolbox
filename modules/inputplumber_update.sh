@@ -2,7 +2,7 @@
 
 set -u
 
-# 只更新软件包管理器已管理、且当前正在使用的 InputPlumber。
+# 手动更新已安装的软件包；自动补装只更新当前已启用或运行的服务。
 # 设备描述和按键映射由各机型的独立模块维护。
 # shellcheck disable=SC1091
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../core/env.sh"
@@ -48,7 +48,8 @@ ipu_detect_package() {
 }
 
 ipu_check() {
-    local available package_info pending line name found=0
+    local mode="${1:-manual}"
+    local available package_info pending line name runtime_version="" found=0
     IPU_CHECK_STATE="skip"
     if [ "$(uname -s 2>/dev/null)" != Linux ]; then
         ipu_message "当前不是 Linux，跳过。"
@@ -63,7 +64,7 @@ ipu_check() {
         ipu_message "当前系统由 rpm-ostree 管理，跳过独立软件包升级。"
         return 0
     fi
-    if ! ipu_service_in_use; then
+    if [ "$mode" = auto ] && ! ipu_service_in_use; then
         ipu_message "服务未启用且未运行，跳过。"
         return 0
     fi
@@ -88,6 +89,15 @@ ipu_check() {
                 IPU_CHECK_STATE="current"
                 ipu_message "已是当前软件源最新版本（${IPU_INSTALLED}）。"
                 return 0
+            fi
+            # 官方备用安装后的运行版本可能高于包管理器记录，自动更新不能降级它。
+            if declare -F ipu_runtime_version >/dev/null 2>&1; then
+                runtime_version="$(ipu_runtime_version 2>/dev/null || true)"
+                if [ -n "$runtime_version" ] && [ "$(vercmp "$available" "$runtime_version")" -le 0 ]; then
+                    IPU_CHECK_STATE="current"
+                    ipu_message "当前程序版本 ${runtime_version}，无需替换为较旧版本。"
+                    return 0
+                fi
             fi
             # Arch/SteamOS 不可进行部分升级；其他待更新包存在时留给完整系统更新。
             pending="$(pacman -Qu 2>/dev/null)" || { ipu_message "无法核对系统待更新包，跳过。"; return 1; }
@@ -163,14 +173,20 @@ ipu_upgrade_package() {
 }
 
 ipu_update() {
-    local result=0 after=""
-    ipu_check || return 1
+    local mode="${1:-manual}" result=0 after="" restart_service=0
+    ipu_check "$mode" || return 1
     [ "$IPU_CHECK_STATE" = upgrade ] || return 0
-    # 自动更新只在已启用的服务上执行，且从不安装此前没有安装的包。
-    ipu_message "通过系统软件源升级；不会写入设备 YAML 或下载独立二进制。"
+    # 更新程序与是否启用服务无关；保留更新前的使用状态，不擅自打开关闭的服务。
+    if ipu_service_in_use; then restart_service=1; fi
+    ipu_message "正在更新已安装程序，保留原开关状态和按键设置。"
     if ! ipu_upgrade_package; then
         ipu_message "软件包升级失败；其他 RenKit 功能可继续使用。"
         return 1
+    fi
+    if [ "$restart_service" -eq 0 ]; then
+        if ipu_detect_package; then after="$IPU_INSTALLED"; fi
+        ipu_message "更新完成（${after:-版本待确认}）；功能原来未开启，保持原设置。"
+        return 0
     fi
     if ! toolbox_sudo systemctl restart inputplumber.service; then
         ipu_message "软件包已升级，但 inputplumber.service 重启失败。"
@@ -188,9 +204,12 @@ ipu_update() {
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    source "$PROJECT_ROOT/modules/inputplumber_manual.sh"
     case "${1:-}" in
-        update|auto) ipu_update ;;
-        plan|check) ipu_check ;;
+        update) ipu_manual_update ;;
+        auto) ipu_update auto ;;
+        plan) ipu_manual_plan ;;
+        check) ipu_check ;;
         *) echo "用法: $0 {update|auto|check|plan}"; exit 1 ;;
     esac
 fi

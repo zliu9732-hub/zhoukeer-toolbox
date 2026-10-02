@@ -146,6 +146,48 @@ while read_ui_event; do :; done
                 process.wait()
                 os.close(master)
         audio_confirmation_test(Path(directory), source)
+        # Reuse the real confirmation rendering and click dispatcher for InputPlumber.
+        prefix = SHELL.split("draw_category_frame software '' ''")[0]
+        for decision in ('确认更新', '返回'):
+            fixture.write_text(prefix + extract('read_touch_menu') + '\n'
+                               + extract('apply_navigation') + '\n'
+                               + extract('inputplumber_manual_confirm') + r'''
+bash() { [ "$*" = "$PROJECT_ROOT/modules/inputplumber_update.sh plan" ] || exit 91; }
+run_action() {
+    [ "$#" -eq 6 ] && [ "$2" = env ] && [ "$3" = ZHOUKEER_AUTO_CONFIRM=1 ] &&
+        [ "$4" = bash ] && [ "$5" = "$PROJECT_ROOT/modules/inputplumber_update.sh" ] &&
+        [ "$6" = update ] || exit 92
+    printf '\nMOCK_INPUTPLUMBER_UPDATE\n'
+}
+NEXT_CATEGORY=advanced
+inputplumber_manual_confirm
+printf '\nCONFIRMATION_DONE\n'
+''')
+            master, slave = pty.openpty()
+            tty.setraw(slave)
+            resize(master, 70, 24)
+            process = subprocess.Popen(['bash', str(fixture)],
+                                       env=dict(os.environ, UI_TEST_ROOT=str(ROOT), UI_TEST_MODE='live'),
+                                       stdin=slave, stdout=slave, stderr=slave)
+            os.close(slave)
+            try:
+                frame = read_until(master, b'\x1b[?1006h')
+                for notice in ('需要管理员权限', '会更新并启用手柄与睡眠支持',
+                               '手柄可能暂时断开', '暂时关闭只读保护，结束后恢复',
+                               '请先保存工作，完成后关机再开机'):
+                    check(notice in frame, 'InputPlumber risk notice missing')
+                check('MOCK_INPUTPLUMBER_UPDATE' not in frame, 'Updated before consent')
+                y, x = item_position(frame, decision)
+                os.write(master, click(x, y))
+                result = read_until(master, b'CONFIRMATION_DONE')
+                check(('MOCK_INPUTPLUMBER_UPDATE' in result) == (decision == '确认更新'),
+                      'InputPlumber confirmation dispatched the wrong action')
+                check(process.wait(timeout=3) == 0, 'InputPlumber confirmation failed')
+            finally:
+                if process.poll() is None:
+                    process.kill()
+                process.wait()
+                os.close(master)
     print('PASS: fixed menu, wheel then top tap, resize, scrollable action logs, return and signal cleanup')
 
 

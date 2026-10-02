@@ -1299,6 +1299,32 @@ memory_touch_menu() {
     done
 }
 
+inputplumber_manual_confirm() {
+    local choice
+    if ! bash "$PROJECT_ROOT/modules/inputplumber_update.sh" plan >/dev/null 2>&1; then
+        run_action "检查 InputPlumber 更新是否适用" bash "$PROJECT_ROOT/modules/inputplumber_update.sh" plan
+        return 0
+    fi
+    draw_category_frame advanced "更新 InputPlumber" "请先阅读以下说明" 0
+    ui_panel_line 5 '' "需要管理员权限"
+    ui_panel_line 6 '' "会更新并启用手柄与睡眠支持"
+    ui_panel_line 8 '' "手柄可能暂时断开"
+    ui_panel_line 9 '' "必要时安装 0.81.0 并备份旧文件"
+    ui_panel_line 11 '' "更新官方机型配置，保留自定义配置"
+    ui_panel_line 12 '' "暂时关闭只读保护，结束后恢复"
+    ui_panel_line 14 '' "系统更新后可能需要重新更新"
+    ui_panel_line 15 '' "请先保存工作，完成后关机再开机"
+    ui_touch_button 18 '' "确认更新" "更新并启用手柄功能"
+    ui_touch_button 22 '' "返回" "查看其他掌机功能"
+    ui_prompt
+    choice="$(read_touch_menu right:18-19:yes right:22-23:back)"
+    if apply_navigation "$choice"; then return 0; fi
+    if [ "$choice" = yes ]; then
+        run_action "更新 InputPlumber" env ZHOUKEER_AUTO_CONFIRM=1 \
+            bash "$PROJECT_ROOT/modules/inputplumber_update.sh" update
+    fi
+}
+
 claw_g3e_audio_confirm() {
     local choice
     if ! bash "$PROJECT_ROOT/modules/claw_g3e_audio.sh" plan >/dev/null 2>&1; then
@@ -1358,7 +1384,7 @@ f1_handheld_menu() {
         ui_touch_button 8 '\033[1;97;48;5;24m' "安装特殊按键修复" "F1L 仅限 F1 8840U · 确认后5秒自动重启"
         ui_touch_button 10 '\033[1;97;48;5;24m' "特殊按键修复状态" "验证机型、配置、备份与 InputPlumber"
         ui_touch_button 12 '\033[1;97;48;5;160m' "恢复特殊按键修复" "还原原文件 · 完成后5秒自动重启"
-        ui_touch_button 14 '\033[1;97;48;5;160m' "更新 InputPlumber" "已安装且启用时，通过系统软件源升级"
+        ui_touch_button 14 '\033[1;97;48;5;160m' "更新 InputPlumber" "更新并启用手柄功能"
         ui_touch_button 16 '\033[1;97;48;5;160m' "准备 V1.14 BIOS" "仅 F1/ONEXFLY 7840U 普通版 · 复制到互通盘"
         ui_touch_button 18 '\033[1;97;48;5;24m' "更多掌机功能" "微星 G3E 无声音修复 · 重启系统"
         ui_touch_button 20 '\033[1;97;48;5;238m' "返回更多设置" "查看其他系统功能"
@@ -1397,8 +1423,7 @@ f1_handheld_menu() {
                 return 0
                 ;;
             inputplumber-update)
-                confirm_and_run "更新 InputPlumber" "仅更新已安装且启用的程序包；由系统软件源决定版本，升级后重启并检查服务" \
-                    bash "$PROJECT_ROOT/modules/inputplumber_update.sh" update
+                inputplumber_manual_confirm
                 return 0
                 ;;
             bios)
