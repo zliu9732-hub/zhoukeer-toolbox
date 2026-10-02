@@ -16,7 +16,7 @@ require_steamos() { return 0; }
 require_command() { return 0; }
 toolbox_sudo() { "$@"; }
 load_config() { :; }
-MOCK_FAIL='' MOCK_UPGRADE=0 MOCK_HHD=0
+MOCK_FAIL='' MOCK_UPGRADE=0 MOCK_HHD=0 MOCK_LATEST=0.81.0
 reset_state() {
     echo enabled > "$STATE/readonly"
     echo 0.70.0 > "$STATE/version"
@@ -70,9 +70,20 @@ vercmp() {
     first="$(printf '%s\n' "$a" "$b" | LC_ALL=C sort -n -t . -k1,1 -k2,2 -k3,3 | head -1)"
     if [ "$first" = "$a" ]; then echo -1; else echo 1; fi
 }
+resolve_latest_github_release() {
+    echo metadata >> "$CALLS"
+    [ "$MOCK_FAIL" != metadata ] || return 1
+    _LATEST_RELEASE_TAG="v$MOCK_LATEST"
+    _LATEST_RELEASE_ASSET=inputplumber-x86_64.tar.gz
+    _LATEST_RELEASE_SHA256="$(printf '%064d' 1)"
+    _LATEST_RELEASE_URL="https://github.com/ShadowBlip/InputPlumber/releases/download/$_LATEST_RELEASE_TAG/$_LATEST_RELEASE_ASSET"
+    [ "$MOCK_FAIL" != digest ] || _LATEST_RELEASE_SHA256=''
+    [ "$MOCK_FAIL" != prerelease ] || _LATEST_RELEASE_TAG=v0.90.0-rc1
+    [ "$MOCK_FAIL" != address ] || _LATEST_RELEASE_URL=https://example.com/unsafe.tar.gz
+}
 download_github_file() {
     echo download >> "$CALLS"
-    [ "$1:$3" = "$IPU_OFFICIAL_URL:$IPU_OFFICIAL_SHA256" ] || fail 'Unpinned download'
+    [ "$1:$3" = "$IPU_OFFICIAL_URL:$IPU_OFFICIAL_SHA256" ] || fail 'Download metadata mismatch'
     [ "$MOCK_FAIL" != download ] || return 1
     echo fixture > "$2"
 }
@@ -81,8 +92,8 @@ python3() {
     echo "overlay $2" >> "$CALLS"
     [ "$MOCK_FAIL" != "$2" ] || return 1
     case "$2" in
-        verify) : ;;
-        install) echo 0.81.0 > "$STATE/version"; echo '/var/lib/renkit/inputplumber-backups/v0.81.0-test' ;;
+        verify) [ "$4" = "$IPU_OFFICIAL_SHA256" ] || fail "Installer missed dynamic hash" ;;
+        install) echo "$5" > "$STATE/version"; echo '/var/lib/renkit/inputplumber-backups/v0.81.0-test' ;;
         restore) echo 0.70.0 > "$STATE/version" ;;
     esac
 }
@@ -111,14 +122,25 @@ MOCK_FAIL='systemctl:enable inputplumber.service'
 if ipu_manual_update >/dev/null; then fail 'Enabled-service failure masked'; fi
 [ "$(cat "$STATE/active")$(cat "$STATE/enabled")$(cat "$STATE/suspend-enabled")" = 111 ] || fail 'Original active state lost'
 MOCK_FAIL=''
-reset_state; MOCK_UPGRADE=1
+reset_state; MOCK_UPGRADE=1 MOCK_LATEST=0.79.0
 ipu_manual_update >/dev/null || fail 'System package route failed'
 [ "$(cat "$STATE/version")" = 0.79.0 ] || fail 'System package version missing'
 ! grep -Fq download "$CALLS" || fail 'Sufficient system package unnecessarily replaced'
+MOCK_LATEST=0.81.0
 reset_state; echo 0.90.0 > "$STATE/version"
 ipu_manual_update >/dev/null || fail 'Newer version failed'
 [ "$(cat "$STATE/version")" = 0.90.0 ] || fail 'Newer binary downgraded'
 ! grep -Eq 'download|package-update' "$CALLS" || fail 'Newer version replaced'
+# Future stable releases need no Renkit version change.
+reset_state; MOCK_LATEST=0.90.0
+ipu_manual_update >/dev/null || fail 'Future upstream release failed'
+[ "$(cat "$STATE/version")" = 0.90.0 ] || fail 'Version remains pinned'
+for stage in metadata digest prerelease address; do
+    reset_state; MOCK_FAIL="$stage"
+    if ipu_manual_update >/dev/null; then fail 'Invalid upstream metadata accepted'; fi
+    ! grep -Fq 'readonly disable' "$CALLS" || fail 'Changed system before valid metadata'
+done
+MOCK_FAIL='' MOCK_LATEST=0.81.0
 reset_state; ZHOUKEER_AUTO_CONFIRM=0
 if ipu_manual_update >/dev/null; then fail 'Missing consent accepted'; fi
 ! grep -Fq 'readonly disable' "$CALLS" || fail 'Changed system before consent'
@@ -126,4 +148,4 @@ ZHOUKEER_AUTO_CONFIRM=1 MOCK_HHD=1
 if ipu_manual_update >/dev/null; then fail 'Conflicting input manager accepted'; fi
 ! grep -Fq 'readonly disable' "$CALLS" || fail 'Changed system with conflicting manager'
 for path in "$TEST_ROOT"/tmp.*; do [ ! -d "$path" ] || fail 'Temporary download leaked'; done
-echo 'PASS: manual package/fallback routes, exact hash, disabled services, activation, rollback and scoped input reload'
+echo 'PASS: manual package/fallback routes, dynamic upstream/hash, disabled services, activation, rollback and scoped input reload'

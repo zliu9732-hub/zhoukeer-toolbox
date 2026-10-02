@@ -1,13 +1,24 @@
 #!/bin/bash
 
-# 用户确认的 SteamOS 手动方案：软件包更新、固定官方包备用、启用并重载。
+# 用户确认的 SteamOS 手动方案：软件包更新、跟随上游正式版、启用并重载。
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../core/env.sh"
 source "$PROJECT_ROOT/core/platform.sh"
 source "$PROJECT_ROOT/core/logger.sh"
 source "$PROJECT_ROOT/core/auth.sh"
 
-IPU_OFFICIAL_URL=https://github.com/ShadowBlip/InputPlumber/releases/download/v0.81.0/inputplumber-x86_64.tar.gz
-IPU_OFFICIAL_SHA256=bb167707964777751ad15f2da0ac99eb16a926a3997098e884f749b2e06f777b
+ipu_latest_release() {
+    load_config
+    resolve_latest_github_release ShadowBlip/InputPlumber '^inputplumber-x86_64[.]tar[.]gz$' InputPlumber || return 1
+    [[ "$_LATEST_RELEASE_TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]] &&
+        [ "$_LATEST_RELEASE_ASSET" = inputplumber-x86_64.tar.gz ] &&
+        [[ "$_LATEST_RELEASE_SHA256" =~ ^[0-9a-fA-F]{64}$ ]] &&
+        [ "$_LATEST_RELEASE_URL" = "https://github.com/ShadowBlip/InputPlumber/releases/download/$_LATEST_RELEASE_TAG/$_LATEST_RELEASE_ASSET" ] || {
+        ipu_message "新版本信息不完整或不适用，已停止更新。"; return 1;
+    }
+    IPU_LATEST_VERSION="${_LATEST_RELEASE_TAG#v}"
+    IPU_OFFICIAL_URL="$_LATEST_RELEASE_URL"
+    IPU_OFFICIAL_SHA256="$_LATEST_RELEASE_SHA256"
+}
 
 ipu_runtime_version() {
     local output version
@@ -31,7 +42,7 @@ ipu_manual_plan() {
         case "$state" in masked*) ipu_message "手柄功能被系统禁止启动，请先检查原设置。"; return 1 ;; esac
     done
     echo "需要管理员权限，会更新并启用手柄功能及睡眠支持，手柄可能短暂断开。"
-    echo "当前版本低于 0.78.0 或无法读取时，备用安装官方 0.81.0，并备份被替换文件。"
+    echo "会检查最新正式版，按需更新并备份旧文件；不会降低已有版本。"
     echo "会更新官方机型配置，保留 /etc 下的自定义配置；系统更新后可能需要重新更新。"
     echo "会暂时关闭系统只读保护，结束时恢复原状态。完成后请完整关机再开机。"
 }
@@ -95,6 +106,7 @@ ipu_manual_update() (
     for command_name in python3 pacman vercmp systemctl udevadm steamos-readonly; do
         require_command "$command_name" || exit 1
     done
+    ipu_latest_release || exit 1
     systemctl is-active --quiet inputplumber.service && active=1
     systemctl is-enabled --quiet inputplumber.service && enabled=1
     systemctl is-enabled --quiet inputplumber-suspend.service && suspend_enabled=1
@@ -114,18 +126,18 @@ ipu_manual_update() (
         ipu_upgrade_package || exit 1
     fi
     version="$(ipu_runtime_version || true)"
-    if [ -z "$version" ] || [ "$(vercmp "$version" 0.78.0)" -lt 0 ]; then
-        ipu_message "正在准备手柄功能 0.81.0…"
+    if [ -z "$version" ] || [ "$(vercmp "$version" "$IPU_LATEST_VERSION")" -lt 0 ]; then
+        ipu_message "正在准备手柄功能 ${IPU_LATEST_VERSION}…"
         load_config
         download_github_file "$IPU_OFFICIAL_URL" "$workspace/inputplumber.tar.gz" \
-            "$IPU_OFFICIAL_SHA256" "InputPlumber 0.81.0" || exit 1
-        python3 "$PROJECT_ROOT/scripts/inputplumber_overlay.py" verify "$workspace/inputplumber.tar.gz" || exit 1
+            "$IPU_OFFICIAL_SHA256" "InputPlumber $IPU_LATEST_VERSION" || exit 1
+        python3 "$PROJECT_ROOT/scripts/inputplumber_overlay.py" verify "$workspace/inputplumber.tar.gz" "$IPU_OFFICIAL_SHA256" || exit 1
         changed=1
         ipu_manual_run toolbox_sudo systemctl stop inputplumber.service || exit 1
-        backup="$(toolbox_sudo python3 "$PROJECT_ROOT/scripts/inputplumber_overlay.py" install "$workspace/inputplumber.tar.gz")" || exit 1
-        log "InputPlumber 0.81.0 备份：$backup"
+        backup="$(toolbox_sudo python3 "$PROJECT_ROOT/scripts/inputplumber_overlay.py" install "$workspace/inputplumber.tar.gz" "$IPU_OFFICIAL_SHA256" "$IPU_LATEST_VERSION")" || exit 1
+        log "InputPlumber $IPU_LATEST_VERSION 备份：$backup"
         version="$(ipu_runtime_version)" || exit 1
-        [ "$version" = 0.81.0 ] || { ipu_message "更新后的程序版本不符合预期。"; exit 1; }
+        [ "$version" = "$IPU_LATEST_VERSION" ] || { ipu_message "更新后的程序版本不符合预期。"; exit 1; }
     fi
     changed=1
     ipu_message "正在启用并重新加载手柄功能…"

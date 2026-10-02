@@ -90,12 +90,12 @@ SteamOS 的 GCC 与 Launch Pack 型号修改在临时构建副本中完成；保
 音频硬件限制，重新计算包内校验值，不跳过完整性检查。
 上游验证环境是 CachyOS，Renkit 的 SteamOS 入口为实验性适配。
 
-### InputPlumber 0.81.0 官方备用更新包
+### InputPlumber 官方更新包
 
-来源：https://github.com/ShadowBlip/InputPlumber/releases/tag/v0.81.0
+来源：https://github.com/ShadowBlip/InputPlumber/releases/latest
 作者：ShadowBlip / William Edwards 及贡献者；许可证：GPL-3.0。
-源码和许可证：https://github.com/ShadowBlip/InputPlumber/tree/v0.81.0
-固定原包 SHA256：`bb167707964777751ad15f2da0ac99eb16a926a3997098e884f749b2e06f777b`。
+源码和许可证：https://github.com/ShadowBlip/InputPlumber/tree/main
+每次查询最新正式版，使用该版本官方发布信息中的 SHA256；缺少校验值时停止。
 原包仅在掌机确认更新后下载，不捆绑或修改二进制；安装前检查 SHA256、文件类型、
 完整结构与受限安装路径。机型配置沿用上游文件，自定义配置保留；被替换文件备份到
 `/var/lib/renkit/inputplumber-backups/`，更新失败时尝试恢复。

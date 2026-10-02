@@ -1,4 +1,6 @@
 """Install only verified InputPlumber files, retaining a reversible root-owned backup."""
+import argparse
+import re
 import hashlib
 import io
 import json
@@ -11,7 +13,6 @@ import tarfile
 import tempfile
 import uuid
 
-SHA256 = 'bb167707964777751ad15f2da0ac99eb16a926a3997098e884f749b2e06f777b'
 EXACT = {
     'usr/bin/inputplumber',
     'usr/lib/systemd/system/inputplumber.service',
@@ -36,9 +37,11 @@ def allowed(name):
                   and path.suffix in ('.yaml', '.json'))))
 
 
-def verified_files(archive):
+def verified_files(archive, expected_sha256):
+    if not re.fullmatch(r"[0-9a-fA-F]{64}", expected_sha256):
+        raise ValueError("官方校验信息不完整")
     data = Path(archive).read_bytes()
-    if hashlib.sha256(data).hexdigest() != SHA256:
+    if hashlib.sha256(data).hexdigest() != expected_sha256.lower():
         raise ValueError('官方文件校验未通过')
     result = {}
     with tarfile.open(fileobj=io.BytesIO(data), mode='r:gz') as tar:
@@ -97,7 +100,7 @@ def backup_base(root):
 
 
 def restore(root, backup):
-    if backup.is_symlink() or backup.parent != backup_base(root) or not backup.name.startswith('v0.81.0-'):
+    if backup.is_symlink() or backup.parent != backup_base(root) or not re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+-[0-9a-f]{32}', backup.name):
         raise ValueError('备份路径不安全')
     entries = json.loads((backup / 'manifest.json').read_text())
     for entry in entries:
@@ -112,8 +115,10 @@ def restore(root, backup):
             target.unlink(missing_ok=True)
 
 
-def install(root, archive):
-    files = verified_files(archive)
+def install(root, archive, expected_sha256, version):
+    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
+        raise ValueError("版本号不安全")
+    files = verified_files(archive, expected_sha256)
     targets = {name: safe_target(root, name) for name in files}
     base = backup_base(root)
     # Ancestors of the backup directory must not redirect writes outside its scope.
@@ -122,7 +127,7 @@ def install(root, archive):
             break
         if path.is_symlink():
             raise ValueError('备份目录是链接')
-    backup = base / ('v0.81.0-' + uuid.uuid4().hex)
+    backup = base / ('v' + version + '-' + uuid.uuid4().hex)
     backup.mkdir(parents=True, mode=0o700)
     os.chmod(backup, 0o700)
     entries = []
@@ -146,24 +151,35 @@ def install(root, archive):
 
 
 def main():
-    action, argument = sys.argv[1:3]
+    parser = argparse.ArgumentParser()
+    parser.add_argument('action', choices=('verify', 'install', 'restore'))
+    parser.add_argument('argument')
+    parser.add_argument('sha256', nargs='?')
+    parser.add_argument('version', nargs='?')
+    parser.add_argument('--test-root')
+    args = parser.parse_args()
+    action, argument = args.action, args.argument
     root = Path('/')
-    if len(sys.argv) > 3:
+    if args.test_root:
         if os.environ.get('ZHOUKEER_TEST_MODE') != '1':
             raise ValueError('测试路径未授权')
-        root = Path(sys.argv[3]).resolve()
+        root = Path(args.test_root).resolve()
         if root == Path('/'):
             raise ValueError('测试不得使用真实系统目录')
     elif action != 'verify' and os.geteuid() != 0:
         raise ValueError('需要管理员权限')
+    if action != 'restore' and not args.sha256:
+        raise ValueError('缺少官方校验信息')
+    if action == 'install' and not args.version:
+        raise ValueError('缺少版本信息')
     if action == 'verify':
-        verified_files(argument)
+        verified_files(argument, args.sha256)
     elif action == 'install':
         def interrupted(signum, frame):
             raise InterruptedError('更新中断，正在恢复旧文件')
         for signum in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
             signal.signal(signum, interrupted)
-        print(install(root, argument))
+        print(install(root, argument, args.sha256, args.version))
     elif action == 'restore':
         restore(root, Path(argument))
     else:

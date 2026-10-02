@@ -1309,7 +1309,7 @@ inputplumber_manual_confirm() {
     ui_panel_line 5 '' "需要管理员权限"
     ui_panel_line 6 '' "会更新并启用手柄与睡眠支持"
     ui_panel_line 8 '' "手柄可能暂时断开"
-    ui_panel_line 9 '' "必要时安装 0.81.0 并备份旧文件"
+    ui_panel_line 9 '' "跟随最新正式版，备份旧文件"
     ui_panel_line 11 '' "更新官方机型配置，保留自定义配置"
     ui_panel_line 12 '' "暂时关闭只读保护，结束后恢复"
     ui_panel_line 14 '' "系统更新后可能需要重新更新"

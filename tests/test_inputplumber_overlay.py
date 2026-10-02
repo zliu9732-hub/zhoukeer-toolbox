@@ -22,7 +22,7 @@ def archive(path, extra=None):
             tar.addfile(member, io.BytesIO(data))
         if extra:
             tar.addfile(extra, io.BytesIO(b'x') if extra.isfile() else None)
-    overlay.SHA256 = hashlib.sha256(path.read_bytes()).hexdigest()
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 with tempfile.TemporaryDirectory() as temporary:
@@ -37,8 +37,8 @@ with tempfile.TemporaryDirectory() as temporary:
     custom.parent.mkdir(parents=True)
     custom.write_text('keep custom')
     package = base / 'package.tar.gz'
-    archive(package)
-    backup = overlay.install(root, package)
+    digest = archive(package)
+    backup = overlay.install(root, package, digest, "0.90.0")
     assert binary.read_bytes().startswith(b'\x7fELF') and binary.stat().st_mode & 0o777 == 0o755
     assert custom.read_text() == 'keep custom'
     overlay.restore(root, backup)
@@ -55,7 +55,7 @@ with tempfile.TemporaryDirectory() as temporary:
         return original(target, data, mode)
     overlay.replace = broken
     try:
-        overlay.install(root, package)
+        overlay.install(root, package, digest, "0.90.0")
         raise AssertionError('copy failure accepted')
     except OSError:
         assert binary.read_bytes() == b'old version'
@@ -70,24 +70,24 @@ with tempfile.TemporaryDirectory() as temporary:
         member.type = kind
         member.size = 1 if kind == tarfile.REGTYPE else 0
         member.linkname = '/etc/passwd' if kind == tarfile.SYMTYPE else ''
-        archive(package, member)
+        digest = archive(package, member)
         try:
-            overlay.install(root, package)
+            overlay.install(root, package, digest, "0.90.0")
             raise AssertionError('unsafe archive accepted')
         except ValueError:
             assert binary.read_bytes() == b'old version'
-    archive(package)
-    overlay.SHA256 = '0' * 64
+    digest = archive(package)
+    digest = '0' * 64
     try:
-        overlay.install(root, package)
+        overlay.install(root, package, digest, "0.90.0")
         raise AssertionError('bad hash accepted')
     except ValueError:
         pass
-    archive(package)
+    digest = archive(package)
     binary.unlink()
     binary.symlink_to(custom)
     try:
-        overlay.install(root, package)
+        overlay.install(root, package, digest, "0.90.0")
         raise AssertionError('target symlink accepted')
     except ValueError:
         assert custom.read_text() == 'keep custom'
