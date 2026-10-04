@@ -1239,6 +1239,7 @@ advanced_tools_gui_menu() {
             memory "虚拟内存｜改善内存不足，支持撤销｜高级操作" \
             change-password "修改管理员密码｜会更换 SteamOS 管理密码｜高级操作" \
             handheld "掌机适配｜F1 屏幕、壹号掌机按键与微星 G3E 音频" \
+            sdweak "安装 SDWEAK｜可提升游戏性能·仅 Steam Deck 可用" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
         case "$choice" in
@@ -1250,6 +1251,15 @@ advanced_tools_gui_menu() {
                     run_gui_action "修改管理员密码" bash "$PROJECT_ROOT/modules/password.sh" change
                 ;;
             handheld) f1_screen_fix_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
+            sdweak)
+                local plan_output
+                if ! plan_output="$(bash "$PROJECT_ROOT/modules/sdweak.sh" plan 2>&1)"; then
+                    gui_dialog --error "$plan_output"
+                elif gui_confirm "$plan_output
+确认了解以上警告并安装 SDWEAK？"; then
+                    run_gui_action "安装 SDWEAK" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/sdweak.sh" install
+                fi
+                ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
         esac

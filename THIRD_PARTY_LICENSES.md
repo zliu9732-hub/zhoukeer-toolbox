@@ -99,3 +99,14 @@ SteamOS 的 GCC 与 Launch Pack 型号修改在临时构建副本中完成；保
 原包仅在掌机确认更新后下载，不捆绑或修改二进制；安装前检查 SHA256、文件类型、
 完整结构与受限安装路径。机型配置沿用上游文件，自定义配置保留；被替换文件备份到
 `/var/lib/renkit/inputplumber-backups/`，更新失败时尝试恢复。
+
+### SDWEAK 2.1
+
+作者：Taskerer / @noncatt 及贡献者；许可证：MIT。
+来源：https://github.com/Taskerer/SDWEAK/releases/tag/v2.1.0
+核验源码提交：`8c32e86fff3c754ac4819524edf7fff4c4e04de3`。
+官方 SDWEAK.zip SHA256：`5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e`。
+仅在用户确认后下载，不捆绑上游二进制；原作者与 LICENSE 留在临时安装包。
+Renkit 准备副本的改动：中文提示、失败即停止、保留全局软件签名检查、密钥和缓存，
+省略实验性显示组件替换、不自动重启；其余性能设置沿用上游。
+测试用原始安装器文本与 MIT 许可证保存在 `tests/fixtures/sdweak/`，仅用于模拟测试。

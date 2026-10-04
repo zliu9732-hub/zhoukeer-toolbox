@@ -479,6 +479,31 @@ new_machine_preflight() {
     done
 }
 
+sdweak_manual_confirm() {
+    local choice
+    if ! bash "$PROJECT_ROOT/modules/sdweak.sh" plan >/dev/null 2>&1; then
+        run_action "检查 SDWEAK 是否适用" bash "$PROJECT_ROOT/modules/sdweak.sh" plan
+        return 0
+    fi
+    draw_category_frame advanced "安装 SDWEAK" "可提升游戏性能、减少卡顿；效果因游戏而异" 0
+    ui_panel_line 4 '' "警告：仅 Steam Deck LCD / OLED 可用"
+    ui_panel_line 5 '' "其他掌机一律禁止安装"
+    ui_panel_line 7 '' "仅 SteamOS 3.8；先卸载 CryoUtilities"
+    ui_panel_line 9 '' "需要管理员权限，修改系统和启动设置"
+    ui_panel_line 10 '' "关闭部分安全保护，可能影响稳定性"
+    ui_panel_line 12 '' "可选屏幕提速仅限 LCD，可能显示异常"
+    ui_panel_line 14 '' "失败可能留下改动；结束恢复只读保护"
+    ui_panel_line 15 '' "请先保存工作，完成后手动重启"
+    ui_touch_button 18 '' "确认安装" "了解以上警告后继续"
+    ui_touch_button 22 '' "返回" "取消安装"
+    ui_prompt
+    choice="$(read_touch_menu right:18-19:yes right:22-23:back)"
+    if apply_navigation "$choice"; then return 0; fi
+    if [ "$choice" = yes ]; then
+        run_action "安装 SDWEAK" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/sdweak.sh" install
+    fi
+}
+
 steam_touch_menu() {
     local choice
 
@@ -1471,9 +1496,10 @@ advanced_tools_menu() {
         ui_touch_button 11 '\033[1;97;48;5;160m' "虚拟内存" "设置 内存压缩、swap 或撤销 · 高级操作"
         ui_touch_button 13 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
         ui_touch_button 15 '\033[1;97;48;5;24m' "掌机适配" "F1 屏幕 · 壹号掌机按键 · 微星 G3E 音频"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "安装 SDWEAK" "可提升游戏性能 · 仅 Steam Deck 可用"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:memory right:13-14:change-password right:15-16:handheld right:22-23:home)"
+        choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:memory right:13-14:change-password right:15-16:handheld right:17-18:sdweak right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             domestic-source) domestic_source_preflight ;;
@@ -1481,6 +1507,7 @@ advanced_tools_menu() {
             memory) memory_touch_menu ;;
             change-password) confirm_and_run "修改管理员密码" "将读取旧记录并明文保存新密码；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;
             handheld) f1_handheld_menu ;;
+            sdweak) sdweak_manual_confirm ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "advanced" ] || return 0
