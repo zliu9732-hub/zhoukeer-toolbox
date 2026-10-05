@@ -21,22 +21,32 @@ FONT = {
  'I': ['█████', '  █  ', '  █  ', '  █  ', '█████'],
  'Y': ['█   █', ' █ █ ', '  █  ', '  █  ', '  █  '],
 }
-LABEL = '🐟：RenAmamiya'
+LABEL = 'RenAmamiya'
+FISH = '><(((°>'
+FISH_LARGE = ['     ▄▄▄▄▄    ', ' ▄▄████████▄  ', '◀██████○████▶ ', ' ▀▀████████▀  ', '     ▀▀▀▀▀    ']
 
 
 def artwork(rows, columns):
     if rows < 14 or columns < 22:
         return rows, []
     if rows >= 24 and columns >= 90:
-        lines = [' '.join(FONT[c][line] for c in 'RENAMAMIYA') for line in range(5)]
-        width = len(lines[0])
-        lines.append(' ' * (width - 15) + LABEL)
+        name_lines = [' '.join(FONT[c][line] for c in 'RENAMAMIYA') for line in range(5)]
+        icon_width = len(FISH_LARGE[0])
+        width = icon_width + 2 + len(name_lines[0])
+        column = max(1, columns - width - 2)
+        top = rows - 6
+        lines = []
+        for i in range(5):
+            lines.append((top + i, column, FISH_LARGE[i], 220))
+            lines.append((top + i, column + icon_width + 2, name_lines[i], 196))
+        lines.append((rows - 1, columns - len(LABEL) - 2, LABEL, 196))
     else:
-        lines = [LABEL]
-        width = 15
-    top = rows - len(lines)
-    column = max(1, columns - width - 2)
-    return top - 1, [(top + i, column, line) for i, line in enumerate(lines)]
+        width = len(FISH) + 2 + len(LABEL)
+        column = max(1, columns - width - 2)
+        top = rows - 1
+        lines = [(top, column, FISH, 220),
+                 (top, column + len(FISH) + 2, LABEL, 196)]
+    return top - 1, lines
 
 
 def decoration(rows, columns):
@@ -44,9 +54,9 @@ def decoration(rows, columns):
     if not lines:
         return b''
     # Save cursor/rendition; the child retains its log position and input prompt.
-    value = '\x1b7' + f'\x1b[1;{bottom}r' + '\x1b[1;38;5;220m'
-    for row, col, line in lines:
-        value += f'\x1b[{row};{col}H{line}'
+    value = '\x1b7' + f'\x1b[1;{bottom}r'
+    for row, col, line, color in lines:
+        value += f'\x1b[1;38;5;{color}m\x1b[{row};{col}H{line}'
     return (value + '\x1b8').encode()
 
 
@@ -132,9 +142,9 @@ def run(command, keep_footer=False, allow_pipe_output=False, log_file=None):
             forward(signal.SIGWINCH)
         # Clear only cells previously owned by the signature before a resize.
         erase = '\x1b7'
-        for row, col, line in previous_art:
+        for row, col, line, color in previous_art:
             if row <= size[0] and col <= size[1]:
-                width = len(line) + (2 if LABEL in line else 0)
+                width = len(line)
                 erase += f'\x1b[{row};{col}H' + ' ' * min(width, size[1] - col)
         output((erase + '\x1b8').encode())
         previous_art = artwork(*size)[1]

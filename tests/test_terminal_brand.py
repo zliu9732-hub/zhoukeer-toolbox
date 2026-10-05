@@ -20,10 +20,11 @@ def input_state(fd):
  return state
 for rows,cols in [(32,120),(48,160),(24,70),(16,40),(10,20)]:
  bottom,lines=b.artwork(rows,cols)
- for row,col,line in lines:
+ for row,col,line,color in lines:
   check(row>bottom and row<=rows,'Artwork overlaps scrolling logs')
-  width=15 if line==b.LABEL else len(line)
+  width=len(line)
   check(col+width<=cols,'Artwork exceeds terminal width')
+  check(color==(196 if line in [b.LABEL]+[' '.join(b.FONT[c][i] for c in 'RENAMAMIYA') for i in range(5)] else 220),'Fish/name color mismatch')
 for sequence in [b'\x1b[2J',b'\x1b]0;title\x1b\\','🐟中文'.encode()]:
  for split in range(1,len(sequence)):
   parser=b.Boundaries();first=parser.take(sequence[:split]);second=parser.take(sequence[split:])
@@ -45,7 +46,7 @@ sys.exit(7 if answer=="fail" else 0)
   master,slave=pty.openpty();resize(master,120,32);original=input_state(slave)
   process=subprocess.Popen(['python3',str(ROOT/'scripts/terminal_brand.py'),'--log-file',str(d/'action.log'),'--','python3',str(child)],stdin=slave,stdout=slave,stderr=slave,env={**os.environ,'TERM':'xterm-256color'})
   try:
-   frame=read_until(master,b'INPUT:');check(b.LABEL in frame and '\x1b[1;38;5;220m' in frame,'Yellow fish signature missing')
+   frame=read_until(master,b'INPUT:');check(b.LABEL in frame and '\x1b[1;38;5;220m' in frame and '\x1b[1;38;5;196m' in frame,'Yellow fish/red name missing')
    check('LOG_000' in frame and 'LOG_099' in frame,'Lost installer output')
    check('\x1b[1;25r' in frame and '\x1b[rSTART' not in frame,'Child removed footer reservation')
    resize(master,70,24);os.kill(process.pid,signal.SIGWINCH)
