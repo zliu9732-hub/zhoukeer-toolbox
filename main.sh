@@ -95,8 +95,9 @@ run_action() {
     echo ""
     # 启动器会把 stderr 送入日志过滤器；下载进度使用回车刷新，若经过该
     # 管道会被 read 等到下载结束才输出。直接写入控制终端以实时显示进度。
-    ZHOUKEER_PROGRESS_DIRECT_TTY=1 "$@"
+    ZHOUKEER_PROGRESS_DIRECT_TTY=1 renkit_brand_run "$@"
     status=$?
+    case "$status" in 129|130|143) exit "$status" ;; esac
 
     cd "$HOME" 2>/dev/null || cd / || true
 
@@ -1486,6 +1487,23 @@ handheld_more_menu() {
     done
 }
 
+advanced_operations_menu() {
+    local choice
+    while true; do
+        draw_category_frame advanced "高级操作" "需要管理员权限，请先阅读警告"
+        ui_touch_button 8 '\033[1;97;48;5;160m' "安装 SDWEAK" "可提升游戏性能 · 仅 Steam Deck 可用"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回更多设置" "查看其他系统功能"
+        ui_prompt
+        choice="$(read_touch_menu right:8-9:sdweak right:22-23:back)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            sdweak) sdweak_manual_confirm ;;
+            back) return 0 ;;
+        esac
+        [ "$NEXT_CATEGORY" = advanced ] || return 0
+    done
+}
+
 advanced_tools_menu() {
     local choice
 
@@ -1496,10 +1514,10 @@ advanced_tools_menu() {
         ui_touch_button 11 '\033[1;97;48;5;160m' "虚拟内存" "设置 内存压缩、swap 或撤销 · 高级操作"
         ui_touch_button 13 '\033[1;97;48;5;160m' "修改管理员密码" "会更换 SteamOS 管理密码 · 高级操作"
         ui_touch_button 15 '\033[1;97;48;5;24m' "掌机适配" "F1 屏幕 · 壹号掌机按键 · 微星 G3E 音频"
-        ui_touch_button 17 '\033[1;97;48;5;160m' "安装 SDWEAK" "可提升游戏性能 · 仅 Steam Deck 可用"
+        ui_touch_button 17 '\033[1;97;48;5;160m' "高级操作" "SDWEAK 性能优化 · 仅 Steam Deck 可用"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:memory right:13-14:change-password right:15-16:handheld right:17-18:sdweak right:22-23:home)"
+        choice="$(read_touch_menu right:7-8:domestic-source right:9-10:accelerator right:11-12:memory right:13-14:change-password right:15-16:handheld right:17-18:advanced-operations right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             domestic-source) domestic_source_preflight ;;
@@ -1507,7 +1525,7 @@ advanced_tools_menu() {
             memory) memory_touch_menu ;;
             change-password) confirm_and_run "修改管理员密码" "将读取旧记录并明文保存新密码；当前用户运行的软件都可能读取" bash "$PROJECT_ROOT/modules/password.sh" change ;;
             handheld) f1_handheld_menu ;;
-            sdweak) sdweak_manual_confirm ;;
+            advanced-operations) advanced_operations_menu ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "advanced" ] || return 0

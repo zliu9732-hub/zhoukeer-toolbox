@@ -4,6 +4,7 @@
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../utils/colors.sh"
 # shellcheck disable=SC1091
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/env.sh"
+source "$PROJECT_ROOT/core/terminal_brand.sh"
 
 UI_SIDEBAR_WIDTH=31
 UI_SEPARATOR_COL=34
@@ -124,6 +125,7 @@ logo() {
 
 print_header() {
     ui_leave_menu_screen
+    printf '\033[0m\033[r'
     clear
     logo
 }
@@ -403,6 +405,7 @@ ui_leave_menu_screen() {
 }
 
 ui_restore_terminal() {
+    printf '\033[0m\033[r'
     disable_mouse_tracking
     ui_leave_menu_screen
 }

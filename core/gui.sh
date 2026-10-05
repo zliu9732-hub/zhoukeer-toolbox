@@ -53,22 +53,24 @@ gui_notice() {
 }
 
 run_gui_action() {
-    local status action_log failure_detail
+    local status action_log failure_detail brand_tty=0
     local title="$1"
     shift
 
+    [ ! -t 0 ] || [ ! -t 1 ] || brand_tty=1
     print_header
     print_section_title "$title"
     echo ""
     mkdir -p "$LOG_DIR" 2>/dev/null || true
     action_log="$(mktemp "$LOG_DIR/gui-action.XXXXXX" 2>/dev/null || true)"
     if [ -n "$action_log" ]; then
-        ZHOUKEER_PROGRESS_DIRECT_TTY=1 "$@" 2>&1 | tee "$action_log"
-        status="${PIPESTATUS[0]}"
+        RENKIT_BRAND_LOG="$action_log" RENKIT_BRAND_TTY="$brand_tty" ZHOUKEER_PROGRESS_DIRECT_TTY=1 renkit_brand_run "$@"
+        status=$?
     else
-        "$@"
+        renkit_brand_run "$@"
         status=$?
     fi
+    [ "$brand_tty" = 0 ] || printf '\033[0m\033[r'
     cd "$HOME" 2>/dev/null || cd / || true
     if [ "$status" -eq 0 ]; then
         gui_notice "$title 已完成。"
@@ -1229,6 +1231,27 @@ f1_screen_fix_gui_menu() {
     done
 }
 
+advanced_operations_gui_menu() {
+    local choice plan_output
+    while true; do
+        choice="$(gui_dialog --menu "高级操作｜请先阅读警告" \
+            sdweak "安装 SDWEAK｜可提升游戏性能·仅 Steam Deck 可用" \
+            back "返回更多设置")" || return 0
+        case "$choice" in
+            sdweak)
+                local plan_output
+                if ! plan_output="$(bash "$PROJECT_ROOT/modules/sdweak.sh" plan 2>&1)"; then
+                    gui_dialog --error "$plan_output"
+                elif gui_confirm "$plan_output
+确认了解以上警告并安装 SDWEAK？"; then
+                    run_gui_action "安装 SDWEAK" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/sdweak.sh" install
+                fi
+                ;;
+            back) return 0 ;;
+        esac
+    done
+}
+
 advanced_tools_gui_menu() {
     local choice
 
@@ -1239,7 +1262,7 @@ advanced_tools_gui_menu() {
             memory "虚拟内存｜改善内存不足，支持撤销｜高级操作" \
             change-password "修改管理员密码｜会更换 SteamOS 管理密码｜高级操作" \
             handheld "掌机适配｜F1 屏幕、壹号掌机按键与微星 G3E 音频" \
-            sdweak "安装 SDWEAK｜可提升游戏性能·仅 Steam Deck 可用" \
+            advanced-operations "高级操作｜SDWEAK 性能优化·仅 Steam Deck 可用" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
         case "$choice" in
@@ -1251,15 +1274,7 @@ advanced_tools_gui_menu() {
                     run_gui_action "修改管理员密码" bash "$PROJECT_ROOT/modules/password.sh" change
                 ;;
             handheld) f1_screen_fix_gui_menu; [ "$GUI_NAV_HOME" -eq 0 ] || return 0 ;;
-            sdweak)
-                local plan_output
-                if ! plan_output="$(bash "$PROJECT_ROOT/modules/sdweak.sh" plan 2>&1)"; then
-                    gui_dialog --error "$plan_output"
-                elif gui_confirm "$plan_output
-确认了解以上警告并安装 SDWEAK？"; then
-                    run_gui_action "安装 SDWEAK" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/sdweak.sh" install
-                fi
-                ;;
+            advanced-operations) advanced_operations_gui_menu ;;
             home) GUI_NAV_HOME=1; return 0 ;;
             nav-exit) exit 0 ;;
         esac
