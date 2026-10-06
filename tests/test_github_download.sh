@@ -59,6 +59,7 @@ if [ "$head_mode" = "1" ]; then
 fi
 if [ -n "$write_out" ]; then
     printf 'probe|%s\n' "$url" >> "${GITHUB_TEST_CALLS:?}"
+    [ "${GITHUB_TEST_FAIL_PROBE:-0}" != 1 ] || exit 63
     case "$url" in
         *fast.invalid*) printf '2097152' ;;
         *slow.invalid*) printf '262144' ;;
@@ -184,6 +185,18 @@ case "$first_download" in
     *) echo "FAIL: 302运行时没有按实际吞吐选择最快镜像" >&2; exit 1 ;;
 esac
 unset -f steam302_download_acceleration_is_ready
+
+# Some servers reject Range probes but can deliver the full reviewed package.
+# SDWEAK must still reach those backup sources when Gitee is unavailable.
+: > "$CALLS_FILE"
+export GITHUB_TEST_FAIL_PROBE=1
+sdweak_url="https://github.com/Taskerer/SDWEAK/releases/download/v2.1.0/SDWEAK.zip"
+download_github_file "$sdweak_url" "$OUTPUT" "$expected" "SDWEAK 测速失败回退测试"
+cmp "$PAYLOAD" "$OUTPUT" || { echo 'FAIL: Probe fallback changed payload' >&2; exit 1; }
+grep -Fq "download|https://fast.invalid/$sdweak_url" "$CALLS_FILE" || {
+    echo 'FAIL: Failed Range probe discarded working backup source' >&2; exit 1;
+}
+unset GITHUB_TEST_FAIL_PROBE
 
 printf 'keep existing file\n' > "$OUTPUT"
 export GITHUB_TEST_FAIL_DOWNLOAD=1

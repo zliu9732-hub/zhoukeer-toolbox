@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import pty
 import re
+import select
 import signal
 import subprocess
 import tempfile
@@ -18,13 +19,31 @@ def input_state(fd):
  # macOS sets this transient kernel flag when returning pending input to canonical mode.
  state[3] &= ~getattr(termios,'PENDIN',0)
  return state
-for rows,cols in [(32,120),(48,160),(24,70),(16,40),(10,20)]:
+def wait_exit(master,process,timeout=4):
+ # A real terminal continuously drains redraws. Keep doing the same after the
+ # answer marker; otherwise a larger colored footer can fill a private PTY.
+ deadline=time.monotonic()+timeout
+ while process.poll() is None and time.monotonic()<deadline:
+  if select.select([master],[],[],.05)[0]:
+   try:os.read(master,65536)
+   except OSError:pass
+ return process.wait(timeout=1)
+for rows,cols in [(32,120),(48,160),(31,94),(26,42),(24,70),(20,32),(18,28),(16,40),(14,22),(10,20)]:
  bottom,lines=b.artwork(rows,cols)
  for row,col,line,color in lines:
   check(row>bottom and row<=rows,'Artwork overlaps scrolling logs')
-  width=len(line)
+  width=b.cell_width(line)
   check(col+width<=cols,'Artwork exceeds terminal width')
-  check(color==(196 if line in [b.LABEL]+[' '.join(b.FONT[c][i] for c in 'RENAMAMIYA') for i in range(5)] else 220),'Fish/name color mismatch')
+  if line in [b.LABEL]+[' '.join(b.FONT[c][i] for c in 'RENAMAMIYA') for i in range(5)]:
+   check(color==196,'Red name changed color')
+  else:
+   check(all(c in b.PALETTE.values() for c in (color if isinstance(color,tuple) else (color,))),'Mascot palette invalid')
+  check('闲鱼' not in line,'Removed badge label still visible')
+ check(bottom>=8,'Branding leaves too little space for logs')
+for pixels in [b.FISH_PIXELS,b.FISH_SMALL_PIXELS,b.FISH_TINY_PIXELS]:
+ check({'Y','W','K'} <= set(''.join(pixels)),'Mascot lost yellow head or eyes')
+ for row,runs in enumerate(b.avatar_lines(pixels)):
+  check(sum(len(text) for _,text,_ in runs)==len(pixels[0]),'Colored runs changed mascot width')
 for sequence in [b'\x1b[2J',b'\x1b]0;title\x1b\\','🐟中文'.encode()]:
  for split in range(1,len(sequence)):
   parser=b.Boundaries();first=parser.take(sequence[:split]);second=parser.take(sequence[split:])
@@ -48,10 +67,12 @@ sys.exit(7 if answer=="fail" else 0)
   try:
    frame=read_until(master,b'INPUT:');check(b.LABEL in frame and '\x1b[1;38;5;220m' in frame and '\x1b[1;38;5;196m' in frame,'Yellow fish/red name missing')
    check('LOG_000' in frame and 'LOG_099' in frame,'Lost installer output')
-   check('\x1b[1;25r' in frame and '\x1b[rSTART' not in frame,'Child removed footer reservation')
+   expected_region=f'\x1b[1;{b.artwork(32,120)[0]}r'
+   check(expected_region in frame and '\x1b[rSTART' not in frame,'Child removed footer reservation')
    resize(master,70,24);os.kill(process.pid,signal.SIGWINCH)
-   frame=read_until(master,b'\x1b[1;22r');check('\x1b[1;22r' in frame,'Resize did not fit compact footer')
-   os.write(master,(answer+'\n').encode());out=read_until(master,('ANSWER='+answer).encode());check(process.wait(timeout=3)==status,'Child exit code changed')
+   expected_region=f'\x1b[1;{b.artwork(24,70)[0]}r'
+   frame=read_until(master,expected_region.encode());check(expected_region in frame,'Resize did not fit compact footer')
+   os.write(master,(answer+'\n').encode());out=read_until(master,('ANSWER='+answer).encode());check(wait_exit(master,process)==status,'Child exit code changed')
    check(input_state(slave)==original,'Terminal input state not restored')
    logged=(d/'action.log').read_text();check('LOG_099' in logged and b.LABEL not in logged,'Decoration polluted action log')
   finally:
@@ -63,7 +84,7 @@ sys.exit(7 if answer=="fail" else 0)
  process=subprocess.Popen(['python3',str(ROOT/'scripts/terminal_brand.py'),'--','python3',str(child)],stdin=slave,stdout=slave,stderr=slave,env={**os.environ,'TERM':'xterm-256color'})
  try:
   read_until(master,b'WAIT');process.send_signal(signal.SIGTERM)
-  check(process.wait(timeout=4)==143,'Cancellation status changed')
+  check(wait_exit(master,process)==143,'Cancellation status changed')
   check(input_state(slave)==original,'Cancellation left raw input')
  finally:
   if process.poll() is None:process.kill()
@@ -82,7 +103,7 @@ sys.exit(7 if answer=="fail" else 0)
  try:
   frame=read_until(master,b'MAIN_DONE');check('Renkit启动中' in frame and b.LABEL in frame,'Startup waiting screen missing signature')
   check((d/'calls').read_text()=='MOCK_UPDATE\n','Startup update duplicated or skipped')
-  check(process.wait(timeout=4)==0,'Startup branding broke launch')
+  check(wait_exit(master,process)==0,'Startup branding broke launch')
  finally:
   if process.poll() is None:process.kill()
   process.wait();os.close(master);os.close(slave)

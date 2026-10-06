@@ -23,11 +23,13 @@ generate() {
 generate
 FIXTURE="$TEST_ROOT/repo/mirrors/sdweak"
 grep -q '^chunks=1$' "$FIXTURE/latest.txt" || fail 'Small package skipped chunk manifest'
+grep -q '^chunk_size=1048576$' "$FIXTURE/latest.txt" || fail 'SDWEAK chunk exceeds 1 MiB'
 cmp "$FIXTURE/v2.1.0/part.0001" "$TEST_ROOT/SDWEAK.zip" || fail 'Single part differs'
 [ ! -e "$FIXTURE/v2.1.0/SDWEAK.zip" ] || fail 'Direct package unexpectedly published'
 rm -rf -- "$FIXTURE"
 ZHOUKEER_GITEE_MIRROR_CHUNK_BYTES=64 generate
 source "$TEST_ROOT/repo/core/env.sh"
+[ "$(gitee_mirror_manifest_repo sdweak)" = zhoukeer-toolbox-mirror-3 ] || fail 'SDWEAK routing wrong'
 [ "$(gitee_mirror_id_for_url "$URL")" = sdweak ] || fail 'Pinned URL mapping missing'
 if gitee_mirror_id_for_url "${URL/v2.1.0/v9.9.9}" >/dev/null; then fail 'Unreviewed version mapped'; fi
 MODE=ok
@@ -44,7 +46,7 @@ curl() {
     done
     echo "$url" >> "$CALLS"
     case "$url" in
-        https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/sdweak/*)
+        https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-3/raw/main/sdweak/*)
             path="${url#*/raw/main/sdweak/}" ;;
         *) fail 'Unmocked transport requested' ;;
     esac

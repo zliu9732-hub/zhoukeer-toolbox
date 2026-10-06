@@ -305,6 +305,8 @@ mirror_process_entry() {
     local size cache_file target_dir target
     local chunks=0
     local existing_size
+    local CHUNK_BYTES="$CHUNK_BYTES"
+    if [ "$id" = sdweak ] && [ "$CHUNK_BYTES" -gt 1048576 ]; then CHUNK_BYTES=1048576; fi
 
     mirror_path_is_safe "$id" || return 1
     mirror_path_is_safe "$version" || return 1
@@ -355,6 +357,8 @@ mirror_process_entry() {
 mirror_process_local_file() {
     local id="$1" name="$2" version="$3" file="$4" source_url="$5" local_file="$6"
     local size sha256 target_dir target chunks=0
+    local CHUNK_BYTES="$CHUNK_BYTES"
+    if [ "$id" = sdweak ] && [ "$CHUNK_BYTES" -gt 1048576 ]; then CHUNK_BYTES=1048576; fi
 
     mirror_path_is_safe "$id" || { echo "镜像标识不安全：$id"; return 1; }
     mirror_path_is_safe "$version" || { echo "镜像版本路径不安全：$version"; return 1; }

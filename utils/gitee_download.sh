@@ -10,6 +10,7 @@ ZHOUKEER_GITEE_DOWNLOAD_LOADED=1
 
 GITEE_MIRROR_OWNER="${ZHOUKEER_GITEE_MIRROR_OWNER:-zliu9732-hub}"
 GITEE_MIRROR_REPO="${ZHOUKEER_GITEE_MIRROR_REPO:-zhoukeer-toolbox-mirror}"
+GITEE_SDWEAK_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 GITEE_GE_PROTON_MIRROR_REPO="${ZHOUKEER_GE_PROTON_GITEE_MIRROR_REPO:-zhoukeer-toolbox-mirror-8}"
 GITEE_PROTON_CACHYOS_MIRROR_REPO="${ZHOUKEER_PROTON_CACHYOS_GITEE_MIRROR_REPO:-zhoukeer-toolbox-mirror-9}"
 GITEE_MIRROR_BRANCH="${ZHOUKEER_GITEE_MIRROR_BRANCH:-main}"
@@ -57,6 +58,7 @@ gitee_mirror_raw_base() {
 
 gitee_mirror_manifest_repo() {
     case "$1" in
+        sdweak) printf '%s\n' "$GITEE_SDWEAK_MIRROR_REPO" ;;
         ge-proton) printf '%s\n' "$GITEE_GE_PROTON_MIRROR_REPO" ;;
         proton-cachyos) printf '%s\n' "$GITEE_PROTON_CACHYOS_MIRROR_REPO" ;;
         *) printf '%s\n' "$GITEE_MIRROR_REPO" ;;
@@ -167,6 +169,7 @@ download_gitee_mirror_manifest() {
         --retry "$retries" --retry-delay 1 --retry-all-errors \
         --max-filesize 2097152 \
         --output "$temp_file" "$manifest_url"; then
+        declare -F log >/dev/null 2>&1 && log "下载清单请求失败: id=$id url=$manifest_url"
         rm -f -- "$temp_file"
         return 1
     fi
@@ -203,7 +206,7 @@ _gitee_mirror_sha256() {
 _gitee_mirror_download_one() {
     local url="$1" output="$2" max_bytes="$3"
     local progress_index="${4:-0}" progress_total="${5:-1}"
-    local connect_timeout max_time retries curl_status
+    local connect_timeout max_time retries curl_status min_speed min_speed_time
     local quiet="${GITEE_MIRROR_QUIET:-0}"
     local curl_options=()
 
@@ -214,12 +217,14 @@ _gitee_mirror_download_one() {
     connect_timeout="$(_gitee_mirror_setting "${GITEE_MIRROR_CONNECT_TIMEOUT:-}" 10)"
     max_time="$(_gitee_mirror_setting "${GITEE_MIRROR_MAX_TIME:-}" 1200)"
     retries="$(_gitee_mirror_setting "${GITEE_MIRROR_RETRIES:-}" 2)"
+    min_speed="$(_gitee_mirror_setting "${GITEE_MIRROR_MIN_SPEED_BYTES:-}" 65536)"
+    min_speed_time="$(_gitee_mirror_setting "${GITEE_MIRROR_MIN_SPEED_TIME:-}" 60)"
     curl_options=(
         --fail --location
         --proto '=https' --proto-redir '=https'
         --connect-timeout "$connect_timeout" --max-time "$max_time"
         --retry "$retries" --retry-delay 1 --retry-connrefused
-        --speed-limit 65536 --speed-time 60
+        --speed-limit "$min_speed" --speed-time "$min_speed_time"
         --max-filesize "$max_bytes"
     )
     if [ "$quiet" = "1" ]; then
@@ -228,6 +233,7 @@ _gitee_mirror_download_one() {
             :
         else
             curl_status=$?
+            declare -F log >/dev/null 2>&1 && log "国内下载请求失败: status=$curl_status url=$url"
             [ "$curl_status" -ne 23 ] || DOWNLOAD_LOCAL_IO_FAILED=1
             return 1
         fi
@@ -239,12 +245,14 @@ _gitee_mirror_download_one() {
             :
         else
             curl_status=$?
+            declare -F log >/dev/null 2>&1 && log "国内下载请求失败: status=$curl_status url=$url"
             [ "$curl_status" -ne 23 ] || DOWNLOAD_LOCAL_IO_FAILED=1
             return 1
         fi
     fi
     if declare -F download_policy_response_is_safe >/dev/null 2>&1 && \
         ! download_policy_response_is_safe "$url" "$output"; then
+        declare -F log >/dev/null 2>&1 && log "国内下载响应检查失败: url=$url"
         return 1
     fi
 }
@@ -252,7 +260,7 @@ _gitee_mirror_download_one() {
 download_gitee_mirror_file() {
     local id="$1" output="$2" expected_sha256="${3:-}" name="${4:-安装文件}"
     local manifest manifest_file base_url file_url temp_file temp_dir part_name part_file
-    local actual_sha256 index actual_size
+    local actual_sha256 index actual_size part_repo
     local GITEE_MIRROR_LABEL="$name"
 
     DOWNLOAD_LOCAL_IO_FAILED=0
@@ -318,7 +326,7 @@ download_gitee_mirror_file() {
         while [ "$index" -le "$_GITEE_MIRROR_CHUNKS" ]; do
             part_name="$(printf 'part.%04d' "$index")"
             part_file="$temp_dir/$part_name"
-            part_repo="$GITEE_MIRROR_REPO"
+            part_repo="$(gitee_mirror_manifest_repo "$id")"
             if [ -n "$_GITEE_MIRROR_REPO1" ] && [ -n "$_GITEE_MIRROR_REPO2" ] && \
                 _gitee_mirror_positive_integer "$_GITEE_MIRROR_PARTS_REPO1"; then
                 if [ "$index" -le "$_GITEE_MIRROR_PARTS_REPO1" ]; then
@@ -351,6 +359,7 @@ download_gitee_mirror_file() {
 
     actual_size="$(wc -c < "$temp_file" | tr -d ' ')"
     if [ "$actual_size" != "$_GITEE_MIRROR_SIZE" ]; then
+        declare -F log >/dev/null 2>&1 && log "国内下载大小检查失败: id=$id expected=$_GITEE_MIRROR_SIZE actual=$actual_size"
         rm -f -- "$temp_file"
         echo "$name 下载文件不完整，正在重新尝试。"
         return 1
@@ -361,6 +370,7 @@ download_gitee_mirror_file() {
         return 1
     }
     if [ "$actual_sha256" != "$(printf '%s' "$_GITEE_MIRROR_SHA256" | tr '[:upper:]' '[:lower:]')" ]; then
+        declare -F log >/dev/null 2>&1 && log "国内下载 SHA256 检查失败: id=$id"
         rm -f -- "$temp_file"
         echo "$name 文件检查未通过，正在重新尝试。"
         return 1

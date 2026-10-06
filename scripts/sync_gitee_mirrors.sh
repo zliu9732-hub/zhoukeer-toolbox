@@ -47,8 +47,15 @@ prepare_steamos_fixed_mirror() {
         "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
     git -C "$MIRROR1" sparse-checkout set --no-cone \
         'inputplumber/**' 'f1-bios/**' 'oxpx2-device/**' 'oxpx2-map/**' \
-        'oxpx2-manager/**' 'rustdesk/**' 'sdweak/**'
+        'oxpx2-manager/**' 'rustdesk/**'
     git -C "$MIRROR1" checkout -q main
+}
+
+prepare_sdweak_mirror() {
+    git clone -q --depth 1 --filter=blob:none --no-checkout \
+        "$BASE/zhoukeer-toolbox-mirror-3.git" "$MIRROR3"
+    git -C "$MIRROR3" sparse-checkout set --no-cone 'sdweak/**'
+    git -C "$MIRROR3" checkout -q main
 }
 
 prepare_inputplumber_mirror() {
@@ -64,6 +71,7 @@ if [ -z "$MODE" ]; then
     git clone -q "$BASE/zhoukeer-toolbox-mirror-3.git" "$MIRROR3"
 elif [ "$MODE" = "--only-steamos-fixed" ]; then
     prepare_steamos_fixed_mirror
+    prepare_sdweak_mirror
 elif [ "$MODE" = "--only-inputplumber" ]; then
     prepare_inputplumber_mirror
 fi
@@ -104,7 +112,8 @@ sync_plugin() {
     local id="$1" repo="$2" pattern="$3" name="$4"
     local pinned_version="${5:-}" pinned_file="${6:-}" pinned_url="${7:-}" pinned_sha="${8:-}"
     local mirror_repo="${9:-$MIRROR1}"
-    local version file url sha size chunks target_dir
+    local version file url sha size chunks target_dir chunk_size=8388608
+    [ "$id" != sdweak ] || chunk_size=1048576
 
     if [ -n "$pinned_version" ]; then
         version="$pinned_version"
@@ -141,12 +150,12 @@ sync_plugin() {
         cp -- "$WORK/$file" "$target_dir/$file"
         chunks=0
     else
-        split -b 8388608 --numeric-suffixes=1 -a 4 \
+        split -b "$chunk_size" --numeric-suffixes=1 -a 4 \
             "$WORK/$file" "$target_dir/part."
         chunks="$(find "$target_dir" -maxdepth 1 -name 'part.*' | wc -l | tr -d ' ')"
     fi
     write_manifest "$mirror_repo" "$id" "$name" "$version" "$file" \
-        "$url" "$sha" "$size" "$chunks" 8388608
+        "$url" "$sha" "$size" "$chunks" "$chunk_size"
     echo "Synced $id $version"
 }
 
@@ -367,7 +376,7 @@ commit_and_push_steamos_fixed() {
     git -C "$repo" config user.name "zhoukeer-toolbox[bot]"
     git -C "$repo" config user.email "bot@users.noreply.github.com"
     git -C "$repo" add -A -- inputplumber f1-bios oxpx2-device oxpx2-map \
-        oxpx2-manager rustdesk sdweak
+        oxpx2-manager rustdesk
     if git -C "$repo" diff --cached --quiet; then
         echo "No SteamOS fixed-asset mirror changes"
     else
@@ -402,11 +411,12 @@ sync_inputplumber() {
 }
 
 sync_steamos_fixed_assets() {
-    # Keep the reviewed package pinned; SDWEAK always uses 8 MiB parts.
+    # Keep the reviewed package pinned; use small parts in mirror-3, while
+    # preserving the already published copy in the older mirror repository.
     sync_plugin sdweak "Taskerer/SDWEAK" '^$' "SDWEAK" \
         "v2.1.0" "SDWEAK.zip" \
         "https://github.com/Taskerer/SDWEAK/releases/download/v2.1.0/SDWEAK.zip" \
-        "5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e"
+        "5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e" "$MIRROR3"
     sync_plugin inputplumber "ShadowBlip/InputPlumber" '^$' "InputPlumber" \
         "v0.79.2" "inputplumber-x86_64.tar.gz" \
         "https://github.com/ShadowBlip/InputPlumber/releases/download/v0.79.2/inputplumber-x86_64.tar.gz" \
@@ -444,6 +454,13 @@ fi
 if [ "$MODE" = "--only-steamos-fixed" ]; then
     sync_steamos_fixed_assets
     commit_and_push_steamos_fixed "$MIRROR1"
+    git -C "$MIRROR3" config user.name "zhoukeer-toolbox[bot]"
+    git -C "$MIRROR3" config user.email "bot@users.noreply.github.com"
+    git -C "$MIRROR3" add -A -- sdweak
+    if ! git -C "$MIRROR3" diff --cached --quiet; then
+        git -C "$MIRROR3" -c commit.gpgsign=false commit -q -m "Sync SDWEAK small download parts"
+        push_main_with_retry "$MIRROR3" "SDWEAK mirror asset" 300
+    fi
     exit 0
 fi
 

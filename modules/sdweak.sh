@@ -47,7 +47,7 @@ sdweak_execute() {
 }
 
 sdweak_install() (
-    local workspace="" readonly_changed=0 readonly_state result
+    local workspace="" readonly_changed=0 readonly_state result install_started=0
     sdweak_cleanup() {
         result=$?
         trap - EXIT
@@ -56,8 +56,10 @@ sdweak_install() (
             result=1
         fi
         [ -z "$workspace" ] || rm -rf -- "$workspace"
-        if [ "$result" != 0 ]; then
+        if [ "$result" != 0 ] && [ "$install_started" = 1 ]; then
             sdweak_message "SDWEAK 安装未完成，可能已有部分设置改变。记录：$HOME/SDWEAK-install.log"
+        elif [ "$result" != 0 ]; then
+            log "SDWEAK 尚未进入安装，退出码：$result"
         fi
         exit "$result"
     }
@@ -71,8 +73,13 @@ sdweak_install() (
     workspace="$(mktemp -d)" || exit 1
     load_config
     sdweak_message "正在准备 SDWEAK…"
-    download_with_gitee_mirror_fallback sdweak "$SDWEAK_URL" "$SDWEAK_SHA256" \
-        "$workspace/SDWEAK.zip" SDWEAK || exit 1
+    GITEE_MIRROR_MIN_SPEED_BYTES=1024 GITEE_MIRROR_MIN_SPEED_TIME=90 \
+        GITHUB_MIN_SPEED_BYTES=1024 GITHUB_MIN_SPEED_TIME=90 \
+        download_with_gitee_mirror_fallback sdweak "$SDWEAK_URL" "$SDWEAK_SHA256" \
+        "$workspace/SDWEAK.zip" SDWEAK || {
+            sdweak_message "SDWEAK 下载未完成，尚未开始安装。详细记录：$LOG_FILE"
+            exit 1
+        }
     python3 "$PROJECT_ROOT/scripts/prepare_sdweak.py" "$workspace/SDWEAK.zip" "$workspace/package" || exit 1
     # 再次检查，确保下载期间机型或系统信息没有变化。
     sdweak_check || exit 1
@@ -84,6 +91,7 @@ sdweak_install() (
     esac
     toolbox_sudo true || exit 1
     sdweak_message "正在安装 SDWEAK，请按中文提示选择可选功能…"
+    install_started=1
     sdweak_execute "$workspace/package/SDWEAK" install || exit 1
     sdweak_message "SDWEAK 安装完成，请保存工作后手动重启。"
 )

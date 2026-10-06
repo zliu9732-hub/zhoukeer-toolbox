@@ -123,9 +123,11 @@ get_ranked_github_sources() {
         index=$((index + 1))
         result_file="$work_dir/$index"
         (
-            speed="$(_github_source_speed "$source" "$url")" || exit 0
+            # Range probes may be refused or time out while a full download
+            # still works. Keep those audited sources after successful probes.
+            speed="$(_github_source_speed "$source" "$url")" || speed=0
             case "$speed" in
-                ''|*[!0-9.]*) exit 0 ;;
+                ''|*[!0-9.]*) speed=0 ;;
             esac
             printf '%s|%s|%s\n' "$speed" "$index" "$source" > "$result_file"
         ) &
@@ -190,7 +192,7 @@ download_github_file() {
     local name="${4:-安装文件}"
     local connect_timeout max_time retries min_speed min_speed_time
     local proxy="${GITHUB_DOWNLOAD_PROXY:-${DECKY_DOWNLOAD_PROXY:-}}"
-    local ranked_sources source resolved_url temp_file actual_sha256 max_bytes
+    local ranked_sources source resolved_url temp_file actual_sha256 max_bytes curl_status
     local remote_size="" small_file_max
     local quiet="${GITHUB_QUIET:-0}"
     local curl_options=()
@@ -280,19 +282,28 @@ download_github_file() {
             return 1
         }
         if [ "$quiet" = "1" ]; then
-            if ! curl "${curl_options[@]}" --output "$temp_file" "$resolved_url" \
+            if curl "${curl_options[@]}" --output "$temp_file" "$resolved_url" \
                 2>/dev/null; then
+                :
+            else
+                curl_status=$?
+                declare -F log >/dev/null 2>&1 && log "备用下载请求失败: name=$name status=$curl_status url=$resolved_url"
                 continue
             fi
         else
-            if ! run_curl_with_progress "$name" 0 1 \
+            if run_curl_with_progress "$name" 0 1 \
                 "${curl_options[@]}" --output "$temp_file" "$resolved_url"; then
+                :
+            else
+                curl_status=$?
+                declare -F log >/dev/null 2>&1 && log "备用下载请求失败: name=$name status=$curl_status url=$resolved_url"
                 continue
             fi
         fi
         if ! _github_download_is_plausible "$temp_file" || \
             { declare -F download_policy_response_is_safe >/dev/null 2>&1 && \
               ! download_policy_response_is_safe "$url" "$temp_file"; }; then
+            declare -F log >/dev/null 2>&1 && log "备用下载响应检查失败: name=$name url=$resolved_url"
             continue
         fi
         if [ -n "$expected_sha256" ]; then
@@ -302,6 +313,7 @@ download_github_file() {
                 return 1
             }
             if [ "$actual_sha256" != "$expected_sha256" ]; then
+                declare -F log >/dev/null 2>&1 && log "备用下载 SHA256 检查失败: name=$name url=$resolved_url"
                 continue
             fi
         fi

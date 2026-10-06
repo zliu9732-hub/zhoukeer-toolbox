@@ -24,6 +24,8 @@ download_gitee_mirror_file() {
     echo mirror >> "$CALLS"
     [ "$1" = sdweak ] || fail 'Unexpected mirror'
     [ "$3" = "$SDWEAK_SHA256" ] || fail 'Mirror integrity check missing'
+    [ "${GITEE_MIRROR_MIN_SPEED_BYTES:-}" = 1024 ] && \
+        [ "${GITEE_MIRROR_MIN_SPEED_TIME:-}" = 90 ] || fail 'Slow mirror tolerance missing'
     DOWNLOAD_LOCAL_IO_FAILED=0
     [ "$MOCK_MIRROR" != io ] || { DOWNLOAD_LOCAL_IO_FAILED=1; return 1; }
     [ "$MOCK_MIRROR" = success ] && [ "$MOCK_FAIL" != download ] || return 1
@@ -33,6 +35,8 @@ download_github_file() {
     echo download >> "$CALLS"
     [ "$1" = https://github.com/Taskerer/SDWEAK/releases/download/v2.1.0/SDWEAK.zip ] || fail 'Unexpected source'
     [ "$3" = 5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e ] || fail 'Integrity check missing'
+    [ "${GITHUB_MIN_SPEED_BYTES:-}" = 1024 ] && \
+        [ "${GITHUB_MIN_SPEED_TIME:-}" = 90 ] || fail 'Slow fallback tolerance missing'
     [ "$MOCK_FAIL" != download ] || return 1
     echo fixture > "$2"
 }
@@ -67,6 +71,10 @@ for stage in download prepare execute signal; do
  reset; MOCK_FAIL="$stage"
  if sdweak_install > "$TEST_ROOT/error" 2>&1; then fail "Failure masked: $stage"; fi
  [ "$(cat "$readonly_file")" = enabled ] || fail "Protection lost: $stage"
+ if [ "$stage" = download ]; then
+  grep -Fq '尚未开始安装' "$TEST_ROOT/error" || fail 'Download failure mistaken for installation'
+  ! grep -Fq '部分设置改变' "$TEST_ROOT/error" || fail 'Download failure falsely reported changes'
+ fi
 done
 MOCK_FAIL=''; reset; echo disabled > "$readonly_file"
 sdweak_install >/dev/null || fail 'Original writable state failed'
