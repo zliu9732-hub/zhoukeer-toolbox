@@ -47,7 +47,7 @@ prepare_steamos_fixed_mirror() {
         "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
     git -C "$MIRROR1" sparse-checkout set --no-cone \
         'inputplumber/**' 'f1-bios/**' 'oxpx2-device/**' 'oxpx2-map/**' \
-        'oxpx2-manager/**' 'rustdesk/**'
+        'oxpx2-manager/**' 'rustdesk/**' 'sdweak/**'
     git -C "$MIRROR1" checkout -q main
 }
 
@@ -137,7 +137,7 @@ sync_plugin() {
     mkdir -p "$target_dir"
     rm -f -- "$mirror_repo/$id/$version"/*
 
-    if [ "$size" -le 9437184 ]; then
+    if [ "$size" -le 9437184 ] && [ "$id" != sdweak ]; then
         cp -- "$WORK/$file" "$target_dir/$file"
         chunks=0
     else
@@ -367,7 +367,7 @@ commit_and_push_steamos_fixed() {
     git -C "$repo" config user.name "zhoukeer-toolbox[bot]"
     git -C "$repo" config user.email "bot@users.noreply.github.com"
     git -C "$repo" add -A -- inputplumber f1-bios oxpx2-device oxpx2-map \
-        oxpx2-manager rustdesk
+        oxpx2-manager rustdesk sdweak
     if git -C "$repo" diff --cached --quiet; then
         echo "No SteamOS fixed-asset mirror changes"
     else
@@ -402,6 +402,11 @@ sync_inputplumber() {
 }
 
 sync_steamos_fixed_assets() {
+    # Keep the reviewed package pinned; SDWEAK always uses 8 MiB parts.
+    sync_plugin sdweak "Taskerer/SDWEAK" '^$' "SDWEAK" \
+        "v2.1.0" "SDWEAK.zip" \
+        "https://github.com/Taskerer/SDWEAK/releases/download/v2.1.0/SDWEAK.zip" \
+        "5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e"
     sync_plugin inputplumber "ShadowBlip/InputPlumber" '^$' "InputPlumber" \
         "v0.79.2" "inputplumber-x86_64.tar.gz" \
         "https://github.com/ShadowBlip/InputPlumber/releases/download/v0.79.2/inputplumber-x86_64.tar.gz" \

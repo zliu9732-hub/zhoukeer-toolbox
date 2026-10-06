@@ -422,6 +422,7 @@ download_with_gitee_mirror_fallback() {
 
 gitee_mirror_id_for_url() {
     case "$1" in
+        'https://github.com/Taskerer/SDWEAK/releases/download/v2.1.0/SDWEAK.zip') printf '%s\n' sdweak ;;
         *'/ShadowBlip/InputPlumber/releases/download/v0.79.2/inputplumber-x86_64.tar.gz') printf '%s\n' inputplumber ;;
         *'/zliu9732-hub/zhoukeer-toolbox/releases/download/f1-bios-v1.14/ONEXFLY-F1-7840U-BIOS-V1.14.zip') printf '%s\n' f1-bios ;;
         *'/dahui/onexplayer-x2-mini-pro-cachyos/'*'/etc/inputplumber/devices.d/50-onexplayer_x2_mini.yaml') printf '%s\n' oxpx2-device ;;

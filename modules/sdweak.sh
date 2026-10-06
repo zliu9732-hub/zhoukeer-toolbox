@@ -71,7 +71,8 @@ sdweak_install() (
     workspace="$(mktemp -d)" || exit 1
     load_config
     sdweak_message "正在准备 SDWEAK…"
-    download_github_file "$SDWEAK_URL" "$workspace/SDWEAK.zip" "$SDWEAK_SHA256" SDWEAK || exit 1
+    download_with_gitee_mirror_fallback sdweak "$SDWEAK_URL" "$SDWEAK_SHA256" \
+        "$workspace/SDWEAK.zip" SDWEAK || exit 1
     python3 "$PROJECT_ROOT/scripts/prepare_sdweak.py" "$workspace/SDWEAK.zip" "$workspace/package" || exit 1
     # 再次检查，确保下载期间机型或系统信息没有变化。
     sdweak_check || exit 1

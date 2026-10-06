@@ -232,9 +232,9 @@ grep -Fq 'percent, speed, unit' <<< "$bootstrap_progress" || \
     fail "bootstrap.sh 下载进度没有同时显示百分比和速度"
 grep -Fq 'exec 9>/dev/tty' <<< "$bootstrap_progress" || \
     fail "bootstrap.sh 下载进度没有直接刷新控制终端"
-grep -Fq 'ZHOUKEER_PROGRESS_DIRECT_TTY=1 "$@"' "$PROJECT_ROOT/core/gui.sh" || \
+grep -Fq 'ZHOUKEER_PROGRESS_DIRECT_TTY=1 renkit_brand_run "$@"' "$PROJECT_ROOT/core/gui.sh" || \
     fail "GUI 动作没有启用单行终端进度"
-grep -Fq 'ZHOUKEER_PROGRESS_DIRECT_TTY=1 "$@"' "$PROJECT_ROOT/main.sh" || \
+grep -Fq 'ZHOUKEER_PROGRESS_DIRECT_TTY=1 renkit_brand_run "$@"' "$PROJECT_ROOT/main.sh" || \
     fail "触控主界面动作没有启用单行终端进度"
 
 for payload_source in \

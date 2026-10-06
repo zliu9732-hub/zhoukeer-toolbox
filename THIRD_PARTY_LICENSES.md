@@ -107,6 +107,8 @@ SteamOS 的 GCC 与 Launch Pack 型号修改在临时构建副本中完成；保
 核验源码提交：`8c32e86fff3c754ac4819524edf7fff4c4e04de3`。
 官方 SDWEAK.zip SHA256：`5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e`。
 仅在用户确认后下载，不捆绑上游二进制；原作者与 LICENSE 留在临时安装包。
+优先下载 `zhoukeer-toolbox-mirror` 的 SDWEAK 分块清单与原包分块，每块不超过 8 MiB；
+重组文件必须匹配上述固定 SHA256，镜像不可用时回退同版本官方来源。
 Renkit 准备副本的改动：中文提示、失败即停止、保留全局软件签名检查、密钥和缓存，
 省略实验性显示组件替换、不自动重启；其余性能设置沿用上游。
 测试用原始安装器文本与 MIT 许可证保存在 `tests/fixtures/sdweak/`，仅用于模拟测试。
