@@ -22,6 +22,15 @@ FONT = {
  'I': ['█████', '  █  ', '  █  ', '  █  ', '█████'],
  'Y': ['█   █', ' █ █ ', '  █  ', '  █  ', '  █  '],
 }
+COMPACT_FONT = {
+ 'R': ['███ ', '█  █', '███ ', '█ █ ', '█  █'],
+ 'E': ['████', '█   ', '███ ', '█   ', '████'],
+ 'N': ['█  █', '██ █', '█ ██', '█  █', '█  █'],
+ 'A': [' ██ ', '█  █', '████', '█  █', '█  █'],
+ 'M': FONT['M'],
+ 'I': ['███', ' █ ', ' █ ', ' █ ', '███'],
+ 'Y': ['█ █', '█ █', ' █ ', ' █ ', ' █ '],
+}
 LABEL = 'RenAmamiya'
 
 # One pixel is half a terminal row: keep the rounded face and expressive eyes
@@ -115,22 +124,67 @@ def fish_badge(small=False, tiny=False):
     return len(pixels[0]), len(fish), entries
 
 
+def name_art(font=FONT):
+    return [' '.join(font[c][line] for c in 'RENAMAMIYA') for line in range(5)]
+
+
 def artwork(rows, columns):
     if rows < 14 or columns < 22:
         return rows, []
-    large = rows >= 32 and columns >= 95
-    tiny = rows < 20 or columns < 32
-    icon_width, height, badge = fish_badge(small=not large, tiny=tiny)
-    name_lines = [' '.join(FONT[c][line] for c in 'RENAMAMIYA') for line in range(5)] if large else [LABEL]
-    gap = 1 if columns < 26 else 3
-    width = icon_width + gap + len(name_lines[0])
+    available_height = rows - 9  # Keep at least eight rows for installer logs.
+    choices = [
+        (False, False, FONT),
+        (True, False, FONT),
+        (True, False, COMPACT_FONT),
+        (True, True, FONT),
+        (True, True, COMPACT_FONT),
+    ]
+    layout = None
+    for small, tiny, font in choices:
+        icon_width, icon_height, badge = fish_badge(small=small, tiny=tiny)
+        name_lines = name_art(font)
+        subtitle = available_height >= 6
+        height = max(icon_height, 5 + int(subtitle))
+        gap = 2
+        width = icon_width + gap + len(name_lines[0])
+        if height <= available_height and width < columns:
+            layout = (icon_width, icon_height, height, badge, name_lines, gap, width, subtitle)
+            break
+    if layout is None and columns > len(name_art(COMPACT_FONT)[0]):
+        # A narrow window can keep the full block name below the fish.
+        for small, tiny in [(True, False), (True, True)]:
+            icon_width, icon_height, badge = fish_badge(small=small, tiny=tiny)
+            name_lines = name_art(COMPACT_FONT)
+            height = icon_height + 1 + 5 + 1
+            if height <= available_height:
+                width = len(name_lines[0])
+                column = max(1, columns - width - 2)
+                top = rows - height
+                icon_column = column + (width - icon_width) // 2
+                lines = [(top + row, icon_column + offset, line, color)
+                         for row, offset, line, color in badge]
+                name_top = top + icon_height + 1
+                lines.extend((name_top + row, column, line, 196) for row, line in enumerate(name_lines))
+                lines.append((rows - 1, column + width - len(LABEL), LABEL, 196))
+                return top - 1, lines
+    if layout is None:
+        tiny = rows < 20 or columns < 32
+        icon_width, icon_height, badge = fish_badge(small=True, tiny=tiny)
+        name_lines = [LABEL]
+        gap = 1 if columns < 26 else 3
+        width = icon_width + gap + len(LABEL)
+        height = icon_height
+        subtitle = False
+    else:
+        icon_width, icon_height, height, badge, name_lines, gap, width, subtitle = layout
     column = max(1, columns - width - 2)
     top = rows - height
-    lines = [(top + row, column + offset, line, color) for row, offset, line, color in badge]
-    name_top = top + (height - len(name_lines) - (1 if large else 0)) // 2
+    icon_top = top + (height - icon_height) // 2
+    lines = [(icon_top + row, column + offset, line, color) for row, offset, line, color in badge]
+    name_top = top + (height - len(name_lines) - int(subtitle)) // 2
     for i, line in enumerate(name_lines):
         lines.append((name_top + i, column + icon_width + gap, line, 196))
-    if large:
+    if subtitle:
         lines.append((name_top + 5, column + width - len(LABEL), LABEL, 196))
     return top - 1, lines
 

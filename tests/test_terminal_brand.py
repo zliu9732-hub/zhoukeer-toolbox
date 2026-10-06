@@ -28,18 +28,22 @@ def wait_exit(master,process,timeout=4):
    try:os.read(master,65536)
    except OSError:pass
  return process.wait(timeout=1)
-for rows,cols in [(32,120),(48,160),(31,94),(26,42),(24,70),(20,32),(18,28),(16,40),(14,22),(10,20)]:
+name_styles=[b.name_art(font) for font in (b.FONT,b.COMPACT_FONT)]
+for rows,cols in [(32,120),(48,160),(31,94),(24,120),(24,95),(24,80),(24,70),(18,70),(14,70),(24,62),(24,50),(20,50),(26,42),(20,32),(18,28),(16,40),(14,22),(10,20)]:
  bottom,lines=b.artwork(rows,cols)
  for row,col,line,color in lines:
   check(row>bottom and row<=rows,'Artwork overlaps scrolling logs')
   width=b.cell_width(line)
   check(col+width<=cols,'Artwork exceeds terminal width')
-  if line in [b.LABEL]+[' '.join(b.FONT[c][i] for c in 'RENAMAMIYA') for i in range(5)]:
+  if line in [b.LABEL]+[line for style in name_styles for line in style]:
    check(color==196,'Red name changed color')
   else:
    check(all(c in b.PALETTE.values() for c in (color if isinstance(color,tuple) else (color,))),'Mascot palette invalid')
   check('闲鱼' not in line,'Removed badge label still visible')
  check(bottom>=8,'Branding leaves too little space for logs')
+ if cols>=62 or (cols>=50 and rows>=20):
+  check(any(all(any(t==glyph and color==196 for r,c,t,color in lines) for glyph in style)
+            for style in name_styles),'Normal window lost the five-row red block name')
 for pixels in [b.FISH_PIXELS,b.FISH_SMALL_PIXELS,b.FISH_TINY_PIXELS]:
  check({'Y','W','K'} <= set(''.join(pixels)),'Mascot lost yellow head or eyes')
  for row,runs in enumerate(b.avatar_lines(pixels)):
@@ -72,6 +76,10 @@ sys.exit(7 if answer=="fail" else 0)
    resize(master,70,24);os.kill(process.pid,signal.SIGWINCH)
    expected_region=f'\x1b[1;{b.artwork(24,70)[0]}r'
    frame=read_until(master,expected_region.encode());check(expected_region in frame,'Resize did not fit compact footer')
+   # Read the entire resized title, rather than stopping at its scroll region.
+   if b.name_art(b.COMPACT_FONT)[-1] not in frame:
+    frame+=read_until(master,b'\x1b8')
+   check(b.name_art(b.COMPACT_FONT)[-1] in frame,'70-column terminal lost the large name after resizing')
    os.write(master,(answer+'\n').encode());out=read_until(master,('ANSWER='+answer).encode());check(wait_exit(master,process)==status,'Child exit code changed')
    check(input_state(slave)==original,'Terminal input state not restored')
    logged=(d/'action.log').read_text();check('LOG_099' in logged and b.LABEL not in logged,'Decoration polluted action log')
