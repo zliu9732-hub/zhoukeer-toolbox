@@ -7,8 +7,21 @@ source "$PROJECT_ROOT/core/logger.sh"
 source "$PROJECT_ROOT/core/auth.sh"
 
 ipu_latest_release() {
+    local query_dir
     load_config
-    resolve_latest_github_release ShadowBlip/InputPlumber '^inputplumber-x86_64[.]tar[.]gz$' InputPlumber || return 1
+    query_dir="$(mktemp -d)" || return 1
+    if resolve_latest_github_release ShadowBlip/InputPlumber '^inputplumber-x86_64[.]tar[.]gz$' InputPlumber \
+        > "$query_dir/query.log" 2>&1; then
+        cat "$query_dir/query.log"
+    else
+        log "InputPlumber 查询失败，尝试官方发布页面：$(cat "$query_dir/query.log")"
+        if ! ipu_latest_release_page "$query_dir"; then
+            rm -rf -- "$query_dir"
+            ipu_message "暂时无法检查新版本，请稍后重试。当前手柄设置未修改。"
+            return 1
+        fi
+    fi
+    rm -rf -- "$query_dir"
     [[ "$_LATEST_RELEASE_TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]] &&
         [ "$_LATEST_RELEASE_ASSET" = inputplumber-x86_64.tar.gz ] &&
         [[ "$_LATEST_RELEASE_SHA256" =~ ^[0-9a-fA-F]{64}$ ]] &&
@@ -18,6 +31,33 @@ ipu_latest_release() {
     IPU_LATEST_VERSION="${_LATEST_RELEASE_TAG#v}"
     IPU_OFFICIAL_URL="$_LATEST_RELEASE_URL"
     IPU_OFFICIAL_SHA256="$_LATEST_RELEASE_SHA256"
+}
+
+ipu_latest_release_page() {
+    local directory="$1" latest_url tag metadata asset_url asset_final_url
+    latest_url="$(curl --fail --location --silent --proto '=https' --proto-redir '=https' \
+        --connect-timeout 10 --max-time 30 --retry 1 --retry-delay 1 \
+        --max-filesize 2097152 --output "$directory/latest.html" --write-out '%{url_effective}' \
+        https://github.com/ShadowBlip/InputPlumber/releases/latest)" || return 1
+    if [[ "$latest_url" =~ ^https://github\.com/ShadowBlip/InputPlumber/releases/tag/(v?[0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+        tag="${BASH_REMATCH[1]}"
+    else
+        log "InputPlumber 官方页面没有返回有效的正式版本地址。"
+        return 1
+    fi
+    asset_url="https://github.com/ShadowBlip/InputPlumber/releases/expanded_assets/$tag"
+    asset_final_url="$(curl --fail --location --silent --proto '=https' --proto-redir '=https' \
+        --connect-timeout 10 --max-time 30 --retry 1 --retry-delay 1 \
+        --max-filesize 2097152 --output "$directory/assets.html" --write-out '%{url_effective}' \
+        "$asset_url")" || return 1
+    [ "$asset_final_url" = "$asset_url" ] || { log "InputPlumber 安装包列表跳转至意外地址。"; return 1; }
+    # HTML is metadata only: the parser accepts a single exact official asset
+    # link and its associated SHA256. No page content is executed or sourced.
+    metadata="$(python3 "$PROJECT_ROOT/scripts/inputplumber_release.py" "$tag" \
+        "$directory/assets.html" 2>> "$LOG_FILE")" || return 1
+    IFS=$'\t' read -r _LATEST_RELEASE_TAG _LATEST_RELEASE_ASSET \
+        _LATEST_RELEASE_SHA256 _LATEST_RELEASE_URL <<< "$metadata"
+    echo "InputPlumber 最新版本：$_LATEST_RELEASE_TAG"
 }
 
 ipu_runtime_version() {

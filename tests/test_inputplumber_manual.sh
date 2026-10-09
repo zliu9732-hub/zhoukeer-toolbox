@@ -16,6 +16,8 @@ require_steamos() { return 0; }
 require_command() { return 0; }
 toolbox_sudo() { "$@"; }
 load_config() { :; }
+# Website fallback has its own tests; this unit only mocks final metadata.
+ipu_latest_release_page() { return 1; }
 MOCK_FAIL='' MOCK_UPGRADE=0 MOCK_HHD=0 MOCK_LATEST=0.81.0
 reset_state() {
     echo enabled > "$STATE/readonly"

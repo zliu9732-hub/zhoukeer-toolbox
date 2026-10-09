@@ -43,7 +43,8 @@ sdweak_plan() {
 
 sdweak_execute() {
     local directory="$1" action="$2"
-    (cd "$directory" && bash "$action.sh")
+    [ "$action" = install ] || return 1
+    bash "$PROJECT_ROOT/scripts/run_sdweak.sh" "$directory"
 }
 
 sdweak_install() (

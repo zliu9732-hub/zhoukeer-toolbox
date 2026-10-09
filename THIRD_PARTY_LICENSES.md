@@ -95,7 +95,8 @@ SteamOS 的 GCC 与 Launch Pack 型号修改在临时构建副本中完成；保
 来源：https://github.com/ShadowBlip/InputPlumber/releases/latest
 作者：ShadowBlip / William Edwards 及贡献者；许可证：GPL-3.0。
 源码和许可证：https://github.com/ShadowBlip/InputPlumber/tree/main
-每次查询最新正式版，使用该版本官方发布信息中的 SHA256；缺少校验值时停止。
+每次查询最新正式版，使用该版本官方发布信息中的 SHA256；查询接口不可用时，
+读取官方最新发布页面中同一安装包的唯一校验值；缺失或歧义时停止，不固定旧版本。
 原包仅在掌机确认更新后下载，不捆绑或修改二进制；安装前检查 SHA256、文件类型、
 完整结构与受限安装路径。机型配置沿用上游文件，自定义配置保留；被替换文件备份到
 `/var/lib/renkit/inputplumber-backups/`，更新失败时尝试恢复。
@@ -109,6 +110,8 @@ SteamOS 的 GCC 与 Launch Pack 型号修改在临时构建副本中完成；保
 仅在用户确认后下载，不捆绑上游二进制；原作者与 LICENSE 留在临时安装包。
 优先下载 `zhoukeer-toolbox-mirror-3` 的 SDWEAK 分块清单与原包分块，每块不超过 1 MiB；
 重组文件必须匹配上述固定 SHA256，镜像不可用时回退同版本官方来源。
-Renkit 准备副本的改动：中文提示、失败即停止、保留全局软件签名检查、密钥和缓存，
-省略实验性显示组件替换、不自动重启；其余性能设置沿用上游。
+Renkit 准备副本的改动：中文提示与失败步骤、沿用管理员验证、失败即停止、
+下载校验后不重复探测网络、文件访问选项为空时正常处理、内存优化在手动重启时生效，
+保留全局软件签名检查、密钥和缓存，省略实验性显示组件替换、不自动重启；
+其余性能设置沿用上游。
 测试用原始安装器文本与 MIT 许可证保存在 `tests/fixtures/sdweak/`，仅用于模拟测试。
