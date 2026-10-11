@@ -505,9 +505,9 @@ sync_plugin fsr4-zh-signed "zliu9732-hub/decky-framegen-zh" \
     "409aa32b843500a6828b73feeed5cc7307d9c7c60a470e288f2c8cf777d03adb" "$MIRROR3"
 sync_plugin cheatdeck "SheffeyG/CheatDeck" '^CheatDeck[.]zip$' "CheatDeck"
 sync_plugin steamgriddb "SteamGridDB/decky-steamgriddb" '^$' "SteamGridDB" \
-    "v1.7.1" "steamgriddb-v1.7.1.zip" \
-    "https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3.zip" \
-    "6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3"
+    "v1.8.1" "steamgriddb-v1.8.1.zip" \
+    "https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/e84f5b1f111af8862b06218479491fbf61036e1bfd9f16f93f9901e9b9ebc5e0.zip" \
+    "e84f5b1f111af8862b06218479491fbf61036e1bfd9f16f93f9901e9b9ebc5e0"
 sync_plugin cssloader "DeckThemes/SDH-CssLoader" '^$' "CSS Loader" \
     "v2.1.2" "cssloader-v2.1.2.zip" \
     "https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip" \

@@ -70,10 +70,12 @@ FSR4_RUNTIME_UPSCALER="amd_fidelityfx_upscaler_dx12.dll"
 FSR4_RUNTIME_PATCHER="OptiPatcher_rolling.asi"
 SIMPLEDECKYTDP_OFFICIAL_DIRECTORY="SimpleDeckyTDP"
 SIMPLEDECKYTDP_OFFICIAL_VERSION="1.0.7"
+SIMPLEDECKYTDP_OFFICIAL_URL="https://github.com/aarron-lee/SimpleDeckyTDP/releases/download/v1.0.7/SimpleDeckyTDP.zip"
+SIMPLEDECKYTDP_OFFICIAL_SHA256="dae7cf43ec8936c07a94a08ac418be8d9e129744a54f3aa63d2b31222bc0ad38"
 SIMPLEDECKYTDP_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/decky-simpledeckytdp-zh-v1.0.7"
 SIMPLEDECKYTDP_ZH_INDEX_SHA256="22b8e59c71e3e3f3f94b2eff4864bb39f362a8b095916b4614d1ce636fe9cb16"
 STEAMGRIDDB_OFFICIAL_DIRECTORY="decky-steamgriddb"
-STEAMGRIDDB_OFFICIAL_VERSION="1.7.1"
+STEAMGRIDDB_OFFICIAL_VERSION="1.8.1"
 CSSLOADER_OFFICIAL_DIRECTORY="SDH-CssLoader"
 CSSLOADER_OFFICIAL_VERSION="2.1.2"
 CSSLOADER_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/cssloader-zh-v2.1.2"
@@ -89,8 +91,8 @@ DECKY_FSR4_SHA256="3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc
 DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v2.0.0/CheatDeck.zip"
 DECKY_CHEATDECK_SHA256="32e2931f9ca8083c1605f04b4ed089b0bf210f79db236a7fd34f02c519e902d9"
 DECKY_CHEATDECK_VERSION="2.0.0"
-DECKY_STEAMGRIDDB_URL="https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3.zip"
-DECKY_STEAMGRIDDB_SHA256="6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3"
+DECKY_STEAMGRIDDB_URL="https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/e84f5b1f111af8862b06218479491fbf61036e1bfd9f16f93f9901e9b9ebc5e0.zip"
+DECKY_STEAMGRIDDB_SHA256="e84f5b1f111af8862b06218479491fbf61036e1bfd9f16f93f9901e9b9ebc5e0"
 DECKY_CSSLOADER_URL="https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip"
 DECKY_CSSLOADER_SHA256="1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350"
 DECKY_FRIENDECK_URL="https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip"
@@ -318,7 +320,7 @@ resolve_plugin_latest() {
             ensure_official_plugin_current \
                 "游戏封面更换（SteamGridDB）" \
                 "$STEAMGRIDDB_OFFICIAL_DIRECTORY" "$STEAMGRIDDB_OFFICIAL_VERSION" \
-                "SteamGridDB" "游戏封面更换" \
+                "游戏封面更换" "SteamGridDB" \
                 "$DECKY_STEAMGRIDDB_URL" "$DECKY_STEAMGRIDDB_SHA256"
             ;;
         cssloader)
@@ -391,7 +393,7 @@ resolve_plugin_latest() {
             if resolve_latest_github_release "aarron-lee/SimpleDeckyTDP" \
                 '^SimpleDeckyTDP[.]zip$' "SimpleDeckyTDP"; then
                 if [ "${_LATEST_RELEASE_TAG#v}" != "$SIMPLEDECKYTDP_OFFICIAL_VERSION" ]; then
-                    echo "SimpleDeckyTDP 上游最新版本 $_LATEST_RELEASE_TAG 尚未完成Renkit汉化，继续使用 v$SIMPLEDECKYTDP_OFFICIAL_VERSION。"
+                    echo "SimpleDeckyTDP 上游最新版本 $_LATEST_RELEASE_TAG 尚未完成Renkit汉化，继续使用 v${SIMPLEDECKYTDP_OFFICIAL_VERSION}。"
                     return 0
                 fi
                 DECKY_SIMPLE_TDP_URL="$_LATEST_RELEASE_URL"
@@ -2165,7 +2167,7 @@ install_decky_zip_from_mirror() {
         "$mirror_id" "$plugin_archive" "$plugin_sha256" "$display_name"; then
         cleanup_decky_tmp
         trap - EXIT INT TERM
-        echo "下载失败，正在重新尝试。"
+        log "$display_name 首次下载未完成，由安装调用方处理后续尝试。"
         return 1
     fi
     archive_paths_are_safe "$plugin_archive" zip || {
@@ -3220,14 +3222,18 @@ install_simpledeckytdp_zh_from_gitee() {
     if install_decky_zip_from_mirror \
         "SimpleDeckyTDP" \
         "simpledeckytdp" \
-        "${DECKY_SIMPLE_TDP_SHA256:-}" \
+        "$SIMPLEDECKYTDP_OFFICIAL_SHA256" \
         "$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY"; then
         install_simpledeckytdp_chinese "$reload_after" || return 1
     else
         cleanup_decky_tmp
         trap - EXIT INT TERM
+        [ "${DOWNLOAD_LOCAL_IO_FAILED:-0}" != "1" ] || return 1
         log "SimpleDeckyTDP 国内镜像不可用，切换 GitHub Release"
-        install_configured_plugin simpledeckytdp 0 0 || return 1
+        # The installed Chinese frontend must match this reviewed runtime.
+        # Old user config or a new upstream release must not change the pair.
+        install_decky_zip "SimpleDeckyTDP" "$SIMPLEDECKYTDP_OFFICIAL_URL" \
+            "$SIMPLEDECKYTDP_OFFICIAL_SHA256" "$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" 0 || return 1
         install_simpledeckytdp_chinese "$reload_after"
         return $?
     fi
@@ -3340,7 +3346,7 @@ allycenter_chinese_is_current() {
     local actual_sha256 actual_plugin_sha256
 
     feature_plugin_is_current "$plugin_root" "Ally Center" \
-        "$DECKY_ALLYCENTER_VERSION" "Ally Center" || return 1
+        "$DECKY_ALLYCENTER_VERSION" "Ally 控制中心" || return 1
     actual_sha256="$(calculate_decky_sha256 \
         "$plugin_root/Ally Center/dist/index.js" 2>/dev/null || true)"
     [ "$actual_sha256" = "$ALLYCENTER_ZH_INDEX_SHA256" ] || return 1
@@ -3349,20 +3355,8 @@ allycenter_chinese_is_current() {
     [ "$actual_plugin_sha256" = "$ALLYCENTER_ZH_PLUGIN_SHA256" ]
 }
 
-install_allycenter_chinese() {
-    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
-    local reload_after="${1:-1}"
-    local actual_sha256 actual_plugin_sha256 official_source work_dir staged_source
-
-    detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
-        echo "Ally Center 中文版仅支持 SteamOS 或 Bazzite。"
-        return 1
-    fi
-    if allycenter_chinese_is_current "$plugin_root"; then
-        echo "[已安装] Ally Center v$DECKY_ALLYCENTER_VERSION 中文版已存在且文件完整，无需重复安装。"
-        return 0
-    fi
+allycenter_chinese_bundle_is_valid() {
+    local actual_sha256 actual_plugin_sha256
     if [ -L "$ALLYCENTER_ZH_SOURCE_DIR" ] || \
        [ ! -s "$ALLYCENTER_ZH_SOURCE_DIR/dist/index.js" ] || \
        [ ! -s "$ALLYCENTER_ZH_SOURCE_DIR/plugin.json" ] || \
@@ -3380,6 +3374,23 @@ install_allycenter_chinese() {
         echo "Ally Center 中文插件清单检查未通过，已停止覆盖。"
         return 1
     fi
+}
+
+install_allycenter_chinese() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local reload_after="${1:-1}"
+    local official_source work_dir staged_source
+
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "Ally Center 中文版仅支持 SteamOS 或 Bazzite。"
+        return 1
+    fi
+    if allycenter_chinese_is_current "$plugin_root"; then
+        echo "[已安装] Ally Center v$DECKY_ALLYCENTER_VERSION 中文版已存在且文件完整，无需重复安装。"
+        return 0
+    fi
+    allycenter_chinese_bundle_is_valid || return 1
     official_source="$plugin_root/Ally Center"
     if [ ! -f "$official_source/main.py" ] || \
        [ ! -f "$official_source/plugin.json" ] || \
@@ -3440,6 +3451,7 @@ ensure_allycenter_chinese_current() {
     else
         echo "未检测到 Ally Center，正在安装 v$DECKY_ALLYCENTER_VERSION 汉化版。"
     fi
+    allycenter_chinese_bundle_is_valid || return 1
     GITEE_MIRROR_REPO="$DECKY_ALLYCENTER_MIRROR_REPO" \
         install_decky_zip \
         "Ally Center（ROG Ally / Ally X 控制中心）" \
@@ -4355,7 +4367,7 @@ print_feature_plugin_status() {
     fi
     if [ "${IS_STEAMOS:-0}" = "1" ]; then
         if mako_official_is_current "$plugin_root"; then
-            echo "✓ MAKO 小黄鸭：官方中文原包 v$LSFG_MAKO_VERSION，Mako_Renkit 启动项随安装处理"
+            echo "✓ MAKO 小黄鸭：官方中文原包 v${LSFG_MAKO_VERSION}，Mako_Renkit 启动项随安装处理"
         else
             echo "✗ MAKO 小黄鸭：缺失、版本不符或关键文件不完整"
             missing=1
@@ -4387,7 +4399,7 @@ print_feature_plugin_status() {
     fi
     if feature_plugin_is_current "$plugin_root" "$STEAMGRIDDB_OFFICIAL_DIRECTORY" \
         "$STEAMGRIDDB_OFFICIAL_VERSION" "SteamGridDB"; then
-        echo "✓ 游戏封面更换（SteamGridDB）：官方版本 $STEAMGRIDDB_OFFICIAL_VERSION，官方名称正确"
+        echo "✓ 游戏封面更换（SteamGridDB）：已安装 ${STEAMGRIDDB_OFFICIAL_VERSION}。"
     else
         echo "✗ 游戏封面更换（SteamGridDB）：缺失、版本不符或官方名称未恢复"
         missing=1
@@ -4397,20 +4409,20 @@ print_feature_plugin_status() {
         "$CSSLOADER_OFFICIAL_VERSION" "主题美化" && \
        [ "$(calculate_decky_sha256 "$plugin_root/$CSSLOADER_OFFICIAL_DIRECTORY/dist/index.js" \
             2>/dev/null || true)" = "$CSSLOADER_ZH_INDEX_SHA256" ]; then
-        echo "✓ 主题美化（CSS Loader）：运行组件 $plugin_version，中文界面检查通过"
+        echo "✓ 主题美化（CSS Loader）：运行组件 ${plugin_version}，中文界面检查通过"
     else
         echo "✗ 主题美化（CSS Loader）：缺失、版本不符或中文界面检查未通过"
         missing=1
     fi
     if feature_plugin_is_current "$plugin_root" "Friendeck-plugin" \
         "$DECKY_FRIENDECK_PACKAGE_VERSION" "Friendeck"; then
-        echo "✓ 文件传输助手（Friendeck）：Release $DECKY_FRIENDECK_RELEASE_VERSION，官方名称正确"
+        echo "✓ 文件传输助手（Friendeck）：Release ${DECKY_FRIENDECK_RELEASE_VERSION}，官方名称正确"
     else
         echo "✗ 文件传输助手（Friendeck）：缺失、版本不符或官方名称未恢复"
         missing=1
     fi
     if deckymusic_full_is_current; then
-        echo "✓ 音乐播放器（Decky Music）：官方版本 $DECKY_DECKYMUSIC_VERSION，完整包音乐源文件齐全"
+        echo "✓ 音乐播放器（Decky Music）：官方版本 ${DECKY_DECKYMUSIC_VERSION}，完整包音乐源文件齐全"
     else
         echo "✗ 音乐播放器（Decky Music）：缺失、版本不符或音乐源文件不完整"
         missing=1

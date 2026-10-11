@@ -2,7 +2,7 @@
 
 Renkit是面向 SteamOS、Bazzite 与 ChimeraOS 掌机的 Bash 工具集。同一条安装命令会自动选择独立版本：SteamOS 保留完整原版功能，Bazzite 使用单独菜单开放已适配功能，ChimeraOS 使用只包含用户级应用和插件安装的安全菜单。
 
-当前正式版：Renkit 3.1.1；从 Renkit 1.0 起按语义化版本递增。
+当前正式版：Renkit 3.1.2；从 Renkit 1.0 起按语义化版本递增。
 
 终端触控菜单会随窗口宽高自动铺开，放大、缩小或最大化后自动重绘。首页分类卡片可直接点击进入；达到 110 列时，首页和纯按钮菜单采用双列卡片，窄窗口保留单列。右侧按钮边框统一为柔和红色，危险确认用亮红文字提示；左侧当前分类加亮，采用两条贯通竖线与逐项横线分隔，菜单均分窗口可用高度，名称在各格内居中，底边延伸至页脚上方；含额外提示或风险说明的页面保持纵向顺序。较矮窗口采用紧凑红框，24 行窗口优先显示底部按钮而隐藏操作提示；小于 70 列 × 24 行时提示放大并暂停点击。
 
@@ -26,6 +26,8 @@ Renkit是面向 SteamOS、Bazzite 与 ChimeraOS 掌机的 Bash 工具集。同�
 
 - 一键新机初始化：开始前可选择跳过 pacman、系统密钥环和 locale 更新；跳过时仍配置用户级 Flatpak 国内源并继续其余流程。初始化会检查 SteamOS、网络、电源和系统组件，安装中文输入法、常用软件、Decky、FreeDeck、Epic、常用插件、GE-Proton 10-29、虚拟内存和 Steamcommunity 302；机型匹配不到适用的 ROG、联想或 GPD 专用控制插件时，自动安装通用“掌机功耗控制”。流程结束后生成桌面报告与使用说明；战网、Ubisoft Connect 和黑盒工坊开始前可选。
 - 插件商城：SteamOS 的九款常用组合包含小黄鸭 1.0、FSR4、CheatDeck、MAKO 小黄鸭与 `Mako_Renkit` 启动项、游戏封面更换（SteamGridDB）、主题美化（CSS Loader 中文版）、文件传输助手（Friendeck）、音乐播放器（Decky Music）和 Fantastic 风扇控制汉化版；小黄鸭 2.0 作为独立版本在三个系统的版本选择菜单中提供。小黄鸭 1.0、2.0 与 MAKO 会同时保留，用户可自行选择；2.0 使用完整 v0.14.4 中文包，保留原作者和 BSD-3-Clause 许可证，并在顶部显示“RenAmamiya汉化”黄色署名。Fantastic 同时列在“其余常用插件”，由 Renkit 从国内镜像直接下载、校验并自动安装，不调用 Decky 商城弹窗。另提供 Decky 官方精选插件；支持整组、单项安装和状态检查。Decky Music 使用作者原版 v1.0.2 完整包，内置播放器与 QQ/网易云音乐源，不汉化、不重打。Decky Loader 子菜单提供 ROG White 白色主题一键安装，把主题文件放入 CSS Loader themes 目录后即可在 CSS Loader 中开启。独立提供 DeckRecall 与 SavePulse：SavePulse 可自动保留存档版本，并使用每位用户自己的坚果云或标准 WebDAV 做加密备份和换机恢复。固定版本均执行 SHA256、ZIP 结构与插件目录校验。安装或检测到功能插件后会在桌面补充风灵月影、小黄鸭和 FSR4 小白教程；检测到 FSR4 时另建 OptiScaler 官方 Wiki 已测试游戏清单。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
+
+游戏封面更换（SteamGridDB）使用官方稳定版 1.8.1 完整包，已自带中文，并改善新版 Steam 的封面管理兼容性；通过 Renkit 再次安装时，旧版会更新，完整的当前版本会跳过。
 
 使用小黄鸭前，安装完成后请在 Steam 正版页面打开游戏右侧齿轮，进入“属性 → 测试版”，选择名称以 Linux 开头的可用版本；随后进入游戏模式，按 Steam Deck 机身右下角的“三个点（…）”按钮，在打开的菜单中依次点击插头图标 → 小黄鸭 → 安装 LSFG。
 - 常用软件与远程协助：微信使用腾讯官网官方 AppImage；QQ、Chrome、Edge、AnyDesk、百度网盘、LibreOffice、VLC、OBS Studio、LocalSend、PeaZip、WiliWili、QQ音乐、网易云音乐、YesPlayMusic、qBittorrent、Motrix、Free Download Manager、Media Downloader、Flameshot、OnlyOffice、Joplin、Protontricks、Bottles 通过上海交大和中科大 Flathub 国内缓存安装；Xbox 云游戏通过 Flathub 安装 Greenlight，云游戏需 Xbox 账号；Heroic、Lutris、Chiaki4Deck、Parsec 通过 Flathub 安装并自动加入 Steam 库；WiliWili 也会同步加入 Steam 库；Firefox 使用官方 Flathub 的 `org.mozilla.firefox`；RustDesk 使用国内分块镜像优先、作者 GitHub Release 回退的官方 AppImage。安装成功后会创建桌面快捷方式，不修改 SteamOS 只读分区。

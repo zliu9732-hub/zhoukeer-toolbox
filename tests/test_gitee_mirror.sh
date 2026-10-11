@@ -166,6 +166,7 @@ for mapping in \
     'https://raw.githubusercontent.com/dahui/onexplayer-x2-mini-pro-cachyos/a0b76a16471174ded80913a681357f43bfb17fa4/usr/share/steamos-manager/devices/onexplayer-x2-mini.toml|oxpx2-manager' \
     'https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-x86_64.AppImage|rustdesk' \
     'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3.zip|steamgriddb' \
+    'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/e84f5b1f111af8862b06218479491fbf61036e1bfd9f16f93f9901e9b9ebc5e0.zip|steamgriddb' \
     'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip|cssloader' \
     'https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip|friendeck' \
     'https://github.com/jinzhongjia/decky-music/releases/download/v1.0.2/Decky.Music.full.zip|deckymusic' \

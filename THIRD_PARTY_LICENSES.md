@@ -17,7 +17,7 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | SteamDB Decky Button | 游戏模式查看 SteamDB 价格史低与在线峰值 | https://github.com/kedMertens/steamdbDeckyButton | BSD-3-Clause | 是 | v0.0.1 源码构建，增加中文双入口并保留上游许可证 |
 | Decky Translator | 游戏模式屏幕文字与兼容性评价翻译 | https://github.com/cat-in-a-box/Decky-Translator | GPL-3.0 | 是 | 基于官方 v0.9.1 完整包叠加中文前端与官方依赖，源码随仓库保留 |
 | CheatDeck | CheatDeck 插件 | https://github.com/SheffeyG/CheatDeck | GPL-3.0 | 是 | |
-| SteamGridDB | Steam 游戏封面管理插件 | https://github.com/SteamGridDB/decky-steamgriddb | GPL-3.0-or-later | 是 | 使用 Decky 官方商店 v1.7.1 原包；安装后仅改 `plugin.json` 显示名称 |
+| SteamGridDB | Steam 游戏封面管理插件 | https://github.com/SteamGridDB/decky-steamgriddb | GPL-3.0-or-later | 是 | 使用 Decky 官方商店 v1.8.1 完整原包；保留官方名称、原作者与内置中文界面 |
 | CSS Loader | Steam CSS 主题插件 | https://github.com/DeckThemes/SDH-CssLoader | GPL-2.0-or-later | 是 | 使用 Decky 官方商店 v2.1.2 原包并叠加中文前端；后端保持原包 |
 | Friendeck | 局域网文件传输插件 | https://github.com/panyiwei-home/Friendeck | GPL-3.0 | 是 | Release 0.7.7 原包；安装后仅改 `plugin.json` 显示名称 |
 | Decky Music | QQ 音乐与网易云音乐插件 | https://github.com/jinzhongjia/decky-music | MIT | 是 | v1.0.0 原包；安装后仅改 `plugin.json` 显示名称 |

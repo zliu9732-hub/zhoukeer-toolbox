@@ -62,6 +62,23 @@ mkdir -p "$PLUGIN_ROOT"
         fail "显示下载进度后插件未安装"
 )
 
+# A metadata rejection is already explained by the downloader. Its caller
+# must not print a second misleading "download failed" before a fallback.
+(
+    DECKY_PLUGIN_DIR="$PLUGIN_ROOT"
+    log() { :; }
+    download_gitee_mirror_file() {
+        echo "TestPlugin 安装文件检查未通过，正在重新尝试。"
+        return 1
+    }
+    if install_decky_zip_from_mirror "TestPlugin" test "$plugin_sha" TestPlugin \
+        > "$TMP_ROOT/rejected-output"; then fail "错误清单仍报告安装成功"; fi
+    [ "$(grep -c '正在重新尝试' "$TMP_ROOT/rejected-output")" -eq 1 ] || \
+        fail "首次失败被重复显示"
+    ! grep -Fq '下载失败' "$TMP_ROOT/rejected-output" || fail "未开始下载时误报下载失败"
+    [ -z "$DECKY_TMP_DIR" ] || fail "清单拒绝后临时安装目录未清理"
+)
+
 CALLS="$TMP_ROOT/strict-gitee.calls"
 detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
 calculate_decky_sha256() {

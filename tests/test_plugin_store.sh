@@ -852,8 +852,11 @@ if printf '%s\n' "$configured_plugin_function" | grep -Fq 'remove_legacy_lsfg_di
 fi
 
 grep -Fq '正在安装 FSR4' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '将依次直接安装：小黄鸭、FSR4、CheatDeck、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。' \
-    "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '将依次直接安装：旧版小黄鸭、FSR4、CheatDeck、MAKO 小黄鸭与 Mako_Renkit 启动项、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。' \
+    "$PROJECT_ROOT/modules/plugin_store.sh" || {
+    echo "FAIL: SteamOS 常用插件说明与当前组合不一致" >&2
+    exit 1
+}
 if grep -Fq 'Lossless Scaling.rar' "$PROJECT_ROOT/modules/plugin_store.sh" || \
     grep -Eq 'https?://[^[:space:]]*Lossless' "$PROJECT_ROOT/modules/plugin_store.sh"; then
     echo "FAIL: 付费软件本体不应配置为客户下载源"
@@ -864,13 +867,31 @@ if grep -Fqi '云盘' "$PROJECT_ROOT/modules/plugin_store.sh"; then
     exit 1
 fi
 
-output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg || true)"
+# Platform guards must be tested independently of PATH guards. A mocked
+# steamos-readonly executable on macOS otherwise looks like a SteamOS install.
+unsupported_plugin_output() (
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    detect_platform() { IS_STEAMOS=0; IS_BAZZITE=0; IS_CHIMERAOS=0; }
+    case "$1" in
+        lsfg) install_lsfg_zh_from_gitee ;;
+        simpledeckytdp) ensure_simpledeckytdp_chinese_current ;;
+        allycenter) install_configured_plugin allycenter ;;
+        *) return 99 ;;
+    esac
+)
+if output="$(unsupported_plugin_output lsfg)"; then
+    echo "FAIL: 小黄鸭接受了不支持的平台" >&2; exit 1
+fi
 printf '%s\n' "$output" | grep -Fq '仅支持 SteamOS、Bazzite 或 ChimeraOS'
 
-simpledeckytdp_output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee || true)"
+if simpledeckytdp_output="$(unsupported_plugin_output simpledeckytdp)"; then
+    echo "FAIL: 掌机功耗控制接受了不支持的平台" >&2; exit 1
+fi
 printf '%s\n' "$simpledeckytdp_output" | grep -Fq '仅支持 SteamOS、Bazzite 或 ChimeraOS'
 
-allycenter_output="$(bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter || true)"
+if allycenter_output="$(unsupported_plugin_output allycenter)"; then
+    echo "FAIL: 掌机控制插件接受了不支持的平台" >&2; exit 1
+fi
 printf '%s\n' "$allycenter_output" | \
     grep -Fq 'Decky 插件安装仅支持 SteamOS、Bazzite 或 ChimeraOS'
 
@@ -984,7 +1005,25 @@ printf '{"version":"0.17"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
 printf '{"name": "CheatDeck"}\n' > "$PLUGIN_ROOT/CheatDeck/plugin.json"
 printf '{"version":"2.0.0"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
 printf '{"name": "SteamGridDB"}\n' > "$PLUGIN_ROOT/decky-steamgriddb/plugin.json"
-printf '{"version":"1.7.1"}\n' > "$PLUGIN_ROOT/decky-steamgriddb/package.json"
+(
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    printf '{"version":"%s"}\n' "$STEAMGRIDDB_OFFICIAL_VERSION" > \
+        "$PLUGIN_ROOT/decky-steamgriddb/package.json"
+    # SteamOS 状态检查包含 MAKO 与 Fantastic；所有文件均为本地临时桩。
+    mkdir -p "$PLUGIN_ROOT/$LSFG_MAKO_DIRECTORY/dist" \
+        "$PLUGIN_ROOT/$LSFG_MAKO_DIRECTORY/bin" "$PLUGIN_ROOT/$DECKY_FANTASTIC_DIRECTORY"
+    printf '{"name":"MAKO - Frame Generation"}\n' > \
+        "$PLUGIN_ROOT/$LSFG_MAKO_DIRECTORY/plugin.json"
+    printf '{"version":"%s"}\n' "$LSFG_MAKO_VERSION" > \
+        "$PLUGIN_ROOT/$LSFG_MAKO_DIRECTORY/package.json"
+    printf 'official frontend fixture\n' > "$PLUGIN_ROOT/$LSFG_MAKO_DIRECTORY/dist/index.js"
+    printf 'license fixture\n' > "$PLUGIN_ROOT/$LSFG_MAKO_DIRECTORY/LICENSE.md"
+    printf 'renderer fixture\n' > \
+        "$PLUGIN_ROOT/$LSFG_MAKO_DIRECTORY/bin/MAKO-Renderer-v2.2.0-linux.tar.xz"
+    cp -R "$PROJECT_ROOT/third_party/fantastic-zh-v0.5.1/." \
+        "$PLUGIN_ROOT/$DECKY_FANTASTIC_DIRECTORY/"
+)
 printf '{"name": "主题美化"}\n' > "$PLUGIN_ROOT/SDH-CssLoader/plugin.json"
 printf '{"version":"2.1.2"}\n' > "$PLUGIN_ROOT/SDH-CssLoader/package.json"
 cp "$PROJECT_ROOT/third_party/cssloader-zh-v2.1.2/dist/index.js" \
@@ -997,19 +1036,30 @@ mkdir -p "$PLUGIN_ROOT/Decky Music/bin"
 for binary in player qq-provider ncm-provider; do
     printf 'binary fixture\n' > "$PLUGIN_ROOT/Decky Music/bin/$binary"
 done
-status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
-    bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"
+print_test_feature_plugin_status() (
+    # shellcheck disable=SC1090
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
+    detect_platform
+    DECKY_PLUGIN_DIR="$PLUGIN_ROOT"
+    # 对合成 MAKO 前端仍执行真实 SHA256 检查，其他插件使用正式校验值。
+    LSFG_MAKO_INDEX_SHA256="$(calculate_decky_sha256 \
+        "$PLUGIN_ROOT/$LSFG_MAKO_DIRECTORY/dist/index.js")"
+    print_feature_plugin_status
+)
+status_output="$(print_test_feature_plugin_status)"
 printf '%s\n' "$status_output" | grep -Fq '✓ 小黄鸭（LSFG-VK）：已写入 Decky'
+printf '%s\n' "$status_output" | grep -Fq '✓ MAKO 小黄鸭：官方中文原包'
 printf '%s\n' "$status_output" | grep -Fq '✓ FSR4（Decky-Framegen）：已写入 Decky，官方版本 0.17'
 printf '%s\n' "$status_output" | grep -Fq '✓ CheatDeck：已写入 Decky，官方版本 2.0.0'
 printf '%s\n' "$status_output" | grep -Fq '✓ 游戏封面更换（SteamGridDB）'
 printf '%s\n' "$status_output" | grep -Fq '✓ 主题美化（CSS Loader）'
 printf '%s\n' "$status_output" | grep -Fq '✓ 文件传输助手（Friendeck）'
 printf '%s\n' "$status_output" | grep -Fq '✓ 音乐播放器（Decky Music）'
+printf '%s\n' "$status_output" | grep -Fq '✓ Fantastic 风扇控制：'
 
 rm -f -- "$PLUGIN_ROOT/Decky Music/bin/ncm-provider"
-if incomplete_music_status="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
-    bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"; then
+if incomplete_music_status="$(print_test_feature_plugin_status)"; then
     echo "FAIL: Decky Music 缺少音乐源时不应通过状态检查" >&2
     exit 1
 fi
@@ -1018,14 +1068,12 @@ printf '%s\n' "$incomplete_music_status" | \
 printf 'binary fixture\n' > "$PLUGIN_ROOT/Decky Music/bin/ncm-provider"
 
 printf '{"name":"小黄鸭"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
-legacy_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
-    bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"
+legacy_status_output="$(print_test_feature_plugin_status)"
 printf '%s\n' "$legacy_status_output" | \
     grep -Fq '✓ 小黄鸭（LSFG-VK）：已写入 Decky'
 
 printf '{"version":"0.12.1"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
-if stale_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
-    bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"; then
+if stale_status_output="$(print_test_feature_plugin_status)"; then
     echo "FAIL: 旧版小黄鸭不应被识别为官方 0.12.8" >&2
     exit 1
 fi
@@ -1034,8 +1082,7 @@ printf '%s\n' "$stale_status_output" | \
 
 printf '{"version":"0.12.8"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
 printf '{"version":"0.16.9"}\n' > "$PLUGIN_ROOT/Decky-Framegen/package.json"
-if stale_fsr4_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
-    bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"; then
+if stale_fsr4_status_output="$(print_test_feature_plugin_status)"; then
     echo "FAIL: 旧版 FSR4 不应被识别为官方 0.17" >&2
     exit 1
 fi
@@ -1043,8 +1090,7 @@ printf '%s\n' "$stale_fsr4_status_output" | \
     grep -Fq '检测到版本 0.16.9，请更新到 0.17'
 
 printf '{"version":"1.2.1"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
-if stale_cheatdeck_status_output="$(DECKY_PLUGIN_DIR="$PLUGIN_ROOT" \
-    bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status)"; then
+if stale_cheatdeck_status_output="$(print_test_feature_plugin_status)"; then
     echo "FAIL: 旧版 CheatDeck 不应被识别为官方 2.0.0" >&2
     exit 1
 fi
@@ -1058,6 +1104,8 @@ update_output="$(
     DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
         source "$PROJECT_ROOT/modules/plugin_store.sh"
         detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
+        LSFG_MAKO_INDEX_SHA256="$(calculate_decky_sha256 \
+            "$DECKY_PLUGIN_DIR/$LSFG_MAKO_DIRECTORY/dist/index.js")"
         ensure_plugin_store_ready() { return 0; }
         install_lsfg_zh_from_gitee() {
             printf '\''{"version":"%s"}\n'\'' "$LSFG_OFFICIAL_VERSION" > \
@@ -1076,6 +1124,7 @@ update_output="$(
                         "$DECKY_PLUGIN_DIR/CheatDeck/package.json"
                     echo "TEST_UPDATE: CheatDeck"
                     ;;
+                lsfg-mako) echo "TEST_UPDATE: MAKO" ;;
                 steamgriddb) echo "TEST_UPDATE: SteamGridDB" ;;
                 cssloader) echo "TEST_UPDATE: CSS Loader" ;;
                 friendeck) echo "TEST_UPDATE: Friendeck" ;;
@@ -1101,6 +1150,7 @@ update_output="$(
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: LSFG'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: FSR4'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: CheatDeck'
+printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: MAKO'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: SteamGridDB'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: CSS Loader'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: Friendeck'
@@ -1186,6 +1236,8 @@ ally_repeat_output="$(
     bash -c '
         source "$PROJECT_ROOT/modules/plugin_store.sh"
         detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
+        download_verified_package() { echo "FAIL: 同版 Ally Center 仍触发下载" >&2; return 1; }
+        reload_decky_plugins() { echo "FAIL: 同版 Ally Center 仍触发重载" >&2; return 1; }
         ensure_allycenter_chinese_current
     '
 )"

@@ -284,7 +284,8 @@ download_gitee_mirror_file() {
         expected_sha256="$(printf '%s' "$expected_sha256" | tr '[:upper:]' '[:lower:]')"
         actual_sha256="$(printf '%s' "$_GITEE_MIRROR_SHA256" | tr '[:upper:]' '[:lower:]')"
         if [ "$actual_sha256" != "$expected_sha256" ]; then
-            echo "$name 安装文件版本不匹配，正在重新尝试。"
+            declare -F log >/dev/null 2>&1 && log "下载清单校验信息不匹配: id=$id version=$_GITEE_MIRROR_VERSION expected=$expected_sha256 manifest=$actual_sha256"
+            echo "$name 安装文件检查未通过，正在重新尝试。"
             return 1
         fi
     fi
@@ -447,6 +448,7 @@ gitee_mirror_id_for_url() {
         *'/xXJSONDeruloXx/Decky-Framegen/releases/download/'*) printf '%s\n' fsr4 ;;
         *'/SheffeyG/CheatDeck/releases/download/'*) printf '%s\n' cheatdeck ;;
         *'/steam-deck-homebrew/versions/6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3.zip') printf '%s\n' steamgriddb ;;
+        *'/steam-deck-homebrew/versions/e84f5b1f111af8862b06218479491fbf61036e1bfd9f16f93f9901e9b9ebc5e0.zip') printf '%s\n' steamgriddb ;;
         *'/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip') printf '%s\n' cssloader ;;
         *'/panyiwei-home/Friendeck/releases/download/'*) printf '%s\n' friendeck ;;
         *'/jinzhongjia/decky-music/releases/download/'*) printf '%s\n' deckymusic ;;
