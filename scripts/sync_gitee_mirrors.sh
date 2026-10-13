@@ -11,8 +11,8 @@ OWNER="zliu9732-hub"
 TOKEN="${GITEE_TOKEN:-}"
 MODE="${1:-}"
 case "$MODE" in
-    ''|--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed|--only-inputplumber) ;;
-    *) echo "Usage: $0 [--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed|--only-inputplumber]"; exit 2 ;;
+    ''|--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed|--only-inputplumber|--only-deckhomethemes) ;;
+    *) echo "Usage: $0 [--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed|--only-inputplumber|--only-deckhomethemes]"; exit 2 ;;
 esac
 [ -n "$TOKEN" ] || {
     echo "GITEE_TOKEN secret is missing"
@@ -25,6 +25,7 @@ trap 'rm -rf -- "$WORK"' EXIT
 MIRROR1="$WORK/mirror1"
 MIRROR2="$WORK/mirror2"
 MIRROR3="$WORK/mirror3"
+MIRROR4="$WORK/mirror4"
 MIRROR8="$WORK/mirror8"
 MIRROR9="$WORK/mirror9"
 GE_PROTON_VERSION=""
@@ -65,6 +66,13 @@ prepare_inputplumber_mirror() {
     git -C "$MIRROR1" checkout -q main
 }
 
+prepare_deckhomethemes_mirror() {
+    git clone -q --depth 1 --filter=blob:none --no-checkout \
+        "$BASE/zhoukeer-toolbox-mirror-4.git" "$MIRROR4"
+    git -C "$MIRROR4" sparse-checkout set --no-cone 'deckhomethemes/**'
+    git -C "$MIRROR4" checkout -q main
+}
+
 if [ -z "$MODE" ]; then
     git clone -q "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
     git clone -q "$BASE/zhoukeer-toolbox-mirror-2.git" "$MIRROR2"
@@ -74,6 +82,9 @@ elif [ "$MODE" = "--only-steamos-fixed" ]; then
     prepare_sdweak_mirror
 elif [ "$MODE" = "--only-inputplumber" ]; then
     prepare_inputplumber_mirror
+fi
+if [ -z "$MODE" ] || [ "$MODE" = "--only-deckhomethemes" ]; then
+    prepare_deckhomethemes_mirror
 fi
 if [ -z "$MODE" ] || [ "$MODE" = "--only-ge-proton" ]; then
     git clone -q "$BASE/zhoukeer-toolbox-mirror-8.git" "$MIRROR8"
@@ -113,7 +124,7 @@ sync_plugin() {
     local pinned_version="${5:-}" pinned_file="${6:-}" pinned_url="${7:-}" pinned_sha="${8:-}"
     local mirror_repo="${9:-$MIRROR1}"
     local version file url sha size chunks target_dir chunk_size=8388608
-    [ "$id" != sdweak ] || chunk_size=1048576
+    case "$id" in sdweak|deckhomethemes) chunk_size=1048576 ;; esac
 
     if [ -n "$pinned_version" ]; then
         version="$pinned_version"
@@ -146,7 +157,7 @@ sync_plugin() {
     mkdir -p "$target_dir"
     rm -f -- "$mirror_repo/$id/$version"/*
 
-    if [ "$size" -le 9437184 ] && [ "$id" != sdweak ]; then
+    if [ "$size" -le 9437184 ] && [ "$id" != sdweak ] && [ "$id" != deckhomethemes ]; then
         cp -- "$WORK/$file" "$target_dir/$file"
         chunks=0
     else
@@ -403,6 +414,14 @@ commit_and_push_inputplumber() {
     fi
 }
 
+sync_deckhomethemes() {
+    # 与中文组件保持同一固定版本，防止同步未来未汉化版本导致校验不匹配。
+    sync_plugin deckhomethemes "Kaal31/benderthemes" '^$' "主页主题（ThemeHub）" \
+        "v1.10.7" "DeckHomeThemes-v1.10.7.zip" \
+        "https://github.com/Kaal31/benderthemes/releases/download/v1.10.7/DeckHomeThemes-v1.10.7.zip" \
+        "63c08a3ceb9c91d07eaaba2227c1cb7bffd3616b198418fd1a7449bc70a89a74" "$MIRROR4"
+}
+
 sync_inputplumber() {
     sync_plugin inputplumber "ShadowBlip/InputPlumber" '^$' "InputPlumber" \
         "v0.79.2" "inputplumber-x86_64.tar.gz" \
@@ -445,6 +464,12 @@ sync_steamos_fixed_assets() {
         "7902cd60a4f29817eebe2668a15c9a1952ac690e8f7b07bfe7620fedd4e28217"
 }
 
+if [ "$MODE" = "--only-deckhomethemes" ]; then
+    sync_deckhomethemes
+    commit_and_push "$MIRROR4"
+    exit 0
+fi
+
 if [ "$MODE" = "--only-inputplumber" ]; then
     sync_inputplumber
     commit_and_push_inputplumber "$MIRROR1"
@@ -477,6 +502,7 @@ fi
 
 # SteamOS 主线中仍直接依赖 GitHub 的固定资产统一镜像到 mirror-1。
 sync_steamos_fixed_assets
+sync_deckhomethemes
 
 # 小黄鸭汉化叠加固定 v0.12.8，镜像必须与Renkit内置版本一致，否则 SHA 校验会拒绝。
 sync_plugin lsfg "xXJSONDeruloXx/decky-lsfg-vk" '^Decky[.]LSFG-VK[.]zip$' "Decky LSFG-VK" \
@@ -552,6 +578,6 @@ sync_plugin temurin21-jre "adoptium/temurin21-binaries" \
     "8a379a67c91a3ae61ffb33d46e0a40c7ba35e70713c4db31cfca30492f792eff"
 sync_ge_proton
 
-for repo in "$MIRROR8" "$MIRROR1" "$MIRROR2" "$MIRROR3"; do
+for repo in "$MIRROR8" "$MIRROR1" "$MIRROR2" "$MIRROR3" "$MIRROR4"; do
     commit_and_push "$repo"
 done

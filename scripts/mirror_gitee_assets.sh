@@ -306,7 +306,7 @@ mirror_process_entry() {
     local chunks=0
     local existing_size
     local CHUNK_BYTES="$CHUNK_BYTES"
-    if [ "$id" = sdweak ] && [ "$CHUNK_BYTES" -gt 1048576 ]; then CHUNK_BYTES=1048576; fi
+    case "$id" in sdweak|deckhomethemes) [ "$CHUNK_BYTES" -le 1048576 ] || CHUNK_BYTES=1048576 ;; esac
 
     mirror_path_is_safe "$id" || return 1
     mirror_path_is_safe "$version" || return 1
@@ -337,7 +337,7 @@ mirror_process_entry() {
         mirror_positive_integer "$size" || return 1
         mkdir -p "$target_dir" || return 1
         # SDWEAK always uses the part manifest, including a single small part.
-        if [ "$size" -le "$DIRECT_MAX_BYTES" ] && [ "$id" != sdweak ]; then
+        if [ "$size" -le "$DIRECT_MAX_BYTES" ] && [ "$id" != sdweak ] && [ "$id" != deckhomethemes ]; then
             cp -f -- "$cache_file" "$target" || return 1
         else
             rm -f -- "$target_dir"/part.*
@@ -358,7 +358,7 @@ mirror_process_local_file() {
     local id="$1" name="$2" version="$3" file="$4" source_url="$5" local_file="$6"
     local size sha256 target_dir target chunks=0
     local CHUNK_BYTES="$CHUNK_BYTES"
-    if [ "$id" = sdweak ] && [ "$CHUNK_BYTES" -gt 1048576 ]; then CHUNK_BYTES=1048576; fi
+    case "$id" in sdweak|deckhomethemes) [ "$CHUNK_BYTES" -le 1048576 ] || CHUNK_BYTES=1048576 ;; esac
 
     mirror_path_is_safe "$id" || { echo "镜像标识不安全：$id"; return 1; }
     mirror_path_is_safe "$version" || { echo "镜像版本路径不安全：$version"; return 1; }
@@ -397,7 +397,7 @@ mirror_process_local_file() {
 
     mkdir -p "$target_dir" || return 1
     rm -f -- "$target" "$target_dir"/part.*
-    if [ "$size" -le "$DIRECT_MAX_BYTES" ] && [ "$id" != sdweak ]; then
+    if [ "$size" -le "$DIRECT_MAX_BYTES" ] && [ "$id" != sdweak ] && [ "$id" != deckhomethemes ]; then
         cp -f -- "$local_file" "$target" || return 1
     else
         mirror_split_file "$local_file" "$target_dir" "$CHUNK_BYTES" "$size" || return 1
@@ -442,6 +442,7 @@ mirror_mako_latest() {
 
 mirror_entries() {
     cat <<'EOF'
+deckhomethemes|主页主题（ThemeHub）|v1.10.7|DeckHomeThemes-v1.10.7.zip|https://github.com/Kaal31/benderthemes/releases/download/v1.10.7/DeckHomeThemes-v1.10.7.zip|63c08a3ceb9c91d07eaaba2227c1cb7bffd3616b198418fd1a7449bc70a89a74|
 sdweak|SDWEAK|v2.1.0|SDWEAK.zip|https://github.com/Taskerer/SDWEAK/releases/download/v2.1.0/SDWEAK.zip|5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e|
 decky-loader-stable|Decky Loader 稳定版|v3.2.8|PluginLoader|https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8/PluginLoader|4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2|
 decky-loader-prerelease|Decky Loader 测试版|v3.2.8-pre1|PluginLoader|https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8-pre1/PluginLoader|9df160a81df3fc49c96e5665a1d1b3ba5c79de5bf271adc266d6bfedfda399d8|

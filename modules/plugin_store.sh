@@ -196,7 +196,7 @@ ONEXPLAYER_APEX_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/onexplayer-apex-tools-z
 ONEXPLAYER_APEX_ZH_INDEX_SHA256="a85f19f0f910ac9f400ab52b273c1e82080a1d1c22b5fa3f94c469fcf852ab85"
 DECKY_HANDHELD_PLUGIN_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_GAME_INFO_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
-# 上游未授予项目整体再分发许可：仅下载固定官方包，在用户机器上汉化。
+# 固定上游原包与 SHA256；国内分块优先，下载后在用户机器上汉化。
 DECKHOMETHEMES_VERSION="1.10.7"
 DECKHOMETHEMES_DIRECTORY="DeckHomeThemes"
 DECKHOMETHEMES_URL="https://github.com/Kaal31/benderthemes/releases/download/v1.10.7/DeckHomeThemes-v1.10.7.zip"

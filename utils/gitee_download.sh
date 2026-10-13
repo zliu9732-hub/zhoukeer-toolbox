@@ -11,6 +11,7 @@ ZHOUKEER_GITEE_DOWNLOAD_LOADED=1
 GITEE_MIRROR_OWNER="${ZHOUKEER_GITEE_MIRROR_OWNER:-zliu9732-hub}"
 GITEE_MIRROR_REPO="${ZHOUKEER_GITEE_MIRROR_REPO:-zhoukeer-toolbox-mirror}"
 GITEE_SDWEAK_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
+GITEE_DECKHOMETHEMES_MIRROR_REPO="zhoukeer-toolbox-mirror-4"
 GITEE_GE_PROTON_MIRROR_REPO="${ZHOUKEER_GE_PROTON_GITEE_MIRROR_REPO:-zhoukeer-toolbox-mirror-8}"
 GITEE_PROTON_CACHYOS_MIRROR_REPO="${ZHOUKEER_PROTON_CACHYOS_GITEE_MIRROR_REPO:-zhoukeer-toolbox-mirror-9}"
 GITEE_MIRROR_BRANCH="${ZHOUKEER_GITEE_MIRROR_BRANCH:-main}"
@@ -59,6 +60,7 @@ gitee_mirror_raw_base() {
 gitee_mirror_manifest_repo() {
     case "$1" in
         sdweak) printf '%s\n' "$GITEE_SDWEAK_MIRROR_REPO" ;;
+        deckhomethemes) printf '%s\n' "$GITEE_DECKHOMETHEMES_MIRROR_REPO" ;;
         ge-proton) printf '%s\n' "$GITEE_GE_PROTON_MIRROR_REPO" ;;
         proton-cachyos) printf '%s\n' "$GITEE_PROTON_CACHYOS_MIRROR_REPO" ;;
         *) printf '%s\n' "$GITEE_MIRROR_REPO" ;;
@@ -433,6 +435,7 @@ download_with_gitee_mirror_fallback() {
 
 gitee_mirror_id_for_url() {
     case "$1" in
+        'https://github.com/Kaal31/benderthemes/releases/download/v1.10.7/DeckHomeThemes-v1.10.7.zip') printf '%s\n' deckhomethemes ;;
         'https://github.com/Taskerer/SDWEAK/releases/download/v2.1.0/SDWEAK.zip') printf '%s\n' sdweak ;;
         *'/ShadowBlip/InputPlumber/releases/download/v0.79.2/inputplumber-x86_64.tar.gz') printf '%s\n' inputplumber ;;
         *'/zliu9732-hub/zhoukeer-toolbox/releases/download/f1-bios-v1.14/ONEXFLY-F1-7840U-BIOS-V1.14.zip') printf '%s\n' f1-bios ;;

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""将用户下载的固定官方包本机汉化；Renkit 不分发上游未授权的代码或资源。"""
+"""将固定上游原包在本机汉化，完整保留后端、身份和第三方声明。"""
 import argparse
 import hashlib
 import json

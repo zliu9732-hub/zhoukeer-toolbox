@@ -29,7 +29,7 @@ Renkit是面向 SteamOS、Bazzite 与 ChimeraOS 掌机的 Bash 工具集。同�
 
 游戏封面更换（SteamGridDB）使用官方稳定版 1.8.1 完整包，已自带中文，并改善新版 Steam 的封面管理兼容性；通过 Renkit 再次安装时，旧版会更新，完整的当前版本会跳过。
 
-游戏与插件 → 安装插件商城中新增“主页主题（DeckHomeThemes）”。该插件现名 ThemeHub，可把 Steam 游戏模式主页换成 PlayStation、Xbox 或 Nintendo 等主机风格。提供 v1.10.7 中文设置、主题选择和操作提示，顶端沿用黄色 `RenAmamiya汉化` 署名；安装后在 ThemeHub → 主题中心按需下载主题。中文版本通过 Renkit 更新，重复安装会检查全部组件，完整版本自动跳过。安装时优先使用加速线路，连接失败或持续低速会更快切换备用线路，下载内容仍经过完整校验。
+游戏与插件 → 安装插件商城中新增“主页主题（DeckHomeThemes）”。该插件现名 ThemeHub，可把 Steam 游戏模式主页换成 PlayStation、Xbox 或 Nintendo 等主机风格。提供 v1.10.7 中文设置、主题选择和操作提示，顶端沿用黄色 `RenAmamiya汉化` 署名；安装后在 ThemeHub → 主题中心按需下载主题。中文版本通过 Renkit 更新，重复安装会检查全部组件，完整版本自动跳过。安装优先使用国内下载，暂不可用时才切换备用线路；下载内容经过完整校验，中文界面和汉化署名保留。
 
 使用小黄鸭前，安装完成后请在 Steam 正版页面打开游戏右侧齿轮，进入“属性 → 测试版”，选择名称以 Linux 开头的可用版本；随后进入游戏模式，按 Steam Deck 机身右下角的“三个点（…）”按钮，在打开的菜单中依次点击插头图标 → 小黄鸭 → 安装 LSFG。
 - 常用软件与远程协助：微信使用腾讯官网官方 AppImage；QQ、Chrome、Edge、AnyDesk、百度网盘、LibreOffice、VLC、OBS Studio、LocalSend、PeaZip、WiliWili、QQ音乐、网易云音乐、YesPlayMusic、qBittorrent、Motrix、Free Download Manager、Media Downloader、Flameshot、OnlyOffice、Joplin、Protontricks、Bottles 通过上海交大和中科大 Flathub 国内缓存安装；Xbox 云游戏通过 Flathub 安装 Greenlight，云游戏需 Xbox 账号；Heroic、Lutris、Chiaki4Deck、Parsec 通过 Flathub 安装并自动加入 Steam 库；WiliWili 也会同步加入 Steam 库；Firefox 使用官方 Flathub 的 `org.mozilla.firefox`；RustDesk 使用国内分块镜像优先、作者 GitHub Release 回退的官方 AppImage。安装成功后会创建桌面快捷方式，不修改 SteamOS 只读分区。
