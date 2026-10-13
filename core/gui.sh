@@ -307,6 +307,7 @@ game_environment_gui_menu() {
             deckrecall "DeckRecall｜添加游戏到 Steam，并恢复游戏启动设置" \
             savepulse "SavePulse｜自动备份游戏存档，支持自己的坚果云或其他网盘，方便换机恢复" \
             game-info-tools "SteamDB 游戏数据｜价格史低与在线峰值" \
+            deckhomethemes "主页主题（DeckHomeThemes）｜更换主机风格主页｜汉化：RenAmamiya" \
             decky-install "安装插件商城｜给游戏模式增加插件功能｜可选测试版" \
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
@@ -556,6 +557,11 @@ game_environment_gui_menu() {
                             bash "$PROJECT_ROOT/modules/game_launchers.sh" apply-artwork "$repair_choice"
                         ;;
                 esac
+                ;;
+            deckhomethemes)
+                gui_confirm "DeckHomeThemes 现名 ThemeHub，把主页换成 PlayStation、Xbox 或 Nintendo 风格。需先安装插件商城，主题资源在插件内按需下载；汉化：RenAmamiya。是否继续？" && \
+                    run_gui_action "安装主页主题中文版" env ZHOUKEER_AUTO_CONFIRM=1 \
+                    bash "$PROJECT_ROOT/modules/plugin_store.sh" deckhomethemes
                 ;;
             decky-install)
                 decky_choice="$(gui_dialog --menu "安装插件商城｜请选择与 SteamOS 系统通道匹配的版本" \

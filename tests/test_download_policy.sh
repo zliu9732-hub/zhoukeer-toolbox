@@ -48,6 +48,7 @@ download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mir
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-9/raw/main/proton-cachyos/latest.txt' || fail "Proton-CachyOS mirror-9 清单地址未列入白名单"
 [ "$(download_policy_max_bytes 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-9/raw/main/proton-cachyos/proton-cachyos-11.0-test-slr-x86_64/part.0001')" -le 8388608 ] || fail "Proton-CachyOS mirror-9 分块大小限制异常"
 download_policy_github_repo_allowed 'CachyOS/proton-cachyos' || fail "Proton-CachyOS 上游仓库未列入白名单"
+download_policy_url_allowed 'https://github.com/Kaal31/benderthemes/releases/download/v1.10.7/DeckHomeThemes-v1.10.7.zip' || fail '主页主题官方安装包被拒绝'
 if download_policy_url_allowed 'https://evil.example/payload.sh'; then fail "任意域名被白名单接受"; fi
 download_policy_github_mirror_allowed 'https://ghfast.top/' || fail "GitHub Release 加速源被拒绝"
 for mirror in \

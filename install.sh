@@ -649,6 +649,7 @@ copy_cssloader_chinese
 copy_simpledeckytdp_chinese
 copy_allycenter_chinese
 copy_lego2_brightness_fix
+# 主页主题汉化组件由 scripts/data/assets 三个目录随安装器一起复制。
 copy_handheld_frontend_overlay third_party/huesync-cn-v3.9.0
 copy_handheld_frontend_overlay third_party/legion-go-remapper-zh-v0.3.0
 copy_handheld_frontend_overlay third_party/gpd-control-zh-v0.0.2

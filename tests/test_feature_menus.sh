@@ -286,8 +286,8 @@ for menu in "$touch_games" "$gui_games"; do
 done
 assert_contains "$touch_games" '根据系统版本安装' "Decky Loader 子菜单缺少自动安装入口"
 assert_contains "$gui_games" '根据系统版本安装' "GUI 插件商城缺少自动安装入口"
-assert_contains "$touch_games" 'right:12-13:rog-white-install' "Decky Loader 子菜单缺少 ROG White 安装坐标"
-assert_contains "$touch_games" 'right:14-15:handheld-pink-install' "Decky Loader 子菜单缺少 掌机 Pink 安装坐标"
+assert_contains "$touch_games" 'right:11-12:rog-white-install' "Decky Loader 子菜单缺少 ROG White 安装坐标"
+assert_contains "$touch_games" 'right:13-14:handheld-pink-install' "Decky Loader 子菜单缺少 掌机 Pink 安装坐标"
 assert_contains "$gui_games" 'rog-white-install' "GUI 插件商城缺少 ROG White 白色主题入口"
 assert_contains "$gui_games" 'handheld-pink-install' "GUI 插件商城缺少 掌机 Pink 粉色主题入口"
 assert_contains "$gui_games" 'modules/rog_white_theme.sh" install' "GUI ROG White 白色主题动作错误"

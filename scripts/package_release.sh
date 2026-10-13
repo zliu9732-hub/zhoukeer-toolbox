@@ -49,6 +49,8 @@ validate_release_version
 VERIFY_FILES="$VERIFY_FILES main-bazzite.sh main-chimera.sh modules/bazzite_decky.sh assets/clover/bootmanager/clover-bootmanager.service assets/clover/bootmanager/clover-whitelist.conf"
 VERIFY_FILES="$VERIFY_FILES decky-plugins/switch-to-windows/plugin.json decky-plugins/switch-to-windows/package.json decky-plugins/switch-to-windows/main.py decky-plugins/switch-to-windows/backend/src/switch_to_windows.py decky-plugins/switch-to-windows/dist/index.js decky-plugins/switch-to-windows/LICENSE"
 
+VERIFY_FILES="$VERIFY_FILES scripts/localize_deckhomethemes.py data/deckhomethemes_zh.json data/deckhomethemes_files.json assets/deckhomethemes/zh-runtime.js"
+
 mkdir -p "$DIST_DIR"
 
 cd "$PROJECT_ROOT" || exit 1

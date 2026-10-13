@@ -682,13 +682,14 @@ decky_loader_menu() {
         ui_touch_button 5 '\033[1;97;48;5;24m' "安装稳定版插件商城" "适合使用正式版系统的玩家"
         ui_touch_button 7 '\033[1;97;48;5;160m' "安装测试版插件商城" "仅适合测试版或预览版系统"
         ui_touch_button 9 '\033[1;97;48;5;24m' "根据系统版本安装" "自动检测正式或测试通道并安装对应版本"
-        ui_touch_button 12 '\033[1;97;48;5;24m' "安装 ROG White 白色主题" "白色主题美化 · 需先安装主题美化（CSS Loader）"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "安装 掌机 Pink 粉色主题" "粉色主题美化 · 需先安装主题美化（CSS Loader）"
-        ui_touch_button 16 '\033[1;97;48;5;24m' "安装 粉白渐变 粉色主题" "浅粉渐变主题 · 需先安装主题美化（CSS Loader）"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "安装 ROG White 白色主题" "白色主题美化 · 需先安装主题美化（CSS Loader）"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "安装 掌机 Pink 粉色主题" "粉色主题美化 · 需先安装主题美化（CSS Loader）"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "安装 粉白渐变 粉色主题" "浅粉渐变主题 · 需先安装主题美化（CSS Loader）"
+        ui_touch_button 17 '\033[1;97;48;5;24m' "主页主题（DeckHomeThemes）" "把主页换成主机风格 · 汉化：RenAmamiya"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "不进行安装"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:stable right:7-8:test right:9-10:auto right:12-13:rog-white-install right:14-15:handheld-pink-install right:16-17:pink-white-gradient-install right:19-20:back right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:stable right:7-8:test right:9-10:auto right:11-12:rog-white-install right:13-14:handheld-pink-install right:15-16:pink-white-gradient-install right:17-18:deckhomethemes right:19-20:back right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
@@ -715,6 +716,10 @@ decky_loader_menu() {
             pink-white-gradient-install)
                 confirm_and_run "安装 粉白渐变 粉色主题" "将 Renkit 内置的 Pink White Gradient v1.0.2 浅粉渐变主题放入 CSS Loader 主题目录；安装后请在 CSS Loader 中开启该主题" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/pink_white_gradient_theme.sh" install
+                ;;
+            deckhomethemes)
+                confirm_and_run "安装主页主题中文版" "DeckHomeThemes 现名 ThemeHub；把主页换成 PlayStation、Xbox 或 Nintendo 风格；需先安装插件商城，主题资源在插件内按需下载；汉化：RenAmamiya" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckhomethemes
                 ;;
             back) NEXT_CATEGORY="games"; return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;

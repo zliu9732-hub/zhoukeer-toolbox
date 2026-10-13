@@ -196,6 +196,12 @@ ONEXPLAYER_APEX_ZH_SOURCE_DIR="$PROJECT_ROOT/third_party/onexplayer-apex-tools-z
 ONEXPLAYER_APEX_ZH_INDEX_SHA256="a85f19f0f910ac9f400ab52b273c1e82080a1d1c22b5fa3f94c469fcf852ab85"
 DECKY_HANDHELD_PLUGIN_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_GAME_INFO_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
+# 上游未授予项目整体再分发许可：仅下载固定官方包，在用户机器上汉化。
+DECKHOMETHEMES_VERSION="1.10.7"
+DECKHOMETHEMES_DIRECTORY="DeckHomeThemes"
+DECKHOMETHEMES_URL="https://github.com/Kaal31/benderthemes/releases/download/v1.10.7/DeckHomeThemes-v1.10.7.zip"
+DECKHOMETHEMES_SHA256="63c08a3ceb9c91d07eaaba2227c1cb7bffd3616b198418fd1a7449bc70a89a74"
+DECKHOMETHEMES_ZH_SHA256="9cd5fcaaf2b1f0efcbfd2e6c3787dc335bdf337ddc3fac69ce91ff4e6143b73c"
 STEAMDB_INFO_DIRECTORY="SteamDBButton"
 STEAMDB_INFO_VERSION="0.0.1"
 STEAMDB_INFO_MIRROR_ID="steamdb-game-info-zh"
@@ -587,7 +593,7 @@ download_decky_gitee_part() {
     rm -f -- "$temporary_file" "$output"
 
     if ! run_curl_with_progress "$name" "$progress_index" "$progress_total" \
-        --fail --location --show-error --progress-meter \
+        --fail --location --progress-meter \
         --proto '=https' --proto-redir '=https' \
         --connect-timeout 15 --max-time 1200 \
         --retry 5 --retry-delay 2 --retry-connrefused \
@@ -1937,6 +1943,73 @@ ensure_official_plugin_current() {
     else
         PLUGIN_INSTALL_CHANGED=0
     fi
+}
+
+deckhomethemes_chinese_is_current() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    python3 "$PROJECT_ROOT/scripts/localize_deckhomethemes.py" --check \
+        "$plugin_root/$DECKHOMETHEMES_DIRECTORY" >/dev/null 2>&1
+}
+
+ensure_deckhomethemes_chinese_current() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    local tmp_dir archive plugin_source
+    PLUGIN_INSTALL_CHANGED=0
+    require_command python3 || return 1
+    for resource in scripts/localize_deckhomethemes.py data/deckhomethemes_zh.json \
+        data/deckhomethemes_files.json assets/deckhomethemes/zh-runtime.js; do
+        [ -s "$PROJECT_ROOT/$resource" ] && [ ! -L "$PROJECT_ROOT/$resource" ] || {
+            echo "主页主题中文组件不完整，请更新 Renkit 后重试。"
+            return 1
+        }
+    done
+    if deckhomethemes_chinese_is_current; then
+        echo "[已安装] 主页主题（ThemeHub）v$DECKHOMETHEMES_VERSION 中文版已完整安装。"
+        return 0
+    fi
+    if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
+        ! bash "$PROJECT_ROOT/modules/preflight.sh" decky; then
+        echo "主页主题安装已停止：准备检查未通过。"
+        return 1
+    fi
+    require_command unzip || return 1
+    prepare_plugin_root "$plugin_root" || return 1
+    if (
+        tmp_dir="$(mktemp -d)" || return 1
+        trap 'rm -rf -- "$tmp_dir"' EXIT
+        trap 'exit 130' INT
+        trap 'exit 143' TERM
+        archive="$tmp_dir/plugin.zip"
+        # 复用现有超时、进度、SHA256 和加速回退；未授权原包不上传镜像。
+        if ! download_verified_package "主页主题（ThemeHub）" \
+            "$DECKHOMETHEMES_URL" "$DECKHOMETHEMES_SHA256" "$archive"; then
+            if [ "${DOWNLOAD_LOCAL_IO_FAILED:-0}" = "1" ]; then
+                echo "临时文件无法写入，请检查剩余空间后重试。"
+                return 1
+            fi
+            bash "$PROJECT_ROOT/modules/steam_accelerator.sh" ensure || true
+            download_verified_package "主页主题（ThemeHub）" \
+                "$DECKHOMETHEMES_URL" "$DECKHOMETHEMES_SHA256" "$archive" || return 1
+        fi
+        archive_paths_are_safe "$archive" zip || return 1
+        mkdir -p "$tmp_dir/extracted" || return 1
+        unzip -q "$archive" -d "$tmp_dir/extracted" || return 1
+        plugin_source="$tmp_dir/extracted/$DECKHOMETHEMES_DIRECTORY"
+        # 同一次暂存中完成校验与汉化，失败不会先把旧中文插件替换成英文版。
+        python3 "$PROJECT_ROOT/scripts/localize_deckhomethemes.py" "$plugin_source" || return 1
+        install_tree_atomically "$plugin_source" "$plugin_root" \
+            "$DECKHOMETHEMES_DIRECTORY" || return 1
+    ); then
+        PLUGIN_INSTALL_CHANGED=1
+        echo "主页主题（ThemeHub）v$DECKHOMETHEMES_VERSION 中文版安装成功。"
+        echo "汉化作者：RenAmamiya，感谢支持！"
+        echo "原作者：Kaal31 / ThemeHub；第三方作者和许可说明已保留。"
+        echo "返回游戏模式，打开 ThemeHub → 主题中心，下载并选择喜欢的主页。"
+        log "ThemeHub v$DECKHOMETHEMES_VERSION 官方校验包本机汉化完成"
+        return 0
+    fi
+    echo "主页主题安装失败，现有插件已保留。"
+    return 1
 }
 
 ensure_cssloader_chinese_current() {
@@ -3838,6 +3911,13 @@ install_configured_plugin() {
     fi
 
     case "$action" in
+        deckhomethemes)
+            [ "$IS_STEAMOS" -eq 1 ] || {
+                echo "主页主题安装仅在 SteamOS 主线提供。"
+                return 1
+            }
+            ensure_deckhomethemes_chinese_current || return 1
+            ;;
         lsfg)
             resolve_plugin_latest lsfg
             install_lsfg_bundle "$open_lsfg_store"
@@ -4683,6 +4763,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         cheatdeck) show_plugin_download_speed_tip; install_configured_plugin cheatdeck ;;
         steamgriddb) show_plugin_download_speed_tip; install_configured_plugin steamgriddb ;;
         cssloader) show_plugin_download_speed_tip; install_configured_plugin cssloader ;;
+        deckhomethemes) show_plugin_download_speed_tip; install_configured_plugin deckhomethemes ;;
         friendeck) show_plugin_download_speed_tip; install_configured_plugin friendeck ;;
         deckymusic) show_plugin_download_speed_tip; install_configured_plugin deckymusic ;;
         fantastic) show_plugin_download_speed_tip; install_configured_plugin fantastic ;;
