@@ -60,6 +60,9 @@ fi
 if [ -n "$write_out" ]; then
     printf 'probe|%s\n' "$url" >> "${GITHUB_TEST_CALLS:?}"
     [ "${GITHUB_TEST_FAIL_PROBE:-0}" != 1 ] || exit 63
+    if [ "${GITHUB_TEST_DIRECT_FAST:-0}" = 1 ]; then
+        case "$url" in https://github.com/*) printf '90000000'; exit 0 ;; esac
+    fi
     case "$url" in
         *fast.invalid*) printf '2097152' ;;
         *slow.invalid*) printf '262144' ;;
@@ -70,6 +73,13 @@ fi
 printf 'download|%s\n' "$url" >> "${GITHUB_TEST_CALLS:?}"
 if [ "${GITHUB_TEST_FAIL_DOWNLOAD:-0}" = "1" ]; then
     exit 22
+fi
+if [ "${GITHUB_TEST_CORRUPT_ACCELERATED:-0}" = 1 ]; then
+    case "$url" in
+        https://github.com/*) cp "${GITHUB_TEST_PAYLOAD:?}" "$output" ;;
+        *) printf 'invalid accelerated payload\n' > "$output" ;;
+    esac
+    exit 0
 fi
 case "$url" in
     *api.github.com/*/releases/latest)
@@ -197,6 +207,43 @@ grep -Fq "download|https://fast.invalid/$sdweak_url" "$CALLS_FILE" || {
     echo 'FAIL: Failed Range probe discarded working backup source' >&2; exit 1;
 }
 unset GITHUB_TEST_FAIL_PROBE
+
+# 小 HEAD 响应和短时直连高速不能绕过入口明确要求的加速优先。
+: > "$CALLS_FILE"
+export GITHUB_TEST_DIRECT_FAST=1
+GITHUB_SMALL_FILE_MAX_BYTES=2097152
+GITHUB_ACCELERATION_FIRST=1
+GITHUB_MIRRORS="$GITHUB_MIRRORS https://github.com/"
+accelerated_url="https://github.com/Kaal31/benderthemes/releases/download/v1.10.7/DeckHomeThemes-v1.10.7.zip"
+download_github_file "$accelerated_url" "$OUTPUT" "$expected" "主页主题加速优先测试"
+cmp "$PAYLOAD" "$OUTPUT" || { echo 'FAIL: 加速下载内容不一致' >&2; exit 1; }
+first_download="$(grep '^download|' "$CALLS_FILE" | head -n 1)"
+case "$first_download" in
+    download\|https://fast.invalid/*) ;;
+    *) echo 'FAIL: 加速优先仍先使用官方直连或跳过测速' >&2; exit 1 ;;
+esac
+grep -Fq "probe|https://fast.invalid/$accelerated_url" "$CALLS_FILE" || {
+    echo 'FAIL: 小 HEAD 响应绕过了加速测速' >&2; exit 1;
+}
+
+# 加速线路返回错误内容时仍校验 SHA256，全部失败后才用官方兜底。
+: > "$CALLS_FILE"
+export GITHUB_TEST_CORRUPT_ACCELERATED=1
+download_github_file "$accelerated_url" "$OUTPUT" "$expected" "主页主题完整性回退测试"
+cmp "$PAYLOAD" "$OUTPUT" || { echo 'FAIL: 错误加速内容被接受' >&2; exit 1; }
+last_download="$(grep '^download|' "$CALLS_FILE" | tail -n 1)"
+[ "$last_download" = "download|$accelerated_url" ] || {
+    echo 'FAIL: 加速失败后未回退官方完整包' >&2; exit 1;
+}
+[ "$(grep -c '^download|' "$CALLS_FILE")" -gt 1 ] || {
+    echo 'FAIL: 官方兜底没有放在加速线路之后' >&2; exit 1;
+}
+[ "$(grep -Fc "download|$accelerated_url" "$CALLS_FILE")" = 1 ] || {
+    echo 'FAIL: 带尾斜杠的直连绕过加速或重复兜底' >&2; exit 1;
+}
+unset GITHUB_TEST_DIRECT_FAST GITHUB_TEST_CORRUPT_ACCELERATED GITHUB_ACCELERATION_FIRST
+GITHUB_MIRRORS="https://slow.invalid/{url} https://fast.invalid/{url}"
+GITHUB_SMALL_FILE_MAX_BYTES=1
 
 printf 'keep existing file\n' > "$OUTPUT"
 export GITHUB_TEST_FAIL_DOWNLOAD=1

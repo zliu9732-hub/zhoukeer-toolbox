@@ -221,7 +221,15 @@ download_github_file() {
     case "$url" in
         https://github.com/*|https://raw.githubusercontent.com/*)
             small_file_max="$(_github_setting "${GITHUB_SMALL_FILE_MAX_BYTES:-}" 2097152)"
-            if [ "${GITHUB_SKIP_RANKING:-0}" = "1" ]; then
+            if [ "${GITHUB_ACCELERATION_FIRST:-0}" = "1" ]; then
+                # 专用安装入口可优先加速线路；保留实际吞吐排序与官方兜底，
+                # 不让 HEAD 的小跳转响应或直连短时测速绕过加速候选。
+                ranked_sources="$(get_ranked_github_sources "$url")" || ranked_sources=""
+                ranked_sources="$(printf '%s\n' "$ranked_sources" | awk '
+                    $0 != "" && $0 != "https://github.com" && $0 != "https://github.com/" && !seen[$0]++ { print }
+                    END { print "https://github.com" }
+                ')"
+            elif [ "${GITHUB_SKIP_RANKING:-0}" = "1" ]; then
                 ranked_sources="https://github.com"
             else
                 remote_size="$(_github_remote_size_bytes "$url" 2>/dev/null)" || remote_size=""

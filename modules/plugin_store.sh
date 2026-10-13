@@ -1951,6 +1951,15 @@ deckhomethemes_chinese_is_current() {
         "$plugin_root/$DECKHOMETHEMES_DIRECTORY" >/dev/null 2>&1
 }
 
+download_deckhomethemes_package() {
+    local output="$1"
+    # 固定的 5 MiB 包优先走已审核加速线路；短时间卡住即切换，不在慢线路长时间重试。
+    GITHUB_ACCELERATION_FIRST=1 GITHUB_CONNECT_TIMEOUT=5 GITHUB_MAX_TIME=90 \
+        GITHUB_RETRIES=1 GITHUB_MIN_SPEED_BYTES=65536 GITHUB_MIN_SPEED_TIME=15 \
+        download_verified_package "主页主题（ThemeHub）" \
+            "$DECKHOMETHEMES_URL" "$DECKHOMETHEMES_SHA256" "$output"
+}
+
 ensure_deckhomethemes_chinese_current() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local tmp_dir archive plugin_source
@@ -1980,16 +1989,14 @@ ensure_deckhomethemes_chinese_current() {
         trap 'exit 130' INT
         trap 'exit 143' TERM
         archive="$tmp_dir/plugin.zip"
-        # 复用现有超时、进度、SHA256 和加速回退；未授权原包不上传镜像。
-        if ! download_verified_package "主页主题（ThemeHub）" \
-            "$DECKHOMETHEMES_URL" "$DECKHOMETHEMES_SHA256" "$archive"; then
+        # 复用现有进度、SHA256 和备用下载，并优先使用加速线路。
+        if ! download_deckhomethemes_package "$archive"; then
             if [ "${DOWNLOAD_LOCAL_IO_FAILED:-0}" = "1" ]; then
                 echo "临时文件无法写入，请检查剩余空间后重试。"
                 return 1
             fi
             bash "$PROJECT_ROOT/modules/steam_accelerator.sh" ensure || true
-            download_verified_package "主页主题（ThemeHub）" \
-                "$DECKHOMETHEMES_URL" "$DECKHOMETHEMES_SHA256" "$archive" || return 1
+            download_deckhomethemes_package "$archive" || return 1
         fi
         archive_paths_are_safe "$archive" zip || return 1
         mkdir -p "$tmp_dir/extracted" || return 1

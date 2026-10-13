@@ -37,6 +37,8 @@ bash() {
 }
 download_verified_package() {
     [ "$2" = "$DECKHOMETHEMES_URL" ] && [ "$3" = "$DECKHOMETHEMES_SHA256" ] || fail '下载没有固定版本及 SHA256'
+    [ "${GITHUB_ACCELERATION_FIRST:-0}" = 1 ] || fail '主页主题没有加速优先'
+    [ "$GITHUB_CONNECT_TIMEOUT" = 5 ] && [ "$GITHUB_MIN_SPEED_TIME" = 15 ] || fail '没有缩短慢线路等待'
     printf '%s\n' download >> "$TMP_ROOT/download.calls"
     DOWNLOAD_LOCAL_IO_FAILED=0
     case "$DOWNLOAD_MODE" in
@@ -83,4 +85,5 @@ install_tree_atomically() { return 1; }
 if ensure_deckhomethemes_chinese_current > "$TMP_ROOT/install-fail.out" 2>&1; then fail '写入失败返回成功'; fi
 cmp "$TMP_ROOT/previous" "$DECKY_PLUGIN_DIR/DeckHomeThemes/dist/index.js" || fail '写入失败改动旧版'
 [ "$PLUGIN_INSTALL_CHANGED" = 0 ] || fail '失败仍标记成功'
+[ "${GITHUB_ACCELERATION_FIRST:-0}" != 1 ] || fail '专用下载选项泄漏到其他程序'
 printf '%s\n' 'PASS: 主页主题安装、署名、完整版跳过、加速回退与失败保留旧版'
