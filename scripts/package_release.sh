@@ -23,6 +23,7 @@ done
 VERIFY_FILES="$VERIFY_FILES third_party/onexplayer-apex-tools-zh-v0.1.0/dist/index.js third_party/onexplayer-apex-tools-zh-v0.1.0/plugin.json third_party/onexplayer-apex-tools-zh-v0.1.0/package.json third_party/onexplayer-apex-tools-zh-v0.1.0/LICENSE"
 PACKAGE_SOURCES=()
 VERIFY_FILES="$VERIFY_FILES modules/epic_linux.sh"
+VERIFY_FILES="$VERIFY_FILES modules/framegen_updates.sh scripts/framegen_package.py scripts/sync_framegen_zh.py scripts/framegen_ui.mjs scripts/vendor/acorn/acorn.mjs scripts/vendor/acorn/LICENSE data/framegen_zh.json data/framegen_auto_baseline.json assets/framegen/zh-runtime.js"
 
 validate_release_version() {
     local major minor patch extra

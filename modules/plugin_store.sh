@@ -10,6 +10,7 @@ source "$PROJECT_ROOT/core/logger.sh"
 source "$PROJECT_ROOT/core/auth.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/modules/steam_accelerator.sh"
+source "$PROJECT_ROOT/modules/framegen_updates.sh"
 
 load_config
 
@@ -3166,6 +3167,8 @@ lsfg_v2_is_current() {
     local plugin_dir="$plugin_root/$LSFG_V2_DIRECTORY"
     local actual_sha256
 
+    framegen_auto_is_current lsfg-v2 "$plugin_root" && return 0
+
     feature_plugin_is_current "$plugin_root" "$LSFG_V2_DIRECTORY" \
         "$LSFG_V2_VERSION" "小黄鸭2.0" || return 1
     [ -f "$plugin_dir/LICENSE" ] && [ ! -L "$plugin_dir/LICENSE" ] || return 1
@@ -3187,6 +3190,10 @@ install_lsfg_v2_from_gitee() {
         return 1
     fi
     require_existing_chimera_plugin_environment || return 1
+    local auto_status=0
+    install_framegen_auto lsfg-v2 "$reload_after" || auto_status=$?
+    [ "$auto_status" -ne 0 ] || return 0
+    [ "$auto_status" -eq 2 ] || return 1
     if lsfg_v2_is_current "$plugin_root"; then
         remove_legacy_lsfg_directories "$plugin_root"
         echo "[已安装] 小黄鸭 2.0 v$LSFG_V2_VERSION 中文插件已存在且文件完整，无需重复安装。"
@@ -3234,6 +3241,10 @@ install_fsr4_zh_from_gitee() {
         return 1
     fi
     require_existing_chimera_plugin_environment || return 1
+    local auto_status=0
+    install_framegen_auto fsr4 "$reload_after" || auto_status=$?
+    [ "$auto_status" -ne 0 ] || return 0
+    [ "$auto_status" -eq 2 ] || return 1
     actual_sha256="$(calculate_decky_sha256 \
         "$plugin_root/$FSR4_OFFICIAL_DIRECTORY/dist/index.js" 2>/dev/null || true)"
     if feature_plugin_is_current "$plugin_root" "$FSR4_OFFICIAL_DIRECTORY" \
@@ -4499,6 +4510,7 @@ install_game_info_plugin_from_gitee() {
 }
 
 print_feature_plugin_status() {
+    load_framegen_cached_versions
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local missing=0
     local lsfg_version lsfg_v2_version fsr4_version cheatdeck_version plugin_version
@@ -4613,6 +4625,8 @@ install_feature_plugins() {
     fi
 
     ensure_plugin_store_ready || return 1
+    refresh_framegen_catalog || true
+    load_framegen_cached_versions
 
     # 先检测整组是否都已安装且本地名称/中文前端正确，是则跳过。
     local _all_installed=1
@@ -4675,6 +4689,10 @@ install_feature_plugins() {
                 echo "========== 小黄鸭（LSFG-VK） =========="
                 if lsfg_v2_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"; then
                     echo "[已安装] 小黄鸭 2.0 已安装，保留所选版本。"
+                    continue
+                fi
+                if lsfg_v2_is_selected "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"; then
+                    install_lsfg_v2_from_gitee 0 || failed=1
                     continue
                 fi
                 if feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "$LSFG_OFFICIAL_VERSION" "小黄鸭"; then
@@ -4803,6 +4821,7 @@ install_25_plugins() {
 }
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    load_framegen_cached_versions
     requested_action="${1:-store}"
     detect_platform
     if [ "$IS_CHIMERAOS" -eq 1 ]; then

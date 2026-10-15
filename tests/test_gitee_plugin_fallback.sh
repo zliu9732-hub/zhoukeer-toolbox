@@ -14,6 +14,8 @@ fail() {
 
 # shellcheck disable=SC1090
 source "$MODULE"
+install_framegen_auto() { return 2; } # Auto-catalog handling has a separate fully mocked suite.
+refresh_framegen_catalog() { return 1; }
 
 mkdir -p "$TMP_ROOT/plugin/TestPlugin/dist" \
     "$TMP_ROOT/repository/zhoukeer-toolbox-v5.1.1/dist"

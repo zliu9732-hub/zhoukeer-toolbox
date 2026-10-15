@@ -62,6 +62,8 @@ gitee_mirror_manifest_repo() {
         sdweak) printf '%s\n' "$GITEE_SDWEAK_MIRROR_REPO" ;;
         deckhomethemes) printf '%s\n' "$GITEE_DECKHOMETHEMES_MIRROR_REPO" ;;
         epic-linux) printf '%s\n' zhoukeer-toolbox-mirror-4 ;;
+        lsfg-v2-zh-auto|lsfg-v2-zh-signed) printf '%s\n' zhoukeer-toolbox-mirror-4 ;;
+        fsr4-zh-auto|fsr4-zh-signed) printf '%s\n' zhoukeer-toolbox-mirror-3 ;;
         ge-proton) printf '%s\n' "$GITEE_GE_PROTON_MIRROR_REPO" ;;
         proton-cachyos) printf '%s\n' "$GITEE_PROTON_CACHYOS_MIRROR_REPO" ;;
         *) printf '%s\n' "$GITEE_MIRROR_REPO" ;;

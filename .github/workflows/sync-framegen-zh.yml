@@ -1,0 +1,79 @@
+name: Sync framegen Chinese every 48 hours
+
+on:
+  schedule:
+    - cron: '17 1 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/sync-framegen-zh.yml
+      - scripts/sync_framegen_zh.py
+      - scripts/framegen_package.py
+      - scripts/framegen_ui.mjs
+      - scripts/vendor/acorn/**
+      - assets/framegen/**
+      - data/framegen_zh.json
+
+permissions:
+  contents: read
+concurrency:
+  group: renkit-gitee-mirror-assets
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check 48-hour interval
+        id: cadence
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = schedule ]; then
+            echo "due=$(python3 scripts/sync_framegen_zh.py due)" >> "$GITHUB_OUTPUT"
+          else
+            echo 'due=true' >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.cadence.outputs.due == 'true'
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        if: steps.cadence.outputs.due == 'true'
+        with:
+          python-version: '3.12'
+      - name: Check official stable releases
+        if: steps.cadence.outputs.due == 'true'
+        id: plan
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/sync_framegen_zh.py plan --work "$RUNNER_TEMP/framegen-zh" >> "$GITHUB_OUTPUT"
+      - name: Prepare CPU translation for new text
+        if: steps.plan.outputs.updates == 'true' || github.event_name == 'push'
+        run: |
+          python3 -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch==2.8.0'
+          python3 -m pip install 'transformers==4.57.1' 'sentencepiece==0.2.1' 'sacremoses==0.1.1' 'opencc-python-reimplemented==0.1.7'
+      - name: Verify translation engine after pipeline changes
+        if: github.event_name == 'push'
+        run: |
+          python3 - <<'PY'
+          import sys
+          sys.path.insert(0, 'scripts')
+          from sync_framegen_zh import translate_missing
+          result = translate_missing(['Apply changes'])
+          print(result)
+          assert result['Apply changes']
+          PY
+      - name: Localize and validate complete upstream packages
+        if: steps.plan.outputs.updates == 'true'
+        run: python3 scripts/sync_framegen_zh.py build --work "$RUNNER_TEMP/framegen-zh" --machine
+      - name: Upload packages and verify public Gitee files
+        if: steps.plan.outputs.updates == 'true'
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+        run: |
+          test -n "$GITEE_TOKEN"
+          python3 scripts/sync_framegen_zh.py publish --work "$RUNNER_TEMP/framegen-zh"

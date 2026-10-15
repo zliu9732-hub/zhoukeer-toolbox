@@ -69,6 +69,9 @@ PNG 格式转换，不改变图形内容；各图标沿用对应上游项目的�
 
 ## 说明
 
+- 小黄鸭 2.0 / FSR4 自动中文任务使用 Acorn 8.15.0（MIT）进行静态语法分析，来源及完整性记录在 `scripts/vendor/acorn/PROVENANCE.json`，许可证原文一并保留。只分析上游 JavaScript，不执行插件后端或运行组件。
+- 新增界面文案的自动翻译使用 Helsinki-NLP/opus-mt-en-zh（Apache-2.0），固定模型版本 `408d9bc410a388e1d9aef112a2daba955b945255`，仅在仓库任务中使用。模型、PyTorch 与 Transformers 不进入 Renkit 更新包或用户掌机；原模型说明：https://huggingface.co/Helsinki-NLP/opus-mt-en-zh 。
+
 - “进入 Gitee 镜像”表示该项目的文件会出现在 `mirrors/` 目录并通过
   `latest.txt` 分块清单下载；未进入镜像的项目仍可在Renkit内使用官方源或
   既有代理回退。

@@ -10,6 +10,10 @@ on:
     - cron: '0 */6 * * *'
   workflow_dispatch:
 
+concurrency:
+  group: renkit-gitee-mirror-assets
+  cancel-in-progress: false
+
 jobs:
   sync:
     runs-on: ubuntu-latest

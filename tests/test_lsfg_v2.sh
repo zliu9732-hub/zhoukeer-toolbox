@@ -5,6 +5,8 @@ TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf -- "$TMP_ROOT"' EXIT
 fail() { echo "FAIL: $*" >&2; exit 1; }
 source "$PROJECT_ROOT/modules/plugin_store.sh"
+install_framegen_auto() { return 2; } # This suite exercises the retained fixed-package fallback.
+refresh_framegen_catalog() { return 1; }
 export DECKY_PLUGIN_DIR="$TMP_ROOT/plugins"
 detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
 require_existing_chimera_plugin_environment() { return 0; }
