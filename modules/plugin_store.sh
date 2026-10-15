@@ -756,7 +756,7 @@ install_plugin_store_auto() {
 
     channel="$(detect_steamos_channel)"
     echo "检测到 SteamOS 系统通道：$channel"
-    install_plugin_store "$channel"
+    install_plugin_store "$channel" "${1:-reinstall}"
 }
 
 prepare_decky_loader_channel_settings() {
@@ -1020,7 +1020,27 @@ run_decky_homebrew_operation() {
     fi
 }
 
+backup_decky_install_file() {
+    toolbox_sudo cp -Pp -- "$1" "$2" || {
+        toolbox_sudo rm -f -- "$2" || true
+        return 1
+    }
+}
+
 rollback_decky_install() {
+    local legacy_index
+    for ((legacy_index=0; legacy_index<${#DECKY_LEGACY_BACKUPS[@]}; legacy_index++)); do
+        if [ -e "${DECKY_LEGACY_BACKUPS[$legacy_index]}" ] || \
+           [ -L "${DECKY_LEGACY_BACKUPS[$legacy_index]}" ]; then
+            toolbox_sudo rm -f -- "${DECKY_LEGACY_PATHS[$legacy_index]}" || true
+            toolbox_sudo mv -- "${DECKY_LEGACY_BACKUPS[$legacy_index]}" \
+                "${DECKY_LEGACY_PATHS[$legacy_index]}" || true
+        fi
+    done
+    if [ "${#DECKY_LEGACY_BACKUPS[@]}" -gt 0 ]; then
+        systemctl --user daemon-reload >/dev/null 2>&1 || true
+    fi
+
     if [ "${DECKY_SETTINGS_SWAP_STARTED:-0}" -eq 1 ]; then
         if [ "${DECKY_SETTINGS_HAD_OLD:-0}" -eq 1 ] && \
            run_decky_homebrew_operation test -f "$DECKY_SETTINGS_BACKUP"; then
@@ -1101,6 +1121,11 @@ rollback_decky_install() {
             systemctl --user start "$DECKY_SERVICE_NAME" >/dev/null 2>&1 || true
         fi
     fi
+    if [ "${DECKY_STAGING_STARTED:-0}" -eq 1 ]; then
+        run_decky_homebrew_operation rm -f -- \
+            "$DECKY_LOADER_NEW" "$DECKY_VERSION_NEW" "$DECKY_SETTINGS_NEW" || true
+        toolbox_sudo rm -f -- "$DECKY_UNIT_NEW" || true
+    fi
 }
 
 finish_plugin_store_install() {
@@ -1116,6 +1141,7 @@ finish_plugin_store_install() {
 
 install_plugin_store() (
     local channel="${1:-stable}"
+    local install_mode="${2:-reinstall}"
     local selected_version
     local loader_url
     local loader_official_url
@@ -1197,18 +1223,18 @@ install_plugin_store() (
     fi
 
     installed_version="$(decky_plugin_store_version 2>/dev/null || true)"
-    if decky_plugin_store_is_installed && \
+    if [ "$install_mode" = if-needed ] && decky_plugin_store_is_installed && \
        [ -n "$installed_version" ] && \
        [ "$installed_version" = "$selected_version" ]; then
-        echo "已检测到 Decky Loader $installed_version，当前已是该系统通道的最新版本。"
+        echo "已检测到 Decky Loader ${installed_version}，当前已是该系统通道的最新版本。"
         cleanup_decky_tmp
         return 0
     fi
     if decky_plugin_store_is_installed; then
         if [ -n "$installed_version" ]; then
-            echo "检测到 Decky Loader $installed_version，目标版本为 $selected_version，将执行更新。"
+            echo "检测到 Decky Loader ${installed_version}，目标版本为 ${selected_version}，将执行更新。"
         else
-            echo "检测到 Decky Loader，但无法读取有效版本标记，将重新安装目标版本 $selected_version。"
+            echo "检测到 Decky Loader，但无法读取有效版本标记，将重新安装目标版本 ${selected_version}。"
         fi
     fi
     confirm_decky_install "$channel" "$selected_version" || {
@@ -1218,6 +1244,7 @@ install_plugin_store() (
     }
 
     DECKY_INSTALL_COMMITTED=0
+    DECKY_STAGING_STARTED=0
     DECKY_HOME_OP_SUDO=0
     DECKY_LOADER_TARGET="$services_dir/PluginLoader"
     DECKY_LOADER_NEW="$services_dir/.PluginLoader.new.$$"
@@ -1245,6 +1272,8 @@ install_plugin_store() (
     DECKY_SETTINGS_HAD_OLD=0
     DECKY_SETTINGS_SHOULD_SWAP=0
     DECKY_SETTINGS_SWAP_STARTED=0
+    DECKY_LEGACY_PATHS=()
+    DECKY_LEGACY_BACKUPS=()
 
     trap 'exit 130' INT TERM
     trap 'finish_plugin_store_install $?' EXIT
@@ -1306,6 +1335,23 @@ install_plugin_store() (
         echo "检测到未清理的Decky安装暂存文件，已停止以避免覆盖。"
         return 1
     fi
+    local legacy_path legacy_backup
+    if [ -L "$services_dir/.systemd" ] || \
+       { [ -e "$services_dir/.systemd" ] && [ ! -d "$services_dir/.systemd" ]; }; then
+        echo "插件商城安装路径异常，已停止安装。"
+        return 1
+    fi
+    for legacy_path in "$DECKY_USER_UNIT_PATH" \
+        "$services_dir/.systemd/plugin_loader.service" \
+        "$services_dir/.systemd/plugin_loader-release.service" \
+        "$services_dir/.systemd/plugin_loader-prerelease.service"; do
+        legacy_backup="$legacy_path.renkit-backup.$$"
+        if { [ -e "$legacy_path" ] && [ ! -f "$legacy_path" ] && [ ! -L "$legacy_path" ]; } || \
+           [ -e "$legacy_backup" ] || [ -L "$legacy_backup" ]; then
+            echo "插件商城安装路径异常，已停止安装。"
+            return 1
+        fi
+    done
 
     if [ -f "$DECKY_LOADER_TARGET" ]; then
         DECKY_LOADER_HAD_OLD=1
@@ -1342,6 +1388,7 @@ install_plugin_store() (
     fi
     stop_legacy_decky_user_service || return 1
 
+    DECKY_STAGING_STARTED=1
     run_decky_homebrew_operation install -m 0755 -- "$loader_download" "$DECKY_LOADER_NEW" || return 1
     toolbox_sudo install -m 0644 -- "$rendered_service" "$DECKY_UNIT_NEW" || return 1
     printf '%s\n' "$selected_version" > "$version_rendered" || return 1
@@ -1352,23 +1399,42 @@ install_plugin_store() (
             "$settings_rendered" "$DECKY_SETTINGS_NEW" || return 1
     fi
 
-    DECKY_LOADER_SWAP_STARTED=1
     if [ "$DECKY_LOADER_HAD_OLD" -eq 1 ]; then
-        run_decky_homebrew_operation mv -- "$DECKY_LOADER_TARGET" "$DECKY_LOADER_BACKUP" || return 1
+        backup_decky_install_file "$DECKY_LOADER_TARGET" "$DECKY_LOADER_BACKUP" || return 1
     fi
-    run_decky_homebrew_operation mv -- "$DECKY_LOADER_NEW" "$DECKY_LOADER_TARGET" || return 1
+    DECKY_LOADER_SWAP_STARTED=1
 
-    DECKY_UNIT_SWAP_STARTED=1
     if [ "$DECKY_UNIT_HAD_OLD" -eq 1 ]; then
-        toolbox_sudo mv -- "$DECKY_UNIT_PATH" "$DECKY_UNIT_BACKUP" || return 1
+        backup_decky_install_file "$DECKY_UNIT_PATH" "$DECKY_UNIT_BACKUP" || return 1
     fi
-    toolbox_sudo mv -- "$DECKY_UNIT_NEW" "$DECKY_UNIT_PATH" || return 1
+    DECKY_UNIT_SWAP_STARTED=1
 
-    DECKY_VERSION_SWAP_STARTED=1
     if [ "$DECKY_VERSION_HAD_OLD" -eq 1 ]; then
-        run_decky_homebrew_operation mv -- \
+        backup_decky_install_file \
             "$DECKY_VERSION_TARGET" "$DECKY_VERSION_BACKUP" || return 1
     fi
+    DECKY_VERSION_SWAP_STARTED=1
+    for legacy_path in "$DECKY_USER_UNIT_PATH" \
+        "$services_dir/.systemd/plugin_loader.service" \
+        "$services_dir/.systemd/plugin_loader-release.service" \
+        "$services_dir/.systemd/plugin_loader-prerelease.service"; do
+        if [ -e "$legacy_path" ] || [ -L "$legacy_path" ]; then
+            legacy_backup="$legacy_path.renkit-backup.$$"
+            backup_decky_install_file "$legacy_path" "$legacy_backup" || return 1
+            DECKY_LEGACY_PATHS+=("$legacy_path")
+            DECKY_LEGACY_BACKUPS+=("$legacy_backup")
+        fi
+    done
+
+    # 新文件均已校验并暂存，复用卸载入口移除旧本体与服务；插件和设置不动。
+    # 自动安装仅沿用本次安装确认，不额外展示卸载步骤。
+    ZHOUKEER_AUTO_CONFIRM=1 uninstall_plugin_store > "$tmp_dir/uninstall.log" 2>&1 || {
+        log "Decky 安装前清理失败: $(cat "$tmp_dir/uninstall.log")"
+        echo "插件商城安装未完成，正在恢复原有版本。"
+        return 1
+    }
+    run_decky_homebrew_operation mv -- "$DECKY_LOADER_NEW" "$DECKY_LOADER_TARGET" || return 1
+    toolbox_sudo mv -- "$DECKY_UNIT_NEW" "$DECKY_UNIT_PATH" || return 1
     run_decky_homebrew_operation mv -- \
         "$DECKY_VERSION_NEW" "$DECKY_VERSION_TARGET" || return 1
 
@@ -1390,8 +1456,10 @@ install_plugin_store() (
     run_decky_homebrew_operation rm -f -- "$DECKY_VERSION_BACKUP" || true
     run_decky_homebrew_operation rm -f -- "$DECKY_SETTINGS_BACKUP" || true
     toolbox_sudo rm -f -- "$DECKY_UNIT_BACKUP" || true
-    remove_legacy_decky_user_unit || \
-        echo "Decky 已更新，但旧用户服务文件未能清理；请重启后再检查。"
+    if [ "${#DECKY_LEGACY_BACKUPS[@]}" -gt 0 ]; then
+        toolbox_sudo rm -f -- "${DECKY_LEGACY_BACKUPS[@]}" || true
+    fi
+    toolbox_sudo rmdir "$services_dir/.systemd" 2>/dev/null || true
 
     echo "Decky Loader $selected_version 更新完成，已有插件未被改动。请返回游戏模式检查插件菜单。"
     log "Decky Loader更新完成 channel=$channel version=$selected_version"
@@ -1465,7 +1533,7 @@ ensure_plugin_store_ready() {
     else
         echo "未检测到插件商城，先安装插件商城。"
     fi
-    install_plugin_store_auto || {
+    install_plugin_store_auto if-needed || {
         echo "插件商城未安装完成，已停止后续插件安装。"
         return 1
     }

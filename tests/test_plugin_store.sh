@@ -468,7 +468,7 @@ printf '%s\n' "$feature_install_function" | grep -Fq 'ensure_plugin_store_ready 
     echo "FAIL: 常用插件组合未先检查插件商城" >&2
     exit 1
 }
-grep -Fq 'install_plugin_store_auto || {' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+grep -Fq 'install_plugin_store_auto if-needed || {' "$PROJECT_ROOT/modules/plugin_store.sh" || {
     echo "FAIL: 插件组合没有调用按系统通道检测最新版的商城安装流程" >&2
     exit 1
 }

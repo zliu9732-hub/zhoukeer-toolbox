@@ -24,6 +24,8 @@ SYSTEM_ENABLED="$TMP_ROOT/system-enabled"
 USER_ACTIVE="$TMP_ROOT/user-active"
 USER_ENABLED="$TMP_ROOT/user-enabled"
 SYSTEM_RESTART_FAIL="$TMP_ROOT/system-restart-fail"
+SYSTEM_UNINSTALL_FAIL="$TMP_ROOT/system-uninstall-fail"
+SYSTEM_BACKUP_FAIL="$TMP_ROOT/system-backup-fail"
 
 mkdir -p "$SERVICES_DIR" "$PLUGIN_DIR/KeepMe" "$SETTINGS_DIR" \
     "$(dirname "$UNIT_PATH")" "$(dirname "$USER_UNIT_PATH")"
@@ -105,10 +107,10 @@ MOCK_LEGACY_BRANCH=""
 ready_output="$({
     detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
     decky_plugin_store_is_installed() { return 0; }
-    install_plugin_store_auto() { echo 'TEST_VERSION_CHECK'; }
+    install_plugin_store_auto() { printf 'TEST_VERSION_CHECK:%s\n' "$1"; }
     ensure_plugin_store_ready
 })"
-printf '%s\n' "$ready_output" | grep -Fq 'TEST_VERSION_CHECK' || \
+printf '%s\n' "$ready_output" | grep -Fq 'TEST_VERSION_CHECK:if-needed' || \
     fail "插件组合检测到已有商城后没有继续检查版本"
 
 mock_systemctl() {
@@ -131,6 +133,7 @@ mock_systemctl() {
         start|restart)
             if [ "$scope" = system ] && [ "${1:-}" = restart ] && \
                [ -f "$SYSTEM_RESTART_FAIL" ]; then
+                rm -f -- "$SYSTEM_RESTART_FAIL"
                 return 1
             fi
             : > "$active_file"
@@ -140,7 +143,14 @@ mock_systemctl() {
             rm -f -- "$enabled_file"
             [ "${2:-}" != "--now" ] || rm -f -- "$active_file"
             ;;
-        daemon-reload) return 0 ;;
+        daemon-reload)
+            if [ "$scope" = system ] && [ -f "$SYSTEM_UNINSTALL_FAIL" ] && \
+               [ ! -e "$UNIT_PATH" ]; then
+                rm -f -- "$SYSTEM_UNINSTALL_FAIL"
+                return 1
+            fi
+            return 0
+            ;;
         *) return 0 ;;
     esac
 }
@@ -164,6 +174,34 @@ toolbox_sudo() {
 install() {
     printf 'install %s\n' "$*" >> "$CALLS"
     command install "$@"
+}
+
+cp() {
+    if [ -f "$SYSTEM_BACKUP_FAIL" ] && [[ "${*: -1}" == "$UNIT_PATH.backup."* ]]; then
+        printf 'partial backup\n' > "${*: -1}"
+        rm -f -- "$SYSTEM_BACKUP_FAIL"
+        return 1
+    fi
+    command cp "$@"
+}
+
+mv() {
+    # 激活新本体时，旧本体、版本标记、两类服务和历史模板都必须已卸载。
+    if [[ " $* " == *"/.PluginLoader.new."* ]]; then
+        for old_path in "$SERVICES_DIR/PluginLoader" "$SERVICES_DIR/.loader.version" \
+            "$UNIT_PATH" "$USER_UNIT_PATH" \
+            "$SERVICES_DIR/.systemd/plugin_loader.service" \
+            "$SERVICES_DIR/.systemd/plugin_loader-release.service" \
+            "$SERVICES_DIR/.systemd/plugin_loader-prerelease.service"; do
+            [ ! -e "$old_path" ] && [ ! -L "$old_path" ] || \
+                fail "新商城写入前未卸载旧文件：$old_path"
+        done
+        for old_state in "$SYSTEM_ACTIVE" "$SYSTEM_ENABLED" "$USER_ACTIVE" "$USER_ENABLED"; do
+            [ ! -e "$old_state" ] || fail "新商城写入前未停用旧服务：$old_state"
+        done
+        printf 'publish-loader\n' >> "$CALLS"
+    fi
+    command mv "$@"
 }
 
 write_mock_decky_component() {
@@ -320,6 +358,11 @@ prepare_old_testing_install() {
     printf '{"branch": 2, "keep": "yes"}\n' > "$SETTINGS_DIR/loader.json"
     printf '[Service]\n' > "$UNIT_PATH"
     printf '[Service]\n' > "$USER_UNIT_PATH"
+    mkdir -p "$SERVICES_DIR/.systemd"
+    for service_file in plugin_loader.service plugin_loader-release.service \
+        plugin_loader-prerelease.service; do
+        printf 'legacy %s\n' "$service_file" > "$SERVICES_DIR/.systemd/$service_file"
+    done
     : > "$SYSTEM_ACTIVE"
     : > "$SYSTEM_ENABLED"
     : > "$USER_ACTIVE"
@@ -329,8 +372,8 @@ prepare_old_testing_install() {
 prepare_old_testing_install
 install_plugin_store stable > "$TMP_ROOT/stable.output" || \
     fail "旧测试版无法切换到稳定版"
-if grep -Fq '分块' "$TMP_ROOT/stable.output"; then
-    fail "稳定版插件商城仍显示分块下载提示"
+if grep -Eq '分块|卸载' "$TMP_ROOT/stable.output"; then
+    fail "稳定版插件商城显示了内部下载或卸载步骤"
 fi
 grep -Fxq 'v3.2.8' "$SERVICES_DIR/.loader.version" || \
     fail "稳定版安装未更新版本标记"
@@ -340,6 +383,8 @@ grep -Fq '"keep": "yes"' "$SETTINGS_DIR/loader.json" || \
     fail "稳定版切换覆盖了其他 Decky 设置"
 [ ! -e "$USER_UNIT_PATH" ] || fail "稳定版安装未清理旧用户服务文件"
 [ -f "$PLUGIN_DIR/KeepMe/data" ] || fail "稳定版安装删除了现有插件"
+[ ! -e "$SERVICES_DIR/.systemd" ] || fail "重新安装后仍留下旧服务模板"
+grep -Fxq 'publish-loader' "$CALLS" || fail "未验证先卸载再安装的执行顺序"
 grep -Fq 'user disable --now plugin_loader.service' "$CALLS" || \
     fail "稳定版安装未停用旧测试版用户服务"
 grep -Fq 'gitee-part Decky PluginLoader|https://gitee.com/zliu9732-hub/zhoukeer-toolbox-v2/raw/main/decky-installer-cn/PluginLoader.part.00|' \
@@ -358,21 +403,82 @@ stable_install_line="$(grep -n '^install -m 0755 .*PluginLoader.new' "$CALLS" | 
     [ "$stable_user_stop_line" -lt "$stable_install_line" ] || \
     fail "稳定版未在写入新文件前停用系统级和用户级旧服务"
 
-# 已是目标版本时只完成版本检查，不重新下载或重启服务。
+# 明确点击安装时，即使版本相同也要先卸载旧本体再安装。
 : > "$CALLS"
+printf '#!/bin/sh\n# stale loader\n' > "$SERVICES_DIR/PluginLoader"
 install_plugin_store stable > "$TMP_ROOT/stable-current.output" || \
+    fail "当前稳定版无法重新安装"
+grep -Fxq 'publish-loader' "$CALLS" || fail "当前版本仍跳过重新安装"
+if grep -Fq 'stale loader' "$SERVICES_DIR/PluginLoader"; then
+    fail "当前版本重新安装后保留了旧本体"
+fi
+
+# 安装普通插件时沿用已有的当前商城，避免每个插件都重装商城。
+: > "$CALLS"
+install_plugin_store stable if-needed > "$TMP_ROOT/stable-check.output" || \
     fail "当前稳定版的版本检查失败"
-grep -Fq '当前已是该系统通道的最新版本' "$TMP_ROOT/stable-current.output" || \
+grep -Fq '当前已是该系统通道的最新版本' "$TMP_ROOT/stable-check.output" || \
     fail "当前稳定版未报告已经是最新版本"
 if grep -Eq 'gitee-part|system restart|^install ' "$CALLS"; then
     fail "当前稳定版仍重复下载或重启服务"
 fi
+
+# 新文件下载失败时不应先卸载旧商城。
+: > "$CALLS"
+if (
+    load_decky_gitee_mirror_meta() { return 1; }
+    download_decky_component_with_fallback() { return 1; }
+    install_plugin_store stable
+) > "$TMP_ROOT/download-failed.output" 2>&1; then
+    fail "下载失败仍报告安装成功"
+fi
+grep -Fxq 'v3.2.8' "$SERVICES_DIR/.loader.version" || fail "下载失败删除了旧版本标记"
+[ -x "$SERVICES_DIR/PluginLoader" ] && [ -f "$UNIT_PATH" ] || fail "下载失败卸载了旧商城"
+if grep -Eq 'system (stop|disable|restart)|publish-loader' "$CALLS"; then
+    fail "新文件下载完成前已改动旧服务"
+fi
+
+# 备份写入失败时不卸载旧商城，也不能留下阻止再次安装的残片。
+prepare_old_testing_install
+: > "$CALLS"
+: > "$SYSTEM_BACKUP_FAIL"
+if install_plugin_store stable > "$TMP_ROOT/backup-failed.output" 2>&1; then
+    fail "备份写入失败仍继续安装"
+fi
+grep -Fxq 'PR-123' "$SERVICES_DIR/.loader.version" || fail "备份失败改动了旧版本标记"
+grep -Fxq '[Service]' "$UNIT_PATH" || fail "备份失败破坏了旧服务文件"
+for old_state in "$SYSTEM_ACTIVE" "$SYSTEM_ENABLED" "$USER_ACTIVE" "$USER_ENABLED"; do
+    [ -f "$old_state" ] || fail "备份失败未恢复旧服务状态：$old_state"
+done
+if grep -Fq 'publish-loader' "$CALLS"; then
+    fail "备份失败仍写入了新商城"
+fi
+install_plugin_store stable >/dev/null || fail "备份失败清理后无法重新安装"
+
+# 卸载过程中失败时恢复全部原文件和服务状态。
+prepare_old_testing_install
+: > "$SYSTEM_UNINSTALL_FAIL"
+if install_plugin_store stable > "$TMP_ROOT/uninstall-failed.output" 2>&1; then
+    fail "旧商城卸载失败仍继续安装"
+fi
+grep -Fxq 'PR-123' "$SERVICES_DIR/.loader.version" || fail "卸载失败未恢复旧版本标记"
+[ -f "$UNIT_PATH" ] && [ -f "$USER_UNIT_PATH" ] || fail "卸载失败未恢复旧服务文件"
+for service_file in plugin_loader.service plugin_loader-release.service plugin_loader-prerelease.service; do
+    grep -Fxq "legacy $service_file" "$SERVICES_DIR/.systemd/$service_file" || \
+        fail "卸载失败未恢复旧模板：$service_file"
+done
+for old_state in "$SYSTEM_ACTIVE" "$SYSTEM_ENABLED" "$USER_ACTIVE" "$USER_ENABLED"; do
+    [ -f "$old_state" ] || fail "卸载失败未恢复旧服务状态：$old_state"
+done
+install_plugin_store stable >/dev/null || fail "卸载失败恢复后无法重试安装"
 
 # 新服务启动失败时，必须恢复稳定版文件、通道和旧用户服务状态。
 : > "$SYSTEM_RESTART_FAIL"
 printf '[Service]\n' > "$USER_UNIT_PATH"
 : > "$USER_ACTIVE"
 : > "$USER_ENABLED"
+mkdir -p "$SERVICES_DIR/.systemd"
+printf 'old template\n' > "$SERVICES_DIR/.systemd/plugin_loader-release.service"
 if install_plugin_store prerelease > "$TMP_ROOT/rollback.output" 2>&1; then
     fail "测试版启动失败时仍报告安装成功"
 fi
@@ -382,6 +488,11 @@ grep -Eq '"branch"[[:space:]]*:[[:space:]]*0' "$SETTINGS_DIR/loader.json" || \
     fail "测试版启动失败后未恢复稳定分支"
 [ -f "$USER_ACTIVE" ] && [ -f "$USER_ENABLED" ] || \
     fail "测试版启动失败后未恢复旧用户服务状态"
+[ -f "$USER_UNIT_PATH" ] || fail "测试版启动失败后未恢复旧用户服务文件"
+grep -Fxq 'old template' "$SERVICES_DIR/.systemd/plugin_loader-release.service" || \
+    fail "测试版启动失败后未恢复旧服务模板"
+[ -f "$SYSTEM_ACTIVE" ] && [ -f "$SYSTEM_ENABLED" ] || \
+    fail "测试版启动失败后未恢复系统服务状态"
 rm -f -- "$SYSTEM_RESTART_FAIL"
 
 : > "$CALLS"
@@ -391,8 +502,8 @@ printf '[Service]\n' > "$USER_UNIT_PATH"
 : > "$USER_ENABLED"
 install_plugin_store prerelease > "$TMP_ROOT/prerelease.output" || \
     fail "Decky 官方测试版安装失败"
-if grep -Fq '分块' "$TMP_ROOT/prerelease.output"; then
-    fail "测试版插件商城仍显示分块下载提示"
+if grep -Eq '分块|卸载' "$TMP_ROOT/prerelease.output"; then
+    fail "测试版插件商城显示了内部下载或卸载步骤"
 fi
 grep -Fxq 'v3.2.8-pre1' "$SERVICES_DIR/.loader.version" || \
     fail "测试版安装未更新版本标记"
@@ -512,6 +623,10 @@ done
 [ -f "$PLUGIN_DIR/KeepMe/data" ] || fail "卸载 Decky Loader 删除了插件"
 [ -f "$SETTINGS_DIR/loader.json" ] || fail "卸载 Decky Loader 删除了设置"
 
+install_plugin_store stable > "$TMP_ROOT/fresh.output" || fail "首次安装商城失败"
+[ -x "$SERVICES_DIR/PluginLoader" ] && [ -f "$UNIT_PATH" ] || fail "首次安装未写入商城"
+grep -Fxq 'plugin-data' "$PLUGIN_DIR/KeepMe/data" || fail "首次安装改动了插件数据"
+
 UNIFIDECK_SOURCE="$TMP_ROOT/unifideck-source"
 UNIFIDECK_ARCHIVE="$TMP_ROOT/unifideck.zip"
 UNIFIDECK_PLUGIN_ROOT="$TMP_ROOT/unifideck-plugins"
@@ -528,4 +643,4 @@ export DECKY_PLUGIN_DIR
 [ -s "$UNIFIDECK_PLUGIN_ROOT/Unifideck/dist/index.js" ] || \
     fail "Unifideck 未写入正确的大写目录"
 
-echo "PASS: Decky 稳定/测试版切换、旧用户服务清理、统一卸载和 Unifideck 目录模拟通过"
+echo "PASS: Decky 先卸载再安装、同版重装、失败恢复、插件保留和下载回退模拟通过"
