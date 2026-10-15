@@ -11,8 +11,8 @@ OWNER="zliu9732-hub"
 TOKEN="${GITEE_TOKEN:-}"
 MODE="${1:-}"
 case "$MODE" in
-    ''|--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed|--only-inputplumber|--only-deckhomethemes) ;;
-    *) echo "Usage: $0 [--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed|--only-inputplumber|--only-deckhomethemes]"; exit 2 ;;
+    ''|--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed|--only-inputplumber|--only-deckhomethemes|--only-epic-linux) ;;
+    *) echo "Usage: $0 [--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed|--only-inputplumber|--only-deckhomethemes|--only-epic-linux]"; exit 2 ;;
 esac
 [ -n "$TOKEN" ] || {
     echo "GITEE_TOKEN secret is missing"
@@ -69,7 +69,7 @@ prepare_inputplumber_mirror() {
 prepare_deckhomethemes_mirror() {
     git clone -q --depth 1 --filter=blob:none --no-checkout \
         "$BASE/zhoukeer-toolbox-mirror-4.git" "$MIRROR4"
-    git -C "$MIRROR4" sparse-checkout set --no-cone 'deckhomethemes/**'
+    git -C "$MIRROR4" sparse-checkout set --no-cone 'deckhomethemes/**' 'epic-linux/**'
     git -C "$MIRROR4" checkout -q main
 }
 
@@ -83,7 +83,7 @@ elif [ "$MODE" = "--only-steamos-fixed" ]; then
 elif [ "$MODE" = "--only-inputplumber" ]; then
     prepare_inputplumber_mirror
 fi
-if [ -z "$MODE" ] || [ "$MODE" = "--only-deckhomethemes" ]; then
+if [ -z "$MODE" ] || [ "$MODE" = "--only-deckhomethemes" ] || [ "$MODE" = "--only-epic-linux" ]; then
     prepare_deckhomethemes_mirror
 fi
 if [ -z "$MODE" ] || [ "$MODE" = "--only-ge-proton" ]; then
@@ -422,6 +422,13 @@ sync_deckhomethemes() {
         "63c08a3ceb9c91d07eaaba2227c1cb7bffd3616b198418fd1a7449bc70a89a74" "$MIRROR4"
 }
 
+sync_epic_linux() {
+    sync_plugin epic-linux '' '^$' "Epic Linux 版" \
+        "0.96.0-g2fade97" "EpicGamesLauncher-x86_64.AppImage" \
+        "https://content-download-egs.distro.on.epicgames.com/Builds/EGLv2/0.96.0%2Bg2fade97/Linux/EpicGamesLauncher-x86_64.AppImage" \
+        "6c5cc46eef8c80b01759cc76154b69a20645b01b79526442a8550090db5d251e" "$MIRROR4"
+}
+
 sync_inputplumber() {
     sync_plugin inputplumber "ShadowBlip/InputPlumber" '^$' "InputPlumber" \
         "v0.79.2" "inputplumber-x86_64.tar.gz" \
@@ -464,6 +471,12 @@ sync_steamos_fixed_assets() {
         "7902cd60a4f29817eebe2668a15c9a1952ac690e8f7b07bfe7620fedd4e28217"
 }
 
+if [ "$MODE" = "--only-epic-linux" ]; then
+    sync_epic_linux
+    commit_and_push "$MIRROR4"
+    exit 0
+fi
+
 if [ "$MODE" = "--only-deckhomethemes" ]; then
     sync_deckhomethemes
     commit_and_push "$MIRROR4"
@@ -503,6 +516,7 @@ fi
 # SteamOS 主线中仍直接依赖 GitHub 的固定资产统一镜像到 mirror-1。
 sync_steamos_fixed_assets
 sync_deckhomethemes
+sync_epic_linux
 
 # 小黄鸭汉化叠加固定 v0.12.8，镜像必须与Renkit内置版本一致，否则 SHA 校验会拒绝。
 sync_plugin lsfg "xXJSONDeruloXx/decky-lsfg-vk" '^Decky[.]LSFG-VK[.]zip$' "Decky LSFG-VK" \

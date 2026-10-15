@@ -22,6 +22,7 @@ for claw_file in PKGBUILD Makefile dkms.conf claw_rt721_amp.c claw-rt721-fix.ser
 done
 VERIFY_FILES="$VERIFY_FILES third_party/onexplayer-apex-tools-zh-v0.1.0/dist/index.js third_party/onexplayer-apex-tools-zh-v0.1.0/plugin.json third_party/onexplayer-apex-tools-zh-v0.1.0/package.json third_party/onexplayer-apex-tools-zh-v0.1.0/LICENSE"
 PACKAGE_SOURCES=()
+VERIFY_FILES="$VERIFY_FILES modules/epic_linux.sh"
 
 validate_release_version() {
     local major minor patch extra

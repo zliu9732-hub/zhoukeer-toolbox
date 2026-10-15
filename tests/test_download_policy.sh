@@ -26,6 +26,10 @@ download_policy_url_allowed 'https://github.com/adoptium/temurin21-binaries/rele
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror/raw/main/savepulse/v0.2.0-alpha.1/part.0001' || fail "SavePulse Gitee 分块被拒绝"
 download_policy_url_allowed 'https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Windows/EpicInstaller-20.1.4.msi?launcherfilename=EpicInstaller-20.1.4.msi' || fail "Epic Akamai CDN 备用地址被拒绝"
 download_policy_url_allowed 'https://epicgames-download1.akamaized.net/Builds/UnrealEngineLauncher/Installers/Windows/EpicInstaller-20.1.4.exe' || fail "Epic Akamai EXE 地址被拒绝"
+download_policy_url_allowed 'https://content-download-egs.distro.on.epicgames.com/Builds/EGLv2/0.96.0%2Bg2fade97/Linux/EpicGamesLauncher-x86_64.AppImage' || fail 'Epic Linux 固定官方安装包被拒绝'
+if download_policy_url_allowed 'https://content-download-egs.distro.on.epicgames.com/Builds/EGLv2/unreviewed/Linux/EpicGamesLauncher-x86_64.AppImage'; then
+    fail '未核对的 Epic Linux 安装包被接受'
+fi
 download_policy_url_allowed 'https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.001' || fail "战网预装客户端分卷 1 被拒绝"
 download_policy_url_allowed 'https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.004' || fail "战网预装客户端分卷 4 被拒绝"
 [ "$(download_policy_max_bytes 'https://gitee.com/easylife2025/battle/releases/download/v1.0.0/Battle.net.7z.001')" -le 104857600 ] || fail "战网预装客户端分卷大小限制过大"

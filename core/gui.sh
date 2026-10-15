@@ -286,6 +286,7 @@ game_environment_gui_menu() {
     local game_info_choice
     local lsfg_choice
     local repair_choice
+    local epic_linux_choice
 
     while true; do
         choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
@@ -299,6 +300,7 @@ game_environment_gui_menu() {
             handheld-plugins "掌机控制插件｜掌机功耗控制与 ROG Ally Center" \
             ge-proton "安装 GE 兼容层｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
+            epic-linux "Epic Linux 版｜官方测试版，下载和管理 Epic 游戏" \
             tomoon "ToMoon｜在游戏模式管理网络连接和加速设置" \
             battlenet "战网启动器｜安装战网并添加到 Steam，方便下载和游玩暴雪游戏" \
             ubisoft "育碧｜安装育碧游戏平台并添加到 Steam" \
@@ -511,6 +513,19 @@ game_environment_gui_menu() {
                 run_gui_action "安装 Epic 游戏启动器并自动入库" \
                     env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/game_launchers.sh" epic
+                ;;
+            epic-linux)
+                epic_linux_choice="$(gui_dialog --menu "Epic Linux 版｜官方测试版，部分游戏暂不支持" \
+                    install "安装 Epic Linux 版｜创建桌面入口并添加到 Steam" \
+                    uninstall "卸载 Epic Linux 版｜保留账号设置、游戏与下载文件" \
+                    back "返回游戏平台列表")" || continue
+                case "$epic_linux_choice" in
+                    install) run_gui_action "安装 Epic Linux 版" bash "$PROJECT_ROOT/modules/epic_linux.sh" install ;;
+                    uninstall)
+                        gui_confirm "移除 Epic Linux 版和启动入口，保留账号设置、游戏与下载文件。确认继续？" && \
+                            run_gui_action "卸载 Epic Linux 版" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/epic_linux.sh" uninstall
+                        ;;
+                esac
                 ;;
             tomoon)
                 gui_confirm "将在游戏模式增加网络连接和加速设置。是否继续？" && \

@@ -128,6 +128,8 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/launch.sh"
 
 ## 常见问题
 
+Epic Linux 版：进入“游戏与插件 → 启动器与封面 → Epic Linux 版”安装，也可在图形菜单中找到。安装后从桌面或 Steam 打开并登录 Epic 账号；目前为官方测试版，部分功能和游戏暂不支持。原有 Epic 安装选项继续保留。
+
 ### 软件显示已安装但桌面没有图标
 
 再次点击该软件的安装按钮即可：Renkit会识别已安装状态，只修复桌面图标而不会重复下载。

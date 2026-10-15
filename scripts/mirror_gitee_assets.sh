@@ -442,6 +442,7 @@ mirror_mako_latest() {
 
 mirror_entries() {
     cat <<'EOF'
+epic-linux|Epic Linux 版|0.96.0-g2fade97|EpicGamesLauncher-x86_64.AppImage|https://content-download-egs.distro.on.epicgames.com/Builds/EGLv2/0.96.0%2Bg2fade97/Linux/EpicGamesLauncher-x86_64.AppImage|6c5cc46eef8c80b01759cc76154b69a20645b01b79526442a8550090db5d251e|
 deckhomethemes|主页主题（ThemeHub）|v1.10.7|DeckHomeThemes-v1.10.7.zip|https://github.com/Kaal31/benderthemes/releases/download/v1.10.7/DeckHomeThemes-v1.10.7.zip|63c08a3ceb9c91d07eaaba2227c1cb7bffd3616b198418fd1a7449bc70a89a74|
 sdweak|SDWEAK|v2.1.0|SDWEAK.zip|https://github.com/Taskerer/SDWEAK/releases/download/v2.1.0/SDWEAK.zip|5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e|
 decky-loader-stable|Decky Loader 稳定版|v3.2.8|PluginLoader|https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8/PluginLoader|4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2|

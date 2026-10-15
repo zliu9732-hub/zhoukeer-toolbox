@@ -126,3 +126,8 @@ https://github.com/Kaal31/benderthemes/releases/tag/v1.10.7
 安装优先从国内清单下载、重组并完整校验，再核对全部 67 个文件，在用户机器上添加中文界面与 `RenAmamiya汉化` 黄色署名。上游 plugin.json、后端与资源保持原字节。汉化字典和显示组件由 Renkit 自行编写，随 Renkit 更新包分发；国内源暂不可用时使用已审核加速线路和同版本官方来源兜底，本地写入失败直接停止。镜像同步固定版本，不自动切换到尚未汉化的新版本。
 
 插件目录仍为 DeckHomeThemes，注册名称仍为 ThemeHub。界面翻译仅作用于显示文字和下拉菜单标签，主题 ID、设置值、后端接口、资源名称及用户数据不改动。插件内官方更新按钮提示通过 Renkit 更新中文版，避免直接覆盖汉化；用户设置和已下载主题在 Decky 的独立设置/运行目录保留。主题中心的按需资源下载仍由上游维护，可能受其来源可用性影响。
+## Epic Games Launcher Linux Preview
+
+- 原作者：Epic Games, Inc.；官方页面：https://launcher.epicgames.com/ 。这是官方专有应用，非 Renkit 开源代码的一部分。
+- Renkit 安装固定版本 `0.96.0+g2fade97` 的官方 x86-64 AppImage，保留完整原包与第三方声明；不修改应用界面，不添加汉化署名。官方原文件单独分块托管在 Gitee mirror-4，重组后校验 SHA256 `6c5cc46eef8c80b01759cc76154b69a20645b01b79526442a8550090db5d251e`。
+- Renkit 更新包只包含安装与启动代码，未内置客户端。程序使用及其附带的第三方组件继续适用原有条款。

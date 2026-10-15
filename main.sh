@@ -796,13 +796,15 @@ launcher_tools_menu() {
         ui_touch_button 9 '\033[1;97;48;5;24m' "育碧" "安装并添加到 Steam"
         ui_touch_button 11 '\033[1;97;48;5;24m' "重新应用启动器封面" "重写 Steam 库封面，不依赖 Decky"
         ui_touch_button 13 '\033[1;97;48;5;24m' "HMCL 启动器" "Linux 原生 Minecraft 启动器 · 中文界面"
+        ui_touch_button 15 '\033[1;97;48;5;24m' "Epic Linux 版" "官方测试版 · 下载和管理 Epic 游戏"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件第二页"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:epic right:7-8:battlenet right:9-10:ubisoft right:11-12:repair right:13-14:hmcl right:19-20:back right:22-23:home)"
+        choice="$(read_touch_menu right:5-6:epic right:7-8:battlenet right:9-10:ubisoft right:11-12:repair right:13-14:hmcl right:15-16:epic-linux right:19-20:back right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
             epic) confirm_and_run "安装 Epic 游戏启动器" "安装并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" epic ;;
+            epic-linux) epic_linux_menu ;;
             battlenet) NEXT_CATEGORY="battlenet_submenu"; return 0 ;;
             ubisoft) confirm_and_run "安装育碧" "自动安装育碧游戏平台、创建桌面入口并添加到 Steam" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" ubisoft ;;
             hmcl) confirm_and_run "安装 HMCL 启动器" "安装和启动 Minecraft，并自动准备运行所需组件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/game_launchers.sh" hmcl ;;
@@ -811,6 +813,26 @@ launcher_tools_menu() {
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac
         [ "$NEXT_CATEGORY" = "launcher_tools" ] || return 0
+    done
+}
+
+epic_linux_menu() {
+    local choice
+    while true; do
+        draw_category_frame games "Epic Linux 版" "官方测试版 · 下载和管理 Epic 游戏，部分游戏暂不支持" 0
+        ui_touch_button 6 '\033[1;97;48;5;24m' "安装 Epic Linux 版" "创建桌面入口并添加到 Steam"
+        ui_touch_button 10 '\033[1;97;48;5;160m' "卸载 Epic Linux 版" "保留账号设置、游戏与下载文件"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "返回启动器列表" "查看其他游戏平台"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
+        ui_prompt
+        choice="$(read_touch_menu right:6-7:install right:10-11:uninstall right:19-20:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 0; fi
+        case "$choice" in
+            install) confirm_and_run "安装 Epic Linux 版" "下载和管理 Epic 游戏；目前为官方测试版，部分功能和游戏暂不支持；安装后可从桌面或 Steam 打开" bash "$PROJECT_ROOT/modules/epic_linux.sh" install ;;
+            uninstall) confirm_and_run "卸载 Epic Linux 版" "移除程序和启动入口，保留账号设置、游戏与下载文件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/epic_linux.sh" uninstall ;;
+            back) return 0 ;;
+            home) NEXT_CATEGORY="home"; return 0 ;;
+        esac
     done
 }
 

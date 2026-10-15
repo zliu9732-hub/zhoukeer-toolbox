@@ -183,6 +183,10 @@ assert_contains "$touch_battlenet" 'right:7-8:heihe' "战网子菜单缺少黑�
 assert_contains "$touch_battlenet" 'modules/game_launchers.sh" heihe' "战网子菜单黑盒工坊动作错误"
 touch_launcher_tools="$(function_source "$MAIN_FILE" launcher_tools_menu)"
 assert_contains "$touch_launcher_tools" 'right:13-14:hmcl' "启动器与封面子菜单缺少 HMCL 启动器坐标"
+assert_contains "$touch_launcher_tools" 'right:15-16:epic-linux' '启动器子菜单缺少 Epic Linux 版坐标'
+touch_epic_linux="$(function_source "$MAIN_FILE" epic_linux_menu)"
+assert_contains "$touch_epic_linux" 'modules/epic_linux.sh" install' 'Epic Linux 安装动作错误'
+assert_contains "$touch_epic_linux" 'modules/epic_linux.sh" uninstall' 'Epic Linux 卸载动作错误'
 assert_contains "$touch_launcher_tools" 'modules/game_launchers.sh" hmcl' "启动器与封面子菜单 HMCL 启动器动作错误"
 touch_freedeck="$(function_source "$MAIN_FILE" freedeck_versions_menu)"
 assert_contains "$touch_freedeck" 'right:5-6:stable' "Freedeck 子菜单缺少 0.6 稳定版动作"
