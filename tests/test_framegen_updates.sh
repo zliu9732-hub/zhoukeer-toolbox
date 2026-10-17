@@ -18,7 +18,7 @@ from pathlib import Path
 sys.path.insert(0,sys.argv[1]);from framegen_package import KINDS
 root=Path(sys.argv[2]);c={'schema':1,'packages':{}}
 for kind,v in [('lsfg-v2','0.14.5'),('fsr4','0.18')]:
- k=KINDS[kind];name=k['names'][0];folder=k['roots'][1 if kind=='lsfg-v2' else 0]
+ k=KINDS[kind];name=k['names'][1];folder=k['roots'][1 if kind=='lsfg-v2' else 0]
  files={'plugin.json':json.dumps({'name':name}).encode(),'package.json':json.dumps({'version':v}).encode(),
         'dist/index.js':b'Chinese frontend '+kind.encode(),'main.py':b'# backend\n','LICENSE':b'Original license',
         'bin/new-runtime-2.1.tar.xz':b'new runtime'}
@@ -27,7 +27,7 @@ for kind,v in [('lsfg-v2','0.14.5'),('fsr4','0.18')]:
   for n,b in files.items():z.writestr(folder+'/'+n,b)
  c['packages'][kind]={'upstream_version':v,'upstream_sha256':'a'*64,'package_sha256':hashlib.sha256(p.read_bytes()).hexdigest(),
  'frontend_sha256':hashlib.sha256(files['dist/index.js']).hexdigest(),'mirror_id':k['ids'][1],'archive_root':folder,'plugin_name':name,
- 'attribution':'RenAmamiya','files':{n:hashlib.sha256(b).hexdigest() for n,b in files.items()}}
+ 'attribution':'RenAmamiya','translation_revision':2,'files':{n:hashlib.sha256(b).hexdigest() for n,b in files.items()}}
 (root/'catalog.json').write_text(json.dumps(c,ensure_ascii=False))
 PY
 MODE=ok
@@ -53,6 +53,17 @@ download_gitee_mirror_file() {
     return 0
 }
 mkdir -p "$DECKY_PLUGIN_DIR/Decky LSFG-VK" "$DECKY_PLUGIN_DIR/小黄鸭2.0" "$DECKY_PLUGIN_DIR/Mako"
+# The broken automatic build had the same upstream version, but renamed only plugin.json.
+# A repaired catalog must replace that installation rather than skip on version equality.
+python3 - "$TMP_ROOT" "$DECKY_PLUGIN_DIR/Decky LSFG-VK" <<'PY'
+import sys,json,zipfile
+from pathlib import Path
+root,target=map(Path,sys.argv[1:]);c=json.loads((root/'catalog.json').read_text())
+with zipfile.ZipFile(root/'lsfg-v2.zip') as z:
+ for name in z.namelist():
+  p=target/Path(name).relative_to('小黄鸭2.0');p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(z.read(name))
+(target/'plugin.json').write_text(json.dumps({'name':'小黄鸭2.0'}))
+PY
 printf 'old program' > "$DECKY_PLUGIN_DIR/Decky LSFG-VK/old"
 printf '{"name":"小黄鸭2.0"}' > "$DECKY_PLUGIN_DIR/小黄鸭2.0/plugin.json"
 printf 'keep Mako' > "$DECKY_PLUGIN_DIR/Mako/user-settings"
@@ -67,6 +78,7 @@ install_lsfg_v2_from_gitee 0 > "$TMP_ROOT/ok.out" || fail '新版中文包不能
 [ ! -e "$DECKY_PLUGIN_DIR/Decky LSFG-VK/old" ] || fail '新版没有覆盖旧目录'
 [ ! -e "$DECKY_PLUGIN_DIR/小黄鸭2.0" ] || fail '新版没有清理重复目录'
 [ -f "$DECKY_PLUGIN_DIR/Decky LSFG-VK/bin/new-runtime-2.1.tar.xz" ] || fail '仍只允许固定旧运行组件'
+grep -Fq 'Decky LSFG-VK' "$DECKY_PLUGIN_DIR/Decky LSFG-VK/plugin.json" || fail '同版本修复未恢复后端内部名称'
 grep -Fxq 'keep Mako' "$DECKY_PLUGIN_DIR/Mako/user-settings" || fail '改动了 Mako'
 [ "$LSFG_V2_VERSION" = 0.14.5 ] || fail '没有更新当前版本信息'
 lsfg_v2_is_current "$DECKY_PLUGIN_DIR" || fail '新版未通过完整性检查'

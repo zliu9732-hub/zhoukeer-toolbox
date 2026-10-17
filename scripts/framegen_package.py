@@ -65,6 +65,8 @@ def entry(catalog, kind):
         raise ValueError('unexpected plugin identity')
     if e['attribution'] not in ['RenAmamiya', 'upstream']:
         raise ValueError('invalid attribution')
+    if 'translation_revision' in e and (type(e['translation_revision']) is not int or not 1 <= e['translation_revision'] <= 1000):
+        raise ValueError('invalid translation revision')
     for key in ['package_sha256', 'upstream_sha256', 'frontend_sha256']:
         if not HEX.fullmatch(e[key]):
             raise ValueError('invalid checksum')

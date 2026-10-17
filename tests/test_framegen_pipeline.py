@@ -23,7 +23,9 @@ class PipelineTests(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory(); self.root=Path(self.tmp.name)
         self.archive=self.root/'upstream.zip'
-        self.source='''const MESSAGES={label:"Settings"}; const backend={action:"Install",path:"/keep/game",value:"Settings"};
+        self.source='''const manifest={name:"Decky LSFG-VK"};
+        const api=window.loader.connect(2,manifest.name); const check=api.callable("check_lsfg_vk_installed");
+        const MESSAGES={label:"Settings"}; const backend={action:"Install",path:"/keep/game",value:"Settings"};
         export default {titleView:window.SP_REACT.createElement("div",null,"Plugin"),
         content:window.SP_REACT.createElement("div",{label:MESSAGES.label},"Install","Cancel")};'''
         self.make_archive()
@@ -68,6 +70,27 @@ class PipelineTests(unittest.TestCase):
         new['packages']['lsfg-v2']['upstream_version']='0.15.0'
         merged=pkg.merge_catalog(c,new)
         self.assertEqual(merged['packages']['lsfg-v2']['upstream_version'],'0.15.0')
+    def test_same_upstream_version_repairs_older_automatic_package(self):
+        c=json.loads((ROOT/'data/framegen_auto_baseline.json').read_text())
+        releases={k:{'version':v['upstream_version'],'sha256':v['upstream_sha256']} for k,v in c['packages'].items()}
+        c['packages']['lsfg-v2']['mirror_id']='lsfg-v2-zh-auto'
+        self.assertEqual(set(sync.make_plan(c,releases)),{'lsfg-v2'})
+        c['packages']['lsfg-v2']['translation_revision']=sync.TRANSLATION_REVISION
+        self.assertEqual(sync.make_plan(c,releases),{})
+        c['packages']['lsfg-v2']['translation_revision']=sync.TRANSLATION_REVISION+1
+        self.assertEqual(sync.make_plan(c,releases),{})
+    def test_backend_registration_matches_without_executing_plugin(self):
+        e,p=self.build(); files=pkg.zip_files(p)
+        plugin=json.loads(files[e['archive_root']+'/plugin.json'])
+        frontend=self.root/'localized.js';frontend.write_bytes(files[e['archive_root']+'/dist/index.js'])
+        api_names=json.loads(sync.node('inspect',frontend,capture=True))['api_plugin_names']
+        self.assertEqual(api_names,['Decky LSFG-VK'])
+        self.assertEqual(api_names,[plugin['name']])
+        self.assertEqual(e['plugin_name'],plugin['name'])
+        self.assertIn('小黄鸭2.0',frontend.read_text())
+        self.assertEqual(e['translation_revision'],sync.TRANSLATION_REVISION)
+        self.make_archive(self.source.replace('manifest.name','"Other Plugin"'))
+        with self.assertRaisesRegex(ValueError,'registration mismatch'):self.build()
     def test_build_keeps_non_ui_bytes_and_permissions(self):
         e,p=self.build(); first=p.read_bytes()
         out=self.root/'extracted';pkg.extract_verified(p,out,e)
@@ -122,7 +145,7 @@ class PipelineTests(unittest.TestCase):
         pkg.entry(c,'lsfg-v2');pkg.extract_verified(p,self.root/'installed',e)
         (self.root/'installed/main.py').write_text('changed')
         with self.assertRaises(ValueError):pkg.check_tree(self.root/'installed',e)
-        for key,value in [('mirror_id','evil'),('archive_root','../outside'),('plugin_name','Other plugin'),('upstream_version','$(touch PWN)'),('package_sha256','bad')]:
+        for key,value in [('mirror_id','evil'),('archive_root','../outside'),('plugin_name','Other plugin'),('upstream_version','$(touch PWN)'),('package_sha256','bad'),('translation_revision',True),('translation_revision',-1)]:
             bad=copy.deepcopy(c);bad['packages']['lsfg-v2'][key]=value
             with self.assertRaises(ValueError):pkg.entry(bad,'lsfg-v2')
     def test_publish_orders_package_verification_before_catalog(self):

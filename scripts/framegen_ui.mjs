@@ -62,7 +62,22 @@ function analyze(code) {
     if(n.type==='CallExpression' && n.callee.type==='MemberExpression' &&
        !n.callee.computed && n.callee.property.name==='createElement' && !['style','script'].includes(n.arguments[0]?.value)) n.arguments.slice(2).forEach(add);
   });
-  return {ast,regions:[...regions.values()],titles,literals};
+  const apiPluginNames=[];
+  walk(ast,n=>{
+    // @decky/api registers calls under this exact name, not the visible title.
+    if(n.type!=='CallExpression' || n.callee.type!=='MemberExpression' ||
+       n.callee.property.name!=='connect' || n.arguments.length<2) return;
+    const name=n.arguments[1];
+    if(name.type==='Literal' && typeof name.value==='string') apiPluginNames.push(name.value);
+    if(name.type==='MemberExpression' && name.object.type==='Identifier') {
+      const object=bindings.get(name.object.name);
+      const key=name.computed?name.property.value:name.property.name;
+      if(object?.type==='ObjectExpression') {
+        for(const p of object.properties) if(keyOf(p)===key && typeof p.value?.value==='string') apiPluginNames.push(p.value.value);
+      }
+    }
+  });
+  return {ast,regions:[...regions.values()],titles,literals,apiPluginNames:[...new Set(apiPluginNames)]};
 }
 
 export function inspect(code) {
@@ -79,7 +94,7 @@ export function inspect(code) {
     const keys=new Set(pairs.map(keyOf));
     if(templateKeys.length>=20 && templateKeys.every(k=>keys.has(k)) && pairs.filter(p=>/[\u3400-\u9fff]/.test(p.value.value)).length>=20) officialChinese=true;
   }
-  return {strings:[...new Set(a.regions.flatMap(r=>r.values))].sort(),titles:a.titles.length,literals:a.literals,official_chinese:officialChinese};
+  return {strings:[...new Set(a.regions.flatMap(r=>r.values))].sort(),titles:a.titles.length,literals:a.literals,official_chinese:officialChinese,api_plugin_names:a.apiPluginNames};
 }
 export function localize(code,dictionary,runtime) {
   const a=analyze(code);

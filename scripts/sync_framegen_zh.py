@@ -22,6 +22,7 @@ UPSTREAM = {'lsfg-v2': ('xXJSONDeruloXx/decky-lsfg-vk', 'Decky.LSFG-VK.zip'),
             'fsr4': ('xXJSONDeruloXx/Decky-Framegen', 'Decky-Framegen.zip')}
 MODEL = 'Helsinki-NLP/opus-mt-en-zh'
 MODEL_REVISION = '408d9bc410a388e1d9aef112a2daba955b945255'
+TRANSLATION_REVISION = 2  # Rebuild older automatic packages even without an upstream version bump.
 
 def due(timestamp=None):
     # Unix-day parity, unlike */2 day-of-month cron, stays 48 hours across month boundaries.
@@ -83,7 +84,10 @@ def make_plan(catalog, releases):
         release = releases[kind]
         if version(release['version']) < version(current['upstream_version']):
             raise ValueError('upstream downgrade rejected')
-        if release['version'] != current['upstream_version'].lstrip('v') or release['sha256'] != current['upstream_sha256']:
+        repair = (current['mirror_id'] == KINDS[kind]['ids'][1] and
+                  current['attribution'] == 'RenAmamiya' and
+                  current.get('translation_revision', 0) < TRANSLATION_REVISION)
+        if repair or release['version'] != current['upstream_version'].lstrip('v') or release['sha256'] != current['upstream_sha256']:
             result[kind] = release
     return result
 
@@ -147,6 +151,8 @@ def build(kind, release, archive, output, machine=False):
     work.mkdir(parents=True, exist_ok=True)
     js = work/'original.js'; js.write_bytes(files['dist/index.js'])
     info = json.loads(node('inspect', js, capture=True))
+    if any(name != plugin['name'] for name in info['api_plugin_names']):
+        raise ValueError('frontend/backend plugin registration mismatch')
     if info.get('official_chinese'):
         # A complete native Chinese locale wins: preserve the original ZIP and authorship byte-for-byte.
         package_path=work/'plugin.zip'; shutil.copyfile(archive, package_path)
@@ -165,12 +171,15 @@ def build(kind, release, archive, output, machine=False):
     (work/'dictionary.json').write_text(json.dumps(dictionary, ensure_ascii=False))
     node('build', js, work/'dictionary.json', ROOT/'assets/framegen/zh-runtime.js', work/'localized.js')
     files['dist/index.js'] = (work/'localized.js').read_bytes()
-    plugin['name'] = KINDS[kind]['names'][0]
+    # Keep the upstream registration ID. @decky/api embeds it in dist/index.js;
+    # translating plugin.json.name alone routes every Python call to a missing plugin.
+    # The visible title is already translated by framegen_ui.mjs.
     publish = plugin.setdefault('publish', {})
     publish['description'] = ('小黄鸭补帧插件' if kind == 'lsfg-v2' else '游戏插帧与画面设置') + '；中文汉化：RenAmamiya。'
     files['plugin.json'] = (json.dumps(plugin, ensure_ascii=False, indent=2)+'\n').encode()
     files['RENKIT_TRANSLATION.json'] = (json.dumps({'upstream': UPSTREAM[kind][0], 'upstream_version': release['version'],
         'upstream_sha256': release['sha256'], 'translator': 'RenAmamiya', 'machine_new_strings': missing,
+        'translation_revision': TRANSLATION_REVISION,
         'unchanged_backend_and_runtimes': True}, ensure_ascii=False, indent=2)+'\n').encode()
     modes['RENKIT_TRANSLATION.json']=0o644
     for n, b in original.items():
@@ -187,6 +196,7 @@ def build(kind, release, archive, output, machine=False):
     e = {'upstream_version': release['version'], 'upstream_sha256': release['sha256'], 'package_sha256': digest(package_path),
          'frontend_sha256': hashlib.sha256(files['dist/index.js']).hexdigest(), 'mirror_id': KINDS[kind]['ids'][1],
          'archive_root': archive_root, 'plugin_name': plugin['name'], 'attribution': 'RenAmamiya',
+         'translation_revision': TRANSLATION_REVISION,
          'files': {n: hashlib.sha256(b).hexdigest() for n, b in files.items()}, 'modes':modes}
     entry({'schema':1,'packages':{kind:e}}, kind)
     return e, package_path
