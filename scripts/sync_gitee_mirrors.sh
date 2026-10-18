@@ -11,8 +11,8 @@ OWNER="zliu9732-hub"
 TOKEN="${GITEE_TOKEN:-}"
 MODE="${1:-}"
 case "$MODE" in
-    ''|--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed|--only-inputplumber|--only-deckhomethemes|--only-epic-linux) ;;
-    *) echo "Usage: $0 [--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed|--only-inputplumber|--only-deckhomethemes|--only-epic-linux]"; exit 2 ;;
+    ''|--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed|--only-inputplumber|--only-deckhomethemes|--only-epic-linux|--only-ayaneo3) ;;
+    *) echo "Usage: $0 [--only-ge-proton|--only-proton-cachyos|--only-steamos-fixed|--only-inputplumber|--only-deckhomethemes|--only-epic-linux|--only-ayaneo3]"; exit 2 ;;
 esac
 [ -n "$TOKEN" ] || {
     echo "GITEE_TOKEN secret is missing"
@@ -69,7 +69,11 @@ prepare_inputplumber_mirror() {
 prepare_deckhomethemes_mirror() {
     git clone -q --depth 1 --filter=blob:none --no-checkout \
         "$BASE/zhoukeer-toolbox-mirror-4.git" "$MIRROR4"
-    git -C "$MIRROR4" sparse-checkout set --no-cone 'deckhomethemes/**' 'epic-linux/**'
+    if [ "$MODE" = --only-ayaneo3 ]; then
+        git -C "$MIRROR4" sparse-checkout set --no-cone 'ayaneo3-companion/**'
+    else
+        git -C "$MIRROR4" sparse-checkout set --no-cone 'deckhomethemes/**' 'epic-linux/**' 'ayaneo3-companion/**'
+    fi
     git -C "$MIRROR4" checkout -q main
 }
 
@@ -83,7 +87,7 @@ elif [ "$MODE" = "--only-steamos-fixed" ]; then
 elif [ "$MODE" = "--only-inputplumber" ]; then
     prepare_inputplumber_mirror
 fi
-if [ -z "$MODE" ] || [ "$MODE" = "--only-deckhomethemes" ] || [ "$MODE" = "--only-epic-linux" ]; then
+if [ -z "$MODE" ] || [ "$MODE" = "--only-deckhomethemes" ] || [ "$MODE" = "--only-epic-linux" ] || [ "$MODE" = "--only-ayaneo3" ]; then
     prepare_deckhomethemes_mirror
 fi
 if [ -z "$MODE" ] || [ "$MODE" = "--only-ge-proton" ]; then
@@ -124,7 +128,7 @@ sync_plugin() {
     local pinned_version="${5:-}" pinned_file="${6:-}" pinned_url="${7:-}" pinned_sha="${8:-}"
     local mirror_repo="${9:-$MIRROR1}"
     local version file url sha size chunks target_dir chunk_size=8388608
-    case "$id" in sdweak|deckhomethemes) chunk_size=1048576 ;; esac
+    case "$id" in sdweak|deckhomethemes) chunk_size=1048576 ;; ayaneo3-companion) chunk_size=131072 ;; esac
 
     if [ -n "$pinned_version" ]; then
         version="$pinned_version"
@@ -157,7 +161,7 @@ sync_plugin() {
     mkdir -p "$target_dir"
     rm -f -- "$mirror_repo/$id/$version"/*
 
-    if [ "$size" -le 9437184 ] && [ "$id" != sdweak ] && [ "$id" != deckhomethemes ]; then
+    if [ "$size" -le 9437184 ] && [ "$id" != sdweak ] && [ "$id" != deckhomethemes ] && [ "$id" != ayaneo3-companion ]; then
         cp -- "$WORK/$file" "$target_dir/$file"
         chunks=0
     else
@@ -414,6 +418,13 @@ commit_and_push_inputplumber() {
     fi
 }
 
+sync_ayaneo3() {
+    sync_plugin ayaneo3-companion '' '^$' "AYANEO3 Companion" \
+        "1.2.0" "Ayaneo3Companion-1.2.0.zip" \
+        "https://github.com/Rayekkk/Ayaneo3Companion/releases/download/1.2.0/Ayaneo3Companion-1.2.0.zip" \
+        "b1c9a5529b3f5a4dee88ca275d285bb6347092a5f7e90db07b87b24725b4f651" "$MIRROR4"
+}
+
 sync_deckhomethemes() {
     # 与中文组件保持同一固定版本，防止同步未来未汉化版本导致校验不匹配。
     sync_plugin deckhomethemes "Kaal31/benderthemes" '^$' "主页主题（ThemeHub）" \
@@ -471,6 +482,12 @@ sync_steamos_fixed_assets() {
         "7902cd60a4f29817eebe2668a15c9a1952ac690e8f7b07bfe7620fedd4e28217"
 }
 
+if [ "$MODE" = "--only-ayaneo3" ]; then
+    sync_ayaneo3
+    commit_and_push "$MIRROR4"
+    exit 0
+fi
+
 if [ "$MODE" = "--only-epic-linux" ]; then
     sync_epic_linux
     commit_and_push "$MIRROR4"
@@ -517,6 +534,7 @@ fi
 sync_steamos_fixed_assets
 sync_deckhomethemes
 sync_epic_linux
+sync_ayaneo3
 
 # 小黄鸭汉化叠加固定 v0.12.8，镜像必须与Renkit内置版本一致，否则 SHA 校验会拒绝。
 sync_plugin lsfg "xXJSONDeruloXx/decky-lsfg-vk" '^Decky[.]LSFG-VK[.]zip$' "Decky LSFG-VK" \

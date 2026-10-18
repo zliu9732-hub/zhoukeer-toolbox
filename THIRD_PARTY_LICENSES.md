@@ -129,6 +129,13 @@ https://github.com/Kaal31/benderthemes/releases/tag/v1.10.7
 安装优先从国内清单下载、重组并完整校验，再核对全部 67 个文件，在用户机器上添加中文界面与 `RenAmamiya汉化` 黄色署名。上游 plugin.json、后端与资源保持原字节。汉化字典和显示组件由 Renkit 自行编写，随 Renkit 更新包分发；国内源暂不可用时使用已审核加速线路和同版本官方来源兜底，本地写入失败直接停止。镜像同步固定版本，不自动切换到尚未汉化的新版本。
 
 插件目录仍为 DeckHomeThemes，注册名称仍为 ThemeHub。界面翻译仅作用于显示文字和下拉菜单标签，主题 ID、设置值、后端接口、资源名称及用户数据不改动。插件内官方更新按钮提示通过 Renkit 更新中文版，避免直接覆盖汉化；用户设置和已下载主题在 Decky 的独立设置/运行目录保留。主题中心的按需资源下载仍由上游维护，可能受其来源可用性影响。
+## AYANEO 3 Companion
+
+- 原作者：Rayek / Rayekkk；来源：https://github.com/Rayekkk/Ayaneo3Companion/releases/tag/1.2.0 ，许可证为 BSD-3-Clause，Copyright (c) 2026, Rayekkk。
+- 固定官方完整包 `Ayaneo3Companion-1.2.0.zip`，SHA256：`b1c9a5529b3f5a4dee88ca275d285bb6347092a5f7e90db07b87b24725b4f651`。Gitee mirror-4 保存两个 128 KiB 上限的原始分块，重组后与官方文件完全相同。
+- 安装时由 Renkit 自行编写的翻译层提供中文显示和黄色 `RenAmamiya汉化` 署名；不改变 `AYANEO 3 Companion` 注册名称、root 标志、后端方法、参数、设置键或硬件控制。40 个文件中只有 `dist/index.js` 增加显示翻译，其余 39 个保持官方原字节，包括 LICENSE、NOTICE、完整第三方源代码与 LGPL-2.1 声明。
+- 硬件控制和按需组件仍由上游维护。中文仅用于显示，不扩大作者的机型支持范围；真实掌机功能由设备、系统和上游驱动决定。
+
 ## Epic Games Launcher Linux Preview
 
 - 原作者：Epic Games, Inc.；官方页面：https://launcher.epicgames.com/ 。这是官方专有应用，非 Renkit 开源代码的一部分。

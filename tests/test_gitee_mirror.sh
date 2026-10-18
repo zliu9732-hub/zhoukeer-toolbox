@@ -62,6 +62,10 @@ curl() {
     FAIL "Proton-CachyOS 最新清单未使用独立 mirror-9"
 [ "$(gitee_mirror_manifest_repo test)" = "zhoukeer-toolbox-mirror" ] || \
     FAIL "其他镜像清单仓库被 GE-Proton 专用路由影响"
+[ "$(gitee_mirror_manifest_repo ayaneo3-companion)" = zhoukeer-toolbox-mirror-4 ] || FAIL "AYANEO3 下载仓库路由错误"
+[ "$(gitee_mirror_id_for_url 'https://github.com/Rayekkk/Ayaneo3Companion/releases/download/1.2.0/Ayaneo3Companion-1.2.0.zip')" = ayaneo3-companion ] || FAIL "AYANEO3 原包地址路由错误"
+grep -Fq 'ayaneo3-companion|AYANEO3 Companion|1.2.0|Ayaneo3Companion-1.2.0.zip|' "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || FAIL "AYANEO3 镜像配置缺失"
+grep -Fq 'sync_plugin ayaneo3-companion' "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || FAIL "AYANEO3 自动同步配置缺失"
 
 mirror_output="$(download_gitee_mirror_file test "$TMP_ROOT/out.bin" "$FULL_SHA" "测试镜像")"
 printf '%s\n' "$mirror_output" | grep -Fq '正在下载 测试镜像' || \

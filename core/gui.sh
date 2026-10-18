@@ -418,6 +418,7 @@ game_environment_gui_menu() {
                     powercontrol "PowerControl 功耗控制｜调节性能、耗电和风扇转速" \
                     simpledeckytdp "掌机功耗控制｜调节游戏性能和耗电·中文界面" \
                     allycenter "Ally 控制中心｜调节灯光、耗电、风扇和充电上限" \
+                    ayaneo3 "AYANEO3 Companion｜仅适用于 AYANEO3" \
                     huesync "通用掌机灯光｜调节掌机灯光·中文界面" \
                     legiongo-remapper "Legion Go 控制中心｜初代 Legion Go 按键、RGB、充电与风扇" \
                     gpd-control "GPD 控制中心｜调节灯光，并为每个游戏保存设置" \
@@ -426,6 +427,12 @@ game_environment_gui_menu() {
                     onexplayer-tools "OneXPlayer 机型工具｜X2 Mini Pro 亮度修复（已实测）/ Apex 工具" \
                     back "返回游戏与插件")" || continue
                 case "$handheld_plugin_choice" in
+                    ayaneo3)
+                        gui_confirm "仅适用于 AYANEO3" && \
+                            run_gui_action "安装 AYANEO3 Companion 中文版" \
+                                env ZHOUKEER_AUTO_CONFIRM=1 \
+                                bash "$PROJECT_ROOT/modules/plugin_store.sh" ayaneo3
+                        ;;
                     powercontrol)
                         gui_confirm "高风险：调节掌机性能、耗电和风扇，需要管理员权限；仅适用于支持的机型。不要与其他功耗或风扇插件同时启用，设置不当可能导致过热或系统不稳定。是否继续？" && \
                             run_gui_action "安装 PowerControl" \

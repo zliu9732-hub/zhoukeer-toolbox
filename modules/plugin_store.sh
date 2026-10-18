@@ -11,6 +11,7 @@ source "$PROJECT_ROOT/core/auth.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/modules/steam_accelerator.sh"
 source "$PROJECT_ROOT/modules/framegen_updates.sh"
+source "$PROJECT_ROOT/modules/ayaneo3.sh"
 
 load_config
 
@@ -3997,6 +3998,9 @@ install_configured_plugin() {
     fi
 
     case "$action" in
+        ayaneo3)
+            ensure_ayaneo3_chinese_current || return 1
+            ;;
         deckhomethemes)
             [ "$IS_STEAMOS" -eq 1 ] || {
                 echo "主页主题安装仅在 SteamOS 主线提供。"
@@ -4870,6 +4874,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         steamdb-info) install_configured_plugin steamdb-info ;;
         decky-translator) install_configured_plugin decky-translator ;;
         allycenter) show_plugin_download_speed_tip; install_configured_plugin allycenter ;;
+        ayaneo3) install_configured_plugin ayaneo3 ;;
         powercontrol) show_plugin_download_speed_tip; install_configured_plugin powercontrol ;;
         huesync) show_plugin_download_speed_tip; install_configured_plugin huesync ;;
         legiongo-remapper) show_plugin_download_speed_tip; install_configured_plugin legiongo-remapper ;;

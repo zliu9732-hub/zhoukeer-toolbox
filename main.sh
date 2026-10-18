@@ -865,10 +865,11 @@ onexplayer_tools_menu() {
 }
 
 handheld_plugins_menu() {
-    local choice
+    local choice page=1
 
     while true; do
         draw_category_frame games "掌机控制插件" "功耗、灯光、按键、震动与风扇控制" 0
+        if [ "$page" -eq 1 ]; then
         ui_touch_button 3 '\033[1;97;48;5;24m' "PowerControl 功耗控制" "调节性能、耗电和风扇转速"
         ui_touch_button 5 '\033[1;97;48;5;24m' "掌机功耗控制" "调节游戏性能和耗电·中文界面"
         ui_touch_button 7 '\033[1;97;48;5;24m' "Ally 控制中心" "调节灯光、耗电、风扇和充电上限"
@@ -878,12 +879,27 @@ handheld_plugins_menu() {
         ui_touch_button 15 '\033[1;97;48;5;24m' "Legion Go 震动控制" "Legion Go / Go 2 震动与触控板反馈"
         ui_touch_button 17 '\033[1;97;48;5;24m' "Legion Go 2 风扇控制" "仅 Legion Go 2·不受限风扇曲线"
         ui_touch_button 19 '\033[1;97;48;5;24m' "OneXPlayer 机型工具" "X2 Mini Pro 亮度修复（已实测）/ Apex 工具"
+        ui_touch_button 21 '\033[1;97;48;5;30m' "下一页" "AYANEO3 Companion"
+        else
+        ui_touch_button 5 '\033[1;97;48;5;24m' "AYANEO3 Companion" "仅适用于 AYANEO3"
+        ui_touch_button 19 '\033[1;97;48;5;238m' "上一页" "查看其他掌机控制插件"
         ui_touch_button 21 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件第二页"
+        fi
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:3-4:powercontrol right:5-6:simpledeckytdp right:7-8:allycenter right:9-10:huesync right:11-12:legiongo-remapper right:13-14:gpd-control right:15-16:lego-vibe right:17-18:lego2-fan right:19-20:onexplayer-tools right:21-22:back right:23-24:home)"
+        if [ "$page" -eq 1 ]; then
+            choice="$(read_touch_menu right:3-4:powercontrol right:5-6:simpledeckytdp right:7-8:allycenter right:9-10:huesync right:11-12:legiongo-remapper right:13-14:gpd-control right:15-16:lego-vibe right:17-18:lego2-fan right:19-20:onexplayer-tools right:21-22:next right:23-24:home)"
+        else
+            choice="$(read_touch_menu right:5-6:ayaneo3 right:19-20:previous right:21-22:back right:23-24:home)"
+        fi
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
+            next) page=2 ;;
+            previous) page=1 ;;
+            ayaneo3)
+                confirm_and_run "安装 AYANEO3 Companion 中文版" "仅适用于 AYANEO3" \
+                    env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" ayaneo3
+                ;;
             powercontrol)
                 confirm_and_run "安装 PowerControl" "高风险：调节掌机性能、耗电和风扇，需要管理员权限；仅适用于支持的机型。不要与其他功耗或风扇插件同时启用，设置不当可能导致过热或系统不稳定" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" powercontrol
