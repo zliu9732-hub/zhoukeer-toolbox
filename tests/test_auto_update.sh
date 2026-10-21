@@ -247,16 +247,21 @@ if printf '%s\n' "$startup_update_source" | grep -Fq 'tee -a "$LAUNCH_LOG"'; the
     exit 1
 fi
 run_main_source="$(sed -n '/^run_main()/,/^}/p' "$PROJECT_ROOT/launch.sh")"
-printf '%s\n' "$run_main_source" | grep -Fq 'Renkit启动中，请耐心等待' || {
+printf '%s\n' "$run_main_source" | grep -Fq 'run_startup_screen' || {
+    echo "FAIL: 主程序没有调用启动提示和更新流程" >&2
+    exit 1
+}
+startup_screen_source="$(sed -n '/^run_startup_screen()/,/^}/p' "$PROJECT_ROOT/launch.sh")"
+printf '%s\n' "$startup_screen_source" | grep -Fq 'Renkit启动中，请耐心等待' || {
     echo "FAIL: 启动更新前没有显示Renkit启动提示" >&2
     exit 1
 }
-printf '%s\n' "$run_main_source" | grep -Fq '若启动较慢，Renkit可能正在更新，请耐心等待' || {
+printf '%s\n' "$startup_screen_source" | grep -Fq '若启动较慢，Renkit可能正在更新，请耐心等待' || {
     echo "FAIL: 启动更新前没有说明启动缓慢可能正在更新" >&2
     exit 1
 }
-startup_prompt_line="$(printf '%s\n' "$run_main_source" | grep -n 'Renkit启动中，请耐心等待' | head -n 1 | cut -d: -f1)"
-startup_update_line="$(printf '%s\n' "$run_main_source" | grep -n 'run_startup_update' | head -n 1 | cut -d: -f1)"
+startup_prompt_line="$(printf '%s\n' "$startup_screen_source" | grep -n 'Renkit启动中，请耐心等待' | head -n 1 | cut -d: -f1)"
+startup_update_line="$(printf '%s\n' "$startup_screen_source" | grep -n 'run_startup_update' | head -n 1 | cut -d: -f1)"
 if [ -z "$startup_prompt_line" ] || [ -z "$startup_update_line" ] || \
     [ "$startup_prompt_line" -ge "$startup_update_line" ]; then
     echo "FAIL: Renkit启动提示没有在自动更新前显示" >&2

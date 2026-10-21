@@ -84,7 +84,7 @@ class PipelineTests(unittest.TestCase):
         plugin=json.loads(files[e['archive_root']+'/plugin.json'])
         frontend=self.root/'localized.js';frontend.write_bytes(files[e['archive_root']+'/dist/index.js'])
         api_names=json.loads(sync.node('inspect',frontend,capture=True))['api_plugin_names']
-        self.assertEqual(api_names,['Decky LSFG-VK'])
+        self.assertEqual(api_names,['小黄鸭2.0'])
         self.assertEqual(api_names,[plugin['name']])
         self.assertEqual(e['plugin_name'],plugin['name'])
         self.assertIn('小黄鸭2.0',frontend.read_text())
@@ -103,6 +103,34 @@ class PipelineTests(unittest.TestCase):
         self.assertIn('RenAmamiya汉化',js)
         self.assertEqual(json.loads((out/'plugin.json').read_text())['author'],'Original Author')
         self.assertEqual(self.build()[1].read_bytes(),first)
+    def test_scoped_labels_single_words_details_and_notifications(self):
+        self.make_archive(self.source + '''
+function firstPage() { const label="Available"; return window.SP_REACT.createElement("div",{label},"Retry"); }
+function secondPage() { const label="Workarounds"; return window.SP_REACT.createElement("div",{label},"Installed"); }
+function transport() { return "Non-Steam"; }
+const details=[`Controls: ${game.name} profile`,transport()];
+window.SP_REACT.createElement("div",{details});
+toaster.toast({title:"Installation Complete",body:"lsfg-vk has been installed successfully"});
+''')
+        e,p=self.build();files=pkg.zip_files(p)
+        js=files[e['archive_root']+'/dist/index.js'].decode()
+        for text in ['Available','Workarounds','Installed','Retry','Controls: ',' profile','Non-Steam','lsfg-vk has been installed successfully']:
+            self.assertIn(json.dumps(text),js)
+        self.assertIn('RenkitFramegenZH.text(label,["Available"])',js)
+        self.assertIn('RenkitFramegenZH.text(label,["Workarounds"])',js)
+        report=json.loads(files[e['archive_root']+'/RENKIT_UI_COVERAGE.json'])
+        translations={row['source']:row['translation'] for row in report['strings']}
+        self.assertEqual(translations['lsfg-vk has been installed successfully'],'小黄鸭运行组件安装成功')
+        self.assertIn('const label="Available"',js)
+    def test_sidebar_registration_and_assets_change_together(self):
+        source=self.source+'''\nconst image="http://127.0.0.1:1337/plugins/Decky LSFG-VK/assets/setup.gif";
+const page=definePlugin(()=>({name:"Decky LSFG-VK"}));'''
+        self.make_archive(source)
+        e,p=self.build();files=pkg.zip_files(p)
+        self.assertEqual(json.loads(files[e['archive_root']+'/plugin.json'])['name'],'小黄鸭2.0')
+        js=files[e['archive_root']+'/dist/index.js'].decode()
+        self.assertIn('RenkitFramegenZH.registration(manifest.name,"小黄鸭2.0")',js)
+        self.assertIn('RenkitFramegenZH.resource("http://127.0.0.1:1337/plugins/Decky LSFG-VK/assets/setup.gif","Decky LSFG-VK","小黄鸭2.0")',js)
     def test_style_and_script_bodies_are_not_translated(self):
         self.make_archive(self.source+'\nwindow.SP_REACT.createElement("script",null,"Install");\nwindow.SP_REACT.createElement("style",null,"Settings");')
         e,p=self.build();js=pkg.zip_files(p)[e['archive_root']+'/dist/index.js'].decode()
@@ -124,10 +152,18 @@ class PipelineTests(unittest.TestCase):
     def test_complete_official_chinese_is_preserved(self):
         table={f'TEXT_{i}':'Chinese item '+str(i) for i in range(22)}
         zh={k:'中文项目'+str(i) for i,k in enumerate(table)}
-        self.make_archive('const template='+json.dumps(table)+'; const zh='+json.dumps(zh,ensure_ascii=False)+';'+self.source)
+        native_source=self.source.replace('label:"Settings"','label:t("TEXT_0","Settings")').replace('MESSAGES.label','t("TEXT_0","Settings")').replace('"Plugin"','t("TEXT_1","Plugin")').replace('"Install","Cancel"','t("TEXT_2","Install"),t("TEXT_3","Cancel")')
+        self.make_archive('const template='+json.dumps(table)+'; const zh='+json.dumps(zh,ensure_ascii=False)+';'+native_source)
         e,p=self.build();self.assertEqual(e['attribution'],'upstream')
         self.assertEqual(p.read_bytes(),self.archive.read_bytes())
         self.assertNotIn('RenAmamiya',pkg.zip_files(p)[e['archive_root']+'/dist/index.js'].decode())
+    def test_full_locale_table_does_not_hide_english_outside_i18n(self):
+        table={f'TEXT_{i}':'Chinese item '+str(i) for i in range(22)}
+        zh={k:'中文项目'+str(i) for i,k in enumerate(table)}
+        self.make_archive('const template='+json.dumps(table)+'; const zh='+json.dumps(zh,ensure_ascii=False)+';'+self.source)
+        e,p=self.build()
+        self.assertEqual(e['attribution'],'RenAmamiya')
+        self.assertNotEqual(p.read_bytes(),self.archive.read_bytes())
     def test_archive_safety_and_corruption(self):
         e,p=self.build()
         for name,mode in [('../escape',0o100644),('link',0o120777)]:
@@ -168,10 +204,14 @@ class PipelineTests(unittest.TestCase):
     def test_owned_ui_runtime_only(self):
         runtime=(ROOT/'assets/framegen/zh-runtime.js').read_text()
         script='''globalThis.window={SP_REACT:{createElement:(type,props,...children)=>({type,props,children})}};
-const r='''+runtime+'''({"Settings":"设置","No ":"没有"});
+const r='''+runtime+'''({"Settings":"设置","No ":"没有","Remove all ":"全部移除："," profiles":" 个配置"});
 if(r.text("Settings",["Settings"])!=="设置")throw Error("translation");
 if(r.text("Player game",["Settings"])!=="Player game")throw Error("game title changed");
 if(r.text("No games",["No "])!=="没有games")throw Error("prefix");
+if(r.text("Remove all My Game profiles",["Remove all "," profiles"])!=="全部移除：My Game 个配置")throw Error("template suffix");
+if(r.text("Remove all Remove all My Game profiles",["Remove all "," profiles"])!=="全部移除：Remove all My Game 个配置")throw Error("dynamic game name");
+if(r.registration("Decky LSFG-VK","小黄鸭2.0")!=="小黄鸭2.0")throw Error("registration");
+if(!r.resource("http://127.0.0.1:1337/plugins/Decky LSFG-VK/assets/a.gif","Decky LSFG-VK","小黄鸭2.0").endsWith("/%E5%B0%8F%E9%BB%84%E9%B8%AD2.0/assets/a.gif"))throw Error("resource");
 if(JSON.stringify(r.title("Title")).indexOf("RenAmamiya汉化")<0)throw Error("signature");'''
         subprocess.run([os.environ.get('RENKIT_NODE_BINARY','node'),'--input-type=module'],input=script,text=True,check=True)
 

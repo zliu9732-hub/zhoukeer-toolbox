@@ -3,12 +3,22 @@
     if (Array.isArray(value)) return value.map(v => text(v, keys));
     if (typeof value !== 'string') return value;
     if (keys.includes(value) && dictionary[value]) return dictionary[value];
-    for (const key of keys) {
+    // A template can have both a translated prefix and suffix. Apply both while
+    // leaving inserted game names, versions and other dynamic values untouched.
+    let result = value;
+    const applied = new Set();
+    for (const key of [...keys].sort((a,b) => b.length-a.length)) {
       if ((key.trim().length < 4 && !/^\s|\s$/.test(key)) || !dictionary[key]) continue;
-      if (value.startsWith(key)) return dictionary[key] + value.slice(key.length);
-      if (value.endsWith(key)) return value.slice(0,-key.length) + dictionary[key];
+      if (result.startsWith(key)) {result = dictionary[key] + result.slice(key.length); applied.add(key);}
+      if (result.endsWith(key)) {result = result.slice(0,-key.length) + dictionary[key]; applied.add(key);}
     }
-    return value;
+    // These keys come only from literals traced in this UI expression, such as
+    // the source-name alternatives inside `No ${sourceName} found`. Dynamic
+    // game names and identifiers do not contribute dictionary keys.
+    for (const key of [...keys].sort((a,b) => b.length-a.length)) {
+      if (!applied.has(key) && key.trim().length >= 4 && dictionary[key]) result = result.split(key).join(dictionary[key]);
+    }
+    return result;
   }
   function title(original) {
     const react = window.SP_REACT;
@@ -16,5 +26,22 @@
     return react.createElement('div', null, original,
       react.createElement('div', {style: {color: '#ffcc66', fontSize: '13px', fontWeight: 700}}, 'RenAmamiya汉化'));
   }
-  return {text, title};
+  function registration(original, translated) {
+    if (original !== 'Decky LSFG-VK' && original !== '小黄鸭2.0') throw new Error('Unsupported plugin registration');
+    if (translated !== '小黄鸭2.0') throw new Error('Unsupported translated registration');
+    return translated;
+  }
+  function resource(original, oldName, translated) {
+    const prefix = 'http://127.0.0.1:1337/plugins/' + oldName + '/';
+    if (!original.startsWith(prefix)) throw new Error('Unsupported plugin resource');
+    return 'http://127.0.0.1:1337/plugins/' + encodeURIComponent(translated) + '/' + original.slice(prefix.length);
+  }
+  function message(value) {
+    if (typeof value !== 'string') return value;
+    return Object.prototype.hasOwnProperty.call(dictionary, value) ? dictionary[value] : value;
+  }
+  function toast(value) {
+    return {...value, title: message(value.title), body: message(value.body)};
+  }
+  return {text, title, registration, resource, message, toast};
 })

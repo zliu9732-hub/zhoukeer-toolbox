@@ -12,6 +12,7 @@ require_existing_chimera_plugin_environment() { return 0; }
 prepare_plugin_root() { mkdir -p "$1"; PLUGIN_NEEDS_SUDO=0; }
 reload_decky_plugins() { return 0; }
 log() { return 0; }
+toolbox_sudo() { [ "$1" = systemctl ]; }
 python3 - "$PROJECT_ROOT/scripts" "$TMP_ROOT" <<'PY'
 import sys,json,hashlib,zipfile
 from pathlib import Path
@@ -83,8 +84,8 @@ grep -Fxq 'keep Mako' "$DECKY_PLUGIN_DIR/Mako/user-settings" || fail '改动了 
 [ "$LSFG_V2_VERSION" = 0.14.5 ] || fail '没有更新当前版本信息'
 lsfg_v2_is_current "$DECKY_PLUGIN_DIR" || fail '新版未通过完整性检查'
 : > "$CALLS"
-install_lsfg_v2_from_gitee 0 >/dev/null || fail '当前新版无法跳过安装'
-if grep -q '^package:' "$CALLS"; then fail '当前完整新版重复下载'; fi
+install_lsfg_v2_from_gitee 0 >/dev/null || fail '当前新版无法清理后重新安装'
+grep -q '^package:lsfg-v2' "$CALLS" || fail '当前 2.0 没有重新安装'
 install_fsr4_zh_from_gitee 0 > "$TMP_ROOT/fsr4.out" || fail 'FSR4 新版不能安装'
 [ "$FSR4_OFFICIAL_VERSION" = 0.18 ] || fail 'FSR4 仍写死旧版'
 framegen_auto_is_current fsr4 "$DECKY_PLUGIN_DIR" || fail 'FSR4 新版文件验证失败'
@@ -124,7 +125,7 @@ install_framegen_auto fsr4 0 >/dev/null || status=$?
     print_feature_plugin_status() { return 0; }
     check_lossless_scaling_installation() { return 0; }
     print_cef_remote_debugging_tip() { return 0; }
-    install_feature_plugins
+    ZHOUKEER_LSFG_VARIANT=v2 install_feature_plugins
 ) > "$TMP_ROOT/selected.out" || fail '版本缓存丢失后组合安装失败'
 grep -Fxq 'SELECTED_V2_CHECKED' "$TMP_ROOT/selected.out" || fail '组合安装没有保留较新的 2.0 选择'
 if grep -Eiq 'gitee|镜像|https://' "$TMP_ROOT/ok.out" "$TMP_ROOT/fsr4.out"; then fail '安装界面显示内部来源'; fi

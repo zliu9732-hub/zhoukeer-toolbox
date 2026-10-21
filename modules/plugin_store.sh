@@ -12,6 +12,8 @@ source "$PROJECT_ROOT/core/auth.sh"
 source "$PROJECT_ROOT/modules/steam_accelerator.sh"
 source "$PROJECT_ROOT/modules/framegen_updates.sh"
 source "$PROJECT_ROOT/modules/ayaneo3.sh"
+source "$PROJECT_ROOT/core/lsfg_choice.sh"
+source "$PROJECT_ROOT/modules/lsfg_install.sh"
 
 load_config
 
@@ -2343,7 +2345,13 @@ install_decky_zip_from_mirror() {
         echo "$display_name 的目录结构不符合预期，已停止安装。"
         return 1
     fi
-    if ! install_tree_atomically "$plugin_source" "$plugin_root" "$expected_dir"; then
+    local install_status=0
+    if [ "$mirror_id" = "$LSFG_V2_MIRROR_ID" ] && [ "$expected_dir" = "$LSFG_V2_DIRECTORY" ]; then
+        install_lsfg_v2_clean "$plugin_source" "$plugin_root" || install_status=$?
+    else
+        install_tree_atomically "$plugin_source" "$plugin_root" "$expected_dir" || install_status=$?
+    fi
+    if [ "$install_status" -ne 0 ]; then
         cleanup_decky_tmp
         trap - EXIT INT TERM
         echo "$display_name 安装失败，已尽量保留原版本。"
@@ -3195,7 +3203,7 @@ install_lsfg_v2_from_gitee() {
     install_framegen_auto lsfg-v2 "$reload_after" || auto_status=$?
     [ "$auto_status" -ne 0 ] || return 0
     [ "$auto_status" -eq 2 ] || return 1
-    if lsfg_v2_is_current "$plugin_root"; then
+    if [ "$IS_STEAMOS" -ne 1 ] && lsfg_v2_is_current "$plugin_root"; then
         remove_legacy_lsfg_directories "$plugin_root"
         echo "[已安装] 小黄鸭 2.0 v$LSFG_V2_VERSION 中文插件已存在且文件完整，无需重复安装。"
         return 0
@@ -4621,6 +4629,7 @@ install_feature_plugins() {
     local plugin
     local feature_plugins
     local failed=0
+    local lsfg_variant=auto
 
     detect_platform
     if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
@@ -4628,14 +4637,27 @@ install_feature_plugins() {
         return 1
     fi
 
+    if [ "$IS_STEAMOS" -eq 1 ]; then
+        select_lsfg_variant || return 1
+        lsfg_variant="$LSFG_INSTALL_VARIANT"
+    fi
     ensure_plugin_store_ready || return 1
     refresh_framegen_catalog || true
     load_framegen_cached_versions
 
     # 先检测整组是否都已安装且本地名称/中文前端正确，是则跳过。
     local _all_installed=1
-    if ! lsfg_v2_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" && \
-       ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "$LSFG_OFFICIAL_VERSION" "小黄鸭"; then _all_installed=0; fi
+    case "$lsfg_variant" in
+        v2) _all_installed=0 ;; # Explicit 2.0 installs always unload and clean the old plugin first.
+        legacy)
+            feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
+                "$LSFG_OFFICIAL_DIRECTORY" "$LSFG_OFFICIAL_VERSION" "小黄鸭" || _all_installed=0
+            ;;
+        auto)
+            if ! lsfg_v2_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" && \
+               ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "$LSFG_OFFICIAL_VERSION" "小黄鸭"; then _all_installed=0; fi
+            ;;
+    esac
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$FSR4_OFFICIAL_DIRECTORY" "$FSR4_OFFICIAL_VERSION" "Decky-Framegen（FSR4）"; then _all_installed=0; fi
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
         "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then _all_installed=0; fi
@@ -4680,7 +4702,8 @@ install_feature_plugins() {
     fi
 
     if [ "$IS_STEAMOS" -eq 1 ]; then
-        echo "将依次直接安装：旧版小黄鸭、FSR4、CheatDeck、MAKO 小黄鸭与 Mako_Renkit 启动项、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。"
+        echo "本次小黄鸭版本：$(lsfg_variant_label "$lsfg_variant")"
+        echo "将依次直接安装：所选小黄鸭、FSR4、CheatDeck、MAKO 小黄鸭与 Mako_Renkit 启动项、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。"
         feature_plugins="lsfg fsr4 cheatdeck lsfg-mako steamgriddb cssloader friendeck deckymusic fantastic"
     else
         echo "将依次直接安装：小黄鸭、FSR4、CheatDeck、游戏封面更换、主题美化、文件传输助手、音乐播放器。"
@@ -4691,11 +4714,15 @@ install_feature_plugins() {
         case "$plugin" in
             lsfg)
                 echo "========== 小黄鸭（LSFG-VK） =========="
-                if lsfg_v2_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"; then
+                if [ "$lsfg_variant" = v2 ]; then
+                    install_lsfg_v2_from_gitee 0 || failed=1
+                    continue
+                fi
+                if [ "$lsfg_variant" = auto ] && lsfg_v2_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"; then
                     echo "[已安装] 小黄鸭 2.0 已安装，保留所选版本。"
                     continue
                 fi
-                if lsfg_v2_is_selected "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"; then
+                if [ "$lsfg_variant" = auto ] && lsfg_v2_is_selected "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"; then
                     install_lsfg_v2_from_gitee 0 || failed=1
                     continue
                 fi

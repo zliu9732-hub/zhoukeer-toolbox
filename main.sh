@@ -632,7 +632,7 @@ lsfg_versions_menu() {
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                 ;;
             v2)
-                confirm_and_run "安装小黄鸭 2.0" "让游戏画面更流畅；仅供正版小黄鸭用户使用；会替换 1.0，小黄鸭 1.0 和 2.0 只保留一个，可与 MAKO 一起保留" \
+                confirm_and_run "安装小黄鸭 2.0" "需要正版小黄鸭本体并切换到 lsfg-vk 分支；会先停止插件商城，清理已有 1.0 或 2.0 后重新安装；小黄鸭 1.0 和 2.0 只保留一个，可与 MAKO 一起保留；会使用管理员权限" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-v2
                 ;;
             mako)

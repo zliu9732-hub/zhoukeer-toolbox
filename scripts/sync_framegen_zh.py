@@ -22,7 +22,7 @@ UPSTREAM = {'lsfg-v2': ('xXJSONDeruloXx/decky-lsfg-vk', 'Decky.LSFG-VK.zip'),
             'fsr4': ('xXJSONDeruloXx/Decky-Framegen', 'Decky-Framegen.zip')}
 MODEL = 'Helsinki-NLP/opus-mt-en-zh'
 MODEL_REVISION = '408d9bc410a388e1d9aef112a2daba955b945255'
-TRANSLATION_REVISION = 2  # Rebuild older automatic packages even without an upstream version bump.
+TRANSLATION_REVISION = 3  # Repair display names, single-word labels and dynamic text as well as backend identity.
 
 def due(timestamp=None):
     # Unix-day parity, unlike */2 day-of-month cron, stays 48 hours across month boundaries.
@@ -168,12 +168,22 @@ def build(kind, release, archive, output, machine=False):
         if not machine:
             raise ValueError('new UI strings require translation: ' + json.dumps(missing, ensure_ascii=False))
         dictionary.update(translate_missing(missing))
+    if any(not isinstance(dictionary.get(s), str) or not re.search('[\u3400-\u9fff]', dictionary[s]) for s in info['strings']):
+        raise ValueError('UI translation coverage is incomplete')
     (work/'dictionary.json').write_text(json.dumps(dictionary, ensure_ascii=False))
-    node('build', js, work/'dictionary.json', ROOT/'assets/framegen/zh-runtime.js', work/'localized.js')
+    registration_name = '小黄鸭2.0' if kind == 'lsfg-v2' else None
+    arguments = [js, work/'dictionary.json', ROOT/'assets/framegen/zh-runtime.js', work/'localized.js']
+    if registration_name:
+        arguments.append(registration_name)
+    node('build', *arguments)
     files['dist/index.js'] = (work/'localized.js').read_bytes()
-    # Keep the upstream registration ID. @decky/api embeds it in dist/index.js;
-    # translating plugin.json.name alone routes every Python call to a missing plugin.
-    # The visible title is already translated by framegen_ui.mjs.
+    # Decky binds sidebar names to backend registration. Map only that API
+    # boundary and the manifest together, leaving every Python method unchanged.
+    if registration_name:
+        plugin['name'] = registration_name
+    translated_info = json.loads(node('inspect', work/'localized.js', capture=True))
+    if any(name != plugin['name'] for name in translated_info['api_plugin_names']):
+        raise ValueError('localized frontend/backend registration mismatch')
     publish = plugin.setdefault('publish', {})
     publish['description'] = ('小黄鸭补帧插件' if kind == 'lsfg-v2' else '游戏插帧与画面设置') + '；中文汉化：RenAmamiya。'
     files['plugin.json'] = (json.dumps(plugin, ensure_ascii=False, indent=2)+'\n').encode()
@@ -182,6 +192,14 @@ def build(kind, release, archive, output, machine=False):
         'translation_revision': TRANSLATION_REVISION,
         'unchanged_backend_and_runtimes': True}, ensure_ascii=False, indent=2)+'\n').encode()
     modes['RENKIT_TRANSLATION.json']=0o644
+    files['RENKIT_UI_COVERAGE.json'] = (json.dumps({
+        'schema': 1, 'translation_revision': TRANSLATION_REVISION,
+        'upstream_frontend_sha256': hashlib.sha256(js.read_bytes()).hexdigest(),
+        'plugin_name': plugin['name'], 'api_plugin_names': translated_info['api_plugin_names'],
+        'untranslated': [], 'non_ui_ast_verified': True,
+        'strings': [{'source': text, 'translation': dictionary[text]} for text in info['strings']],
+    }, ensure_ascii=False, indent=2)+'\n').encode()
+    modes['RENKIT_UI_COVERAGE.json'] = 0o644
     for n, b in original.items():
         relative = n[len(prefix):]
         if relative not in ['dist/index.js', 'plugin.json'] and files[relative] != b:
@@ -221,6 +239,25 @@ def write_mirror(root, kind, e, package):
 def publish(prepared):
     prepared = Path(prepared); c = json.loads((prepared/'catalog.json').read_text())
     changes = json.loads((prepared/'updates.json').read_text())
+    # The publisher is a second gate: incomplete/unverified packages never
+    # reach a mirror, even when called independently from the build command.
+    for kind in changes:
+        expected = entry(c, kind)
+        archive = prepared/kind/'plugin.zip'
+        if digest(archive) != expected['package_sha256']:
+            raise ValueError('prepared package checksum mismatch')
+        members = zip_files(archive)
+        prefix = expected['archive_root']+'/'
+        if {n[len(prefix):] for n in members if n.startswith(prefix)} != set(expected['files']) or any(not n.startswith(prefix) for n in members):
+            raise ValueError('prepared package files mismatch')
+        if any(hashlib.sha256(members[prefix+n]).hexdigest() != sha for n,sha in expected['files'].items()):
+            raise ValueError('prepared package content mismatch')
+        if expected['attribution'] == 'RenAmamiya':
+            report = json.loads(members[prefix+'RENKIT_UI_COVERAGE.json'])
+            if report.get('untranslated') != [] or report.get('non_ui_ast_verified') is not True or not report.get('strings') or any(not re.search('[\u3400-\u9fff]', row['translation']) for row in report['strings']):
+                raise ValueError('prepared UI coverage is incomplete')
+            if report.get('plugin_name') != expected['plugin_name'] or report.get('api_plugin_names') != [expected['plugin_name']]:
+                raise ValueError('prepared backend registration mismatch')
     token = os.environ.get('GITEE_TOKEN')
     with tempfile.TemporaryDirectory(prefix='renkit-framegen-publish-') as temp:
         work = Path(temp); env = os.environ.copy()

@@ -75,7 +75,7 @@ _install_framegen_auto() (
         return 2
     fi
     IFS=$'\t' read -r version mirror_id package_sha archive_root plugin_name attribution < "$tmp/fields" || return 1
-    if python3 "$PROJECT_ROOT/scripts/framegen_package.py" check --catalog "$tmp/entry.json" \
+    if [ "$kind" != lsfg-v2 ] && python3 "$PROJECT_ROOT/scripts/framegen_package.py" check --catalog "$tmp/entry.json" \
         --kind "$kind" --root "$plugin_root/$directory" >/dev/null 2>&1; then
         [ "$kind" != lsfg-v2 ] || remove_legacy_lsfg_directories "$plugin_root"
         echo "[已安装] $display v${version} 已是完整的当前版本。"
@@ -106,7 +106,11 @@ PY
             return 1
         }
     prepare_plugin_root "$plugin_root" || return 1
-    install_tree_atomically "$tmp/plugin" "$plugin_root" "$directory" || return 1
+    if [ "$kind" = lsfg-v2 ]; then
+        install_lsfg_v2_clean "$tmp/plugin" "$plugin_root" || return 1
+    else
+        install_tree_atomically "$tmp/plugin" "$plugin_root" "$directory" || return 1
+    fi
     [ "$kind" != lsfg-v2 ] || remove_legacy_lsfg_directories "$plugin_root"
     echo "$display v${version} 安装成功。"
     [ "$attribution" != RenAmamiya ] || echo "汉化：RenAmamiya"

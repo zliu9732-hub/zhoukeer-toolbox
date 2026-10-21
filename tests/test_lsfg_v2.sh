@@ -13,6 +13,7 @@ require_existing_chimera_plugin_environment() { return 0; }
 prepare_plugin_root() { mkdir -p "$1"; PLUGIN_NEEDS_SUDO=0; }
 reload_decky_plugins() { return 0; }
 log() { return 0; }
+toolbox_sudo() { [ "$1" = systemctl ]; }
 
 # Exercise real extraction and atomic replacement with a local archive.
 SOURCE="$TMP_ROOT/archive/$LSFG_V2_ARCHIVE_DIRECTORY"
@@ -49,11 +50,10 @@ install_lsfg_v2_from_gitee 0 || fail "小黄鸭 2.0 安装失败"
 grep -Fxq 'mako-user-file' "$DECKY_PLUGIN_DIR/Mako/keep" || fail "MAKO 被改动"
 lsfg_v2_is_current "$DECKY_PLUGIN_DIR" || fail "共享目录的 2.0 未通过检查"
 
-# Reinstall cleans only recognised duplicates, without downloading a current version.
+# Reinstall cleans recognised copies even when 2.0 is already current.
 mkdir -p "$DECKY_PLUGIN_DIR/$LSFG_V2_ARCHIVE_DIRECTORY"
 cp "$SOURCE/plugin.json" "$DECKY_PLUGIN_DIR/$LSFG_V2_ARCHIVE_DIRECTORY/plugin.json"
-DOWNLOAD_FAIL=1
-install_lsfg_v2_from_gitee 0 || fail "已安装 2.0 仍尝试下载"
+install_lsfg_v2_from_gitee 0 || fail "已安装 2.0 不能重新安装"
 [ ! -e "$DECKY_PLUGIN_DIR/$LSFG_V2_ARCHIVE_DIRECTORY" ] || fail "已有版本没有清理重复目录"
 mkdir -p "$DECKY_PLUGIN_DIR/$LSFG_V2_ARCHIVE_DIRECTORY"
 printf '{"name":"OtherPlugin"}\n' > "$DECKY_PLUGIN_DIR/$LSFG_V2_ARCHIVE_DIRECTORY/plugin.json"
@@ -61,8 +61,9 @@ install_lsfg_v2_from_gitee 0 || fail "无关目录影响已安装判断"
 [ -f "$DECKY_PLUGIN_DIR/$LSFG_V2_ARCHIVE_DIRECTORY/plugin.json" ] || fail "删除了无关插件"
 rm -rf "$DECKY_PLUGIN_DIR/$LSFG_V2_ARCHIVE_DIRECTORY"
 ln -s "$DECKY_PLUGIN_DIR/Mako" "$DECKY_PLUGIN_DIR/$LSFG_V2_ARCHIVE_DIRECTORY"
-install_lsfg_v2_from_gitee 0 || fail "符号链接影响已安装判断"
+if install_lsfg_v2_from_gitee 0; then fail "符号链接目录没有阻止自动清理"; fi
 [ -L "$DECKY_PLUGIN_DIR/$LSFG_V2_ARCHIVE_DIRECTORY" ] || fail "符号链接被自动删除"
+rm "$DECKY_PLUGIN_DIR/$LSFG_V2_ARCHIVE_DIRECTORY"
 
 # Filling other missing plugins must keep the chosen 2.0 rather than downgrade to 1.0.
 ensure_plugin_store_ready() { return 0; }
@@ -76,5 +77,5 @@ refresh_feature_usage_guides() { return 0; }
 print_feature_plugin_status() { return 0; }
 check_lossless_scaling_installation() { return 0; }
 print_cef_remote_debugging_tip() { return 0; }
-install_feature_plugins || fail "常用插件补装失败"
+ZHOUKEER_LSFG_VARIANT=v2 install_feature_plugins || fail "常用插件补装失败"
 echo "PASS: 小黄鸭 2.0 覆盖 1.0、失败保留原插件、清理重复目录、保留 MAKO 和所选版本"

@@ -852,7 +852,7 @@ if printf '%s\n' "$configured_plugin_function" | grep -Fq 'remove_legacy_lsfg_di
 fi
 
 grep -Fq '正在安装 FSR4' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '将依次直接安装：旧版小黄鸭、FSR4、CheatDeck、MAKO 小黄鸭与 Mako_Renkit 启动项、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。' \
+grep -Fq '将依次直接安装：所选小黄鸭、FSR4、CheatDeck、MAKO 小黄鸭与 Mako_Renkit 启动项、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。' \
     "$PROJECT_ROOT/modules/plugin_store.sh" || {
     echo "FAIL: SteamOS 常用插件说明与当前组合不一致" >&2
     exit 1
@@ -1101,7 +1101,7 @@ printf '%s\n' "$stale_cheatdeck_status_output" | \
 printf '{"version":"0.12.1"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
 printf '{"version":"1.2.1"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
 update_output="$(
-    DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+    ZHOUKEER_LSFG_VARIANT=legacy DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
         source "$PROJECT_ROOT/modules/plugin_store.sh"
         detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
         LSFG_MAKO_INDEX_SHA256="$(calculate_decky_sha256 \

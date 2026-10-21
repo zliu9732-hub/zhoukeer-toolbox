@@ -17,6 +17,7 @@ fail() {
 
 run_simulated_flow() (
     local skip_update="$1"
+    local ZHOUKEER_LSFG_VARIANT="${2:-legacy}"
 
     source "$PROJECT_ROOT/modules/new_machine.sh"
     NEW_MACHINE_SKIP_SYSTEM_UPDATE="$skip_update"
@@ -61,13 +62,30 @@ for output in "$skip_output" "$update_output"; do
     if printf '%s\n' "$output" | grep -Eq 'install-trainer($|[|[:space:]])'; then
         fail "新机初始化仍会安装全部四个修改器兼容层"
     fi
-    printf '%s\n' "$output" | grep -Fq 'modules/plugin_store.sh lsfg-mako' || \
-        fail "新机初始化没有安装 MAKO 小黄鸭"
+    if printf '%s\n' "$output" | grep -Fq 'modules/plugin_store.sh lsfg-mako'; then
+        fail "新机初始化在常用插件组合外重复安装 MAKO"
+    fi
     printf '%s\n' "$output" | grep -Fq 'Mako_Renkit' || \
         fail "新机初始化没有标注 CheatDeck Mako_Renkit 启动项"
     printf '%s\n' "$output" | grep -Fq 'modules/plugin_store.sh features' || \
-        fail "新机初始化没有保留旧版小黄鸭所在的常用插件组合"
+        fail "新机初始化没有安装常用插件组合"
+    [ "$(printf '%s\n' "$output" | grep -c 'modules/plugin_store.sh features')" -eq 1 ] || \
+        fail "新机初始化重复安装常用插件组合"
 done
+
+v2_output="$(run_simulated_flow 1 v2)"
+printf '%s\n' "$v2_output" | grep -Fq 'ZHOUKEER_LSFG_VARIANT=v2' || fail "2.0 选择没有传给插件组合"
+printf '%s\n' "$skip_output" | grep -Fq 'ZHOUKEER_LSFG_VARIANT=legacy' || fail "旧版选择没有传给插件组合"
+
+cancel_output="$(
+    source "$PROJECT_ROOT/modules/new_machine.sh"
+    select_optional_launchers() { return 0; }
+    select_system_component_update() { return 0; }
+    select_lsfg_variant() { return 1; }
+    run_new_machine_preflight() { fail '取消版本选择后仍开始初始化'; }
+    run_step() { fail '取消版本选择后仍安装程序'; }
+    if run_new_machine_initialization; then fail '取消选择后仍继续'; fi
+)"
 
 prompt_skip="$(
     source "$PROJECT_ROOT/modules/new_machine.sh"

@@ -2,7 +2,7 @@
 
 Renkit是面向 SteamOS、Bazzite 与 ChimeraOS 掌机的 Bash 工具集。同一条安装命令会自动选择独立版本：SteamOS 保留完整原版功能，Bazzite 使用单独菜单开放已适配功能，ChimeraOS 使用只包含用户级应用和插件安装的安全菜单。
 
-当前正式版：Renkit 3.2.0；从 Renkit 1.0 起按语义化版本递增。
+当前正式版：Renkit 3.2.1；从 Renkit 1.0 起按语义化版本递增。
 
 “游戏与插件 → 掌机控制插件 → 下一页”新增 AYANEO3 Companion 中文版，仅适用于 AYANEO3。可调节性能、风扇、灯光、震动、按键、充电和音频，顶部显示黄色 `RenAmamiya汉化` 署名。保留作者的全部控制功能与设置，安装失败时保留原插件，完整中文版重复安装会跳过。
 
@@ -28,8 +28,8 @@ Renkit是面向 SteamOS、Bazzite 与 ChimeraOS 掌机的 Bash 工具集。同�
 
 ## 功能
 
-- 一键新机初始化：开始前可选择跳过 pacman、系统密钥环和 locale 更新；跳过时仍配置用户级 Flatpak 国内源并继续其余流程。初始化会检查 SteamOS、网络、电源和系统组件，安装中文输入法、常用软件、Decky、FreeDeck、Epic、常用插件、GE-Proton 10-29、虚拟内存和 Steamcommunity 302；机型匹配不到适用的 ROG、联想或 GPD 专用控制插件时，自动安装通用“掌机功耗控制”。流程结束后生成桌面报告与使用说明；战网、Ubisoft Connect 和黑盒工坊开始前可选。
-- 插件商城：SteamOS 的九款常用组合包含小黄鸭 1.0、FSR4、CheatDeck、MAKO 小黄鸭与 `Mako_Renkit` 启动项、游戏封面更换（SteamGridDB）、主题美化（CSS Loader 中文版）、文件传输助手（Friendeck）、音乐播放器（Decky Music）和 Fantastic 风扇控制汉化版；小黄鸭 2.0 作为独立版本在三个系统的版本选择菜单中提供。小黄鸭 1.0、2.0 与 MAKO 会同时保留，用户可自行选择；2.0 使用完整 v0.14.4 中文包，保留原作者和 BSD-3-Clause 许可证，并在顶部显示“RenAmamiya汉化”黄色署名。Fantastic 同时列在“其余常用插件”，由 Renkit 从国内镜像直接下载、校验并自动安装，不调用 Decky 商城弹窗。另提供 Decky 官方精选插件；支持整组、单项安装和状态检查。Decky Music 使用作者原版 v1.0.2 完整包，内置播放器与 QQ/网易云音乐源，不汉化、不重打。Decky Loader 子菜单提供 ROG White 白色主题一键安装，把主题文件放入 CSS Loader themes 目录后即可在 CSS Loader 中开启。独立提供 DeckRecall 与 SavePulse：SavePulse 可自动保留存档版本，并使用每位用户自己的坚果云或标准 WebDAV 做加密备份和换机恢复。固定版本均执行 SHA256、ZIP 结构与插件目录校验。安装或检测到功能插件后会在桌面补充风灵月影、小黄鸭和 FSR4 小白教程；检测到 FSR4 时另建 OptiScaler 官方 Wiki 已测试游戏清单。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
+- 一键新机初始化：开始前可选择跳过 pacman、系统密钥环和 locale 更新，也会询问安装旧版小黄鸭还是小黄鸭2.0；2.0 需要正版小黄鸭本体并切换到 lsfg-vk 分支。跳过系统更新时仍配置用户级 Flatpak 国内源并继续其余流程。初始化会检查 SteamOS、网络、电源和系统组件，安装中文输入法、常用软件、Decky、FreeDeck、Epic、常用插件、GE-Proton 10-29、虚拟内存和 Steamcommunity 302；MAKO 与 Mako_Renkit 仅在常用插件组合内处理一次；机型匹配不到适用的 ROG、联想或 GPD 专用控制插件时，自动安装通用“掌机功耗控制”。流程结束后生成桌面报告与使用说明；战网、Ubisoft Connect 和黑盒工坊开始前可选。
+- 插件商城：SteamOS 的九款常用组合包含所选版本的小黄鸭、FSR4、CheatDeck、MAKO 小黄鸭与 `Mako_Renkit` 启动项、游戏封面更换（SteamGridDB）、主题美化（CSS Loader 中文版）、文件传输助手（Friendeck）、音乐播放器（Decky Music）和 Fantastic 风扇控制汉化版。一键安装前弹窗选择旧版小黄鸭或小黄鸭2.0；1.0 与 2.0 只保留所选的一个，MAKO 独立保留。SteamOS 安装 2.0 时先下载并检查完整包，再停止商城，清理已有 1.0、2.0 和可确认的小黄鸭残留副本后安装；同版本也重新安装，写入失败会恢复原插件。2.0 显示名称为“小黄鸭2.0”，保留原作者和 BSD-3-Clause 许可证，并在顶部显示“RenAmamiya汉化”黄色署名。Fantastic 同时列在“其余常用插件”，由 Renkit 从国内镜像直接下载、校验并自动安装，不调用 Decky 商城弹窗。另提供 Decky 官方精选插件；支持整组、单项安装和状态检查。Decky Music 使用作者原版 v1.0.2 完整包，内置播放器与 QQ/网易云音乐源，不汉化、不重打。Decky Loader 子菜单提供 ROG White 白色主题一键安装，把主题文件放入 CSS Loader themes 目录后即可在 CSS Loader 中开启。独立提供 DeckRecall 与 SavePulse：SavePulse 可自动保留存档版本，并使用每位用户自己的坚果云或标准 WebDAV 做加密备份和换机恢复。固定版本均执行 SHA256、ZIP 结构与插件目录校验。安装或检测到功能插件后会在桌面补充风灵月影、小黄鸭和 FSR4 小白教程；检测到 FSR4 时另建 OptiScaler 官方 Wiki 已测试游戏清单。小黄鸭安装完成后会自动检测 Steam 库中是否已有 Lossless Scaling：已安装会提示可继续使用，未安装会打开 Steam 正版页面。
 
 游戏封面更换（SteamGridDB）使用官方稳定版 1.8.1 完整包，已自带中文，并改善新版 Steam 的封面管理兼容性；通过 Renkit 再次安装时，旧版会更新，完整的当前版本会跳过。
 

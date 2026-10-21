@@ -8,6 +8,7 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../core/env.sh"
 source "$PROJECT_ROOT/core/platform.sh"
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/logger.sh"
+source "$PROJECT_ROOT/core/lsfg_choice.sh"
 
 PASS_COUNT=0
 FAIL_COUNT=0
@@ -170,6 +171,7 @@ show_initialization_plan() {
     echo "【04】安装中文输入法"
     echo "【05-06】安装微信、QQ、Firefox并创建桌面图标"
     echo "【07】安装插件商城、游戏下载工具和九款常用插件"
+    echo "【小黄鸭版本】$(lsfg_variant_label "$LSFG_INSTALL_VARIANT")"
     echo "【08】识别机器型号；安装匹配的掌机控制插件组合，无合适专用插件时安装通用功耗控制"
     echo "【09】准备游戏修改器所需运行工具"
     echo "【10】优化内存使用，并用 8-16GB 存储空间补充内存"
@@ -213,6 +215,7 @@ new_machine_report_begin() {
         echo "默认平台：Epic"
         echo "可选平台：$(optional_launcher_summary)"
         echo "系统组件更新：$(system_component_update_summary)"
+        echo "小黄鸭版本：$(lsfg_variant_label "$LSFG_INSTALL_VARIANT")"
         echo ""
     } > "$NEW_MACHINE_REPORT_FILE" || return 1
     chmod 0600 "$NEW_MACHINE_REPORT_FILE" || return 1
@@ -399,6 +402,7 @@ write_customer_handover_guide() {
 
 1. Renkit：桌面双击 Renkit；启动时会自动检测更新，也可在“检查与维护”中手动检查更新。
 2. Decky / FreeDeck：返回游戏模式，按右下角“…”键，再打开插头图标；新机初始化会安装 MAKO 小黄鸭，并在 CheatDeck 高级页新增 “Mako_Renkit” 启动项。
+   本次选择：$(lsfg_variant_label "$LSFG_INSTALL_VARIANT")。使用 2.0 前，请在 Steam 的正版小黄鸭属性中选择 lsfg-vk 分支。
    先打开 MAKO 点击“安装 MAKO Renderer”，再在目标游戏的 齿轮 → CheatDeck → 高级 中启用 “Mako_Renkit” 并保存。插件不显示时请完全退出并重开 Steam。
 3. 修改器运行工具：新机初始化仅安装 GE-Proton 10-29；在游戏属性 → 兼容性中选择该版本。
 4. Epic：已按默认清单安装并加入 Steam 库；首次登录、验证码可用触控板，Steam + X 呼出键盘。
@@ -435,6 +439,7 @@ run_new_machine_initialization() {
 
     select_optional_launchers || return 1
     select_system_component_update || return 1
+    select_lsfg_variant || return 1
     if ! confirm_initialization; then
         echo "已取消新机初始化。"
         return 0
@@ -477,12 +482,11 @@ run_new_machine_initialization() {
         bash "$PROJECT_ROOT/modules/plugin_store.sh" store-auto
     run_step "【07】FreeDeck 稳定版" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck
-    run_step "【07】九款常用插件（含 MAKO、主题美化与 Fantastic 汉化）" env ZHOUKEER_AUTO_CONFIRM=1 \
+    run_step "【07】九款常用插件（含 MAKO 与 Mako_Renkit、主题美化与 Fantastic 汉化）" env ZHOUKEER_AUTO_CONFIRM=1 \
+        ZHOUKEER_LSFG_VARIANT="$LSFG_INSTALL_VARIANT" \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" features
     run_step "【08】按机器型号应用安全配置" apply_machine_profile
-    # MAKO 使用独立目录；与常用插件组合中的旧版 LSFG-VK 同时保留，供用户自行选择。
-    run_step "【07】MAKO 小黄鸭及 CheatDeck Mako_Renkit 启动项（官方简体中文）" env ZHOUKEER_AUTO_CONFIRM=1 \
-        bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako
+    # 常用插件组合已安装 MAKO 并写入 Mako_Renkit，不再重复执行。
     run_step "【09】修改器运行工具（GE-Proton 10-29）" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer-one "10-29"
     run_step "【第三方平台】Epic Games 启动器（默认）" env ZHOUKEER_AUTO_CONFIRM=1 \
@@ -528,6 +532,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         plan)
             select_optional_launchers || exit 1
             select_system_component_update || exit 1
+            select_lsfg_variant || exit 1
             show_initialization_plan
             ;;
         *) echo "用法: $0 [run|plan]"; exit 1 ;;
