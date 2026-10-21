@@ -10,7 +10,8 @@ mkdir "$HOME" "$TEST_ROOT/dmi"
 SDWEAK_DMI="$TEST_ROOT/dmi"
 LOG_FILE="$TEST_ROOT/log" CALLS="$TEST_ROOT/calls"
 readonly_file="$TEST_ROOT/readonly"
-MOCK_VERSION=3.8 MOCK_ID=steamos MOCK_FAIL='' MOCK_MIRROR=success
+MOCK_VERSION=3.8 MOCK_ID=steamos MOCK_FAIL=''
+CORE_PACKAGE="$SDWEAK_CORE_PACKAGE"
 log() { :; }
 fail() { echo "FAIL: $*" >&2; exit 1; }
 uname() { case "$1" in -s) echo Linux;; -m) echo x86_64;; esac; }
@@ -21,26 +22,15 @@ platform_os_release_value() { case "$1" in ID) echo "$MOCK_ID";; VERSION_ID) ech
 load_config() { :; }
 reset() { echo Valve > "$SDWEAK_DMI/sys_vendor"; echo Jupiter > "$SDWEAK_DMI/product_name"; echo Jupiter > "$SDWEAK_DMI/board_name"; echo enabled > "$readonly_file"; : > "$CALLS"; }
 download_gitee_mirror_file() {
-    echo mirror >> "$CALLS"
-    [ "$1" = sdweak ] || fail 'Unexpected mirror'
-    [ "$3" = "$SDWEAK_SHA256" ] || fail 'Mirror integrity check missing'
-    [ "${GITEE_MIRROR_MIN_SPEED_BYTES:-}" = 1024 ] && \
-        [ "${GITEE_MIRROR_MIN_SPEED_TIME:-}" = 90 ] || fail 'Slow mirror tolerance missing'
-    DOWNLOAD_LOCAL_IO_FAILED=0
-    [ "$MOCK_MIRROR" != io ] || { DOWNLOAD_LOCAL_IO_FAILED=1; return 1; }
-    [ "$MOCK_MIRROR" = success ] && [ "$MOCK_FAIL" != download ] || return 1
-    echo fixture > "$2"
+    fail 'Verified bundled SDWEAK attempted a network request'
 }
 download_github_file() {
-    echo download >> "$CALLS"
-    [ "$1" = https://github.com/Taskerer/SDWEAK/releases/download/v2.1.0/SDWEAK.zip ] || fail 'Unexpected source'
-    [ "$3" = 5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e ] || fail 'Integrity check missing'
-    [ "${GITHUB_MIN_SPEED_BYTES:-}" = 1024 ] && \
-        [ "${GITHUB_MIN_SPEED_TIME:-}" = 90 ] || fail 'Slow fallback tolerance missing'
-    [ "$MOCK_FAIL" != download ] || return 1
-    echo fixture > "$2"
+    fail 'Bundled SDWEAK attempted an official network request'
 }
-python3() { echo prepare >> "$CALLS"; [ "$MOCK_FAIL" != prepare ]; }
+python3() {
+    [ "$1" = "$PROJECT_ROOT/scripts/prepare_sdweak.py" ] && [ "$2" = "$CORE_PACKAGE" ] || fail 'Wrong preparation source'
+    echo prepare >> "$CALLS"; [ "$MOCK_FAIL" != prepare ]
+}
 toolbox_sudo() { echo "admin $*" >> "$CALLS"; if [ "$1" != true ]; then "$@"; fi; }
 steamos-readonly() {
     case "$1" in status) cat "$readonly_file";; enable) echo enabled > "$readonly_file";; disable) echo disabled > "$readonly_file";; esac
@@ -58,24 +48,22 @@ for model in Jupiter Galileo; do
  sdweak_install > "$TEST_ROOT/output" || fail "$model failed"
  [ "$(cat "$readonly_file")" = enabled ] || fail 'Protection not restored'
  grep -Fq '手动重启' "$TEST_ROOT/output" || fail 'Restart advice missing'
- ! grep -q '^download$' "$CALLS" || fail 'Official source used before mirror'
+ grep -Fq '检查 SDWEAK 安装文件' "$TEST_ROOT/output" || fail 'Package checking step missing'
 done
-reset; MOCK_MIRROR=unavailable
-sdweak_install >/dev/null || fail 'Official fallback failed'
-[ "$(sed -n '1,2p' "$CALLS")" = $'mirror\ndownload' ] || fail 'Mirror fallback order incorrect'
-reset; MOCK_MIRROR=io
-if sdweak_install >/dev/null; then fail 'Local write failure accepted'; fi
-! grep -Eq 'download|admin|execute' "$CALLS" || fail 'Local write failure retried or installed'
-MOCK_MIRROR=success
-for stage in download prepare execute signal; do
+for stage in missing prepare execute signal; do
  reset; MOCK_FAIL="$stage"
+ SDWEAK_CORE_PACKAGE="$CORE_PACKAGE"
+ [ "$stage" != missing ] || SDWEAK_CORE_PACKAGE="$TEST_ROOT/missing.zip"
  if sdweak_install > "$TEST_ROOT/error" 2>&1; then fail "Failure masked: $stage"; fi
  [ "$(cat "$readonly_file")" = enabled ] || fail "Protection lost: $stage"
- if [ "$stage" = download ]; then
-  grep -Fq '尚未开始安装' "$TEST_ROOT/error" || fail 'Download failure mistaken for installation'
-  ! grep -Fq '部分设置改变' "$TEST_ROOT/error" || fail 'Download failure falsely reported changes'
+ ! grep -Fq '下载失败' "$TEST_ROOT/error" || fail 'Non-download failure mislabeled as download'
+ if [ "$stage" = missing ] || [ "$stage" = prepare ]; then
+  grep -Fq '尚未开始安装' "$TEST_ROOT/error" || fail 'Package failure mistaken for installation'
+  ! grep -Eq 'admin|execute' "$CALLS" || fail 'Changed system before package validation'
+  ! grep -Fq '部分设置改变' "$TEST_ROOT/error" || fail 'Package failure falsely reported changes'
  fi
 done
+SDWEAK_CORE_PACKAGE="$CORE_PACKAGE"
 MOCK_FAIL=''; reset; echo disabled > "$readonly_file"
 sdweak_install >/dev/null || fail 'Original writable state failed'
 [ "$(cat "$readonly_file")" = disabled ] || fail 'Original writable state changed'
@@ -93,4 +81,4 @@ done
 for path in "$TEST_ROOT"/tmp.*; do [ ! -d "$path" ] || fail 'Workspace leaked'; done
 download_policy_url_allowed "$SDWEAK_URL" || fail 'Official package blocked by policy'
 if download_policy_url_allowed 'https://github.com/untrusted/SDWEAK/releases/download/v2.1.0/SDWEAK.zip'; then fail 'Untrusted package allowed'; fi
-echo 'PASS: Steam Deck gate, verified mirror first, safe fallback, local write failure, failure/signal cleanup and readonly state'
+echo 'PASS: Steam Deck gate, bundled install without network, clear pre-install failures, failure/signal cleanup and readonly state'

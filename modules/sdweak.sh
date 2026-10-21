@@ -8,6 +8,7 @@ source "$PROJECT_ROOT/core/logger.sh"
 SDWEAK_DMI=/sys/class/dmi/id
 SDWEAK_URL=https://github.com/Taskerer/SDWEAK/releases/download/v2.1.0/SDWEAK.zip
 SDWEAK_SHA256=5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e
+SDWEAK_CORE_PACKAGE="$PROJECT_ROOT/assets/sdweak/SDWEAK-core-v2.1.0.zip"
 sdweak_message() { echo "$*"; log "SDWEAK：$*"; }
 
 sdweak_check() {
@@ -73,18 +74,22 @@ sdweak_install() (
     for command_name in python3 bash steamos-readonly; do require_command "$command_name" || exit 1; done
     workspace="$(mktemp -d)" || exit 1
     load_config
-    sdweak_message "正在准备 SDWEAK…"
-    GITEE_MIRROR_MIN_SPEED_BYTES=1024 GITEE_MIRROR_MIN_SPEED_TIME=90 \
-        GITHUB_MIN_SPEED_BYTES=1024 GITHUB_MIN_SPEED_TIME=90 \
-        download_with_gitee_mirror_fallback sdweak "$SDWEAK_URL" "$SDWEAK_SHA256" \
-        "$workspace/SDWEAK.zip" SDWEAK || {
-            sdweak_message "SDWEAK 下载未完成，尚未开始安装。详细记录：$LOG_FILE"
-            exit 1
-        }
-    python3 "$PROJECT_ROOT/scripts/prepare_sdweak.py" "$workspace/SDWEAK.zip" "$workspace/package" || exit 1
-    # 再次检查，确保下载期间机型或系统信息没有变化。
+    sdweak_message "正在检查 SDWEAK 安装文件…"
+    [ -f "$SDWEAK_CORE_PACKAGE" ] && [ ! -L "$SDWEAK_CORE_PACKAGE" ] || {
+        sdweak_message "SDWEAK 安装组件缺失，请更新 Renkit 后重试，尚未开始安装。"
+        exit 1
+    }
+    python3 "$PROJECT_ROOT/scripts/prepare_sdweak.py" "$SDWEAK_CORE_PACKAGE" "$workspace/package" || {
+        sdweak_message "SDWEAK 安装文件检查未通过，请更新 Renkit 后重试，尚未开始安装。"
+        exit 1
+    }
+    log "SDWEAK 必需组件校验完成；不重复下载未使用的显示组件"
+    # 再次检查，确保准备期间机型或系统信息没有变化。
     sdweak_check || exit 1
-    readonly_state="$(LC_ALL=C steamos-readonly status)" || exit 1
+    readonly_state="$(LC_ALL=C steamos-readonly status)" || {
+        sdweak_message "无法读取系统保护状态，尚未开始安装。"
+        exit 1
+    }
     case "$readonly_state" in
         enabled) readonly_changed=1 ;;
         disabled) ;;

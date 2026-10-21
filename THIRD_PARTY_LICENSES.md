@@ -110,13 +110,11 @@ SteamOS 的 GCC 与 Launch Pack 型号修改在临时构建副本中完成；保
 来源：https://github.com/Taskerer/SDWEAK/releases/tag/v2.1.0
 核验源码提交：`8c32e86fff3c754ac4819524edf7fff4c4e04de3`。
 官方 SDWEAK.zip SHA256：`5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e`。
-仅在用户确认后下载，不捆绑上游二进制；原作者与 LICENSE 留在临时安装包。
-优先下载 `zhoukeer-toolbox-mirror-3` 的 SDWEAK 分块清单与原包分块，每块不超过 1 MiB；
-重组文件必须匹配上述固定 SHA256，镜像不可用时回退同版本官方来源。
+Renkit 3.2.5 起随包提供 20394 字节的必需组件包，保留官方原包中除两个未使用显卡包外的全部 14 个原始文件、作者、README 与 MIT LICENSE。组件 ZIP SHA256：`e53841b26615314b9903f4714acec2f1b6ca1aa3fe4dbf456d19948e6ad8c25d`。安装前校验完整组件包，不额外联网；旧版所需的 mirror-3 原包分块仍保留，重组仍匹配上述官方 SHA256。
 Renkit 准备副本的改动：中文提示与失败步骤、沿用管理员验证、失败即停止、
 下载校验后不重复探测网络、文件访问选项为空时正常处理、内存优化在手动重启时生效，
 保留全局软件签名检查、密钥和缓存，省略实验性显示组件替换、不自动重启；
-其余性能设置沿用上游。
+性能脚本按累计结果处理可选项跳过和实际写入失败，服务路径使用当前用户目录；其余性能设置沿用上游。详见 `docs/sdweak.md`。
 测试用原始安装器文本与 MIT 许可证保存在 `tests/fixtures/sdweak/`，仅用于模拟测试。
 
 ## DeckHomeThemes / ThemeHub

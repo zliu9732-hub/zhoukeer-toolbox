@@ -12,12 +12,30 @@ ROOT=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('prepare_sdweak',ROOT/'scripts/prepare_sdweak.py')
 m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 original=(ROOT/'tests/fixtures/sdweak/install.txt').read_bytes()
+core=ROOT/'assets/sdweak/SDWEAK-core-v2.1.0.zip'
+with zipfile.ZipFile(core) as z:
+ real_runtime=z.read('SDWEAK/assets/SDWEAK.sh')
+ real_unit=z.read('SDWEAK/assets/sdweak.service')
 with tempfile.TemporaryDirectory() as d:
  base=Path(d);package=base/'package.zip'
+ m.prepare(core,base/'bundled',home=base/'customer with %name')
+ bundled=base/'bundled/SDWEAK'
+ assert not any(bundled.rglob('*.pkg.tar.zst'))
+ assert len(list(p for p in bundled.rglob('*') if p.is_file()))==15
+ unit=(bundled/'assets/sdweak.service').read_text()
+ assert '/home/deck/' not in unit and 'customer with %%name' in unit
+ assert f'ExecStart=/usr/bin/bash "{base}/customer with %%name/.local/tweak/SDWEAK.sh"' in unit
+ assert f'ConditionPathExists={base}/customer with %%name/.local/tweak/SDWEAK.sh\n' in unit
+ assert 'gamescope-3.16' not in (bundled/'install.sh').read_text()
+ damaged=base/'damaged-core.zip';damaged.write_bytes(core.read_bytes()+b'corruption')
+ try:m.prepare(damaged,base/'rejected-core');raise AssertionError('damaged bundled package accepted')
+ except ValueError:pass
+ assert not (base/'rejected-core').exists()
  def archive(extra=None):
   with zipfile.ZipFile(package,'w') as z:
    for name in sorted(m.FILES):
-    z.writestr('SDWEAK/'+name,original if name=='install.sh' else b'fixture')
+    payload={'install.sh':original,'assets/SDWEAK.sh':real_runtime,'assets/sdweak.service':real_unit}.get(name,b'fixture')
+    z.writestr('SDWEAK/'+name,payload)
    if extra:z.writestr(*extra)
   m.SHA256=hashlib.sha256(package.read_bytes()).hexdigest()
  archive();m.prepare(package,base/'prepared')
@@ -29,6 +47,32 @@ with tempfile.TemporaryDirectory() as d:
  assert not re.search(r'\bsudo\s', script) and 'toolbox_sudo ' in script
  assert 'ping -c1' not in script and 'restart systemd-zram-setup@zram0' not in script
  assert '原作者' in (base/'prepared/SDWEAK/RENKIT-CHANGES.txt').read_text()
+ # Execute a copy with ALL /proc and /sys paths redirected to private fixtures.
+ # No kernel writes, privilege, service or network commands are possible here.
+ mock_root=base/'kernel';mock_root.mkdir()
+ def fixture_runtime(data):
+  text=re.sub(r'/(proc|sys)/',lambda match:str(mock_root)+match.group(0),data.decode())
+  return text.replace('#!/bin/bash\n', '''#!/bin/bash
+id() { echo 0; }
+sync() { :; }
+printf() {
+ if [ "${MOCK_WRITE_FAIL:-}" = bfq ] && [ "${2:-}" = bfq ]; then return 1; fi
+ builtin printf "$@"
+}
+''',1)
+ node=mock_root/'proc/sys/vm/swappiness';node.parent.mkdir(parents=True);node.write_text('60')
+ card=mock_root/'sys/block/mmcblk0/queue';card.mkdir(parents=True);(card/'scheduler').write_text('mq-deadline')
+ for label,data in [('old',real_runtime),('new',(bundled/'assets/SDWEAK.sh').read_bytes())]:
+  runtime_file=base/(label+'-runtime.sh');runtime_file.write_text(fixture_runtime(data))
+  result=subprocess.run(['bash',str(runtime_file)],env={**os.environ,'LC_ALL':'C'},capture_output=True,text=True)
+  assert result.returncode==(1 if label=='old' else 0),(label,result.stdout,result.stderr)
+  assert 'FAIL=0' in result.stdout and 'SKIP=' in result.stdout
+ # A real write failure must fail even when the final optional write succeeds.
+ (card/'iosched').mkdir();(card/'iosched/back_seek_penalty').write_text('0')
+ for label in ['old','new']:
+  result=subprocess.run(['bash',str(base/(label+'-runtime.sh'))],env={**os.environ,'LC_ALL':'C','MOCK_WRITE_FAIL':'bfq'},capture_output=True,text=True)
+  assert result.returncode==(0 if label=='old' else 1),(label,result.returncode,result.stdout.splitlines()[-8:],result.stderr[-300:])
+  assert 'FAIL=1' in result.stdout
  # Exercise real prepared installer with every command that can write/privilege mocked.
  folder=base/'prepared/SDWEAK'
  (folder/'assets/common.sh').write_text('''MODEL=Galileo
@@ -127,4 +171,4 @@ bash "$MOCK_ROOT/repo/scripts/run_sdweak.sh" "$MOCK_ROOT/prepared/SDWEAK"
  try:m.prepare(package,base/'bad');raise AssertionError('corrupt package accepted')
  except ValueError:pass
  assert not (base/'bad').exists()
-print('PASS: archive gates, real authentication/runner, blocked ping, empty mount options, reboot-deferred memory setup and failure diagnostics')
+print('PASS: verified offline payload, real TF-card exit-status regression, actual write failure, service user path, authentication/runner and failure cleanup')

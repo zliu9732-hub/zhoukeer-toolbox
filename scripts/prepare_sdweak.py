@@ -7,11 +7,15 @@ import sys
 import zipfile
 
 SHA256 = '5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e'
+CORE_SHA256 = 'e53841b26615314b9903f4714acec2f1b6ca1aa3fe4dbf456d19948e6ad8c25d'
 FILES = {'README.md', 'README_ENG.md', 'install.sh', 'uninstall.sh', 'LICENSE', '.gitignore',
          'assets/zram-generator.conf', 'assets/energy.service', 'assets/common.sh',
          'assets/gamescope-3.16.23.2-1-SDWEAK.pkg.tar.zst',
          'assets/vulkan-radeon-SDWEAK.pkg.tar.zst', 'assets/sdweak.service', 'assets/scx',
          'assets/strings.sh', 'assets/energy.path', 'assets/SDWEAK.sh'}
+UNUSED_GRAPHICS = {'assets/gamescope-3.16.23.2-1-SDWEAK.pkg.tar.zst',
+                   'assets/vulkan-radeon-SDWEAK.pkg.tar.zst'}
+CORE_FILES = FILES - UNUSED_GRAPHICS
 ZH = {
  'ping_success': '网络检查通过。', 'ping_fail': '网络检查失败，请检查连接后重试。',
  'integrity_fail': '安装文件损坏或不完整，已停止。',
@@ -31,8 +35,10 @@ ZH = {
  'installation_time': '安装耗时', 'seconds': '秒。',
 }
 
-def prepare(archive, destination):
-    if hashlib.sha256(Path(archive).read_bytes()).hexdigest() != SHA256:
+def prepare(archive, destination, home=None):
+    checksum = hashlib.sha256(Path(archive).read_bytes()).hexdigest()
+    expected_files = CORE_FILES if checksum == CORE_SHA256 else FILES
+    if checksum not in {SHA256, CORE_SHA256}:
         raise ValueError('SDWEAK 校验未通过')
     files = {}
     with zipfile.ZipFile(archive) as z:
@@ -46,23 +52,24 @@ def prepare(archive, destination):
                 continue
             name = entry.filename.removeprefix('SDWEAK/')
             mode = entry.external_attr >> 16
-            if name not in FILES or name in files or stat.S_ISLNK(mode) or entry.file_size > 67108864:
+            if name not in expected_files or name in files or stat.S_ISLNK(mode) or entry.file_size > 67108864:
                 raise ValueError('出现意外文件、链接或过大文件')
             files[name] = z.read(entry)
-    if set(files) != FILES:
+    if set(files) != expected_files:
         raise ValueError('安装文件不完整')
+    files = {name: data for name, data in files.items() if name in CORE_FILES}
     script = files['install.sh'].decode()
     script = script.replace('#!/bin/bash\n', '#!/bin/bash\nset -Eeo pipefail\n', 1)
     script = script.replace(': > "$LOG_FILE"\n', ''': > "$LOG_FILE"
 RENKIT_SDWEAK_STEP="检查安装文件"
 renkit_sdweak_error() {
-    local result="$1" line="$2"
+    local result="$1" line="$2" command="$3"
     trap - ERR
     printf 'SDWEAK 未完成：%s失败。详细记录：%s\\n' "$RENKIT_SDWEAK_STEP" "$LOG_FILE" >&2
-    log "ERROR: step=$RENKIT_SDWEAK_STEP line=$line exit=$result"
+    log "ERROR: step=$RENKIT_SDWEAK_STEP line=$line exit=$result command=$command"
     exit "$result"
 }
-trap 'renkit_sdweak_error "$?" "$LINENO"' ERR
+trap 'renkit_sdweak_error "$?" "$LINENO" "$BASH_COMMAND"' ERR
 ''', 1)
     start = script.index('choose_language() {')
     end = script.index('log "LANGUAGE:', start)
@@ -71,10 +78,15 @@ trap 'renkit_sdweak_error "$?" "$LINENO"' ERR
     start = script.index('# Pacman\n')
     end = script.index('# Unlocking the memory lock', start)
     script = script[:start] + script[end:]
+    # The graphics replacement is not installed. Verify the entire source ZIP
+    # above, then omit its two unused packages and their redundant runtime check.
+    start = script.index('# Checksum validation\n')
+    end = script.index('# Start\n', start)
+    script = script[:start] + '# Source files verified by Renkit before installation.\n\n' + script[end:]
     # The full package is already local and verified; blocked ICMP must not
     # reject an otherwise successful download or require additional internet.
     start = script.index('# Checking Internet access\n')
-    end = script.index('# Checksum validation', start)
+    end = script.index('# Source files verified by Renkit', start)
     script = script[:start] + script[end:]
     script = script.replace('sudo pacman -Rdd --noconfirm gamemode &>/dev/null',
                             'if pacman -Q gamemode >/dev/null 2>&1; then sudo pacman -Rdd --noconfirm gamemode; fi')
@@ -111,12 +123,41 @@ trap 'renkit_sdweak_error "$?" "$LINENO"' ERR
         ('# display overclock LCD', '设置屏幕刷新率'),
         ('\npower_efficiency\n', '设置节能选项'),
         ('# Finalize', '完成系统设置'),
+        ('sudo systemctl enable --now sdweak.service', '启用性能设置'),
+        ('sudo mkinitcpio -P', '更新启动所需文件'),
+        ('sudo grub-mkconfig -o "$GRUB_CFG"', '更新开机设置'),
     ):
         script = script.replace(marker, f'\nRENKIT_SDWEAK_STEP="{step}"\n' + marker, 1)
     # Reuse Renkit's secure authentication for every privileged operation.
     # Raw sudo loses its timestamp after the parent helper invalidates it.
     script = re.sub(r'\bsudo(?=\s)', 'toolbox_sudo', script)
     files['install.sh'] = script.encode()
+    runtime = files['assets/SDWEAK.sh'].decode()
+    if runtime.count('trap _summary EXIT') != 1 or not runtime.rstrip().endswith('done'):
+        raise ValueError('SDWEAK 性能设置脚本结构不匹配')
+    # A missing optional sysfs node is SKIP, not a failed write. Never inherit
+    # the final microSD write's status or hide an earlier real write failure.
+    runtime += '''\n# Renkit: report the result of all supported settings, not the final optional one.
+if [ "$WRITE_FAIL" -gt 0 ] || [ "$WRITE_OK" -eq 0 ]; then
+    exit 1
+fi
+exit 0
+'''
+    files['assets/SDWEAK.sh'] = runtime.encode()
+    user_home = str(Path.home() if home is None else Path(home))
+    if not Path(user_home).is_absolute() or any(ord(c) < 32 or ord(c) == 127 for c in user_home):
+        raise ValueError('用户目录无效')
+    unit = files['assets/sdweak.service'].decode()
+    paths = re.findall(r'^(?:ConditionPathExists|ExecStart)=(/[^\n]+)$', unit, re.MULTILINE)
+    if len(paths) != 2 or paths[0] != paths[1] or not paths[0].endswith('/.local/tweak/SDWEAK.sh'):
+        raise ValueError('SDWEAK 服务文件结构不匹配')
+    old_path = paths[0]
+    target_path = user_home + '/.local/tweak/SDWEAK.sh'
+    escaped = target_path.replace('\\', '\\\\').replace('"', '\\"').replace('%', '%%').replace('$', '$$')
+    # Conditions consume one literal path (no quote removal); ExecStart has its
+    # own command-line parser. Both resolve systemd percent specifiers.
+    unit = unit.replace('ConditionPathExists=' + old_path, 'ConditionPathExists=' + target_path.replace('%', '%%'))
+    files['assets/sdweak.service'] = unit.replace('ExecStart=' + old_path, 'ExecStart=/usr/bin/bash "' + escaped + '"').encode()
     strings = files['assets/strings.sh'].decode()
     for key, text in ZH.items():
         strings += f'\ntexts["en_{key}"]="{text}"'
@@ -133,6 +174,7 @@ trap 'renkit_sdweak_error "$?" "$LINENO"' ERR
     (dest / 'SDWEAK/RENKIT-CHANGES.txt').write_text(
         'Renkit：中文提示与失败步骤；沿用管理员验证；失败即停止；'
         '已校验文件无需再次联网；内存优化重启后生效；'
+        '忽略不支持的可选设置，实际写入失败仍停止；服务使用当前用户目录；'
         '保留软件签名检查、密钥与缓存；不安装实验性显示组件；'
         '不自动重启。原作者 Taskerer / @noncatt，MIT。\n')
 
