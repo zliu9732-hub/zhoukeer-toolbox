@@ -8,6 +8,7 @@ fail() { echo "FAIL: $*" >&2; exit 1; }
 export ZHOUKEER_TEST_MODE=1
 export ZHOUKEER_APP_DIR="$TMP_ROOT/apps"
 source "$ROOT/modules/plugin_store.sh"
+install_themehub_auto() { return 2; } # Keep this suite focused on the retained fixed-package fallback.
 LOG_DIR="$TMP_ROOT/logs"; LOG_FILE="$LOG_DIR/toolbox.log"
 mkdir -p "$LOG_DIR" "$TMP_ROOT/source/DeckHomeThemes/dist" "$TMP_ROOT/plugins"
 export DECKY_PLUGIN_DIR="$TMP_ROOT/plugins"
@@ -22,6 +23,7 @@ detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
 DOWNLOAD_MODE=success
 LOCALIZE_FAIL=0
 python3() {
+    if [ "$1" = - ]; then command python3 "$@"; return; fi # Pure local version parsing.
     [ "$1" = "$ROOT/scripts/localize_deckhomethemes.py" ] || fail '尝试执行非模拟 Python'
     if [ "${2:-}" = --check ]; then
         [ -f "$3/dist/index.js" ] && grep -Fq '中文前端 fixture' "$3/dist/index.js"

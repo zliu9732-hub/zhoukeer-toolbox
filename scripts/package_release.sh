@@ -55,6 +55,7 @@ VERIFY_FILES="$VERIFY_FILES scripts/localize_deckhomethemes.py data/deckhomethem
 VERIFY_FILES="$VERIFY_FILES modules/ayaneo3.sh scripts/localize_ayaneo3.py scripts/verify_ayaneo3_ui.mjs data/ayaneo3_zh.json data/ayaneo3_files.json assets/ayaneo3/zh-runtime.js"
 VERIFY_FILES="$VERIFY_FILES core/lsfg_choice.sh modules/lsfg_install.sh"
 VERIFY_FILES="$VERIFY_FILES core/plugin_cleanup_choice.sh modules/feature_plugins_cleanup.sh"
+VERIFY_FILES="$VERIFY_FILES modules/themehub_updates.sh scripts/sync_themehub_zh.py scripts/themehub_package.py scripts/themehub_ui.mjs data/themehub_auto_baseline.json data/themehub_ui_baseline.json data/themehub_zh.json assets/themehub/dynamic-messages.js"
 
 mkdir -p "$DIST_DIR"
 

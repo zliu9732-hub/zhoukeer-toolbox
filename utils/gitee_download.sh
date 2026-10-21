@@ -60,7 +60,7 @@ gitee_mirror_raw_base() {
 gitee_mirror_manifest_repo() {
     case "$1" in
         sdweak) printf '%s\n' "$GITEE_SDWEAK_MIRROR_REPO" ;;
-        deckhomethemes) printf '%s\n' "$GITEE_DECKHOMETHEMES_MIRROR_REPO" ;;
+        deckhomethemes|themehub-zh-auto) printf '%s\n' "$GITEE_DECKHOMETHEMES_MIRROR_REPO" ;;
         epic-linux) printf '%s\n' zhoukeer-toolbox-mirror-4 ;;
         ayaneo3-companion) printf '%s\n' zhoukeer-toolbox-mirror-4 ;;
         lsfg-v2-zh-auto|lsfg-v2-zh-signed) printf '%s\n' zhoukeer-toolbox-mirror-4 ;;

@@ -16,6 +16,7 @@ source "$PROJECT_ROOT/core/lsfg_choice.sh"
 source "$PROJECT_ROOT/core/plugin_cleanup_choice.sh"
 source "$PROJECT_ROOT/modules/lsfg_install.sh"
 source "$PROJECT_ROOT/modules/feature_plugins_cleanup.sh"
+source "$PROJECT_ROOT/modules/themehub_updates.sh"
 
 load_config
 
@@ -2039,6 +2040,21 @@ ensure_deckhomethemes_chinese_current() {
     local tmp_dir archive plugin_source
     PLUGIN_INSTALL_CHANGED=0
     require_command python3 || return 1
+    local auto_status=0
+    install_themehub_auto || auto_status=$?
+    [ "$auto_status" -ne 0 ] || return 0
+    [ "$auto_status" -eq 2 ] || return 1
+    if python3 - "$PROJECT_ROOT/scripts" "$plugin_root/DeckHomeThemes/package.json" "$DECKHOMETHEMES_VERSION" <<'PY'
+import json,sys
+sys.path.insert(0,sys.argv[1])
+from framegen_package import version
+try: raise SystemExit(0 if version(json.load(open(sys.argv[2]))['version'])>version(sys.argv[3]) else 1)
+except (OSError,ValueError,KeyError,TypeError): raise SystemExit(1)
+PY
+    then
+        echo '主页主题版本检查暂不可用，已保留当前新版，请稍后重试。'
+        return 1
+    fi
     for resource in scripts/localize_deckhomethemes.py data/deckhomethemes_zh.json \
         data/deckhomethemes_files.json assets/deckhomethemes/zh-runtime.js; do
         [ -s "$PROJECT_ROOT/$resource" ] && [ ! -L "$PROJECT_ROOT/$resource" ] || {

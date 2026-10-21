@@ -1,0 +1,74 @@
+name: Sync ThemeHub Chinese every 48 hours
+
+on:
+  schedule:
+    - cron: '37 1 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/sync-themehub-zh.yml
+      - scripts/sync_themehub_zh.py
+      - scripts/themehub_package.py
+      - scripts/themehub_ui.mjs
+      - scripts/localize_deckhomethemes.py
+      - scripts/framegen_ui.mjs
+      - data/deckhomethemes_zh.json
+      - data/themehub_*.json
+      - assets/deckhomethemes/**
+      - assets/themehub/**
+      - tests/test_themehub_pipeline.py
+
+permissions:
+  contents: read
+concurrency:
+  group: renkit-gitee-mirror-assets
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check 48-hour interval
+        id: cadence
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = schedule ]; then
+            echo "due=$(python3 scripts/sync_themehub_zh.py due)" >> "$GITHUB_OUTPUT"
+          else
+            echo 'due=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Verify the pipeline and check the official release
+        if: steps.cadence.outputs.due == 'true'
+        id: plan
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 tests/test_themehub_pipeline.py
+          python3 scripts/sync_themehub_zh.py plan --work "$RUNNER_TEMP/themehub-zh" >> "$GITHUB_OUTPUT"
+      - name: Prepare translation for new UI text only
+        if: steps.plan.outputs.updates == 'true'
+        run: |
+          python3 -m pip install --index-url https://download.pytorch.org/whl/cpu 'torch==2.8.0'
+          python3 -m pip install 'transformers==4.57.1' 'sentencepiece==0.2.1' 'sacremoses==0.1.1' 'opencc-python-reimplemented==0.1.7'
+      - name: Preserve approved wording and verify the complete new package
+        if: steps.plan.outputs.updates == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/sync_themehub_zh.py build --work "$RUNNER_TEMP/themehub-zh" --machine
+      - name: Publish only after public package verification
+        if: steps.plan.outputs.updates == 'true'
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+        run: |
+          test -n "$GITEE_TOKEN"
+          python3 scripts/sync_themehub_zh.py publish --work "$RUNNER_TEMP/themehub-zh"
