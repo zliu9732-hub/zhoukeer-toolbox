@@ -34,7 +34,22 @@ LAUNCHER_COVER_CACHE_ROOT="${ZHOUKEER_LAUNCHER_COVER_CACHE_DIR:-$APP_DIR/game-la
 LAUNCHER_COVER_READY_MARKER="$LAUNCHER_COVER_CACHE_ROOT/.covers-ready-v8"
 
 launcher_details() {
+    LAUNCHER_FIXED_SHA256=""
     case "$1" in
+        quark)
+            LAUNCHER_NAME="夸克网盘"
+            LAUNCHER_FILE_NAME="QuarkCloudDrive-7.4.2.exe"
+            LAUNCHER_URL="https://umcdn.quark.cn/download/37211/quarkclouddrivepc/pckk@product_guanwang/QuarkCloudDrivePC_V7.4.2.820_pc_pf30001_(zh-cn)_release_(Build3241122-1000-x64).exe"
+            LAUNCHER_FIXED_SHA256="a2e1d6a095d938addc1da8e43faacea6a088023e7075cb694e1b6547b2934fd9"
+            LAUNCHER_GITEE_MIRROR_ID="quark"
+            LAUNCHER_GITEE_MIRROR_SHA256="$LAUNCHER_FIXED_SHA256"
+            LAUNCHER_FALLBACK_URL=""
+            LAUNCHER_FALLBACK_SHA256=""
+            LAUNCHER_MIN_BYTES=104857600
+            LAUNCHER_MAGIC="4d5a"
+            LAUNCHER_MAGIC_ALT=""
+            LAUNCHER_TARGET_RELATIVES=$'Program Files/QuarkCloudDrive/QuarkCloudDrive.exe\nProgram Files (x86)/QuarkCloudDrive/QuarkCloudDrive.exe\nQuarkCloudDrive/QuarkCloudDrive.exe'
+            ;;
         epic)
             LAUNCHER_NAME="Epic Games 启动器"
             LAUNCHER_FILE_NAME="EpicGamesLauncherInstaller.msi"
@@ -141,6 +156,11 @@ verify_installer() {
     fi
     if [ "$magic_ok" -ne 1 ]; then
         echo "下载文件格式不正确，已保留原有安装包。"
+        return 1
+    fi
+    if [ -n "${LAUNCHER_FIXED_SHA256:-}" ] && \
+        [ "$(launcher_file_sha256 "$file")" != "$LAUNCHER_FIXED_SHA256" ]; then
+        echo "安装文件检查未通过，已保留原有安装包。"
         return 1
     fi
 }
@@ -696,6 +716,10 @@ find_launcher_in_prefix() {
             return 0
         fi
     done <<< "$LAUNCHER_TARGET_RELATIVES"
+    if [ "${LAUNCHER_NAME:-}" = "夸克网盘" ]; then
+        find_launcher_in_drive "$prefix_dir/pfx/drive_c"
+        return
+    fi
     return 1
 }
 
@@ -710,6 +734,14 @@ find_launcher_in_drive() {
             return 0
         fi
     done <<< "$LAUNCHER_TARGET_RELATIVES"
+    if [ "${LAUNCHER_NAME:-}" = "夸克网盘" ] && [ -d "$drive_c" ]; then
+        local candidate
+        candidate="$(find "$drive_c/" -maxdepth 9 -type f -iname QuarkCloudDrive.exe \
+            ! -path '*/Downloads/*' ! -path '*/Temp/*' -print -quit 2>/dev/null)"
+        [ -n "$candidate" ] && [ ! -L "$candidate" ] || return 1
+        printf '%s\n' "$candidate"
+        return 0
+    fi
     return 1
 }
 
@@ -766,6 +798,7 @@ run_launcher_installer() {
     case "$target:$install_mode" in
         epic:interactive) echo "弹出 Epic 安装窗口后，点击 Install（安装）；完成后点击 Finish（完成）。" >&2 ;;
         heihe:interactive) echo "弹出黑盒工坊安装窗口后，点击安装并等待完成即可。" >&2 ;;
+        quark:interactive) echo "弹出夸克网盘安装窗口后，按提示完成安装；完成后关闭安装窗口。" >&2 ;;
         ubisoft:interactive|uplay:interactive) echo "弹出育碧安装窗口后，选择中文并依次点击接受、安装、完成。" >&2 ;;
     esac
 
@@ -793,6 +826,15 @@ run_launcher_installer() {
                 fi
             fi
             ;;
+        quark)
+            local -a quark_args=('/DIR=C:\Program Files\QuarkCloudDrive' /NORESTART)
+            if [ "$install_mode" = silent ]; then
+                quark_args+=(/VERYSILENT /SUPPRESSMSGBOXES /SP-)
+            fi
+            STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
+                STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
+                "$proton_runner" run "$installer_file" "${quark_args[@]}" 2>/dev/null || status=$?
+            ;;
         battlenet|heihe|ubisoft|uplay)
             if [ "$install_mode" = "silent" ]; then
                 STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
@@ -806,6 +848,10 @@ run_launcher_installer() {
             ;;
     esac
     printf '%s\n' "$status" > "$prefix_dir/.zhoukeer-installer-status" 2>/dev/null || true
+    if [ "$target" = quark ] && [ "$status" -ne 0 ] && [ "$status" -ne 3010 ]; then
+        echo '夸克网盘安装窗口未完成，已停止创建入口。' >&2
+        return 1
+    fi
     while [ "$elapsed" -le "$timeout" ]; do
         installed_file="$(find_launcher_in_prefix "$prefix_dir" || true)"
         if [ -n "$installed_file" ]; then
@@ -956,6 +1002,8 @@ prepare_launcher_storage_base() {
 
 select_launcher_storage_base() {
     local target="$1" steam_root="$2" selected="" selection_status=0 line id label path free index=0
+    local prompt='请选择启动器、账号数据和游戏默认目录的保存位置。不会格式化或清空磁盘。'
+    [ "$target" != quark ] || prompt='请选择夸克网盘和账号设置的保存位置。不会格式化或清空磁盘。'
     local -a ids=() labels=() paths=() menu_args=()
 
     if [ "$LAUNCHER_BASE_IS_EXPLICIT" -eq 1 ]; then
@@ -980,7 +1028,7 @@ select_launcher_storage_base() {
     elif command -v kdialog >/dev/null 2>&1 && \
          { [ -n "${DISPLAY:-}" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; }; then
         selected="$(kdialog --title "选择${LAUNCHER_NAME}安装位置" --menu \
-            "请选择启动器、账号数据和游戏默认目录的保存位置。不会格式化或清空磁盘。" \
+            "$prompt" \
             "${menu_args[@]}")" || selection_status=$?
         if [ "$selection_status" -ne 0 ]; then
             echo "已取消选择，未创建安装环境。" >&2

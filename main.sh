@@ -268,7 +268,7 @@ common_software_menu() {
         ui_touch_button 16 '\033[1;97;48;5;24m' "Windows 软件工具" "运行 Windows 软件和游戏"
         ui_touch_button 18 '\033[1;97;48;5;24m' "游戏兼容设置" "安装游戏修复工具（Protontricks）"
         ui_touch_button 20 '\033[1;97;48;5;24m' "AnyDesk 远程协助" "远程操作机器，协助解决问题"
-        ui_touch_button 22 '\033[1;97;48;5;238m' "更多常用软件" "百度网盘等更多工具"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "更多常用软件" "夸克网盘、百度网盘等更多工具"
         ui_prompt
         choice="$(read_touch_menu right:2-3:wechat right:4-5:qq right:6-7:browser right:8-9:chrome right:10-11:edge right:12-13:rustdesk right:14-15:todesk right:16-17:bottles right:18-19:protontricks right:20-21:anydesk right:22-23:more)"
         case "$choice" in
@@ -304,14 +304,14 @@ common_software_more_menu() {
                 ui_touch_button 6 '\033[1;97;48;5;24m' "OBS Studio" "录屏、直播与视频采集"
                 ui_touch_button 8 '\033[1;97;48;5;24m' "LocalSend 局域网传文件" "手机与电脑免登录互传"
                 ui_touch_button 10 '\033[1;97;48;5;24m' "百度网盘" "上传、下载和管理网盘文件"
-                ui_touch_button 12 '\033[1;97;48;5;24m' "PeaZip 压缩工具" "解压与压缩常用格式"
+                ui_touch_button 12 '\033[1;97;48;5;24m' "夸克网盘" "上传、下载和管理网盘文件"
                 ui_touch_button 14 '\033[1;97;48;5;24m' "WiliWili" "观看 B 站视频"
                 ui_touch_button 16 '\033[1;97;48;5;24m' "中文输入法" "用拼音等方式输入中文"
                 ui_touch_button 18 '\033[1;97;48;5;24m' "下一页" "音乐、下载与远程游玩游戏"
                 ui_touch_button 20 '\033[1;97;48;5;238m' "返回常用软件" "查看常用软件第一页"
                 ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
                 ui_prompt
-                choice="$(read_touch_menu right:2-3:libreoffice right:4-5:vlc right:6-7:obs right:8-9:localsend right:10-11:baidunetdisk right:12-13:peazip right:14-15:willwill right:16-17:fcitx5 right:18-19:next right:20-21:back right:22-23:home)"
+                choice="$(read_touch_menu right:2-3:libreoffice right:4-5:vlc right:6-7:obs right:8-9:localsend right:10-11:baidunetdisk right:12-13:quark right:14-15:willwill right:16-17:fcitx5 right:18-19:next right:20-21:back right:22-23:home)"
                 ;;
             1)
                 draw_category_frame software "更多常用软件" "音乐、下载与云游戏 · 第 2/3 页"
@@ -340,9 +340,10 @@ common_software_more_menu() {
                 ui_touch_button 14 '\033[1;97;48;5;24m' "Parsec" "远程串流与协作"
                 ui_touch_button 16 '\033[1;97;48;5;24m' "Sunshine 游戏画面共享" "把游戏画面传到其他设备 · 需要管理员权限"
                 ui_touch_button 18 '\033[1;97;48;5;24m' "上一页" "音乐与下载工具"
+                ui_touch_button 20 '\033[1;97;48;5;24m' "PeaZip 压缩工具" "解压与压缩常用格式"
                 ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
                 ui_prompt
-                choice="$(read_touch_menu right:2-3:flameshot right:4-5:onlyoffice right:6-7:joplin right:8-9:heroic right:10-11:lutris right:12-13:chiaki4deck right:14-15:parsec right:16-17:sunshine right:18-19:previous right:22-23:home)"
+                choice="$(read_touch_menu right:2-3:flameshot right:4-5:onlyoffice right:6-7:joplin right:8-9:heroic right:10-11:lutris right:12-13:chiaki4deck right:14-15:parsec right:16-17:sunshine right:18-19:previous right:20-21:peazip right:22-23:home)"
                 ;;
         esac
         case "$choice" in
@@ -354,6 +355,7 @@ common_software_more_menu() {
             obs) confirm_and_run "安装 OBS Studio" "录制屏幕和直播" bash "$PROJECT_ROOT/modules/software.sh" obs ;;
             localsend) confirm_and_run "安装 LocalSend 局域网传文件" "在同一 Wi-Fi 下与手机、电脑互传文件" bash "$PROJECT_ROOT/modules/software.sh" localsend ;;
             baidunetdisk) confirm_and_run "安装百度网盘" "上传、下载和管理百度网盘文件" bash "$PROJECT_ROOT/modules/software.sh" baidunetdisk ;;
+            quark) confirm_and_run "安装夸克网盘" "上传、下载和管理夸克网盘文件，安装后可从桌面打开" bash "$PROJECT_ROOT/modules/software.sh" quark ;;
             peazip) confirm_and_run "安装 PeaZip 压缩工具" "压缩和解压文件" bash "$PROJECT_ROOT/modules/software.sh" peazip ;;
             willwill) confirm_and_run "安装 WiliWili" "观看 B 站视频，安装后可从 Steam 打开" bash "$PROJECT_ROOT/modules/software.sh" willwill ;;
             fcitx5) confirm_and_run "安装中文输入法" "用拼音等方式输入中文" bash "$PROJECT_ROOT/modules/software.sh" fcitx5 ;;

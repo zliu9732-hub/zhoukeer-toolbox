@@ -100,6 +100,7 @@ software_menu() {
             todesk "ToDesk 远程协助｜安装前需完成系统设置" \
             bottles "Windows 软件工具｜运行 Windows 软件和游戏" \
             baidunetdisk "百度网盘｜上传、下载和管理百度网盘文件" \
+            quark "夸克网盘｜上传、下载和管理夸克网盘文件" \
             libreoffice "LibreOffice 办公套件｜编辑文档、表格和演示文稿" \
             vlc "VLC 播放器｜播放视频和音乐" \
             obs "OBS Studio｜录制屏幕和直播" \
@@ -156,6 +157,7 @@ software_menu() {
                     bash "$PROJECT_ROOT/modules/todesk.sh" --install
                 ;;
             baidunetdisk) gui_confirm "将安装此工具，用于上传、下载和管理百度网盘文件。是否继续？" && run_gui_action "安装百度网盘" bash "$PROJECT_ROOT/modules/software.sh" baidunetdisk ;;
+            quark) gui_confirm "将安装夸克网盘，用于上传、下载和管理文件，安装后可从桌面打开。是否继续？" && run_gui_action "安装夸克网盘" bash "$PROJECT_ROOT/modules/software.sh" quark ;;
             libreoffice) gui_confirm "将安装此工具，用于编辑文档、表格和演示文稿。是否继续？" && run_gui_action "安装 LibreOffice 办公套件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" libreoffice ;;
             vlc) gui_confirm "将安装此工具，用于播放视频和音乐。是否继续？" && run_gui_action "安装 VLC 播放器" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" vlc ;;
             obs) gui_confirm "将安装此工具，用于录制屏幕和直播。是否继续？" && run_gui_action "安装 OBS Studio" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/software.sh" obs ;;

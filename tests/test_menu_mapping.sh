@@ -92,6 +92,8 @@ assert_contains "$touch_software" 'right:14-15:todesk' "常用软件 ToDesk 坐�
 assert_contains "$touch_software" 'right:20-21:anydesk' "常用软件 AnyDesk 坐标错误"
 assert_contains "$touch_software" 'right:22-23:more' "常用软件更多页坐标错误"
 assert_contains "$touch_software_more" 'right:16-17:fcitx5' "更多常用软件缺少中文输入法坐标"
+assert_contains "$touch_software_more" 'right:12-13:quark' "更多常用软件缺少夸克网盘坐标"
+assert_contains "$touch_software_more" 'right:20-21:peazip' "PeaZip 移动后坐标缺失"
 assert_contains "$touch_software_more" 'right:18-19:next' "更多常用软件缺少下一页坐标"
 assert_contains "$touch_software_more" 'right:20-21:back' "更多常用软件缺少返回坐标"
 assert_contains "$touch_software_more" 'right:2-3:xbox-cloud' "更多常用软件缺少 Xbox 云游戏坐标"

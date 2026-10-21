@@ -2002,6 +2002,7 @@ uninstall_software() {
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
+        quark) bash "$PROJECT_ROOT/modules/quark.sh" install ;;
         enable-domestic-remotes) enable_chimera_domestic_flatpak_remotes ;;
         restore-official-remote) restore_chimera_official_flatpak_remote ;;
         source-status) show_chimera_flatpak_source_status ;;

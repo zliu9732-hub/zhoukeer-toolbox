@@ -809,8 +809,8 @@ failure_output="$(
 failure_status=$?
 set -e
 [ "$failure_status" -ne 0 ]
-printf '%s\n' "$failure_output" | grep -Fq '两个国内缓存均失败或超时'
-printf '%s\n' "$failure_output" | grep -Fq '检测到下载源不可用，正在切换至国内源，请耐心等待'
+printf '%s\n' "$failure_output" | grep -Fq '多次下载失败或超时，已停止。'
+printf '%s\n' "$failure_output" | grep -Fq '检测到下载源不可用，正在重新尝试，请耐心等待'
 # 首轮失败后修复一次 Flatpak 环境，再对两个国内缓存各重试一次。
 [ "$(grep -c '^install .* com.qq.QQ$' "$STATE_DIR/commands")" -eq 5 ]
 [ "$(( $(grep -c '^modify ' "$STATE_DIR/commands") - remote_modify_before_failure ))" -eq 4 ]

@@ -141,3 +141,9 @@ https://github.com/Kaal31/benderthemes/releases/tag/v1.10.7
 - 原作者：Epic Games, Inc.；官方页面：https://launcher.epicgames.com/ 。这是官方专有应用，非 Renkit 开源代码的一部分。
 - Renkit 安装固定版本 `0.96.0+g2fade97` 的官方 x86-64 AppImage，保留完整原包与第三方声明；不修改应用界面，不添加汉化署名。官方原文件单独分块托管在 Gitee mirror-4，重组后校验 SHA256 `6c5cc46eef8c80b01759cc76154b69a20645b01b79526442a8550090db5d251e`。
 - Renkit 更新包只包含安装与启动代码，未内置客户端。程序使用及其附带的第三方组件继续适用原有条款。
+
+## 夸克网盘 / Quark Cloud Drive
+
+- 原作者及权利方：广州市动悦信息技术有限公司。官方页面：<https://pan.quark.cn/>。客户端为官方专有软件，不属于 Renkit 开源代码，使用及附带组件适用其原有条款。
+- 固定官方 Windows 完整版本 7.4.2.820，SHA256：`a2e1d6a095d938addc1da8e43faacea6a088023e7075cb694e1b6547b2934fd9`。按维护者要求保留未修改完整原包，单独存放在 Gitee mirror-6；Renkit 更新包只携带安装代码与官网原图标，不内置客户端。
+- 通过既有 Proton 环境启动，不修改应用界面、作者、许可证或组件，不添加汉化署名。来源、官网图标地址与验证方法见 `docs/quark.md`。
