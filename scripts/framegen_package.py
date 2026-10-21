@@ -91,7 +91,9 @@ def merge_catalog(current, previous):
         new = entry(current, kind)
         try:
             old = entry(previous, kind)
-            result['packages'][kind] = old if version(old['upstream_version']) > version(new['upstream_version']) else new
+            old_order = (version(old['upstream_version']), old['attribution'] == 'upstream', old.get('translation_revision', 0))
+            new_order = (version(new['upstream_version']), new['attribution'] == 'upstream', new.get('translation_revision', 0))
+            result['packages'][kind] = old if old_order > new_order else new
         except (ValueError, KeyError, TypeError):
             result['packages'][kind] = new
     return result

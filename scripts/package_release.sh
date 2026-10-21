@@ -54,6 +54,7 @@ VERIFY_FILES="$VERIFY_FILES decky-plugins/switch-to-windows/plugin.json decky-pl
 VERIFY_FILES="$VERIFY_FILES scripts/localize_deckhomethemes.py data/deckhomethemes_zh.json data/deckhomethemes_files.json assets/deckhomethemes/zh-runtime.js"
 VERIFY_FILES="$VERIFY_FILES modules/ayaneo3.sh scripts/localize_ayaneo3.py scripts/verify_ayaneo3_ui.mjs data/ayaneo3_zh.json data/ayaneo3_files.json assets/ayaneo3/zh-runtime.js"
 VERIFY_FILES="$VERIFY_FILES core/lsfg_choice.sh modules/lsfg_install.sh"
+VERIFY_FILES="$VERIFY_FILES core/plugin_cleanup_choice.sh modules/feature_plugins_cleanup.sh"
 
 mkdir -p "$DIST_DIR"
 

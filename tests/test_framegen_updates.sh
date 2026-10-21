@@ -110,7 +110,27 @@ rm "$FRAMEGEN_CATALOG_CACHE"
 MODE=offline
 status=0
 install_framegen_auto fsr4 0 >/dev/null || status=$?
-[ "$status" -eq 2 ] || fail '无版本信息时没有允许固定基线回退'
+[ "$status" -eq 0 ] || fail '离线时没有采用内置已核对版本信息'
+python3 - "$FRAMEGEN_CATALOG_CACHE" <<'PY'
+import sys,json
+e=json.load(open(sys.argv[1]))['packages']['lsfg-v2']
+assert e['translation_revision']>=5
+e['translation_revision']=4
+c=json.load(open(sys.argv[1]));c['packages']['lsfg-v2']=e
+open(sys.argv[1],'w').write(json.dumps(c))
+PY
+refresh_framegen_catalog || fail '旧缓存不能升级到内置汉化修订'
+python3 - "$FRAMEGEN_CATALOG_CACHE" <<'PY'
+import sys,json
+assert json.load(open(sys.argv[1]))['packages']['lsfg-v2']['translation_revision']>=5
+PY
+(
+    rm "$FRAMEGEN_CATALOG_CACHE"
+    refresh_framegen_catalog() { return 1; }
+    status=0
+    install_framegen_auto fsr4 0 >/dev/null || status=$?
+    [ "$status" -eq 2 ] || fail '没有可用版本信息时未允许固定包回退'
+)
 (
     ensure_plugin_store_ready() { return 0; }
     refresh_framegen_catalog() { return 1; }
@@ -125,7 +145,7 @@ install_framegen_auto fsr4 0 >/dev/null || status=$?
     print_feature_plugin_status() { return 0; }
     check_lossless_scaling_installation() { return 0; }
     print_cef_remote_debugging_tip() { return 0; }
-    ZHOUKEER_LSFG_VARIANT=v2 install_feature_plugins
+    ZHOUKEER_LSFG_VARIANT=v2 ZHOUKEER_FEATURE_PLUGIN_CLEANUP=keep install_feature_plugins
 ) > "$TMP_ROOT/selected.out" || fail '版本缓存丢失后组合安装失败'
 grep -Fxq 'SELECTED_V2_CHECKED' "$TMP_ROOT/selected.out" || fail '组合安装没有保留较新的 2.0 选择'
 if grep -Eiq 'gitee|镜像|https://' "$TMP_ROOT/ok.out" "$TMP_ROOT/fsr4.out"; then fail '安装界面显示内部来源'; fi

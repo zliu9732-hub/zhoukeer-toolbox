@@ -5,6 +5,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf -- "$TMP_ROOT"' EXIT
+export ZHOUKEER_APP_DIR="$TMP_ROOT/apps"
 
 grep -Fq 'https://www.mhhf.com/Deck/decky/v.3.2.8/PluginLoader' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2' \
@@ -429,7 +430,7 @@ grep -Fq 'steam://store/993090' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'import_lossless_backup' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'steam://install/993090' "$PROJECT_ROOT/modules/plugin_store.sh"
 
-feature_install="$(sed -n '/^install_feature_plugins()/,/^}/p' "$PROJECT_ROOT/modules/plugin_store.sh")"
+feature_install="$(sed -n '/^install_feature_plugins_selected()/,/^}/p' "$PROJECT_ROOT/modules/plugin_store.sh")"
 for install_call in \
     'install_lsfg_zh_from_gitee 0' \
     'install_fsr4_zh_from_gitee 0' \
@@ -476,11 +477,11 @@ grep -Fq 'decky_plugin_store_version()' "$PROJECT_ROOT/modules/plugin_store.sh" 
     echo "FAIL: 插件商城缺少已安装版本读取" >&2
     exit 1
 }
-printf '%s\n' "$feature_install_function" | grep -Fq '小黄鸭（LSFG-VK）'
-printf '%s\n' "$feature_install_function" | grep -Fq 'reload_decky_plugins'
-printf '%s\n' "$feature_install_function" | grep -Fq '常用插件会出现在插头菜单中'
-printf '%s\n' "$feature_install_function" | grep -Fq '九款常用功能插件'
-printf '%s\n' "$feature_install_function" | grep -Fq 'feature_plugins="lsfg fsr4 cheatdeck lsfg-mako'
+printf '%s\n' "$feature_install" | grep -Fq '小黄鸭（LSFG-VK）'
+printf '%s\n' "$feature_install" | grep -Fq 'reload_decky_plugins'
+printf '%s\n' "$feature_install" | grep -Fq '常用插件会出现在插头菜单中'
+printf '%s\n' "$feature_install" | grep -Fq '九款常用功能插件'
+printf '%s\n' "$feature_install" | grep -Fq 'feature_plugins="lsfg fsr4 cheatdeck lsfg-mako'
 grep -Fq 'SWITCH_TO_WINDOWS_SOURCE_DIR="$PROJECT_ROOT/decky-plugins/switch-to-windows"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Switch to Windows v$SWITCH_TO_WINDOWS_VERSION 安装成功；本人制作：RenAmamiya。' \
@@ -832,7 +833,7 @@ grep -Fq 'LSFG_V2_VERSION="0.14.4"' "$PROJECT_ROOT/modules/plugin_store.sh" || {
     echo "FAIL: 小黄鸭 2.0 版本配置缺失" >&2
     exit 1
 }
-grep -Fq 'LSFG_V2_MIRROR_ID="lsfg-v2-zh-signed"' "$PROJECT_ROOT/modules/plugin_store.sh" || {
+grep -Fq 'LSFG_V2_MIRROR_ID="lsfg-v2-zh-auto"' "$PROJECT_ROOT/modules/plugin_store.sh" || {
     echo "FAIL: 小黄鸭 2.0 未使用独立国内镜像标识" >&2
     exit 1
 }
@@ -1101,7 +1102,7 @@ printf '%s\n' "$stale_cheatdeck_status_output" | \
 printf '{"version":"0.12.1"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/package.json"
 printf '{"version":"1.2.1"}\n' > "$PLUGIN_ROOT/CheatDeck/package.json"
 update_output="$(
-    ZHOUKEER_LSFG_VARIANT=legacy DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
+    ZHOUKEER_LSFG_VARIANT=legacy ZHOUKEER_FEATURE_PLUGIN_CLEANUP=keep DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
         source "$PROJECT_ROOT/modules/plugin_store.sh"
         detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
         LSFG_MAKO_INDEX_SHA256="$(calculate_decky_sha256 \

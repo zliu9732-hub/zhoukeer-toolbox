@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """48-hour upstream checks, static UI localization, verified Gitee publication."""
 import argparse
+import ast
 import copy
 import hashlib
 import json
@@ -22,7 +23,7 @@ UPSTREAM = {'lsfg-v2': ('xXJSONDeruloXx/decky-lsfg-vk', 'Decky.LSFG-VK.zip'),
             'fsr4': ('xXJSONDeruloXx/Decky-Framegen', 'Decky-Framegen.zip')}
 MODEL = 'Helsinki-NLP/opus-mt-en-zh'
 MODEL_REVISION = '408d9bc410a388e1d9aef112a2daba955b945255'
-TRANSLATION_REVISION = 3  # Repair display names, single-word labels and dynamic text as well as backend identity.
+TRANSLATION_REVISION = 5  # Include async state, indirect backend messages and descriptions containing commands.
 
 def due(timestamp=None):
     # Unix-day parity, unlike */2 day-of-month cron, stays 48 hours across month boundaries.
@@ -125,6 +126,46 @@ def node(*args, capture=False):
     return subprocess.run([os.environ.get('RENKIT_NODE_BINARY', 'node'), str(ROOT/'scripts/framegen_ui.mjs'), *map(str, args)],
                           check=True, capture_output=capture, text=True).stdout
 
+def backend_ui_inventory(files):
+    """Inventory display messages statically; never import or modify the backend."""
+    strings = set()
+    templates = {}
+    def collect(value):
+        if isinstance(value, ast.Constant) and isinstance(value.value, str):
+            text = value.value
+            if re.search('[A-Za-z]{2}', text) and not re.search('[\u3400-\u9fff]', text):
+                strings.add(text)
+        elif isinstance(value, ast.JoinedStr):
+            parts = [part.value if isinstance(part, ast.Constant) else None for part in value.values]
+            if any(isinstance(part, str) and re.search('[A-Za-z]{2}', part) for part in parts):
+                templates[json.dumps(parts)] = parts
+            for part in value.values:
+                if isinstance(part, ast.Constant): collect(part)
+        elif isinstance(value, (ast.BoolOp, ast.IfExp)):
+            for child in ast.iter_child_nodes(value): collect(child)
+    for name, content in files.items():
+        if not name.endswith('.py'): continue
+        tree = ast.parse(content, filename=name)
+        for node_value in ast.walk(tree):
+            if isinstance(node_value, ast.Dict):
+                for key, value in zip(node_value.keys, node_value.values):
+                    if isinstance(key, ast.Constant) and key.value in ['label','description','status','message','error']:
+                        collect(value)
+            if isinstance(node_value, ast.Assign):
+                for target in node_value.targets:
+                    if isinstance(target, ast.Name) and target.id in ['label','description','status','message','error']:
+                        collect(node_value.value)
+                    if isinstance(target, ast.Subscript) and isinstance(target.slice, ast.Constant) and target.slice.value in ['label','description','status','message','error']:
+                        collect(node_value.value)
+            if isinstance(node_value, ast.Call) and isinstance(node_value.func, ast.Attribute) and node_value.func.attr in ['_success_response','_error_response'] and len(node_value.args)>1:
+                collect(node_value.args[1])
+            if isinstance(node_value, ast.Raise) and isinstance(node_value.exc, ast.Call) and isinstance(node_value.exc.func, ast.Name) and node_value.exc.func.id in ['ValueError','RuntimeError','OSError','FileNotFoundError']:
+                for argument in node_value.exc.args: collect(argument)
+            if isinstance(node_value, (ast.FunctionDef, ast.AsyncFunctionDef)) and node_value.name == 'get_debug_file_contents':
+                for item in ast.walk(node_value):
+                    if isinstance(item, ast.Tuple) and len(item.elts)==3: collect(item.elts[1])
+    return {'strings': sorted(strings), 'templates': [templates[key] for key in sorted(templates)]}
+
 def build(kind, release, archive, output, machine=False):
     if digest(archive) != release['sha256']:
         raise ValueError('official archive SHA256 mismatch')
@@ -162,6 +203,9 @@ def build(kind, release, archive, output, machine=False):
            'files':{n:hashlib.sha256(b).hexdigest() for n,b in files.items()},'modes':modes}
         entry({'schema':1,'packages':{kind:e}},kind)
         return e,package_path
+    backend = backend_ui_inventory(files) if kind == 'lsfg-v2' else {'strings': [], 'templates': []}
+    backend_strings = backend['strings']
+    info['strings'] = sorted(set(info['strings']) | set(backend_strings))
     dictionary = json.loads((ROOT/'data/framegen_zh.json').read_text())
     missing = [s for s in info['strings'] if s not in dictionary]
     if missing:
@@ -171,10 +215,10 @@ def build(kind, release, archive, output, machine=False):
     if any(not isinstance(dictionary.get(s), str) or not re.search('[\u3400-\u9fff]', dictionary[s]) for s in info['strings']):
         raise ValueError('UI translation coverage is incomplete')
     (work/'dictionary.json').write_text(json.dumps(dictionary, ensure_ascii=False))
+    (work/'message-patterns.json').write_text(json.dumps(backend['templates'], ensure_ascii=False))
     registration_name = '小黄鸭2.0' if kind == 'lsfg-v2' else None
     arguments = [js, work/'dictionary.json', ROOT/'assets/framegen/zh-runtime.js', work/'localized.js']
-    if registration_name:
-        arguments.append(registration_name)
+    arguments.extend([registration_name or '', work/'message-patterns.json'])
     node('build', *arguments)
     files['dist/index.js'] = (work/'localized.js').read_bytes()
     # Decky binds sidebar names to backend registration. Map only that API
@@ -197,6 +241,7 @@ def build(kind, release, archive, output, machine=False):
         'upstream_frontend_sha256': hashlib.sha256(js.read_bytes()).hexdigest(),
         'plugin_name': plugin['name'], 'api_plugin_names': translated_info['api_plugin_names'],
         'untranslated': [], 'non_ui_ast_verified': True,
+        'backend_display_strings': backend_strings,
         'strings': [{'source': text, 'translation': dictionary[text]} for text in info['strings']],
     }, ensure_ascii=False, indent=2)+'\n').encode()
     modes['RENKIT_UI_COVERAGE.json'] = 0o644

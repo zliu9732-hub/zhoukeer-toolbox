@@ -31,14 +31,22 @@ refresh_framegen_catalog() (
     trap 'rm -rf -- "$tmp"; [ -z "$cache_tmp" ] || rm -f -- "$cache_tmp"' EXIT
     if ! GITHUB_QUIET=1 GITHUB_CONNECT_TIMEOUT=5 GITHUB_MAX_TIME=20 GITHUB_RETRIES=1 GITHUB_MIN_SPEED_TIME=10 \
         download_github_file "$FRAMEGEN_CATALOG_URL" "$tmp/catalog.json" '' '插件版本信息' > "$tmp/download.log" 2>&1; then
-        [ ! -L "$FRAMEGEN_CATALOG_CACHE" ] && cp -- "$FRAMEGEN_CATALOG_CACHE" "$tmp/catalog.json" 2>/dev/null || return 1
+        { [ ! -L "$FRAMEGEN_CATALOG_CACHE" ] && cp -- "$FRAMEGEN_CATALOG_CACHE" "$tmp/catalog.json" 2>/dev/null; } || \
+            cp -- "$PROJECT_ROOT/data/framegen_auto_baseline.json" "$tmp/catalog.json" || return 1
     fi
+    # A same-version language repair is newer too. The bundled verified catalog
+    # prevents an offline/stale cache from reinstalling a known partial build.
     if ! python3 "$PROJECT_ROOT/scripts/framegen_package.py" merge --catalog "$tmp/catalog.json" \
-        --previous "$FRAMEGEN_CATALOG_CACHE" > "$tmp/merged.json" 2> "$tmp/check.log"; then
-        [ ! -L "$FRAMEGEN_CATALOG_CACHE" ] && cp -- "$FRAMEGEN_CATALOG_CACHE" "$tmp/catalog.json" 2>/dev/null || return 1
+        --previous "$PROJECT_ROOT/data/framegen_auto_baseline.json" > "$tmp/baseline.json" 2> "$tmp/check.log"; then
+        { [ ! -L "$FRAMEGEN_CATALOG_CACHE" ] && cp -- "$FRAMEGEN_CATALOG_CACHE" "$tmp/catalog.json" 2>/dev/null; } || \
+            cp -- "$PROJECT_ROOT/data/framegen_auto_baseline.json" "$tmp/catalog.json" || return 1
         python3 "$PROJECT_ROOT/scripts/framegen_package.py" merge --catalog "$tmp/catalog.json" \
-            > "$tmp/merged.json" 2> "$tmp/check.log" || return 1
+            --previous "$PROJECT_ROOT/data/framegen_auto_baseline.json" > "$tmp/baseline.json" 2> "$tmp/check.log" || {
+                cp -- "$PROJECT_ROOT/data/framegen_auto_baseline.json" "$tmp/baseline.json" || return 1
+            }
     fi
+    python3 "$PROJECT_ROOT/scripts/framegen_package.py" merge --catalog "$tmp/baseline.json" \
+        --previous "$FRAMEGEN_CATALOG_CACHE" > "$tmp/merged.json" 2> "$tmp/check.log" || return 1
     cache_dir="$(dirname "$FRAMEGEN_CATALOG_CACHE")"
     [ ! -L "$cache_dir" ] && [ ! -L "$FRAMEGEN_CATALOG_CACHE" ] || return 1
     mkdir -p -- "$cache_dir" || return 1

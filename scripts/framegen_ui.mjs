@@ -8,7 +8,7 @@ export function human(s) {
   const t=s.trim();
   return t.length>1 && t.length<1800 && /[A-Za-z]{2}/.test(t) && !technical.test(t) &&
     !/[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]/.test(t) &&
-    !/(?:https?:\/\/|data:|[\\/][\w.-]+[\\/]|#[0-9a-f]{3,8}\b|[A-Z_]{3,}=|\$\{|\{[^}]*[:;]|@keyframes|!important|^[-\w.]+\.(?:dll|sh|py|json|xz|asi|png|zip)$)/i.test(t);
+    !/(?:https?:\/\/|data:|[\\/][\w.-]+[\\/]|#[0-9a-f]{3,8}\b|\$\{|\{[^}]*[:;]|@keyframes|!important|^[-\w.]+\.(?:dll|sh|py|json|xz|asi|png|zip)$)/i.test(t);
 }
 function walk(node, visit, parent=null) {
   if (!node || typeof node!=='object') return;
@@ -22,8 +22,8 @@ function walk(node, visit, parent=null) {
 const keyOf=n=>n?.computed ? n.key?.value : (n.key?.name??n.key?.value);
 function analyze(code) {
   const ast=parse(code,{ecmaVersion:'latest',sourceType:'module'});
-  const parents=new WeakMap(),scopes=new WeakMap();
-  const rootScope={parent:null,bindings:new Map(),functions:new Map()};
+  const parents=new WeakMap(),scopes=new WeakMap();const stateMessages=[];
+  const rootScope={parent:null,bindings:new Map(),functions:new Map(),setters:new Map()};
   function index(n,scope,parent=null) {
     if(!n || typeof n!=='object') return;
     if(Array.isArray(n)) {n.forEach(child=>index(child,scope,parent));return;}
@@ -33,8 +33,16 @@ function analyze(code) {
       scope.bindings.set(n.id.name,n.init);
       if(/Function/.test(n.init?.type??'')) scope.functions.set(n.id.name,n.init);
     }
+    if(n.type==='VariableDeclarator' && n.id.type==='ArrayPattern' &&
+       n.id.elements[0]?.type==='Identifier' && n.id.elements[1]?.type==='Identifier' &&
+       n.init?.type==='CallExpression' && n.init.callee.type==='MemberExpression' && n.init.callee.property.name==='useState') {
+      const values={type:'ArrayExpression',elements:n.init.arguments.slice(0,1)};
+      scope.bindings.set(n.id.elements[0].name,values);
+      scope.setters.set(n.id.elements[1].name,values);
+      if(/(?:status|error|message|label|description|title|text)$/i.test(n.id.elements[0].name)) stateMessages.push(values);
+    }
     if(/Function/.test(n.type??'') || n.type==='BlockStatement') {
-      scope={parent:scope,bindings:new Map(),functions:new Map()};
+      scope={parent:scope,bindings:new Map(),functions:new Map(),setters:new Map()};
       for(const parameter of n.params??[]) walk(parameter,p=>{if(p.type==='Identifier') scope.bindings.set(p.name,null);});
     }
     scopes.set(n,scope);
@@ -51,6 +59,14 @@ function analyze(code) {
     }
     return null;
   }
+  // React state carries text from async installation/profile operations into
+  // rendered fields. Trace those values without changing setters or payloads.
+  walk(ast,n=>{
+    if(n.type==='CallExpression' && n.callee.type==='Identifier') {
+      const state=lookup(n.callee.name,n,'setters');
+      if(state && n.arguments[0]) state.elements.push(n.arguments[0]);
+    }
+  });
   function texts(n,seen=new Set()) {
     if(!n || seen.has(n)) return [];
     seen=new Set(seen).add(n);
@@ -104,7 +120,7 @@ function analyze(code) {
   const regions=new Map();const titles=[];const literals=[];const displayNames=[];const toasts=[];
   function add(n,message=false,shorthandKey=null) {
     const values=[...new Set(texts(n))];
-    if(values.length || message) regions.set(`${n.start}:${n.end}`,{start:n.start,end:n.end,values,message:message && !values.length,shorthandKey,native:nativeText(n)});
+    if(values.length || message) regions.set(`${n.start}:${n.end}`,{start:n.start,end:n.end,values,message,shorthandKey,native:nativeText(n)});
   }
   walk(ast,n=>{
     if(n.type==='Literal' && typeof n.value==='string') literals.push(n.value);
@@ -112,7 +128,8 @@ function analyze(code) {
       const key=keyOf(n);
       const owner=parents.get(parents.get(n));
       const codeElement=owner?.type==='CallExpression' && ['style','script'].includes(owner.arguments[0]?.value);
-      if(visible.has(key) && !codeElement && (key!=='children' || owner?.type==='CallExpression')) add(n.value,['description','body'].includes(key),n.shorthand?key:null);
+      const backendLabel=key==='label' && n.value.type==='MemberExpression' && n.value.property?.name==='label';
+      if(visible.has(key) && !codeElement && (key!=='children' || owner?.type==='CallExpression')) add(n.value,backendLabel || ['description','body'].includes(key),n.shorthand?key:null);
       if(key==='titleView') titles.push(n.value);
     }
     if(n.type==='CallExpression' && n.callee.type==='MemberExpression' &&
@@ -127,6 +144,7 @@ function analyze(code) {
     }
     if(n.type==='CallExpression' && n.callee.type==='Identifier' && /^show(?:Success|Error)?Toast$/.test(n.callee.name)) n.arguments.forEach(node=>add(node));
     if(n.type==='CallExpression' && n.callee.type==='MemberExpression' && n.callee.property?.name==='toast' && n.arguments[0]?.type==='ObjectExpression') toasts.push(n.arguments[0]);
+    if(n.type==='NewExpression' && n.callee.name==='Error') stateMessages.push({type:'ArrayExpression',elements:n.arguments});
   });
   const apiPluginNames=[];const registrations=[];
   walk(ast,n=>{
@@ -146,7 +164,15 @@ function analyze(code) {
       }
     }
   });
-  return {ast,regions:[...regions.values()],titles,literals,displayNames,registrations,toasts,apiPluginNames:[...new Set(apiPluginNames)]};
+  const stateTemplates=[];
+  for(const source of stateMessages) walk(source,n=>{
+    if(n.type==='TemplateLiteral' && n.quasis.some(q=>human(q.value.cooked??''))) {
+      const parts=[];
+      n.quasis.forEach((q,i)=>{parts.push(q.value.cooked??'');if(i<n.expressions.length)parts.push(null);});
+      stateTemplates.push(parts);
+    }
+  });
+  return {ast,regions:[...regions.values()],stateMessages:stateMessages.flatMap(n=>texts(n)),stateTemplates,titles,literals,displayNames,registrations,toasts,apiPluginNames:[...new Set(apiPluginNames)]};
 }
 
 export function inspect(code) {
@@ -166,24 +192,24 @@ export function inspect(code) {
   // A full locale table alone does not prove the UI actually uses it. Direct
   // English labels outside native t() calls still require our display overlay.
   if(a.regions.some(r=>!r.native && r.values.some(s=>!['Decky LSFG-VK','Decky Framegen'].includes(s)))) officialChinese=false;
-  return {strings:[...new Set(a.regions.flatMap(r=>r.values))].sort(),titles:a.titles.length,literals:a.literals,official_chinese:officialChinese,api_plugin_names:a.apiPluginNames};
+  return {strings:[...new Set([...a.regions.flatMap(r=>r.values),...a.stateMessages])].sort(),titles:a.titles.length,literals:a.literals,official_chinese:officialChinese,api_plugin_names:a.apiPluginNames};
 }
-export function localize(code,dictionary,runtime,registrationName=null) {
+export function localize(code,dictionary,runtime,registrationName=null,messagePatterns=[]) {
   const a=analyze(code);
   if(a.regions.length<3 || a.titles.length!==1) throw Error('Unsupported frontend layout; keeping published version');
-  const missing=[...new Set(a.regions.flatMap(r=>r.values))].filter(s=>!dictionary[s]);
+  const missing=[...new Set([...a.regions.flatMap(r=>r.values),...a.stateMessages])].filter(s=>!dictionary[s]);
   if(missing.length) throw Error(`Untranslated UI strings: ${JSON.stringify(missing)}`);
   // Wrap UI expressions without changing constants, identifiers or action values.
   // The explicitly validated registration alias below is the only API-boundary mapping.
   const edits=[];
   for(const r of a.regions) {
-    if(r.message) {
+    if(r.message && !r.values.length) {
       edits.push({at:r.start,s:(r.shorthandKey?r.shorthandKey+':':'')+'RenkitFramegenZH.message('});
       edits.push({at:r.end,s:')'});
       continue;
     }
-    edits.push({at:r.start,s:(r.shorthandKey?r.shorthandKey+':':'')+'RenkitFramegenZH.text('});
-    edits.push({at:r.end,s:','+JSON.stringify(r.values)+')'});
+    edits.push({at:r.start,s:(r.shorthandKey?r.shorthandKey+':':'')+(r.message?'RenkitFramegenZH.message(':'')+'RenkitFramegenZH.text('});
+    edits.push({at:r.end,s:','+JSON.stringify(r.values)+')'+(r.message?')':'')});
   }
   const title=a.titles[0];
   edits.push({at:title.start,s:'RenkitFramegenZH.title('});
@@ -211,7 +237,7 @@ export function localize(code,dictionary,runtime,registrationName=null) {
   edits.sort((a,b)=>b.at-a.at);
   let result=code;
   for(const e of edits) result=result.slice(0,e.at)+e.s+result.slice(e.at);
-  result='const RenkitFramegenZH = '+runtime.trim()+'('+JSON.stringify(dictionary)+');\n'+result;
+  result='const RenkitFramegenZH = '+runtime.trim()+'('+JSON.stringify(dictionary)+','+JSON.stringify([...a.stateTemplates,...messagePatterns])+');\n'+result;
   const rebuilt=parse(result,{ecmaVersion:'latest',sourceType:'module'});
   rebuilt.body.shift();
   function clean(n) {
@@ -227,9 +253,9 @@ export function localize(code,dictionary,runtime,registrationName=null) {
 }
 
 if(process.argv[1] && import.meta.url===new URL('file://'+process.argv[1]).href) {
-  const [mode,input,dictPath,runtimePath,output,registrationName]=process.argv.slice(2);
+  const [mode,input,dictPath,runtimePath,output,registrationName,patternsPath]=process.argv.slice(2);
   const code=fs.readFileSync(input,'utf8');
   if(mode==='inspect') process.stdout.write(JSON.stringify(inspect(code))+'\n');
-  else if(mode==='build') fs.writeFileSync(output,localize(code,JSON.parse(fs.readFileSync(dictPath)),fs.readFileSync(runtimePath,'utf8'),registrationName));
+  else if(mode==='build') fs.writeFileSync(output,localize(code,JSON.parse(fs.readFileSync(dictPath)),fs.readFileSync(runtimePath,'utf8'),registrationName||null,patternsPath?JSON.parse(fs.readFileSync(patternsPath)):[]));
   else throw Error('Usage: framegen_ui.mjs inspect FILE | build FILE DICTIONARY RUNTIME OUTPUT');
 }

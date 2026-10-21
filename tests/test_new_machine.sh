@@ -18,6 +18,7 @@ fail() {
 run_simulated_flow() (
     local skip_update="$1"
     local ZHOUKEER_LSFG_VARIANT="${2:-legacy}"
+    local ZHOUKEER_FEATURE_PLUGIN_CLEANUP="${3:-keep}"
 
     source "$PROJECT_ROOT/modules/new_machine.sh"
     NEW_MACHINE_SKIP_SYSTEM_UPDATE="$skip_update"
@@ -76,6 +77,23 @@ done
 v2_output="$(run_simulated_flow 1 v2)"
 printf '%s\n' "$v2_output" | grep -Fq 'ZHOUKEER_LSFG_VARIANT=v2' || fail "2.0 选择没有传给插件组合"
 printf '%s\n' "$skip_output" | grep -Fq 'ZHOUKEER_LSFG_VARIANT=legacy' || fail "旧版选择没有传给插件组合"
+printf '%s\n' "$skip_output" | grep -Fq 'ZHOUKEER_FEATURE_PLUGIN_CLEANUP=keep' || fail "保留选项没有传给插件组合"
+remove_output="$(run_simulated_flow 1 v2 remove)"
+printf '%s\n' "$remove_output" | grep -Fq 'ZHOUKEER_FEATURE_PLUGIN_CLEANUP=remove' || fail "卸载选项没有传给插件组合"
+features_line="$(printf '%s\n' "$remove_output" | grep -n 'modules/plugin_store.sh features' | cut -d: -f1)"
+freedeck_line="$(printf '%s\n' "$remove_output" | grep -n 'modules/plugin_store.sh freedeck' | cut -d: -f1)"
+[ "$features_line" -lt "$freedeck_line" ] || fail "FreeDeck 先安装会被后续清理卸载"
+
+cleanup_cancel_output="$(
+    source "$PROJECT_ROOT/modules/new_machine.sh"
+    select_optional_launchers() { return 0; }
+    select_system_component_update() { return 0; }
+    select_lsfg_variant() { return 0; }
+    select_feature_plugin_cleanup() { return 1; }
+    run_new_machine_preflight() { fail '取消插件处理选择后仍检查系统'; }
+    run_step() { fail '取消插件处理选择后仍安装'; }
+    if run_new_machine_initialization; then fail '取消插件处理选择仍继续'; fi
+)"
 
 cancel_output="$(
     source "$PROJECT_ROOT/modules/new_machine.sh"

@@ -1,4 +1,5 @@
-(function(dictionary) {
+(function(dictionary, patterns = []) {
+  const messagePatterns=patterns.map(parts=>({parts,regex:new RegExp('^'+parts.map(part=>part===null?'([\\s\\S]*?)':part.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('')+'$')}));
   function text(value, keys) {
     if (Array.isArray(value)) return value.map(v => text(v, keys));
     if (typeof value !== 'string') return value;
@@ -38,7 +39,19 @@
   }
   function message(value) {
     if (typeof value !== 'string') return value;
-    return Object.prototype.hasOwnProperty.call(dictionary, value) ? dictionary[value] : value;
+    if (Object.prototype.hasOwnProperty.call(dictionary, value)) return dictionary[value];
+    if (value.startsWith('Error: ') && dictionary['Error: ']) return dictionary['Error: ']+message(value.slice(7));
+    for (const pattern of messagePatterns) {
+      const match=pattern.regex.exec(value);
+      if (!match) continue;
+      let capture=0;
+      return pattern.parts.map(part=>part===null?match[++capture]:(dictionary[part]??part)).join('');
+    }
+    // Only explicit diagnostic prefixes; preserve the dynamic error/path after
+    // the prefix and never scan arbitrary game names or config file contents.
+    const prefix=Object.keys(dictionary).filter(key=>key.length>=8 && key.endsWith(': '))
+      .sort((a,b)=>b.length-a.length).find(key=>value.startsWith(key));
+    return prefix ? dictionary[prefix]+value.slice(prefix.length) : value;
   }
   function toast(value) {
     return {...value, title: message(value.title), body: message(value.body)};

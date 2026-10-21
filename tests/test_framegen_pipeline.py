@@ -74,11 +74,22 @@ class PipelineTests(unittest.TestCase):
         c=json.loads((ROOT/'data/framegen_auto_baseline.json').read_text())
         releases={k:{'version':v['upstream_version'],'sha256':v['upstream_sha256']} for k,v in c['packages'].items()}
         c['packages']['lsfg-v2']['mirror_id']='lsfg-v2-zh-auto'
+        c['packages']['lsfg-v2']['translation_revision']=sync.TRANSLATION_REVISION-1
         self.assertEqual(set(sync.make_plan(c,releases)),{'lsfg-v2'})
         c['packages']['lsfg-v2']['translation_revision']=sync.TRANSLATION_REVISION
         self.assertEqual(sync.make_plan(c,releases),{})
         c['packages']['lsfg-v2']['translation_revision']=sync.TRANSLATION_REVISION+1
         self.assertEqual(sync.make_plan(c,releases),{})
+    def test_same_version_translation_revision_cannot_regress(self):
+        current=json.loads((ROOT/'data/framegen_auto_baseline.json').read_text())
+        older=copy.deepcopy(current)
+        older['packages']['lsfg-v2']['translation_revision']=sync.TRANSLATION_REVISION-1
+        self.assertEqual(pkg.merge_catalog(older,current)['packages']['lsfg-v2'],current['packages']['lsfg-v2'])
+        self.assertEqual(pkg.merge_catalog(current,older)['packages']['lsfg-v2'],current['packages']['lsfg-v2'])
+        official=copy.deepcopy(current)
+        official['packages']['lsfg-v2']['attribution']='upstream'
+        official['packages']['lsfg-v2'].pop('translation_revision')
+        self.assertEqual(pkg.merge_catalog(current,official)['packages']['lsfg-v2'],official['packages']['lsfg-v2'])
     def test_backend_registration_matches_without_executing_plugin(self):
         e,p=self.build(); files=pkg.zip_files(p)
         plugin=json.loads(files[e['archive_root']+'/plugin.json'])
@@ -131,6 +142,46 @@ const page=definePlugin(()=>({name:"Decky LSFG-VK"}));'''
         js=files[e['archive_root']+'/dist/index.js'].decode()
         self.assertIn('RenkitFramegenZH.registration(manifest.name,"小黄鸭2.0")',js)
         self.assertIn('RenkitFramegenZH.resource("http://127.0.0.1:1337/plugins/Decky LSFG-VK/assets/setup.gif","Decky LSFG-VK","小黄鸭2.0")',js)
+    def test_async_install_status_and_command_descriptions_are_inventoried(self):
+        self.make_archive(self.source+'''
+function Installer() {
+ const [installationStatus,setInstallationStatus]=window.SP_REACT.useState("lsfg-vk Not Installed");
+ setInstallationStatus("Installing lsfg-vk...");
+ setInstallationStatus(`Installation failed: ${failure}`);
+ return window.SP_REACT.createElement("div",{description:installationStatus});
+}
+window.SP_REACT.createElement("div",{description:"Adds ENABLE_GAMESCOPE_WSI=0. Requires game restart to apply."});
+''')
+        e,p=self.build();files=pkg.zip_files(p);prefix=e['archive_root']+'/'
+        report=json.loads(files[prefix+'RENKIT_UI_COVERAGE.json'])
+        rows={row['source']:row['translation'] for row in report['strings']}
+        self.assertEqual(rows['Installing lsfg-vk...'],'正在安装小黄鸭运行组件…')
+        self.assertEqual(rows['lsfg-vk Not Installed'],'小黄鸭运行组件未安装')
+        self.assertIn('Installation failed: ',rows)
+        self.assertIn('Adds ENABLE_GAMESCOPE_WSI=0. Requires game restart to apply.',rows)
+        js=files[prefix+'dist/index.js'].decode()
+        self.assertIn('RenkitFramegenZH.message(RenkitFramegenZH.text(installationStatus,',js)
+        self.assertIn('setInstallationStatus("Installing lsfg-vk...")',js)
+        self.make_archive(self.source+'''function NewState(){
+ const [installationStatus,setInstallationStatus]=window.SP_REACT.useState("");
+ setInstallationStatus("A new async installation failure");
+ return window.SP_REACT.createElement("div",{description:installationStatus});}''')
+        with self.assertRaisesRegex(ValueError,'new UI strings'):self.build()
+    def test_backend_display_inventory_and_dynamic_templates_are_static(self):
+        backend=b'''def display():
+ message="Lossless Scaling has the lsfg-vk Steam branch selected"
+ return {"status":"Lossless Scaling detected by lsfg-vk", "error":f"Error reading file: {path}"}
+def get_debug_file_contents():
+ files=(("config","LSFG-VK configuration",path),)
+ item["error"]="File does not exist"
+'''
+        inventory=sync.backend_ui_inventory({'main.py':backend})
+        self.assertIn('Lossless Scaling detected by lsfg-vk',inventory['strings'])
+        self.assertIn('LSFG-VK configuration',inventory['strings'])
+        self.assertIn('File does not exist',inventory['strings'])
+        self.assertIn('Lossless Scaling has the lsfg-vk Steam branch selected',inventory['strings'])
+        self.assertIn(['Error reading file: ',None],inventory['templates'])
+        self.assertEqual(sync.backend_ui_inventory({'main.py':b'raise Exception("must never execute backend")'})['strings'],[])
     def test_style_and_script_bodies_are_not_translated(self):
         self.make_archive(self.source+'\nwindow.SP_REACT.createElement("script",null,"Install");\nwindow.SP_REACT.createElement("style",null,"Settings");')
         e,p=self.build();js=pkg.zip_files(p)[e['archive_root']+'/dist/index.js'].decode()
@@ -213,6 +264,17 @@ if(r.text("Remove all Remove all My Game profiles",["Remove all "," profiles"])!
 if(r.registration("Decky LSFG-VK","小黄鸭2.0")!=="小黄鸭2.0")throw Error("registration");
 if(!r.resource("http://127.0.0.1:1337/plugins/Decky LSFG-VK/assets/a.gif","Decky LSFG-VK","小黄鸭2.0").endsWith("/%E5%B0%8F%E9%BB%84%E9%B8%AD2.0/assets/a.gif"))throw Error("resource");
 if(JSON.stringify(r.title("Title")).indexOf("RenAmamiya汉化")<0)throw Error("signature");'''
+        subprocess.run([os.environ.get('RENKIT_NODE_BINARY','node'),'--input-type=module'],input=script,text=True,check=True)
+    def test_backend_and_async_message_translation_preserves_dynamic_values(self):
+        runtime=(ROOT/'assets/framegen/zh-runtime.js').read_text()
+        script='const r='+runtime+'''({"Found ":"已找到 "," Flatpak applications":" 个 Flatpak 应用",
+"Installation failed: ":"安装失败：","Error: ":"错误：","Lossless Scaling detected by lsfg-vk":"已找到正版小黄鸭本体"},
+[["Found ",null," Flatpak applications"],["Installation failed: ",null]]);
+if(r.message("Found 3 Flatpak applications")!=="已找到 3 个 Flatpak 应用")throw Error("count");
+if(r.message("Installation failed: /path/My Game")!=="安装失败：/path/My Game")throw Error("dynamic path");
+if(r.message("Error: Lossless Scaling detected by lsfg-vk")!=="错误：已找到正版小黄鸭本体")throw Error("error");
+if(r.message("My English Game")!=="My English Game")throw Error("game changed");
+'''
         subprocess.run([os.environ.get('RENKIT_NODE_BINARY','node'),'--input-type=module'],input=script,text=True,check=True)
 
 if __name__=='__main__':unittest.main()

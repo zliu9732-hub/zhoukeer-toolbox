@@ -4,6 +4,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf -- "$TMP_ROOT"' EXIT
 fail() { echo "FAIL: $*" >&2; exit 1; }
+export ZHOUKEER_APP_DIR="$TMP_ROOT/apps"
 source "$PROJECT_ROOT/modules/plugin_store.sh"
 install_framegen_auto() { return 2; } # This suite exercises the retained fixed-package fallback.
 refresh_framegen_catalog() { return 1; }
@@ -77,5 +78,5 @@ refresh_feature_usage_guides() { return 0; }
 print_feature_plugin_status() { return 0; }
 check_lossless_scaling_installation() { return 0; }
 print_cef_remote_debugging_tip() { return 0; }
-ZHOUKEER_LSFG_VARIANT=v2 install_feature_plugins || fail "常用插件补装失败"
+ZHOUKEER_LSFG_VARIANT=v2 ZHOUKEER_FEATURE_PLUGIN_CLEANUP=keep install_feature_plugins || fail "常用插件补装失败"
 echo "PASS: 小黄鸭 2.0 覆盖 1.0、失败保留原插件、清理重复目录、保留 MAKO 和所选版本"

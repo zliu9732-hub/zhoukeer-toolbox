@@ -6,6 +6,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MODULE="$PROJECT_ROOT/modules/plugin_store.sh"
 TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf -- "$TMP_ROOT"' EXIT
+export ZHOUKEER_APP_DIR="$TMP_ROOT/apps"
 
 fail() {
     echo "FAIL: $*" >&2

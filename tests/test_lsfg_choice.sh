@@ -5,6 +5,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf -- "$TMP_ROOT"' EXIT
 fail() { echo "FAIL: $*" >&2; exit 1; }
+export ZHOUKEER_APP_DIR="$TMP_ROOT/apps"
 source "$PROJECT_ROOT/core/lsfg_choice.sh"
 unset ZHOUKEER_LSFG_VARIANT
 DIALOG_RESULT=v2
@@ -52,7 +53,7 @@ run_bundle() (
     write_flingtrainer_desktop_note() { return 0; }
     print_cef_remote_debugging_tip() { return 0; }
     log() { return 0; }
-    ZHOUKEER_LSFG_VARIANT="$selected" install_feature_plugins
+    ZHOUKEER_LSFG_VARIANT="$selected" ZHOUKEER_FEATURE_PLUGIN_CLEANUP=keep install_feature_plugins
 )
 out="$(run_bundle v2 legacy)"
 grep -Fxq INSTALL_V2 <<< "$out" || fail '选择 2.0 后仍装旧版'

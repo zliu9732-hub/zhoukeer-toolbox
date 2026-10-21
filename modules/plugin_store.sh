@@ -13,7 +13,9 @@ source "$PROJECT_ROOT/modules/steam_accelerator.sh"
 source "$PROJECT_ROOT/modules/framegen_updates.sh"
 source "$PROJECT_ROOT/modules/ayaneo3.sh"
 source "$PROJECT_ROOT/core/lsfg_choice.sh"
+source "$PROJECT_ROOT/core/plugin_cleanup_choice.sh"
 source "$PROJECT_ROOT/modules/lsfg_install.sh"
+source "$PROJECT_ROOT/modules/feature_plugins_cleanup.sh"
 
 load_config
 
@@ -61,9 +63,9 @@ DECKY_MAKO_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 LSFG_ZH_MIRROR_ID="lsfg-zh-signed"
 LSFG_ZH_PACKAGE_SHA256="7f846c28bf5f9d08f6589a618c4e0c4ee4dffb05ad15938c39359c6460f1157b"
 LSFG_ZH_INDEX_SHA256="49d475932c6508a2c58113f605857ba9d26b92646ae49f31804e8f1a913d7d1b"
-LSFG_V2_MIRROR_ID="lsfg-v2-zh-signed"
-LSFG_V2_PACKAGE_SHA256="b316a2cd5c34a329729a2312d6711fca8c7b4ad74ca56b80a08fbe4cae292963"
-LSFG_V2_INDEX_SHA256="838870dce448ee6d42db41c8239d3d061cf8117713500b9831259ab0dec42059"
+LSFG_V2_MIRROR_ID="lsfg-v2-zh-auto"
+LSFG_V2_PACKAGE_SHA256="0f41f1ae3c0de27bf49fefd6ca4e5bfab5683c3f660893d74f2e1189b36a8418"
+LSFG_V2_INDEX_SHA256="789f9515e2a594dab14a79b9a815bb029646a96493e90efe14a2b7e4bc23ea22"
 FSR4_OFFICIAL_DIRECTORY="Decky-Framegen"
 FSR4_OFFICIAL_VERSION="0.17"
 FSR4_ZH_MIRROR_ID="fsr4-zh-signed"
@@ -4626,9 +4628,6 @@ print_feature_plugin_status() {
 }
 
 install_feature_plugins() {
-    local plugin
-    local feature_plugins
-    local failed=0
     local lsfg_variant=auto
 
     detect_platform
@@ -4640,8 +4639,20 @@ install_feature_plugins() {
     if [ "$IS_STEAMOS" -eq 1 ]; then
         select_lsfg_variant || return 1
         lsfg_variant="$LSFG_INSTALL_VARIANT"
+        select_feature_plugin_cleanup || return 1
     fi
     ensure_plugin_store_ready || return 1
+    if [ "$IS_STEAMOS" -eq 1 ] && [ "$FEATURE_PLUGIN_CLEANUP" = remove ]; then
+        install_feature_plugins_clean "$lsfg_variant"
+    else
+        install_feature_plugins_selected "$lsfg_variant"
+    fi
+}
+
+install_feature_plugins_selected() {
+    local lsfg_variant="$1" plugin feature_plugins
+    local failed=0
+
     refresh_framegen_catalog || true
     load_framegen_cached_versions
 
