@@ -107,6 +107,15 @@ trap 'renkit_sdweak_error "$?" "$LINENO" "$BASH_COMMAND"' ERR
     # manual reboot already required by the other boot settings.
     script = script.replace('sudo systemctl restart systemd-zram-setup@zram0 >> "$LOG_FILE" 2>&1\n', '')
     script = script.replace('zram0 restarted', 'activation deferred until manual reboot')
+    # read -p writes its prompt to stderr without a newline. The launcher
+    # line-buffers stderr, hiding the question while read waits on the terminal.
+    for key in ('display_overclock_prompt', 'power_efficiency_prompt'):
+        prompt = f'read -rp "$(print_text {key}) [y/N]: " answer'
+        if script.count(prompt) != 1:
+            raise ValueError('SDWEAK 可选设置提示结构不匹配')
+        script = script.replace(prompt,
+            f"printf '%s\\n' \"$(print_text {key}) [y/N]：\"\n"
+            '        IFS= read -r answer', 1)
     script = script[:script.index('# Reboot\n')] + 'echo "请保存工作后手动重启。"\n'
     for marker, step in (
         ('sudo steamos-readonly disable', '暂时关闭系统保护'),
@@ -127,7 +136,9 @@ trap 'renkit_sdweak_error "$?" "$LINENO" "$BASH_COMMAND"' ERR
         ('sudo mkinitcpio -P', '更新启动所需文件'),
         ('sudo grub-mkconfig -o "$GRUB_CFG"', '更新开机设置'),
     ):
-        script = script.replace(marker, f'\nRENKIT_SDWEAK_STEP="{step}"\n' + marker, 1)
+        script = script.replace(marker,
+            f'\nRENKIT_SDWEAK_STEP="{step}"\n'
+            "printf '正在%s…\\n' \"$RENKIT_SDWEAK_STEP\"\n" + marker, 1)
     # Reuse Renkit's secure authentication for every privileged operation.
     # Raw sudo loses its timestamp after the parent helper invalidates it.
     script = re.sub(r'\bsudo(?=\s)', 'toolbox_sudo', script)

@@ -31,3 +31,9 @@ Renkit 原先已经省略了实验性显示组件替换，但每次仍下载两�
 截图显示安装停在“无法读取系统保护状态，尚未开始安装”。旧代码把任何非零退出码视为查询失败；SteamOS 的 `status()` 在已关闭保护时明确输出 `disabled` 并返回 1，这是状态而非查询错误。之前模拟命令始终返回 0，漏掉了真实行为。现在通过现有管理员验证查询，接受 `enabled/0` 与 `disabled/0或1`，未知输出、真正失败以及 sysext 额外只读限制仍在安装前停止，保留原始诊断记录。
 
 依据：公开的 Valve/Collabora `steamos-customizations` 脚本副本中 `steamos-readonly` 的 `status()` 实现：<https://gist.github.com/wallentx/98dc9fd124d34df52d5abb50975d3a90#file-steamos-readonly>。`tests/test_sdweak.sh` 模拟管理员权限要求、`disabled` 返回 1、异常/空/矛盾状态以及原只读状态恢复；未在 macOS 执行真实系统操作。
+
+## 3.2.9 可选问题不可见
+
+用户新截图显示已进入安装，最后输出“已应用显卡优化设置”。源码接下来进入启动设置及 LCD 提速/节能优先选择。原问题使用 Bash `read -rp`，提示写到 stderr 且没有换行；`launch.sh` 的 `filter_terminal_stderr` 按行读取，因此问题可以被暂存，而输入仍在等待。改成 stdout 的显式换行问题，然后单独 `IFS= read -r answer`，保留 y/N 和回车跳过，不自动同意改动。同时在已有失败步骤标签处打印当前步骤，避免更新启动文件时没有反馈。
+
+`tests/test_sdweak_prepare.py` 增加真实 PTY 输入/输出、独立 stderr 的回归；对 Galileo 与 Jupiter 分别等待问题显示后才发送回车，确认跳过可选项并完成。权限与系统命令使用原测试的全量替身，macOS 不执行实际安装。

@@ -2,11 +2,14 @@
 import hashlib
 import importlib.util
 import os
+import pty
 import re
+import select
 from pathlib import Path
 import stat
 import subprocess
 import tempfile
+import time
 import zipfile
 ROOT=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('prepare_sdweak',ROOT/'scripts/prepare_sdweak.py')
@@ -75,7 +78,7 @@ printf() {
   assert 'FAIL=1' in result.stdout
  # Exercise real prepared installer with every command that can write/privilege mocked.
  folder=base/'prepared/SDWEAK'
- (folder/'assets/common.sh').write_text('''MODEL=Galileo
+ (folder/'assets/common.sh').write_text('''MODEL="${MOCK_MODEL:-Galileo}"
 steamos_version=3.8
 LOG_FILE="$MOCK_ROOT/install.log"
 DATE=fixture
@@ -153,6 +156,42 @@ bash "$MOCK_ROOT/repo/scripts/run_sdweak.sh" "$MOCK_ROOT/prepared/SDWEAK"
   else:
    assert 'home.mount.d' in calls and 'options: noatime' in log
    assert 'activation deferred until manual reboot' in log and 'COMPLETE' in log
+   assert 'power_efficiency_prompt [y/N]' in result.stdout
+   assert '正在更新启动所需文件' in result.stdout and '正在更新开机设置' in result.stdout
+ # Real terminal input/output, but stderr is separately buffered by the
+ # launcher. Questions must be visible on stdout BEFORE an answer is sent.
+ for model in ('Galileo','Jupiter'):
+  (base/'calls').write_text('');(base/'auth-cache').write_text('0')
+  (base/'display.lua').write_text('stock')
+  with (folder/'assets/common.sh').open('a') as f:
+   f.write(f'\nLCD_LUA_PATH="{base}/display.lua"\n')
+  master,slave=pty.openpty()
+  proc=subprocess.Popen(['bash',str(runner)],env={**env,'MOCK_FAIL':'','MOCK_MODEL':model},
+      stdin=slave,stdout=slave,stderr=subprocess.PIPE)
+  os.close(slave);seen=b''
+  try:
+   questions=['display_overclock_prompt','power_efficiency_prompt'] if model=='Jupiter' else ['power_efficiency_prompt']
+   for question in questions:
+    deadline=time.monotonic()+10
+    while question.encode() not in seen and time.monotonic()<deadline:
+     ready,_,_=select.select([master],[],[],0.1)
+     if ready:
+      try:seen+=os.read(master,65536)
+      except OSError:break
+    assert question.encode() in seen,(model,question,seen[-1000:])
+    os.write(master,b'\n')
+   deadline=time.monotonic()+10
+   while proc.poll() is None and time.monotonic()<deadline:
+    ready,_,_=select.select([master],[],[],0.1)
+    if ready:
+     try:seen+=os.read(master,65536)
+     except OSError:break
+   proc.wait(timeout=2)
+   assert proc.returncode==0,(model,seen[-1500:],proc.stderr.read())
+   assert 'COMPLETE' in (base/'install.log').read_text()
+  finally:
+   if proc.poll() is None:proc.kill();proc.wait()
+   proc.stderr.close();os.close(master)
  for field,value in [('MOCK_GATE','closed'),('ZHOUKEER_AUTO_CONFIRM','0')]:
   (base/'calls').write_text('')
   (base/'install.log').write_text('not-started')
@@ -171,4 +210,4 @@ bash "$MOCK_ROOT/repo/scripts/run_sdweak.sh" "$MOCK_ROOT/prepared/SDWEAK"
  try:m.prepare(package,base/'bad');raise AssertionError('corrupt package accepted')
  except ValueError:pass
  assert not (base/'bad').exists()
-print('PASS: verified offline payload, real TF-card exit-status regression, actual write failure, service user path, authentication/runner and failure cleanup')
+print('PASS: verified offline payload, real TF-card exit-status regression, actual write failure, service user path, authentication/runner, visible LCD/OLED terminal questions and failure cleanup')
