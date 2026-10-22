@@ -24,6 +24,7 @@ ZHOUKEER_TEST_MODE=1
 
 # shellcheck disable=SC1090
 source "$MODULE"
+findmnt() { printf 'ext4\n'; }
 
 # SteamOS 的 swap 通常是 root:root 0600。普通用户无法用 blkid 读取时，
 # 完整性检测必须通过已有管理员权限识别，避免重复创建和替换正常 swap。

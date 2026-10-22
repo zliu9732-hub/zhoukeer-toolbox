@@ -462,6 +462,45 @@ memory_remove_managed_fallback_swap() {
     }
 }
 
+memory_allocate_swapfile() {
+    local path="$1" target_gib="$2" filesystem
+
+    filesystem="$(findmnt --noheadings --output FSTYPE --target "$(dirname "$path")")" || {
+        echo "无法识别存储格式，未修改现有虚拟内存。"
+        log "虚拟内存创建失败：无法识别文件系统 path=$path"
+        return 1
+    }
+    case "$filesystem" in
+        btrfs) require_command chattr || return 1 ;;
+        ext4) ;;
+        *)
+            echo "当前存储格式暂不支持创建虚拟内存，未修改现有文件。"
+            log "虚拟内存创建失败：不支持的文件系统 type=$filesystem path=$path"
+            return 1
+            ;;
+    esac
+    # Btrfs needs NOCOW on the empty file before any extents are allocated.
+    # Create with restrictive permissions, then allocate; do not touch old swap.
+    if ! toolbox_sudo install -m 0600 -- /dev/null "$path"; then
+        toolbox_sudo rm -f -- "$path" || true
+        echo "无法创建虚拟内存临时文件，未替换现有文件。"
+        log "虚拟内存创建失败：创建空文件 path=$path filesystem=$filesystem"
+        return 1
+    fi
+    if [ "$filesystem" = btrfs ] && ! toolbox_sudo chattr +C -- "$path"; then
+        toolbox_sudo rm -f -- "$path" || true
+        echo "无法准备当前存储格式所需的虚拟内存文件，未替换现有文件。"
+        log "虚拟内存创建失败：设置 NOCOW path=$path"
+        return 1
+    fi
+    if ! toolbox_sudo fallocate -l "${target_gib}G" "$path"; then
+        toolbox_sudo rm -f -- "$path" || true
+        echo "虚拟内存空间分配失败，未替换现有文件。请检查剩余空间。"
+        log "虚拟内存创建失败：分配空间 path=$path size=${target_gib}G filesystem=$filesystem"
+        return 1
+    fi
+}
+
 memory_create_swapfile() {
     local target_gib="$1"
     local swap_dir new_file backup_file free_kib required_kib was_active=0
@@ -473,7 +512,7 @@ memory_create_swapfile() {
     }
     new_file="$swap_dir/.zhoukeer-swapfile.new.$$"
     backup_file="$swap_dir/.zhoukeer-swapfile.backup.$$"
-    toolbox_sudo test ! -e "$new_file" || return 1
+    toolbox_sudo test ! -e "$new_file" && ! toolbox_sudo test -L "$new_file" || return 1
     toolbox_sudo test ! -e "$backup_file" || return 1
 
     free_kib="$(df -Pk "$swap_dir" | awk 'NR > 1 { value=$4 } END { print value }')"
@@ -485,7 +524,7 @@ memory_create_swapfile() {
     }
 
     echo "正在创建 ${target_gib}GB 虚拟内存 临时文件..."
-    toolbox_sudo fallocate -l "${target_gib}G" "$new_file" || return 1
+    memory_allocate_swapfile "$new_file" "$target_gib" || return 1
     toolbox_sudo chmod 0600 "$new_file" || {
         toolbox_sudo rm -f -- "$new_file"
         return 1
@@ -569,7 +608,7 @@ memory_optimize() {
         return 1
     fi
     memory_validate_paths || return 1
-    for command_name in awk blkid df fallocate grep install mkswap readlink stat swapon swapoff \
+    for command_name in awk blkid df fallocate findmnt grep install mkswap readlink stat swapon swapoff \
         systemctl systemd-escape sysctl; do
         require_command "$command_name" || return 1
     done
