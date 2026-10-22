@@ -25,3 +25,9 @@ Renkit 原先已经省略了实验性显示组件替换，但每次仍下载两�
 ## 验证范围
 
 `tests/test_sdweak_prepare.py` 直接读取实际组件包，核对服务路径、可选项跳过、真实写入失败及修改后的安装器。性能脚本中的全部 `/proc`、`/sys` 路径映射到临时目录，权限、服务、启动文件操作由模拟命令代替。`tests/test_sdweak.sh` 验证无需网络即可完成准备、缺包/校验失败不会改变系统、失败和中断恢复只读状态；原下载兼容测试继续保留。macOS 不执行真实系统安装，实际 Steam Deck 运行需要实机确认。
+
+## 3.2.7 系统保护状态查询
+
+截图显示安装停在“无法读取系统保护状态，尚未开始安装”。旧代码把任何非零退出码视为查询失败；SteamOS 的 `status()` 在已关闭保护时明确输出 `disabled` 并返回 1，这是状态而非查询错误。之前模拟命令始终返回 0，漏掉了真实行为。现在通过现有管理员验证查询，接受 `enabled/0` 与 `disabled/0或1`，未知输出、真正失败以及 sysext 额外只读限制仍在安装前停止，保留原始诊断记录。
+
+依据：公开的 Valve/Collabora `steamos-customizations` 脚本副本中 `steamos-readonly` 的 `status()` 实现：<https://gist.github.com/wallentx/98dc9fd124d34df52d5abb50975d3a90#file-steamos-readonly>。`tests/test_sdweak.sh` 模拟管理员权限要求、`disabled` 返回 1、异常/空/矛盾状态以及原只读状态恢复；未在 macOS 执行真实系统操作。

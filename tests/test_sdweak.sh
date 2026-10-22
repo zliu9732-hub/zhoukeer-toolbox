@@ -31,9 +31,26 @@ python3() {
     [ "$1" = "$PROJECT_ROOT/scripts/prepare_sdweak.py" ] && [ "$2" = "$CORE_PACKAGE" ] || fail 'Wrong preparation source'
     echo prepare >> "$CALLS"; [ "$MOCK_FAIL" != prepare ]
 }
-toolbox_sudo() { echo "admin $*" >> "$CALLS"; if [ "$1" != true ]; then "$@"; fi; }
+toolbox_sudo() {
+    echo "admin $*" >> "$CALLS"
+    [ "$MOCK_FAIL" != auth ] || return 1
+    local MOCK_ADMIN=1
+    "$@"
+}
 steamos-readonly() {
-    case "$1" in status) cat "$readonly_file";; enable) echo enabled > "$readonly_file";; disable) echo disabled > "$readonly_file";; esac
+    case "$1" in status)
+        [ "${MOCK_ADMIN:-0}" = 1 ] || { echo 'needs administrator access'; return 1; }
+        case "$MOCK_FAIL" in
+            status-empty) return 1 ;;
+            status-error) echo 'read failed' >&2; return 2 ;;
+            status-unknown) echo unknown; return 0 ;;
+            status-mismatch) echo enabled; return 1 ;;
+            status-false-disabled) echo disabled; return 2 ;;
+            status-sysext) printf '%s\n' 'disabled, but loaded sysexts may result in' 'some parts of the filesystem being read-only'; return 1 ;;
+        esac
+        cat "$readonly_file"
+        [ "$(cat "$readonly_file")" = enabled ]
+        ;; enable) echo enabled > "$readonly_file";; disable) echo disabled > "$readonly_file";; esac
 }
 sdweak_execute() {
     echo execute >> "$CALLS"
@@ -67,6 +84,14 @@ SDWEAK_CORE_PACKAGE="$CORE_PACKAGE"
 MOCK_FAIL=''; reset; echo disabled > "$readonly_file"
 sdweak_install >/dev/null || fail 'Original writable state failed'
 [ "$(cat "$readonly_file")" = disabled ] || fail 'Original writable state changed'
+for stage in status-empty status-error status-unknown status-mismatch status-false-disabled status-sysext auth; do
+ reset; MOCK_FAIL="$stage"
+ if sdweak_install > "$TEST_ROOT/error" 2>&1; then fail "Invalid status accepted: $stage"; fi
+ ! grep -Fxq execute "$CALLS" || fail "Started installation without known protection state: $stage"
+ ! grep -Eq 'admin steamos-readonly (enable|disable)' "$CALLS" || fail "Changed protection after failed status: $stage"
+ grep -Fq '尚未开始安装' "$TEST_ROOT/error" || fail "Unclear status failure: $stage"
+done
+MOCK_FAIL=''
 for item in manufacturer product board version system consent cryo; do
  reset; MOCK_VERSION=3.8 MOCK_ID=steamos ZHOUKEER_AUTO_CONFIRM=1
  case "$item" in
@@ -81,4 +106,4 @@ done
 for path in "$TEST_ROOT"/tmp.*; do [ ! -d "$path" ] || fail 'Workspace leaked'; done
 download_policy_url_allowed "$SDWEAK_URL" || fail 'Official package blocked by policy'
 if download_policy_url_allowed 'https://github.com/untrusted/SDWEAK/releases/download/v2.1.0/SDWEAK.zip'; then fail 'Untrusted package allowed'; fi
-echo 'PASS: Steam Deck gate, bundled install without network, clear pre-install failures, failure/signal cleanup and readonly state'
+echo 'PASS: Steam Deck gate, bundled install without network, clear pre-install failures, failure/signal cleanup, privileged status, disabled exit=1 and unknown/error rejection'

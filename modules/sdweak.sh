@@ -49,7 +49,7 @@ sdweak_execute() {
 }
 
 sdweak_install() (
-    local workspace="" readonly_changed=0 readonly_state result install_started=0
+    local workspace="" readonly_changed=0 readonly_state readonly_status=0 result install_started=0
     sdweak_cleanup() {
         result=$?
         trap - EXIT
@@ -86,16 +86,18 @@ sdweak_install() (
     log "SDWEAK 必需组件校验完成；不重复下载未使用的显示组件"
     # 再次检查，确保准备期间机型或系统信息没有变化。
     sdweak_check || exit 1
-    readonly_state="$(LC_ALL=C steamos-readonly status)" || {
-        sdweak_message "无法读取系统保护状态，尚未开始安装。"
-        exit 1
-    }
-    case "$readonly_state" in
-        enabled) readonly_changed=1 ;;
-        disabled) ;;
-        *) sdweak_message "无法确认系统保护状态，已停止。"; exit 1 ;;
+    # SteamOS reports a writable root as stdout=disabled, exit=1 (not an error).
+    # Authenticate the read as well: btrfs status may require administrator access.
+    readonly_state="$(LC_ALL=C toolbox_sudo steamos-readonly status 2>"$workspace/readonly-error")" || readonly_status=$?
+    log "SDWEAK 系统保护检查：exit=$readonly_status state=$readonly_state"
+    if [ -s "$workspace/readonly-error" ]; then
+        log "SDWEAK 系统保护检查详情：$(cat "$workspace/readonly-error")"
+    fi
+    case "$readonly_status:$readonly_state" in
+        0:enabled) readonly_changed=1 ;;
+        0:disabled|1:disabled) ;;
+        *) sdweak_message "无法确认系统保护状态，尚未开始安装。详细记录：$LOG_FILE"; exit 1 ;;
     esac
-    toolbox_sudo true || exit 1
     sdweak_message "正在安装 SDWEAK，请按中文提示选择可选功能…"
     install_started=1
     sdweak_execute "$workspace/package/SDWEAK" install || exit 1
