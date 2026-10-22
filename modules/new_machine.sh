@@ -491,6 +491,7 @@ run_new_machine_initialization() {
     run_step "【07】九款常用插件（含 MAKO 与 Mako_Renkit、主题美化与 Fantastic 汉化）" env ZHOUKEER_AUTO_CONFIRM=1 \
         ZHOUKEER_LSFG_VARIANT="$LSFG_INSTALL_VARIANT" \
         ZHOUKEER_FEATURE_PLUGIN_CLEANUP="$FEATURE_PLUGIN_CLEANUP" \
+        ZHOUKEER_FEATURE_TRAINER_TOOLS=skip \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" features
     run_step "【07】FreeDeck 稳定版" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck

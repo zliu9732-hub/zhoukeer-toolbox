@@ -5,6 +5,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf -- "$TMP_ROOT"' EXIT
 fail() { echo "FAIL: $*" >&2; exit 1; }
+export ZHOUKEER_FEATURE_TRAINER_TOOLS=skip
 export ZHOUKEER_APP_DIR="$TMP_ROOT/apps"
 source "$PROJECT_ROOT/core/plugin_cleanup_choice.sh"
 unset ZHOUKEER_FEATURE_PLUGIN_CLEANUP

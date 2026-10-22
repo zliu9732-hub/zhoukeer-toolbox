@@ -4643,6 +4643,35 @@ print_feature_plugin_status() {
     return "$missing"
 }
 
+select_feature_trainer_tools() {
+    local selection="${ZHOUKEER_FEATURE_TRAINER_TOOLS:-}"
+    FEATURE_TRAINER_TOOLS=""
+    case "$selection" in
+        install|skip) FEATURE_TRAINER_TOOLS="$selection"; return 0 ;;
+        '') ;;
+        *) echo "修改器运行工具选项无效，安装未开始。"; return 1 ;;
+    esac
+    if command -v kdialog >/dev/null 2>&1; then
+        selection="$(kdialog --title '修改器运行工具' --default skip --menu \
+            '是否需要安装修改器所需工具（GE-10-29）？\n\n用于运行游戏修改器；安装后可在游戏属性 → 兼容性中选择 GE-Proton10-29。' \
+            install '安装修改器所需工具（GE-10-29）' \
+            skip '不安装' 2>/dev/null)" || {
+                echo "已取消修改器运行工具选择，安装未开始。"
+                return 1
+            }
+    else
+        echo "是否需要安装修改器所需工具（GE-10-29）？"
+        echo "1. 安装修改器所需工具（GE-10-29）"
+        echo "2. 不安装"
+        read -r -p '请选择 [1/2]，回车不安装，其他输入取消：' selection || return 1
+        case "$selection" in 1) selection=install ;; ''|2) selection=skip ;; esac
+    fi
+    case "$selection" in
+        install|skip) FEATURE_TRAINER_TOOLS="$selection" ;;
+        *) echo "已取消修改器运行工具选择，安装未开始。"; return 1 ;;
+    esac
+}
+
 install_feature_plugins() {
     local lsfg_variant=auto
 
@@ -4656,13 +4685,18 @@ install_feature_plugins() {
         select_lsfg_variant || return 1
         lsfg_variant="$LSFG_INSTALL_VARIANT"
         select_feature_plugin_cleanup || return 1
+        select_feature_trainer_tools || return 1
     fi
     ensure_plugin_store_ready || return 1
     if [ "$IS_STEAMOS" -eq 1 ] && [ "$FEATURE_PLUGIN_CLEANUP" = remove ]; then
-        install_feature_plugins_clean "$lsfg_variant"
+        install_feature_plugins_clean "$lsfg_variant" || return 1
     else
-        install_feature_plugins_selected "$lsfg_variant"
+        install_feature_plugins_selected "$lsfg_variant" || return 1
     fi
+    if [ "$IS_STEAMOS" -eq 1 ] && [ "$FEATURE_TRAINER_TOOLS" = install ]; then
+        bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer-one "10-29" || return 1
+    fi
+    return 0
 }
 
 install_feature_plugins_selected() {

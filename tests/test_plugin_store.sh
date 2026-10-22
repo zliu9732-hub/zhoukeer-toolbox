@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -euo pipefail
+export ZHOUKEER_FEATURE_TRAINER_TOOLS=skip
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP_ROOT="$(mktemp -d)"
