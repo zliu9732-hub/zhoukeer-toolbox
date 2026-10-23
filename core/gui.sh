@@ -1487,9 +1487,7 @@ main_gui_menu() {
 ensure_gui_password_ready() {
     local choice
 
-    if load_toolbox_password >/dev/null 2>&1; then
-        TOOLBOX_PASSWORD=""
-        unset TOOLBOX_PASSWORD
+    if bash "$PROJECT_ROOT/modules/password.sh" startup; then
         return 0
     fi
 

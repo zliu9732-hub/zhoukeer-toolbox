@@ -159,11 +159,13 @@ show_disclaimer() {
 ensure_password_ready() {
     local choice
 
-    if load_toolbox_password >/dev/null 2>&1; then
-        TOOLBOX_PASSWORD=""
-        unset TOOLBOX_PASSWORD
+    disable_mouse_tracking
+    print_header
+    if bash "$PROJECT_ROOT/modules/password.sh" startup; then
+        enable_mouse_tracking
         return 0
     fi
+    enable_mouse_tracking
 
     while true; do
         draw_category_frame "" "首次使用准备" "先准备管理员密码记录，后续安装无需反复输入"

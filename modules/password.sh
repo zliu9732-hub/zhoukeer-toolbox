@@ -198,6 +198,20 @@ import_existing_password() {
     echo "现有管理员密码已验证，并保存到桌面管理员密码.txt。"
 }
 
+prepare_startup_password() {
+    is_linux || return 1
+    require_command sudo || return 1
+    load_non_root_identity || return 1
+
+    if validate_toolbox_password_value '1234'; then
+        # Keep using the same protected record and installation authentication.
+        write_password_record "启动时验证已有密码" '1234' || return 1
+        return 0
+    fi
+    echo "请输入当前管理员密码，验证后安装软件无需重复输入。"
+    import_existing_password
+}
+
 set_system_password() {
     local action_label="设置系统密码"
     local password_status
@@ -367,9 +381,10 @@ change_system_password() {
 
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}" in
+        startup) prepare_startup_password ;;
         import) import_existing_password ;;
         set) set_system_password ;;
         change) change_system_password ;;
-        *) echo "用法: $0 {import|set|change}"; exit 1 ;;
+        *) echo "用法: $0 {startup|import|set|change}"; exit 1 ;;
     esac
 fi
