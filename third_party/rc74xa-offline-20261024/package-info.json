@@ -1,7 +1,7 @@
 {
   "id": "rc74xa-steamos39-offline",
   "title": "ROG Xbox Ally X20 RC74XA SteamOS 3.9 Offline Fixes",
-  "package_version": "2026.10.24.1",
+  "package_version": "2026.10.24.3",
   "format": "renkit-integrated-directory",
   "renkit_integration": "bundled verified payload; use existing Renkit Decky setup",
   "default_action": "check",
@@ -39,5 +39,13 @@
     "rgb"
   ],
   "delivery_wrapper_hardware_tested": false,
-  "installation_executed_on_preparation_computer": false
+  "installation_executed_on_preparation_computer": false,
+  "compatibility_policy": {
+    "os": "Valve SteamOS; patch/build version not pinned",
+    "kernel": "exact match to bundled binary; no force loading",
+    "bios": [
+      "RC74XA.301",
+      "RC74XA.303"
+    ]
+  }
 }

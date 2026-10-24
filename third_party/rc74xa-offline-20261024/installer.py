@@ -174,7 +174,7 @@ def uninstall():
     rollback(meta)
     print('已恢复安装前文件。请手动重启掌机。')
 def main():
-    parser=argparse.ArgumentParser(description='RC74XA SteamOS 3.9.3 离线修复包（默认只检测）')
+    parser=argparse.ArgumentParser(description='RC74XA SteamOS 修复包（默认只检测，核对驱动兼容性）')
     parser.add_argument('action',choices=['plan','check','install','status','uninstall'],nargs='?',default='check')
     parser.add_argument('--audio-only',action='store_true',help='仅部署音频，不安装 Decky 或插件')
     args=parser.parse_args()

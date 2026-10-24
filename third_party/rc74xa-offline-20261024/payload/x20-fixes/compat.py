@@ -9,7 +9,6 @@ import shlex
 import sys
 
 KERNEL = '7.2.7-valve2-1-neptune-72-g31504582a073'
-VERSION = '3.9.3'
 BIOS = {'RC74XA.301', 'RC74XA.303'}
 SPEAKER_VAR = 'SPEAKER_ID-aa61eaaf-6e83-7523-b0d0-7df74bb24a81'
 
@@ -52,8 +51,10 @@ def problems(s, install=True):
     if ('0x1043','0x1954') not in s['acp']: out.append('缺少 AMD ACP 1022:15e2 / 1043:1954 音频设备。')
     if install:
         if s['release'].get('ID')!='steamos': out.append('仅支持 Valve SteamOS。')
-        if s['release'].get('VERSION_ID')!=VERSION: out.append('只收录已验证的 SteamOS 3.9.3；其他版本停止。')
-        if s['kernel']!=KERNEL: out.append('内核不匹配：不允许强制加载、改名套用或自动编译。')
+        # SteamOS patch/build numbers can change without changing the driver ABI.
+        # The bundled binary still requires the exact running kernel.
+        if s['kernel']!=KERNEL:
+            out.append('当前内核：'+s['kernel']+'；本包声音驱动适用于：'+KERNEL+'。请提供当前内核信息以适配新驱动，不要降级系统或强制安装旧驱动。')
         if s['bios'] not in BIOS: out.append('BIOS 不在已验证的 RC74XA.301 / .303 清单内。')
     return out
 

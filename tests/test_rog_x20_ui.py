@@ -31,7 +31,7 @@ printf '\nX20_FLOW_DONE\n'
    frame=read_until(master,b'\x1b[?1006h');y,x=item_position(frame,'ROG 20 周年修复');os.write(master,click(x,y))
    frame=read_until(master,b'\x1b[?1006h');y,x=item_position(frame,'一键修复');os.write(master,click(x,y))
    frame=read_until(master,b'\x1b[?1006h')
-   for notice in ['仅 ROG 20 周年 RC74XA','SteamOS 3.9.3 · BIOS .301/.303','仅指定 7.2.7 内核，其他版本停止',
+   for notice in ['仅 ROG 20 周年 RC74XA','Valve SteamOS · BIOS .301/.303','不限系统小版本，核对声音驱动是否匹配',
                   '管理员权限，修改启动和声音设置','实验性组件，可能影响启动或声音',
                   '系统或 BIOS 更新前请先撤销','完成后手动重启，请先保存工作']:
     check(notice in frame,'Missing risk notice: '+notice);y,x=item_position(frame,notice)

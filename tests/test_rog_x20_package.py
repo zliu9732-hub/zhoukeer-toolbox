@@ -34,8 +34,15 @@ for bios in ['RC74XA.301','RC74XA.303']:
 for key,value in [('system','Darwin'),('arch','aarch64'),('device','RC73XA'),('vendor','Valve'),
                   ('bios','RC74XA.999'),('kernel','7.2.9'),('acp',[('0x1043','0x1111')])]:
     assert m.compat.problems({**valid,key:value}),key
-for release in [{'ID':'bazzite','VERSION_ID':'3.9.3'},{'ID':'steamos','VERSION_ID':'3.9.4'}]:
+for release in [{'ID':'bazzite','VERSION_ID':'3.9.3'},{'ID':'arch','VERSION_ID':'3.9.3'},{}]:
     assert m.compat.problems({**valid,'release':release})
+for version in ['3.9.4','3.9.5','3.10.0','4.0','',None]:
+    release={'ID':'steamos','BUILD_ID':'new-system-build'}
+    if version is not None: release['VERSION_ID']=version
+    assert not m.compat.problems({**valid,'release':release}),version
+    # Updating the system must never permit the old binary on a different kernel.
+    errors=m.compat.problems({**valid,'release':release,'kernel':'7.2.8-new-valve-kernel'})
+    assert any('7.2.8-new-valve-kernel' in error and m.compat.KERNEL in error for error in errors)
 assert not m.compat.problems({**valid,'kernel':'changed'},install=False)
 
 with tempfile.TemporaryDirectory() as directory:
@@ -56,7 +63,7 @@ with tempfile.TemporaryDirectory() as directory:
     target.unlink();target.write_bytes(original)
     m.verify();m.BASE=SOURCE
 
-    for failure in ['success','audio','start','updated-grub','linked-parent','unknown-speaker']:
+    for failure in ['success','audio','start','updated-grub','linked-parent','unknown-speaker','new-kernel']:
         root=base/failure;root.mkdir()
         def mapped(path):
             text=str(path)
@@ -66,6 +73,8 @@ with tempfile.TemporaryDirectory() as directory:
         m.Path=mapped;m.STATE=root/'var/lib/rc74xa-offline'
         m.os=SimpleNamespace(geteuid=lambda:0,chown=lambda *args:None,readlink=os.readlink,environ={})
         state=copy.deepcopy(valid);state['speaker']=None if failure=='unknown-speaker' else 0
+        state['release']={'ID':'steamos','VERSION_ID':'3.9.4','BUILD_ID':'morning-update'}
+        if failure=='new-kernel': state['kernel']='7.2.8-new-valve-kernel'
         m.compat.read_state=lambda:state
         m.need_commands=lambda:None
         home=root/'home/customer';(home/'homebrew/services').mkdir(parents=True)
@@ -91,12 +100,13 @@ with tempfile.TemporaryDirectory() as directory:
             if args[:2]==['systemctl','start'] and failure=='start':raise subprocess.CalledProcessError(1,args)
             return SimpleNamespace(stdout='',returncode=1 if args[:2] in (['systemctl','is-active'],['systemctl','is-enabled']) else 0)
         m.subprocess=SimpleNamespace(run=fake_run)
-        if failure in ['audio','start','linked-parent','unknown-speaker']:
+        if failure in ['audio','start','linked-parent','unknown-speaker','new-kernel']:
             try:m.install(False);raise AssertionError('failure accepted: '+failure)
             except (RuntimeError,subprocess.CalledProcessError):pass
             assert grub.read_text()=='original grub',failure
             assert not m.STATE.exists(),failure
             assert not (home/'homebrew/plugins/x20-fixes').exists(),failure
+            if failure=='new-kernel': assert not commands,commands
         else:
             m.install(False)
             plugin=home/'homebrew/plugins/x20-fixes'

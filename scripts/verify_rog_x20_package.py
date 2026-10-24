@@ -5,7 +5,7 @@ import json
 from pathlib import Path, PurePosixPath
 import sys
 
-MANIFEST_SHA256 = "c6f4ef44a1c42c3b9a83ad30eabc5375a0cd8ffc8044f5d4c9d69674601f5ce0"
+MANIFEST_SHA256 = "e1db1dc95a263212dddcd032d7ff14cd7345b50270ab4fedadc5a92b2899bf46"
 
 
 def verify(root):

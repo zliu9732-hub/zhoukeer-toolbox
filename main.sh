@@ -1519,8 +1519,8 @@ rog_x20_confirm() {
     fi
     draw_category_frame advanced "ROG 20 周年修复" "请先阅读以下说明" 0
     ui_panel_line 5 '' "仅 ROG 20 周年 RC74XA"
-    ui_panel_line 6 '' "SteamOS 3.9.3 · BIOS .301/.303"
-    ui_panel_line 7 '' "仅指定 7.2.7 内核，其他版本停止"
+    ui_panel_line 6 '' "Valve SteamOS · BIOS .301/.303"
+    ui_panel_line 7 '' "不限系统小版本，核对声音驱动是否匹配"
     ui_panel_line 8 '' "修复声音、右侧快捷菜单与唤醒异常"
     ui_panel_line 9 '' "不包含振动、HDR、亮度或完整手柄识别"
     ui_panel_line 11 '' "管理员权限，修改启动和声音设置"

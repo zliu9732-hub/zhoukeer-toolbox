@@ -19,7 +19,8 @@ rog_x20_plan() {
     rog_x20_verify || return 1
     python3 -I -B "$ROG_X20_SOURCE/installer.py" plan || return 1
     echo "修复声音、右侧快捷菜单，以及唤醒后的声音和按键异常。"
-    echo "仅 RC74XA，SteamOS 3.9.3，BIOS .301/.303，指定 7.2.7 内核。"
+    echo "仅 RC74XA，Valve SteamOS，BIOS .301/.303；自动核对声音驱动是否匹配。"
+    echo "不限制 SteamOS 小版本；内核更新后需使用对应声音驱动。"
     echo "不包含振动、HDR、亮度和完整手柄识别修复。"
     echo "需要管理员权限，会修改当前系统的启动与声音设置，并安装 X20 Fixes 插件。"
     echo "缺少插件商城时会先安装；已有商城沿用原安装流程，其他插件保留。"
