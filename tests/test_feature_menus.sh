@@ -369,7 +369,7 @@ for menu in "$touch_f1" "$gui_f1"; do
     assert_contains "$touch_f1" 'right:12-13:button-restore' "壹号掌机按键恢复坐标错误"
     assert_contains "$touch_f1" 'right:14-15:inputplumber-update' "InputPlumber 更新坐标错误"
     assert_contains "$touch_f1" 'right:16-17:bios' "飞行家 F1 BIOS 坐标错误"
-    assert_contains "$touch_f1" 'right:12-13:reboot' "飞行家 F1 重启坐标错误"
+    assert_contains "$touch_f1" 'right:16-17:reboot' "飞行家 F1 重启坐标错误"
     assert_contains "$menu" 'modules/f1_bios_prepare.sh" prepare' "飞行家 F1 BIOS 准备动作错误"
     assert_contains "$menu" 'modules/onexplayer_button_fix.sh" install' "壹号掌机按键安装动作错误"
     assert_contains "$menu" 'modules/onexplayer_button_fix.sh" status' "壹号掌机按键状态动作错误"
@@ -512,5 +512,14 @@ for visible in "$MAIN_FILE" "$GUI_FILE"; do
         fail "菜单风险说明仍使用方括号：$visible"
     fi
 done
+
+touch_x20="$(function_source "$MAIN_FILE" rog_x20_confirm)"
+gui_x20="$(function_source "$GUI_FILE" rog_x20_gui_menu)"
+for detail in 'RC74XA' '3.9.3' 'BIOS' '手动重启'; do
+    assert_contains "$touch_x20" "$detail" "ROG 20 周年触控确认缺少限制或风险：$detail"
+done
+assert_contains "$gui_x20" 'modules/rog_x20_fix.sh" plan' "ROG 20 周年 GUI 未先检测适用条件"
+assert_contains "$gui_x20" 'ZHOUKEER_AUTO_CONFIRM=1' "ROG 20 周年 GUI 没有授权传递"
+assert_contains "$touch_f1" 'right:12-13:rog-x20' "掌机适配缺少 ROG 20 周年入口"
 
 echo "PASS: 触控与 GUI 的名称、说明、风险标签和功能集合一致"

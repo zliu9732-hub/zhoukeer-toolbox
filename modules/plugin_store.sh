@@ -4931,6 +4931,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "$requested_action" in
         store) show_plugin_download_speed_tip; install_plugin_store stable ;;
         store-test) show_plugin_download_speed_tip; install_plugin_store prerelease ;;
+        ensure-store) ensure_plugin_store_ready ;;
         store-auto) show_plugin_download_speed_tip; install_plugin_store_auto ;;
         store-uninstall) uninstall_plugin_store ;;
         lsfg) install_lsfg_zh_from_gitee && refresh_feature_usage_guides ;;

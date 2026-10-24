@@ -1511,19 +1511,73 @@ f1_handheld_menu() {
     done
 }
 
+rog_x20_confirm() {
+    local choice
+    if ! bash "$PROJECT_ROOT/modules/rog_x20_fix.sh" plan >/dev/null 2>&1; then
+        run_action "检查 ROG 20 周年修复是否适用" bash "$PROJECT_ROOT/modules/rog_x20_fix.sh" plan
+        return 0
+    fi
+    draw_category_frame advanced "ROG 20 周年修复" "请先阅读以下说明" 0
+    ui_panel_line 5 '' "仅 ROG 20 周年 RC74XA"
+    ui_panel_line 6 '' "SteamOS 3.9.3 · BIOS .301/.303"
+    ui_panel_line 7 '' "仅指定 7.2.7 内核，其他版本停止"
+    ui_panel_line 8 '' "修复声音、右侧快捷菜单与唤醒异常"
+    ui_panel_line 9 '' "不包含振动、HDR、亮度或完整手柄识别"
+    ui_panel_line 11 '' "管理员权限，修改启动和声音设置"
+    ui_panel_line 12 '' "安装修复插件；缺少商城会先安装"
+    ui_panel_line 14 '' "实验性组件，可能影响启动或声音"
+    ui_panel_line 15 '' "先备份；失败会尝试恢复，请保留备份"
+    ui_panel_line 16 '' "系统或 BIOS 更新前请先撤销"
+    ui_panel_line 17 '' "完成后手动重启，请先保存工作"
+    ui_touch_button 19 '\033[1;30;48;5;114m' "确认并一键修复" "已了解以上限制和风险"
+    ui_touch_button 22 '\033[1;97;48;5;238m' "返回" "不做更改"
+    ui_prompt
+    choice="$(read_touch_menu right:19-20:install right:22-23:back)"
+    if [ "$choice" = install ]; then
+        run_action "修复 ROG 20 周年声音与按键" env ZHOUKEER_AUTO_CONFIRM=1 \
+            bash "$PROJECT_ROOT/modules/rog_x20_fix.sh" install
+    fi
+}
+
+rog_x20_menu() {
+    local choice
+    while true; do
+        draw_category_frame advanced "ROG 20 周年修复" "仅 RC74XA · 声音、快捷菜单与唤醒"
+        ui_touch_button 6 '\033[1;97;48;5;24m' "一键修复" "自动检查机型、系统与修复组件"
+        ui_touch_button 10 '\033[1;97;48;5;24m' "查看修复状态" "检查当前修复和声音状态"
+        ui_touch_button 14 '\033[1;97;48;5;160m' "撤销本修复" "恢复备份；系统更新后可能需要另行处理"
+        ui_touch_button 18 '\033[1;97;48;5;238m' "返回掌机适配" "查看其他机型功能"
+        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部分类"
+        ui_prompt
+        choice="$(read_touch_menu right:6-7:install right:10-11:status right:14-15:restore right:18-19:back right:22-23:home)"
+        if apply_navigation "$choice"; then return 1; fi
+        case "$choice" in
+            install) rog_x20_confirm ;;
+            status) run_action "ROG 20 周年修复状态" bash "$PROJECT_ROOT/modules/rog_x20_fix.sh" status ;;
+            restore)
+                confirm_and_run "撤销 ROG 20 周年修复" "需要管理员权限，恢复备份文件；保留商城和其他插件，完成后手动重启" \
+                    bash "$PROJECT_ROOT/modules/rog_x20_fix.sh" restore ;;
+            back) return 0 ;;
+            home) NEXT_CATEGORY=home; return 1 ;;
+        esac
+    done
+}
+
 handheld_more_menu() {
     local choice
     while true; do
-        draw_category_frame advanced "更多掌机功能" "微星 G3E 音频与系统重启"
+        draw_category_frame advanced "更多掌机功能" "微星 G3E · ROG 20 周年 · 系统重启"
         ui_touch_button 8 '\033[1;97;48;5;24m' "微星 G3E 无声音修复" "仅 Claw 8 EX · 内置扬声器和麦克风"
-        ui_touch_button 12 '\033[1;97;48;5;160m' "立即重启 SteamOS" "请先保存工作"
-        ui_touch_button 18 '\033[1;97;48;5;238m' "返回掌机适配" "查看其他机型的功能"
+        ui_touch_button 12 '\033[1;97;48;5;24m' "ROG 20 周年修复" "仅 RC74XA · 声音、快捷菜单与唤醒"
+        ui_touch_button 16 '\033[1;97;48;5;160m' "立即重启 SteamOS" "请先保存工作"
+        ui_touch_button 20 '\033[1;97;48;5;238m' "返回掌机适配" "查看其他机型的功能"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:8-9:g3e right:12-13:reboot right:18-19:back right:22-23:home)"
+        choice="$(read_touch_menu right:8-9:g3e right:12-13:rog-x20 right:16-17:reboot right:20-21:back right:22-23:home)"
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
             g3e) claw_g3e_audio_menu || return 1 ;;
+            rog-x20) rog_x20_menu || return 1 ;;
             reboot)
                 confirm_and_run "立即重启 SteamOS" "将立即重启；请先保存所有工作" \
                     bash "$PROJECT_ROOT/modules/onexplayer_button_fix.sh" reboot

@@ -1,0 +1,43 @@
+{
+  "id": "rc74xa-steamos39-offline",
+  "title": "ROG Xbox Ally X20 RC74XA SteamOS 3.9 Offline Fixes",
+  "package_version": "2026.10.24.1",
+  "format": "renkit-integrated-directory",
+  "renkit_integration": "bundled verified payload; use existing Renkit Decky setup",
+  "default_action": "check",
+  "entrypoints": {
+    "check": "sudo bash install.sh check",
+    "install": "sudo bash install.sh install",
+    "audio_only": "sudo bash install.sh install --audio-only",
+    "status": "sudo bash install.sh status",
+    "uninstall": "sudo bash install.sh uninstall"
+  },
+  "verified_environment": {
+    "device": "ASUS RC74XA",
+    "audio_pci": "1022:15e2",
+    "audio_subsystem": "1043:1954",
+    "os": "SteamOS 3.9.3",
+    "kernel": "7.2.7-valve2-1-neptune-72-g31504582a073",
+    "bios": [
+      "RC74XA.301",
+      "RC74XA.303"
+    ]
+  },
+  "included": [
+    "audio",
+    "qam",
+    "resume-audio-workaround",
+    "resume-controller-mode-workaround"
+  ],
+  "excluded": [
+    "full-steam-input-device-recognition",
+    "rumble",
+    "hdr",
+    "brightness",
+    "tdp",
+    "fan",
+    "rgb"
+  ],
+  "delivery_wrapper_hardware_tested": false,
+  "installation_executed_on_preparation_computer": false
+}

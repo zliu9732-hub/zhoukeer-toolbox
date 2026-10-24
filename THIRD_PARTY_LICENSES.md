@@ -145,3 +145,9 @@ https://github.com/Kaal31/benderthemes/releases/tag/v1.10.7
 - 原作者及权利方：广州市动悦信息技术有限公司。官方页面：<https://pan.quark.cn/>。客户端为官方专有软件，不属于 Renkit 开源代码，使用及附带组件适用其原有条款。
 - 固定官方 Windows 完整版本 7.4.2.820，SHA256：`a2e1d6a095d938addc1da8e43faacea6a088023e7075cb694e1b6547b2934fd9`。按维护者要求保留未修改完整原包，单独存放在 Gitee mirror-6；Renkit 更新包只携带安装代码与官网原图标，不内置客户端。
 - 通过既有 Proton 环境启动，不修改应用界面、作者、许可证或组件，不添加汉化署名。来源、官网图标地址与验证方法见 `docs/quark.md`。
+
+## ROG Xbox Ally X20 RC74XA 修复组件
+
+位置：`third_party/rc74xa-offline-20261024/`。用户提供原 ZIP：`RC74XA-SteamOS39-Offline-20261024.zip`，SHA256 `14993b42db2b7b229e5fb75e9119d3e3bcb9044774ed6b6d40f7d3ff75f5676a`。
+
+音频：hungarianhc/rog-ally-x20-steamos-speakers，提交 `528d4da0eeba35ee9b0ff6851db1e12dc5a178bc`；插件：ovenham/rog-ally-x20-steamos-speaker-qam-fix v1.0.3。GPL-2.0-only，例外文件与模板按包内 BSD-3-Clause 许可；TI 固件来自 linux-firmware 固定提交，按 `licenses/LICENCE.ti-tspa` 和 WHENCE 分发。原上游代码、发布 ZIP 与许可一并保留，不添加汉化署名。集成变化见 `RENKIT-INTEGRATION.md`：省略重复 Decky 程序和证据缓存，复用 Renkit 既有商城准备逻辑，补充完整性/路径检查并移除已禁用的联网构建实现。组件不是 ASUS 官方补丁，预编译模块没有由本项目独立重建或进行实机验证。

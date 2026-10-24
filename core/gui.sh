@@ -1159,6 +1159,34 @@ memory_gui_menu() {
     done
 }
 
+rog_x20_gui_menu() {
+    local choice plan_output
+    choice="$(gui_dialog --menu "ROG 20 周年修复｜仅 RC74XA" \
+        install "一键修复｜声音、右侧快捷菜单与唤醒异常" \
+        status "查看修复状态" \
+        restore "撤销本修复｜恢复备份，保留插件商城" \
+        back "返回掌机适配")" || return 0
+    case "$choice" in
+        install)
+            if ! plan_output="$(bash "$PROJECT_ROOT/modules/rog_x20_fix.sh" plan 2>&1)"; then
+                gui_dialog --error "$plan_output"
+                return 0
+            fi
+            gui_confirm "$plan_output
+
+确认继续？" && run_gui_action "修复 ROG 20 周年声音与按键" env ZHOUKEER_AUTO_CONFIRM=1 \
+                bash "$PROJECT_ROOT/modules/rog_x20_fix.sh" install
+            ;;
+        status) run_gui_action "ROG 20 周年修复状态" bash "$PROJECT_ROOT/modules/rog_x20_fix.sh" status ;;
+        restore)
+            gui_confirm "需要管理员权限，将恢复备份并撤销本修复，保留插件商城和其他插件。若系统已更新会停止恢复旧启动文件。完成后需手动重启。是否继续？" && \
+                run_gui_action "撤销 ROG 20 周年修复" env ZHOUKEER_AUTO_CONFIRM=1 \
+                bash "$PROJECT_ROOT/modules/rog_x20_fix.sh" restore
+            ;;
+    esac
+    return 0
+}
+
 f1_screen_fix_gui_menu() {
     local choice plan_output
 
@@ -1172,6 +1200,7 @@ f1_screen_fix_gui_menu() {
             button-restore "恢复特殊按键修复｜完成后5秒自动重启" \
             inputplumber-update "更新 InputPlumber｜更新并启用手柄功能" \
             bios "准备 V1.14 BIOS｜仅 7840U 普通黑白版｜复制到互通盘" \
+            rog-x20 "ROG 20 周年修复｜仅 RC74XA｜声音、快捷菜单与唤醒" \
             g3e-audio "微星 G3E 无声音修复｜仅 Claw 8 EX｜实验性" \
             reboot "立即重启 SteamOS｜重启后生效｜请先保存工作" \
             back "返回更多设置" \
@@ -1236,6 +1265,10 @@ f1_screen_fix_gui_menu() {
             bios)
                 gui_confirm "仅适用于 ONEXPLAYER F1/ONEXFLY 7840U 普通黑白版，不适用于 8840U、EVA、F1 Pro。Renkit 只校验并复制 BIOS 到互通盘；必须进入 Windows 后手动运行 OXF.bat，刷写期间严禁断电。确认继续？" && \
                     run_gui_action "准备飞行家 F1 V1.14 BIOS" bash "$PROJECT_ROOT/modules/f1_bios_prepare.sh" prepare
+                return 0
+                ;;
+            rog-x20)
+                rog_x20_gui_menu
                 return 0
                 ;;
             g3e-audio)
