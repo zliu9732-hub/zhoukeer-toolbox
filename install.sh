@@ -624,6 +624,16 @@ copy_handheld_frontend_overlay() {
         "$STAGING_DIR/$relative_dir/dist/index.js"
 }
 
+copy_rog_x20_repair() {
+    local relative_dir="third_party/rc74xa-offline-20261024"
+    # 校验源文件与实际安装目录，组件不完整时禁止切换版本。
+    python3 -I -B "$SOURCE_ROOT/scripts/verify_rog_x20_package.py" \
+        "$SOURCE_ROOT/$relative_dir" || return 1
+    copy_dir_files "$relative_dir" || return 1
+    python3 -I -B "$STAGING_DIR/scripts/verify_rog_x20_package.py" \
+        "$STAGING_DIR/$relative_dir" || return 1
+}
+
 remove_appledouble_files() {
     local root="$1"
 
@@ -644,6 +654,7 @@ copy_dir_files config
 copy_dir_files assets
 copy_dir_files scripts
 copy_dir_files data
+copy_rog_x20_repair || { echo "修复组件未准备完整，旧版本保持不变。"; exit 1; }
 copy_switch_to_windows || exit 1
 copy_cssloader_chinese
 copy_simpledeckytdp_chinese

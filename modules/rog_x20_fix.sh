@@ -6,18 +6,10 @@ source "$PROJECT_ROOT/core/auth.sh"
 source "$PROJECT_ROOT/core/logger.sh"
 
 ROG_X20_SOURCE="$PROJECT_ROOT/third_party/rc74xa-offline-20261024"
-ROG_X20_MANIFEST_SHA256=c6f4ef44a1c42c3b9a83ad30eabc5375a0cd8ffc8044f5d4c9d69674601f5ce0
 
 rog_x20_verify() {
     require_command python3 || return 1
-    python3 -I -B - "$ROG_X20_SOURCE/manifest.json" "$ROG_X20_MANIFEST_SHA256" <<'PY'
-import hashlib,sys
-from pathlib import Path
-p=Path(sys.argv[1])
-if p.is_symlink() or not p.is_file() or hashlib.sha256(p.read_bytes()).hexdigest()!=sys.argv[2]:
-    print('修复组件检查未通过，请更新 Renkit 后重试。',file=sys.stderr)
-    sys.exit(1)
-PY
+    python3 -I -B "$PROJECT_ROOT/scripts/verify_rog_x20_package.py" "$ROG_X20_SOURCE"
 }
 
 rog_x20_plan() {

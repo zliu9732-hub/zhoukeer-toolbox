@@ -22,7 +22,7 @@ m=load('rc74xa_installer',SOURCE/'installer.py')
 m.verify()
 for p in SOURCE.rglob('*.py'):ast.parse(p.read_text())
 manifest=json.loads((SOURCE/'manifest.json').read_text())
-assert hashlib.sha256((SOURCE/'manifest.json').read_bytes()).hexdigest() in (ROOT/'modules/rog_x20_fix.sh').read_text()
+assert hashlib.sha256((SOURCE/'manifest.json').read_bytes()).hexdigest() in (ROOT/'scripts/verify_rog_x20_package.py').read_text()
 audio=(SOURCE/'payload/x20-fixes/fix/ally-audio-fix.sh').read_text()
 assert 'sh -c' not in audio and 'curl ' not in audio and 'cmd_build()' not in audio
 valid=dict(system='Linux',arch='x86_64',vendor='ASUSTeK COMPUTER INC.',device='ROG Xbox Ally RC74XA',

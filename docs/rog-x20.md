@@ -15,3 +15,5 @@
 来源：用户提供的离线包；[音频项目](https://github.com/hungarianhc/rog-ally-x20-steamos-speakers)、[X20 Fixes](https://github.com/ovenham/rog-ally-x20-steamos-speaker-qam-fix)，版本与许可证详见第三方目录。预编译模块没有独立重建证明，原包的实测声明不等于 Renkit 已实机验证。
 
 验证：test_rog_x20_package.py 读取真实文件，校验内容与严格兼容条件，使用临时文件和完整命令替身验证部署/恢复、路径拒绝及更新保护；test_rog_x20.sh 检查先检查后商城再安装、确认和失败返回；test_rog_x20_ui.py 在 70×24 的真实 PTY 验证可见风险与触控取消/确认。macOS 不运行真实 GRUB、模块、声音、服务或磁盘操作。
+
+3.3.3 修复：3.3.1/3.3.2 的发布包虽含组件，install.sh 却未复制第三方修复目录，导致安装后的入口无法找到 manifest。现由安装器复制整个严格清单，复制前后及运行前均由 scripts/verify_rog_x20_package.py 验证。tests/test_rog_x20_installed.py 从真实发布包运行安装器，覆盖组件落盘、原有数据保留、缺失/损坏源阻止版本切换；平台与快捷方式钩子完全模拟，不运行修复引擎。
