@@ -200,8 +200,15 @@ import_existing_password() {
 
 prepare_startup_password() {
     is_linux || return 1
-    require_command sudo || return 1
     load_non_root_identity || return 1
+    # Only prepare a missing/invalid record at startup. Real administrator
+    # authentication stays in toolbox_sudo when an operation actually needs it.
+    if load_toolbox_password >/dev/null 2>&1; then
+        TOOLBOX_PASSWORD=""
+        unset TOOLBOX_PASSWORD
+        return 0
+    fi
+    require_command sudo || return 1
 
     if validate_toolbox_password_value '1234'; then
         # Keep using the same protected record and installation authentication.
