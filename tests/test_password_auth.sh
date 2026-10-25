@@ -441,12 +441,20 @@ assert_password_record "$CHANGED_PASSWORD"
 for consumer in \
     "$PROJECT_ROOT/modules/plugin_store.sh" \
     "$PROJECT_ROOT/modules/todesk.sh" \
-    "$PROJECT_ROOT/modules/steam_accelerator.sh"; do
+    "$PROJECT_ROOT/modules/steam302_legacy.sh"; do
     grep -Fq 'core/auth.sh' "$consumer" || fail "$(basename "$consumer") 未加载 auth helper"
     if grep -Eq '^[[:space:]]*(if[[:space:]]+)?(![[:space:]]+)?sudo[[:space:]]' "$consumer"; then
         fail "$(basename "$consumer") 仍直接调用 sudo"
     fi
     grep -Fq 'toolbox_sudo' "$consumer" || fail "$(basename "$consumer") 未使用 toolbox_sudo"
 done
+
+# V15 inherits auth from the legacy compatibility layer and must still route
+# all privileged vendor helper/service actions through the same auth wrapper.
+grep -Fq 'steam302_legacy.sh' "$PROJECT_ROOT/modules/steam_accelerator.sh" || fail "加速入口丢失统一认证"
+grep -Fq 'toolbox_sudo' "$PROJECT_ROOT/modules/steam302_v15.sh" || fail "V15 未使用统一认证"
+if grep -Eq '^[[:space:]]*(if[[:space:]]+)?(![[:space:]]+)?sudo[[:space:]]' "$PROJECT_ROOT/modules/steam302_v15.sh"; then
+    fail "V15 直接调用 sudo"
+fi
 
 echo "PASS: 密码明文记录、修改自动输入和sudo自动验证测试通过"

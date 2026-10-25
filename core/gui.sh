@@ -333,12 +333,17 @@ game_environment_gui_menu() {
                     friendeck "文件传输助手｜Friendeck｜在掌机和其他设备之间传文件" \
                     deckymusic "音乐播放器｜Decky Music v1.0.2 完整包｜在游戏模式听音乐，支持 QQ 音乐和网易云音乐" \
                     fantastic "Fantastic 风扇控制｜完整汉化版｜汉化：RenAmamiya｜注意温度" \
+                    screen-colors "屏幕色彩｜调整颜色与一键效果｜汉化：RenAmamiya" \
                     back "返回游戏与插件")" || continue
                 case "$feature_choice" in
                     steamgriddb) run_gui_action "安装游戏封面更换" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
                     cssloader) run_gui_action "安装主题美化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
                     friendeck) run_gui_action "安装文件传输助手" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
                     deckymusic) run_gui_action "安装音乐播放器" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
+                    screen-colors)
+                        gui_confirm "调整游戏模式下的屏幕色彩，提供影院、鲜艳、舒适和类 OLED 效果；可一键恢复原始色彩。仅在游戏模式生效，会使用管理员权限；类 OLED 效果不会改变屏幕本身。汉化：RenAmamiya。是否安装？" && \
+                            run_gui_action "安装屏幕色彩" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" screen-colors
+                        ;;
                     fantastic)
                         gui_confirm "高风险：Fantastic 会覆盖 SteamOS 默认风扇曲线，过低转速可能导致设备过热；仅适用于 Steam Deck。将直接安装带 RenAmamiya 署名的完整汉化包，是否继续？" && \
                             run_gui_action "安装 Fantastic 风扇控制" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fantastic

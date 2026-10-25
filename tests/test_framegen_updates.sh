@@ -1,5 +1,8 @@
 #!/bin/bash
 set -euo pipefail
+# The combination's optional GE prompt is covered separately; this test checks
+# frame-generation package selection with no interactive or real system action.
+export ZHOUKEER_FEATURE_TRAINER_TOOLS=skip
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf -- "$TMP_ROOT"' EXIT

@@ -3,7 +3,8 @@
 set -eu
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-MODULE="$PROJECT_ROOT/modules/steam_accelerator.sh"
+# Legacy migration helpers retain their previous regression coverage.
+MODULE="$PROJECT_ROOT/modules/steam302_legacy.sh"
 TMP_ROOT="$(mktemp -d)"
 BIN_DIR="$TMP_ROOT/bin"
 HOME_DIR="$TMP_ROOT/home"

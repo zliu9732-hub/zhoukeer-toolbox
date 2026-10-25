@@ -174,6 +174,34 @@ failure_joined="$({
 [ "$failure_joined" = $'\nERROR' ] || \
     fail "多文件下载失败后没有结束当前进度行"
 
+# A failed attempt followed by a successful curl retry must stay on the same
+# overall row. Previously the stale failure flag added one line per recovered part.
+retry_joined="$({
+    printf '%s\r' \
+        '  5 1000 5 50 0 0 50k 0 --:--:-- --:--:-- --:--:-- 50k' \
+        'curl: (28) Operation timed out' \
+        'Warning: Problem : timeout. Will retry in 1 seconds.' \
+        '100 1000 100 1000 0 0 60k 0 --:--:-- --:--:-- --:--:-- 60k' |
+        download_progress_filter FSR4 0 3
+    printf NEXT
+})"
+case "$retry_joined" in *$'\n'*) fail "下载重试成功后仍在中间换行" ;; esac
+grep -Fq '] 33%' <<< "$retry_joined" || fail "重试后没有保持总体进度"
+
+# Shorten the display before the terminal wraps it. This must not affect bytes,
+# retries, integrity validation or the total percent calculation.
+for columns in 20 35 60 80; do
+    narrow="$(printf '%s\r' '100 1000 100 1000 0 0 123.45M 0 --:--:-- --:--:-- --:--:-- 123.45M' |
+        COLUMNS="$columns" download_progress_filter '非常长的程序名称和安装文件说明（完整中文包）' 0 2)"
+    PROGRESS_CAPTURE="$narrow" PROGRESS_COLUMNS="$columns" python3 - <<'PY'
+import os,re,unicodedata
+text=re.sub(r'\x1b\[[0-9;]*[A-Za-z]', '', os.environ['PROGRESS_CAPTURE']).replace('\r','')
+width=sum(2 if unicodedata.east_asian_width(c) in ('W','F') else 1 for c in text)
+assert width < int(os.environ['PROGRESS_COLUMNS']), (width,text)
+assert '50%' in text and '\n' not in text
+PY
+done
+
 # GUI 动作会把程序输出接入日志管道；在真实 TTY 中，进度必须绕过该管道
 # 直接刷新终端，否则日志层可能把每次回车刷新展开成多行。
 if command -v script >/dev/null 2>&1; then

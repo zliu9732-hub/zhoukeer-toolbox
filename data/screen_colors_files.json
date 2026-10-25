@@ -1,0 +1,33 @@
+{
+  "upstream_version": "1.0.0",
+  "upstream_commit": "3544b4925a8ac3c09bdbd124b92991ad369c9e37",
+  "translation_revision": 1,
+  "plugin_name": "Screen Colors",
+  "translated_name": "屏幕色彩（Screen Colors）",
+  "archive_root": "Screen Colors",
+  "package_sha256": "4535b6f378cbb6cca4274067a36604b0fd5a2e94c14913855b177bdae009abb5",
+  "files": {
+    "CREDITS.md": "f9d5bf51824f0e550d55164f1b9044c4a0c257ffff54afc1ab750f628111fa4d",
+    "LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "README.md": "c2af7b378f1c3bdd82e1516b3a6785a5b83bbd4c1509b8c9ab3146bf991c0682",
+    "dist/index.js": "d981e85d8b669b4b340ad276bbacf01e37c328e066a861d354546eea07da4b6c",
+    "main.py": "1e919629951e384d36265bcd8825ee245a67f3ae2ff923dff79fd690c9f5f385",
+    "package.json": "3ca30532cba4823274898a8d44a13b65647ce86578bc8198073fc71993511242",
+    "plugin.json": "e12722263ec3a8ebaea68d934b4316124bb8b5f6eae6c772e20ec88db10b7f67"
+  },
+  "translated_files": {
+    "CREDITS.md": "f9d5bf51824f0e550d55164f1b9044c4a0c257ffff54afc1ab750f628111fa4d",
+    "LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "README.md": "c2af7b378f1c3bdd82e1516b3a6785a5b83bbd4c1509b8c9ab3146bf991c0682",
+    "RENKIT_ZH.md": "f5c875395a6aeea45f1b24e73d3c94050714839de0e295a2851a591860ae56e0",
+    "dist/index.js": "6a52c01244aeca2d4a8b02b3905e87f950819f3ef71fe6e157ed55b697849f29",
+    "main.py": "1e919629951e384d36265bcd8825ee245a67f3ae2ff923dff79fd690c9f5f385",
+    "package.json": "f556b563246836dfdcf6954e7d10d1f566a7165b6bd4986f2112c31f24f1be51",
+    "plugin.json": "12afdd19a4988a89e9fb1d9c919466c4b4d2396a8c1d98a03109c9bcb5e49add",
+    "pnpm-lock.yaml": "b459330665c9db230503338389e933095c00f0e2b60cde7e9cd86ce3a9f269ee",
+    "rollup.config.js": "95e1c5a32396bed80b2d4148507520b9504e277ff954e993979679b14336ea45",
+    "src/i18n.ts": "40e143adb6f747e897292670a9b42a23cb2eafd75d601b722c4b7d9c94ff53e3",
+    "src/index.tsx": "370a6fe1da45ef4bb12abcc290a8cd8b951ce3ec3f1fcfb163a6d6a70ed3b959",
+    "tsconfig.json": "fdaa2066c13ff54c23b0621b7d546f251a6ba7ec8095ccedbcb0bcc4e6f23750"
+  }
+}

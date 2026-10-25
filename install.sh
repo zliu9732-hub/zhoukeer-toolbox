@@ -707,8 +707,26 @@ if ! find "$STAGING_DIR" -type f -name '*.sh' ! -name '._*' -exec bash -n {} \;;
     echo "新版本包含Shell语法错误，旧版本保持不变。"
     exit 1
 fi
+for required in modules/steam_accelerator.sh modules/steam302_legacy.sh modules/steam302_v15.sh \
+    scripts/steam302_control.py modules/screen_colors.sh scripts/localize_screen_colors.py \
+    scripts/framegen_package.py data/screen_colors_files.json data/screen_colors_zh.json \
+    assets/screen-colors/zh-runtime.js assets/screen-colors/RENKIT_ZH.md \
+    assets/screen-colors/source/src/i18n.ts assets/screen-colors/source/src/index.tsx \
+    assets/screen-colors/source/pnpm-lock.yaml assets/screen-colors/source/rollup.config.js \
+    assets/screen-colors/source/tsconfig.json; do
+    if [ ! -f "$SOURCE_ROOT/$required" ] || [ -L "$SOURCE_ROOT/$required" ] || \
+        [ ! -f "$STAGING_DIR/$required" ] || [ -L "$STAGING_DIR/$required" ] || \
+        ! cmp -s "$SOURCE_ROOT/$required" "$STAGING_DIR/$required"; then
+        echo "新版本加速或屏幕色彩组件不完整，旧版本保持不变。"
+        exit 1
+    fi
+done
 if ! grep -Fq 'STEAM302_LAYOUT_VALIDATION_REVISION="ascii-files-v2"' \
+    "$STAGING_DIR/modules/steam302_legacy.sh" || \
+    ! grep -Fq 'source "$PROJECT_ROOT/modules/steam302_v15.sh"' \
     "$STAGING_DIR/modules/steam_accelerator.sh" || \
+    ! grep -Fq 'STEAM302_CONTROL_REVISION="v15-local-api-1.0"' \
+    "$STAGING_DIR/modules/steam302_v15.sh" || \
     ! grep -Fq 'run_launcher_installer()' \
     "$STAGING_DIR/modules/game_launchers.sh" || \
     ! grep -Fq 'RENKIT_PLATFORM_LABEL="BAZZITE 掌机  /  中文工具"' \

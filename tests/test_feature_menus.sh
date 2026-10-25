@@ -515,9 +515,12 @@ done
 
 touch_x20="$(function_source "$MAIN_FILE" rog_x20_confirm)"
 gui_x20="$(function_source "$GUI_FILE" rog_x20_gui_menu)"
-for detail in 'RC74XA' '3.9.3' 'BIOS' '手动重启'; do
+# 3.3.4 already changed this wording to driver compatibility on Valve SteamOS.
+for detail in 'RC74XA' 'Valve SteamOS' 'BIOS' '手动重启'; do
     assert_contains "$touch_x20" "$detail" "ROG 20 周年触控确认缺少限制或风险：$detail"
 done
+assert_contains "$touch_feature_singles" '屏幕色彩' "触控菜单缺少屏幕色彩"
+assert_contains "$gui_games" '屏幕色彩' "图形菜单缺少屏幕色彩"
 assert_contains "$gui_x20" 'modules/rog_x20_fix.sh" plan' "ROG 20 周年 GUI 未先检测适用条件"
 assert_contains "$gui_x20" 'ZHOUKEER_AUTO_CONFIRM=1' "ROG 20 周年 GUI 没有授权传递"
 assert_contains "$touch_f1" 'right:12-13:rog-x20' "掌机适配缺少 ROG 20 周年入口"

@@ -94,26 +94,37 @@ download_progress_filter() {
     local segment_total="${3:-1}"
     local progress_fd=1
     local progress_chunk=""
+    local columns="${COLUMNS:-80}" terminal_rows
 
-    # 有控制终端时绕过外层日志管道直接刷新同一行；无终端时保留 stdout，
-    # 便于安装脚本重定向输出和自动测试。
+    # GUI 动作会经过日志管道。存在真实控制终端时直接刷新 Konsole，避免
+    # 管道或日志查看器把每次回车刷新展开成多行；无终端的测试仍走 stdout。
     if [ "${ZHOUKEER_PROGRESS_DIRECT_TTY:-0}" = "1" ] && [ ! -t 1 ] && \
         [ -c /dev/tty ] && exec 9>/dev/tty 2>/dev/null; then
         progress_fd=9
     fi
+
+    if [ -t "$progress_fd" ]; then
+        read -r terminal_rows columns < <(stty size </dev/tty 2>/dev/null) || columns="${COLUMNS:-80}"
+    fi
+    case "$columns" in ''|*[!0-9]*) columns=80 ;; esac
+    [ "$columns" -ge 12 ] && [ "$columns" -le 1000 ] || columns=80
 
     # curl 用回车符刷新进度。tr 的块缓冲会把这些刷新积压到下载结束；
     # Bash read 每收到一个回车就立即输出一帧，让后面的 awk 实时渲染。
     while IFS= read -r -d $'\r' progress_chunk || [ -n "$progress_chunk" ]; do
         printf '%s\n' "$progress_chunk"
         progress_chunk=""
-    done | awk -v label="$label" \
+    done | LC_ALL=C awk -v label="$label" -v columns="$columns" \
         -v segment_index="$segment_index" -v segment_total="$segment_total" '
         BEGIN {
             if (segment_index !~ /^[0-9]+$/) segment_index = 0
             if (segment_total !~ /^[1-9][0-9]*$/) segment_total = 1
             if (segment_index >= segment_total) segment_index = 0
             bar_width = 20
+            if (columns < 80) bar_width = 8
+            # UTF-8 byte length is a conservative upper bound on label cells.
+            # Never wrap a progress row: CR/erase-line cannot clear a prior row.
+            compact = columns < 80 || length(label) + 60 >= columns
         }
         function progress_line(line) {
             return line ~ /^[ ]*[0-9]+[ ]+[0-9]+/ && NF >= 8
@@ -136,8 +147,16 @@ download_progress_filter() {
             if (speed ~ /[kK]$/) { unit = "KB/s"; speed = substr(speed, 1, length(speed) - 1) }
             else if (speed ~ /[mM]$/) { unit = "MB/s"; speed = substr(speed, 1, length(speed) - 1) }
             else if (speed ~ /[gG]$/) { unit = "GB/s"; speed = substr(speed, 1, length(speed) - 1) }
-            printf "\r\033[2K正在下载 %s... [%s] %d%%（%s %s）", \
-                label, progress_bar(percent), percent, speed, unit
+            speed = substr(speed, 1, 8)
+            if (columns < 30)
+                printf "\r\033[2K下载 %d%%", percent
+            else if (columns < 50)
+                printf "\r\033[2K下载 %d%% %s %s", percent, speed, unit
+            else if (compact)
+                printf "\r\033[2K下载中 [%s] %d%% %s %s", progress_bar(percent), percent, speed, unit
+            else
+                printf "\r\033[2K正在下载 %s... [%s] %d%%（%s %s）", \
+                    label, progress_bar(percent), percent, speed, unit
             fflush()
         }
         {
@@ -154,13 +173,20 @@ download_progress_filter() {
                 next
             }
             if (progress_line(line)) {
+                # A new curl progress frame belongs to the retry, not the failed
+                # attempt. A recovered intermediate part must not add a newline.
+                failed = 0
                 raw_percent = $1 + 0
+                # curl 跟随重定向时，会先把几百字节的跳转响应报告为 100%，
+                # 随后正式文件又从 0% 开始。延迟一帧；检测到 100→低百分比
+                # 时丢弃跳转帧，避免进度提前完成或倒退。
                 if (raw_percent >= 100) {
                     pending_percent = raw_percent
                     pending_speed = $NF
                     have_pending = 1
                     next
                 }
+                # 低百分比紧跟在待定的 100% 后面，说明前一帧属于跳转响应。
                 have_pending = 0
                 render_progress(raw_percent, $NF)
                 next

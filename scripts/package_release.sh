@@ -61,6 +61,9 @@ VERIFY_FILES="$VERIFY_FILES scripts/verify_rog_x20_package.py tests/test_rog_x20
 VERIFY_FILES="$VERIFY_FILES tests/test_startup_password.sh docs/startup-password.md tests/test_feature_trainer_choice.sh tests/test_memory_create.sh docs/memory-tuning.md"
 VERIFY_FILES="$VERIFY_FILES assets/sdweak/SDWEAK-core-v2.1.0.zip docs/sdweak.md"
 
+VERIFY_FILES="$VERIFY_FILES modules/steam302_legacy.sh modules/steam302_v15.sh scripts/steam302_control.py docs/steam302.md tests/test_screen_colors_installed.py"
+VERIFY_FILES="$VERIFY_FILES modules/screen_colors.sh scripts/localize_screen_colors.py scripts/verify_screen_colors_ui.mjs data/screen_colors_files.json data/screen_colors_zh.json assets/screen-colors/zh-runtime.js assets/screen-colors/RENKIT_ZH.md assets/screen-colors/source/src/i18n.ts assets/screen-colors/source/src/index.tsx assets/screen-colors/source/pnpm-lock.yaml assets/screen-colors/source/rollup.config.js assets/screen-colors/source/tsconfig.json tests/test_screen_colors.py tests/test_screen_colors_install.sh tests/fixtures/screen-colors-v1.0.0.zip docs/screen-colors.md tests/test_steam302_control.py tests/test_steam302_v15.sh"
+
 mkdir -p "$DIST_DIR"
 
 cd "$PROJECT_ROOT" || exit 1

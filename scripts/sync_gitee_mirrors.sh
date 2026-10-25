@@ -425,6 +425,14 @@ sync_ayaneo3() {
         "b1c9a5529b3f5a4dee88ca275d285bb6347092a5f7e90db07b87b24725b4f651" "$MIRROR4"
 }
 
+sync_screen_colors() {
+    # Keep the source pinned until the full Chinese package is audited again.
+    sync_plugin screen-colors '' '^$' "Screen Colors" \
+        "1.0.0" "decky-screen-colors.zip" \
+        "https://github.com/PacificSilent/decky-screen-colors/releases/download/v1.0.0/decky-screen-colors.zip" \
+        "4535b6f378cbb6cca4274067a36604b0fd5a2e94c14913855b177bdae009abb5" "$MIRROR4"
+}
+
 sync_deckhomethemes() {
     # 与中文组件保持同一固定版本，防止同步未来未汉化版本导致校验不匹配。
     sync_plugin deckhomethemes "Kaal31/benderthemes" '^$' "主页主题（ThemeHub）" \
@@ -535,6 +543,7 @@ sync_steamos_fixed_assets
 sync_deckhomethemes
 sync_epic_linux
 sync_ayaneo3
+sync_screen_colors
 
 # 小黄鸭汉化叠加固定 v0.12.8，镜像必须与Renkit内置版本一致，否则 SHA 校验会拒绝。
 sync_plugin lsfg "xXJSONDeruloXx/decky-lsfg-vk" '^Decky[.]LSFG-VK[.]zip$' "Decky LSFG-VK" \

@@ -20,7 +20,7 @@ decky|gitee.com,www.mhhf.com,github.com,raw.githubusercontent.com,plugins.deckbr
 flathub|mirror.sjtu.edu.cn,mirrors.ustc.edu.cn,dl.flathub.org|Flatpak 国内缓存与官方源|flatpakrepo,repo|固定远程|Flatpak GPG；国内缓存例外需明确确认|2097152|上海交大→中科大→官方
 vendors|qq-web.cdn-go.cn,im.qq.com,qqdl.gtimg.cn,dldir1v6.qq.com,launcher-public-service-prod06.ol.epicgames.com,epicgames-download1.akamaized.net,content-download-egs.distro.on.epicgames.com,downloader.battle.net,static3.cdn.ubi.com,umcdn.quark.cn|官方应用安装包|json,AppImage,exe,msi|官方当前版或固定版|官方HTTPS+固定路径+类型/大小；固定版另验SHA256|536870912|停止安装
 launcher-preinstalled|gitee.com|战网预装客户端固定镜像|7z|固定版本|SHA256+分卷重组|94371840|停止安装
-steam302|gitee.com|Steamcommunity 302 固定版本（自有 Gitee 镜像）|tar.gz|固定版本|MD5+SHA256+结构检查|536870912|停止安装
+steam302|gitee.com|Steamcommunity 302 固定版本（自有 Gitee 镜像）|AppImage|固定版本|SHA256+官方资源清单检查|536870912|停止安装
 clover|gitee.com|Clover 双系统引导固定资源（Gitee 来源）|tar.gz|固定版本|SHA256+完整性校验|1073741824|自有 Gitee 镜像
 todesk|github.com,dl.todesk.com|ToDesk 官方 Linux 客户端的未修改镜像与官网|deb|固定官方版本|SHA256+DEB/包内结构|268435456|Gitee镜像→GitHub镜像源→官网→停止安装
 EOF
@@ -32,6 +32,7 @@ download_progress_filter() {
     local segment_total="${3:-1}"
     local progress_fd=1
     local progress_chunk=""
+    local columns="${COLUMNS:-80}" terminal_rows
 
     # GUI 动作会经过日志管道。存在真实控制终端时直接刷新 Konsole，避免
     # 管道或日志查看器把每次回车刷新展开成多行；无终端的测试仍走 stdout。
@@ -40,18 +41,28 @@ download_progress_filter() {
         progress_fd=9
     fi
 
+    if [ -t "$progress_fd" ]; then
+        read -r terminal_rows columns < <(stty size </dev/tty 2>/dev/null) || columns="${COLUMNS:-80}"
+    fi
+    case "$columns" in ''|*[!0-9]*) columns=80 ;; esac
+    [ "$columns" -ge 12 ] && [ "$columns" -le 1000 ] || columns=80
+
     # curl 用回车符刷新进度。tr 的块缓冲会把这些刷新积压到下载结束；
     # Bash read 每收到一个回车就立即输出一帧，让后面的 awk 实时渲染。
     while IFS= read -r -d $'\r' progress_chunk || [ -n "$progress_chunk" ]; do
         printf '%s\n' "$progress_chunk"
         progress_chunk=""
-    done | awk -v label="$label" \
+    done | LC_ALL=C awk -v label="$label" -v columns="$columns" \
         -v segment_index="$segment_index" -v segment_total="$segment_total" '
         BEGIN {
             if (segment_index !~ /^[0-9]+$/) segment_index = 0
             if (segment_total !~ /^[1-9][0-9]*$/) segment_total = 1
             if (segment_index >= segment_total) segment_index = 0
             bar_width = 20
+            if (columns < 80) bar_width = 8
+            # UTF-8 byte length is a conservative upper bound on label cells.
+            # Never wrap a progress row: CR/erase-line cannot clear a prior row.
+            compact = columns < 80 || length(label) + 60 >= columns
         }
         function progress_line(line) {
             return line ~ /^[ ]*[0-9]+[ ]+[0-9]+/ && NF >= 8
@@ -74,8 +85,16 @@ download_progress_filter() {
             if (speed ~ /[kK]$/) { unit = "KB/s"; speed = substr(speed, 1, length(speed) - 1) }
             else if (speed ~ /[mM]$/) { unit = "MB/s"; speed = substr(speed, 1, length(speed) - 1) }
             else if (speed ~ /[gG]$/) { unit = "GB/s"; speed = substr(speed, 1, length(speed) - 1) }
-            printf "\r\033[2K正在下载 %s... [%s] %d%%（%s %s）", \
-                label, progress_bar(percent), percent, speed, unit
+            speed = substr(speed, 1, 8)
+            if (columns < 30)
+                printf "\r\033[2K下载 %d%%", percent
+            else if (columns < 50)
+                printf "\r\033[2K下载 %d%% %s %s", percent, speed, unit
+            else if (compact)
+                printf "\r\033[2K下载中 [%s] %d%% %s %s", progress_bar(percent), percent, speed, unit
+            else
+                printf "\r\033[2K正在下载 %s... [%s] %d%%（%s %s）", \
+                    label, progress_bar(percent), percent, speed, unit
             fflush()
         }
         {
@@ -92,6 +111,9 @@ download_progress_filter() {
                 next
             }
             if (progress_line(line)) {
+                # A new curl progress frame belongs to the retry, not the failed
+                # attempt. A recovered intermediate part must not add a newline.
+                failed = 0
                 raw_percent = $1 + 0
                 # curl 跟随重定向时，会先把几百字节的跳转响应报告为 100%，
                 # 随后正式文件又从 0% 开始。延迟一帧；检测到 100→低百分比
@@ -143,7 +165,7 @@ run_curl_with_progress() {
 
 download_policy_github_repo_allowed() {
     case "$1" in
-        Kaal31/benderthemes) return 0 ;;
+        Kaal31/benderthemes|PacificSilent/decky-screen-colors) return 0 ;;
         SteamDeckHomebrew/decky-loader|Taskerer/SDWEAK|ShadowBlip/InputPlumber|dahui/onexplayer-x2-mini-pro-cachyos|srsholmes/onexplayer-apex-bazzite-fixes|xXJSONDeruloXx/decky-lsfg-vk|eugeniosegala/decky-lsfg-vk-experimental|eugeniosegala/MAKO|xXJSONDeruloXx/Decky-Framegen|SheffeyG/CheatDeck|YukiCoco/ToMoon|Ren-Amamiya-pixle/DeckRecall|Ren-Amamiya-pixle/SavePulse|aarron-lee/SimpleDeckyTDP|mengmeet/PowerControl|mubaraknumann/unifideck|panyiwei-home/Freedeck|panyiwei-home/Friendeck|jinzhongjia/decky-music|GloriousEggroll/proton-ge-custom|CachyOS/proton-cachyos|rustdesk/rustdesk|zliu9732-hub/zhoukeer-toolbox|zliu9732-hub/decky-lsfg-vk-zh|zliu9732-hub/decky-framegen-zh|HMCL-dev/HMCL|adoptium/temurin21-binaries) return 0 ;;
         *) return 1 ;;
     esac
@@ -197,6 +219,7 @@ download_policy_url_allowed() {
         https://content-download-egs.distro.on.epicgames.com/Builds/EGLv2/0.96.0%2Bg2fade97/Linux/EpicGamesLauncher-x86_64.AppImage) return 0 ;;
         https://umcdn.quark.cn/download/37211/quarkclouddrivepc/pckk@product_guanwang/QuarkCloudDrivePC_V7.4.2.820_pc_pf30001_\(zh-cn\)_release_\(Build3241122-1000-x64\).exe) return 0 ;;
         https://www.dogfight360.com/blog/wp-content/uploads/2026/02/steamcommunity_302_Linux_AMD64_V14.0.02.tar.gz) return 0 ;;
+        https://www.dogfight360.com/Usbeam/V15/Steamcommunity_302_15.0.9_Linux_WebKit_x64.AppImage) return 0 ;;
         *)
             if [ "${ZHOUKEER_TEST_MODE:-0}" = "1" ]; then
                 case "$url" in https://*) return 0 ;; esac

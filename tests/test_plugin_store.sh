@@ -111,7 +111,7 @@ grep -Fq '强烈建议进入 游戏与插件，安装修改器所需运行工具
 grep -Fq 'systemctl --user disable --now "$DECKY_SERVICE_NAME"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'download_decky_component' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '下载较慢，正在启用加速，请耐心等待' "$PROJECT_ROOT/modules/steam_accelerator.sh"
+grep -Fq '下载较慢，正在启用加速，请耐心等待' "$PROJECT_ROOT/modules/steam302_legacy.sh"
 grep -Fq 'render_decky_service' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'rollback_decky_install' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'systemctl stop "$DECKY_SERVICE_NAME"' "$PROJECT_ROOT/modules/plugin_store.sh"

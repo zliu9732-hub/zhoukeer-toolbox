@@ -1,0 +1,32 @@
+// 中文汉化：RenAmamiya。保留原作者 PacificSilent；GPL-3.0-or-later。
+const ZH: Record<string, string> = {
+  "title": "屏幕色彩（Screen Colors）",
+  "loading": "正在读取屏幕设置…",
+  "unsupported.body": "当前无法调整屏幕色彩。请返回游戏模式后使用；此功能在桌面模式下不生效。",
+  "section.presets": "一键效果",
+  "section.manual": "手动调整",
+  "section.advanced": "进阶调整",
+  "label.active": "当前效果",
+  "active.native": "原始色彩",
+  "active.custom": "自定义",
+  "active.oled": "类 OLED 效果",
+  "btn.oledLook": "类 OLED 效果",
+  "btn.oledLook.desc": "一键让颜色更鲜艳、对比更明显，不会改变屏幕本身。",
+  "btn.reset": "恢复原始色彩",
+  "toggle.advanced": "分别调整颜色",
+  "toggle.advanced.desc": "微调色调和红、绿、蓝三种颜色；通常无需开启。",
+  "preset.cine": "影院",
+  "preset.vivo": "鲜艳",
+  "preset.comodo": "舒适",
+  "field.saturation": "色彩浓度",
+  "field.vibrance": "鲜艳程度",
+  "field.temperature": "色温（偏暖／偏冷）",
+  "field.contrast": "明暗对比",
+  "field.gamma": "画面亮度",
+  "field.black": "暗部深浅",
+  "field.hue": "色调",
+  "field.gain_r": "红色强度",
+  "field.gain_g": "绿色强度",
+  "field.gain_b": "蓝色强度"
+};
+export function t(key: string): string { return ZH[key] ?? key; }

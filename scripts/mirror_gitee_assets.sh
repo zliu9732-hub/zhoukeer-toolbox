@@ -306,7 +306,7 @@ mirror_process_entry() {
     local chunks=0
     local existing_size
     local CHUNK_BYTES="$CHUNK_BYTES"
-    case "$id" in sdweak|deckhomethemes) [ "$CHUNK_BYTES" -le 1048576 ] || CHUNK_BYTES=1048576 ;; ayaneo3-companion) CHUNK_BYTES=131072 ;; esac
+    case "$id" in sdweak|deckhomethemes) [ "$CHUNK_BYTES" -le 1048576 ] || CHUNK_BYTES=1048576 ;; ayaneo3-companion|screen-colors) CHUNK_BYTES=131072 ;; esac
 
     mirror_path_is_safe "$id" || return 1
     mirror_path_is_safe "$version" || return 1
@@ -337,7 +337,7 @@ mirror_process_entry() {
         mirror_positive_integer "$size" || return 1
         mkdir -p "$target_dir" || return 1
         # SDWEAK always uses the part manifest, including a single small part.
-        if [ "$size" -le "$DIRECT_MAX_BYTES" ] && [ "$id" != sdweak ] && [ "$id" != deckhomethemes ] && [ "$id" != ayaneo3-companion ]; then
+        if [ "$size" -le "$DIRECT_MAX_BYTES" ] && [ "$id" != sdweak ] && [ "$id" != deckhomethemes ] && [ "$id" != ayaneo3-companion ] && [ "$id" != screen-colors ]; then
             cp -f -- "$cache_file" "$target" || return 1
         else
             rm -f -- "$target_dir"/part.*
@@ -358,7 +358,7 @@ mirror_process_local_file() {
     local id="$1" name="$2" version="$3" file="$4" source_url="$5" local_file="$6"
     local size sha256 target_dir target chunks=0
     local CHUNK_BYTES="$CHUNK_BYTES"
-    case "$id" in sdweak|deckhomethemes) [ "$CHUNK_BYTES" -le 1048576 ] || CHUNK_BYTES=1048576 ;; ayaneo3-companion) CHUNK_BYTES=131072 ;; esac
+    case "$id" in sdweak|deckhomethemes) [ "$CHUNK_BYTES" -le 1048576 ] || CHUNK_BYTES=1048576 ;; ayaneo3-companion|screen-colors) CHUNK_BYTES=131072 ;; esac
 
     mirror_path_is_safe "$id" || { echo "镜像标识不安全：$id"; return 1; }
     mirror_path_is_safe "$version" || { echo "镜像版本路径不安全：$version"; return 1; }
@@ -397,7 +397,7 @@ mirror_process_local_file() {
 
     mkdir -p "$target_dir" || return 1
     rm -f -- "$target" "$target_dir"/part.*
-    if [ "$size" -le "$DIRECT_MAX_BYTES" ] && [ "$id" != sdweak ] && [ "$id" != deckhomethemes ] && [ "$id" != ayaneo3-companion ]; then
+    if [ "$size" -le "$DIRECT_MAX_BYTES" ] && [ "$id" != sdweak ] && [ "$id" != deckhomethemes ] && [ "$id" != ayaneo3-companion ] && [ "$id" != screen-colors ]; then
         cp -f -- "$local_file" "$target" || return 1
     else
         mirror_split_file "$local_file" "$target_dir" "$CHUNK_BYTES" "$size" || return 1
@@ -443,6 +443,7 @@ mirror_mako_latest() {
 mirror_entries() {
     cat <<'EOF'
 ayaneo3-companion|AYANEO3 Companion|1.2.0|Ayaneo3Companion-1.2.0.zip|https://github.com/Rayekkk/Ayaneo3Companion/releases/download/1.2.0/Ayaneo3Companion-1.2.0.zip|b1c9a5529b3f5a4dee88ca275d285bb6347092a5f7e90db07b87b24725b4f651|
+screen-colors|Screen Colors|1.0.0|decky-screen-colors.zip|https://github.com/PacificSilent/decky-screen-colors/releases/download/v1.0.0/decky-screen-colors.zip|4535b6f378cbb6cca4274067a36604b0fd5a2e94c14913855b177bdae009abb5|
 epic-linux|Epic Linux 版|0.96.0-g2fade97|EpicGamesLauncher-x86_64.AppImage|https://content-download-egs.distro.on.epicgames.com/Builds/EGLv2/0.96.0%2Bg2fade97/Linux/EpicGamesLauncher-x86_64.AppImage|6c5cc46eef8c80b01759cc76154b69a20645b01b79526442a8550090db5d251e|
 deckhomethemes|主页主题（ThemeHub）|v1.10.7|DeckHomeThemes-v1.10.7.zip|https://github.com/Kaal31/benderthemes/releases/download/v1.10.7/DeckHomeThemes-v1.10.7.zip|63c08a3ceb9c91d07eaaba2227c1cb7bffd3616b198418fd1a7449bc70a89a74|
 sdweak|SDWEAK|v2.1.0|SDWEAK.zip|https://github.com/Taskerer/SDWEAK/releases/download/v2.1.0/SDWEAK.zip|5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e|
@@ -482,7 +483,7 @@ lego2-fan|LeGo2-Fan-Control|Decky|LeGo2FanControl_Decky.zip|https://github.com/R
 onexplayer-apex|OneXPlayer Apex Tools|build-b696161|OneXPlayer_Apex_Tools.zip|https://github.com/srsholmes/onexplayer-apex-bazzite-fixes/releases/download/build-b696161/OneXPlayer_Apex_Tools.zip|7c522bc8145697d78d6165f7f97671d4d67a5bf4f9e4ed5e6feccbb1154acb91|
 simpledeckytdp|SimpleDeckyTDP|v1.0.7|SimpleDeckyTDP.zip|https://github.com/aarron-lee/SimpleDeckyTDP/releases/download/v1.0.7/SimpleDeckyTDP.zip|dae7cf43ec8936c07a94a08ac418be8d9e129744a54f3aa63d2b31222bc0ad38|
 todesk|ToDesk 官方安装包|v6.0.25|todesk-v4.8.6.2-amd64.deb|https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/v6.0.25/todesk-v4.8.6.2-amd64.deb|b3f2af7fc120948903df3aa455955cb5823fb5c1f5ec7dca17ac8a4cba53c808|
-steam302|Steamcommunity 302|14.0.02|steamcommunity_302_Linux_AMD64_V14.0.02.tar.gz|https://www.dogfight360.com/blog/wp-content/uploads/2026/02/steamcommunity_302_Linux_AMD64_V14.0.02.tar.gz|5e006f015c807679ef800a87fa7b788562901ad04d7899ade2648f82b4c4a11f|4b9994102b2256ca5fdf2e806a2c7035|
+steam302|Steamcommunity 302|15.0.9|Steamcommunity_302_15.0.9_Linux_WebKit_x64.AppImage|https://www.dogfight360.com/Usbeam/V15/Steamcommunity_302_15.0.9_Linux_WebKit_x64.AppImage|7884bbf43abe9b6202de37c133b3edfd8ff768c6c533e8d822d8aabf3a6f3fdd||
 clover|Clover 双系统引导资源|v1.0.0|Clover.tar.gz|https://gitee.com/easylife2025/emu/releases/download/v1.0.0/Clover.tar.gz|10782cebdf1e4130c9b759435c520b4e9452b03a9b10d5f3fff7d2125e99837d|
 ge-proton|GE-Proton|GE-Proton11-5|GE-Proton11-5-x86_64.tar.gz|https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton11-5/GE-Proton11-5-x86_64.tar.gz|de43c4b25f3c047db49b96c44d84759952c5a01332a68805a09e69f95dc38a75|
 yuzu|Yuzu（Switch 模拟器）|emulator-assets-v1|yuzu.AppImage|https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/emulator-assets-v1/yuzu.AppImage|6d44d52fc6ebd8f3b2e4707516cce535034285d4567302251bafd109c7972258|
