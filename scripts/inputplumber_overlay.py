@@ -27,12 +27,23 @@ EXACT = {
     'usr/share/polkit-1/rules.d/org.shadowblip.InputPlumber.rules',
     'usr/share/polkit-1/actions/org.shadowblip.InputPlumber.policy',
 }
+# Upstream renamed the 8BitDo rule from 50 to 55, and newer releases also
+# include an IMU timer module configuration. Keep supporting older archives
+# without allowing arbitrary rules or modules-load files under /usr.
+CONTROLLER_RULES = {
+    'usr/lib/udev/rules.d/50-8bitdo-u2-controller.rules',
+    'usr/lib/udev/rules.d/55-8bitdo-u2-controller.rules',
+}
+OPTIONAL_EXACT = {
+    'usr/lib/udev/rules.d/55-8bitdo-u2-controller.rules',
+    'usr/lib/modules-load.d/inputplumber-hrtimer.conf',
+}
 
 
 def allowed(name):
     path = PurePosixPath(name)
     return (not path.is_absolute() and str(path) == name and '..' not in path.parts
-            and (name in EXACT or
+            and (name in EXACT or name in OPTIONAL_EXACT or
                  (name.startswith('usr/share/inputplumber/')
                   and path.suffix in ('.yaml', '.json'))))
 
@@ -54,11 +65,11 @@ def verified_files(archive, expected_sha256):
                     continue
                 raise ValueError('压缩包目录不安全')
             if not member.isfile() or not allowed(raw) or raw in result:
-                raise ValueError('压缩包含有意外文件或链接')
+                raise ValueError(f'压缩包含有意外文件或链接：{member.name!r}')
             if member.size > 268435456:
                 raise ValueError('压缩包文件过大')
             result[raw] = tar.extractfile(member).read()
-    if not EXACT.issubset(result):
+    if not (EXACT - CONTROLLER_RULES).issubset(result) or not CONTROLLER_RULES.intersection(result):
         raise ValueError('官方文件不完整')
     binary = result['usr/bin/inputplumber']
     if binary[:6] != b'\x7fELF\x02\x01' or binary[18:20] != b'\x3e\x00':

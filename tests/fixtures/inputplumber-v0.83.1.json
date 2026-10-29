@@ -1,0 +1,1041 @@
+{
+  "source": {
+    "tag": "v0.83.1",
+    "file": "inputplumber-x86_64.tar.gz",
+    "sha256": "349201df67ac5cd6777f9ca9afddfa91175d4ac9539bb700bd9ccfe7262f84b3",
+    "url": "https://github.com/ShadowBlip/InputPlumber/releases/download/v0.83.1/inputplumber-x86_64.tar.gz",
+    "bytes": 4424993,
+    "members": 175
+  },
+  "members": [
+    {
+      "name": "inputplumber",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/share",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/share/dbus-1",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/share/dbus-1/system.d",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/share/dbus-1/system.d/org.shadowblip.InputPlumber.conf",
+      "type": "0",
+      "size": 904,
+      "sha256": "5376460e56a865ae6e1e1de5806ea6aac99c8a55290354e80c00ec89fc1bcf55"
+    },
+    {
+      "name": "inputplumber/usr/share/polkit-1",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/share/polkit-1/rules.d",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/share/polkit-1/rules.d/org.shadowblip.InputPlumber.rules",
+      "type": "0",
+      "size": 419,
+      "sha256": "a005e2eda619f839cf07dcda1ff4a92e685ea913c54295885d7831821fbacb4b"
+    },
+    {
+      "name": "inputplumber/usr/share/polkit-1/actions",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/share/polkit-1/actions/org.shadowblip.InputPlumber.policy",
+      "type": "0",
+      "size": 38573,
+      "sha256": "3c6fffc69ef9f24ba1971c37e65e427dd28b66210e7d8f7664877fb34b9479a6"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/profiles",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/profiles/debug.yaml",
+      "type": "0",
+      "size": 320,
+      "sha256": "6067a0d377f54c2055ed58a282a7d21ea361b7e86eda12289ff1125cce3b426c"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/profiles/default.yaml",
+      "type": "0",
+      "size": 1888,
+      "sha256": "f73795f5292f21ea183add122d88dbdf02dfd2f3f7df8227f5b72fc5da92df40"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/profiles/mouse_keyboard_wasd.yaml",
+      "type": "0",
+      "size": 3548,
+      "sha256": "5839cd71786b8c1f36bfde58314f612faccc698411b512ac8e6c30b61ddcce62"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/profiles/test.yaml",
+      "type": "0",
+      "size": 2338,
+      "sha256": "ec6d1262012f6cf5530a65ed49fd51e9bf7ffded3cc6cc9fec209e925182e12e"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/schema",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/schema/composite_device_v1.json",
+      "type": "0",
+      "size": 17485,
+      "sha256": "f864c6fa19ac8d274c22ac97254a63899e844d1e6405771a3e9eff35cd722b95"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/schema/capability_map_v1.json",
+      "type": "0",
+      "size": 13673,
+      "sha256": "2a4ade0c0fe24f7d989bcac6d703bb2c258de2ca7722050ba1a2adcc72cb0e07"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/schema/device_profile_v1.json",
+      "type": "0",
+      "size": 14492,
+      "sha256": "8a38f15b424fa649aa1c1bde4f095d00498709eda74c5a7e27781da883f0ed51"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/schema/capability_map_v2.json",
+      "type": "0",
+      "size": 33551,
+      "sha256": "5b9a12a4e19fe837f42b9c87fbe3fd5396701c57dfe37d76bc8217c25fc51723"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/ally_type2.yaml",
+      "type": "0",
+      "size": 1328,
+      "sha256": "77b97923125aac9b5d79c83589463709f4cbe9f687881635b44b3f57edf2dd7d"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/msiclaw_type2.yaml",
+      "type": "0",
+      "size": 1267,
+      "sha256": "3b7082bc5cf85e42df76440e4ba76f014011ea72d6bbf3a70ffcc04d6ad096b2"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/orangepi_type1.yaml",
+      "type": "0",
+      "size": 991,
+      "sha256": "ddb11c81ad30dd3e341b4b3554925629f0ff94c79f0480c35da2d05a6ee255e3"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/flow_type1.yaml",
+      "type": "0",
+      "size": 661,
+      "sha256": "1e98bf40755e8e3c8d46be85f288f0fde8fa55a1075ee13b3822db1c9b1ff9f4"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/onexplayer_type4.yaml",
+      "type": "0",
+      "size": 1017,
+      "sha256": "0b39340496c864be13b42c6b22f9b2c10dc352633c21fb9f2e9c336bb6441288"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/swap_west_north.yaml",
+      "type": "0",
+      "size": 810,
+      "sha256": "8f0a35dbe15c5142530e18296fe5cf06d3d2dbc8ea7abeac40320d95c772c5fa"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/rsinput_type1.yaml",
+      "type": "0",
+      "size": 2273,
+      "sha256": "0eeb93734f36cfac544e7496c1f02cb278adf56fc98642011944699f037af8f2"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/konkr_type3.yaml",
+      "type": "0",
+      "size": 1625,
+      "sha256": "3bd2e52223a63883633b11b254020253f33455e434b4b61beeaa31e4801ba6e5"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/onexplayer_type2.yaml",
+      "type": "0",
+      "size": 1412,
+      "sha256": "216b2cf39d3168e7e4cff71c8eb748de4198921298543873ec1990e1c21cff4c"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/gpd_type3.yaml",
+      "type": "0",
+      "size": 666,
+      "sha256": "10092def52af14f372bde0c6e46b0e2467bb161e4d7bdcc8c4f924a414e25f5f"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/zone_type1.yaml",
+      "type": "0",
+      "size": 1062,
+      "sha256": "aeae7757446b890c8740629a07581b30a2ffd56117e64c105ae6e0d4fe1856d5"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/ayaneo_type6.yaml",
+      "type": "0",
+      "size": 1416,
+      "sha256": "648e239d14079c4e8a44f770305ebbe255e7e2c10c4048e5ada62bc5d5b7482d"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/ayn_type3.yaml",
+      "type": "0",
+      "size": 1851,
+      "sha256": "28be310ebda2e30ae2ef0994e7e66b2a4f8f6ca06c8f492313cef91550ce2f36"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/ally_type1.yaml",
+      "type": "0",
+      "size": 1644,
+      "sha256": "308885ded656c4e0c6687641e7b1d9904c20035e88ceab8079afe89d8841da9d"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/ayaneo_type7.yaml",
+      "type": "0",
+      "size": 994,
+      "sha256": "f45a04b479ff77f42fcaf966d33264c11b0511beb3474e5baa09aaf9cbbaed9a"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/gpd_type2.yaml",
+      "type": "0",
+      "size": 767,
+      "sha256": "1c94ff03c5fbb7ce79cff49f0269f36e09f54140ea0f61b76e754404e7e3bff2"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/onexplayer_type5.yaml",
+      "type": "0",
+      "size": 1087,
+      "sha256": "458374529078aa70cdd9befda5a309b0c48fd6719f83537c29e23c86e4a5eba1"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/ayaneo_type4.yaml",
+      "type": "0",
+      "size": 1401,
+      "sha256": "9a52d806f4824e6fd3f45e1f0636a9a4ccaf31e605382f416e1a25b6b1d2a0cd"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/konkr_type1.yaml",
+      "type": "0",
+      "size": 1438,
+      "sha256": "43fc3ba40edf78002d5e0f2a9727d2f840420a0518b197b1b30ea6992d744a3c"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/ayaneo_type8.yaml",
+      "type": "0",
+      "size": 1183,
+      "sha256": "f23bcd16431d5b93a98391888b1f8e985a9913385633854261b3b081ae383955"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/ayaneo_type1.yaml",
+      "type": "0",
+      "size": 1013,
+      "sha256": "b8f23ec9cd8f1df0dee16376d282266a75ac332af63d4b0e1296c761e0aa17a4"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/onexplayer_type8.yaml",
+      "type": "0",
+      "size": 2410,
+      "sha256": "319ec1a70b13bf4c03cb45d803caa6e1f290d675ec2bf9b054bea3128c50a670"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/dinput_generic.yaml",
+      "type": "0",
+      "size": 5054,
+      "sha256": "e12b6a7fea2618d5154df3c2bad85ad4105b2691bf20d03c0ac4481e431b9cbe"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/logitech_dualaction.yaml",
+      "type": "0",
+      "size": 4679,
+      "sha256": "40060bccf19cb90e89b2b951ca6de3b4ef43782ba9f8c5a88dc97e3a9e59bff9"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/onexplayer_type3.yaml",
+      "type": "0",
+      "size": 1577,
+      "sha256": "2bb23ee445ce452501b71b3506db01112ef9c49328b1e0b11b2536a10f889f73"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/cec.yaml",
+      "type": "0",
+      "size": 1653,
+      "sha256": "3cb8e69f308168b7cdf248843e5e145947403e3b03b85ea6b2dce02d2c3e7e04"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/onexplayer_type9.yaml",
+      "type": "0",
+      "size": 1197,
+      "sha256": "b68cef4eb5bad28e6d6ed9da10ba51722377c793d591bd3b1e057210e13643b4"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/gpd_type4.yaml",
+      "type": "0",
+      "size": 1486,
+      "sha256": "605b7c67c389ce4ac67a2e2be832a6f45cf3f05bdb2a227732dc4432483da857"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/ayn_type1.yaml",
+      "type": "0",
+      "size": 874,
+      "sha256": "37c1575bbf911506f698555d3d69c3b6715060d0027e733766c0d9edafb47b21"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/flydigi_vader_4_pro.yaml",
+      "type": "0",
+      "size": 907,
+      "sha256": "ecad54d2c94c0372e5ab4dc5fbe227d261ae4346290570127850dd3f10845535"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/anbernic_type1.yaml",
+      "type": "0",
+      "size": 2702,
+      "sha256": "9338cd2b0a9a3f71a2b9198e923ad74b78e90bce9271f0674798098648e3dd30"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/retroid_type1.yaml",
+      "type": "0",
+      "size": 2356,
+      "sha256": "95a0fcc2bcf3dbe8a96241a8271f4e4cb46d22c08a9ad8551c908e04ad32f723"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/ayaneo_type11.yaml",
+      "type": "0",
+      "size": 496,
+      "sha256": "8e671b18c5ed76089e97454b383e02968456ef3f397c2f6c27bfb44710fea9d6"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/ayaneo_type9.yaml",
+      "type": "0",
+      "size": 1280,
+      "sha256": "9377f76731d694fd5f8310917a78da627257c401898498414758df17d87142e4"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/ayaneo_type3.yaml",
+      "type": "0",
+      "size": 1199,
+      "sha256": "cab9db4f89ba2e9a00e86b535db71f40ae1c5a90429507adcaf08bd3f8a0500d"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/onexplayer_type7.yaml",
+      "type": "0",
+      "size": 1712,
+      "sha256": "2f66b76fc97e246e8b89c9b0b255b8d8379e3a995ebd01a1b0a2ad9ddfab4eb3"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/gpd_type1.yaml",
+      "type": "0",
+      "size": 833,
+      "sha256": "9969205b582ce4ac80f06fea0dab2d5aa658abbb85728d285d661b69805a7e92"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/onexplayer_type6.yaml",
+      "type": "0",
+      "size": 1026,
+      "sha256": "a67b353d3cb845a66b89fb33e09c4375438aefefc6231bc1522dab621b98b0cd"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/msiclaw_type1.yaml",
+      "type": "0",
+      "size": 1481,
+      "sha256": "ff70954530b3863ceed51cd5f60d0d07be601c563b314a3d2184858d98f2d56c"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/retroid_type2.yaml",
+      "type": "0",
+      "size": 2152,
+      "sha256": "95d1195004b60da46cef3944acfb7d8c2e6bf4b26719b6dca1b690077ab83500"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/ayn_type2.yaml",
+      "type": "0",
+      "size": 2051,
+      "sha256": "b86525bb71854a7d9953e1c17db49fa04cdb06bb8100131a76e7946dee8431ab"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/ayaneo_type2.yaml",
+      "type": "0",
+      "size": 1190,
+      "sha256": "d710238d5e22c3bce6cceef35fa2c4d2505d1cd7299e0f093bb4722817c48024"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/zone_buttons.yaml",
+      "type": "0",
+      "size": 1299,
+      "sha256": "7a974dd6bead40518cf3755bcff194b2d077865b43c260b8f3775ee1a212e983"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/gpd_menu.yaml",
+      "type": "0",
+      "size": 647,
+      "sha256": "1fb10436c4ee885c7205f279467e1d00b4045b4279a22025fe628faa27351318"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/konkr_type2.yaml",
+      "type": "0",
+      "size": 2981,
+      "sha256": "5e1be7c3f9956b1cd341c0398e6ec61f9a8de32c0604fbd9ce3afb2dde311e18"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/ayaneo_type10.yaml",
+      "type": "0",
+      "size": 2519,
+      "sha256": "9659a0a3b0238a825a1337ffb1b080c002c22d7b873bc0d4db76737ac5875599"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/ayaneo_type5.yaml",
+      "type": "0",
+      "size": 1196,
+      "sha256": "6dceb6ac637c4d1da927748ddedd298c679303c0dc8a86653538c00fb2b5f536"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/onexplayer_type1.yaml",
+      "type": "0",
+      "size": 1248,
+      "sha256": "8763c9239195d3b81cf79eebfcd145fd03e907d46285fc39f27cb732f7311f4f"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/capability_maps/imu_generic.yaml",
+      "type": "0",
+      "size": 1211,
+      "sha256": "3441ee06d6dbc36a02456bfd3a565c25ff830ebaeac2b5fe6825aff857ed2790"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-anbernic_win600.yaml",
+      "type": "0",
+      "size": 1541,
+      "sha256": "953b0101506304fc89d8331c57cacf10af8c26071073f04d56e2e55e2f0febe3"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/60-flydigi_vader_4_pro.yaml",
+      "type": "0",
+      "size": 1367,
+      "sha256": "7167635696c002423768e664a6ac456686fb90f74d64a061c0d9e62ad56e9865"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-retroid_pocket_nova.yaml",
+      "type": "0",
+      "size": 920,
+      "sha256": "cebcd0a7abb157b904ccc14e285977d1749724b439e4659e6909b8649061816c"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayn_loki_mini_pro.yaml",
+      "type": "0",
+      "size": 2016,
+      "sha256": "1cf623273f9cc47717f994dd347dcccb3cbe85fc4b1e02b4d459985d0badb12f"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayaneo_air_1s.yaml",
+      "type": "0",
+      "size": 2540,
+      "sha256": "755e007238501457e5fec044975924a0f590d6746642dda751174e9f2860bd33"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-onexplayer_mini_pro.yaml",
+      "type": "0",
+      "size": 1670,
+      "sha256": "e24412e61bad6ae36a2174d056036324913b55f62c1c7137044ccb246c7dd8db"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayaneo_2s.yaml",
+      "type": "0",
+      "size": 2806,
+      "sha256": "1645b0383e12773e2e200d25a40e9aec1e8b9e0271363e107780ae6f7315926f"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayaneo_air_plus_mendo.yaml",
+      "type": "0",
+      "size": 2438,
+      "sha256": "b96d2298ae1f149637f639bacb5a29fe491807a178aa8fc12d1c2c0abff08933"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-msi_claw8_a2vm.yaml",
+      "type": "0",
+      "size": 3905,
+      "sha256": "6f997c052bbc1fe699174fa28242a8465dd2f296255fd8e8c166da4aa7ce496e"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-msi_claw_a8_bz2e.yaml",
+      "type": "0",
+      "size": 4421,
+      "sha256": "e93610747d327c51400b990344a25c4a3083c8c82b70aa7a88e4da0274f11e89"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/60-switch_pro.yaml",
+      "type": "0",
+      "size": 1025,
+      "sha256": "ff077f2811e1850a8594b4427685df77328f475d933c8bb06169b26c047e155f"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/60-8bit_do_pro_2.yaml",
+      "type": "0",
+      "size": 1092,
+      "sha256": "8b7dc9d3fea331dfd6be80b7288c90b82002cc2fb5f8dc1443f65420b67e1265"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/60-ps4_gamepad.yaml",
+      "type": "0",
+      "size": 1873,
+      "sha256": "50115cb3abecd836e69fcfc0cd01eb481b0fd467a7da39a18e512b7fb3cc9181"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-gpd_win5.yaml",
+      "type": "0",
+      "size": 2068,
+      "sha256": "952022b66f32741366d5dc3d2deb1dab7a7ab39f778ea0c5cb0ed380d2375e50"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayaneo_slide.yaml",
+      "type": "0",
+      "size": 2277,
+      "sha256": "06ba5b9d592fe61818140d0407c1738bc14ccc95ee231abbc24defc134095bd0"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-rog_ally.yaml",
+      "type": "0",
+      "size": 2950,
+      "sha256": "19b818cd19adf7ea3051ce0e19cc240fb8a5528cc6dac20ab9a14c81fd73a7c9"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/60-LogitechDualAction.yaml",
+      "type": "0",
+      "size": 1098,
+      "sha256": "8eebc0e47707b72e44377922b3dfab6464fc6e6d090897c37941838bdf7a3991"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayaneo_pocket_ds.yaml",
+      "type": "0",
+      "size": 1014,
+      "sha256": "1d582fc8b9fe60bdf3c48c0cf5917dc44c47f3c254e4c908c754d14888406d84"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayn_odin2.yaml",
+      "type": "0",
+      "size": 877,
+      "sha256": "f0bc12b2cf5e4f6d509808d14c3c8839305cab0b0d95a09b883fe9dde277cbe7"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-onexplayer_onexfly.yaml",
+      "type": "0",
+      "size": 2660,
+      "sha256": "2ee1c2f6318847f529fc8b3caafa6e0ee3a1e5f8c50d34beb50c343d58db013f"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-onexplayer_amd.yaml",
+      "type": "0",
+      "size": 2329,
+      "sha256": "4a56f69fd1275584e934717713e10244dc988b385f7543c8024bc4862f8705c9"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-retroid_pocket_mini.yaml",
+      "type": "0",
+      "size": 796,
+      "sha256": "4c10de870573dce08cb41eb719fa0cc36f3370ee98526bf4f06f6af7142ef4a6"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayn_odin3.yaml",
+      "type": "0",
+      "size": 968,
+      "sha256": "4525593474bc54a0fe70d5b4f3b847aafec1bc2502eb8cdff115341c2f59199c"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-zotac-zone.yaml",
+      "type": "0",
+      "size": 2796,
+      "sha256": "15fde7707d33c72b2efe03e3f2865f99c7b22c0c20d3034dfe3ff706276383ad"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-retroid_pocket_flip2.yaml",
+      "type": "0",
+      "size": 658,
+      "sha256": "8fb65f1e191d80a4b9ec9ea4223bba8b7cb051efa6256ef7680364fbf496ef05"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/60-cec.yaml",
+      "type": "0",
+      "size": 464,
+      "sha256": "b49efc095b2e5e17690c8f6237fd7bcf16605f2257eb6adfcf3eeb4c17df296a"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-retroid_pocket5.yaml",
+      "type": "0",
+      "size": 649,
+      "sha256": "17f87fc9d4dfdd0301ae3d5772e213b5568492fafa654b4131318342982fb812"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayaneo_kun.yaml",
+      "type": "0",
+      "size": 2333,
+      "sha256": "1ff7cc51e52871a6c9f5fe76f48afefef49d1befa50958e3ae7d4b12cb1cc131"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-gpd_win4.yaml",
+      "type": "0",
+      "size": 2256,
+      "sha256": "cf4f34a231bb5f107e432a7a43d941a9a4ce15136eece97ccf121a8530ef94f0"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/60-8bit_do_ultimate_2.yaml",
+      "type": "0",
+      "size": 1386,
+      "sha256": "8b3e58484a8dd2266d1df9c5c8543f1df3f7a47e66b1f027a9d1bc3b64ca8468"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/60-xbox_gamepad.yaml",
+      "type": "0",
+      "size": 3099,
+      "sha256": "8be81098047240c0919e779d5d4301e7c1cd22e3a9c7ddbba4ede5e75f70cb99"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/60-xbox_one_elite_gamepad.yaml",
+      "type": "0",
+      "size": 992,
+      "sha256": "f6ba250ac8a210d234c26965fffe24a1cd05bf60282c61adef503c5a9f6e6131"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-gpd_winmax2.yaml",
+      "type": "0",
+      "size": 2469,
+      "sha256": "db8c445e281570f29c72d1e89f3bd7552e085f7c2d05f304fcfeee5d0ca643b4"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/60-xbox_360_gamepad.yaml",
+      "type": "0",
+      "size": 5198,
+      "sha256": "b0b702199cd90daf447a76eca3a7b02fc773f83c2b483f2636cb5bd3184fe9ac"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayaneo_flip_1s.yaml",
+      "type": "0",
+      "size": 2923,
+      "sha256": "733544dacd5a3e1c2bd3ab512e4a88996303f522b4d7ea1d01b6ec96abf9f56e"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayn_thor.yaml",
+      "type": "0",
+      "size": 761,
+      "sha256": "fd3543e20b9c7d2bff089d8fb0f9808483348ccd78b5130ba47f1b38af01ab88"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-onexplayer_x2_mini_pro.yaml",
+      "type": "0",
+      "size": 2770,
+      "sha256": "71c6fb3c8f567103c6a83b649021a4828d2e2bb4b818105b9ee659f4234eff8c"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-msi_claw_a1m.yaml",
+      "type": "0",
+      "size": 4512,
+      "sha256": "0c7a7b4d585355e4ea395fdb1c20671bb57b9897580227a4df2516c80a1c5392"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/60-xbox_one_bt_gamepad.yaml",
+      "type": "0",
+      "size": 1494,
+      "sha256": "8e8823266c6ef7adba1303d90af5101265a402ce4ae1c702d379f0f14aca2fc1"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-aokzoe_a1.yaml",
+      "type": "0",
+      "size": 2066,
+      "sha256": "92fe892aebdb074ce272995ed3ae01dff8b57335d35fe9e1a060e4a6106b03f4"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-onexplayer_mini_a07.yaml",
+      "type": "0",
+      "size": 1706,
+      "sha256": "fc98ee20b3477ca63bae0f7438ba6caaa82ec02e60cf42f586da00439536fc56"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/60-ps5_ds-edge_gamepad.yaml",
+      "type": "0",
+      "size": 1333,
+      "sha256": "78e4eaf030ad398f07ef36860945774c46a97d54eb4a11ed7362d683d7d76c15"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayaneo_2.yaml",
+      "type": "0",
+      "size": 2727,
+      "sha256": "d5155254dd68469c65e8f9e7ea770bae8ff4cdb051ffb85fa41a7ffbf0ecddf8"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayaneo_2021.yaml",
+      "type": "0",
+      "size": 2444,
+      "sha256": "0a317f62a8e08010aa3865e3638ddf8411b45ef677db4e18e6d8224336721d49"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-gpd_win3.yaml",
+      "type": "0",
+      "size": 1638,
+      "sha256": "881d2f105f8b27fdf5c6adb21870f326bb0bd63feebe2bf01b61520b6808d1a0"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayn_thor_lite.yaml",
+      "type": "0",
+      "size": 749,
+      "sha256": "8b46a845d661aec0137f58667b086dedb3e2cdf74ec1d23bb82a43c798f801eb"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayaneo_next.yaml",
+      "type": "0",
+      "size": 2541,
+      "sha256": "94fe4375485501b824b9005a424efd8da4fbd04fe3a4eeec45a6d54ff13d4c13"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-onexplayer_apex.yaml",
+      "type": "0",
+      "size": 2325,
+      "sha256": "0993ce3d185051badd9f6754ee71075c120d28433c6bb671582efd7e20fc4f99"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayaneo_pocket_s2.yaml",
+      "type": "0",
+      "size": 1047,
+      "sha256": "96fefaab2080b06f934c8c7d222eca4e1560a9e634a379a1bd7631b085dadd20"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/60-horipad_steam.yaml",
+      "type": "0",
+      "size": 1361,
+      "sha256": "eb5ddaa4c78ab53ee1abfcf7fd417c1b9f585107b9c5efadbc7bc8e870e523e6"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-msi_claw8_ex_ai_cg3em.yaml",
+      "type": "0",
+      "size": 3878,
+      "sha256": "c18fb1779246a3f238c8e98b0e43232d34341d60a0cde7ce880039661c29b17b"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-orangepi_neo.yaml",
+      "type": "0",
+      "size": 2467,
+      "sha256": "b8d9216d66fa8791a6b0bd02c03461d8de84a51e85c19926a7e04811edd6743e"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayaneo_air_plus.yaml",
+      "type": "0",
+      "size": 2639,
+      "sha256": "4e089e73fd3c5f19cc0ac031561753cc32f91587fbe49c1db34cbeb5157ab2c5"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayn_odin2_mini.yaml",
+      "type": "0",
+      "size": 632,
+      "sha256": "bc617bcb06bbcafa820ff35f88c6aa1bfc6dc110f1cd3c6a5e2bfb547f5e295a"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-rog_xbox_ally_x20.yaml",
+      "type": "0",
+      "size": 2836,
+      "sha256": "a52b4c5b48fbc79c305a6b4c06b68a3a7f3e892bf75e95806d95a607958c7d10"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayn_loki_zero.yaml",
+      "type": "0",
+      "size": 2000,
+      "sha256": "76bdc34510afd6a31ca4f3a39cbb0edde6e7b13c96d97e44aafbaf977580eef3"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/65-generic_gamepad.yaml",
+      "type": "0",
+      "size": 1373,
+      "sha256": "9a1d84128e5e2a659da6fd06c55fba4bd75b97df7b4ee227be7dde2077c8db48"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-legion_go_s.yaml",
+      "type": "0",
+      "size": 2960,
+      "sha256": "8b82fe59ac93b7edf582e68f732260b626397473a6576754d4c41e20b66d829d"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-konkr-fit.yaml",
+      "type": "0",
+      "size": 2836,
+      "sha256": "75b2256ed8856ab40c9d385207e5203974fb8c1d4ca053890b335c4c392e21c2"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-msi_claw7_a2vm.yaml",
+      "type": "0",
+      "size": 3896,
+      "sha256": "6c2bf7fd45092ceca9029fc107bd61ee338e4ecbd18fed2981d5e4e4413951f5"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayaneo_flip.yaml",
+      "type": "0",
+      "size": 2719,
+      "sha256": "dac73b311f142cfcb676ed129e998e18c368f79f3502179fc3e2fbd58eedc496"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-konkr_pocket_fit_elite.yaml",
+      "type": "0",
+      "size": 746,
+      "sha256": "aaa2910e7fe6c122b2926d5aae6808157db36608e30e0eb9eac005ac46e2e3bf"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-konkr_pocket_fit.yaml",
+      "type": "0",
+      "size": 1318,
+      "sha256": "dc03c483d11422db3bb0b2ef396f500be232338c8abfd590d2be3c70397d1397"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-rog_xbox_ally.yaml",
+      "type": "0",
+      "size": 2970,
+      "sha256": "2f431c945566903b932867fdf4b3147afa7ef12a87548d2170be92724b1383e3"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/10-ignore_unsupported.yaml",
+      "type": "0",
+      "size": 966,
+      "sha256": "550bb1a00c82f06baf4766bc8237f78a5f07feba8c915b43d2a1bff805cc9ec5"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-suiplay_0x1.yaml",
+      "type": "0",
+      "size": 1557,
+      "sha256": "3756cd5104d842ea294df2640c73858f08819ff11ce058eaf9c62ee0dfa09fb7"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/60-xbox_one_gamepad.yaml",
+      "type": "0",
+      "size": 2705,
+      "sha256": "5ea9f77a25c8e91f10f9f357a80deaf97ea6397bc6ac463807d589851b9cdf6f"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/69-ignore_generic.yaml",
+      "type": "0",
+      "size": 1016,
+      "sha256": "1ffa9de0e1b09e10414d20f98fde16b241e801f171481d4a477288c38bb27fff"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/60-ps5_ds_gamepad.yaml",
+      "type": "0",
+      "size": 1323,
+      "sha256": "3f31f6f11d62a38b5a9c18a078b9111e57bc628099b9ef95e9fc00071e132327"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-onexplayer_x1.yaml",
+      "type": "0",
+      "size": 2938,
+      "sha256": "73983023c1d67307eb827fcaadd3527654fd6b83e0d19bbc694788b6bc1f29b8"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayaneo_air.yaml",
+      "type": "0",
+      "size": 2349,
+      "sha256": "8cac798d547cded231a4b524278cb84316579442e61747b30093e8ebbd3e087f"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-onexplayer_2.yaml",
+      "type": "0",
+      "size": 2161,
+      "sha256": "069e71c3e57df9c80122d27fc60df14010090835a1923d33e5b8feb0aa33874d"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-retroid_pocket6.yaml",
+      "type": "0",
+      "size": 914,
+      "sha256": "a371cae054f394efeb42815cd52da366f1e07a0114c0e3b3d864933038ab2db0"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-onexplayer_intel.yaml",
+      "type": "0",
+      "size": 1766,
+      "sha256": "d2807ec0adfaaaa88a77e65b30feb9d7dc9642134123de0c2166f295d6d28479"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayn_loki_max.yaml",
+      "type": "0",
+      "size": 2231,
+      "sha256": "7a9f5429c8b6e9bec1df5dfa1fda09889c77e7069d4049f237cecce4a1236cee"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-rog_ally_x.yaml",
+      "type": "0",
+      "size": 2961,
+      "sha256": "230eebc91e34632f10c8bdab889011d1cb04b4a778d15d80ddcc377be89d8ce0"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-legion_go_2.yaml",
+      "type": "0",
+      "size": 4446,
+      "sha256": "914a08d313af79dacfb7b745e626fc01096c2d70163e0fa0776a03b2109b13b7"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-ayaneo_3.yaml",
+      "type": "0",
+      "size": 2866,
+      "sha256": "44d17c17bc657807e270a9ce1f09674beecade2b441d4a0c2fbadff622cdb1d0"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-gpd_winmini.yaml",
+      "type": "0",
+      "size": 2194,
+      "sha256": "9c867fa77debb19b9ab757dd771460b5ff72bbec0335f84266070d20e2b3446e"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-onexplayer_3.yaml",
+      "type": "0",
+      "size": 2017,
+      "sha256": "aa38e49c23aae1355662840b011a2fbbbf38bbeeff6f0bb55febb174f90f82aa"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-rog_flow_z13.yaml",
+      "type": "0",
+      "size": 1457,
+      "sha256": "0cb6189be027d6d88129c3136582c37b7186e4c962b07e581a6dc65aac4663ab"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-legion_go.yaml",
+      "type": "0",
+      "size": 6228,
+      "sha256": "dce12dbbc6145d7c7601fa4fa63f6327f1863fd022a9eba0497d1290c139e5a4"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-steam_deck.yaml",
+      "type": "0",
+      "size": 1920,
+      "sha256": "63f9adaf830408986c346530f90ca2c57a1bdc229d0a1ccc0471627e34da94eb"
+    },
+    {
+      "name": "inputplumber/usr/share/inputplumber/devices/50-onexplayer_g1.yaml",
+      "type": "0",
+      "size": 1824,
+      "sha256": "610e8632a0346800d9f240de668ce12bd73775aec44304c97e49e2dea2831d80"
+    },
+    {
+      "name": "inputplumber/usr/bin",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/bin/inputplumber",
+      "type": "0",
+      "size": 11288512,
+      "sha256": "6369c00a5f14f7535b84c7f37f1c97cd5a35c28b939b0f8bd6acc5b5d5ecbb10"
+    },
+    {
+      "name": "inputplumber/usr/lib",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/lib/modules-load.d",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/lib/modules-load.d/inputplumber-hrtimer.conf",
+      "type": "0",
+      "size": 17,
+      "sha256": "37a5c7ca06e59794ed90e71585750cc5a9e5727bd23fec471e0412f2b2a1bf99"
+    },
+    {
+      "name": "inputplumber/usr/lib/systemd",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/lib/systemd/system",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/lib/systemd/system/inputplumber-suspend.service",
+      "type": "0",
+      "size": 422,
+      "sha256": "e5e8f506f381cd881aa831a50aa2d72d2e9708a3fb92e9eb1165278d742d63c4"
+    },
+    {
+      "name": "inputplumber/usr/lib/systemd/system/inputplumber.service",
+      "type": "0",
+      "size": 213,
+      "sha256": "8cd2e594aaed9e0a5ba9bcaf6417b63a19a7b7b9f233a34152ddb49da35a5647"
+    },
+    {
+      "name": "inputplumber/usr/lib/udev",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/lib/udev/rules.d",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/lib/udev/rules.d/55-8bitdo-u2-controller.rules",
+      "type": "0",
+      "size": 228,
+      "sha256": "2b3f619ecb00b7df677c2d14995137e19e16f6d11967b9e96a63371be2897213"
+    },
+    {
+      "name": "inputplumber/usr/lib/udev/rules.d/60-inputplumber-uaccess.rules",
+      "type": "0",
+      "size": 208,
+      "sha256": "883f9f96976dea4235be78568916fd1a0041dae9189df4386ed5f7e6678c52cc"
+    },
+    {
+      "name": "inputplumber/usr/lib/udev/rules.d/90-inputplumber-autostart.rules",
+      "type": "0",
+      "size": 103,
+      "sha256": "076e3dd6b74eb438d0a4e0c07504b890230fd88368706eadae4f588d35a49124"
+    },
+    {
+      "name": "inputplumber/usr/lib/udev/rules.d/99-inputplumber-device-setup.rules",
+      "type": "0",
+      "size": 4538,
+      "sha256": "eeab8649536d9fcc415d5d9a9b59a65929903021ee2ed6c27cc0b1d50dacfe94"
+    },
+    {
+      "name": "inputplumber/usr/lib/udev/hwdb.d",
+      "type": "5",
+      "size": 0
+    },
+    {
+      "name": "inputplumber/usr/lib/udev/hwdb.d/59-inputplumber.hwdb",
+      "type": "0",
+      "size": 504,
+      "sha256": "443129fc6b73aa53a1c41e0a8f9654e1964784b8a9dc41a0d0c740c72b4efa3f"
+    },
+    {
+      "name": "inputplumber/usr/lib/udev/hwdb.d/60-inputplumber-autostart.hwdb",
+      "type": "0",
+      "size": 3659,
+      "sha256": "27d03447ff0963e795dd2466f5ccca6a25a1a7e0d702d025f68cdbaf05ab73c5"
+    }
+  ]
+}
