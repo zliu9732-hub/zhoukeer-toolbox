@@ -38,17 +38,18 @@ launcher_details() {
     case "$1" in
         quark)
             LAUNCHER_NAME="夸克网盘"
-            LAUNCHER_FILE_NAME="QuarkCloudDrive-7.4.2.exe"
-            LAUNCHER_URL="https://umcdn.quark.cn/download/37211/quarkclouddrivepc/pckk@product_guanwang/QuarkCloudDrivePC_V7.4.2.820_pc_pf30001_(zh-cn)_release_(Build3241122-1000-x64).exe"
-            LAUNCHER_FIXED_SHA256="a2e1d6a095d938addc1da8e43faacea6a088023e7075cb694e1b6547b2934fd9"
-            LAUNCHER_GITEE_MIRROR_ID="quark"
+            LAUNCHER_FILE_NAME="QuarkCloudDrive-3.24.0-portable.tar.xz"
+            # User-provided portable client; never fall back to the old installer.
+            LAUNCHER_URL=""
+            LAUNCHER_FIXED_SHA256="55ac546da136b4f9680960390ef8604f96c2d73be29157f582ca831126ccca80"
+            LAUNCHER_GITEE_MIRROR_ID="quark-portable"
             LAUNCHER_GITEE_MIRROR_SHA256="$LAUNCHER_FIXED_SHA256"
             LAUNCHER_FALLBACK_URL=""
             LAUNCHER_FALLBACK_SHA256=""
             LAUNCHER_MIN_BYTES=104857600
-            LAUNCHER_MAGIC="4d5a"
+            LAUNCHER_MAGIC="fd377a58"
             LAUNCHER_MAGIC_ALT=""
-            LAUNCHER_TARGET_RELATIVES=$'Program Files/QuarkCloudDrive/QuarkCloudDrive.exe\nProgram Files (x86)/QuarkCloudDrive/QuarkCloudDrive.exe\nQuarkCloudDrive/QuarkCloudDrive.exe'
+            LAUNCHER_TARGET_RELATIVES=$'QuarkCloudDrive-Portable-3.24.0/QuarkCloudDrive.exe\nProgram Files/QuarkCloudDrive/QuarkCloudDrive.exe\nProgram Files (x86)/QuarkCloudDrive/QuarkCloudDrive.exe\nQuarkCloudDrive/QuarkCloudDrive.exe'
             ;;
         epic)
             LAUNCHER_NAME="Epic Games 启动器"
@@ -798,7 +799,6 @@ run_launcher_installer() {
     case "$target:$install_mode" in
         epic:interactive) echo "弹出 Epic 安装窗口后，点击 Install（安装）；完成后点击 Finish（完成）。" >&2 ;;
         heihe:interactive) echo "弹出黑盒工坊安装窗口后，点击安装并等待完成即可。" >&2 ;;
-        quark:interactive) echo "弹出夸克网盘安装窗口后，按提示完成安装；完成后关闭安装窗口。" >&2 ;;
         ubisoft:interactive|uplay:interactive) echo "弹出育碧安装窗口后，选择中文并依次点击接受、安装、完成。" >&2 ;;
     esac
 
@@ -827,13 +827,8 @@ run_launcher_installer() {
             fi
             ;;
         quark)
-            local -a quark_args=('/DIR=C:\Program Files\QuarkCloudDrive' /NORESTART)
-            if [ "$install_mode" = silent ]; then
-                quark_args+=(/VERYSILENT /SUPPRESSMSGBOXES /SP-)
-            fi
-            STEAM_COMPAT_CLIENT_INSTALL_PATH="$steam_root" STEAM_COMPAT_DATA_PATH="$prefix_dir" \
-                STEAM_COMPAT_APP_ID=0 SteamAppId=0 SteamGameId=0 \
-                "$proton_runner" run "$installer_file" "${quark_args[@]}" 2>/dev/null || status=$?
+            echo '请从常用软件中安装夸克网盘。' >&2
+            return 1
             ;;
         battlenet|heihe|ubisoft|uplay)
             if [ "$install_mode" = "silent" ]; then
@@ -1222,7 +1217,13 @@ export STEAM_COMPAT_CLIENT_INSTALL_PATH="\$STEAM_ROOT"
 export STEAM_COMPAT_APP_ID=$(shell_quote "$steam_app_id")
 export SteamAppId=$(shell_quote "$steam_app_id")
 export SteamGameId=$(shell_quote "$steam_game_id")
-exec "\$PROTON_RUNNER" run "\$LAUNCHER_EXE"
+EOF
+    if [ "$target" = quark ]; then
+        # The portable bootstrap locates its app directory relative to its cwd.
+        printf 'cd -- %s || exit 1\n' "$(shell_quote "${launcher_exe%/*}")" >> "$wrapper" || return 1
+    fi
+    cat >> "$wrapper" <<'EOF'
+exec "$PROTON_RUNNER" run "$LAUNCHER_EXE"
 EOF
     chmod +x "$wrapper" || return 1
     printf '%s\n' "$wrapper"

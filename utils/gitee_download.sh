@@ -62,7 +62,7 @@ gitee_mirror_manifest_repo() {
         sdweak) printf '%s\n' "$GITEE_SDWEAK_MIRROR_REPO" ;;
         deckhomethemes|themehub-zh-auto) printf '%s\n' "$GITEE_DECKHOMETHEMES_MIRROR_REPO" ;;
         epic-linux) printf '%s\n' zhoukeer-toolbox-mirror-4 ;;
-        quark) printf '%s\n' zhoukeer-toolbox-mirror-6 ;;
+        quark|quark-portable) printf '%s\n' zhoukeer-toolbox-mirror-6 ;;
         ayaneo3-companion|screen-colors) printf '%s\n' zhoukeer-toolbox-mirror-4 ;;
         lsfg-v2-zh-auto|lsfg-v2-zh-signed) printf '%s\n' zhoukeer-toolbox-mirror-4 ;;
         fsr4-zh-auto|fsr4-zh-signed) printf '%s\n' zhoukeer-toolbox-mirror-3 ;;

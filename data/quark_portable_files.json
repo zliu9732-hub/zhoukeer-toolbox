@@ -1,0 +1,1022 @@
+{
+  "QuarkCloudDrive.exe": {
+    "size": 324656,
+    "sha256": "35cf38c6ac9b0f911d94faf1b13134bd5556fe8afb5434f7932dabf3c58f239c"
+  },
+  "app-3.24.0/AliSafeProxy.dll": {
+    "size": 2432016,
+    "sha256": "d3cb9fa8bf1e8b4b93501fd8d3e0d6da54fe1ea3b4beea532f5a588748a99a83"
+  },
+  "app-3.24.0/LICENSE.electron.txt": {
+    "size": 1096,
+    "sha256": "5154e165bd6c2cc0cfbcd8916498c7abab0497923bafcd5cb07673fe8480087d"
+  },
+  "app-3.24.0/LICENSES.chromium.html": {
+    "size": 2443,
+    "sha256": "66a311e7c79ab99c88161f3c9e40c11134a12f4b7ba6706a1e0c60b0ddcd59d0"
+  },
+  "app-3.24.0/NetCore.dll": {
+    "size": 2537488,
+    "sha256": "9523668f9ab674db20c743b498bf21cd33e0eac31d773bee4e8a4128a4939b3d"
+  },
+  "app-3.24.0/QuarkCloudDrive.exe": {
+    "size": 163895344,
+    "sha256": "9b584a2d747cb045bab1fd994cc2835161aabf7b234c020d4c8fd22cd436bba0"
+  },
+  "app-3.24.0/RedirectIO.dll": {
+    "size": 482800,
+    "sha256": "4b1b73c8eb713aacceffe9e742881f9c424c52bc21ea34580bc6a693de61d3f6"
+  },
+  "app-3.24.0/Report.dll": {
+    "size": 2223120,
+    "sha256": "15cd50340f87e76635d73b7fac0fdbd944a53319413ff46b2de2e39bacd90b20"
+  },
+  "app-3.24.0/SecurityGuardSDK64.dll": {
+    "size": 10971664,
+    "sha256": "d5e07ab4c4c27d1c832ac5e1cb49c62953ac0ab6286c2603469e46decbec8145"
+  },
+  "app-3.24.0/UTDID.dll": {
+    "size": 3558384,
+    "sha256": "45641b74479d1e2b68d74584a1b62511cf87c0dd72db5777b0595a61b7b14e35"
+  },
+  "app-3.24.0/UTForPC.dll": {
+    "size": 5572592,
+    "sha256": "c29fa166fc5720594fd2aa048825b119a3677e18317e1a379c3432d65cf3ef8f"
+  },
+  "app-3.24.0/chrome_100_percent.pak": {
+    "size": 127522,
+    "sha256": "0b2cb207b85f330d82ec1eec9850664eeb467f6df3bc8b91e6208e6843f4b1e9"
+  },
+  "app-3.24.0/chrome_200_percent.pak": {
+    "size": 178147,
+    "sha256": "d0cfc4ceb68ece476ff4a44bf1b99522859c8ea40e23a90af20fa019d4db933f"
+  },
+  "app-3.24.0/d3dcompiler_47.dll": {
+    "size": 4916712,
+    "sha256": "7353f25dc5cf84d09894e3e0461cef0e56799adbc617fce37620ca67240b547d"
+  },
+  "app-3.24.0/ffmpeg.dll": {
+    "size": 2895856,
+    "sha256": "c353ea12d6abc8e1fa5aca36e629f5bce11f2c972c2d2260787c15db30d7e7cb"
+  },
+  "app-3.24.0/icudtl.dat": {
+    "size": 10544880,
+    "sha256": "ee3c8883effd90edfb0ff5b758c560cbca25d1598fcb55b80ef67e990dd19d41"
+  },
+  "app-3.24.0/libEGL.dll": {
+    "size": 495600,
+    "sha256": "7d620e3f75a6d39acc6d0f61f0a4aa4f995067450f4b4258ef8a657d525231e9"
+  },
+  "app-3.24.0/libGLESv2.dll": {
+    "size": 7640048,
+    "sha256": "a5ddedcd5dabadf2d90841721a9066ce751aed71caa9bfb1f7ca4eeff891b69b"
+  },
+  "app-3.24.0/locales/en-US.pak": {
+    "size": 348240,
+    "sha256": "51b2e54e690bc3d30fa3f34331a6b24d99453c6df9a0fc06333f7ee58447c618"
+  },
+  "app-3.24.0/locales/zh-CN.pak": {
+    "size": 355381,
+    "sha256": "5ece0cfea91fe1ebd0eba4ef47e6cdb2c732426d0a037beef1570bfeb8b26406"
+  },
+  "app-3.24.0/locales/zh-TW.pak": {
+    "size": 351359,
+    "sha256": "252f4c11de8a8f36b49d1e85a2d393770c1fa4e560288a09e273a78cc061e11f"
+  },
+  "app-3.24.0/msvcp140.dll": {
+    "size": 578384,
+    "sha256": "74892d9b4028c05debaf0b9b5d9dc6d22f7956fa7d7eee00c681318c26792823"
+  },
+  "app-3.24.0/msvcr120.dll": {
+    "size": 963744,
+    "sha256": "0d00bf1756a95679715e93dc82b1b31994773d029fbbd4e0e85136ef082b86a9"
+  },
+  "app-3.24.0/resources/app-update.yml": {
+    "size": 98,
+    "sha256": "4623da7b1aa7ca0c42cb76d6a97e7c9e0a5fde22a6abbd11149e8a3c69f015cc"
+  },
+  "app-3.24.0/resources/app.asar": {
+    "size": 132724203,
+    "sha256": "bfe75fba68d2cdc1e82f6928471e4f0a857d6ca687b2d1bbd6cdc51739314f28"
+  },
+  "app-3.24.0/resources/app.asar.unpacked/node_modules/@ali/quark-pdfsdk/build/Release/icudtl.dat": {
+    "size": 185360,
+    "sha256": "1bdf012f3db4cd63957a2b182eb5ed52d0f1c2893da9c05800c298eb9b1422eb"
+  },
+  "app-3.24.0/resources/app.asar.unpacked/node_modules/@ali/quark-pdfsdk/build/Release/libcurl.dll": {
+    "size": 625648,
+    "sha256": "3488dca646141cc4f849226a2118234a2610dbe6ac4036906dd45c9791bb3b71"
+  },
+  "app-3.24.0/resources/app.asar.unpacked/node_modules/@ali/quark-pdfsdk/build/Release/pdfium.dll": {
+    "size": 4695024,
+    "sha256": "63e392ba18c607653b4c17db9190619d5cae6b8346577e4a450bc9cd56335eae"
+  },
+  "app-3.24.0/resources/app.asar.unpacked/node_modules/@ali/quark-pdfsdk/build/Release/pdfsdk.node": {
+    "size": 668720,
+    "sha256": "1e6dfa28195c16f5c9d7df688b8c49cd1c7d3145c8b54ce4daa41dfa11bee34b"
+  },
+  "app-3.24.0/resources/app.asar.unpacked/node_modules/@ali/quark-pdfsdk/build/Release/zlib.dll": {
+    "size": 229360,
+    "sha256": "aac65887b13cb0d6e951e3a81cc680b37030f2b195cc4c1ac53f5265cc163d83"
+  },
+  "app-3.24.0/resources/app.asar.unpacked/node_modules/@ali/quark-pdfsdk/lib/pdfsdk.js": {
+    "size": 14506,
+    "sha256": "05c092accbc6310804de1af04c3b85d7f0e66de7c1e8336c901baf9dde04a880"
+  },
+  "app-3.24.0/resources/app.asar.unpacked/node_modules/@ali/quark-pdfsdk/package.json": {
+    "size": 995,
+    "sha256": "46be7fe2371cec48b24240209a5005d61b2d0de00e1bb97fb548ddd9fa3c7944"
+  },
+  "app-3.24.0/resources/app.asar.unpacked/node_modules/@ali/xdrive/build/Release/xdrive.node": {
+    "size": 1033776,
+    "sha256": "738d29e9d156df633e16187d8b8b577e02e757905393a468d2374d3f4057b35d"
+  },
+  "app-3.24.0/resources/app.asar.unpacked/node_modules/@vscode/windows-mutex/build/Release/CreateMutex.node": {
+    "size": 173616,
+    "sha256": "705ad6012f43be37f665a99265c9ea4d304ec65e1d3d954530b3ce021249031a"
+  },
+  "app-3.24.0/resources/app.asar.unpacked/node_modules/electron-clipboard-ex/prebuilds/win32-x64/node.napi.node": {
+    "size": 647728,
+    "sha256": "3c322f9536fee9d226395a1bf39f4a93eb5fbdcdf8aba636147f69b95933df76"
+  },
+  "app-3.24.0/resources/app.asar.unpacked/node_modules/ffi-napi/bin/win32-x64-103/ffi-napi.node": {
+    "size": 755760,
+    "sha256": "d13992a8705dbf974c7a6a00fdc6d8e20df2c01ab60108d816a46895f21dd33f"
+  },
+  "app-3.24.0/resources/app.asar.unpacked/node_modules/ffi-napi/build/Release/ffi_bindings.node": {
+    "size": 241200,
+    "sha256": "5555dd7a428affe5bc9e8a6be26af3e4d7aeeeb5f7a6568f3269d17f24460304"
+  },
+  "app-3.24.0/resources/app.asar.unpacked/node_modules/ref-napi/bin/win32-x64-103/ref-napi.node": {
+    "size": 750640,
+    "sha256": "b524970645ae4ebf89dd0be6003172ae670ed1add073c55cf9d9d45379ea4850"
+  },
+  "app-3.24.0/resources/app.asar.unpacked/node_modules/ref-napi/build/Release/binding.node": {
+    "size": 216624,
+    "sha256": "e94ac9e6767c96269f4e213eda4c35cd80abcdd338041809383a1c97c174e024"
+  },
+  "app-3.24.0/resources/assets/apollo/libapolloffmpeg.dll": {
+    "size": 18539568,
+    "sha256": "ab83350a24c529e75762c86e190032f68b288d3fd5b2f407f08a8a07f5c678d6"
+  },
+  "app-3.24.0/resources/assets/apollo/libplacebo-291.dll": {
+    "size": 757744,
+    "sha256": "04e57b2ae6f20bec453598a40c5bc7a205f833f2c6c0bdd55171bd4ad6d7a454"
+  },
+  "app-3.24.0/resources/assets/apollo/libu3player.dll": {
+    "size": 16962608,
+    "sha256": "987c2d2f5a45ee353bc08cf1c56b0c9cd490d728c3b909a6aed548e0f70ba269"
+  },
+  "app-3.24.0/resources/assets/assets.d.ts": {
+    "size": 562,
+    "sha256": "64bd1c96808f46598310944107aa30879b6e998305314d222f06737c321a575f"
+  },
+  "app-3.24.0/resources/assets/entitlements.mac.plist": {
+    "size": 333,
+    "sha256": "f4b2891dc2b1239191cecf7cd5b9a36ea4edaec33c1cc091e09380d669e8fb63"
+  },
+  "app-3.24.0/resources/assets/extensions/win32/ChromeHost.exe": {
+    "size": 127504,
+    "sha256": "6b29125d92c3a0769483b0cb929d776bf05a7af7c8528e363907461e96378880"
+  },
+  "app-3.24.0/resources/assets/extensions/win32/config.txt": {
+    "size": 178,
+    "sha256": "e32afe474aaf02416731c35337ee283fa8ac2361eb54c5b23e0fe1315cd1d710"
+  },
+  "app-3.24.0/resources/assets/extensions/win32/host_manifest.json": {
+    "size": 276,
+    "sha256": "b9aaf3e34787fd01a0a020ddb551da234ff315d29b23cc59349c1771b74f07e9"
+  },
+  "app-3.24.0/resources/assets/extensions/win32/main.crx": {
+    "size": 1267448,
+    "sha256": "ba33f0f1ad3a4e85f13adc98b44b1f573c78484051d0051ec98b91231e3195f0"
+  },
+  "app-3.24.0/resources/assets/extensions/win32/msvcp140.dll": {
+    "size": 573968,
+    "sha256": "908e27b845795afc3f41a7363882aa9dcaca34f3001e3e97e55ff3564a1e8004"
+  },
+  "app-3.24.0/resources/assets/extensions/win32/msvcp140d.dll": {
+    "size": 997904,
+    "sha256": "b8206c4e44855bcc276356fa72d7eafb609e07fd79b5a366d6ab709a0846f414"
+  },
+  "app-3.24.0/resources/assets/extensions/win32/ucrtbased.dll": {
+    "size": 1799696,
+    "sha256": "b44f446e1e9ecc15ed33a4d63355a70855629db1ba541ed1574ecd5d8459b312"
+  },
+  "app-3.24.0/resources/assets/extensions/win32/vcruntime140.dll": {
+    "size": 101392,
+    "sha256": "57bbc65e37fdc753343dfb27500547c103516e15434dbcea0550ed10b5153ace"
+  },
+  "app-3.24.0/resources/assets/extensions/win32/vcruntime140_1.dll": {
+    "size": 40976,
+    "sha256": "fb186cd6d647d53a86f617aea89e190239b138e05171344ad3a45db754cc030d"
+  },
+  "app-3.24.0/resources/assets/extensions/win32/vcruntime140_1d.dll": {
+    "size": 55824,
+    "sha256": "086f8df145417b4cd890bd163294da155bd26db902ed8360491e322f91ca6552"
+  },
+  "app-3.24.0/resources/assets/extensions/win32/vcruntime140d.dll": {
+    "size": 128528,
+    "sha256": "0acab7c8dc31608fa58f1c67c5db7bb99de3418b196d8473cbaedb7247fcd65d"
+  },
+  "app-3.24.0/resources/assets/flutter/AlscEfsCore.dll": {
+    "size": 1048048,
+    "sha256": "b705118d495d88ea07ea5a80571a2ab66df07a8f58ee75df7e38226b559e2a56"
+  },
+  "app-3.24.0/resources/assets/flutter/WebView2Loader.dll": {
+    "size": 142264,
+    "sha256": "f0fccd520afd3056df3130b6ccd3386fef029fe8a5637f190b1da57c96330e85"
+  },
+  "app-3.24.0/resources/assets/flutter/clipboard_plus_plugin.dll": {
+    "size": 107504,
+    "sha256": "a21fbb05416e86596924a75faa78b7bdd3f0af86cda4096264ee4b3422a89bf7"
+  },
+  "app-3.24.0/resources/assets/flutter/connectivity_plus_windows_plugin.dll": {
+    "size": 125936,
+    "sha256": "0bed781cf0482333af80f34c7cdc13421aa65af9fb69c77ac04449dee4b97242"
+  },
+  "app-3.24.0/resources/assets/flutter/data/app.so": {
+    "size": 10810880,
+    "sha256": "dd0f0a2c0501fbd0d9d2d2b0a6047166a86cd2d3f9c3e8e25dd38d4efe48f50e"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/AssetManifest.json": {
+    "size": 13781,
+    "sha256": "2e2c45fbebeabc91b37fdf4f9e7d3d6660d4111375b5d3b6d856a9dbc3859934"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/FontManifest.json": {
+    "size": 208,
+    "sha256": "cd7e03645bc44b2dd47b7cb626f51c4ecbf55a197ab77241628b47ac165fbe21"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/NOTICES.Z": {
+    "size": 79717,
+    "sha256": "694740f4eb793acec1655a759964cb35ff5c7877602849d1a6a5ddbf6a9f0905"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/audio_player/audio_play_box.png": {
+    "size": 16799,
+    "sha256": "073ae0f2384b67e554f2502df0812c81a9624598a231c44c61e8efc49b388adb"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/audio_player/audio_play_box_bg.png": {
+    "size": 14039,
+    "sha256": "3444d04d9af57e0503a47dcb3e0d6c02e4b563535493003ba4b8cafcdfeded25"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/audio_player/audio_play_box_lever.png": {
+    "size": 4287,
+    "sha256": "9c5af3421892a7cfc70df79d777d0e3bf9949720038eff7577525a739a4c6d0c"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/audio_player/audio_play_folder.svg": {
+    "size": 671,
+    "sha256": "bf5f8ac42332173a885883da018163f7375422aa60339909fbfec10bc560569a"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/audio_player/audio_play_music_icon.png": {
+    "size": 7235,
+    "sha256": "36bf5c5641536728cb42db8f3010a2bd33f6b0cb690cb30d87edd9a57dec08d3"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/audio_player/audio_play_next.svg": {
+    "size": 1418,
+    "sha256": "8d5ac52587d1e9fc2fe1b85a9db2bb43ea54d5fffb093ce630d9941e6be72b1e"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/audio_player/audio_play_pause.svg": {
+    "size": 446,
+    "sha256": "0e91d1b59148caedc92679ddfd15805049600987bdb8d5fdac5c6ce8399610e5"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/audio_player/audio_play_play.svg": {
+    "size": 586,
+    "sha256": "1cbd696d44b02583877180744e873f398589f4cda766454d2d8fb9c354c0e2b3"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/audio_player/audio_play_prve.svg": {
+    "size": 1509,
+    "sha256": "8099359ef8996160ffaa42e53d4fdaa0e3a698be45e07559b20e633a47a1bcf2"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/audio_player/audio_player_Cloud.png": {
+    "size": 337,
+    "sha256": "206bc6b8f84028e2fc753e0da37d73e631fcf7217e2cdc9b9519289421d788a9"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/audio_player/audio_player_line_loading.png": {
+    "size": 446,
+    "sha256": "b6a1588eed443246e0354352eefa42f04883dd77c7dc9abd268b6e9dc9c20524"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/big.svg": {
+    "size": 1169,
+    "sha256": "ec5e635ee55a4e436df0a2f9cbeec5182910c07cb73aec75dcd797d7607d3101"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/close.svg": {
+    "size": 770,
+    "sha256": "745d401ea8691018f6facd6da844bd2a6960273f9f73139248bd620c774deedf"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/restore.svg": {
+    "size": 386,
+    "sha256": "8a6680ddd45c296577e1c591ec4b011ff00d0f71198a13a4b7e9cb42ac299fe1"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/small.svg": {
+    "size": 425,
+    "sha256": "22084f580187ffa4ba1efacc14850008ad4928e38592e90b37d60f4661957a53"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/ai_full_screen.svg": {
+    "size": 2613,
+    "sha256": "39aac3de0bbf4500f1cee478bad3ffaa464e00e9d790e20e9f9d5239b6d130e4"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/ai_summary_abstract.png": {
+    "size": 3142,
+    "sha256": "4db6dcc3042db61a62ce587456cb5dcd5e0c3540e248a47321ec62882b01fba7"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/ai_summary_all.png": {
+    "size": 3068,
+    "sha256": "fa269436bfedad9926f4521a70a34bf41ee73774ffd12b6ec1610b96d3637aa4"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/ai_summary_expand_arrow.svg": {
+    "size": 2028,
+    "sha256": "ecfd75ad69f2801d9bb375201e83cd0109856a73f96ff8ea4ee8659e1988ca6c"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/ai_summary_first_use.png": {
+    "size": 23576,
+    "sha256": "0dc135a728052425664a8798d9eb9aedfc1847b110ced8be5aba6c8cdf5e08f4"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/ai_summary_float_feedback.svg": {
+    "size": 1894,
+    "sha256": "c6408ae4128122c948c50ac61528c70a327a7a09987591450595147d4e62d1c9"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/ai_summary_float_play.svg": {
+    "size": 2468,
+    "sha256": "322118442a94652f62a9d0f9327e137cf61ad943a796a91a9ed427ef032c26bf"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/ai_summary_not_support.png": {
+    "size": 21983,
+    "sha256": "b52922847b16dd91fcf9af7f9b02c1eeeb023b219ab067b539be5ba9846f448f"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/ai_summary_section_item_play.svg": {
+    "size": 2130,
+    "sha256": "1b4a87c0e0f8672d5e7c03b6e0d6e68753d39cb404a2229349b32c75648f2210"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/ai_summary_section_tip.svg": {
+    "size": 1583,
+    "sha256": "a2c00eaae86835cbe91dbd1583790ccc0d07c591ce360901040d17d83b27813c"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/ai_tip_fail.png": {
+    "size": 625,
+    "sha256": "e4b1a3e01b63da9594432f463d4b0f2b6b030930d41f628ada0993a478a9fb84"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/ai_tip_success.png": {
+    "size": 1275,
+    "sha256": "c4e1e8d8cb7302289eb3e9a1f9c5696328cb41257b163c4a9c8425f960489d60"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/courseware_copy.svg": {
+    "size": 1960,
+    "sha256": "e52598287620d838038359720ae5bad71c41acfb341e34531e8e467f3a91a10b"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/courseware_delete.svg": {
+    "size": 2068,
+    "sha256": "8203b18f0c512b17276ab36896beb43f8c88c1de62cd96b1cc03c76ada6ac5e7"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/courseware_export_ok.png": {
+    "size": 570,
+    "sha256": "e3e0d6bcf680ae7f61ffa6fb823544b0ab4cc668914d630c00b895eeee5a6836"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/courseware_insert_frame.png": {
+    "size": 418,
+    "sha256": "81a233c0ca52ed3b74a01a5de228c21f5bca8453200245172a2dcce43e884cad"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/courseware_pic_loading.png": {
+    "size": 629,
+    "sha256": "0488f862e27ba10c2206be456d9a5c5cdd3a0d4e52b86b13b1cef0863c1865e6"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/courseware_play_icon.svg": {
+    "size": 1249,
+    "sha256": "3fc3cc5d4a4b86f7341ce72d5c5b223c4c3a936cee824789e741cc519f607ce3"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/courseware_regenerate.svg": {
+    "size": 1637,
+    "sha256": "00e020246bd2c92b344c4eabe643b9dbb96e8dc9d028012e7f3b6a9ef267c630"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/delete_dialog_trash.svg": {
+    "size": 746,
+    "sha256": "911bf5f4a6f75beb4b94e8afd62b9d0ade60fdf4d2388a1eee450b2bdc7c9e20"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/document_back_position.png": {
+    "size": 546,
+    "sha256": "741895abbfc2ecf2d588fa238e82d6ff3d29ce64a73f42431459a9b338a69580"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/document_export.png": {
+    "size": 893,
+    "sha256": "46329652a188b1a59a87744a6d8b94ffcf42a6d5a6120e97f44a3ed56a76572b"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/feedback_box.svg": {
+    "size": 1393,
+    "sha256": "aa67519469661679a3abf373e5fe192b9c06cbde365e87afb888276ea8e5c763"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/feedback_box_selected.svg": {
+    "size": 1781,
+    "sha256": "8d4ee6e4cf7cf44990ec95759834d4363d1a3fca6772b85a0f6ba511de2a4712"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/header_pin_active.svg": {
+    "size": 1332,
+    "sha256": "fb92c60bbd58c21e2d211470bdd8719bdd701e9f85a276b4413cd03b7287efe1"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/header_pin_inactive.svg": {
+    "size": 1564,
+    "sha256": "391d06dbcdf4a06d9ca0983206624c55b86fbb49563ab2fa09cbb3b8d4287744"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/label_free_limit.png": {
+    "size": 3638,
+    "sha256": "1a1a0dfd72d88871743511760e61ac1a84240be7645e53c76276eae5393c01a8"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/label_svip.png": {
+    "size": 2584,
+    "sha256": "0a15a4d87c31df1f4407fa14941122a66c5bdaceeb96569dcaaecbd33f605eb2"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/label_svipplus.png": {
+    "size": 3558,
+    "sha256": "f1f3b4c2b81a96b42c7b7322a0a4ef14be15d0055f304757f051bda0db026e8d"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/lottie/episode_playing.zip": {
+    "size": 1185,
+    "sha256": "b8f784dd17851e58d3a2cc8f80d4361ccf05e29b0fdc978a6b6a4ed7bf52bf85"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/lottie/series_playing.json": {
+    "size": 4311,
+    "sha256": "4e4433414abeaa3f35954d7a1125126c69591f566ff78155f20f796511672b38"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/lottie/tab_loading.json": {
+    "size": 1970,
+    "sha256": "fb40a56d3f301586b90427f9a7c04b9b2a3834cab75a4fd13a1778ad0ce21deb"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/pip_close.svg": {
+    "size": 946,
+    "sha256": "724fc8e6fbab6e96a7c3ddb3d3759cf5c7949b86c6b5eecd2d4e602be33d3de5"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/pip_pause.svg": {
+    "size": 2391,
+    "sha256": "3c6eb2eb49735a3349167f6f6d932b437cc6a253839c09aa185f55c17041bc6b"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/pip_play.svg": {
+    "size": 953,
+    "sha256": "a343bf43bb2b44f416ee80c2ed4d6ac90045fda9ac1d63793b80f0da4bd62aa8"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/pip_restore.svg": {
+    "size": 1720,
+    "sha256": "50d958c651ca232b58c1d1df08e5470be3a69486c27da4f6f9ca215ece8a492b"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/preview_image_close.svg": {
+    "size": 1198,
+    "sha256": "fb10874cc77dd20473e2d93251252470bba003133370a32d299cc2d12a5602fe"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/series_guide_bubble.svg": {
+    "size": 11294,
+    "sha256": "bd0f39254dfaa982b13cbcef633b263ad8f25d43e3fab86141593eec4df77521"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/toolbar_delete.svg": {
+    "size": 312,
+    "sha256": "07f4e2eaffce6999ef34846ebe3f657b853eea6abe5de7be77f6f2c1d69790aa"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/toolbar_download.svg": {
+    "size": 390,
+    "sha256": "74b76726de4b61e7afd9609d13c08081ee70fd05f8e7898a4b71c2a7373802f9"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/toolbar_entry_pip.svg": {
+    "size": 1745,
+    "sha256": "9f613e478d2099317f2cb31e0fdf2c6b334a9c64a068c58e284c1de6be9e3f2d"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/toolbar_share.svg": {
+    "size": 336,
+    "sha256": "978e5b9ecdc2a6fc90a8020430a1ceed4690df9ba021cf75e992ec3e1477f98b"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_image_zoom_in.svg": {
+    "size": 1496,
+    "sha256": "506c0ae96ab8d4155c2ba3cfc8028f8cf3cebcf818bc50c9784e31bee20a67da"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_image_zoom_out.svg": {
+    "size": 1250,
+    "sha256": "fe0d75e6be2c9ca0b1266075ce5b40f8246985fe9e90850f5b49a394e25cfeea"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_next_icon.svg": {
+    "size": 1673,
+    "sha256": "0f823b977768369ac8b7a4a34e4abd7d15b70b1482626e86a294ab963531a13e"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_next_icon2.png": {
+    "size": 260,
+    "sha256": "caaf7a54cd4898b9b836863bebdc73f06a3aca58a836241fef6dfc0db4ff6f89"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_next_image.svg": {
+    "size": 1140,
+    "sha256": "a60bc8566bdf76a54421c1c460d165b1a2c86ebe23379fe2b3e19229f905ca0c"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_note.svg": {
+    "size": 3232,
+    "sha256": "9eaca02a3a1f196f0651d95f0f16320ff7069ebcf9cabaf246f23fd55127ec33"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_paly.svg": {
+    "size": 831,
+    "sha256": "e97e15c4dabf273cf2bd99c94ca38ef1a473f1990e0df3b122517176d33f50de"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_paly_close_screen.svg": {
+    "size": 1111,
+    "sha256": "81c3406647e233e65a024ee74e62baeff0a7b8a6c254c7fe59b441887ce38849"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_paly_enter.svg": {
+    "size": 622,
+    "sha256": "7cc822df1a76befa254e7804b9530a11253d6f4ebe9e9b25b78540282ed12840"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_paly_error.png": {
+    "size": 17770,
+    "sha256": "5084020607887cd09b6b56ce12adbe3e1b3917e06971cf0d9864fdd07aed9ef8"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_paly_full_screen.svg": {
+    "size": 1139,
+    "sha256": "0ba2ea8a3be40c7e98af56f81756a4123f7d581a9b763d43a74b5684088d0a16"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_paly_pause.svg": {
+    "size": 1976,
+    "sha256": "b5465ca7b71f8a108f800466eef44d31829cc9f44728456754f994eb146930fa"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_paly_volume.svg": {
+    "size": 1228,
+    "sha256": "bf337273bcd4d55001b9ee4a72c01c5d7aeb5d5f73133892453bf11ca1e6fbc7"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_paly_volume_mute.svg": {
+    "size": 1316,
+    "sha256": "603a11ff5da4c14a579d9e68c9952fafa6d353a373f74811ebf045624a8acba9"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_palyer_ai_exception.png": {
+    "size": 21463,
+    "sha256": "86b5ffe90ffe9ee1358daac93fa1afc77914fb7fb2d65897241eab9790d6ef93"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_palyer_ai_generating.gif": {
+    "size": 1143436,
+    "sha256": "d7b0d7f9c2f894e45c24c2ac8c79ba17612ac6942afe5ce1d2861647c349f55a"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_palyer_ai_network_err.png": {
+    "size": 14180,
+    "sha256": "75820c63a85322b63a2cdef2137e6fa56cafcfb6c49f1e30ab5c85967853ecb6"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_palyer_aicourse_example.png": {
+    "size": 12301,
+    "sha256": "8318c27fafbd0dda77703264a847d913bff39b0c3d83a8d559ccf4964d11687a"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_panel_arrow.svg": {
+    "size": 1238,
+    "sha256": "afceb44950c0e9fdf6bb308c8f5319aa9bef5232e06371a9d3aecd9a6698c12d"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_play_hdr_mark.svg": {
+    "size": 861,
+    "sha256": "4018561cb1249ae4630b727bb665ba497836b1a35f728eb83d3b382afee6b4a8"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_play_minus.png": {
+    "size": 1190,
+    "sha256": "cf9a5a0014a802f8f6e59a9ed858a2c925b58fc1103ed116f4222718c8df6043"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_play_plus.png": {
+    "size": 517,
+    "sha256": "3a50b690eeaaf2371315d0b2544789e6ae3d2dd3325b1c78ee00dd6c507ce133"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_play_right_enter.svg": {
+    "size": 623,
+    "sha256": "c0cf32a2850d5043d30a6f650a8ee7ead343914414b49008143c715ad40b8074"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_play_svip_enter_bg.png": {
+    "size": 11450,
+    "sha256": "783d20edef0f31cdfed8a5e5197e1cde9186a86ff0aa29b9a99f9b0e8ec7b0ad"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_play_svip_icon.png": {
+    "size": 2592,
+    "sha256": "22b03ccb450ac63760498a0688ad9edb202bd77fd892a4c1e78fc41843d0ebb9"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_player_ai_entry_tip.png": {
+    "size": 1844,
+    "sha256": "4c5150f74babe93877192291c17141326029ea7fdec537e562f79fd50dc97e15"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_player_aipay_svip_mark.svg": {
+    "size": 3376,
+    "sha256": "0b6d877fdaa73e45cf2261518f01c5fe1191a11962755848c405eedc57475ecb"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_player_aipay_zvip_mark.svg": {
+    "size": 3526,
+    "sha256": "0a59abc2ce27437b277e6e527e80779505a3e4421403c9408f1fa6ab04c0f165"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_player_backtoplay.svg": {
+    "size": 2468,
+    "sha256": "322118442a94652f62a9d0f9327e137cf61ad943a796a91a9ed427ef032c26bf"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_player_feedback.svg": {
+    "size": 1764,
+    "sha256": "30b9d02f9d7788f9d8c1dc76f756fea45062f115c44899ccf5bf2bbb8b8aa02f"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_player_hdr.svg": {
+    "size": 2006,
+    "sha256": "6ccf5cea205fb1c088b824717f6164e8269faf7a1c35486c8602992650dbd2d1"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_player_panel_backtop.svg": {
+    "size": 206,
+    "sha256": "e6148217c76e7181d505f87cab459518a52e4340887a662760ab6c3aa7d71b85"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_player_panel_loading.png": {
+    "size": 2039,
+    "sha256": "76ecea41b8d3294385abb4c148f158a08a3aa7ace93ab7df4c0a00ca9a2ec21d"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_player_pay_button_mask.png": {
+    "size": 11639,
+    "sha256": "9aecd31d40fa26a7891130047c53ebda4a8a89d72f47eff2968c7b523f265fc9"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_player_pay_corner_free.png": {
+    "size": 2711,
+    "sha256": "c4abad7c28b7f6166b4b3886e6526a6d0f5995b54395ca67963542c0c2a87d00"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_player_sdr.svg": {
+    "size": 3465,
+    "sha256": "f5934af571f6a8e81365ebb30ff6eafb9fdd7b66da7d5af34721560cedba8951"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_player_tip_expand.svg": {
+    "size": 2172,
+    "sha256": "c71fd649782a6d698cca6bb00b6c93e2f2ee224c736c56e5b3e66ef399542f3e"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_player_tip_icon.svg": {
+    "size": 1845,
+    "sha256": "eefe111f166bb648bc2bb96546b611e8b474ece39aa262c666e5e8e3cb60f944"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_player_zvip_corner.png": {
+    "size": 4267,
+    "sha256": "1dd7875f9fb98456bbaa21a26d92a529d9d86e0531a9883f3edb8d75fdb438fc"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_pre_image.svg": {
+    "size": 1134,
+    "sha256": "d532c70887b27fa3177916d06efd052ff59b1924ff5cc02d3a9547529618ff90"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_serise_arrow.png": {
+    "size": 346,
+    "sha256": "03c5a30ed618f5d99d35819ae06ece1ec3e815363abebdbace47bef9e0afa193"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_serise_backtop_arrow.png": {
+    "size": 129,
+    "sha256": "a6fc397a667cd6ef5fd1c608a63914904ad1ca5e7d32004e4562729aa13847b2"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_serise_dir.png": {
+    "size": 630,
+    "sha256": "282c3ad4954309ab8ef4014defc8437c07b11fa88f5702a99e9550a983419e46"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_serise_tab_fold_arrow.png": {
+    "size": 305,
+    "sha256": "a125b06946e2c5dc8269e46d1c1d7788d083517b8029cb944d15c121346bd85e"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_setting_entry.svg": {
+    "size": 1563,
+    "sha256": "23b10fba1ebd84beda189cb2e0ae6e94aaf256bb13edacce785b10173c6c9679"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/assets/images/video_player/video_subpanel_back.svg": {
+    "size": 1654,
+    "sha256": "3bc9aa8a321fbe089f6a3f76c08d8f3aa48a4429e0cea24c9a238758e7f216bc"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/fonts/MaterialIcons-Regular.otf": {
+    "size": 1645184,
+    "sha256": "d9865b671a09d683d13a863089d8825e0f61a37696ce5d7d448bc8023aa62453"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": {
+    "size": 283452,
+    "sha256": "c7a357fad8f2102890b72cdb6e3c98f14db3a19ec60db26d13e4fe93f773808d"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/arrowback.svg": {
+    "size": 668,
+    "sha256": "3cf26da29c56d68134abeaee81a9b48c7a88e025ba97a566e35e37216c7ffd0d"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/largeScreen.svg": {
+    "size": 1033,
+    "sha256": "42487bda24f91af4a35ae43208d3806b99411d3a3aebf59cf96a9d97b4ecbcb7"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/play.svg": {
+    "size": 758,
+    "sha256": "a32bd861e86f244ed17f2df8d74c2c0fdb9e8bb35120ae37368a967aa8c6905f"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/playButton.png": {
+    "size": 891,
+    "sha256": "dbbf2e42b78b4e63714331e046b41891df6c5801dbb7044b5ed2aa75702ae448"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/playFilled.svg": {
+    "size": 583,
+    "sha256": "47fdbaa9bd1bb4bce43ad88de4910b48d1280346cd04a8ad45bad439d5e26e89"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/player_hint_area_brightness_max.svg": {
+    "size": 1107,
+    "sha256": "371f340c1d10cb94c6b4329122df5dd43ceaa68909eb1fa803ccb860ee05b989"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/player_hint_area_brightness_min.svg": {
+    "size": 535,
+    "sha256": "11794a6a70ce2bff3d302a7535d711f9fe17c2e9061a4373b3140f508bdc2ce3"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/player_hint_area_brightness_normal.svg": {
+    "size": 1131,
+    "sha256": "3e61b63abd304b8679691b7ca083eeb94450c10b77f6571dc3824bf6f6aa7a01"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/player_hint_area_volume_max.svg": {
+    "size": 788,
+    "sha256": "029f8cee6408a00c98dc7acdb3066356a14391a722f2a8313860d7cc4efe3f2e"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/player_hint_area_volume_min.svg": {
+    "size": 1276,
+    "sha256": "cda71903c1c248f238da3ee4dba873155525cd25dd84c4ac7afc780d50d79fbf"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/player_hint_area_volume_normal.svg": {
+    "size": 662,
+    "sha256": "cfe16d372f76d9ec78d01e89e04680c4cf3d60b454ada4e37af7f3816442ec58"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/player_screen_locked.svg": {
+    "size": 430,
+    "sha256": "8fb9d8a5cfccab1bd88a5086cdcac2ba447fda785278259f689ab8cf6173956c"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/player_screen_unlocked.svg": {
+    "size": 490,
+    "sha256": "5a1fe2f0929363089b458a643cf30a5ada1410db92655e96f53713587332dad3"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/refresh.svg": {
+    "size": 1324,
+    "sha256": "d611029340e64c6b5d040fbc3b5a2e3a9ef0288117d6ca2e1690741574b9afe5"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/smallScreen.svg": {
+    "size": 1033,
+    "sha256": "2ed216131c2145c7346417caab9ce496f0ea96d12860634f1330edb697cdbf6f"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/stop.svg": {
+    "size": 792,
+    "sha256": "39b413034c1be997ff8029692a01fc4689fae609f2c88fc6433f1b640be8cd2b"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/ump_video_plugin/assets/images/stopFilled.svg": {
+    "size": 1689,
+    "sha256": "f734b2bb293e80a3b9fe5fa774c14ab69be9c1b66181c34d6c3da06c2b198812"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/wakelock_web/assets/no_sleep.js": {
+    "size": 13344,
+    "sha256": "dce4eef0b197b640ad6aaab2228ee1ee7dccf8bd6d6b5de5484dd1bd16430a78"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/window_manager/images/ic_chrome_close.png": {
+    "size": 298,
+    "sha256": "70fe0130bbbd928d04cd33a49ecde422ec54fd748b7a4e983f4e31be6e73f5f5"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/window_manager/images/ic_chrome_maximize.png": {
+    "size": 271,
+    "sha256": "93f2ed012ec01288b78ad4816ef254261e9ff25e8a9858359b45431c9a5de5f4"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/window_manager/images/ic_chrome_minimize.png": {
+    "size": 166,
+    "sha256": "0976edbb9977136544af17de125f345a41065694de92036d9365817ea6d8f05a"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/packages/window_manager/images/ic_chrome_unmaximize.png": {
+    "size": 366,
+    "sha256": "3d375930c514ec2ebc0603ad1e1398b4daf458951042a97232d16f17e1c9603b"
+  },
+  "app-3.24.0/resources/assets/flutter/data/flutter_assets/shaders/ink_sparkle.frag": {
+    "size": 13584,
+    "sha256": "a1674b31c0c7029f0628f8939fa5c2d834a18e24db720d833b397b84f83085db"
+  },
+  "app-3.24.0/resources/assets/flutter/data/icudtl.dat": {
+    "size": 10541264,
+    "sha256": "17d57b17d12dc5cfbf06413d68a06f45ccf245f4abdf5429f30256977c4ed6de"
+  },
+  "app-3.24.0/resources/assets/flutter/flutter_windows.dll": {
+    "size": 18770992,
+    "sha256": "db76b10e3fc3a1f1122db2a4f786ad68bb423dd0baef3eef7a2ca2ad5463d5ed"
+  },
+  "app-3.24.0/resources/assets/flutter/high_available_plugin.dll": {
+    "size": 111600,
+    "sha256": "f902d6b5bef0dca90b423cce9246794e2831e1e0dc617494147bdf7f800879c3"
+  },
+  "app-3.24.0/resources/assets/flutter/screen_retriever_plugin.dll": {
+    "size": 134640,
+    "sha256": "f726c0e39d23d1895e32ea86ce4ec5cfce60de2591c65875b2de6f22db69a856"
+  },
+  "app-3.24.0/resources/assets/flutter/ump_video_plugin_plugin.dll": {
+    "size": 585712,
+    "sha256": "b22243d329d6a6435d1dbc9fb99511e6bcac191486bcc582ae1f6d6bfb3455f4"
+  },
+  "app-3.24.0/resources/assets/flutter/webview_iuc_plugin.dll": {
+    "size": 462832,
+    "sha256": "22aa56a5c84407fd947aa0eb7ace2b2cac24bbcbdeb5b74305aaf7f7f1001a24"
+  },
+  "app-3.24.0/resources/assets/flutter/webview_windows_ex_plugin.dll": {
+    "size": 1272304,
+    "sha256": "18c5075f79109a03a105c20588033a44d8193889ce977b03ab31d08839335948"
+  },
+  "app-3.24.0/resources/assets/flutter/win_flutter_module.dll": {
+    "size": 195056,
+    "sha256": "cb0e70e01c89e1cb5cb5c53baaa527e2cbbd96760111ce5763be5815e166cde3"
+  },
+  "app-3.24.0/resources/assets/flutter/win_flutter_module.sym": {
+    "size": 1079754,
+    "sha256": "389770c71ea63e38b72f45a8a06a8f16183aeb83fdd7df4d3ec1e2731faba7c2"
+  },
+  "app-3.24.0/resources/assets/flutter/window_manager_plugin.dll": {
+    "size": 197616,
+    "sha256": "6ed6ec27e00670103742e117088e6f33273d3e207d9c8c232444d8165c57e7ed"
+  },
+  "app-3.24.0/resources/assets/flutter/wpk_uploader_plugin.dll": {
+    "size": 111088,
+    "sha256": "b40503985191cab468c7cf93978a435ea410276d7da7e64d250ea4283eaf5be6"
+  },
+  "app-3.24.0/resources/assets/icon.icns": {
+    "size": 111909,
+    "sha256": "6db2814c193690d44e7b7aa1c8e0949534315e2a7cba55f830c31f97a417de59"
+  },
+  "app-3.24.0/resources/assets/icon.ico": {
+    "size": 370070,
+    "sha256": "85a2e74eb26be765a4aa777a39f79bb940f5e21b550b31c3f150a7ff80437bdb"
+  },
+  "app-3.24.0/resources/assets/icon.png": {
+    "size": 32456,
+    "sha256": "227baae3545eaaf1b4c929b557c80b8b48f77118478511efbda468efb89cffe6"
+  },
+  "app-3.24.0/resources/assets/icon.svg": {
+    "size": 3373,
+    "sha256": "08545f22c3bd00fca027a79a26f605c815166a0f18ffe41ce706b5cf68525bd1"
+  },
+  "app-3.24.0/resources/assets/icon_mac.png": {
+    "size": 147183,
+    "sha256": "f4642ed624754856e667d9f46c2960c162e8d15e52391b1c1363b4f1877b9ca9"
+  },
+  "app-3.24.0/resources/assets/icon_win.ico": {
+    "size": 42977,
+    "sha256": "a40340df9de2fd85566b99c5aec2a4d8af5ce4e90565eb16ceda47626c1c4fa0"
+  },
+  "app-3.24.0/resources/assets/icon_win.png": {
+    "size": 17759,
+    "sha256": "f653d6532980b5a124bc222828c1822ffd75341a3690729563798483e65a62bd"
+  },
+  "app-3.24.0/resources/assets/icons/1024x1024.png": {
+    "size": 159736,
+    "sha256": "e4b9b8de0ec21096639322371ff218e39407e7cbdf016162d2c07feb99f7626d"
+  },
+  "app-3.24.0/resources/assets/icons/128x128.png": {
+    "size": 17611,
+    "sha256": "10a98c06439bdc33fd6b7ffb6f3ae28a3c150b5e1aac989bb60d71a613f47693"
+  },
+  "app-3.24.0/resources/assets/icons/16x16.png": {
+    "size": 954,
+    "sha256": "ac1d4716fef9dc3011b28d07cd171fbdc76bafd5fc16a2762fa6df840fe2e61c"
+  },
+  "app-3.24.0/resources/assets/icons/24x24.png": {
+    "size": 1907,
+    "sha256": "7b64d38adcace8410b5d57c4001cf53a6c6acc5c86fe697bfd4d0d0efdd7d94e"
+  },
+  "app-3.24.0/resources/assets/icons/256x256.png": {
+    "size": 32456,
+    "sha256": "227baae3545eaaf1b4c929b557c80b8b48f77118478511efbda468efb89cffe6"
+  },
+  "app-3.24.0/resources/assets/icons/32x32.png": {
+    "size": 2017,
+    "sha256": "ab36e4accfe518dc969b8f2c6d41d0a1d78faf7359ad1e71bd2bd70972ab9f0f"
+  },
+  "app-3.24.0/resources/assets/icons/48x48.png": {
+    "size": 5159,
+    "sha256": "914275aa36f72f1c11c26eb64c4e084a785d64ab0ac9500d4d38c63d028bdd7f"
+  },
+  "app-3.24.0/resources/assets/icons/512x512.png": {
+    "size": 79296,
+    "sha256": "74cc050e39934bdf2960a4c14d703c7fc2c8a80a79dbd211fcce429454adb74e"
+  },
+  "app-3.24.0/resources/assets/icons/64x64.png": {
+    "size": 7454,
+    "sha256": "345769d914aa7e09db98538a9278f7fa871de8fea2bec04c2e4f0ac4a032aa70"
+  },
+  "app-3.24.0/resources/assets/icons/96x96.png": {
+    "size": 12526,
+    "sha256": "cd72026acabe00f64658be79e9048af23852372fcfd98bedeea987616e14b305"
+  },
+  "app-3.24.0/resources/assets/install_quark.sh": {
+    "size": 376,
+    "sha256": "5457299b16c4bc4fbb255505023dc1f0b8221f8a94172166db968cbcd5352c7f"
+  },
+  "app-3.24.0/resources/assets/install_quark_quiet.sh": {
+    "size": 3953,
+    "sha256": "2e4787157a00ea4aa515e0eb6f237fd03800a1523ab40b38278643047e5a03d6"
+  },
+  "app-3.24.0/resources/assets/pdfsdk/icudtl.dat": {
+    "size": 185360,
+    "sha256": "1bdf012f3db4cd63957a2b182eb5ed52d0f1c2893da9c05800c298eb9b1422eb"
+  },
+  "app-3.24.0/resources/assets/pdfsdk/libcurl.dll": {
+    "size": 625648,
+    "sha256": "3488dca646141cc4f849226a2118234a2610dbe6ac4036906dd45c9791bb3b71"
+  },
+  "app-3.24.0/resources/assets/pdfsdk/pdfium.dll": {
+    "size": 4695024,
+    "sha256": "63e392ba18c607653b4c17db9190619d5cae6b8346577e4a450bc9cd56335eae"
+  },
+  "app-3.24.0/resources/assets/pdfsdk/pdfsdk.node": {
+    "size": 668720,
+    "sha256": "dcaf498858d82b2b0facf836abddaf487e8c72efa5277cb6175d1c1ee87c1a20"
+  },
+  "app-3.24.0/resources/assets/pdfsdk/zlib.dll": {
+    "size": 229360,
+    "sha256": "aac65887b13cb0d6e951e3a81cc680b37030f2b195cc4c1ac53f5265cc163d83"
+  },
+  "app-3.24.0/resources/assets/sfta/sfta.dll": {
+    "size": 30224,
+    "sha256": "9dd08a573b85b58c2c444b9a49deee48a52fa2dc01e420a8c919a78efa0e7516"
+  },
+  "app-3.24.0/resources/assets/sfta/ucrtbased.dll": {
+    "size": 2232848,
+    "sha256": "0774e8c522c283fc0005697f7b7818a2021e99fa6be4deead575778100d8ca24"
+  },
+  "app-3.24.0/resources/assets/sfta/vcruntime140_1d.dll": {
+    "size": 56848,
+    "sha256": "b8dea1ec4cd362410fbba3db71ec9020b2a978aa20530b6e30c12fc8a92320d1"
+  },
+  "app-3.24.0/resources/assets/sfta/vcruntime140d.dll": {
+    "size": 168464,
+    "sha256": "a74c7228ba5d7a2b94bfc2ac95c9bee040b55420c62d8eb6152829d507deb6c2"
+  },
+  "app-3.24.0/resources/assets/win32/QuarkMenuExtension.dll": {
+    "size": 5979632,
+    "sha256": "aa8d7cad82f423214dec57c77e93b12a1d9f0abbeb96fbb9937aaf3e2c716623"
+  },
+  "app-3.24.0/resources/assets/win32/QuarkOffice/QuarkDriveOfficeAddin.dll": {
+    "size": 936944,
+    "sha256": "bfb26b9ff331d06724248e502b8bfb27b362dac5d9c81c11e4a3a1f3dbee1646"
+  },
+  "app-3.24.0/resources/assets/win32/QuarkOffice/QuarkDriveOfficeAddinX86.dll": {
+    "size": 405488,
+    "sha256": "ebb1dac614332c68056e4613ee1dccaf6f6b7a411e70657bc21b3e539accc414"
+  },
+  "app-3.24.0/resources/assets/win32/QuarkOffice/QuarkOfficeHistoryPane.dll": {
+    "size": 419824,
+    "sha256": "404d491c3028cfbc2a6288113c34ee2b6edef3fb76845cc200556c05319d4627"
+  },
+  "app-3.24.0/resources/assets/win32/QuarkOffice/QuarkOfficeHistoryPaneX86.dll": {
+    "size": 360432,
+    "sha256": "7c7a300a770773827192a8ccf1c3bd333d8eb45c7af3c67b3f024f641c21ea3b"
+  },
+  "app-3.24.0/resources/assets/win32/mp4.ico": {
+    "size": 38571,
+    "sha256": "eca4d8ece0beafb23578c12771e06b495bf3fa26c2ad31bc53e481ad9573ec3b"
+  },
+  "app-3.24.0/resources/assets/win32/torrent.ico": {
+    "size": 40478,
+    "sha256": "e0d8682dc326d7e6003c303652e078384cd47cad62ec7107e57db6a976c781cb"
+  },
+  "app-3.24.0/resources/elevate.exe": {
+    "size": 118320,
+    "sha256": "9458b0ad51c28399d0b4e5670d977449abeb09c0badb2c4984217794bc8c98dd"
+  },
+  "app-3.24.0/resources/iuc_preload.js": {
+    "size": 256,
+    "sha256": "40a1afdcdbf60dbc2e616c77111dabba938484dcabccd51621fec21f4e241a74"
+  },
+  "app-3.24.0/resources.pak": {
+    "size": 5100520,
+    "sha256": "9064217e5c4bb9a37b4e24da5fe5db16cd3f50016ba5bff457c14fa1c6e51c82"
+  },
+  "app-3.24.0/snapshot_blob.bin": {
+    "size": 273328,
+    "sha256": "7c34948914677a9c3e0dfe970f6fa4ecb7e3c0fd2987bb92e4763990bbe189ab"
+  },
+  "app-3.24.0/ulog.dll": {
+    "size": 2628592,
+    "sha256": "bda4f061c5becfd8a39139aa2b1aaab1d432c96b8587527d875b5855813f97ef"
+  },
+  "app-3.24.0/unet.dll": {
+    "size": 8493040,
+    "sha256": "dc2d460b63a9a01099793250b826b136ba10b36afe6d3b44171660372537f9ad"
+  },
+  "app-3.24.0/v8_context_snapshot.bin": {
+    "size": 588784,
+    "sha256": "e7e8802e9192796ae29e9ae73c15fa9e77f7bf29a344b2047e65bd4356318ced"
+  },
+  "app-3.24.0/vcruntime140.dll": {
+    "size": 109440,
+    "sha256": "69320f278d90efaaeb67e2a1b55e5b0543883125834c812c8d9c39676e0494fc"
+  },
+  "app-3.24.0/vcruntime140_1.dll": {
+    "size": 49560,
+    "sha256": "6fd366a691ed68430bcd0a3de3d8d19a0cb2102952bfc140bbef4354ed082c47"
+  },
+  "app-3.24.0/ver.ici": {
+    "size": 6,
+    "sha256": "ff32d42bf7fd59d4b5a636dbedcc2c9a6c9f7b2f3f4d3f8c7c7e9bc63dd20d98"
+  },
+  "app-3.24.0/vk_swiftshader.dll": {
+    "size": 5348848,
+    "sha256": "bd2558297212462609616742ba8bc032bd658937f138281932ccaa549f137bf8"
+  },
+  "app-3.24.0/vk_swiftshader_icd.json": {
+    "size": 106,
+    "sha256": "32d83ff113fef532a9f97e0d2831f8656628ab1c99e9060f0332b1532839afd9"
+  },
+  "app-3.24.0/vulkan-1.dll": {
+    "size": 942576,
+    "sha256": "95794a521fe406d267aecb4fa52ca128002fd294675c03ab229edfb64de864f8"
+  },
+  "app-3.24.0/webview_service_export.dll": {
+    "size": 2120688,
+    "sha256": "b95462d1bf1d240e2087547298ce3c2d325b2c1216f14bc879e9643bd18bb41f"
+  },
+  "app-3.24.0/wtnet.dll": {
+    "size": 317936,
+    "sha256": "77b6eae99c8a2d2843a290700bfc64cd0a236a7a33c8ab031f5006c3a44095d1"
+  },
+  "app-3.24.0/zlib1.dll": {
+    "size": 88888,
+    "sha256": "0ab6e9f64123d6a9d80ec6a5f590effe9f1858f84dab92e9c02c2c72c8cfd131"
+  },
+  "app-3.24.0/zlibwapi.dll": {
+    "size": 197104,
+    "sha256": "2d57ace9e2ec0e34d57274a27766b9c8610c6d900eb2eacdc797f5d83ac0db5f"
+  },
+  "app-3.24.0/左岸麦田博客更新.url": {
+    "size": 236,
+    "sha256": "c8d18a5481264f5f7681ba8814d79601daf1632fd97982f7978a190c8540c53c"
+  }
+}

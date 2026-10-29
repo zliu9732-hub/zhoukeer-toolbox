@@ -144,7 +144,7 @@ https://github.com/Kaal31/benderthemes/releases/tag/v1.10.7
 ## 夸克网盘 / Quark Cloud Drive
 
 - 原作者及权利方：广州市动悦信息技术有限公司。官方页面：<https://pan.quark.cn/>。客户端为官方专有软件，不属于 Renkit 开源代码，使用及附带组件适用其原有条款。
-- 固定官方 Windows 完整版本 7.4.2.820，SHA256：`a2e1d6a095d938addc1da8e43faacea6a088023e7075cb694e1b6547b2934fd9`。按维护者要求保留未修改完整原包，单独存放在 Gitee mirror-6；Renkit 更新包只携带安装代码与官网原图标，不内置客户端。
+- 按维护者提供的第三方整理 3.24.0 免安装版分发；原 7z SHA256：`f803768ab05478bc11cdc2a9cd7fa890121b2f2706bcc7ce337ff660736422ab`。保留全部程序文件与许可证，不执行附带配置覆盖脚本；分发包 SHA256：`55ac546da136b4f9680960390ef8604f96c2d73be29157f582ca831126ccca80`，单独存放在 Gitee mirror-6。Renkit 更新包只携带部署代码、核验清单与官网原图标，不内置客户端，不宣称是官方原始包。
 - 通过既有 Proton 环境启动，不修改应用界面、作者、许可证或组件，不添加汉化署名。来源、官网图标地址与验证方法见 `docs/quark.md`。
 
 ## ROG Xbox Ally X20 RC74XA 修复组件

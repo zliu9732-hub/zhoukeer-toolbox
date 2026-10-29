@@ -25,6 +25,23 @@ quark_exe_valid() {
         [ "$(od -An -tx1 -N2 "$1" 2>/dev/null | tr -d ' \n')" = 4d5a ]
 }
 
+quark_download_portable() (
+    local output="$1" temporary attempt
+    temporary="$(mktemp "$QUARK_APP_DIR/.download.XXXXXX")" || return 1
+    trap 'rm -f -- "$temporary"' EXIT
+    for attempt in 1 2; do
+        if download_gitee_mirror_file "$LAUNCHER_GITEE_MIRROR_ID" "$temporary" \
+            "$LAUNCHER_FIXED_SHA256" "$LAUNCHER_NAME" && \
+            verify_installer "$temporary" >/dev/null 2>&1; then
+            mv -- "$temporary" "$output" || return 1
+            return 0
+        fi
+        [ "$attempt" -ne 1 ] || echo '下载失败，正在重新尝试。'
+    done
+    echo '夸克网盘下载未完成，请稍后重试。'
+    return 1
+)
+
 quark_shortcuts() (
     local wrapper="$1" desktop_dir applications_dir target staged
     desktop_dir="$(renkit_desktop_dir)"; applications_dir="$(renkit_applications_dir)"
@@ -57,16 +74,17 @@ EOF
 )
 
 install_quark() (
-    local steam_root prefix exe runner installer selected status wrapper
+    local steam_root prefix exe runner installer selected status wrapper drive
+    local helper="$PROJECT_ROOT/scripts/quark_portable.py"
     detect_platform
     [ "$IS_STEAMOS" -eq 1 ] || { echo '夸克网盘安装目前仅支持 SteamOS。'; return 1; }
     launcher_details quark || return 1
     quark_paths_safe || return 1
     steam_root="$(find_steam_root)" || return 1
     prefix="$QUARK_APP_DIR/compatdata"
-    exe="$(find_launcher_in_prefix "$prefix" 2>/dev/null || true)"
+    exe="$(python3 "$helper" check "$prefix/pfx/drive_c" 2>/dev/null || true)"
     if [ -n "$exe" ] && quark_exe_valid "$exe"; then
-        echo '夸克网盘已安装，正在检查启动入口。'
+        echo '夸克网盘已准备好，正在检查启动入口。'
     else
         if [ ! -d "$prefix/pfx/drive_c" ]; then
             if selected="$(select_launcher_storage_base quark "$steam_root")"; then
@@ -80,19 +98,19 @@ install_quark() (
         mkdir -p -- "$QUARK_APP_DIR" || return 1
         installer="$QUARK_APP_DIR/$LAUNCHER_FILE_NAME"
         if ! verify_installer "$installer" >/dev/null 2>&1; then
-            download_launcher_installer "$installer" || return 1
+            quark_download_portable "$installer" || return 1
         fi
         verify_installer "$installer" >/dev/null 2>&1 || return 1
         runner="$(ensure_launcher_proton_runner quark "$steam_root")" || return 1
         # A partial previous installation may contain settings/downloads: reuse it.
         if [ ! -d "$prefix/pfx/drive_c" ]; then
-            local drive
             drive="$(launcher_drive_c quark)"
             mkdir -p -- "$drive" || return 1
             prefix="$(prepare_launcher_shared_prefix quark "$drive")" || return 1
         fi
-        exe="$(run_launcher_installer quark "$steam_root" "$installer" "$prefix" "$runner")" || {
-            echo '夸克网盘安装未完成，已有文件已保留，可重新点击安装。'
+        echo '正在准备夸克网盘…'
+        exe="$(python3 "$helper" install "$prefix/pfx/drive_c" "$installer")" || {
+            echo '夸克网盘准备未完成，已有文件已保留。'
             return 1
         }
         quark_exe_valid "$exe" || { echo '未找到完整的夸克网盘程序，请重试。'; return 1; }
