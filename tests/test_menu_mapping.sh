@@ -122,7 +122,7 @@ assert_contains "$touch_decky_loader" 'modules/pink_white_gradient_theme.sh" ins
 assert_contains "$touch_decky_loader" '粉白渐变 粉色主题' "Decky Loader 子菜单缺少 粉白渐变 粉色主题入口"
 assert_contains "$touch_games" 'right:9-10:browse' "浏览官方插件触控坐标错误"
 assert_contains "$touch_games" 'right:19-20:feature-singles' "其余常用插件入口坐标错误"
-assert_contains "$touch_feature_singles" 'right:5-6:steamgriddb right:7-8:cssloader right:9-10:friendeck right:11-12:deckymusic right:13-14:fantastic right:15-16:screen-colors' "其余常用插件独立入口坐标错误"
+assert_contains "$touch_feature_singles" 'right:5-6:steamgriddb right:8-9:cssloader right:11-12:friendeck right:14-15:deckymusic right:16-17:next' "其余常用插件独立入口坐标错误"
 assert_contains "$touch_feature_singles" 'modules/plugin_store.sh" screen-colors' "屏幕色彩安装动作错误"
 assert_not_contains "$touch_games" 'right:9-10:deckrecall' "DeckRecall 仍显示在插件第一页"
 assert_contains "$touch_games" 'NEXT_CATEGORY="freedeck_versions"' "Freedeck 未进入版本选择子菜单"

@@ -13,6 +13,7 @@ source "$PROJECT_ROOT/modules/steam_accelerator.sh"
 source "$PROJECT_ROOT/modules/framegen_updates.sh"
 source "$PROJECT_ROOT/modules/ayaneo3.sh"
 source "$PROJECT_ROOT/modules/screen_colors.sh"
+source "$PROJECT_ROOT/modules/gfg_extreme.sh"
 source "$PROJECT_ROOT/core/lsfg_choice.sh"
 source "$PROJECT_ROOT/core/plugin_cleanup_choice.sh"
 source "$PROJECT_ROOT/modules/lsfg_install.sh"
@@ -4025,6 +4026,9 @@ install_configured_plugin() {
     fi
 
     case "$action" in
+        gfg-extreme)
+            ensure_gfg_extreme_chinese_current || return 1
+            ;;
         screen-colors)
             ensure_screen_colors_chinese_current || return 1
             ;;
@@ -4969,6 +4973,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         allycenter) show_plugin_download_speed_tip; install_configured_plugin allycenter ;;
         ayaneo3) install_configured_plugin ayaneo3 ;;
         screen-colors) install_configured_plugin screen-colors ;;
+        gfg-extreme) install_configured_plugin gfg-extreme ;;
         powercontrol) show_plugin_download_speed_tip; install_configured_plugin powercontrol ;;
         huesync) show_plugin_download_speed_tip; install_configured_plugin huesync ;;
         legiongo-remapper) show_plugin_download_speed_tip; install_configured_plugin legiongo-remapper ;;

@@ -493,7 +493,7 @@ sdweak_manual_confirm() {
     draw_category_frame advanced "安装 SDWEAK" "可提升游戏性能、减少卡顿；效果因游戏而异" 0
     ui_panel_line 4 '' "警告：仅 Steam Deck LCD / OLED 可用"
     ui_panel_line 5 '' "其他掌机一律禁止安装"
-    ui_panel_line 7 '' "仅 SteamOS 3.8；先卸载 CryoUtilities"
+    ui_panel_line 7 '' "仅 SteamOS 3.9；先卸载 CryoUtilities"
     ui_panel_line 9 '' "需要管理员权限，修改系统和启动设置"
     ui_panel_line 10 '' "关闭部分安全保护，可能影响稳定性"
     ui_panel_line 12 '' "可选屏幕提速仅限 LCD，可能显示异常"
@@ -591,28 +591,41 @@ game_environment_menu() {
 }
 
 feature_plugin_singles_menu() {
-    local choice
+    local choice page=1
 
     while true; do
-        draw_category_frame games "其余常用插件" "单独安装游戏模式的常用功能" 0
-        ui_touch_button 5 '\033[1;97;48;5;24m' "游戏封面更换" "更换 Steam 游戏封面"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "主题美化" "更换游戏模式的界面主题和样式"
-        ui_touch_button 9 '\033[1;97;48;5;24m' "文件传输助手" "在掌机和其他设备之间传文件"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "音乐播放器" "Decky Music v1.0.2 完整包 · 音乐源已内置"
-        ui_touch_button 13 '\033[1;97;48;5;160m' "Fantastic 风扇控制" "完整汉化版 · 汉化：RenAmamiya · 注意温度"
-        ui_touch_button 15 '\033[1;97;48;5;24m' "屏幕色彩" "调整颜色与一键效果 · 汉化：RenAmamiya"
+        draw_category_frame games "其余常用插件（$page/2）" "单独安装游戏模式的常用功能" 0
+        if [ "$page" -eq 1 ]; then
+            ui_touch_button 5 '\033[1;97;48;5;24m' "游戏封面更换" "更换 Steam 游戏封面"
+            ui_touch_button 8 '\033[1;97;48;5;24m' "主题美化" "更换游戏模式的界面主题和样式"
+            ui_touch_button 11 '\033[1;97;48;5;24m' "文件传输助手" "在掌机和其他设备之间传文件"
+            ui_touch_button 14 '\033[1;97;48;5;24m' "音乐播放器" "Decky Music · 支持 QQ 音乐和网易云音乐"
+            ui_touch_button 16 '\033[1;97;48;5;24m' "下一页" "功耗、风扇与屏幕色彩"
+        else
+            ui_touch_button 5 '\033[1;97;48;5;160m' "GFG Extreme 功耗与补帧" "自动调节耗电与流畅度 · 汉化：RenAmamiya"
+            ui_touch_button 8 '\033[1;97;48;5;160m' "Fantastic 风扇控制" "完整汉化版 · 汉化：RenAmamiya · 注意温度"
+            ui_touch_button 11 '\033[1;97;48;5;24m' "屏幕色彩" "调整颜色与一键效果 · 汉化：RenAmamiya"
+            ui_touch_button 16 '\033[1;97;48;5;24m' "上一页" "封面、主题、文件传输与音乐"
+        fi
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "不进行安装"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:steamgriddb right:7-8:cssloader right:9-10:friendeck right:11-12:deckymusic right:13-14:fantastic right:15-16:screen-colors right:19-20:back right:22-23:home)"
+        if [ "$page" -eq 1 ]; then
+            choice="$(read_touch_menu right:5-6:steamgriddb right:8-9:cssloader right:11-12:friendeck right:14-15:deckymusic right:16-17:next right:19-20:back right:22-23:home)"
+        else
+            choice="$(read_touch_menu right:5-6:gfg-extreme right:8-9:fantastic right:11-12:screen-colors right:16-17:previous right:19-20:back right:22-23:home)"
+        fi
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
+            next) page=2 ;;
+            previous) page=1 ;;
             steamgriddb) confirm_and_run "安装游戏封面更换" "更换 Steam 游戏封面" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
             cssloader) confirm_and_run "安装主题美化" "更换游戏模式的界面主题和样式" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
             friendeck) confirm_and_run "安装文件传输助手" "在掌机和其他设备之间传文件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
             deckymusic) confirm_and_run "安装音乐播放器" "在游戏模式听音乐，支持 QQ 音乐和网易云音乐" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
             fantastic) confirm_and_run "安装 Fantastic 风扇控制" "高风险：Fantastic 会覆盖 SteamOS 默认风扇曲线，过低转速可能导致设备过热；仅适用于 Steam Deck。将直接安装带 RenAmamiya 署名的完整汉化包" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fantastic ;;
             screen-colors) confirm_and_run "安装屏幕色彩" "调整游戏模式下的屏幕色彩，提供影院、鲜艳、舒适和类 OLED 效果；可一键恢复原始色彩。仅在游戏模式生效，会使用管理员权限；类 OLED 效果不会改变屏幕本身。汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" screen-colors ;;
+            gfg-extreme) confirm_and_run "安装 GFG Extreme 功耗与补帧" "自动调节功耗并提供游戏补帧；仅适用于 Steam Deck / SteamOS。需要管理员权限，首次启动会迁移设置并清理旧 GFG/MAKO 组件，保留上游备份。启用引擎后需要手动重启，勿与其他功耗插件同时启用；在插件中移除引擎后重启可恢复。汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" gfg-extreme ;;
             back) return 0 ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
         esac

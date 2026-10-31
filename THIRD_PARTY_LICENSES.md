@@ -105,13 +105,13 @@ SteamOS 的 GCC 与 Launch Pack 型号修改在临时构建副本中完成；保
 完整结构与受限安装路径。机型配置沿用上游文件，自定义配置保留；被替换文件备份到
 `/var/lib/renkit/inputplumber-backups/`，更新失败时尝试恢复。
 
-### SDWEAK 2.1
+### SDWEAK 2.2.0
 
 作者：Taskerer / @noncatt 及贡献者；许可证：MIT。
-来源：https://github.com/Taskerer/SDWEAK/releases/tag/v2.1.0
-核验源码提交：`8c32e86fff3c754ac4819524edf7fff4c4e04de3`。
-官方 SDWEAK.zip SHA256：`5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e`。
-Renkit 3.2.5 起随包提供 20394 字节的必需组件包，保留官方原包中除两个未使用显卡包外的全部 14 个原始文件、作者、README 与 MIT LICENSE。组件 ZIP SHA256：`e53841b26615314b9903f4714acec2f1b6ca1aa3fe4dbf456d19948e6ad8c25d`。安装前校验完整组件包，不额外联网；旧版所需的 mirror-3 原包分块仍保留，重组仍匹配上述官方 SHA256。
+来源：https://github.com/Taskerer/SDWEAK/releases/tag/v2.2.0
+核验来源：v2.2.0 发布附件及对应标签源码。
+官方 SDWEAK.zip SHA256：`cf7c3a4f180880a3f4be52794b800955772a269743421ca4e22446ce7bf9c40a`。
+Renkit 3.3.8 随包提供 19884 字节的必需组件包，保留官方原包中除两个未使用显卡包外的全部 13 个原始文件、作者、README 与 MIT LICENSE。组件 ZIP SHA256：`b12b43bb4dfeb556d07111e77b17f2046ed0deb9ea8f6c4d6da9c90108dfa2f8`。安装前校验完整组件包，不额外联网；旧版所需的 mirror-3 原包分块仍保留，重组仍匹配上述官方 SHA256。
 Renkit 准备副本的改动：中文提示与失败步骤、沿用管理员验证、失败即停止、
 下载校验后不重复探测网络、文件访问选项为空时正常处理、内存优化在手动重启时生效，
 保留全局软件签名检查、密钥和缓存，省略实验性显示组件替换、不自动重启；
@@ -152,3 +152,11 @@ https://github.com/Kaal31/benderthemes/releases/tag/v1.10.7
 位置：`third_party/rc74xa-offline-20261024/`。用户提供原 ZIP：`RC74XA-SteamOS39-Offline-20261024.zip`，SHA256 `14993b42db2b7b229e5fb75e9119d3e3bcb9044774ed6b6d40f7d3ff75f5676a`。
 
 音频：hungarianhc/rog-ally-x20-steamos-speakers，提交 `528d4da0eeba35ee9b0ff6851db1e12dc5a178bc`；插件：ovenham/rog-ally-x20-steamos-speaker-qam-fix v1.0.3。GPL-2.0-only，例外文件与模板按包内 BSD-3-Clause 许可；TI 固件来自 linux-firmware 固定提交，按 `licenses/LICENCE.ti-tspa` 和 WHENCE 分发。原上游代码、发布 ZIP 与许可一并保留，不添加汉化署名。集成变化见 `RENKIT-INTEGRATION.md`：省略重复 Decky 程序和证据缓存，复用 Renkit 既有商城准备逻辑，补充完整性/路径检查并移除已禁用的联网构建实现。组件不是 ASUS 官方补丁，预编译模块没有由本项目独立重建或进行实机验证。
+
+## GFG Extreme 3.0.10 中文界面
+
+原作者：Eugenio Segala 及原贡献者；许可证：GPL-3.0-or-later。
+来源：https://github.com/wavessevaw/GFG-Extreme/releases/tag/v3.0.10 。
+固定源码提交：`ea3826a4de3f0b11084ba1fa8b7fbbe84d7b8a14`。官方 ZIP SHA256：`bba6bbaeb8c233cccf5ebd738b6a345bd8cf032e24175b15924af157fc386584`。
+中文包保留全部引擎、运行库、后端与许可证，附对应前端源码。改动限显示名称、完整 UI/通知/动态状态和 HUD 显示字形，控制算法与系统操作保持上游实现；Renkit 包顶部显示黄色 RenAmamiya 汉化署名。文件与权限清单位于 `data/gfg_extreme_files.json`，维护说明见 `docs/gfg-extreme.md`。
+HUD 新增中文字符来自 Noto Sans SC（SIL OFL 1.1）；源字体 SHA256 `a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da`。字体许可证保存在 `assets/gfg-extreme/NotoSansSC-OFL.txt`，随中文插件保留；原 Inter 字形及其许可证不变。

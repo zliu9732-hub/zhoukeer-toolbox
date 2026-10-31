@@ -31,7 +31,7 @@ printf '\nSDWEAK_FLOW_DONE\n'
    frame=read_until(master,b'\x1b[?1006h');y,x=item_position(frame,'高级操作');os.write(master,click(x,y))
    frame=read_until(master,b'\x1b[?1006h');y,x=item_position(frame,'安装 SDWEAK');os.write(master,click(x,y))
    frame=read_until(master,b'\x1b[?1006h')
-   for notice in ['警告：仅 Steam Deck LCD / OLED 可用','其他掌机一律禁止安装','仅 SteamOS 3.8；先卸载 CryoUtilities','需要管理员权限，修改系统和启动设置','关闭部分安全保护，可能影响稳定性','失败可能留下改动；结束恢复只读保护']:
+   for notice in ['警告：仅 Steam Deck LCD / OLED 可用','其他掌机一律禁止安装','仅 SteamOS 3.9；先卸载 CryoUtilities','需要管理员权限，修改系统和启动设置','关闭部分安全保护，可能影响稳定性','失败可能留下改动；结束恢复只读保护']:
     check(notice in frame,'Missing risk notice');y,x=item_position(frame,notice)
     width=sum(2 if unicodedata.east_asian_width(c) in ('W','F') else 1 for c in notice)
     check(x+1+width<=70,f'Risk notice clipped: {notice} x={x}, width={width}')

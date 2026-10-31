@@ -1,6 +1,6 @@
 # SDWEAK 安装检查与修复
 
-仅支持 Steam Deck LCD/OLED 和 SteamOS 3.8。原有机型核对、管理员确认、系统改动及安全保护风险提示保持不变；其他掌机禁止安装。
+仅支持 Steam Deck LCD/OLED 和 SteamOS 3.9。原有机型核对、管理员确认、系统改动及安全保护风险提示保持不变；其他掌机禁止安装。
 
 ## 2026-10-22 排查结果
 
@@ -10,11 +10,11 @@
 
 ## 当前安装方式
 
-Renkit 原先已经省略了实验性显示组件替换，但每次仍下载两个没有使用的显卡组件。现在将其余 14 个上游原始文件组成约 20 KiB 的必需组件包，包含原作者、MIT 许可证、README 和原始脚本，随 Renkit 更新包一起提供。安装不再发起额外下载，不再依赖 GitHub、代理、分块请求或网络探测。
+Renkit 原先已经省略了实验性显示组件替换，但每次仍下载两个没有使用的显卡组件。现在将其余 13 个上游原始文件组成约 20 KiB 的必需组件包，包含原作者、MIT 许可证、README 和原始脚本，随 Renkit 更新包一起提供。安装不再发起额外下载，不再依赖 GitHub、代理、分块请求或网络探测。
 
-- 组件包：`assets/sdweak/SDWEAK-core-v2.1.0.zip`，20394 字节。
-- SHA256：`e53841b26615314b9903f4714acec2f1b6ca1aa3fe4dbf456d19948e6ad8c25d`。
-- 来源：官方 v2.1.0 原包。只移除 `assets/gamescope-3.16.23.2-1-SDWEAK.pkg.tar.zst` 和 `assets/vulkan-radeon-SDWEAK.pkg.tar.zst`；包内其余文件保持原字节。ZIP 条目按名称排序，时间统一为 2020-01-01、权限 0644、DEFLATE 级别 9，便于复现。
+- 组件包：`assets/sdweak/SDWEAK-core-v2.2.0.zip`，19884 字节。
+- SHA256：`b12b43bb4dfeb556d07111e77b17f2046ed0deb9ea8f6c4d6da9c90108dfa2f8`。
+- 来源：官方 v2.2.0 原包。只移除 `assets/gamescope-3.16.30.1-2-SDWEAK.pkg.tar.zst` 和 `assets/vulkan-radeon-26.2.0.steamos_26.05-SDWEAK.pkg.tar.zst`；包内其余文件保持原字节。ZIP 条目按名称排序，时间统一为 2020-01-01、权限 0644、DEFLATE 级别 9，便于复现。
 - `prepare_sdweak.py` 同时接受固定校验值的官方完整原包与必需组件包；逐项核对允许的文件、路径和链接后才准备安装副本。缺失或损坏时停止，明确提示尚未开始安装并更新 Renkit。
 - 旧原包分块仍保留供旧版 Renkit 兼容使用，不修改原包的固定校验值。
 
@@ -37,3 +37,9 @@ Renkit 原先已经省略了实验性显示组件替换，但每次仍下载两�
 用户新截图显示已进入安装，最后输出“已应用显卡优化设置”。源码接下来进入启动设置及 LCD 提速/节能优先选择。原问题使用 Bash `read -rp`，提示写到 stderr 且没有换行；`launch.sh` 的 `filter_terminal_stderr` 按行读取，因此问题可以被暂存，而输入仍在等待。改成 stdout 的显式换行问题，然后单独 `IFS= read -r answer`，保留 y/N 和回车跳过，不自动同意改动。同时在已有失败步骤标签处打印当前步骤，避免更新启动文件时没有反馈。
 
 `tests/test_sdweak_prepare.py` 增加真实 PTY 输入/输出、独立 stderr 的回归；对 Galileo 与 Jupiter 分别等待问题显示后才发送回车，确认跳过可选项并完成。权限与系统命令使用原测试的全量替身，macOS 不执行实际安装。
+
+## 2026-10-31：SteamOS 3.9
+
+升级至上游 v2.2.0（2026-10-26），更新安装器、版本检查和中文说明。上游移除了 scx_lavd 的安装及服务改动，由 SteamOS 自身维护；性能脚本与此前版本字节一致，继续保留 TF 卡可选项退出码、只读查询、可见终端问题与失败记录修复。未引入上游的可选显卡替换或软件签名配置改动。完整官方包 SHA256：`cf7c3a4f180880a3f4be52794b800955772a269743421ca4e22446ce7bf9c40a`。
+
+来源：<https://github.com/Taskerer/SDWEAK/releases/tag/v2.2.0>。README 中残留的 3.8 为上游原文；实际版本门槛以该版本安装器及中文说明的 SteamOS 3.9 为准。旧下载文件保留供已有版本校验，不覆盖旧版本哈希。

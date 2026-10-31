@@ -1,0 +1,3713 @@
+{
+  "schema": 1,
+  "upstream_version": "3.0.10",
+  "frontend_source_sha256": "22b89723d611fea32d38896c78901c5da17bfb4efeb00635d7ac5aa15717da7b",
+  "frontend": [
+    {
+      "line": 4,
+      "value": "./theme.js",
+      "parent": "ImportDeclaration",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 5,
+      "value": "./logo.js",
+      "parent": "ImportDeclaration",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 16,
+      "value": "get_state",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 16,
+      "value": "get_catalog",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 16,
+      "value": "set_profile",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 16,
+      "value": "drop_game_profile",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 17,
+      "value": "set_section",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 17,
+      "value": "engine_install",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 17,
+      "value": "engine_uninstall",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 17,
+      "value": "reboot",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 18,
+      "value": "diagnose",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 18,
+      "value": "run_bench",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 18,
+      "value": "save_report",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 18,
+      "value": "start_capture",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 19,
+      "value": "stop_capture",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 19,
+      "value": "list_captures",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 19,
+      "value": "get_logs",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 19,
+      "value": "take_over",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 22,
+      "value": "Dash",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 22,
+      "value": "Graphics",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 22,
+      "value": "Engine",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 22,
+      "value": "Setup",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 23,
+      "value": "number",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 30,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 32,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 32,
+      "value": "seg",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 33,
+      "value": "o",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 33,
+      "value": " on",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 34,
+      "value": "tog",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 34,
+      "value": " on",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 35,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 35,
+      "value": "lrow",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 35,
+      "value": " first",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 35,
+      "value": "span",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 35,
+      "value": "v",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 36,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 36,
+      "value": "card",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 36,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 36,
+      "value": "sec",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 39,
+      "value": "side",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 39,
+      "value": "classic",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 39,
+      "value": "compact",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 39,
+      "value": "arc",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 40,
+      "value": "gfg3.ring",
+      "parent": "VariableDeclarator",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 42,
+      "value": "side",
+      "parent": "ReturnStatement",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 49,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 49,
+      "value": "ring",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 50,
+      "value": "svg",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 51,
+      "value": "circle",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 51,
+      "value": "none",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 51,
+      "value": "#26262d",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 52,
+      "value": "circle",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 52,
+      "value": "none",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 52,
+      "value": "#fb0d00",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 52,
+      "value": "round",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 53,
+      "value": "circle",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 53,
+      "value": "arcg",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 53,
+      "value": "none",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 53,
+      "value": "#fb0d00",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 53,
+      "value": "round",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 54,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 54,
+      "value": "n",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 54,
+      "value": "img",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 54,
+      "value": "wolfimg",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 55,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 55,
+      "value": "big",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 55,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 55,
+      "value": "sm",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 59,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 59,
+      "value": "arc",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 60,
+      "value": "svg",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 61,
+      "value": "path",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 61,
+      "value": "M12 98 A83 83 0 0 1 178 98",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 61,
+      "value": "none",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 61,
+      "value": "#26262d",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 61,
+      "value": "round",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 62,
+      "value": "path",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 62,
+      "value": "arcg",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 62,
+      "value": "M12 98 A83 83 0 0 1 178 98",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 62,
+      "value": "none",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 62,
+      "value": "#fb0d00",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 62,
+      "value": "round",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 62,
+      "value": "drop-shadow(0 0 6px rgba(251,13,0,.75))",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 63,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 63,
+      "value": "n",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 63,
+      "value": "img",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 63,
+      "value": "wolfimg",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 64,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 64,
+      "value": "big",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 64,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 64,
+      "value": "sm",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 74,
+      "template": "hsl(",
+      "parent": "TemplateLiteral",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 78,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 78,
+      "value": "mini",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 79,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 79,
+      "value": "mring",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 80,
+      "value": "svg",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 81,
+      "value": "circle",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 81,
+      "value": "none",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 81,
+      "value": "#26262d",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 82,
+      "value": "circle",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 82,
+      "value": "mg",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 82,
+      "value": "none",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 82,
+      "value": "#4a4a55",
+      "parent": "LogicalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 82,
+      "value": "round",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 83,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 83,
+      "value": "mn",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 83,
+      "value": "b",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 83,
+      "value": "i",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 84,
+      "value": "span",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 88,
+      "value": "MEASURE",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 88,
+      "value": "LOCK",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 88,
+      "value": "GUARD",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 88,
+      "value": "ADAPT",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 89,
+      "value": "MEASURE",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 89,
+      "value": "ADAPT",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 89,
+      "value": "ADAPT",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 89,
+      "value": "GUARD",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 89,
+      "value": "LOCK",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 91,
+      "value": "active",
+      "parent": "BinaryExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 91,
+      "value": "OFF",
+      "parent": "ReturnStatement",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 92,
+      "value": "OFF",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 97,
+      "value": "Waiting for a game",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 97,
+      "value": "GFG Extreme starts when a game draws frames.",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 98,
+      "value": "conflict",
+      "parent": "BinaryExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 98,
+      "value": "Another tool owns the engine",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 98,
+      "value": "See Setup: take over or let it be.",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 99,
+      "value": "Measuring the game",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 99,
+      "value": "Trying the next point up",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 99,
+      "value": "Stepping down",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 99,
+      "value": "Point locked and guarded.",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 99,
+      "value": "Fixed multiplier",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 99,
+      "value": "Starting",
+      "parent": "LogicalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 101,
+      "value": "App ",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 102,
+      "value": "Autopilot",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 102,
+      "value": "adapts · 12 W",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 102,
+      "value": "Battery",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 102,
+      "value": "×3.75 · low watts",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 102,
+      "value": "Balanced",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 102,
+      "value": "best point",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 102,
+      "value": "Quality",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 102,
+      "value": "real frames",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 105,
+      "value": "svg",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 105,
+      "value": "none",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 105,
+      "value": "currentColor",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 105,
+      "value": "round",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 105,
+      "value": "round",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 107,
+      "value": "path",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 107,
+      "value": "M12 2.5l2.2 5.3 5.3 2.2-5.3 2.2L12 17.5l-2.2-5.3L4.5 10l5.3-2.2z",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 107,
+      "value": "currentColor",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 107,
+      "value": "none",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 107,
+      "value": "path",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 107,
+      "value": "M18.5 15.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 107,
+      "value": "currentColor",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 107,
+      "value": "none",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 108,
+      "value": "rect",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 108,
+      "value": "path",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 108,
+      "value": "M21.5 10.5v3",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 108,
+      "value": "rect",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 108,
+      "value": "currentColor",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 108,
+      "value": "none",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 109,
+      "value": "path",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 109,
+      "value": "M12 4v16M7 20h10M5 7h14",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 109,
+      "value": "path",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 109,
+      "value": "M5 7l-2.5 6a2.5 2.5 0 0 0 5 0z M19 7l-2.5 6a2.5 2.5 0 0 0 5 0z",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 110,
+      "value": "path",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 110,
+      "value": "M6 3h12l3 6-9 12L3 9z",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 110,
+      "value": "path",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 110,
+      "value": "M3 9h18M9.5 3L12 21M14.5 3L12 21",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 122,
+      "value": "arc",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 122,
+      "value": " REAL",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 123,
+      "value": " REAL",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 124,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 124,
+      "value": "st",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 125,
+      "value": "h3",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 125,
+      "value": "b",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 125,
+      "template": " FPS",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 126,
+      "value": "p",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 126,
+      "value": "br",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 127,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 127,
+      "value": "phase",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 127,
+      "value": "span",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 127,
+      "value": "on",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 128,
+      "value": "app:",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 128,
+      "value": "game",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 128,
+      "value": "default",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 130,
+      "value": "off",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 130,
+      "value": "Off",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 130,
+      "value": "auto",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 130,
+      "value": "Auto",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 130,
+      "value": "x2",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 130,
+      "value": "x3",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 130,
+      "value": "x3.75",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 130,
+      "value": "custom",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 130,
+      "value": "Custom",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 132,
+      "value": "sdr",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 134,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 135,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 135,
+      "value": "card hero",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 135,
+      "value": "side",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 135,
+      "value": " col",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 135,
+      "value": "herotap",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 136,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 136,
+      "value": "minis",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 138,
+      "value": "W",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 138,
+      "value": "TDP",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 140,
+      "value": "°C",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 140,
+      "value": "APU",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 141,
+      "value": "PACE",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 142,
+      "value": "HDR",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 142,
+      "value": "SDR",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 142,
+      "value": "COLOR",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 143,
+      "value": "CPU TOP",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 145,
+      "value": "GPU",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 148,
+      "value": "MAX",
+      "parent": "LogicalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 148,
+      "value": "GHz",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 148,
+      "value": "CPU CLOCK",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 149,
+      "value": "k rpm",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 149,
+      "value": "FAN",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 150,
+      "value": "MODE",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 150,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 150,
+      "value": "grid2",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 151,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 151,
+      "value": "tile mode m-",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 151,
+      "value": " on",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 152,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 152,
+      "value": "mico",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 152,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 152,
+      "value": "b",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 153,
+      "value": "span",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 153,
+      "value": "autopilot",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 153,
+      "value": "autopilot",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 153,
+      "value": "autopilot",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 153,
+      "value": "now ",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 154,
+      "value": "FRAME GENERATION",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 155,
+      "value": "custom",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 155,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 155,
+      "value": "lrow first",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 155,
+      "value": "Base FPS cap",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 156,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 156,
+      "value": "step",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 156,
+      "value": "b",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 157,
+      "value": "span",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 157,
+      "value": "val",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 157,
+      "value": "b",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 158,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 158,
+      "value": "note",
+      "parent": "Property",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 158,
+      "value": "custom",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 158,
+      "template": "The game is capped at ",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 158,
+      "template": " FPS, generation fills ",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 158,
+      "template": " Hz.",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 158,
+      "value": "Custom: the game is capped at your base FPS (20–90), generation fills the display.",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 159,
+      "value": "SETTINGS APPLY TO",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 159,
+      "value": "game",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 159,
+      "value": "This game",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 159,
+      "value": "default",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 159,
+      "value": "All games",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 160,
+      "value": "game",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 160,
+      "value": "game",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 166,
+      "value": "linear-gradient(135deg,#2a2a31,#151519)",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 166,
+      "value": "linear-gradient(135deg,#6f7682,#f2f5fa)",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 167,
+      "value": "linear-gradient(135deg,#ff2d55,#ffcc00 55%,#34c759)",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 167,
+      "value": "linear-gradient(135deg,#ff9500,#ffe7b0 50%,#2f7cf6)",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 168,
+      "value": "linear-gradient(135deg,#0f6a6a,#e09a3e)",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 168,
+      "value": "linear-gradient(135deg,#050505,#d9d9d9)",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 169,
+      "value": "linear-gradient(135deg,#6b3f17,#e6c27a)",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 169,
+      "value": "linear-gradient(135deg,#3a4a66,#9fb4d9)",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 172,
+      "value": "none",
+      "parent": "BinaryExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 173,
+      "value": "none",
+      "parent": "BinaryExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 174,
+      "value": "No effect",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 178,
+      "value": "none",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 178,
+      "value": "none",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 179,
+      "value": "app:",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 179,
+      "value": "game",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 179,
+      "value": "default",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 183,
+      "value": "none",
+      "parent": "LogicalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 183,
+      "value": "none",
+      "parent": "LogicalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 183,
+      "value": "none",
+      "parent": "LogicalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 183,
+      "value": "none",
+      "parent": "LogicalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 184,
+      "value": "custom",
+      "parent": "LogicalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 186,
+      "value": "sdr",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 189,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 189,
+      "value": "step",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 189,
+      "value": "b",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 190,
+      "value": "span",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 190,
+      "value": "val",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 190,
+      "value": "b",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 191,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 192,
+      "value": "LOOK",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 193,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 193,
+      "value": "fgrid",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 194,
+      "value": "ftile",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 194,
+      "value": " on",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 195,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 195,
+      "value": "sw",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 195,
+      "value": "off",
+      "parent": "BinaryExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 195,
+      "value": "i",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 195,
+      "value": "slash",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 196,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 196,
+      "value": "fl",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 197,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 197,
+      "value": "fmore",
+      "parent": "Property",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 197,
+      "value": "span",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 197,
+      "value": "custom",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 197,
+      "value": "Custom · ",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 198,
+      "value": "SHARPENING",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 198,
+      "value": "none",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 198,
+      "value": "Off",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 198,
+      "value": "cas",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 198,
+      "value": "CAS",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 198,
+      "value": "dls",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 198,
+      "value": "DLS",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 199,
+      "value": "none",
+      "parent": "BinaryExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 199,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 199,
+      "value": "lrow first",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 199,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 199,
+      "value": "t2",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 199,
+      "value": "b",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 199,
+      "value": "Strength",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 199,
+      "value": "span",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 199,
+      "value": "May show grain",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 199,
+      "value": "sharpness",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 200,
+      "value": "dls",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 200,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 200,
+      "value": "lrow",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 200,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 200,
+      "value": "t2",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 200,
+      "value": "b",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 200,
+      "value": "Denoise",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 200,
+      "value": "span",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 200,
+      "value": "Keeps DLS off film grain",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 200,
+      "value": "denoise",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 201,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 201,
+      "value": "sec sec2",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 201,
+      "value": "ANTI-ALIASING",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 201,
+      "value": "none",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 201,
+      "value": "Off",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 201,
+      "value": "fxaa",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 201,
+      "value": "FXAA",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 201,
+      "value": "smaa",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 201,
+      "value": "SMAA",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 202,
+      "value": "EFFECTS · ",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 202,
+      "value": " ON",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 202,
+      "value": "NONE",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 203,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 203,
+      "value": "egrid",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 205,
+      "value": "echip",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 205,
+      "value": " on",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 206,
+      "value": "span",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 206,
+      "value": "eord",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 206,
+      "value": " on",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 206,
+      "value": "span",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 206,
+      "value": "en",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 208,
+      "value": "btn",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 208,
+      "value": "Clear effects",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 209,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 209,
+      "value": "note",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 209,
+      "value": "Each effect costs some GPU time, the heavy ones (HDR Look, Clarity, SMAA) the most: with the Governor on, that can mean a little more power or a deeper ratio. ",
+      "parent": "BinaryExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 210,
+      "value": "This game runs in HDR: colour effects are skipped, sharpening and anti-aliasing still apply.",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 210,
+      "value": "HDR games: colour effects are skipped, sharpening and anti-aliasing still apply.",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 211,
+      "value": "HDR",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 212,
+      "value": "HDR output",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 212,
+      "value": "engine",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 213,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 213,
+      "value": "sub",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 213,
+      "value": "On: HDR as set in Steam. Off: the screen and games get SDR.",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 213,
+      "value": "Off: the screen and games get SDR. A game started in HDR may need a restart.",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 214,
+      "value": "HUD",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 214,
+      "value": "Show HUD in game",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 214,
+      "value": "hud",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 215,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 215,
+      "value": "sec sec2",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 215,
+      "value": "POSITION",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 216,
+      "value": "top-right",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 216,
+      "value": "Top right",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 216,
+      "value": "top-left",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 216,
+      "value": "Top left",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 216,
+      "value": "bottom-left",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 216,
+      "value": "Bottom left",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 216,
+      "value": "bottom-right",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 216,
+      "value": "Bottom right",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 216,
+      "value": "hud",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 217,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 217,
+      "value": "sec sec2",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 217,
+      "value": "DETAIL",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 218,
+      "value": "minimal",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 218,
+      "value": "Minimal",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 218,
+      "value": "standard",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 218,
+      "value": "Standard",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 218,
+      "value": "hud",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 226,
+      "value": "active",
+      "parent": "BinaryExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 226,
+      "value": "Generating · ",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 226,
+      "value": "Not running",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 227,
+      "value": " · proven",
+      "parent": "ConditionalExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 227,
+      "template": " GHz (",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 228,
+      "value": "off",
+      "parent": "BinaryExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 228,
+      "value": "Full clock",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 228,
+      "value": "Full clock · ",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 229,
+      "template": " GPU clock/W · ",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 229,
+      "template": " A/B",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 229,
+      "value": "Not measured yet",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 230,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 231,
+      "value": "KEDAVRA",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 231,
+      "value": "State",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 232,
+      "value": "Base cap",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 232,
+      "template": " (Auto, floor ",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 232,
+      "template": " FPS",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 233,
+      "value": "GPU per frame",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 233,
+      "value": " ms",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 234,
+      "value": "Color",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 234,
+      "value": "pq",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 234,
+      "value": "HDR10 (PQ)",
+      "parent": "ConditionalExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 234,
+      "value": "scrgb",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 234,
+      "value": "HDR (scRGB)",
+      "parent": "ConditionalExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 234,
+      "value": "SDR",
+      "parent": "ConditionalExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 235,
+      "value": "Policy",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 235,
+      "value": " · rev ",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 236,
+      "value": "AUTOPILOT",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 236,
+      "value": "Point",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 236,
+      "template": " FPS · ",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 237,
+      "value": "Phase",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 237,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 237,
+      "value": "sub",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 237,
+      "value": "0 2px 6px",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 238,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 238,
+      "value": "sec sec2",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 238,
+      "value": "PREFERENCE",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 239,
+      "value": "auto",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 239,
+      "value": "Auto",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 239,
+      "value": "battery",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 239,
+      "value": "Battery",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 239,
+      "value": "smoothness",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 239,
+      "value": "Smoothness",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 239,
+      "value": "autopilot",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 240,
+      "value": "POWER (GOVERNOR)",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 240,
+      "value": "TDP control",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 240,
+      "value": "power",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 241,
+      "value": "TDP now",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 241,
+      "template": " W of ",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 241,
+      "template": " W",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 242,
+      "value": "APU draw",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 242,
+      "value": " W",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 243,
+      "value": "CPU top core · GPU busy",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 244,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 244,
+      "value": "sec sec2",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 244,
+      "value": "POWER SPLIT",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 245,
+      "value": "CPU → GPU watts",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 245,
+      "value": "power",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 246,
+      "value": "CPU clock cap",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 246,
+      "value": "A/B result",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 247,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 247,
+      "value": "sec sec2",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 247,
+      "value": "GPU CLOCK · FAN",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 248,
+      "value": "GPU clock ceiling",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 248,
+      "value": "power",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 249,
+      "value": "GPU clock",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 249,
+      "template": " MHz cap · now ",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 249,
+      "template": " MHz",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 249,
+      "template": "Auto · ",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 249,
+      "template": " MHz",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 250,
+      "value": "Fan",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 250,
+      "template": "SteamOS · ",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 250,
+      "template": " rpm",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 251,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 251,
+      "value": "sub",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 251,
+      "value": "Power Split and the GPU ceiling act only on a locked point, when the TDP has settled. Every change restarts measurement.",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 252,
+      "value": "PACE CAPTURE",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 252,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 252,
+      "value": "sub",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 252,
+      "value": "Records every display flip, then checks pacing (P95, P99, missed).",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 253,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 253,
+      "value": "btns",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 254,
+      "value": "btn red",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 254,
+      "value": "run",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 254,
+      "value": "Stop capture",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 254,
+      "value": "Start capture",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 255,
+      "value": "btn",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 255,
+      "value": "Results",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 256,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 256,
+      "value": "note",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 256,
+      "value": "string",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 261,
+      "value": "undefined",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 262,
+      "value": "Saved to ",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 262,
+      "value": "Rebooting now",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 262,
+      "value": ": done",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 270,
+      "value": "GFG Extreme",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 273,
+      "value": " failed",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 276,
+      "value": "GFG Extreme · ",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 276,
+      "value": " failed",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 276,
+      "value": "GFG Extreme · ",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 281,
+      "value": "GFG Extreme · ",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 281,
+      "value": " failed",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 285,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 285,
+      "value": "note",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 285,
+      "value": " bad",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 286,
+      "value": "diag",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 286,
+      "value": "Checks",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 288,
+      "value": " check",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 288,
+      "value": "s",
+      "parent": "ConditionalExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 288,
+      "value": " failed: see the list above",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 288,
+      "value": "All checks passed",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 288,
+      "value": "Running checks",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 290,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 291,
+      "value": "ENGINE INSTALL",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 291,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 291,
+      "value": "check",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 291,
+      "value": "b",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 291,
+      "value": "x",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 292,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 292,
+      "value": "sub",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 292,
+      "value": "No checks returned.",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 292,
+      "value": "Checking…",
+      "parent": "ConditionalExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 293,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 293,
+      "value": "btns",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 293,
+      "value": "btn",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 293,
+      "value": "install",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 293,
+      "value": "Reinstall",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 293,
+      "value": "Installing the engine",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 293,
+      "value": "Reinstall",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 294,
+      "value": "btn",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 294,
+      "value": "install",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 294,
+      "value": "Remove",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 294,
+      "value": "Removing the engine",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 294,
+      "value": "Remove",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 295,
+      "value": "btn",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 295,
+      "value": "install",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 295,
+      "value": "Reboot",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 295,
+      "value": "Rebooting the Deck",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 295,
+      "value": "Reboot",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 296,
+      "value": "install",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 297,
+      "value": "STANDALONE GSF KEDAVRA FOUND",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 297,
+      "value": "warn",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 298,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 298,
+      "value": "sub",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 298,
+      "value": "Both plugins can drive the engine. GFG backs off instead of fighting.",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 299,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 299,
+      "value": "btns",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 299,
+      "value": "btn red",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 299,
+      "value": "coexist",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 299,
+      "value": "Take over",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 299,
+      "value": "Taking over the engine",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 299,
+      "value": "Take over",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 299,
+      "value": "coexist",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 300,
+      "value": "GENERATION",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 300,
+      "value": "Frame generation in HDR games",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 300,
+      "value": "engine",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 301,
+      "value": "DIAGNOSTICS",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 302,
+      "value": "Run checks",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 303,
+      "value": "diag",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 303,
+      "value": "Report",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 303,
+      "value": "Saving the report",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 303,
+      "value": "Save report to Desktop",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 304,
+      "value": "diag",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 304,
+      "value": "Engine log",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 304,
+      "value": "Reading the engine log",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 304,
+      "value": "Engine log",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 305,
+      "value": "diag",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 305,
+      "value": "GPU benchmark",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 305,
+      "value": "Benchmark done. ",
+      "parent": "BinaryExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 305,
+      "value": "Running the GPU benchmark",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 305,
+      "value": "GPU benchmark",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 306,
+      "value": "diag",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 307,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 307,
+      "value": "sec sec2",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 307,
+      "value": "TELEMETRY",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 308,
+      "value": "minimal",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 308,
+      "value": "Minimal",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 308,
+      "value": "standard",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 308,
+      "value": "Standard",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 308,
+      "value": "debug",
+      "parent": "ArrayExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 308,
+      "value": "Debug",
+      "parent": "ArrayExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 308,
+      "value": "telemetry",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 309,
+      "value": "FROM GFG EXTREME 2.X",
+      "parent": "Property",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 309,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 309,
+      "value": "check",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 309,
+      "value": "b",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 310,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 310,
+      "value": "sub",
+      "parent": "Property",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 310,
+      "value": "center",
+      "parent": "Property",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 310,
+      "template": "GFG Extreme ",
+      "parent": "TemplateLiteral",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 325,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 325,
+      "value": "sub",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 325,
+      "value": "Loading…",
+      "parent": "CallExpression",
+      "review": "translated exact display literal"
+    },
+    {
+      "line": 326,
+      "value": "gfg",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 327,
+      "value": "style",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 328,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 328,
+      "value": "top",
+      "parent": "Property",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 328,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 328,
+      "value": "brand",
+      "parent": "Property",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 328,
+      "value": "img",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 328,
+      "value": "GFG ·",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 328,
+      "value": "b",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 328,
+      "value": "EXTREME",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 329,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 329,
+      "value": "chip",
+      "parent": "Property",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 329,
+      "value": "i",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 329,
+      "value": "Steam Deck",
+      "parent": "LogicalExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 330,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 330,
+      "value": "tabs",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 330,
+      "value": "bump",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 330,
+      "value": "L1",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 331,
+      "value": "tab",
+      "parent": "BinaryExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 331,
+      "value": " on",
+      "parent": "ConditionalExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 332,
+      "value": "bump",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 332,
+      "value": "R1",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 333,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 333,
+      "value": "err",
+      "parent": "Property",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 337,
+      "value": "img",
+      "parent": "CallExpression",
+      "review": "internal identifier/CSS/SVG/React prop; unchanged"
+    },
+    {
+      "line": 339,
+      "value": "GFG Extreme",
+      "parent": "Property",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 340,
+      "value": "div",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    },
+    {
+      "line": 340,
+      "value": "GFG · EXTREME",
+      "parent": "CallExpression",
+      "review": "dynamic display fragment/product/unit/path; complete expression checked in rendering tests"
+    }
+  ],
+  "backend_rendered_fields": {
+    "filters.py": [
+      "presets[].name",
+      "effects[].name"
+    ],
+    "pilot.py": [
+      "phase mapped to PHASES",
+      "reason exact strings and interpolated FPS/power messages"
+    ],
+    "power_split.py": [
+      "reason/phase only after Full clock prefix; internal IDs remain unchanged"
+    ],
+    "kedavra/install.py": [
+      "diagnose.checks[].text OS/package/version/process fields",
+      "install/uninstall messages and raised exceptions"
+    ],
+    "kedavra/ctl.py": [
+      "capture status summary and errors",
+      "convar/version errors"
+    ],
+    "coexist.py": [
+      "takeover action message"
+    ],
+    "migration.py": [
+      "legacy steps retained as diagnostic records"
+    ]
+  },
+  "preserved_raw_data": [
+    "game title",
+    "software/component names and version numbers",
+    "file paths and capture filenames",
+    "explicit engine log / GPU benchmark raw output",
+    "operating-system error detail after Chinese explanation"
+  ],
+  "verification": [
+    "actual compiled JS AST compared after display-only normalization",
+    "real React mocked Decky API v2 and fallback v1",
+    "all 4 pages / 8 presets / 19 effects / custom FPS / DLS / HDR on/off / no game / conflict / errors / captures / notifications",
+    "all backend files byte-identical except exact HUD display literals and additive glyph atlas"
+  ]
+}

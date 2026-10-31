@@ -14,24 +14,24 @@ import sys, zipfile
 with zipfile.ZipFile(sys.argv[1], 'w') as z:
     z.writestr('SDWEAK/fixture.txt', 'Harmless download fixture.\n' * 30)
 PY
-URL=https://github.com/Taskerer/SDWEAK/releases/download/v2.1.0/SDWEAK.zip
+URL=https://github.com/Taskerer/SDWEAK/releases/download/v2.2.0/SDWEAK.zip
 SHA="$(shasum -a 256 "$TEST_ROOT/SDWEAK.zip" | awk '{print $1}')"
 generate() {
     bash "$TEST_ROOT/repo/scripts/mirror_gitee_assets.sh" --local \
-        sdweak SDWEAK v2.1.0 SDWEAK.zip "$URL" "$TEST_ROOT/SDWEAK.zip" >/dev/null
+        sdweak SDWEAK v2.2.0 SDWEAK.zip "$URL" "$TEST_ROOT/SDWEAK.zip" >/dev/null
 }
 generate
 FIXTURE="$TEST_ROOT/repo/mirrors/sdweak"
 grep -q '^chunks=1$' "$FIXTURE/latest.txt" || fail 'Small package skipped chunk manifest'
 grep -q '^chunk_size=1048576$' "$FIXTURE/latest.txt" || fail 'SDWEAK chunk exceeds 1 MiB'
-cmp "$FIXTURE/v2.1.0/part.0001" "$TEST_ROOT/SDWEAK.zip" || fail 'Single part differs'
-[ ! -e "$FIXTURE/v2.1.0/SDWEAK.zip" ] || fail 'Direct package unexpectedly published'
+cmp "$FIXTURE/v2.2.0/part.0001" "$TEST_ROOT/SDWEAK.zip" || fail 'Single part differs'
+[ ! -e "$FIXTURE/v2.2.0/SDWEAK.zip" ] || fail 'Direct package unexpectedly published'
 rm -rf -- "$FIXTURE"
 ZHOUKEER_GITEE_MIRROR_CHUNK_BYTES=64 generate
 source "$TEST_ROOT/repo/core/env.sh"
 [ "$(gitee_mirror_manifest_repo sdweak)" = zhoukeer-toolbox-mirror-3 ] || fail 'SDWEAK routing wrong'
 [ "$(gitee_mirror_id_for_url "$URL")" = sdweak ] || fail 'Pinned URL mapping missing'
-if gitee_mirror_id_for_url "${URL/v2.1.0/v9.9.9}" >/dev/null; then fail 'Unreviewed version mapped'; fi
+if gitee_mirror_id_for_url "${URL/v2.2.0/v9.9.9}" >/dev/null; then fail 'Unreviewed version mapped'; fi
 MODE=ok
 CALLS="$TEST_ROOT/calls"
 GITEE_MIRROR_QUIET=1
@@ -52,11 +52,11 @@ curl() {
     esac
     if [ "$path" = latest.txt ] && [ "$MODE" = mismatch ]; then
         sed "s/^sha256=.*/sha256=$(printf '%064d' 0)/" "$FIXTURE/latest.txt" > "$output"
-    elif [ "$path" = v2.1.0/part.0002 ] && [ "$MODE" = missing ]; then
+    elif [ "$path" = v2.2.0/part.0002 ] && [ "$MODE" = missing ]; then
         return 22
-    elif [ "$path" = v2.1.0/part.0002 ] && [ "$MODE" = html ]; then
+    elif [ "$path" = v2.2.0/part.0002 ] && [ "$MODE" = html ]; then
         printf '<html>error</html>' > "$output"
-    elif [ "$path" = v2.1.0/part.0002 ] && [ "$MODE" = corrupt ]; then
+    elif [ "$path" = v2.2.0/part.0002 ] && [ "$MODE" = corrupt ]; then
         printf '%064d' 0 > "$output"
     else
         cp "$FIXTURE/$path" "$output"
@@ -83,6 +83,6 @@ for MODE in ok mismatch missing html corrupt; do
 done
 for path in "$TEST_ROOT"/download.zip.part.*; do [ ! -e "$path" ] || fail 'Partial download leaked'; done
 grep -Fq 'sync_plugin sdweak "Taskerer/SDWEAK"' "$ROOT/scripts/sync_gitee_mirrors.sh" || fail 'Scheduled mirror entry missing'
-grep -Fq "sdweak|SDWEAK|v2.1.0|SDWEAK.zip|$URL|5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e|" \
+grep -Fq "sdweak|SDWEAK|v2.2.0|SDWEAK.zip|$URL|cf7c3a4f180880a3f4be52794b800955772a269743421ca4e22446ce7bf9c40a|" \
     "$ROOT/scripts/mirror_gitee_assets.sh" || fail 'Reviewed manifest entry missing'
 echo 'PASS: SDWEAK single/multiple chunk generation, mirror reconstruction, pinned routing, bad manifest/missing/HTML/corrupt fallback and cleanup'

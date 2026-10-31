@@ -15,7 +15,7 @@ ROOT=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('prepare_sdweak',ROOT/'scripts/prepare_sdweak.py')
 m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 original=(ROOT/'tests/fixtures/sdweak/install.txt').read_bytes()
-core=ROOT/'assets/sdweak/SDWEAK-core-v2.1.0.zip'
+core=ROOT/'assets/sdweak/SDWEAK-core-v2.2.0.zip'
 with zipfile.ZipFile(core) as z:
  real_runtime=z.read('SDWEAK/assets/SDWEAK.sh')
  real_unit=z.read('SDWEAK/assets/sdweak.service')
@@ -24,7 +24,9 @@ with tempfile.TemporaryDirectory() as d:
  m.prepare(core,base/'bundled',home=base/'customer with %name')
  bundled=base/'bundled/SDWEAK'
  assert not any(bundled.rglob('*.pkg.tar.zst'))
- assert len(list(p for p in bundled.rglob('*') if p.is_file()))==15
+ assert 'assets/scx' not in m.CORE_FILES and not (bundled/'assets/scx').exists()
+ assert 'scx.service' not in (bundled/'install.sh').read_text()
+ assert len(list(p for p in bundled.rglob('*') if p.is_file()))==14
  unit=(bundled/'assets/sdweak.service').read_text()
  assert '/home/deck/' not in unit and 'customer with %%name' in unit
  assert f'ExecStart=/usr/bin/bash "{base}/customer with %%name/.local/tweak/SDWEAK.sh"' in unit
@@ -79,7 +81,7 @@ printf() {
  # Exercise real prepared installer with every command that can write/privilege mocked.
  folder=base/'prepared/SDWEAK'
  (folder/'assets/common.sh').write_text('''MODEL="${MOCK_MODEL:-Galileo}"
-steamos_version=3.8
+steamos_version=3.9
 LOG_FILE="$MOCK_ROOT/install.log"
 DATE=fixture
 SDWEAK_VERSION=fixture

@@ -459,9 +459,9 @@ sync_steamos_fixed_assets() {
     # Keep the reviewed package pinned; use small parts in mirror-3, while
     # preserving the already published copy in the older mirror repository.
     sync_plugin sdweak "Taskerer/SDWEAK" '^$' "SDWEAK" \
-        "v2.1.0" "SDWEAK.zip" \
-        "https://github.com/Taskerer/SDWEAK/releases/download/v2.1.0/SDWEAK.zip" \
-        "5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e" "$MIRROR3"
+        "v2.2.0" "SDWEAK.zip" \
+        "https://github.com/Taskerer/SDWEAK/releases/download/v2.2.0/SDWEAK.zip" \
+        "cf7c3a4f180880a3f4be52794b800955772a269743421ca4e22446ce7bf9c40a" "$MIRROR3"
     sync_plugin inputplumber "ShadowBlip/InputPlumber" '^$' "InputPlumber" \
         "v0.79.2" "inputplumber-x86_64.tar.gz" \
         "https://github.com/ShadowBlip/InputPlumber/releases/download/v0.79.2/inputplumber-x86_64.tar.gz" \

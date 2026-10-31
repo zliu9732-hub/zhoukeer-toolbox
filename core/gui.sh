@@ -283,7 +283,7 @@ game_environment_gui_menu() {
     local decky_choice
     local battlenet_choice
     local freedeck_choice
-    local feature_choice
+    local feature_choice feature_page
     local handheld_plugin_choice
     local game_info_choice
     local lsfg_choice
@@ -327,15 +327,28 @@ game_environment_gui_menu() {
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" all
                 ;;
             feature-singles)
-                feature_choice="$(gui_dialog --menu "其余常用插件｜可分别安装" \
-                    steamgriddb "游戏封面更换｜SteamGridDB｜更换 Steam 游戏封面" \
-                    cssloader "主题美化｜CSS Loader 中文版｜更换游戏模式的界面主题和样式" \
-                    friendeck "文件传输助手｜Friendeck｜在掌机和其他设备之间传文件" \
-                    deckymusic "音乐播放器｜Decky Music v1.0.2 完整包｜在游戏模式听音乐，支持 QQ 音乐和网易云音乐" \
-                    fantastic "Fantastic 风扇控制｜完整汉化版｜汉化：RenAmamiya｜注意温度" \
-                    screen-colors "屏幕色彩｜调整颜色与一键效果｜汉化：RenAmamiya" \
-                    back "返回游戏与插件")" || continue
+                feature_page=1
+                while true; do
+                    if [ "$feature_page" -eq 1 ]; then
+                        feature_choice="$(gui_dialog --menu "其余常用插件（1/2）" \
+                            steamgriddb "游戏封面更换｜更换 Steam 游戏封面" \
+                            cssloader "主题美化｜更换游戏模式的界面主题和样式" \
+                            friendeck "文件传输助手｜在掌机和其他设备之间传文件" \
+                            deckymusic "音乐播放器｜支持 QQ 音乐和网易云音乐" \
+                            next "下一页｜功耗、风扇与屏幕色彩" \
+                            back "返回游戏与插件")" || break
+                    else
+                        feature_choice="$(gui_dialog --menu "其余常用插件（2/2）" \
+                            gfg-extreme "GFG Extreme 功耗与补帧｜自动调节耗电与流畅度｜汉化：RenAmamiya" \
+                            fantastic "Fantastic 风扇控制｜完整汉化版｜汉化：RenAmamiya｜注意温度" \
+                            screen-colors "屏幕色彩｜调整颜色与一键效果｜汉化：RenAmamiya" \
+                            previous "上一页｜封面、主题、文件传输与音乐" \
+                            back "返回游戏与插件")" || break
+                    fi
                 case "$feature_choice" in
+                    next) feature_page=2; continue ;;
+                    previous) feature_page=1; continue ;;
+                    back) break ;;
                     steamgriddb) run_gui_action "安装游戏封面更换" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
                     cssloader) run_gui_action "安装主题美化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
                     friendeck) run_gui_action "安装文件传输助手" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
@@ -344,11 +357,16 @@ game_environment_gui_menu() {
                         gui_confirm "调整游戏模式下的屏幕色彩，提供影院、鲜艳、舒适和类 OLED 效果；可一键恢复原始色彩。仅在游戏模式生效，会使用管理员权限；类 OLED 效果不会改变屏幕本身。汉化：RenAmamiya。是否安装？" && \
                             run_gui_action "安装屏幕色彩" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" screen-colors
                         ;;
+                    gfg-extreme)
+                        gui_confirm "自动调节功耗并提供游戏补帧；仅适用于 Steam Deck / SteamOS。需要管理员权限，首次启动会迁移设置并清理旧 GFG/MAKO 组件，保留上游备份。启用引擎后需要手动重启，勿与其他功耗插件同时启用；在插件中移除引擎后重启可恢复。汉化：RenAmamiya。是否安装？" && \
+                            run_gui_action "安装 GFG Extreme 功耗与补帧" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" gfg-extreme
+                        ;;
                     fantastic)
                         gui_confirm "高风险：Fantastic 会覆盖 SteamOS 默认风扇曲线，过低转速可能导致设备过热；仅适用于 Steam Deck。将直接安装带 RenAmamiya 署名的完整汉化包，是否继续？" && \
                             run_gui_action "安装 Fantastic 风扇控制" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fantastic
                         ;;
                 esac
+                done
                 ;;
             lsfg)
                 lsfg_choice="$(gui_dialog --menu "小黄鸭版本选择" \

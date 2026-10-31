@@ -10,7 +10,7 @@ mkdir "$HOME" "$TEST_ROOT/dmi"
 SDWEAK_DMI="$TEST_ROOT/dmi"
 LOG_FILE="$TEST_ROOT/log" CALLS="$TEST_ROOT/calls"
 readonly_file="$TEST_ROOT/readonly"
-MOCK_VERSION=3.8 MOCK_ID=steamos MOCK_FAIL=''
+MOCK_VERSION=3.9 MOCK_ID=steamos MOCK_FAIL=''
 CORE_PACKAGE="$SDWEAK_CORE_PACKAGE"
 log() { :; }
 fail() { echo "FAIL: $*" >&2; exit 1; }
@@ -92,13 +92,13 @@ for stage in status-empty status-error status-unknown status-mismatch status-fal
  grep -Fq '尚未开始安装' "$TEST_ROOT/error" || fail "Unclear status failure: $stage"
 done
 MOCK_FAIL=''
-for item in manufacturer product board version system consent cryo; do
- reset; MOCK_VERSION=3.8 MOCK_ID=steamos ZHOUKEER_AUTO_CONFIRM=1
+for item in manufacturer product board version old-system system consent cryo; do
+ reset; MOCK_VERSION=3.9 MOCK_ID=steamos ZHOUKEER_AUTO_CONFIRM=1
  case "$item" in
  manufacturer) echo MSI > "$SDWEAK_DMI/sys_vendor";;
  product) echo 'ROG Ally' > "$SDWEAK_DMI/product_name";;
  board) echo 'ROG Ally' > "$SDWEAK_DMI/board_name";;
- version) MOCK_VERSION=3.7.10;; system) MOCK_ID=arch;; consent) ZHOUKEER_AUTO_CONFIRM=0;; cryo) mkdir "$HOME/.cryo_utilities";;
+ version) MOCK_VERSION=3.7.10;; old-system) MOCK_VERSION=3.8;; system) MOCK_ID=arch;; consent) ZHOUKEER_AUTO_CONFIRM=0;; cryo) mkdir "$HOME/.cryo_utilities";;
  esac
  if sdweak_install >/dev/null; then fail "Unsupported state accepted: $item"; fi
  ! grep -Eq 'mirror|download|admin|execute' "$CALLS" || fail "Changes before preflight: $item"

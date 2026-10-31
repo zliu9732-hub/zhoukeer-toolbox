@@ -713,11 +713,13 @@ for required in modules/steam_accelerator.sh modules/steam302_legacy.sh modules/
     assets/screen-colors/zh-runtime.js assets/screen-colors/RENKIT_ZH.md \
     assets/screen-colors/source/src/i18n.ts assets/screen-colors/source/src/index.tsx \
     assets/screen-colors/source/pnpm-lock.yaml assets/screen-colors/source/rollup.config.js \
-    assets/screen-colors/source/tsconfig.json; do
+    assets/screen-colors/source/tsconfig.json \
+    modules/gfg_extreme.sh scripts/localize_gfg_extreme.py data/gfg_extreme_files.json \
+    assets/sdweak/SDWEAK-core-v2.2.0.zip scripts/prepare_sdweak.py; do
     if [ ! -f "$SOURCE_ROOT/$required" ] || [ -L "$SOURCE_ROOT/$required" ] || \
         [ ! -f "$STAGING_DIR/$required" ] || [ -L "$STAGING_DIR/$required" ] || \
         ! cmp -s "$SOURCE_ROOT/$required" "$STAGING_DIR/$required"; then
-        echo "新版本加速或屏幕色彩组件不完整，旧版本保持不变。"
+        echo "新版本安装组件不完整，旧版本保持不变。"
         exit 1
     fi
 done

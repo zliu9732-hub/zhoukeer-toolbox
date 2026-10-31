@@ -63,7 +63,7 @@ gitee_mirror_manifest_repo() {
         deckhomethemes|themehub-zh-auto) printf '%s\n' "$GITEE_DECKHOMETHEMES_MIRROR_REPO" ;;
         epic-linux) printf '%s\n' zhoukeer-toolbox-mirror-4 ;;
         quark|quark-portable) printf '%s\n' zhoukeer-toolbox-mirror-6 ;;
-        ayaneo3-companion|screen-colors) printf '%s\n' zhoukeer-toolbox-mirror-4 ;;
+        ayaneo3-companion|screen-colors|gfg-extreme-zh) printf '%s\n' zhoukeer-toolbox-mirror-4 ;;
         lsfg-v2-zh-auto|lsfg-v2-zh-signed) printf '%s\n' zhoukeer-toolbox-mirror-4 ;;
         fsr4-zh-auto|fsr4-zh-signed) printf '%s\n' zhoukeer-toolbox-mirror-3 ;;
         ge-proton) printf '%s\n' "$GITEE_GE_PROTON_MIRROR_REPO" ;;
@@ -442,7 +442,7 @@ gitee_mirror_id_for_url() {
     case "$1" in
         'https://github.com/Rayekkk/Ayaneo3Companion/releases/download/1.2.0/Ayaneo3Companion-1.2.0.zip') printf '%s\n' ayaneo3-companion ;;
         'https://github.com/Kaal31/benderthemes/releases/download/v1.10.7/DeckHomeThemes-v1.10.7.zip') printf '%s\n' deckhomethemes ;;
-        'https://github.com/Taskerer/SDWEAK/releases/download/v2.1.0/SDWEAK.zip') printf '%s\n' sdweak ;;
+        'https://github.com/Taskerer/SDWEAK/releases/download/v2.2.0/SDWEAK.zip') printf '%s\n' sdweak ;;
         *'/ShadowBlip/InputPlumber/releases/download/v0.79.2/inputplumber-x86_64.tar.gz') printf '%s\n' inputplumber ;;
         *'/zliu9732-hub/zhoukeer-toolbox/releases/download/f1-bios-v1.14/ONEXFLY-F1-7840U-BIOS-V1.14.zip') printf '%s\n' f1-bios ;;
         *'/dahui/onexplayer-x2-mini-pro-cachyos/'*'/etc/inputplumber/devices.d/50-onexplayer_x2_mini.yaml') printf '%s\n' oxpx2-device ;;

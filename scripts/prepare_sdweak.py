@@ -6,24 +6,24 @@ import re
 import sys
 import zipfile
 
-SHA256 = '5e91ca94577e3a999b6a8ea1a3e849bb168fedcc5b12b3cc41a00ca355d00d9e'
-CORE_SHA256 = 'e53841b26615314b9903f4714acec2f1b6ca1aa3fe4dbf456d19948e6ad8c25d'
+SHA256 = 'cf7c3a4f180880a3f4be52794b800955772a269743421ca4e22446ce7bf9c40a'
+CORE_SHA256 = 'b12b43bb4dfeb556d07111e77b17f2046ed0deb9ea8f6c4d6da9c90108dfa2f8'
 FILES = {'README.md', 'README_ENG.md', 'install.sh', 'uninstall.sh', 'LICENSE', '.gitignore',
          'assets/zram-generator.conf', 'assets/energy.service', 'assets/common.sh',
-         'assets/gamescope-3.16.23.2-1-SDWEAK.pkg.tar.zst',
-         'assets/vulkan-radeon-SDWEAK.pkg.tar.zst', 'assets/sdweak.service', 'assets/scx',
+         'assets/gamescope-3.16.30.1-2-SDWEAK.pkg.tar.zst',
+         'assets/vulkan-radeon-26.2.0.steamos_26.05-SDWEAK.pkg.tar.zst', 'assets/sdweak.service',
          'assets/strings.sh', 'assets/energy.path', 'assets/SDWEAK.sh'}
-UNUSED_GRAPHICS = {'assets/gamescope-3.16.23.2-1-SDWEAK.pkg.tar.zst',
-                   'assets/vulkan-radeon-SDWEAK.pkg.tar.zst'}
+UNUSED_GRAPHICS = {'assets/gamescope-3.16.30.1-2-SDWEAK.pkg.tar.zst',
+                   'assets/vulkan-radeon-26.2.0.steamos_26.05-SDWEAK.pkg.tar.zst'}
 CORE_FILES = FILES - UNUSED_GRAPHICS
 ZH = {
  'ping_success': '网络检查通过。', 'ping_fail': '网络检查失败，请检查连接后重试。',
  'integrity_fail': '安装文件损坏或不完整，已停止。',
  'compatible': '警告：仅 Steam Deck 可用，其他掌机一律禁止安装。',
- 'old_steamos': '仅支持 SteamOS 3.8。', 'readonly_fail': '无法暂时关闭系统保护，已停止。',
+ 'old_steamos': '仅支持 SteamOS 3.9。', 'readonly_fail': '无法暂时关闭系统保护，已停止。',
  'installation_start': '正在安装 SDWEAK…', 'skip': '已跳过。',
  'invalid_input': '请输入 y（是）或 n（否）。',
- 'usbhid_success': '已改善手柄响应。', 'scx_success': '已启用性能优化。',
+ 'usbhid_success': '已改善手柄响应。',
  'sysctl_success': '已应用系统性能设置。', 'zram_conf': '内存优化已保存，重启后生效。',
  'gpu_optimization_success': '已应用显卡优化设置。',
  'display_overclock_prompt': '是否将 LCD 屏幕提高到 70 Hz？可能影响显示稳定性；回车跳过',
@@ -124,7 +124,6 @@ trap 'renkit_sdweak_error "$?" "$LINENO" "$BASH_COMMAND"' ERR
         ('# Disable file access time tracking', '优化文件访问'),
         ('# Input controller overclocking', '改善手柄响应'),
         ('# Remove gamemoded', '处理旧性能设置'),
-        ('# scx-lavd', '启用性能优化'),
         ('# Sysctl Tweaks', '保存系统性能设置'),
         ('# ZRAM Tweaks', '保存内存优化'),
         ('# Changing amdgpu parameters', '保存显卡设置'),
