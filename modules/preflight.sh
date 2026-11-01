@@ -85,11 +85,12 @@ run_preflight() {
         return 1
     }
     detect_platform
-    # ChimeraOS 仅复用 Decky 插件下载的只读预检；其余系统级预检仍严格拒绝。
+    # 新增桌面 Linux 只复用插件下载的只读预检，系统级预检保持原平台范围。
     if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && \
+       { ! is_desktop_linux || [ "$profile" != "decky" ]; } && \
        { [ "$IS_CHIMERAOS" -ne 1 ] || [ "$profile" != "decky" ]; } && \
        [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
-        echo "此操作仅支持 SteamOS 或 Bazzite，已安全退出。"
+        echo "这项系统检查不适用于当前系统，已停止。"
         return 1
     fi
 

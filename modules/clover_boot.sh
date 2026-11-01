@@ -838,7 +838,7 @@ clover_confirm_default_linux() {
 clover_hide_menu() {
     local work_dir working config
 
-    require_supported_gaming_os || return 1
+    require_steamos_or_bazzite || return 1
     for command_name in awk cat cp findmnt grep lsblk mkdir mktemp mv rm sudo; do
         require_command "$command_name" || return 1
     done
@@ -867,7 +867,7 @@ clover_hide_menu() {
 clover_default_windows() {
     local work_dir working config loader
 
-    require_supported_gaming_os || return 1
+    require_steamos_or_bazzite || return 1
     for command_name in awk cat cp findmnt grep lsblk mkdir mktemp mv rm sudo; do
         require_command "$command_name" || return 1
     done
@@ -898,7 +898,7 @@ clover_default_windows() {
 clover_default_linux() {
     local work_dir working config loader linux_name
 
-    require_supported_gaming_os || return 1
+    require_steamos_or_bazzite || return 1
     for command_name in awk cat cp findmnt grep lsblk mkdir mktemp mv rm sudo; do
         require_command "$command_name" || return 1
     done
@@ -930,7 +930,7 @@ clover_default_linux() {
 clover_autoboot_windows() {
     local work_dir working config loader
 
-    require_supported_gaming_os || return 1
+    require_steamos_or_bazzite || return 1
     for command_name in awk cat cp findmnt grep lsblk mkdir mktemp mv rm sudo; do
         require_command "$command_name" || return 1
     done
@@ -966,7 +966,7 @@ clover_show_menu() {
         1|5|8|10|15|60) ;;
         *) echo "Clover 菜单恢复等待时间配置异常。" >&2; return 1 ;;
     esac
-    require_supported_gaming_os || return 1
+    require_steamos_or_bazzite || return 1
     for command_name in awk cat cp findmnt grep lsblk mkdir mktemp mv rm sudo; do
         require_command "$command_name" || return 1
     done
@@ -1711,7 +1711,7 @@ clover_install() {
     local default_os linux_loader
 
     echo "正在检查 Clover 安装环境…"
-    require_supported_gaming_os || return 1
+    require_steamos_or_bazzite || return 1
     clover_detect_device || return 1
     for command_name in curl tar findmnt lsblk efibootmgr awk sed df sudo sha256sum wc; do
         require_command "$command_name" || return 1
@@ -1947,7 +1947,7 @@ clover_restore() {
     local boot_number timestamp delete_count=0 steamos_backup steamos_numbers
     local restored_steamos_number restored_order create_output
 
-    require_supported_gaming_os || return 1
+    require_steamos_or_bazzite || return 1
     for command_name in findmnt lsblk efibootmgr awk sed sudo; do
         require_command "$command_name" || return 1
     done
@@ -2067,7 +2067,7 @@ clover_restore() {
 clover_status() {
     local target boot_number
 
-    require_supported_gaming_os || return 1
+    require_steamos_or_bazzite || return 1
     for command_name in findmnt lsblk efibootmgr awk sed sudo; do
         require_command "$command_name" || return 1
     done
@@ -2095,7 +2095,7 @@ clover_status() {
 clover_apply_renkit_background() {
     local target theme_dir found_dir
 
-    require_supported_gaming_os || return 1
+    require_steamos_or_bazzite || return 1
     for command_name in findmnt lsblk sudo; do
         require_command "$command_name" || return 1
     done

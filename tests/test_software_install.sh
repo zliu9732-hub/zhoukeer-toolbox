@@ -532,10 +532,10 @@ bash "$PROJECT_ROOT/modules/software.sh" sunshine >/dev/null
 [ "$(grep -c '^run --command=cat dev.lizardbyte.app.Sunshine ' "$STATE_DIR/commands")" -eq \
     "$((sunshine_export_calls_before + 3))" ]
 
-# 非 SteamOS/Bazzite 必须在任何安装或附加步骤前停止。
+# 保留独立受限平台的隔离，必须在任何安装或附加步骤前停止。
 cat > "$STATE_DIR/unsupported-os-release" <<'EOF'
-ID=ubuntu
-PRETTY_NAME="Unsupported Test Linux"
+ID=chimeraos
+PRETTY_NAME="Isolated Test Linux"
 EOF
 rm -f "$STATE_DIR/installed.dev.lizardbyte.app.Sunshine"
 sunshine_calls_before="$(grep -c 'dev.lizardbyte.app.Sunshine' "$STATE_DIR/commands")"
@@ -550,7 +550,7 @@ bash "$PROJECT_ROOT/modules/software.sh" sunshine >/dev/null 2>&1
 unsupported_status=$?
 set -e
 [ "$unsupported_status" -ne 0 ] || {
-    echo "FAIL: Sunshine 在非 SteamOS/Bazzite 上仍返回成功" >&2
+    echo "FAIL: Sunshine 在独立受限平台上仍返回成功" >&2
     exit 1
 }
 [ "$(grep -c 'dev.lizardbyte.app.Sunshine' "$STATE_DIR/commands")" = "$sunshine_calls_before" ]

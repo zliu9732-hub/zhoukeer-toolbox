@@ -66,7 +66,7 @@ clover_prepare_staging() {
 
 CLOVER_BOOTMANAGER_SYSTEM_DIR="$SYSTEM_DIR"
 CLOVER_BOOTMANAGER_WHITELIST_DIR="$WHITELIST_DIR"
-require_supported_gaming_os() { return 0; }
+require_steamos_or_bazzite() { return 0; }
 detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; }
 require_command() { return 0; }
 log() { :; }

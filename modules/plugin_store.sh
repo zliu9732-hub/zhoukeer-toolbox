@@ -1519,6 +1519,15 @@ ensure_plugin_store_ready() {
         echo "Renkit ChimeraOS版不会安装或替换插件商城本体。"
         return 1
     fi
+    if is_desktop_linux && [ "$IS_BAZZITE" -ne 1 ]; then
+        if decky_plugin_loader_is_installed; then
+            echo "已检测到插件商城，开始安装插件。"
+            return 0
+        fi
+        bash "$PROJECT_ROOT/modules/bazzite_decky.sh" install || return 1
+        decky_plugin_loader_is_installed || return 1
+        return 0
+    fi
     if [ "$IS_BAZZITE" -eq 1 ]; then
         if decky_plugin_loader_is_installed; then
             echo "已检测到 Bazzite Decky Loader，开始安装插件。"
@@ -3153,8 +3162,8 @@ install_lsfg_zh_from_gitee() {
     local installed_version actual_sha256
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "$IS_CHIMERAOS" -ne 1 ]; then
-        echo "小黄鸭仅支持 SteamOS、Bazzite 或 ChimeraOS。"
+    if [ "$IS_STEAMOS" -ne 1 ] && ! is_desktop_linux && [ "$IS_CHIMERAOS" -ne 1 ]; then
+        echo "小黄鸭需要 Linux 与可用的插件商城。"
         return 1
     fi
     require_existing_chimera_plugin_environment || return 1
@@ -3214,8 +3223,8 @@ install_lsfg_v2_from_gitee() {
     local installed_version
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "$IS_CHIMERAOS" -ne 1 ]; then
-        echo "小黄鸭 2.0 仅支持 SteamOS、Bazzite 或 ChimeraOS。"
+    if [ "$IS_STEAMOS" -ne 1 ] && ! is_desktop_linux && [ "$IS_CHIMERAOS" -ne 1 ]; then
+        echo "小黄鸭 2.0 需要 Linux 与可用的插件商城。"
         return 1
     fi
     require_existing_chimera_plugin_environment || return 1
@@ -3265,8 +3274,8 @@ install_fsr4_zh_from_gitee() {
     local installed_version actual_sha256
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "$IS_CHIMERAOS" -ne 1 ]; then
-        echo "FSR4 中文界面仅支持 SteamOS、Bazzite 或 ChimeraOS。"
+    if [ "$IS_STEAMOS" -ne 1 ] && ! is_desktop_linux && [ "$IS_CHIMERAOS" -ne 1 ]; then
+        echo "FSR4 中文界面需要 Linux 与可用的插件商城。"
         return 1
     fi
     require_existing_chimera_plugin_environment || return 1
@@ -3325,8 +3334,8 @@ install_simpledeckytdp_chinese() {
     local staged_source
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "$IS_CHIMERAOS" -ne 1 ]; then
-        echo "SimpleDeckyTDP 中文界面仅支持 SteamOS、Bazzite 或 ChimeraOS。"
+    if [ "$IS_STEAMOS" -ne 1 ] && ! is_desktop_linux && [ "$IS_CHIMERAOS" -ne 1 ]; then
+        echo "SimpleDeckyTDP 中文界面需要 Linux 与可用的插件商城。"
         return 1
     fi
     require_existing_chimera_plugin_environment || return 1
@@ -3391,8 +3400,8 @@ install_simpledeckytdp_zh_from_gitee() {
     local installed_version
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "$IS_CHIMERAOS" -ne 1 ]; then
-        echo "SimpleDeckyTDP 中文版仅支持 SteamOS、Bazzite 或 ChimeraOS。"
+    if [ "$IS_STEAMOS" -ne 1 ] && ! is_desktop_linux && [ "$IS_CHIMERAOS" -ne 1 ]; then
+        echo "SimpleDeckyTDP 中文版需要 Linux 与可用的插件商城。"
         return 1
     fi
     require_existing_chimera_plugin_environment || return 1
@@ -3438,8 +3447,8 @@ ensure_simpledeckytdp_chinese_current() {
     local installed_version=""
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "$IS_CHIMERAOS" -ne 1 ]; then
-        echo "掌机功耗控制版本检测仅支持 SteamOS、Bazzite 或 ChimeraOS。"
+    if [ "$IS_STEAMOS" -ne 1 ] && ! is_desktop_linux && [ "$IS_CHIMERAOS" -ne 1 ]; then
+        echo "掌机功耗控制版本检测需要 Linux 与可用的插件商城。"
         return 1
     fi
     require_existing_chimera_plugin_environment || return 1
@@ -3570,8 +3579,8 @@ install_allycenter_chinese() {
     local official_source work_dir staged_source
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
-        echo "Ally Center 中文版仅支持 SteamOS 或 Bazzite。"
+    if [ "$IS_STEAMOS" -ne 1 ] && ! is_desktop_linux; then
+        echo "Ally Center 中文版需要 Linux 系统。"
         return 1
     fi
     if allycenter_chinese_is_current "$plugin_root"; then
@@ -3617,8 +3626,8 @@ ensure_allycenter_chinese_current() {
     local installed_version=""
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
-        echo "Ally Center 中文版仅支持 SteamOS 或 Bazzite。"
+    if [ "$IS_STEAMOS" -ne 1 ] && ! is_desktop_linux; then
+        echo "Ally Center 中文版需要 Linux 系统。"
         return 1
     fi
     # 新机流程中若前一步 Decky 尚未完成，先补装 Loader 和插件目录，
@@ -3752,8 +3761,8 @@ ensure_handheld_overlay_current() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
-        echo "$display_name 仅支持 SteamOS 或 Bazzite。"
+    if [ "$IS_STEAMOS" -ne 1 ] && ! is_desktop_linux; then
+        echo "$display_name 需要 Linux 系统。"
         return 1
     fi
     if handheld_overlay_is_current "$plugin_root" "$directory_name" \
@@ -4010,8 +4019,8 @@ install_configured_plugin() {
     local deckrecall_ready=0
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && [ "$IS_CHIMERAOS" -ne 1 ]; then
-        echo "Decky 插件安装仅支持 SteamOS、Bazzite 或 ChimeraOS。"
+    if [ "$IS_STEAMOS" -ne 1 ] && ! is_desktop_linux && [ "$IS_CHIMERAOS" -ne 1 ]; then
+        echo "Decky 插件安装需要 Linux 与可用的插件商城。"
         return 1
     fi
     require_existing_chimera_plugin_environment || return 1
@@ -4480,8 +4489,8 @@ install_game_info_plugin_from_gitee() {
     esac
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
-        echo "$display_name 仅支持 SteamOS 或 Bazzite。"
+    if [ "$IS_STEAMOS" -ne 1 ] && ! is_desktop_linux; then
+        echo "$display_name 需要 Linux 系统。"
         return 1
     fi
     if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ]; then
@@ -4684,8 +4693,8 @@ install_feature_plugins() {
     local lsfg_variant=auto
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
-        echo "功能插件安装仅支持 SteamOS 或 Bazzite。"
+    if [ "$IS_STEAMOS" -ne 1 ] && ! is_desktop_linux; then
+        echo "功能插件安装需要 Linux 系统。"
         return 1
     fi
 

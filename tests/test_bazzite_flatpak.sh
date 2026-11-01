@@ -17,10 +17,10 @@ fail() {
 }
 
 mkdir -p "$BIN_DIR" "$HOME_DIR/Desktop" "$STATE_DIR"
-cat > "$BAZZITE_RELEASE" <<'EOF'
-ID=bazzite
+cat > "$BAZZITE_RELEASE" <<EOF
+ID=${RENKIT_TEST_DESKTOP_ID:-bazzite}
 ID_LIKE=fedora
-VARIANT_ID=bazzite-deck
+VARIANT_ID=${RENKIT_TEST_DESKTOP_ID:-bazzite}-desktop
 PRETTY_NAME="Bazzite"
 EOF
 cat > "$FEDORA_RELEASE" <<'EOF'
@@ -196,7 +196,7 @@ COMMON_ENV=(
 # Bazzite 默认只走官方用户级 Flathub，即使系统层残留同名国内源也不沿用。
 env "${COMMON_ENV[@]}" ZHOUKEER_FLATPAK_SOURCE_MODE=official \
     bash "$PROJECT_ROOT/modules/software.sh" localsend > "$TMP_ROOT/official.out"
-grep -Eq 'remote-add --user --if-not-exists --from flathub /tmp/' \
+grep -Eq 'remote-add --user --if-not-exists --from flathub /[^[:space:]]+' \
     "$STATE_DIR/commands" || fail "Bazzite 默认未通过官方签名配置添加用户级 Flathub"
 grep -Fq 'install --user --noninteractive -y flathub org.localsend.localsend_app' \
     "$STATE_DIR/commands" || fail "Bazzite 软件安装未使用官方 Flathub"
@@ -224,7 +224,7 @@ rm -f -- "$STATE_DIR/installed.com.google.Chrome"
 touch "$STATE_DIR/system-installed.com.google.Chrome"
 env "${COMMON_ENV[@]}" ZHOUKEER_FLATPAK_SOURCE_MODE=official \
     bash "$PROJECT_ROOT/modules/software.sh" uninstall chrome > "$TMP_ROOT/uninstall-system.out"
-grep -Fq '系统级 Flatpak，Renkit Bazzite版不会提权卸载' \
+grep -Fq '系统级 Flatpak，Renkit 不会提权卸载系统管理的应用' \
     "$TMP_ROOT/uninstall-system.out" || fail "Bazzite 未拒绝系统级 Flatpak 自动卸载"
 if grep -Eq 'uninstall .*--system|sudo ' "$STATE_DIR/commands"; then
     fail "Bazzite 软件卸载修改了系统级应用"
@@ -244,7 +244,7 @@ commands_after_repair="$(wc -l < "$STATE_DIR/commands" | tr -d ' ')"
 # 国内源只能经明确风险提示后手动启用，并且 Bazzite 只修改用户级远程。
 env "${COMMON_ENV[@]}" \
     bash "$PROJECT_ROOT/modules/domestic_source.sh" enable > "$TMP_ROOT/domestic.out"
-grep -Fq '将关闭软件包签名验证' "$TMP_ROOT/domestic.out" || fail "缺少关闭 GPG 风险提示"
+grep -Fq '将不再检查软件签名' "$TMP_ROOT/domestic.out" || fail "缺少关闭 GPG 风险提示"
 grep -Fq 'flathub-cn: https://mirror.sjtu.edu.cn/flathub' "$TMP_ROOT/domestic.out" || fail "缺少上海交大源明细"
 grep -Fq 'flathub-ustc: https://mirrors.ustc.edu.cn/flathub' "$TMP_ROOT/domestic.out" || fail "缺少中科大源明细"
 grep -Fq 'remote-add --user --if-not-exists --no-gpg-verify flathub-cn https://mirror.sjtu.edu.cn/flathub' \
@@ -267,15 +267,16 @@ if grep -Eq 'remote-delete .*--system|sudo ' "$STATE_DIR/commands"; then
     fail "Bazzite 恢复流程修改了系统级源"
 fi
 
-# 普通 Fedora 不允许直接调用源切换模块。
-if env "${COMMON_ENV[@]}" ZHOUKEER_OS_RELEASE_FILE="$FEDORA_RELEASE" \
-    bash "$PROJECT_ROOT/modules/domestic_source.sh" enable > "$TMP_ROOT/fedora.out" 2>&1; then
-    fail "普通 Fedora 被允许启用 Bazzite 国内源"
+# 公共桌面 Linux 入口不再按发行版拦截，仍只修改用户级远程。
+env "${COMMON_ENV[@]}" ZHOUKEER_OS_RELEASE_FILE="$FEDORA_RELEASE" \
+    bash "$PROJECT_ROOT/modules/domestic_source.sh" enable > "$TMP_ROOT/fedora.out" 2>&1 || fail "普通 Fedora 公共下载源入口被拦截"
+if grep -Eq 'sudo |remote-(add|modify|delete) .*--system' "$STATE_DIR/commands"; then
+    fail "通用桌面下载源修改了系统级配置"
 fi
 
 grep -Fq 'ZHOUKEER_FLATPAK_SOURCE_MODE="official"' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 主程序未固定官方源模式"
 grep -Fq '确认信任并启用国内源' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 菜单缺少显式确认入口"
-grep -Fq '仅修改用户级 Flatpak，不改 Bazzite 系统源' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 菜单缺少修改范围说明"
+grep -Fq '仅修改用户级 Flatpak，不改系统更新源' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 菜单缺少修改范围说明"
 grep -Fq 'modules/software.sh" uninstall "$choice"' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 常用软件卸载入口缺失"
 grep -Fq 'modules/game_launchers.sh" uninstall "$choice"' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 启动器卸载入口缺失"
 grep -Fq 'modules/emulators.sh" uninstall "$choice"' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 模拟器卸载入口缺失"

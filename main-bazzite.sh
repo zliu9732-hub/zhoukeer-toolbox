@@ -20,6 +20,17 @@ source "$PROJECT_ROOT/core/logger.sh"
 
 RENKIT_PLATFORM_LABEL="BAZZITE 掌机  /  中文工具"
 RENKIT_CONSOLE_TITLE="Bazzite Handheld Toolbox"
+# 同一桌面菜单可用于其他 Linux，保留 Bazzite 的真实系统标识。
+source "$PROJECT_ROOT/core/platform.sh"
+detect_platform
+RENKIT_DESKTOP_NAME=Bazzite
+if is_desktop_linux && [ "$IS_BAZZITE" -ne 1 ]; then
+    RENKIT_DESKTOP_NAME=Linux
+    [ "$PLATFORM_FAMILY" != anatase ] || RENKIT_DESKTOP_NAME=Anatase
+    RENKIT_PLATFORM_LABEL="$RENKIT_DESKTOP_NAME 掌机  /  中文工具"
+    RENKIT_CONSOLE_TITLE="$RENKIT_DESKTOP_NAME Handheld Toolbox"
+fi
+export RENKIT_DESKTOP_NAME
 ZHOUKEER_FLATPAK_SOURCE_MODE="official"
 export RENKIT_PLATFORM_LABEL
 export RENKIT_CONSOLE_TITLE
@@ -33,7 +44,7 @@ case "${1:-}" in
 esac
 
 show_startup_loading() {
-    printf '\033[0m\033[2J\033[H\n\n  Renkit Bazzite版启动中，请耐心等待…\n'
+    printf '\033[0m\033[2J\033[H\n\n  Renkit %s版启动中，请耐心等待…\n' "${RENKIT_DESKTOP_NAME:-Bazzite}"
 }
 
 show_startup_loading
@@ -108,12 +119,12 @@ show_disclaimer() {
     local choice
     while true; do
         draw_disclaimer_frame
-        ui_disclaimer_line 8 '\033[1;38;5;220m' "Renkit Bazzite版与 SteamOS 版使用独立功能菜单"
-        ui_disclaimer_line 9 '\033[38;5;45m' "当前版本只开放已适配的 Bazzite 用户空间功能"
+        ui_disclaimer_line 8 '\033[1;38;5;220m' "桌面 Linux 与 SteamOS 使用独立功能菜单"
+        ui_disclaimer_line 9 '\033[38;5;45m' "提供常用软件、游戏启动器、兼容层及插件功能"
         ui_disclaimer_line 10 '\033[38;5;45m' "不会执行 pacman、steamos-readonly 或 SteamOS 系统修复"
         ui_disclaimer_line 11 '\033[38;5;45m' "下载内容来自官方免费发布、开源项目或Renkit镜像"
         ui_disclaimer_line 12 '\033[38;5;45m' "不包含付费软件、破解、ROM、BIOS 或密钥"
-        ui_disclaimer_line 13 '\033[1;38;5;220m' "Decky 使用 Bazzite 官方 ujust 安装入口"
+        ui_disclaimer_line 13 '\033[1;38;5;220m' "插件商城使用系统提供的安装入口或已有环境"
         ui_disclaimer_button 16 '\033[1;38;5;114m' "点击窗口任意位置开始使用" "关闭窗口即可退出"
         choice="$(read_menu_choice any:1-999:agree)"
         [ "$choice" = "agree" ] && return 0
@@ -152,10 +163,10 @@ apply_navigation() {
 
 home_menu() {
     local choice
-    draw_category_frame "" "Renkit Bazzite版" "独立菜单 · 不调用 SteamOS 系统功能"
-    ui_panel_line 8 '\033[1;38;5;220m' "已自动切换到 Bazzite 功能集"
+    draw_category_frame "" "Renkit ${RENKIT_DESKTOP_NAME:-Bazzite}版" "独立菜单 · 不调用 SteamOS 系统功能"
+    ui_panel_line 8 '\033[1;38;5;220m' "已进入当前系统可用的常用功能"
     ui_panel_line 10 '\033[1;38;5;45m' "常用软件、启动器、兼容层、模拟器和诊断已开放"
-    ui_panel_line 12 '\033[1;38;5;114m' "Decky 由 Bazzite 官方 ujust 负责安装和维护"
+    ui_panel_line 12 '\033[1;38;5;114m' "插件商城沿用当前系统提供的安装方式"
     ui_panel_line 14 '\033[1;38;5;250m' "系统调优、pacman、ToDesk仍隔离；Clover需单独确认"
     ui_prompt
     choice="$(read_touch_menu)"
@@ -165,10 +176,10 @@ home_menu() {
 bazzite_setup_menu() {
     local choice
     while true; do
-        draw_category_frame init "Bazzite 使用准备" "只读检查与官方组件入口"
-        ui_touch_button 6 '\033[1;97;48;5;24m' "查看系统信息" "识别 Bazzite 版本与设备状态"
+        draw_category_frame init "使用准备" "只读检查与官方组件入口"
+        ui_touch_button 6 '\033[1;97;48;5;24m' "查看系统信息" "查看系统版本与设备状态"
         ui_touch_button 9 '\033[1;97;48;5;24m' "一键检查网络" "检查 Steam、国内线路与 Flathub"
-        ui_touch_button 12 '\033[1;97;48;5;24m' "安装 Decky Loader" "调用 Bazzite 官方 ujust setup-decky"
+        ui_touch_button 12 '\033[1;97;48;5;24m' "安装 Decky Loader" "使用当前系统提供的安装入口"
         ui_touch_button 15 '\033[1;97;48;5;24m' "查看 Decky 状态" "只读检查，不修改系统"
         ui_touch_button 18 '\033[1;97;48;5;24m' "Flatpak 下载源" "默认官方；可手动切换国内镜像"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -176,9 +187,9 @@ bazzite_setup_menu() {
         choice="$(read_touch_menu right:6-7:system right:9-10:network right:12-13:decky right:15-16:decky-status right:18-19:flatpak-source right:22-23:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
-            system) run_action "查看 Bazzite 系统信息" bash "$PROJECT_ROOT/core/detect.sh" ;;
+            system) run_action "查看系统信息" bash "$PROJECT_ROOT/core/detect.sh" ;;
             network) run_action "一键检查网络" bash "$PROJECT_ROOT/modules/network.sh" ;;
-            decky) confirm_and_run "安装 Decky Loader" "使用 Bazzite 官方 ujust 安装，不替换 SteamOS 服务文件" bash "$PROJECT_ROOT/modules/bazzite_decky.sh" install ;;
+            decky) confirm_and_run "安装 Decky Loader" "使用当前系统提供的安装入口；已有插件商城时直接使用" bash "$PROJECT_ROOT/modules/bazzite_decky.sh" install ;;
             decky-status) run_action "查看 Decky 状态" bash "$PROJECT_ROOT/modules/bazzite_decky.sh" status ;;
             flatpak-source) bazzite_flatpak_source_menu ;;
             home) NEXT_CATEGORY="home"; return 0 ;;
@@ -189,12 +200,12 @@ bazzite_setup_menu() {
 bazzite_flatpak_source_menu() {
     local choice
     while true; do
-        draw_category_frame init "Bazzite Flatpak 下载源" "默认官方 Flathub · 国内镜像需主动确认"
+        draw_category_frame init "应用下载设置" "默认官方 Flathub · 国内镜像需主动确认"
         ui_panel_line 6 '\033[1;38;5;114m' "默认：官方 Flathub，保持 GPG 签名验证"
         ui_panel_line 8 '\033[1;38;5;220m' "风险：启用以下国内镜像会关闭 GPG 验证"
         ui_panel_line 10 '\033[38;5;250m' "flathub-cn: https://mirror.sjtu.edu.cn/flathub"
         ui_panel_line 12 '\033[38;5;250m' "flathub-ustc: https://mirrors.ustc.edu.cn/flathub"
-        ui_touch_button 15 '\033[1;30;48;5;220m' "确认信任并启用国内源" "仅修改用户级 Flatpak，不改 Bazzite 系统源"
+        ui_touch_button 15 '\033[1;30;48;5;220m' "确认信任并启用国内源" "仅修改用户级 Flatpak，不改系统更新源"
         ui_touch_button 18 '\033[1;97;48;5;24m' "恢复官方 Flathub" "重新启用 GPG 验证"
         ui_touch_button 20 '\033[1;97;48;5;24m' "查看当前 Flatpak 源"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回"
@@ -652,7 +663,7 @@ games_menu() {
         choice="$(read_touch_menu right:2-3:decky right:4-5:plugins right:6-7:ge right:8-9:epic right:10-11:battlenet right:12-13:ubisoft right:14-15:heihe right:16-17:repair right:21-22:home)"
         if apply_navigation "$choice"; then return 0; fi
         case "$choice" in
-            decky) confirm_and_run "安装 Decky Loader" "调用 Bazzite 官方 ujust setup-decky" bash "$PROJECT_ROOT/modules/bazzite_decky.sh" install ;;
+            decky) confirm_and_run "安装 Decky Loader" "使用当前系统提供的安装入口" bash "$PROJECT_ROOT/modules/bazzite_decky.sh" install ;;
             plugins) bazzite_decky_plugins_menu || return 0 ;;
             ge) bazzite_ge_proton_menu || return 0 ;;
             epic|battlenet|ubisoft|heihe) confirm_and_run "安装游戏启动器" "安装完成后写入 Steam 库与封面" bash "$PROJECT_ROOT/modules/game_launchers.sh" "$choice" ;;
@@ -808,7 +819,7 @@ advanced_menu() {
         ui_panel_line 13 '\033[1;38;5;220m' "暂不开放：系统调优、ToDesk、通用 EFI 工具、pacman 国内源"
         ui_panel_line 16 '\033[1;38;5;250m' "这些功能与 SteamOS 版完全隔离，不会误调用"
         ui_touch_button 18 '\033[1;30;48;5;220m' "Clover 双系统引导" "Bazzite 专用检测，安装与恢复均需确认"
-        ui_touch_button 20 '\033[1;97;48;5;24m' "查看 Bazzite 与 Decky 状态"
+        ui_touch_button 20 '\033[1;97;48;5;24m' "查看系统与插件商城状态"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页"
         ui_prompt
         choice="$(read_touch_menu right:18-19:clover right:20-21:status right:23-24:home)"

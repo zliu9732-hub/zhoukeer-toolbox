@@ -15,7 +15,7 @@ bazzite_decky_is_installed() {
 }
 
 bazzite_decky_status() {
-    require_bazzite || return 1
+    require_desktop_linux || return 1
     if bazzite_decky_is_installed; then
         echo "Decky Loader：已安装"
         if command -v systemctl >/dev/null 2>&1 && \
@@ -31,20 +31,31 @@ bazzite_decky_status() {
 }
 
 install_bazzite_decky() {
-    require_bazzite || return 1
-    require_command ujust || {
-        echo "当前 Bazzite 缺少 ujust，无法使用官方 Decky 安装方式。"
-        return 1
-    }
+    local recipes
+    require_desktop_linux || return 1
     if bazzite_decky_is_installed; then
         echo "[已安装] Decky Loader 已存在，无需重复安装。"
         return 0
     fi
 
-    echo "正在调用 Bazzite 官方安装入口：ujust setup-decky"
-    echo "如出现系统确认窗口，请按 Bazzite 提示完成。"
+    if ! command -v ujust >/dev/null 2>&1; then
+        echo "未检测到插件商城；请先通过当前系统支持的方式安装 Decky Loader，再返回安装插件。"
+        return 1
+    fi
+    if [ "$IS_BAZZITE" -ne 1 ]; then
+        recipes="$(ujust --list 2>/dev/null)" || {
+            echo "无法读取当前系统的插件商城安装入口，请先安装 Decky Loader 后重试。"
+            return 1
+        }
+        if ! grep -Eq '^[[:space:]]*setup-decky([[:space:]]|$)' <<< "$recipes"; then
+            echo "当前系统未提供插件商城安装入口，请先安装 Decky Loader 后重试。"
+            return 1
+        fi
+    fi
+    echo "正在调用系统提供的插件商城安装入口…"
+    echo "如出现系统确认窗口，请按系统提示完成。"
     ujust setup-decky || {
-        echo "Bazzite 官方 Decky 安装未完成，请查看上方提示。"
+        echo "插件商城安装未完成，请查看上方提示。"
         return 1
     }
     if ! bazzite_decky_is_installed; then

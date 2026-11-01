@@ -438,9 +438,15 @@ if [ "$IS_CHIMERAOS" -eq 1 ]; then
     TOOLBOX_DISPLAY_NAME="Renkit ChimeraOS版"
     TOOLBOX_DESKTOP_COMMENT="ChimeraOS 应用与插件工具"
 elif [ "$IS_STEAMOS" -ne 1 ]; then
-    PLATFORM_FAMILY="bazzite"
     TOOLBOX_DISPLAY_NAME="Renkit Bazzite版"
     TOOLBOX_DESKTOP_COMMENT="Bazzite 掌机工具"
+    if [ "$PLATFORM_FAMILY" = anatase ]; then
+        TOOLBOX_DISPLAY_NAME="Renkit Anatase版"
+        TOOLBOX_DESKTOP_COMMENT="Anatase 掌机工具"
+    elif [ "$IS_BAZZITE" -ne 1 ]; then
+        TOOLBOX_DISPLAY_NAME="Renkit Linux版"
+        TOOLBOX_DESKTOP_COMMENT="Linux 应用与插件工具"
+    fi
 fi
 
 echo "================================"
@@ -707,7 +713,8 @@ if ! find "$STAGING_DIR" -type f -name '*.sh' ! -name '._*' -exec bash -n {} \;;
     echo "新版本包含Shell语法错误，旧版本保持不变。"
     exit 1
 fi
-for required in modules/steam_accelerator.sh modules/steam302_legacy.sh modules/steam302_v15.sh \
+for required in core/platform.sh main-bazzite.sh modules/bazzite_decky.sh modules/plugin_store.sh \
+    modules/steam_accelerator.sh modules/steam302_legacy.sh modules/steam302_v15.sh \
     scripts/steam302_control.py modules/screen_colors.sh scripts/localize_screen_colors.py \
     scripts/framegen_package.py data/screen_colors_files.json data/screen_colors_zh.json \
     assets/screen-colors/zh-runtime.js assets/screen-colors/RENKIT_ZH.md \

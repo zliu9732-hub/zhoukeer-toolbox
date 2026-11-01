@@ -261,3 +261,5 @@ bash "${HOME}/.local/share/zhoukeer-toolbox/uninstall.sh" --dry-run
 - ROG 20 周年 RC74XA：更多设置 → 掌机适配 → 更多掌机功能 → ROG 20 周年修复，可检查、一键部署声音/快捷菜单/唤醒修复或撤销。仅支持已收录的 SteamOS 3.9.3、BIOS 和内核，详见 [适用范围与恢复说明](docs/rog-x20.md)。
 
 - 游戏与插件 → 其余常用插件 → 第二页：GFG Extreme 功耗与补帧（3.0.10 完整中文）。可自动调节功耗、提供游戏补帧；仅 Steam Deck / SteamOS。需要管理员权限，启用引擎后手动重启；首次运行会按原作者规则迁移并清理旧 GFG/MAKO 组件，避免同时启用其他功耗工具。恢复时先在插件中移除引擎，再重启。详见 [使用与验证范围](docs/gfg-extreme.md)。
+
+- Bazzite 版的公共功能现可在 Anatase 等桌面 Linux 使用；自动进入同一套菜单，按实际组件和插件环境检查。说明见 [桌面 Linux 入口](docs/desktop-linux.md)。

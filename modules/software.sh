@@ -460,7 +460,7 @@ configure_domestic_flatpak_remote() {
     local scope
 
     detect_platform
-    if [ "$IS_BAZZITE" -eq 1 ] || [ "$IS_CHIMERAOS" -eq 1 ]; then
+    if is_desktop_linux || [ "$IS_CHIMERAOS" -eq 1 ]; then
         if flatpak_remote_exists "$remote"; then
             scope=user
         else
@@ -501,7 +501,7 @@ configure_domestic_flatpak_remote() {
 ensure_flatpak_remotes() {
     detect_platform
     if [ "${ZHOUKEER_FORCE_FLATPAK_RECONFIGURE:-0}" != "1" ]; then
-        if [ "$IS_BAZZITE" -eq 1 ] || [ "$IS_CHIMERAOS" -eq 1 ]; then
+        if is_desktop_linux || [ "$IS_CHIMERAOS" -eq 1 ]; then
             if flatpak_remote_exists "$FLATHUB_CN_REMOTE" && \
                flatpak_remote_exists "$FLATHUB_CN_FALLBACK_REMOTE"; then
                 return 0
@@ -1619,7 +1619,7 @@ show_software_status() {
     detect_platform
     echo "常用软件与远程协助安装状态："
     for target in "${SOFTWARE_TARGETS[@]}"; do
-        if [ "$IS_BAZZITE" -eq 1 ] && [ "$target" = "anydesk" ]; then
+        if is_desktop_linux && [ "$target" = "anydesk" ]; then
             continue
         fi
         target_count=$((target_count + 1))
@@ -1640,7 +1640,7 @@ repair_software_shortcuts() {
 
     detect_platform
     for target in "${SOFTWARE_TARGETS[@]}"; do
-        if [ "$IS_BAZZITE" -eq 1 ] && [ "$target" = "anydesk" ]; then
+        if is_desktop_linux && [ "$target" = "anydesk" ]; then
             continue
         fi
         software_details "$target" || return 1
@@ -1898,9 +1898,9 @@ uninstall_flatpak_software() {
         flatpak uninstall --user --noninteractive -y "$app_id" || return 1
     elif flatpak info --system "$app_id" >/dev/null 2>&1; then
         detect_platform
-        if [ "$IS_BAZZITE" -eq 1 ]; then
-            echo "$app_name 是系统级 Flatpak，Renkit Bazzite版不会提权卸载。"
-            echo "请使用 Bazzite 系统管理方式维护该系统级应用。"
+        if is_desktop_linux; then
+            echo "$app_name 是系统级 Flatpak，Renkit 不会提权卸载系统管理的应用。"
+            echo "请使用系统自带的软件管理界面维护该应用。"
             return 0
         elif [ "$IS_CHIMERAOS" -eq 1 ]; then
             echo "$app_name 是系统级 Flatpak，Renkit ChimeraOS版不会提权卸载。"

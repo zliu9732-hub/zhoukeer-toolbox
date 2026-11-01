@@ -134,8 +134,8 @@ configure_domestic_flatpak() {
     DOMESTIC_FLATPAK_SKIPPED=0
     export DOMESTIC_FLATPAK_SKIPPED
 
-    if [ "$IS_BAZZITE" -eq 1 ]; then
-        echo "配置 Bazzite 用户级 Flatpak 国内缓存..."
+    if is_desktop_linux; then
+        echo "正在设置应用下载加速..."
     else
         echo "[2/3] 正在设置软件下载加速..."
     fi
@@ -296,7 +296,7 @@ restore_official_flatpak() {
         echo "已恢复默认下载设置，并重新开启软件签名检查。"
         log "已恢复Flathub官方源并移除国内缓存源和Renkit管理的archlinuxcn配置"
     else
-        echo "已恢复 Bazzite 官方 Flathub 并启用 GPG 验证；系统更新源保持不变。"
+        echo "已恢复官方 Flathub 并启用 GPG 验证；系统更新源保持不变。"
         log "Bazzite已恢复官方Flathub并移除国内缓存源"
     fi
 }
@@ -569,8 +569,8 @@ show_software_source_status() {
         else
             echo "pacman 国内仓库：未配置 archlinuxcn"
         fi
-    elif [ "$IS_BAZZITE" -eq 1 ]; then
-        echo "Bazzite 系统更新源：保持官方配置（Renkit不修改）"
+    elif is_desktop_linux; then
+        echo "系统更新源：保持系统原有配置"
     fi
     echo "用户级 Flatpak 下载源："
     flatpak remotes --user --show-details 2>/dev/null || \

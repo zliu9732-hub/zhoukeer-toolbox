@@ -58,6 +58,9 @@ if [ "$IS_STEAMOS" -eq 1 ]; then
 elif [ "$IS_BAZZITE" -eq 1 ]; then
     echo "Bazzite环境：是"
     health_pass "已识别 Bazzite 环境"
+elif is_desktop_linux; then
+    echo "桌面 Linux 环境：$PLATFORM_NAME"
+    health_pass "已进入桌面 Linux 通用功能环境"
 elif [ "$IS_CHIMERAOS" -eq 1 ]; then
     echo "ChimeraOS环境：是"
     health_pass "已识别 ChimeraOS 环境"

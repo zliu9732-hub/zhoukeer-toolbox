@@ -30,6 +30,7 @@ detect_platform() {
     PLATFORM_FAMILY="unknown"
     IS_STEAMOS=0
     IS_BAZZITE=0
+    IS_DESKTOP_LINUX=0
     IS_CHIMERAOS=0
 
     if [ -r "${ZHOUKEER_OS_RELEASE_FILE:-/etc/os-release}" ]; then
@@ -41,11 +42,13 @@ detect_platform() {
         case "$PLATFORM_ID" in
             steamos) PLATFORM_FAMILY="steamos" ;;
             bazzite) PLATFORM_FAMILY="bazzite" ;;
+            anatase) PLATFORM_FAMILY="anatase" ;;
             chimeraos|skorionos) PLATFORM_FAMILY="chimeraos" ;;
         esac
         if [ "$PLATFORM_FAMILY" = "unknown" ]; then
             case "$PLATFORM_VARIANT_ID" in
                 bazzite*) PLATFORM_FAMILY="bazzite" ;;
+                anatase*) PLATFORM_FAMILY="anatase" ;;
             esac
         fi
         if [ "$PLATFORM_FAMILY" = "unknown" ]; then
@@ -64,6 +67,9 @@ detect_platform() {
         bazzite) IS_BAZZITE=1 ;;
         chimeraos) IS_CHIMERAOS=1 ;;
     esac
+    if [ "$PLATFORM_UNAME" = Linux ] && [ "$IS_STEAMOS" -eq 0 ] && [ "$IS_CHIMERAOS" -eq 0 ]; then
+        IS_DESKTOP_LINUX=1
+    fi
 }
 
 is_linux() {
@@ -98,14 +104,37 @@ require_chimeraos() {
     fi
 }
 
+# 共用的非 SteamOS 桌面菜单：不把其他 Linux 伪装成 Bazzite。
+# Bazzite 专用功能继续使用 require_bazzite，系统/硬件能力由各功能检查。
+is_desktop_linux() {
+    [ "${IS_STEAMOS:-0}" -eq 0 ] && [ "${IS_CHIMERAOS:-0}" -eq 0 ] &&
+        { [ "${IS_BAZZITE:-0}" -eq 1 ] || [ "${IS_DESKTOP_LINUX:-0}" -eq 1 ]; }
+}
+
+require_steamos_or_bazzite() {
+    detect_platform
+    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ]; then
+        echo "此系统级功能仅适用于 SteamOS 或 Bazzite，已停止执行。"
+        return 1
+    fi
+}
+
+require_desktop_linux() {
+    detect_platform
+    if ! is_desktop_linux; then
+        echo "此入口适用于桌面 Linux 系统，已停止执行。"
+        return 1
+    fi
+}
+
 is_supported_gaming_os() {
     detect_platform
-    [ "$IS_STEAMOS" -eq 1 ] || [ "$IS_BAZZITE" -eq 1 ]
+    [ "$IS_STEAMOS" -eq 1 ] || is_desktop_linux
 }
 
 require_supported_gaming_os() {
     if ! is_supported_gaming_os; then
-        echo "此功能仅支持 SteamOS 或 Bazzite，已停止执行。"
+        echo "此功能需要 Linux 系统，已停止执行。"
         return 1
     fi
 }

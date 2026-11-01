@@ -873,7 +873,7 @@ fi
 # steamos-readonly executable on macOS otherwise looks like a SteamOS install.
 unsupported_plugin_output() (
     source "$PROJECT_ROOT/modules/plugin_store.sh"
-    detect_platform() { IS_STEAMOS=0; IS_BAZZITE=0; IS_CHIMERAOS=0; }
+    detect_platform() { IS_STEAMOS=0; IS_BAZZITE=0; IS_DESKTOP_LINUX=0; IS_CHIMERAOS=0; }
     case "$1" in
         lsfg) install_lsfg_zh_from_gitee ;;
         simpledeckytdp) ensure_simpledeckytdp_chinese_current ;;
@@ -884,18 +884,18 @@ unsupported_plugin_output() (
 if output="$(unsupported_plugin_output lsfg)"; then
     echo "FAIL: 小黄鸭接受了不支持的平台" >&2; exit 1
 fi
-printf '%s\n' "$output" | grep -Fq '仅支持 SteamOS、Bazzite 或 ChimeraOS'
+printf '%s\n' "$output" | grep -Fq '需要 Linux 与可用的插件商城'
 
 if simpledeckytdp_output="$(unsupported_plugin_output simpledeckytdp)"; then
     echo "FAIL: 掌机功耗控制接受了不支持的平台" >&2; exit 1
 fi
-printf '%s\n' "$simpledeckytdp_output" | grep -Fq '仅支持 SteamOS、Bazzite 或 ChimeraOS'
+printf '%s\n' "$simpledeckytdp_output" | grep -Fq '需要 Linux 与可用的插件商城'
 
 if allycenter_output="$(unsupported_plugin_output allycenter)"; then
     echo "FAIL: 掌机控制插件接受了不支持的平台" >&2; exit 1
 fi
 printf '%s\n' "$allycenter_output" | \
-    grep -Fq 'Decky 插件安装仅支持 SteamOS、Bazzite 或 ChimeraOS'
+    grep -Fq 'Decky 插件安装需要 Linux 与可用的插件商城'
 
 (
     # shellcheck disable=SC1090

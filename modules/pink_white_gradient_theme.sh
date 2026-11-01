@@ -141,9 +141,9 @@ pink_white_gradient_install() {
     local themes_dir theme_dir tmp_dir backup_dir decky_home
 
     detect_platform
-    if [ "$IS_STEAMOS" -ne 1 ] && [ "$IS_BAZZITE" -ne 1 ] && \
+    if [ "$IS_STEAMOS" -ne 1 ] && ! is_desktop_linux && \
         [ "${ZHOUKEER_ALLOW_NON_STEAMOS:-0}" != "1" ]; then
-        echo "Pink White Gradient 粉色主题仅支持 SteamOS 或 Bazzite，已停止执行。"
+        echo "Pink White Gradient 粉色主题需要 Linux 系统，已停止执行。"
         return 1
     fi
 
