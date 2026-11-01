@@ -17,6 +17,10 @@ UI_LAYOUT_RETRY_INTERVAL=0.2
 UI_COLUMNS=120
 UI_ROWS=24
 UI_CONTENT_ROWS=24
+UI_COMPACT=0
+UI_MIN_ROWS=24
+UI_FRAME_KIND=draw_category_frame
+UI_ROW_MAP=()
 UI_PANEL_WIDTH=81
 UI_RECORDING=0
 UI_REPLAYING=0
@@ -54,8 +58,14 @@ ui_detect_layout() {
     [[ "$rows" =~ ^[1-9][0-9]{0,3}$ ]] || rows=24
     UI_COLUMNS="$columns"
     UI_ROWS="$rows"
+    UI_COMPACT=0 UI_MIN_ROWS="$UI_LAST_ROW"
+    if [ "${RENKIT_COMPACT_MENUS:-0}" = 1 ] && [ "$UI_FRAME_KIND" = draw_category_frame ]; then
+        UI_MIN_ROWS=21
+        [ "$rows" -ge "$UI_LAST_ROW" ] || UI_COMPACT=1
+    fi
     UI_CONTENT_ROWS=$((rows - 2))
     [ "$UI_CONTENT_ROWS" -ge "$UI_LAST_ROW" ] || UI_CONTENT_ROWS="$UI_LAST_ROW"
+    [ "$UI_COMPACT" = 0 ] || UI_CONTENT_ROWS=$((rows - 1))
 
     # 左侧约占四分之一宽度；每次重算，缩小后再放大也能恢复。
     UI_SEPARATOR_COL=$((columns / 4 + 4))
@@ -65,7 +75,7 @@ ui_detect_layout() {
     UI_PANEL_WIDTH=$((columns - UI_PANEL_COL - 1))
     [ "$UI_PANEL_WIDTH" -ge 1 ] || UI_PANEL_WIDTH=1
     UI_LAYOUT_USABLE=1
-    if [ "$rows" -lt "$UI_LAST_ROW" ] || [ "$columns" -lt 70 ]; then
+    if [ "$rows" -lt "$UI_MIN_ROWS" ] || [ "$columns" -lt 70 ]; then
         UI_LAYOUT_USABLE=0
     fi
 }
@@ -124,7 +134,7 @@ ui_wait_for_minimum_canvas() {
 
     while [ "$attempt" -lt "$UI_LAYOUT_RETRY_COUNT" ]; do
         ui_detect_layout
-        if [ "$UI_ROWS" -ge "$UI_LAST_ROW" ] && [ "$UI_COLUMNS" -ge 70 ]; then
+        if [ "$UI_LAYOUT_USABLE" = 1 ]; then
             return 0
         fi
         # 先让终端恢复标准尺寸；桌面未接受窗口请求时再按真实行列缩小字号。
@@ -183,7 +193,9 @@ ui_move() {
 
 # 菜单保留原来的 24 行逻辑坐标；绘制和命中测试使用同一个变换。
 ui_scale_row() {
-    if [ "$1" -gt "$UI_LAST_ROW" ]; then
+    if [ "$UI_COMPACT" = 1 ] && [ -n "${UI_ROW_MAP[$1]:-}" ]; then
+        UI_SCALED_ROW="${UI_ROW_MAP[$1]}"
+    elif [ "$1" -gt "$UI_LAST_ROW" ]; then
         UI_SCALED_ROW=$((UI_CONTENT_ROWS + 1))
     else
         UI_SCALED_ROW=$((1 + ($1 - 1) * (UI_CONTENT_ROWS - 1) / (UI_LAST_ROW - 1)))
@@ -205,6 +217,7 @@ ui_rule() {
 ui_prepare_layout() {
     local index row count=0 notes=0 stride height slot=0 grid_rows card_width sidebar_items=9
     UI_GRID=0 UI_HOME=0
+    UI_ROW_MAP=()
     UI_LEFT_TOP=() UI_LEFT_BOTTOM=() UI_LEFT_COL=() UI_LEFT_WIDTH=()
     UI_RIGHT_TOP=() UI_RIGHT_BOTTOM=() UI_RIGHT_COL=() UI_RIGHT_WIDTH=()
     [ "${UI_DRAW_FUNCTION[0]:-}" = draw_category_frame ] || return 0
@@ -212,6 +225,12 @@ ui_prepare_layout() {
         case "${UI_DRAW_FUNCTION[index]}" in
             ui_touch_button) count=$((count + 1)) ;;
             ui_panel_line) notes=$((notes + 1)) ;;
+            ui_prompt) ;;
+            *)
+                if [ "$UI_COMPACT" = 1 ]; then
+                    UI_LAYOUT_USABLE=0 UI_MIN_ROWS=24
+                    return 0
+                fi ;;
         esac
     done
     if [ "${RENKIT_STEAMOS_DUAL_NAV:-0}" = "1" ]; then
@@ -240,6 +259,10 @@ ui_prepare_layout() {
         [ "$height" -le 6 ] || height=6
         card_width=$(((UI_PANEL_WIDTH - 3) / 2))
     fi
+    if [ "$UI_COMPACT" = 1 ] && [ "$UI_GRID" = 0 ]; then
+        ui_prepare_compact_panel
+        return 0
+    fi
     for ((index=1; index<UI_DRAW_COUNT; index++)); do
         if [ "${UI_DRAW_FUNCTION[index]}" != ui_touch_button ]; then
             [ "$UI_HOME" = 1 ] && [ "${UI_DRAW_FUNCTION[index]}" = ui_panel_line ] || continue
@@ -261,6 +284,47 @@ ui_prepare_layout() {
             UI_RIGHT_BOTTOM[row]=$((UI_SCALED_ROW - 1))
         fi
         slot=$((slot + 1))
+    done
+}
+
+# 矮窗口不压缩文字坐标：按原逻辑顺序逐项分配真实行，说明各占一行。
+# 优先保留按钮的两行边框；密集列表至少一行一项，绘制和触控共用矩形。
+ui_prepare_compact_panel() {
+    local index row kind required=0 available=$((UI_CONTENT_ROWS - 2))
+    local top=3 height extra
+    local -a kinds=()
+    for ((index=1; index<UI_DRAW_COUNT; index++)); do
+        kind="${UI_DRAW_FUNCTION[index]}"
+        case "$kind" in
+            ui_touch_button) kind=button ;;
+            ui_panel_line) kind=note; [ "$UI_HOME" = 0 ] || kind=button ;;
+            ui_prompt) continue ;;
+            *) UI_LAYOUT_USABLE=0 UI_MIN_ROWS=24; return 0 ;;
+        esac
+        row="${UI_DRAW_ARG1[index]}"
+        if [ -n "${kinds[row]:-}" ]; then
+            UI_LAYOUT_USABLE=0 UI_MIN_ROWS=24; return 0
+        fi
+        kinds[row]="$kind"
+        required=$((required + 1))
+    done
+    if [ "$required" -gt "$available" ]; then
+        UI_LAYOUT_USABLE=0 UI_MIN_ROWS=24; return 0
+    fi
+    extra=$((available - required))
+    for ((row=1; row<=UI_LAST_ROW; row++)); do
+        kind="${kinds[row]:-}"
+        [ -n "$kind" ] || continue
+        UI_ROW_MAP[row]="$top"
+        height=1
+        if [ "$kind" = button ]; then
+            if [ "$extra" -gt 0 ]; then height=2; extra=$((extra - 1)); fi
+            UI_RIGHT_TOP[row]="$top"
+            UI_RIGHT_BOTTOM[row]=$((top + height - 1))
+            UI_RIGHT_COL[row]="$UI_PANEL_COL"
+            UI_RIGHT_WIDTH[row]="$UI_PANEL_WIDTH"
+        fi
+        top=$((top + height))
     done
 }
 
@@ -370,6 +434,7 @@ ui_record_draw() {
 }
 
 ui_begin_frame() {
+    UI_FRAME_KIND="$1"
     if [ "$UI_REPLAYING" = 0 ]; then
         # 在 choice=$(...) 捕获 stdout 前保存真正的终端输出。
         # FD 9 专供 UI 重绘使用；不能经启动器按行过滤的 stderr 绘制无换行帧。
@@ -396,16 +461,21 @@ ui_begin_frame() {
         printf '\033[?7l窗口太小，请放大窗口或按 Ctrl+- 缩小字号\033[?7h'
         if [ "$UI_ROWS" -ge 2 ]; then
             ui_move_absolute 2 1
-            printf '\033[?7l当前 %s 列 × %s 行；需要至少 70 列 × 24 行\033[?7h' "$UI_COLUMNS" "$UI_ROWS"
+            printf '\033[?7l当前 %s 列 × %s 行；需要至少 70 列 × %s 行\033[?7h' "$UI_COLUMNS" "$UI_ROWS" "$UI_MIN_ROWS"
         fi
     fi
 }
 
 ui_redraw_if_resized() {
     local previous_size="$UI_COLUMNS:$UI_ROWS"
+    local previous_usable="$UI_LAYOUT_USABLE" previous_min_rows="$UI_MIN_ROWS"
     [ "$UI_DRAW_COUNT" -gt 0 ] || return 1
     ui_detect_layout
-    [ "$previous_size" != "$UI_COLUMNS:$UI_ROWS" ] || return 1
+    if [ "$previous_size" = "$UI_COLUMNS:$UI_ROWS" ]; then
+        # 页面内容过密时的保护由排版决定，轮询尺寸不能自行解除。
+        UI_LAYOUT_USABLE="$previous_usable" UI_MIN_ROWS="$previous_min_rows"
+        return 1
+    fi
     ui_prepare_layout
     ui_replay_frame
 }
@@ -812,6 +882,13 @@ draw_category_frame() {
         printf '\033[1;38;5;255m%s\033[0m' "$UI_FIT_TEXT"
         ui_move_absolute 2 "$((UI_PANEL_COL + 1))"
         ui_fit_button_text "${subtitle:-选择功能，按提示操作}" "$((UI_PANEL_WIDTH - 3))"
+        printf '\033[38;5;245m%s\033[0m' "$UI_FIT_TEXT"
+    elif [ "$UI_COMPACT" = 1 ]; then
+        ui_move_absolute 1 "$((UI_PANEL_COL + 1))"
+        ui_fit_button_text "${title:-功能选择}" "$((UI_PANEL_WIDTH - 3))"
+        printf '\033[1;38;5;255m%s\033[0m' "$UI_FIT_TEXT"
+        ui_move_absolute 2 "$((UI_PANEL_COL + 1))"
+        ui_fit_button_text "$subtitle" "$((UI_PANEL_WIDTH - 3))"
         printf '\033[38;5;245m%s\033[0m' "$UI_FIT_TEXT"
     elif [ -n "$title" ]; then
         ui_panel_line 2 '\033[1;38;5;203m' "◆ Renkit  ·  V${TOOLBOX_VERSION}"

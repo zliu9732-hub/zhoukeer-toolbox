@@ -71,7 +71,7 @@ grep -Fq "printf '\\033[0m\\033[r\\033[3J\\033[2J\\033[H'" "$PROJECT_ROOT/launch
 
 layout_wait="$(sed -n '/^ui_wait_for_minimum_canvas()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
 printf '%s\n' "$layout_wait" | grep -Fq 'ui_request_preferred_canvas' || fail "窗口过矮时没有请求恢复Renkit画布"
-printf '%s\n' "$layout_wait" | grep -Fq 'UI_LAST_ROW' || fail "窗口画布没有按触控底部行检查"
+printf '%s\n' "$layout_wait" | grep -Fq 'UI_LAYOUT_USABLE' || fail "窗口等待没有沿用绘制与触控的可用尺寸判断"
 canvas_request="$(sed -n '/^ui_request_preferred_canvas()/,/^}/p' "$PROJECT_ROOT/core/ui.sh")"
 printf '%s\n' "$canvas_request" | grep -Fq '\033[8;%s;%st' || fail "没有请求 Konsole 恢复标准行列尺寸"
 grep -Fq 'ui_wait_for_minimum_canvas || true' "$PROJECT_ROOT/main.sh" || fail "主程序首次绘制前没有等待窗口尺寸就绪"

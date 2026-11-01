@@ -17,6 +17,7 @@ konsoleprofile() {
     # Reproduce the real KDE tool: only emit OSC 50, never change the PTY itself.
     printf '\033]50;%s\a' "$1"
 }
+[ "$FONT_MODE" != missing ] || unset -f konsoleprofile
 source "$UI_TEST_ROOT/core/ui.sh"
 # Prevent tests from flushing buffered simulated clicks; no action is ever run.
 ui_discard_pending_input() { :; }
@@ -48,10 +49,10 @@ printf '\nDONE=%s FONT=%s\n' "$NEXT_CATEGORY" "$UI_FONT_SIZE"
 with tempfile.TemporaryDirectory(prefix='renkit-canvas-') as directory:
  base=Path(directory);fixture=base/'canvas.sh'
  fixture.write_text(PREFIX+'\n'+'\n'.join(extract(source,n)for n in ['show_startup_loading','read_touch_menu','home_menu'])+'\n'+SUFFIX)
- for cols,rows,stale,mode in [(120,21,32,'apply'),(66,30,32,'apply'),(120,32,10,'apply'),(65,20,32,'fail'),(65,20,32,'ignore')]:
+ for cols,rows,stale,mode,compact in [(120,21,32,'apply',0),(66,30,32,'apply',0),(120,32,10,'apply',0),(65,20,32,'fail',0),(65,20,32,'ignore',0),(124,21,32,'ignore',1),(124,21,32,'missing',1)]:
   master,slave=pty.openpty();tty.setraw(slave);resize(master,cols,rows)
   calls=base/f'{cols}-{rows}-{mode}.calls'
-  env=dict(os.environ,UI_TEST_ROOT=str(ROOT),ZHOUKEER_FONT_SIZE='16',BASE_COLS=str(cols),BASE_ROWS=str(rows),FONT_MODE=mode,FONT_CALLS=str(calls),STALE_ROWS=str(stale),COLUMNS='999',LINES=str(stale))
+  env=dict(os.environ,UI_TEST_ROOT=str(ROOT),ZHOUKEER_FONT_SIZE='16',BASE_COLS=str(cols),BASE_ROWS=str(rows),FONT_MODE=mode,FONT_CALLS=str(calls),STALE_ROWS=str(stale),RENKIT_COMPACT_MENUS=str(compact),COLUMNS='999',LINES=str(stale))
   p=subprocess.Popen(['bash',str(fixture)],env=env,stdin=slave,stdout=slave,stderr=slave);os.close(slave)
   stream=b'';offset=0
   def terminal_read(marker,timeout=5):
@@ -71,13 +72,18 @@ with tempfile.TemporaryDirectory(prefix='renkit-canvas-') as directory:
    return result.decode()
   try:
    frame=terminal_read(b'\x1b[?1006h')
-   if mode!='apply':
+   if mode!='apply' and not compact:
     check('窗口太小' in frame and '当前 65 列 × 20 行' in frame,'Missing truthful fallback')
     os.write(master,click(40,22))
     # Font command success without an actual size change must never permit clicks.
     resize(master,120,32)
     frame=terminal_read(b'\x1b[?1006h')
    check('Renkit Bazzite版' in frame and '窗口太小' not in frame,'Startup failed to recover real Bazzite screen')
+   if compact:
+    for width,height in [(124,32),(124,21)]:
+     resize(master,width,height)
+     frame=terminal_read(b'\x1b[?1006h')
+     check('窗口太小' not in frame and '退出Renkit' in frame,'Compact/full resize lost controls')
    y,x=item_position(frame,'退出Renkit');os.write(master,click(x,y))
    output=terminal_read(b'\x1b[?1006h');check('FIRST=nav-exit' in output,'Touch coordinates changed')
    y,x=item_position(output,'退出Renkit');os.write(master,click(x,y))
@@ -86,9 +92,10 @@ with tempfile.TemporaryDirectory(prefix='renkit-canvas-') as directory:
    font_requests=[int(s)for s in calls.read_text().splitlines()]
    if mode=='apply' and (cols<70 or rows<24):
     check(len(font_requests)==1 and 8<=font_requests[0]<16,'Repeated or invalid auto-fit')
-   elif mode=='apply':check(not font_requests,'Usable window was unnecessarily resized by stale tput')
+   elif mode=='apply' or compact:check(not font_requests,'Usable window was unnecessarily resized by stale tput')
    check(all(8<=font<=32 for font in font_requests),'Font limit violated')
   finally:
    if p.poll() is None:p.kill()
    p.wait();os.close(master)
+check('RENKIT_COMPACT_MENUS=1' in source, 'Desktop entry does not enable compact menus')
 print('PASS: actual Bazzite home in private PTYs; short/narrow startup auto-fit, stale dimensions, failed/ignored requests, resize recovery and unchanged click actions')

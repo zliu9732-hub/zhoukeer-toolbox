@@ -13,6 +13,9 @@ fi
 
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/env.sh"
+# 桌面版支持 21 行矮窗口，菜单说明与按钮独立排版。
+RENKIT_COMPACT_MENUS=1
+export RENKIT_COMPACT_MENUS
 # shellcheck disable=SC1091
 source "$PROJECT_ROOT/core/ui.sh"
 # shellcheck disable=SC1091
