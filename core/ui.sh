@@ -30,6 +30,7 @@ UI_DEFERRED=0
 UI_GRID=0
 UI_HOME=0
 UI_TERMINAL_OUTPUT_READY=0
+UI_FONT_SIZE="${ZHOUKEER_FONT_SIZE:-12}"
 UI_MENU_SCREEN_ACTIVE=0
 UI_MENU_SCREEN_ENABLED=0
 UI_LEFT_TOP=() UI_LEFT_BOTTOM=() UI_LEFT_COL=() UI_LEFT_WIDTH=()
@@ -72,16 +73,9 @@ ui_detect_layout() {
 ui_detect_layout
 
 ui_terminal_rows() {
-    local rows
-
-    rows="$(tput lines 2>/dev/null || true)"
-    if ! [[ "$rows" =~ ^[0-9]+$ ]]; then
-        rows="${LINES:-0}"
-    fi
-    case "$rows" in
-        ''|*[!0-9]*) rows=0 ;;
-    esac
-    printf '%s\n' "$rows"
+    # 与绘制及触控使用同一个实际 TTY 尺寸；tput/继承的 LINES 可能过期。
+    ui_detect_layout
+    printf '%s\n' "$UI_ROWS"
 }
 
 ui_request_preferred_canvas() {
@@ -90,27 +84,73 @@ ui_request_preferred_canvas() {
     printf '\033[8;%s;%st' "$UI_PREFERRED_ROWS" "$UI_PREFERRED_COLUMNS"
 }
 
+ui_set_session_font() {
+    local font_size="$1"
+    command -v konsoleprofile >/dev/null 2>&1 || return 1
+    # KDE 的 konsoleprofile 通过 stdout 发送 OSC 50；不能重定向到 /dev/null。
+    # 只把控制指令送至当前终端，不能混入 choice=$(...) 的动作返回值。
+    if [ -t 1 ]; then
+        konsoleprofile "Font=Noto Sans Mono CJK SC,$font_size" 2>/dev/null
+    elif [ "$UI_TERMINAL_OUTPUT_READY" = 1 ] && [ -t 9 ]; then
+        konsoleprofile "Font=Noto Sans Mono CJK SC,$font_size" >&9 2>/dev/null
+    else
+        return 1
+    fi
+}
+
+ui_fit_minimum_canvas_font() {
+    local current="$UI_FONT_SIZE" fitted width_fit
+
+    # 只在启动/进入页面的画布不足时调整本会话字号，不修改用户的配置文件。
+    # 普通窗口缩放重绘不调用此函数，避免移动按钮时突然改变字号。
+    command -v konsoleprofile >/dev/null 2>&1 || return 1
+    [[ "$current" =~ ^[0-9]{1,2}$ ]] || current=12
+    current=$((10#$current))
+    [ "$current" -ge 8 ] && [ "$current" -le 32 ] || current=12
+    [ "$current" -gt 8 ] || return 1
+    fitted=$((current * UI_ROWS / (UI_LAST_ROW + 2)))
+    width_fit=$((current * UI_COLUMNS / 74))
+    [ "$width_fit" -ge "$fitted" ] || fitted="$width_fit"
+    [ "$fitted" -lt "$current" ] || fitted=$((current - 1))
+    [ "$fitted" -ge 8 ] || fitted=8
+    ui_set_session_font "$fitted" || return 1
+    UI_FONT_SIZE="$fitted"
+    ZHOUKEER_FONT_SIZE="$fitted"
+    export ZHOUKEER_FONT_SIZE
+}
+
 ui_wait_for_minimum_canvas() {
-    local rows attempt=0
+    local attempt=0
 
     while [ "$attempt" -lt "$UI_LAYOUT_RETRY_COUNT" ]; do
-        rows="$(ui_terminal_rows)"
-        [ "$rows" -ge "$UI_LAST_ROW" ] 2>/dev/null && return 0
-        ui_request_preferred_canvas
+        ui_detect_layout
+        if [ "$UI_ROWS" -ge "$UI_LAST_ROW" ] && [ "$UI_COLUMNS" -ge 70 ]; then
+            return 0
+        fi
+        # 先让终端恢复标准尺寸；桌面未接受窗口请求时再按真实行列缩小字号。
+        # 每次字号变化都必须重新读取 TTY，不能把设置命令成功当作画布已可用。
+        if [ "$attempt" -eq 0 ]; then
+            ui_request_preferred_canvas
+        elif [ $((attempt % 3)) -eq 2 ]; then
+            ui_fit_minimum_canvas_font || true
+        fi
         [ "$UI_LAYOUT_RETRY_INTERVAL" = "0" ] || sleep "$UI_LAYOUT_RETRY_INTERVAL"
         attempt=$((attempt + 1))
     done
-    return 1
+    ui_detect_layout
+    [ "$UI_LAYOUT_USABLE" = 1 ]
 }
 
 ui_apply_screen_font() {
     local font_size="${ZHOUKEER_FONT_SIZE:-}"
 
-    case "$font_size" in
-        ''|*[!0-9]*) return 0 ;;
-    esac
+    [[ "$font_size" =~ ^[0-9]{1,2}$ ]] || return 0
+    font_size=$((10#$font_size))
+    [ "$font_size" -ge 8 ] && [ "$font_size" -le 32 ] || return 0
     if command -v konsoleprofile >/dev/null 2>&1; then
-        konsoleprofile "Font=Noto Sans Mono CJK SC,$font_size" >/dev/null 2>&1 || true
+        if ui_set_session_font "$font_size"; then
+            UI_FONT_SIZE="$font_size"
+        fi
     fi
 }
 
@@ -353,7 +393,11 @@ ui_begin_frame() {
     fi
     ui_reset_screen
     if [ "$UI_LAYOUT_USABLE" = 0 ]; then
-        printf '\033[?7l窗口太小，请放大至至少 70 列 × 24 行\033[?7h'
+        printf '\033[?7l窗口太小，请放大窗口或按 Ctrl+- 缩小字号\033[?7h'
+        if [ "$UI_ROWS" -ge 2 ]; then
+            ui_move_absolute 2 1
+            printf '\033[?7l当前 %s 列 × %s 行；需要至少 70 列 × 24 行\033[?7h' "$UI_COLUMNS" "$UI_ROWS"
+        fi
     fi
 }
 
