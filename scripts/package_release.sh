@@ -21,6 +21,7 @@ for claw_file in PKGBUILD Makefile dkms.conf claw_rt721_amp.c claw-rt721-fix.ser
     VERIFY_FILES="$VERIFY_FILES third_party/claw-rt721-fix-v0.1.0/$claw_file"
 done
 VERIFY_FILES="$VERIFY_FILES third_party/onexplayer-apex-tools-zh-v0.1.0/dist/index.js third_party/onexplayer-apex-tools-zh-v0.1.0/plugin.json third_party/onexplayer-apex-tools-zh-v0.1.0/package.json third_party/onexplayer-apex-tools-zh-v0.1.0/LICENSE"
+VERIFY_FILES="$VERIFY_FILES modules/ntfs_mount_repair.sh tests/test_ntfs_mount_repair.sh docs/ntfs-mount-repair.md"
 PACKAGE_SOURCES=()
 VERIFY_FILES="$VERIFY_FILES modules/epic_linux.sh"
 VERIFY_FILES="$VERIFY_FILES modules/framegen_updates.sh scripts/framegen_package.py scripts/sync_framegen_zh.py scripts/framegen_ui.mjs scripts/vendor/acorn/acorn.mjs scripts/vendor/acorn/LICENSE data/framegen_zh.json data/framegen_auto_baseline.json assets/framegen/zh-runtime.js"

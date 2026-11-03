@@ -1214,14 +1214,15 @@ dual_system_more_menu() {
         ui_touch_button 13 '\033[1;97;48;5;24m' "Switch to Windows" "安装一键重启插件 · 本人制作：RenAmamiya"
         ui_touch_button 15 '\033[1;97;48;5;160m' "隐藏 Clover 菜单" "等待时间设为 0 秒，不改变默认系统"
         ui_touch_button 17 '\033[1;97;48;5;24m' "重新显示 Clover 菜单" "恢复 8 秒开机选择时间"
-        ui_touch_button 19 '\033[1;97;48;5;24m' "上一页：返回常用工具" "回到双系统常用功能"
-        ui_touch_button 21 '\033[1;97;48;5;238m' "返回更多设置" "查看其他系统功能"
+        ui_touch_button 19 '\033[1;97;48;5;160m' "修复游戏盘挂载失败" "选择 NTFS 游戏盘后修复并重新打开"
+        ui_touch_button 21 '\033[1;97;48;5;24m' "上一页：返回常用工具" "回到双系统常用功能"
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:health right:7-8:unprotect right:9-10:cleanup-boot right:11-12:repair-boot right:13-14:switch-to-windows right:15-16:clover-hide right:17-18:clover-menu right:19-20:previous right:21-22:advanced right:23-24:home)"
+        choice="$(read_touch_menu right:5-6:health right:7-8:unprotect right:9-10:cleanup-boot right:11-12:repair-boot right:13-14:switch-to-windows right:15-16:clover-hide right:17-18:clover-menu right:19-20:repair-mount right:21-22:previous right:23-24:home)"
         if apply_navigation "$choice"; then return 0; fi
 
         case "$choice" in
+            repair-mount) run_action "修复游戏盘挂载失败" bash "$PROJECT_ROOT/modules/ntfs_mount_repair.sh" ;;
             health) run_action "双系统健康检查" bash "$PROJECT_ROOT/modules/dual_system_tools.sh" health ;;
             unprotect)
                 confirm_and_run "恢复互通盘写入" "会重新以可写模式挂载互通盘，恢复 SteamOS 下的正常读写" \

@@ -759,6 +759,7 @@ dual_system_more_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "更多双系统工具｜只读检查、恢复与引导清理｜第 2/2 页" \
+            repair-mount "修复游戏盘挂载失败｜选择 NTFS 游戏盘｜需要管理员权限" \
             health "双系统健康检查｜识别 Clover、rEFInd、GRUB、OpenCore 等｜只读" \
             unprotect "恢复互通盘写入｜重新以可写方式挂载｜高级操作" \
             cleanup-boot "清理第三方引导项｜保护 SteamOS / Windows｜保留 EFI 文件" \
@@ -770,6 +771,7 @@ dual_system_more_menu() {
             home "返回首页" \
             nav-exit "退出Renkit")" || return 0
         case "$choice" in
+            repair-mount) run_gui_action "修复游戏盘挂载失败" bash "$PROJECT_ROOT/modules/ntfs_mount_repair.sh" ;;
             health) run_gui_action "双系统健康检查" bash "$PROJECT_ROOT/modules/dual_system_tools.sh" health ;;
             unprotect)
                 gui_confirm "将重新以可写模式挂载互通盘，恢复 SteamOS 下的正常读写。是否继续？" && \

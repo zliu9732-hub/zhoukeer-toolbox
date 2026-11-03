@@ -439,7 +439,7 @@ gui_dual_more="$(function_source "$GUI_FILE" dual_system_more_menu)"
 touch_dual_all="${touch_dual}${touch_dual_more}"
 gui_dual_all="${gui_dual}${gui_dual_more}"
 for menu in "$touch_dual_all" "$gui_dual_all"; do
-    for item in '挂载双系统互通盘' '初始化并挂载 TF 卡' '修复 Steam 磁盘写入错误' '双系统互通盘保护' '双系统健康检查' '恢复互通盘写入' '清理第三方引导项' '修复双系统引导' 'Switch to Windows' '隐藏 Clover 菜单' '重新显示 Clover 菜单' '默认进入 Windows' '默认进入 SteamOS'; do
+    for item in '修复游戏盘挂载失败' '挂载双系统互通盘' '初始化并挂载 TF 卡' '修复 Steam 磁盘写入错误' '双系统互通盘保护' '双系统健康检查' '恢复互通盘写入' '清理第三方引导项' '修复双系统引导' 'Switch to Windows' '隐藏 Clover 菜单' '重新显示 Clover 菜单' '默认进入 Windows' '默认进入 SteamOS'; do
         assert_contains "$menu" "$item" "双系统与互通盘缺少：$item"
     done
     assert_contains "$menu" 'modules/plugin_store.sh" switch-to-windows' "双系统菜单缺少 Switch to Windows 安装动作"

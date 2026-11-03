@@ -27,8 +27,10 @@ for menu in "$touch_dual" "$gui_dual"; do
     for action in mount protect unprotect; do
         contains_text "$menu" "modules/dual_system.sh\" $action" || fail "互通盘菜单动作缺失：$action"
     done
-    contains_text "$menu" 'modules/clover_boot.sh" install' || \
-        fail "Clover 安装/修复菜单动作缺失"
+    if contains_text "$menu" 'modules/clover_boot.sh" install'; then
+        fail "已移除的 Clover 安装入口再次暴露"
+    fi
+    contains_text "$menu" 'modules/ntfs_mount_repair.sh"' || fail "游戏盘挂载修复入口缺失"
     contains_text "$menu" 'modules/clover_boot.sh" hide-menu' || \
         fail "Clover 隐藏菜单动作缺失"
     contains_text "$menu" 'modules/clover_boot.sh" show-menu' || \
@@ -43,10 +45,10 @@ for menu in "$touch_dual" "$gui_dual"; do
     if contains_text "$menu" 'modules/clover_boot.sh" delete'; then
         fail "Clover 删除动作不应直接暴露在双系统菜单"
     fi
-    for action in tf-format-mount repair-drive health cleanup-boot windows-shortcut; do
+    for action in tf-format-mount repair-drive health cleanup-boot repair-boot; do
         contains_text "$menu" "modules/dual_system_tools.sh\" $action" || fail "双系统扩展动作缺失：$action"
     done
-    for removed_action in switch-to-windows windows-next; do
+    for removed_action in switch-to-windows windows-next windows-shortcut; do
         if contains_text "$menu" "modules/dual_system_tools.sh\" $removed_action"; then
             fail "双系统菜单仍可执行已移除动作：$removed_action"
         fi
@@ -64,4 +66,4 @@ for action in add remove; do
     fi
 done
 
-echo "PASS: rEFInd、旧 systemd-boot 不可达，Clover 安装/修复和双系统扩展菜单已接管"
+echo "PASS: rEFInd、旧 systemd-boot 不可达，受保护的双系统修复菜单可达且旧入口保持停用"

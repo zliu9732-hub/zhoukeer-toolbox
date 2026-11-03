@@ -5,6 +5,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MODULE="$PROJECT_ROOT/modules/dual_system_tools.sh"
 TMP_ROOT="$(mktemp -d)"
+TMP_ROOT="$(cd "$TMP_ROOT" && pwd -P)"
 MOUNT_PATH="$TMP_ROOT/mount"
 STATE="$TMP_ROOT/state"
 CALLS="$TMP_ROOT/commands.log"

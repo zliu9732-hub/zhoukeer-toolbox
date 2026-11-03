@@ -222,7 +222,7 @@ assert_contains "$touch_memory" 'right:11-12:status' "虚拟内存菜单缺少�
 assert_contains "$touch_memory" 'right:15-16:restore' "虚拟内存菜单缺少撤销动作"
 assert_contains "$touch_advanced" 'right:22-23:home' "系统设置缺少返回首页"
 assert_contains "$touch_dual" 'right:19-20:next' "双系统常用工具页缺少下一页坐标"
-assert_contains "$touch_dual_more" 'right:19-20:previous' "双系统更多工具页缺少上一页坐标"
+assert_contains "$touch_dual_more" 'right:21-22:previous' "双系统更多工具页缺少上一页坐标"
 assert_contains "$touch_dual_more" 'right:13-14:switch-to-windows' "双系统更多工具页缺少 Switch to Windows 坐标"
 assert_contains "$gui_dual_more" 'switch-to-windows "Switch to Windows' "双系统 GUI 更多工具页缺少 Switch to Windows 入口"
 assert_contains "$touch_dual_more" 'modules/dual_system_tools.sh" repair-boot' "双系统触控引导修复未调用 NVRAM 修复模块"
