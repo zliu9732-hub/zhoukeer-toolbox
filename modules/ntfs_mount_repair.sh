@@ -28,31 +28,53 @@ ntfs_repair_mount_target() {
 }
 
 ntfs_repair_select_device() {
-    local device kind filesystem answer
-    local -a candidates=()
-    echo "请选择无法打开的 NTFS 游戏盘；不要选择 Windows 系统分区。" >&2
+    local device kind filesystem selected label size description index
+    local -a candidates=() descriptions=() choices=()
+    if ! command -v kdialog >/dev/null 2>&1 || [ -z "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]; then
+        echo "请在 SteamOS 桌面模式打开 Renkit，以点击选择需要修复的游戏盘。" >&2
+        return 1
+    fi
     while read -r device kind filesystem; do
         [ "$kind" = part ] || continue
         case "$filesystem" in ntfs|ntfs3) ;; *) continue ;; esac
         ntfs_repair_device_valid "$device" || continue
+        label="$(lsblk -dnro LABEL "$device" | tr -d '\r\n' | tr '\t' ' ')"
+        size="$(lsblk -dnro SIZE "$device" | tr -d '\r\n\t')"
+        description="${label:-未命名游戏盘}｜容量：${size:-未知}｜$device"
+        index=${#candidates[@]}
         candidates+=("$device")
-        lsblk -dnro NAME,SIZE,LABEL "$device" >&2
+        descriptions+=("$description")
+        choices+=("$index" "$description")
     done < <(lsblk -rpn -o NAME,TYPE,FSTYPE)
     [ "${#candidates[@]}" -gt 0 ] || {
         echo "没有找到未挂载的 NTFS 分区；已挂载的盘请使用原有挂载或写入修复入口。" >&2
         return 1
     }
-    echo "需要管理员权限；可能安装修复组件并临时解除系统只读保护。" >&2
-    echo "会修改所选分区的文件系统元数据，重要数据请先备份；不会格式化，也不会自动重启。" >&2
-    echo "请输入目标分区的完整设备名确认（直接回车取消）：" >&2
-    IFS= read -r answer </dev/tty || return 1
-    for device in "${candidates[@]}"; do
-        if [ "$answer" = "$device" ]; then
+    selected="$(kdialog --title "修复游戏盘挂载失败" \
+        --menu "请选择无法打开的游戏盘（名称｜容量｜位置）。\n请勿选择 Windows 系统盘。" \
+        "${choices[@]}" --ok-label "选择此盘" --cancel-label "取消")" || {
+        echo "已取消，未修改游戏盘。" >&2
+        return 1
+    }
+    # 对话框返回值只映射到本次候选，不能直接作为设备路径或数组表达式使用。
+    for ((index=0; index<${#candidates[@]}; index++)); do
+        if [ "$selected" = "$index" ]; then
+            device="${candidates[$index]}"
+            kdialog --title "确认修复游戏盘" --warningyesno \
+                "所选游戏盘：${descriptions[$index]}\n\n需要管理员权限，可能安装修复组件并临时解除系统只读保护。\n修复会修改文件系统元数据，重要数据请先备份。\n不会格式化，也不会自动重启。\n\n确认修复这个游戏盘？" \
+                --yes-label "确认修复" --no-label "取消" || {
+                echo "已取消，未修改游戏盘。" >&2
+                return 1
+            }
+            ntfs_repair_device_valid "$device" || {
+                echo "所选游戏盘的状态已变化，请返回重新选择。" >&2
+                return 1
+            }
             printf '%s\n' "$device"
             return 0
         fi
     done
-    echo "未选择列表中的分区，已取消。" >&2
+    echo "未选择有效的游戏盘，已取消。" >&2
     return 1
 }
 
