@@ -14,7 +14,7 @@ screen_colors_chinese_is_current() {
 ensure_screen_colors_chinese_current() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     PLUGIN_INSTALL_CHANGED=0
-    [ "$IS_STEAMOS" -eq 1 ] || { echo "屏幕色彩插件仅在 SteamOS 主线提供。"; return 1; }
+    [ "$IS_STEAMOS" -eq 1 ] || is_desktop_linux || { echo "屏幕色彩插件需要 Linux 游戏模式。"; return 1; }
     require_command python3 || return 1
     if screen_colors_chinese_is_current; then
         echo "[已安装] 屏幕色彩 v$SCREEN_COLORS_VERSION 中文版已完整安装。"

@@ -46,7 +46,7 @@ install_themehub_tree() (
 
 refresh_themehub_catalog() (
     local tmp cache_dir cache_tmp=""
-    [ "${IS_STEAMOS:-0}" -eq 1 ] || return 1
+    [ "${IS_STEAMOS:-0}" -eq 1 ] || is_desktop_linux || return 1
     tmp="$(mktemp -d)" || return 1
     trap 'rm -rf -- "$tmp"; [ -z "$cache_tmp" ] || rm -f -- "$cache_tmp"' EXIT
     if ! GITHUB_QUIET=1 GITHUB_CONNECT_TIMEOUT=5 GITHUB_MAX_TIME=20 GITHUB_RETRIES=1 \
@@ -72,7 +72,7 @@ install_themehub_auto() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local selected_version mirror_id package_sha installed_version fields install_status=0
     PLUGIN_INSTALL_CHANGED=0
-    [ "${IS_STEAMOS:-0}" -eq 1 ] || return 2
+    [ "${IS_STEAMOS:-0}" -eq 1 ] || is_desktop_linux || return 2
     echo '正在检查主页主题新版本...'
     refresh_themehub_catalog || return 2
     fields="$(python3 "$PROJECT_ROOT/scripts/themehub_package.py" resolve --catalog "$THEMEHUB_CATALOG_CACHE" 2>/dev/null)" || return 2

@@ -70,6 +70,9 @@ if out="$(run_bundle invalid legacy)"; then fail '取消或无效选择仍继续
 
 source "$PROJECT_ROOT/modules/plugin_store.sh"
 IS_STEAMOS=1
+IS_BAZZITE=0
+IS_DESKTOP_LINUX=0
+if [ "${RENKIT_TEST_DESKTOP:-0}" = 1 ]; then IS_STEAMOS=0; IS_BAZZITE=1; IS_DESKTOP_LINUX=1; fi
 prepare_plugin_root() { PLUGIN_NEEDS_SUDO=0; }
 log() { return 0; }
 EVENTS="$TMP_ROOT/events"

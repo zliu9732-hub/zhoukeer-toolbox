@@ -21,7 +21,7 @@ ayaneo3_chinese_is_current() {
 ensure_ayaneo3_chinese_current() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" resource
     PLUGIN_INSTALL_CHANGED=0
-    [ "$IS_STEAMOS" -eq 1 ] || { echo "AYANEO3 Companion 仅在 SteamOS 主线提供。"; return 1; }
+    [ "$IS_STEAMOS" -eq 1 ] || is_desktop_linux || { echo "AYANEO3 Companion 需要 Linux 系统。"; return 1; }
     ayaneo3_is_supported_device || { echo "仅适用于 AYANEO3。"; return 1; }
     require_command python3 || return 1
     for resource in scripts/localize_ayaneo3.py scripts/framegen_package.py \

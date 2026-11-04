@@ -10,7 +10,10 @@ fail() { echo "FAIL: $*" >&2; exit 1; }
 export ZHOUKEER_APP_DIR="$TMP_ROOT/apps" ZHOUKEER_TEST_MODE=1
 source "$PROJECT_ROOT/modules/plugin_store.sh"
 export DECKY_PLUGIN_DIR="$TMP_ROOT/plugins"
-detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
+detect_platform() {
+    IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; IS_DESKTOP_LINUX=0
+    if [ "${RENKIT_TEST_DESKTOP:-0}" = 1 ]; then IS_STEAMOS=0; IS_BAZZITE=1; IS_DESKTOP_LINUX=1; fi
+}
 require_existing_chimera_plugin_environment() { return 0; }
 prepare_plugin_root() { mkdir -p "$1"; PLUGIN_NEEDS_SUDO=0; }
 reload_decky_plugins() { return 0; }

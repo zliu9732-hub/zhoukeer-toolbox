@@ -13,7 +13,10 @@ echo settings > "$TMP/settings/color.json"
 MODE=ok
 IS_STEAMOS=1
 gfg_extreme_is_steam_deck() { [ "$MODE" != wrong-device ]; }
-detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
+detect_platform() {
+    IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; IS_DESKTOP_LINUX=0
+    if [ "${RENKIT_TEST_DESKTOP:-0}" = 1 ]; then IS_STEAMOS=0; IS_BAZZITE=1; IS_DESKTOP_LINUX=1; fi
+}
 require_existing_chimera_plugin_environment() { return 0; }
 ensure_plugin_store_ready() { return 0; }
 prepare_plugin_root() { PLUGIN_NEEDS_SUDO=0; }

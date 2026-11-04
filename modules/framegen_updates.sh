@@ -26,7 +26,7 @@ framegen_auto_is_current() {
 
 refresh_framegen_catalog() (
     local tmp cache_tmp="" cache_dir
-    [ "${IS_STEAMOS:-0}" -eq 1 ] || return 1
+    [ "${IS_STEAMOS:-0}" -eq 1 ] || is_desktop_linux || return 1
     tmp="$(mktemp -d)" || return 1
     trap 'rm -rf -- "$tmp"; [ -z "$cache_tmp" ] || rm -f -- "$cache_tmp"' EXIT
     if ! GITHUB_QUIET=1 GITHUB_CONNECT_TIMEOUT=5 GITHUB_MAX_TIME=20 GITHUB_RETRIES=1 GITHUB_MIN_SPEED_TIME=10 \
@@ -66,7 +66,7 @@ _install_framegen_auto() (
     local kind="$1" reload_after="${2:-1}" tmp directory repo display
     local version mirror_id package_sha archive_root plugin_name attribution installed_version
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
-    [ "$IS_STEAMOS" -eq 1 ] || return 2
+    [ "$IS_STEAMOS" -eq 1 ] || is_desktop_linux || return 2
     case "$kind" in
         lsfg-v2) directory="Decky LSFG-VK"; repo="zhoukeer-toolbox-mirror-4"; display="小黄鸭 2.0" ;;
         fsr4) directory="Decky-Framegen"; repo="zhoukeer-toolbox-mirror-3"; display="FSR4" ;;

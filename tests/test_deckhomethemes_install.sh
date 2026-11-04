@@ -19,7 +19,10 @@ printf '%s\n' 'official frontend fixture' > "$TMP_ROOT/source/DeckHomeThemes/dis
 printf '%s\n' 'original notice fixture' > "$TMP_ROOT/source/DeckHomeThemes/notice.txt"
 (cd "$TMP_ROOT/source" && zip -q -r "$TMP_ROOT/fixture.zip" DeckHomeThemes)
 
-detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
+detect_platform() {
+    IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; IS_DESKTOP_LINUX=0
+    if [ "${RENKIT_TEST_DESKTOP:-0}" = 1 ]; then IS_STEAMOS=0; IS_BAZZITE=1; IS_DESKTOP_LINUX=1; fi
+}
 DOWNLOAD_MODE=success
 LOCALIZE_FAIL=0
 python3() {

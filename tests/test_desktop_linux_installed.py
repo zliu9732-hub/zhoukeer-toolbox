@@ -20,7 +20,7 @@ with tempfile.TemporaryDirectory(prefix='renkit-desktop-install-')as directory:
   r=subprocess.run(['bash',str(source/'install.sh')],env=env,capture_output=True,text=True,timeout=90);assert r.returncode==0,r.stdout+r.stderr
   assert(installed/'.renkit-platform').read_text().strip()==family
   assert f'Name=Renkit {title}版' in(desktop/'Renkit.desktop').read_text()
-  for relative in ['core/platform.sh','core/ui.sh','main-bazzite.sh','modules/plugin_store.sh','modules/bazzite_decky.sh','modules/clover_boot.sh']:
+  for relative in ['core/platform.sh','core/ui.sh','main-bazzite.sh','modules/plugin_store.sh','modules/bazzite_decky.sh','modules/clover_boot.sh','modules/themehub_updates.sh','modules/framegen_updates.sh','modules/lsfg_install.sh','modules/ayaneo3.sh','modules/screen_colors.sh','modules/gfg_extreme.sh']:
    assert(installed/relative).read_bytes()==(source/relative).read_bytes(),relative
   assert 'RENKIT_COMPACT_MENUS=1' in(installed/'main-bazzite.sh').read_text()
   probe=home/'probe.sh';probe.write_text('source "'+str(installed/'core/platform.sh')+'"\ndetect_platform\nrequire_supported_gaming_os || exit 1\nprintf "%s:%s:%s:%s\\n" "$PLATFORM_FAMILY" "$IS_DESKTOP_LINUX" "$IS_BAZZITE" "$IS_STEAMOS"\n')

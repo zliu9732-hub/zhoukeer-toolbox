@@ -15,8 +15,11 @@ printf '{"version":"1.2.0"}\n' > "$TMP_ROOT/source/package.json"
 printf 'original notice\n' > "$TMP_ROOT/source/NOTICE"
 printf 'official UI\n' > "$TMP_ROOT/source/dist/index.js"
 printf 'user setting\n' > "$TMP_ROOT/settings/keep"
-DEVICE=correct;MODE=ok;PLATFORM=steamos
-detect_platform() { IS_STEAMOS=1;IS_BAZZITE=0;IS_CHIMERAOS=0;[ "$PLATFORM" = steamos ] || IS_STEAMOS=0; }
+DEVICE=correct;MODE=ok;PLATFORM="${RENKIT_TEST_PLATFORM:-steamos}"
+detect_platform() {
+ IS_STEAMOS=0;IS_BAZZITE=0;IS_CHIMERAOS=0;IS_DESKTOP_LINUX=0
+ case "$PLATFORM" in steamos) IS_STEAMOS=1 ;; bazzite) IS_BAZZITE=1;IS_DESKTOP_LINUX=1 ;; esac
+}
 ayaneo3_is_supported_device() { [ "$DEVICE" = correct ]; }
 require_existing_chimera_plugin_environment() { return 0; }
 ensure_plugin_store_ready() { echo ready >> "$TMP_ROOT/ready.calls"; }

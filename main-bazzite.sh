@@ -472,7 +472,7 @@ bazzite_decky_plugins_menu() {
         draw_category_frame games "Decky 插件" "官方插件与 Renkit 汉化功能插件"
         ui_touch_button 6 '\033[1;97;48;5;24m' "安装常用官方插件" "由 Decky 官方商店读取最新版本"
         ui_touch_button 10 '\033[1;97;48;5;24m' "逐个浏览官方插件" "共 23 个官方插件"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "汉化功能插件" "小黄鸭、FSR4 与 CheatDeck · 国内分块镜像"
+        ui_touch_button 14 '\033[1;97;48;5;24m' "汉化功能插件" "小黄鸭、FSR4、主题与常用工具"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回游戏与插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页"
         ui_prompt
@@ -491,9 +491,9 @@ bazzite_decky_plugins_menu() {
 bazzite_feature_plugins_menu() {
     local choice
     while true; do
-        draw_category_frame games "汉化功能插件" "国内分块镜像优先 · 安装后核对真实插件文件"
-        ui_touch_button 4 '\033[1;97;48;5;24m' "一键安装三款" "小黄鸭、FSR4 与 CheatDeck"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "小黄鸭版本选择" "1.0 稳定汉化 · 2.0 新版中文 · MAKO 官方最新版"
+        draw_category_frame games "汉化功能插件" "选择需要的功能，安装后在游戏模式打开"
+        ui_touch_button 4 '\033[1;97;48;5;24m' "常用插件组合" "小黄鸭、FSR4、CheatDeck、封面、主题、传输和音乐"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "小黄鸭版本选择" "旧版、新版与 MAKO，按需选择"
         ui_touch_button 10 '\033[1;97;48;5;24m' "安装 FSR4" "Decky-Framegen 汉化版"
         ui_touch_button 13 '\033[1;97;48;5;24m' "安装 CheatDeck" "修改器启动插件"
         ui_touch_button 16 '\033[1;97;48;5;24m' "更多功能插件" "Freedeck、ToMoon、Unifideck 与掌机控制"
@@ -503,10 +503,10 @@ bazzite_feature_plugins_menu() {
         choice="$(read_touch_menu right:4-5:all right:7-8:lsfg right:10-11:fsr4 right:13-14:cheatdeck right:16-17:more right:19-20:feature-singles right:22-23:back)"
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
-            all) confirm_and_run "安装三款汉化功能插件" "使用国内分块镜像并校验 SHA256；插件目录不可写时可能请求管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
+            all) confirm_and_run "安装常用功能插件" "将安装七款常用功能插件；需要时会请求管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
             lsfg) bazzite_lsfg_versions_menu || return 1 ;;
-            fsr4) confirm_and_run "安装 FSR4" "仅从国内分块镜像安装署名完整包并校验 SHA256；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
-            cheatdeck) confirm_and_run "安装 CheatDeck" "国内分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
+            fsr4) confirm_and_run "安装 FSR4" "安装完整中文包并检查完整性；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
+            cheatdeck) confirm_and_run "安装 CheatDeck" "下载后检查完整性" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             more) bazzite_extra_plugins_menu || return 1 ;;
             feature-singles) bazzite_common_feature_singles_menu || return 1 ;;
             back) return 0 ;;
@@ -515,23 +515,52 @@ bazzite_feature_plugins_menu() {
 }
 
 bazzite_common_feature_singles_menu() {
-    local choice
+    local choice page=1
     while true; do
-        draw_category_frame games "其余常用插件" "组合安装中的四款插件也可分别安装"
-        ui_touch_button 5 '\033[1;97;48;5;24m' "游戏封面更换" "SteamGridDB · 国内分块优先"
-        ui_touch_button 8 '\033[1;97;48;5;24m' "主题美化" "CSS Loader 中文版 · 国内分块优先"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "文件传输助手" "Friendeck · 国内分块优先"
-        ui_touch_button 14 '\033[1;97;48;5;24m' "音乐播放器" "Decky Music v1.0.2 完整包 · 音乐源已内置"
-        ui_touch_button 19 '\033[1;97;48;5;238m' "返回功能插件"
-        ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页"
+        draw_category_frame games "其余常用插件（$page/2）" "单独安装需要的功能，安装后在游戏模式打开" 0
+        if [ "$page" -eq 1 ]; then
+            ui_touch_button 5 '\033[1;97;48;5;24m' "游戏封面更换" "更换 Steam 游戏封面"
+            ui_touch_button 7 '\033[1;97;48;5;24m' "主题美化" "更换游戏模式的界面样式"
+            ui_touch_button 9 '\033[1;97;48;5;24m' "文件传输助手" "在掌机和其他设备之间传文件"
+            ui_touch_button 11 '\033[1;97;48;5;24m' "音乐播放器" "播放器和音乐源已内置"
+            ui_touch_button 13 '\033[1;97;48;5;24m' "主页主题（ThemeHub）" "PS5、Switch、Xbox 等主页风格"
+            ui_touch_button 15 '\033[1;97;48;5;24m' "屏幕色彩" "调整颜色并一键恢复"
+            ui_touch_button 17 '\033[1;97;48;5;24m' "SteamDB 游戏数据" "查看价格史低与在线峰值"
+            ui_touch_button 19 '\033[1;97;48;5;238m' "下一页"
+        else
+            ui_touch_button 5 '\033[1;97;48;5;24m' "GFG Extreme" "功耗与补帧控制 · 仅 Steam Deck"
+            ui_touch_button 7 '\033[1;97;48;5;24m' "Fantastic 风扇控制" "自定义风扇曲线 · 仅 Steam Deck"
+            ui_touch_button 9 '\033[1;97;48;5;24m' "游戏翻译" "游戏内文字翻译工具"
+            ui_touch_button 11 '\033[1;97;48;5;24m' "ROG White 白色主题" "需先安装主题美化"
+            ui_touch_button 13 '\033[1;97;48;5;24m' "掌机 Pink 粉色主题" "需先安装主题美化"
+            ui_touch_button 15 '\033[1;97;48;5;24m' "粉白渐变主题" "需先安装主题美化"
+            ui_touch_button 19 '\033[1;97;48;5;238m' "上一页"
+        fi
+        ui_touch_button 21 '\033[1;97;48;5;238m' "返回功能插件"
+        ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页"
         ui_prompt
-        choice="$(read_touch_menu right:5-6:steamgriddb right:8-9:cssloader right:11-12:friendeck right:14-15:deckymusic right:19-20:back right:22-23:home)"
+        if [ "$page" -eq 1 ]; then
+            choice="$(read_touch_menu right:5-6:steamgriddb right:7-8:cssloader right:9-10:friendeck right:11-12:deckymusic right:13-14:deckhomethemes right:15-16:screen-colors right:17-18:steamdb-info right:19-20:next right:21-22:back right:23-24:home)"
+        else
+            choice="$(read_touch_menu right:5-6:gfg-extreme right:7-8:fantastic right:9-10:decky-translator right:11-12:rog-white-install right:13-14:handheld-pink-install right:15-16:pink-white-gradient-install right:19-20:previous right:21-22:back right:23-24:home)"
+        fi
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
-            steamgriddb) confirm_and_run "安装游戏封面更换" "国内分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
-            cssloader) confirm_and_run "安装主题美化" "CSS Loader 中文版；国内分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
-            friendeck) confirm_and_run "安装文件传输助手" "国内分块优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
-            deckymusic) confirm_and_run "安装音乐播放器" "Decky Music v1.0.2 完整包；播放器和 QQ/网易云音乐源已内置，使用国内分块并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
+            steamgriddb) confirm_and_run "安装游戏封面更换" "更换 Steam 游戏封面" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
+            cssloader) confirm_and_run "安装主题美化" "安装 CSS Loader 中文版" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
+            friendeck) confirm_and_run "安装文件传输助手" "安装后可在插件中传输文件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
+            deckymusic) confirm_and_run "安装音乐播放器" "安装播放器及音乐源" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
+            deckhomethemes) confirm_and_run "安装主页主题（ThemeHub）" "完整中文版；主题资源在插件内下载；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckhomethemes ;;
+            screen-colors) confirm_and_run "安装屏幕色彩" "在游戏模式调整屏幕颜色；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" screen-colors ;;
+            steamdb-info) confirm_and_run "安装SteamDB 游戏数据" "需要开启 CEF 远程调试；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamdb-info ;;
+            gfg-extreme) confirm_and_run "安装GFG Extreme" "仅 Steam Deck LCD/OLED；需要管理员权限；插件内安装引擎会修改图形与功耗设置、迁移并清理旧 GFG/MAKO 组件，可能影响稳定性；请勿同时启用其他功耗插件，保存工作后手动重启；恢复时先在插件内移除引擎再重启；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" gfg-extreme ;;
+            fantastic) confirm_and_run "安装Fantastic 风扇控制" "仅 Steam Deck；需要管理员权限，会覆盖默认风扇曲线；错误设置可能过热，请勿与其他风扇插件同时启用；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fantastic ;;
+            decky-translator) confirm_and_run "安装游戏翻译" "需要开启 CEF 远程调试；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" decky-translator ;;
+            rog-white-install) confirm_and_run "安装ROG White 白色主题" "将白色主题放入 CSS Loader，安装后在主题美化中开启" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/rog_white_theme.sh" install ;;
+            handheld-pink-install) confirm_and_run "安装掌机 Pink 粉色主题" "将粉色主题放入 CSS Loader，安装后在主题美化中开启" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/handheld_pink_theme.sh" install ;;
+            pink-white-gradient-install) confirm_and_run "安装粉白渐变主题" "将浅粉渐变主题放入 CSS Loader，安装后在主题美化中开启" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/pink_white_gradient_theme.sh" install ;;
+            next) page=2 ;;
+            previous) page=1 ;;
             back) return 0 ;;
             home) NEXT_CATEGORY="home"; return 1 ;;
         esac
@@ -541,9 +570,9 @@ bazzite_common_feature_singles_menu() {
 bazzite_lsfg_versions_menu() {
     local choice
     while true; do
-        draw_category_frame games "小黄鸭版本选择" "1.0 稳定汉化 · 2.0 新版中文 · MAKO 官方最新版"
-        ui_touch_button 4 '\033[1;97;48;5;24m' "小黄鸭 1.0" "v0.12.8 汉化版·稳定"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "小黄鸭 2.0" "v0.14.4 中文版·置顶 RenAmamiya 汉化署名"
+        draw_category_frame games "小黄鸭版本选择" "旧版、新版与 MAKO，按需选择"
+        ui_touch_button 4 '\033[1;97;48;5;24m' "小黄鸭 1.0" "旧版完整中文包"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "小黄鸭 2.0" "需正版小黄鸭本体并切换到 lsfg 分支"
         ui_touch_button 10 '\033[1;97;48;5;160m' "MAKO 小黄鸭" "跟随上游最新版 · 官方简体中文"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回汉化功能插件" "查看其他功能插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
@@ -552,15 +581,15 @@ bazzite_lsfg_versions_menu() {
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
             stable)
-                confirm_and_run "安装小黄鸭 1.0" "v0.12.8 汉化版；仅从国内分块镜像安装署名完整包；汉化：RenAmamiya" \
+                confirm_and_run "安装小黄鸭 1.0" "安装已核验的旧版完整中文包；汉化：RenAmamiya" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-zh-gitee
                 ;;
             v2)
-                confirm_and_run "安装小黄鸭 2.0" "v0.14.4 中文版；仅从国内分块镜像安装完整包并校验 SHA256；顶部显示 RenAmamiya 汉化署名，可与 1.0 和 MAKO 共存" \
+                confirm_and_run "安装小黄鸭 2.0" "需要正版小黄鸭本体并切换到 lsfg 分支；安装前清理旧小黄鸭，避免冲突；汉化：RenAmamiya" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-v2
                 ;;
             mako)
-                confirm_and_run "安装或更新 MAKO 小黄鸭" "跟随 eugeniosegala/MAKO 最新正式版；优先从国内镜像下载，镜像尚未同步时回退作者 GitHub Release；全程校验作者 SHA256，保留作者与 GPL-3.0-or-later 许可证" \
+                confirm_and_run "安装或更新 MAKO 小黄鸭" "跟随作者最新正式版；安装上游自带的完整中文，保留原作者与许可证" \
                     env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lsfg-mako
                 ;;
             back) return 0 ;;
@@ -572,7 +601,7 @@ bazzite_lsfg_versions_menu() {
 bazzite_extra_plugins_menu() {
     local choice
     while true; do
-        draw_category_frame games "更多功能插件" "现有 Renkit 插件 · 国内镜像优先"
+        draw_category_frame games "更多功能插件" "现有 Renkit 插件 · 自动选择可用下载线路"
         ui_touch_button 3 '\033[1;97;48;5;24m' "安装 DeckRecall" "添加启动项并恢复游戏可玩状态"
         ui_touch_button 5 '\033[1;97;48;5;24m' "安装 SavePulse" "自动存档、个人 WebDAV 云备份与换机恢复"
         ui_touch_button 7 '\033[1;97;48;5;24m' "安装 Freedeck" "0.6 稳定版"
@@ -588,10 +617,10 @@ bazzite_extra_plugins_menu() {
         case "$choice" in
             deckrecall) confirm_and_run "安装 DeckRecall" "作者 GitHub Release，下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckrecall ;;
             savepulse) confirm_and_run "安装 SavePulse" "自动版本存档、个人坚果云或标准 WebDAV 云备份与换机恢复；作者 GitHub Release，下载后校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" savepulse ;;
-            freedeck) confirm_and_run "安装 Freedeck" "国内分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck ;;
-            newfreedeck) confirm_and_run "安装/更新 NewFreedeck" "自动检测作者最新版；上游注明个别模拟器仍不可用；国内分块镜像优先" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" newfreedeck ;;
-            tomoon) confirm_and_run "安装 ToMoon" "国内分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon ;;
-            unifideck) confirm_and_run "安装 Unifideck" "国内分块镜像优先并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
+            freedeck) confirm_and_run "安装 Freedeck" "下载后检查完整性" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" freedeck ;;
+            newfreedeck) confirm_and_run "安装/更新 NewFreedeck" "自动检测作者最新版；上游注明个别模拟器仍不可用；自动选择可用下载线路" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" newfreedeck ;;
+            tomoon) confirm_and_run "安装 ToMoon" "下载后检查完整性" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" tomoon ;;
+            unifideck) confirm_and_run "安装 Unifideck" "下载后检查完整性" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" unifideck ;;
             handheld) bazzite_handheld_plugins_menu || return 1 ;;
             status) run_action "汉化功能插件状态" bash "$PROJECT_ROOT/modules/plugin_store.sh" feature-status ;;
             back) return 0 ;;
@@ -609,13 +638,13 @@ bazzite_handheld_plugins_menu() {
         ui_touch_button 11 '\033[1;97;48;5;24m' "通用掌机 RGB" "HueSync，上游自带中文"
         ui_touch_button 14 '\033[1;97;48;5;24m' "Legion Go 控制中心" "按键映射与控制"
         ui_touch_button 17 '\033[1;97;48;5;24m' "GPD 控制中心" "GPD 掌机专用"
-        ui_touch_button 20 '\033[1;97;48;5;30m' "更多掌机插件" "Legion Go 震动、Go 2 风扇与 Apex 工具"
+        ui_touch_button 20 '\033[1;97;48;5;30m' "更多掌机插件" "AYANEO3、Legion Go 与 Apex 工具"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回掌机插件第一页"
         ui_prompt
         choice="$(read_touch_menu right:2-3:simpletdp right:5-6:powercontrol right:8-9:allycenter right:11-12:huesync right:14-15:legionremap right:17-18:gpd right:20-21:more right:22-23:back)"
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
-            simpletdp) confirm_and_run "安装掌机功耗控制" "安装 SimpleDeckyTDP 中文版；国内镜像优先" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee ;;
+            simpletdp) confirm_and_run "安装掌机功耗控制" "安装 SimpleDeckyTDP 中文版；自动选择可用下载线路" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" simpledeckytdp-zh-gitee ;;
             powercontrol) confirm_and_run "安装 PowerControl" "高风险：以 Decky root 权限修改 CPU、GPU、TDP 与风扇参数；请勿与其他功耗或风扇插件同时启用，错误设置可能导致不稳定或过热；安装作者 v3.15.1 官方原包并校验 SHA256" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" powercontrol ;;
             allycenter) confirm_and_run "安装 Ally 控制中心" "仅用于 ROG Ally / Ally X；会调用硬件控制后端" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" allycenter ;;
             huesync) confirm_and_run "安装通用掌机 RGB" "HueSync 上游自带中文；请确认设备灯效受支持" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" huesync ;;
@@ -634,15 +663,17 @@ bazzite_handheld_plugins_more_menu() {
         ui_touch_button 3 '\033[1;97;48;5;24m' "Legion Go 震动控制" "Legion Go / Go 2 专用"
         ui_touch_button 6 '\033[1;97;48;5;24m' "Legion Go 2 风扇控制" "仅 Legion Go 2 · 错误设置可能过热"
         ui_touch_button 10 '\033[1;97;48;5;24m' "OneXPlayer Apex 工具" "仅 Apex（Strix Halo）· HHD、睡眠与风扇修复"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "AYANEO3 Companion" "仅适用于 AYANEO3 · 完整中文版"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回上一页"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回更多功能插件"
         ui_prompt
-        choice="$(read_touch_menu right:3-4:legovibe right:6-7:lego2fan right:10-11:onexplayer right:19-20:previous right:22-23:back)"
+        choice="$(read_touch_menu right:3-4:legovibe right:6-7:lego2fan right:10-11:onexplayer right:13-14:ayaneo3 right:19-20:previous right:22-23:back)"
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
             legovibe) confirm_and_run "安装 Legion Go 震动控制" "仅用于 Legion Go / Go 2；会修改震动控制参数" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego-vibe ;;
             lego2fan) confirm_and_run "安装 Legion Go 2 风扇控制" "仅用于 Legion Go 2；错误设置可能导致过热，请确认机型" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" lego2-fan ;;
             onexplayer) confirm_and_run "安装 OneXPlayer Apex 工具" "仅用于 OneXPlayer Apex（Strix Halo）；会修改 HHD、睡眠设置并加载机型专用内核模块，其他机型严禁安装" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" onexplayer-apex ;;
+            ayaneo3) confirm_and_run "安装 AYANEO3 Companion" "仅适用于 AYANEO3；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" ayaneo3 ;;
             previous) return 0 ;;
             back) return 0 ;;
         esac

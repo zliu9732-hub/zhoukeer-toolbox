@@ -8,7 +8,7 @@ install_lsfg_v2_clean() (
     local service_stopped=0 resume_attempted=0 new_started=0 committed=0 rollback_failed=0
     local candidates=() displaced=()
 
-    if [ "${IS_STEAMOS:-0}" -ne 1 ]; then
+    if [ "${IS_STEAMOS:-0}" -ne 1 ] && ! is_desktop_linux; then
         install_tree_atomically "$source_dir" "$plugin_root" "$LSFG_V2_DIRECTORY" || return 1
         remove_legacy_lsfg_directories "$plugin_root"
         return 0

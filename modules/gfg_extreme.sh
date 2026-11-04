@@ -23,8 +23,8 @@ gfg_extreme_chinese_is_current() {
 ensure_gfg_extreme_chinese_current() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     PLUGIN_INSTALL_CHANGED=0
-    [ "$IS_STEAMOS" -eq 1 ] && gfg_extreme_is_steam_deck || {
-        echo 'GFG Extreme 目前仅在 Steam Deck / SteamOS 提供，其他设备已停止安装。'
+    { [ "$IS_STEAMOS" -eq 1 ] || is_desktop_linux; } && gfg_extreme_is_steam_deck || {
+        echo 'GFG Extreme 仅适用于 Steam Deck LCD/OLED，当前设备无法安装。'
         return 1
     }
     require_command python3 || return 1

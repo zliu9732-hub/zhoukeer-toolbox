@@ -4045,8 +4045,8 @@ install_configured_plugin() {
             ensure_ayaneo3_chinese_current || return 1
             ;;
         deckhomethemes)
-            [ "$IS_STEAMOS" -eq 1 ] || {
-                echo "主页主题安装仅在 SteamOS 主线提供。"
+            [ "$IS_STEAMOS" -eq 1 ] || is_desktop_linux || {
+                echo "主页主题安装需要 Linux 游戏模式。"
                 return 1
             }
             ensure_deckhomethemes_chinese_current || return 1
@@ -4309,8 +4309,8 @@ install_configured_plugin() {
                 "Unifideck"
             ;;
         fantastic)
-            if [ "$IS_STEAMOS" -ne 1 ]; then
-                echo "Fantastic 风扇控制仅适用于 Steam Deck / SteamOS，当前系统不会安装。"
+            if [ "$IS_STEAMOS" -ne 1 ] && { ! is_desktop_linux || ! gfg_extreme_is_steam_deck; }; then
+                echo "Fantastic 风扇控制仅适用于 Steam Deck，当前设备不会安装。"
                 return 1
             fi
             if feature_plugin_is_current \
