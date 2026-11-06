@@ -492,10 +492,10 @@ bazzite_feature_plugins_menu() {
     local choice
     while true; do
         draw_category_frame games "汉化功能插件" "选择需要的功能，安装后在游戏模式打开"
-        ui_touch_button 4 '\033[1;97;48;5;24m' "常用插件组合" "小黄鸭、FSR4、CheatDeck、封面、主题、传输和音乐"
+        ui_touch_button 4 '\033[1;97;48;5;24m' "常用插件组合" "小黄鸭、FSR4、CheatDeck 与 DeckyGCM、封面、主题、传输和音乐"
         ui_touch_button 7 '\033[1;97;48;5;24m' "小黄鸭版本选择" "旧版、新版与 MAKO，按需选择"
         ui_touch_button 10 '\033[1;97;48;5;24m' "安装 FSR4" "Decky-Framegen 汉化版"
-        ui_touch_button 13 '\033[1;97;48;5;24m' "安装 CheatDeck" "修改器启动插件"
+        ui_touch_button 13 '\033[1;97;48;5;24m' "安装 CheatDeck 与 DeckyGCM" "搜索、下载修改器并随游戏启动"
         ui_touch_button 16 '\033[1;97;48;5;24m' "更多功能插件" "Freedeck、ToMoon、Unifideck 与掌机控制"
         ui_touch_button 19 '\033[1;97;48;5;24m' "其余常用插件" "封面、主题、文件传输与音乐播放器单独安装"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回 Decky 插件"
@@ -503,10 +503,10 @@ bazzite_feature_plugins_menu() {
         choice="$(read_touch_menu right:4-5:all right:7-8:lsfg right:10-11:fsr4 right:13-14:cheatdeck right:16-17:more right:19-20:feature-singles right:22-23:back)"
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
-            all) confirm_and_run "安装常用功能插件" "将安装七款常用功能插件；需要时会请求管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
+            all) confirm_and_run "安装常用功能插件" "将安装八款常用功能插件；需要时会请求管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
             lsfg) bazzite_lsfg_versions_menu || return 1 ;;
             fsr4) confirm_and_run "安装 FSR4" "安装完整中文包并检查完整性；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
-            cheatdeck) confirm_and_run "安装 CheatDeck" "下载后检查完整性" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
+            cheatdeck) confirm_and_run "安装 CheatDeck 与 DeckyGCM" "一起安装两款修改器插件；感谢b站ProSS及时行乐" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             more) bazzite_extra_plugins_menu || return 1 ;;
             feature-singles) bazzite_common_feature_singles_menu || return 1 ;;
             back) return 0 ;;
@@ -609,7 +609,7 @@ bazzite_extra_plugins_menu() {
         ui_touch_button 11 '\033[1;97;48;5;24m' "安装 ToMoon" "第三方游戏工具插件"
         ui_touch_button 13 '\033[1;97;48;5;24m' "安装 Unifideck" "统一游戏库插件"
         ui_touch_button 15 '\033[1;97;48;5;24m' "掌机控制插件" "功耗、RGB、按键、震动与风扇"
-        ui_touch_button 17 '\033[1;97;48;5;30m' "检查三款常用插件" "小黄鸭、FSR4 与 CheatDeck"
+        ui_touch_button 17 '\033[1;97;48;5;30m' "检查常用插件" "小黄鸭、FSR4、CheatDeck 与 DeckyGCM"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回汉化功能插件"
         ui_prompt
         choice="$(read_touch_menu right:3-4:deckrecall right:5-6:savepulse right:7-8:freedeck right:9-10:newfreedeck right:11-12:tomoon right:13-14:unifideck right:15-16:handheld right:17-18:status right:22-23:back)"

@@ -54,8 +54,8 @@ case "$PLUGIN_ID" in
             '^Decky-Framegen[.]zip$' "Decky-Framegen" || true
         ;;
     cheatdeck)
-        resolve_latest_github_release "SheffeyG/CheatDeck" \
-            '^CheatDeck[.]zip$' "CheatDeck" || true
+        # The shared installer resolves CheatDeck and also installs DeckyGCM.
+        :
         ;;
 esac
 if [ -n "$_LATEST_RELEASE_URL" ]; then
@@ -158,6 +158,15 @@ reload_decky_plugins() {
     fi
     echo "插件文件已写入，请完全退出游戏模式后重新进入一次，让 Decky 重新扫描。"
 }
+
+if [ "$PLUGIN_ID" = cheatdeck ]; then
+    # Keep this entry point's stored-password authorization while sharing every
+    # download, completeness check and paired-install decision with the menus.
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    toolbox_sudo() { run_stored_password_sudo "$@"; }
+    install_configured_plugin cheatdeck
+    exit $?
+fi
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf -- "$TMP_DIR"' EXIT INT TERM

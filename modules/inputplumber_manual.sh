@@ -62,7 +62,10 @@ ipu_latest_release_page() {
 
 ipu_runtime_version() {
     local output version
-    output="$(/usr/bin/inputplumber --version 2>/dev/null)" || return 1
+    output="$(/usr/bin/inputplumber --version 2>&1)" || {
+        log "InputPlumber 程序版本读取失败：${output:0:4096}"
+        return 1
+    }
     read -r _ version _ <<< "$output"
     [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || return 1
     printf '%s\n' "$version"
@@ -97,9 +100,13 @@ ipu_manual_run() {
 ipu_manual_update() (
     local workspace="" backup="" readonly_changed=0 changed=0 status version=""
     local active=0 enabled=0 suspend_enabled=0
+    local step="检查更新条件"
     ipu_manual_cleanup() {
         local result=$?
         trap - EXIT
+        if [ "$result" -ne 0 ]; then
+            ipu_message "未完成的步骤：${step}。详细记录：$LOG_FILE"
+        fi
         if [ "$result" -ne 0 ] && [ "$changed" = 1 ]; then
             ipu_manual_run toolbox_sudo systemctl stop inputplumber.service || true
             if [ -n "$backup" ]; then
@@ -146,11 +153,13 @@ ipu_manual_update() (
     for command_name in python3 pacman vercmp systemctl udevadm steamos-readonly; do
         require_command "$command_name" || exit 1
     done
+    step="检查新版本"
     ipu_latest_release || exit 1
     systemctl is-active --quiet inputplumber.service && active=1
     systemctl is-enabled --quiet inputplumber.service && enabled=1
     systemctl is-enabled --quiet inputplumber-suspend.service && suspend_enabled=1
     workspace="$(mktemp -d)" || exit 1
+    step="检查系统只读保护"
     status="$(LC_ALL=C steamos-readonly status)" || exit 1
     case "$status" in
         enabled) readonly_changed=1; toolbox_sudo steamos-readonly disable || exit 1 ;;
@@ -158,28 +167,39 @@ ipu_manual_update() (
         *) ipu_message "无法确认只读保护状态，已停止。"; exit 1 ;;
     esac
     ipu_message "正在检查手柄程序更新…"
+    step="检查已安装程序和软件源"
     version="$(ipu_runtime_version || true)"
     # 保留原有防部分升级检查；不执行 -Syy 后单独升级一个系统包。
     ipu_check manual || exit 1
+    # Do not install an intermediate, older repository package before replacing
+    # it with the official release. An obsolete package/signature failure would
+    # otherwise prevent the already-supported official route from ever running.
     if [ "$IPU_CHECK_STATE" = upgrade ] && \
+        [ "$(vercmp "$IPU_CANDIDATE" "$IPU_LATEST_VERSION")" -ge 0 ] && \
         { [ -z "$version" ] || [ "$(vercmp "$IPU_CANDIDATE" "$version")" -gt 0 ]; }; then
+        step="安装软件源中的新版手柄程序"
         ipu_upgrade_package || exit 1
     fi
     version="$(ipu_runtime_version || true)"
     if [ -z "$version" ] || [ "$(vercmp "$version" "$IPU_LATEST_VERSION")" -lt 0 ]; then
         ipu_message "正在准备手柄功能 ${IPU_LATEST_VERSION}…"
+        step="下载手柄程序"
         load_config
         download_github_file "$IPU_OFFICIAL_URL" "$workspace/inputplumber.tar.gz" \
             "$IPU_OFFICIAL_SHA256" "InputPlumber $IPU_LATEST_VERSION" || exit 1
+        step="检查手柄安装文件"
         python3 "$PROJECT_ROOT/scripts/inputplumber_overlay.py" verify "$workspace/inputplumber.tar.gz" "$IPU_OFFICIAL_SHA256" || exit 1
         changed=1
+        step="备份并安装手柄程序"
         ipu_manual_run toolbox_sudo systemctl stop inputplumber.service || exit 1
         backup="$(toolbox_sudo python3 "$PROJECT_ROOT/scripts/inputplumber_overlay.py" install "$workspace/inputplumber.tar.gz" "$IPU_OFFICIAL_SHA256" "$IPU_LATEST_VERSION")" || exit 1
         log "InputPlumber $IPU_LATEST_VERSION 备份：$backup"
+        step="确认新版程序可以运行"
         version="$(ipu_runtime_version)" || exit 1
         [ "$version" = "$IPU_LATEST_VERSION" ] || { ipu_message "更新后的程序版本不符合预期。"; exit 1; }
     fi
     changed=1
+    step="重新加载手柄配置"
     ipu_message "正在启用并重新加载手柄功能…"
     ipu_manual_run toolbox_sudo systemctl daemon-reload || exit 1
     if command -v systemd-hwdb >/dev/null 2>&1; then
@@ -192,8 +212,13 @@ ipu_manual_update() (
     ipu_manual_run toolbox_sudo udevadm trigger --action=change --subsystem-match=input || exit 1
     ipu_manual_run toolbox_sudo systemctl enable inputplumber.service || exit 1
     ipu_manual_run toolbox_sudo systemctl enable inputplumber-suspend.service || exit 1
-    ipu_manual_run toolbox_sudo systemctl restart inputplumber.service || exit 1
-    ipu_manual_run systemctl is-active --quiet inputplumber.service || exit 1
+    step="启动并检查手柄功能"
+    if ! ipu_manual_run toolbox_sudo systemctl restart inputplumber.service || \
+        ! ipu_manual_run systemctl is-active --quiet inputplumber.service; then
+        ipu_journal_summary | tee -a "$LOG_FILE"
+        exit 1
+    fi
+    step="确认更新后的版本"
     version="$(ipu_runtime_version)" || exit 1
     ipu_message "更新完成，当前版本 ${version}。请保存工作，完整关机后再开机。"
 )

@@ -481,7 +481,7 @@ grep -Fq 'decky_plugin_store_version()' "$PROJECT_ROOT/modules/plugin_store.sh" 
 printf '%s\n' "$feature_install" | grep -Fq '小黄鸭（LSFG-VK）'
 printf '%s\n' "$feature_install" | grep -Fq 'reload_decky_plugins'
 printf '%s\n' "$feature_install" | grep -Fq '常用插件会出现在插头菜单中'
-printf '%s\n' "$feature_install" | grep -Fq '九款常用功能插件'
+printf '%s\n' "$feature_install" | grep -Fq '十款常用功能插件'
 printf '%s\n' "$feature_install" | grep -Fq 'feature_plugins="lsfg fsr4 cheatdeck lsfg-mako'
 grep -Fq 'SWITCH_TO_WINDOWS_SOURCE_DIR="$PROJECT_ROOT/decky-plugins/switch-to-windows"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -854,7 +854,7 @@ if printf '%s\n' "$configured_plugin_function" | grep -Fq 'remove_legacy_lsfg_di
 fi
 
 grep -Fq '正在安装 FSR4' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '将依次直接安装：所选小黄鸭、FSR4、CheatDeck、MAKO 小黄鸭与 Mako_Renkit 启动项、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。' \
+grep -Fq '将依次直接安装：所选小黄鸭、FSR4、CheatDeck 与 DeckyGCM、MAKO 小黄鸭与 Mako_Renkit 启动项、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。' \
     "$PROJECT_ROOT/modules/plugin_store.sh" || {
     echo "FAIL: SteamOS 常用插件说明与当前组合不一致" >&2
     exit 1
@@ -1047,6 +1047,7 @@ print_test_feature_plugin_status() (
     # 对合成 MAKO 前端仍执行真实 SHA256 检查，其他插件使用正式校验值。
     LSFG_MAKO_INDEX_SHA256="$(calculate_decky_sha256 \
         "$PLUGIN_ROOT/$LSFG_MAKO_DIRECTORY/dist/index.js")"
+    deckygcm_is_current() { return 0; }
     print_feature_plugin_status
 )
 status_output="$(print_test_feature_plugin_status)"
@@ -1108,6 +1109,7 @@ update_output="$(
         detect_platform() { IS_STEAMOS=1; IS_BAZZITE=0; IS_CHIMERAOS=0; }
         LSFG_MAKO_INDEX_SHA256="$(calculate_decky_sha256 \
             "$DECKY_PLUGIN_DIR/$LSFG_MAKO_DIRECTORY/dist/index.js")"
+        deckygcm_is_current() { return 0; }
         ensure_plugin_store_ready() { return 0; }
         install_lsfg_zh_from_gitee() {
             printf '\''{"version":"%s"}\n'\'' "$LSFG_OFFICIAL_VERSION" > \

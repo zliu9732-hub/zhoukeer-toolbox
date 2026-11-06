@@ -63,7 +63,7 @@ gitee_mirror_manifest_repo() {
         deckhomethemes|themehub-zh-auto) printf '%s\n' "$GITEE_DECKHOMETHEMES_MIRROR_REPO" ;;
         epic-linux) printf '%s\n' zhoukeer-toolbox-mirror-4 ;;
         quark|quark-portable) printf '%s\n' zhoukeer-toolbox-mirror-6 ;;
-        ayaneo3-companion|screen-colors|gfg-extreme-zh) printf '%s\n' zhoukeer-toolbox-mirror-4 ;;
+        ayaneo3-companion|screen-colors|gfg-extreme-zh|deckygcm) printf '%s\n' zhoukeer-toolbox-mirror-4 ;;
         lsfg-v2-zh-auto|lsfg-v2-zh-signed) printf '%s\n' zhoukeer-toolbox-mirror-4 ;;
         fsr4-zh-auto|fsr4-zh-signed) printf '%s\n' zhoukeer-toolbox-mirror-3 ;;
         ge-proton) printf '%s\n' "$GITEE_GE_PROTON_MIRROR_REPO" ;;
@@ -456,6 +456,7 @@ gitee_mirror_id_for_url() {
         *'/xXJSONDeruloXx/decky-lsfg-vk/releases/download/'*) printf '%s\n' lsfg ;;
         *'/xXJSONDeruloXx/Decky-Framegen/releases/download/'*) printf '%s\n' fsr4 ;;
         *'/SheffeyG/CheatDeck/releases/download/'*) printf '%s\n' cheatdeck ;;
+        *'/Qiming-Liu/Decky-Game-Cheats-Manager/releases/download/'*) printf '%s\n' deckygcm ;;
         *'/steam-deck-homebrew/versions/6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3.zip') printf '%s\n' steamgriddb ;;
         *'/steam-deck-homebrew/versions/e84f5b1f111af8862b06218479491fbf61036e1bfd9f16f93f9901e9b9ebc5e0.zip') printf '%s\n' steamgriddb ;;
         *'/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip') printf '%s\n' cssloader ;;

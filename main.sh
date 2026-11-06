@@ -561,9 +561,9 @@ game_environment_menu() {
     while true; do
         draw_category_frame games "游戏与插件｜插件商城" "给游戏增加功能，安装其他平台的游戏" 0
         ui_touch_button 5 '\033[1;97;48;5;160m' "安装插件商城" "给游戏模式增加插件功能 · 需要管理员权限"
-        ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭、FSR4、MAKO、Fantastic等九款插件"
+        ui_touch_button 7 '\033[1;97;48;5;24m' "常用插件组合" "安装小黄鸭、FSR4、修改器等十款插件"
         ui_touch_button 9 '\033[1;97;48;5;24m' "浏览官方插件" "逐个查看插件作用"
-        ui_touch_button 11 '\033[1;97;48;5;24m' "CheatDeck" "风灵月影修改器和启动项启动插件"
+        ui_touch_button 11 '\033[1;97;48;5;24m' "CheatDeck 与 DeckyGCM" "搜索、下载修改器并随游戏启动"
         ui_touch_button 13 '\033[1;97;48;5;24m' "小黄鸭" "让游戏画面更流畅·按需选择版本"
         ui_touch_button 15 '\033[1;97;48;5;24m' "FSR4" "改善支持游戏的画面·请先阅读使用说明"
         ui_touch_button 17 '\033[1;97;48;5;24m' "Freedeck 版本选择" "下载和管理游戏，按需选择版本"
@@ -576,9 +576,9 @@ game_environment_menu() {
 
         case "$choice" in
             decky-install) NEXT_CATEGORY="decky_loader"; return 0 ;;
-            features) confirm_and_run "安装常用插件组合" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；未安装插件商城时会先安装插件商城，再继续安装九款常用插件（含 MAKO）；Fantastic 会覆盖默认风扇曲线；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
+            features) confirm_and_run "安装常用插件组合" "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式；未安装插件商城时会先安装插件商城，再继续安装十款常用插件（含 MAKO）；Fantastic 会覆盖默认风扇曲线；会使用管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
             browse) plugin_official_touch_pages ;;
-            cheatdeck) confirm_and_run "安装 CheatDeck" "在游戏启动时同时打开修改器或其他辅助程序" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
+            cheatdeck) confirm_and_run "安装 CheatDeck 与 DeckyGCM" "一起安装两款修改器插件；感谢b站ProSS及时行乐" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
             lsfg) NEXT_CATEGORY="lsfg_versions"; return 0 ;;
             fsr4) confirm_and_run "安装 FSR4" "改善支持游戏的画面；请先阅读桌面上的使用说明；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             freedeck) NEXT_CATEGORY="freedeck_versions"; return 0 ;;

@@ -171,7 +171,7 @@ show_initialization_plan() {
     fi
     echo "【04】安装中文输入法"
     echo "【05-06】安装微信、QQ、Firefox并创建桌面图标"
-    echo "【07】安装插件商城、游戏下载工具和九款常用插件"
+    echo "【07】安装插件商城、游戏下载工具和十款常用插件"
     echo "【小黄鸭版本】$(lsfg_variant_label "$LSFG_INSTALL_VARIANT")"
     echo "【已有插件】$(feature_plugin_cleanup_label "$FEATURE_PLUGIN_CLEANUP")"
     if [ "$FEATURE_PLUGIN_CLEANUP" = remove ]; then
@@ -407,7 +407,8 @@ write_customer_handover_guide() {
 ======Steam Deck 新机交付与使用说明======
 
 1. Renkit：桌面双击 Renkit；启动时会自动检测更新，也可在“检查与维护”中手动检查更新。
-2. Decky / FreeDeck：返回游戏模式，按右下角“…”键，再打开插头图标；新机初始化会安装 MAKO 小黄鸭，并在 CheatDeck 高级页新增 “Mako_Renkit” 启动项。
+2. Decky / FreeDeck：返回游戏模式，按右下角“…”键，再打开插头图标；新机初始化会一起安装 CheatDeck 与 DeckyGCM，搜索、下载修改器并随游戏启动。感谢b站ProSS及时行乐。
+   同时安装 MAKO 小黄鸭，并在 CheatDeck 高级页新增 “Mako_Renkit” 启动项。
    本次选择：$(lsfg_variant_label "$LSFG_INSTALL_VARIANT")。使用 2.0 前，请在 Steam 的正版小黄鸭属性中选择 lsfg-vk 分支。
    原有插件处理：$(feature_plugin_cleanup_label "$FEATURE_PLUGIN_CLEANUP")。
    先打开 MAKO 点击“安装 MAKO Renderer”，再在目标游戏的 齿轮 → CheatDeck → 高级 中启用 “Mako_Renkit” 并保存。插件不显示时请完全退出并重开 Steam。
@@ -488,7 +489,7 @@ run_new_machine_initialization() {
         bash "$PROJECT_ROOT/modules/software.sh" browser
     run_step "【07】Decky 插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" store-auto
-    run_step "【07】九款常用插件（含 MAKO 与 Mako_Renkit、主题美化与 Fantastic 汉化）" env ZHOUKEER_AUTO_CONFIRM=1 \
+    run_step "【07】十款常用插件（含 MAKO 与 Mako_Renkit、主题美化与 Fantastic 汉化）" env ZHOUKEER_AUTO_CONFIRM=1 \
         ZHOUKEER_LSFG_VARIANT="$LSFG_INSTALL_VARIANT" \
         ZHOUKEER_FEATURE_PLUGIN_CLEANUP="$FEATURE_PLUGIN_CLEANUP" \
         ZHOUKEER_FEATURE_TRAINER_TOOLS=skip \

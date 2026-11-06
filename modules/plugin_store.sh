@@ -47,6 +47,9 @@ DECKY_USER_UNIT_PATH="$HOME/.config/systemd/user/plugin_loader.service"
 DECKY_SERVICE_NAME="plugin_loader.service"
 DECKY_TMP_DIR=""
 PLUGIN_INSTALL_CHANGED=0
+DECKYGCM_VERSION="1.0.1"
+DECKYGCM_URL="https://github.com/Qiming-Liu/Decky-Game-Cheats-Manager/releases/download/v1.0.1/DeckyGCM.v1.0.1.zip"
+DECKYGCM_SHA256="fc989a509847000f195dd64d62d7d41a0cdca4fefb2ee9cceb77bdd14573b013"
 LSFG_OFFICIAL_DIRECTORY="Decky LSFG-VK"
 LSFG_OFFICIAL_VERSION="0.12.8"
 LSFG_V2_DIRECTORY="$LSFG_OFFICIAL_DIRECTORY"
@@ -4011,6 +4014,42 @@ refresh_feature_usage_guides() {
     [ "$fsr4_installed" -eq 0 ] || create_fsr4_supported_games_guide
 }
 
+deckygcm_is_current() {
+    python3 "$PROJECT_ROOT/scripts/deckygcm_package.py" \
+        "${1:-${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}}/DeckyGCM" >/dev/null 2>&1
+}
+
+install_cheatdeck_with_gcm() {
+    local pair_changed=0 plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
+    PLUGIN_INSTALL_CHANGED=0
+    echo "提示：强烈建议进入 游戏与插件，安装修改器所需运行工具。"
+    resolve_plugin_latest cheatdeck
+    if feature_plugin_is_current "$plugin_root" "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then
+        echo "[已安装] CheatDeck v$DECKY_CHEATDECK_VERSION 已存在且文件完整，无需重复安装。"
+    else
+        install_decky_zip "CheatDeck" "$DECKY_CHEATDECK_URL" "$DECKY_CHEATDECK_SHA256" "CheatDeck" 0 || return 1
+        pair_changed="$PLUGIN_INSTALL_CHANGED"
+    fi
+    echo "DeckyGCM：搜索、下载修改器，并随游戏启动。"
+    echo "感谢b站ProSS及时行乐"
+    echo "原作者：Qiming-Liu；许可证：GPL-3.0。插件已自带中文。"
+    if deckygcm_is_current "$plugin_root"; then
+        echo "[已安装] DeckyGCM v$DECKYGCM_VERSION 文件完整，无需重复安装。"
+        PLUGIN_INSTALL_CHANGED="$pair_changed"
+        return 0
+    fi
+    if ! install_decky_zip "DeckyGCM" "$DECKYGCM_URL" "$DECKYGCM_SHA256" "DeckyGCM" 0; then
+        PLUGIN_INSTALL_CHANGED="$pair_changed"
+        echo "DeckyGCM 未安装完成，请重新选择 CheatDeck 与 DeckyGCM 补装。"
+        return 1
+    fi
+    PLUGIN_INSTALL_CHANGED=1
+    deckygcm_is_current "$plugin_root" || {
+        echo "DeckyGCM 文件检查未通过，请重新安装。"
+        return 1
+    }
+}
+
 install_configured_plugin() {
     local action="$1"
     local reload_after_install="${2:-1}"
@@ -4110,24 +4149,12 @@ install_configured_plugin() {
             fi
             ;;
         cheatdeck)
-            echo "提示：强烈建议进入 游戏与插件，安装修改器所需运行工具。"
-            resolve_plugin_latest cheatdeck
-            if feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
-                "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then
-                echo "[已安装] CheatDeck v$DECKY_CHEATDECK_VERSION 已存在且文件完整，无需重复安装。"
-                PLUGIN_INSTALL_CHANGED=0
-            else
-                installed_version="$(decky_plugin_version \
-                    "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/CheatDeck" || true)"
-                [ -z "$installed_version" ] || \
-                    echo "检测到 CheatDeck 旧版本 $installed_version，将更新到 $DECKY_CHEATDECK_VERSION。"
-                install_decky_zip \
-                    "CheatDeck" \
-                    "${DECKY_CHEATDECK_URL:-}" \
-                    "${DECKY_CHEATDECK_SHA256:-}" \
-                    "CheatDeck" \
-                    0
-            fi
+            install_cheatdeck_with_gcm || {
+                if [ "$reload_after_install" = 1 ] && [ "$PLUGIN_INSTALL_CHANGED" = 1 ]; then
+                    reload_decky_plugins "已加载安装完成的插件；未完成的项目可再次选择补装。"
+                fi
+                return 1
+            }
             ;;
         tomoon)
             resolve_plugin_latest tomoon
@@ -4611,6 +4638,12 @@ print_feature_plugin_status() {
         echo "✗ CheatDeck：未找到完整插件文件"
         missing=1
     fi
+    if deckygcm_is_current "$plugin_root"; then
+        echo "✓ DeckyGCM：已安装 ${DECKYGCM_VERSION}，感谢b站ProSS及时行乐"
+    else
+        echo "✗ DeckyGCM：文件不完整，请选择 CheatDeck 与 DeckyGCM 补装"
+        missing=1
+    fi
     if feature_plugin_is_current "$plugin_root" "$STEAMGRIDDB_OFFICIAL_DIRECTORY" \
         "$STEAMGRIDDB_OFFICIAL_VERSION" "SteamGridDB"; then
         echo "✓ 游戏封面更换（SteamGridDB）：已安装 ${STEAMGRIDDB_OFFICIAL_VERSION}。"
@@ -4739,6 +4772,7 @@ install_feature_plugins_selected() {
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$FSR4_OFFICIAL_DIRECTORY" "$FSR4_OFFICIAL_VERSION" "Decky-Framegen（FSR4）"; then _all_installed=0; fi
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
         "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then _all_installed=0; fi
+    if ! deckygcm_is_current; then _all_installed=0; fi
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
         "$STEAMGRIDDB_OFFICIAL_DIRECTORY" "$STEAMGRIDDB_OFFICIAL_VERSION" \
         "SteamGridDB"; then _all_installed=0; fi
@@ -4767,9 +4801,9 @@ install_feature_plugins_selected() {
     fi
     if [ "$_all_installed" = "1" ]; then
         if [ "$IS_STEAMOS" -eq 1 ]; then
-            echo "九款常用功能插件已全部安装且检查通过，无需重复安装。"
+            echo "十款常用功能插件已全部安装且检查通过，无需重复安装。"
         else
-            echo "七款常用功能插件已全部安装且检查通过，无需重复安装。"
+            echo "八款常用功能插件已全部安装且检查通过，无需重复安装。"
         fi
         write_flingtrainer_desktop_note || \
             echo "常用插件已存在，但未能在桌面生成风灵月影网址.txt。"
@@ -4781,10 +4815,10 @@ install_feature_plugins_selected() {
 
     if [ "$IS_STEAMOS" -eq 1 ]; then
         echo "本次小黄鸭版本：$(lsfg_variant_label "$lsfg_variant")"
-        echo "将依次直接安装：所选小黄鸭、FSR4、CheatDeck、MAKO 小黄鸭与 Mako_Renkit 启动项、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。"
+        echo "将依次直接安装：所选小黄鸭、FSR4、CheatDeck 与 DeckyGCM、MAKO 小黄鸭与 Mako_Renkit 启动项、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。"
         feature_plugins="lsfg fsr4 cheatdeck lsfg-mako steamgriddb cssloader friendeck deckymusic fantastic"
     else
-        echo "将依次直接安装：小黄鸭、FSR4、CheatDeck、游戏封面更换、主题美化、文件传输助手、音乐播放器。"
+        echo "将依次直接安装：小黄鸭、FSR4、CheatDeck 与 DeckyGCM、游戏封面更换、主题美化、文件传输助手、音乐播放器。"
         feature_plugins="lsfg fsr4 cheatdeck steamgriddb cssloader friendeck deckymusic"
     fi
     for plugin in $feature_plugins; do
@@ -4819,13 +4853,7 @@ install_feature_plugins_selected() {
                 install_fsr4_zh_from_gitee 0 || failed=1
                 ;;
             cheatdeck)
-                echo "========== CheatDeck =========="
-                echo "提示：强烈建议进入 游戏与插件，安装修改器所需运行工具。"
-                if feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
-                    "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then
-                    echo "[已安装] CheatDeck v$DECKY_CHEATDECK_VERSION 已安装，跳过。"
-                    continue
-                fi
+                echo "========== CheatDeck 与 DeckyGCM =========="
                 install_configured_plugin cheatdeck 0 0 || {
                     failed=1
                     echo "该插件未完成，继续尝试其余插件。"
@@ -4874,9 +4902,9 @@ install_feature_plugins_selected() {
 
     if [ "$failed" -eq 0 ]; then
         if [ "$IS_STEAMOS" -eq 1 ]; then
-            echo "九款常用功能插件已全部安装完成，名称、版本和关键文件均已确认。"
+            echo "十款常用功能插件已全部安装完成，名称、版本和关键文件均已确认。"
         else
-            echo "七款常用功能插件已全部安装完成，名称、版本和关键文件均已确认。"
+            echo "八款常用功能插件已全部安装完成，名称、版本和关键文件均已确认。"
         fi
         print_cef_remote_debugging_tip
         log "常用功能插件整组安装完成"
@@ -4888,7 +4916,7 @@ install_feature_plugins_selected() {
 }
 
 install_all_plugin_packages() {
-    echo "将依次处理九款常用功能插件和精选插件，其中包括 MAKO、Fantastic、SimpleDeckyTDP 与 Unifideck。"
+    echo "将依次处理十款常用功能插件和精选插件，其中包括 MAKO、Fantastic、SimpleDeckyTDP 与 Unifideck。"
     echo "官方推荐插件仍由 Decky 内置安装器在 Steam 界面中确认。"
 
     install_feature_plugins || return 1

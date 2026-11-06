@@ -306,7 +306,7 @@ mirror_process_entry() {
     local chunks=0
     local existing_size
     local CHUNK_BYTES="$CHUNK_BYTES"
-    case "$id" in sdweak|deckhomethemes) [ "$CHUNK_BYTES" -le 1048576 ] || CHUNK_BYTES=1048576 ;; ayaneo3-companion|screen-colors) CHUNK_BYTES=131072 ;; esac
+    case "$id" in sdweak|deckhomethemes) [ "$CHUNK_BYTES" -le 1048576 ] || CHUNK_BYTES=1048576 ;; ayaneo3-companion|screen-colors|deckygcm) CHUNK_BYTES=131072 ;; esac
 
     mirror_path_is_safe "$id" || return 1
     mirror_path_is_safe "$version" || return 1
@@ -337,7 +337,7 @@ mirror_process_entry() {
         mirror_positive_integer "$size" || return 1
         mkdir -p "$target_dir" || return 1
         # SDWEAK always uses the part manifest, including a single small part.
-        if [ "$size" -le "$DIRECT_MAX_BYTES" ] && [ "$id" != sdweak ] && [ "$id" != deckhomethemes ] && [ "$id" != ayaneo3-companion ] && [ "$id" != screen-colors ]; then
+        if [ "$size" -le "$DIRECT_MAX_BYTES" ] && [ "$id" != sdweak ] && [ "$id" != deckhomethemes ] && [ "$id" != ayaneo3-companion ] && [ "$id" != screen-colors ] && [ "$id" != deckygcm ]; then
             cp -f -- "$cache_file" "$target" || return 1
         else
             rm -f -- "$target_dir"/part.*
@@ -358,7 +358,7 @@ mirror_process_local_file() {
     local id="$1" name="$2" version="$3" file="$4" source_url="$5" local_file="$6"
     local size sha256 target_dir target chunks=0
     local CHUNK_BYTES="$CHUNK_BYTES"
-    case "$id" in sdweak|deckhomethemes) [ "$CHUNK_BYTES" -le 1048576 ] || CHUNK_BYTES=1048576 ;; ayaneo3-companion|screen-colors) CHUNK_BYTES=131072 ;; esac
+    case "$id" in sdweak|deckhomethemes) [ "$CHUNK_BYTES" -le 1048576 ] || CHUNK_BYTES=1048576 ;; ayaneo3-companion|screen-colors|deckygcm) CHUNK_BYTES=131072 ;; esac
 
     mirror_path_is_safe "$id" || { echo "镜像标识不安全：$id"; return 1; }
     mirror_path_is_safe "$version" || { echo "镜像版本路径不安全：$version"; return 1; }
@@ -397,7 +397,7 @@ mirror_process_local_file() {
 
     mkdir -p "$target_dir" || return 1
     rm -f -- "$target" "$target_dir"/part.*
-    if [ "$size" -le "$DIRECT_MAX_BYTES" ] && [ "$id" != sdweak ] && [ "$id" != deckhomethemes ] && [ "$id" != ayaneo3-companion ] && [ "$id" != screen-colors ]; then
+    if [ "$size" -le "$DIRECT_MAX_BYTES" ] && [ "$id" != sdweak ] && [ "$id" != deckhomethemes ] && [ "$id" != ayaneo3-companion ] && [ "$id" != screen-colors ] && [ "$id" != deckygcm ]; then
         cp -f -- "$local_file" "$target" || return 1
     else
         mirror_split_file "$local_file" "$target_dir" "$CHUNK_BYTES" "$size" || return 1
@@ -442,6 +442,7 @@ mirror_mako_latest() {
 
 mirror_entries() {
     cat <<'EOF'
+deckygcm|DeckyGCM|v1.0.1|DeckyGCM.v1.0.1.zip|https://github.com/Qiming-Liu/Decky-Game-Cheats-Manager/releases/download/v1.0.1/DeckyGCM.v1.0.1.zip|fc989a509847000f195dd64d62d7d41a0cdca4fefb2ee9cceb77bdd14573b013
 ayaneo3-companion|AYANEO3 Companion|1.2.0|Ayaneo3Companion-1.2.0.zip|https://github.com/Rayekkk/Ayaneo3Companion/releases/download/1.2.0/Ayaneo3Companion-1.2.0.zip|b1c9a5529b3f5a4dee88ca275d285bb6347092a5f7e90db07b87b24725b4f651|
 screen-colors|Screen Colors|1.0.0|decky-screen-colors.zip|https://github.com/PacificSilent/decky-screen-colors/releases/download/v1.0.0/decky-screen-colors.zip|4535b6f378cbb6cca4274067a36604b0fd5a2e94c14913855b177bdae009abb5|
 epic-linux|Epic Linux 版|0.96.0-g2fade97|EpicGamesLauncher-x86_64.AppImage|https://content-download-egs.distro.on.epicgames.com/Builds/EGLv2/0.96.0%2Bg2fade97/Linux/EpicGamesLauncher-x86_64.AppImage|6c5cc46eef8c80b01759cc76154b69a20645b01b79526442a8550090db5d251e|

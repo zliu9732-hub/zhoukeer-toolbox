@@ -72,7 +72,7 @@ prepare_deckhomethemes_mirror() {
     if [ "$MODE" = --only-ayaneo3 ]; then
         git -C "$MIRROR4" sparse-checkout set --no-cone 'ayaneo3-companion/**'
     else
-        git -C "$MIRROR4" sparse-checkout set --no-cone 'deckhomethemes/**' 'epic-linux/**' 'ayaneo3-companion/**'
+        git -C "$MIRROR4" sparse-checkout set --no-cone 'deckhomethemes/**' 'epic-linux/**' 'ayaneo3-companion/**' 'deckygcm/**'
     fi
     git -C "$MIRROR4" checkout -q main
 }
@@ -128,7 +128,7 @@ sync_plugin() {
     local pinned_version="${5:-}" pinned_file="${6:-}" pinned_url="${7:-}" pinned_sha="${8:-}"
     local mirror_repo="${9:-$MIRROR1}"
     local version file url sha size chunks target_dir chunk_size=8388608
-    case "$id" in sdweak|deckhomethemes) chunk_size=1048576 ;; ayaneo3-companion) chunk_size=131072 ;; esac
+    case "$id" in sdweak|deckhomethemes) chunk_size=1048576 ;; ayaneo3-companion|deckygcm) chunk_size=131072 ;; esac
 
     if [ -n "$pinned_version" ]; then
         version="$pinned_version"
@@ -161,7 +161,7 @@ sync_plugin() {
     mkdir -p "$target_dir"
     rm -f -- "$mirror_repo/$id/$version"/*
 
-    if [ "$size" -le 9437184 ] && [ "$id" != sdweak ] && [ "$id" != deckhomethemes ] && [ "$id" != ayaneo3-companion ]; then
+    if [ "$size" -le 9437184 ] && [ "$id" != sdweak ] && [ "$id" != deckhomethemes ] && [ "$id" != ayaneo3-companion ] && [ "$id" != deckygcm ]; then
         cp -- "$WORK/$file" "$target_dir/$file"
         chunks=0
     else
@@ -571,6 +571,10 @@ sync_plugin fsr4-zh-signed "zliu9732-hub/decky-framegen-zh" \
     "https://github.com/zliu9732-hub/decky-framegen-zh/releases/download/v0.17/Decky-Framegen-zh-signed-v0.17-r3.zip" \
     "409aa32b843500a6828b73feeed5cc7307d9c7c60a470e288f2c8cf777d03adb" "$MIRROR3"
 sync_plugin cheatdeck "SheffeyG/CheatDeck" '^CheatDeck[.]zip$' "CheatDeck"
+sync_plugin deckygcm "Qiming-Liu/Decky-Game-Cheats-Manager" '^$' "DeckyGCM" \
+    "v1.0.1" "DeckyGCM.v1.0.1.zip" \
+    "https://github.com/Qiming-Liu/Decky-Game-Cheats-Manager/releases/download/v1.0.1/DeckyGCM.v1.0.1.zip" \
+    "fc989a509847000f195dd64d62d7d41a0cdca4fefb2ee9cceb77bdd14573b013" "$MIRROR4"
 sync_plugin steamgriddb "SteamGridDB/decky-steamgriddb" '^$' "SteamGridDB" \
     "v1.8.1" "steamgriddb-v1.8.1.zip" \
     "https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/e84f5b1f111af8862b06218479491fbf61036e1bfd9f16f93f9901e9b9ebc5e0.zip" \

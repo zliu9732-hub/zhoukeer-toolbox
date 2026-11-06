@@ -64,7 +64,12 @@ udevadm() {
 }
 systemd-hwdb() { echo "hwdb $*" >> "$CALLS"; return 0; }
 ipu_check() { IPU_CHECK_STATE=skip; [ "$MOCK_UPGRADE" = 0 ] || IPU_CHECK_STATE=upgrade; IPU_CANDIDATE=0.79.0; }
-ipu_upgrade_package() { echo package-update >> "$CALLS"; echo 0.79.0 > "$STATE/version"; }
+ipu_upgrade_package() {
+    echo package-update >> "$CALLS"
+    [ "$MOCK_FAIL" != package ] || return 1
+    echo 0.79.0 > "$STATE/version"
+}
+ipu_journal_summary() { echo '模拟服务启动失败详情'; }
 ipu_runtime_version() { cat "$STATE/version"; }
 vercmp() {
     local a="${1%%-*}" b="${2%%-*}" first
@@ -113,6 +118,10 @@ for stage in download verify install udev signal 'systemctl:enable inputplumber.
     'systemctl:enable inputplumber-suspend.service' 'systemctl:restart inputplumber.service'; do
     reset_state; MOCK_FAIL="$stage"
     if ipu_manual_update > "$TEST_ROOT/error" 2>&1; then fail "Failure masked: $stage"; fi
+    grep -Fq '未完成的步骤：' "$TEST_ROOT/error" "$LOG_FILE" || fail "Failure stage missing: $stage"
+    if [ "$stage" = 'systemctl:restart inputplumber.service' ]; then
+        grep -Fq '模拟服务启动失败详情' "$TEST_ROOT/error" || fail 'Service failure hidden before rollback'
+    fi
     [ "$(cat "$STATE/readonly")" = enabled ] || fail "Protection lost after $stage"
     [ "$(cat "$STATE/enabled")$(cat "$STATE/suspend-enabled")" = 00 ] || fail "Service state lost: $stage"
     [ "$(cat "$STATE/version")" = 0.70.0 ] || fail "Files not rolled back: $stage"
@@ -128,7 +137,17 @@ reset_state; MOCK_UPGRADE=1 MOCK_LATEST=0.79.0
 ipu_manual_update >/dev/null || fail 'System package route failed'
 [ "$(cat "$STATE/version")" = 0.79.0 ] || fail 'System package version missing'
 ! grep -Fq download "$CALLS" || fail 'Sufficient system package unnecessarily replaced'
+reset_state; MOCK_FAIL=package
+if ipu_manual_update > "$TEST_ROOT/package-failure"; then fail 'Current repository transaction failure masked'; fi
+[ "$(cat "$STATE/readonly")" = enabled ] || fail 'Protection not restored after repository failure'
+grep -Fq '安装软件源中的新版手柄程序' "$TEST_ROOT/package-failure" || fail 'Repository failure stage missing'
+MOCK_FAIL=''
 MOCK_LATEST=0.81.0
+reset_state; MOCK_FAIL=package
+ipu_manual_update > "$TEST_ROOT/old-repository" || fail 'Obsolete repository package blocked official release'
+! grep -Fq package-update "$CALLS" || fail 'Unnecessary intermediate repository update attempted'
+[ "$(cat "$STATE/version")" = 0.81.0 ] || fail 'Official release missing after obsolete repository was skipped'
+MOCK_FAIL=''
 reset_state; echo 0.90.0 > "$STATE/version"
 ipu_manual_update >/dev/null || fail 'Newer version failed'
 [ "$(cat "$STATE/version")" = 0.90.0 ] || fail 'Newer binary downgraded'

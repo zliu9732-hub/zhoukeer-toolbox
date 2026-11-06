@@ -17,6 +17,7 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | SteamDB Decky Button | 游戏模式查看 SteamDB 价格史低与在线峰值 | https://github.com/kedMertens/steamdbDeckyButton | BSD-3-Clause | 是 | v0.0.1 源码构建，增加中文双入口并保留上游许可证 |
 | Decky Translator | 游戏模式屏幕文字与兼容性评价翻译 | https://github.com/cat-in-a-box/Decky-Translator | GPL-3.0 | 是 | 基于官方 v0.9.1 完整包叠加中文前端与官方依赖，源码随仓库保留 |
 | CheatDeck | CheatDeck 插件 | https://github.com/SheffeyG/CheatDeck | GPL-3.0 | 是 | |
+| DeckyGCM | 搜索、下载修改器并随游戏启动 | https://github.com/Qiming-Liu/Decky-Game-Cheats-Manager | GPL-3.0 | 是 | 镜像 v1.0.1 完整官方中文包，保留全部运行文件、Qiming-Liu 与原许可证；感谢b站ProSS及时行乐的介绍，不添加 RenAmamiya 汉化署名 |
 | SteamGridDB | Steam 游戏封面管理插件 | https://github.com/SteamGridDB/decky-steamgriddb | GPL-3.0-or-later | 是 | 使用 Decky 官方商店 v1.8.1 完整原包；保留官方名称、原作者与内置中文界面 |
 | CSS Loader | Steam CSS 主题插件 | https://github.com/DeckThemes/SDH-CssLoader | GPL-2.0-or-later | 是 | 使用 Decky 官方商店 v2.1.2 原包并叠加中文前端；后端保持原包 |
 | Friendeck | 局域网文件传输插件 | https://github.com/panyiwei-home/Friendeck | GPL-3.0 | 是 | Release 0.7.7 原包；安装后仅改 `plugin.json` 显示名称 |

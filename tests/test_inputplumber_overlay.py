@@ -196,6 +196,11 @@ print('PASS: upstream 0.83.1 layout, renamed rule, timer config, completeness, l
 if len(sys.argv) > 1:
     assert len(sys.argv) == 2
     upstream = Path(sys.argv[1])
+    digest = hashlib.sha256(upstream.read_bytes()).hexdigest()
+    fixtures = [json.loads(path.read_text()) for path in
+                sorted((ROOT / 'tests/fixtures').glob('inputplumber-v*.json'))]
+    fixture = next(item for item in fixtures if item['source']['sha256'] == digest)
+    version = fixture['source']['tag'].removeprefix('v')
     with tempfile.TemporaryDirectory(prefix='inputplumber-real-package-') as temporary:
         root = Path(temporary)
         files = overlay.verified_files(upstream, fixture['source']['sha256'])
@@ -204,9 +209,9 @@ if len(sys.argv) > 1:
         assert set(files) == set(expected)
         for name, data in files.items():
             assert hashlib.sha256(data).hexdigest() == expected[name], name
-        backup = overlay.install(root, upstream, fixture['source']['sha256'], '0.83.1')
+        backup = overlay.install(root, upstream, fixture['source']['sha256'], version)
         for name, data in files.items():
             assert (root / name).read_bytes() == data, name
         overlay.restore(root, backup)
         assert all(not (root / name).exists() for name in files)
-    print('PASS: actual SHA256-verified 0.83.1 archive, every deployed file, and complete restore; binary never executed')
+    print(f'PASS: actual SHA256-verified {version} archive, every deployed file, and complete restore; binary never executed')

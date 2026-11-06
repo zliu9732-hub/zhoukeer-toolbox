@@ -11,8 +11,9 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import zipfile
 
-package, upstream = map(lambda p: Path(p).resolve(), sys.argv[1:])
+package, upstream = map(lambda p: Path(p).resolve(), sys.argv[1:3])
 with tempfile.TemporaryDirectory(prefix='renkit-inputplumber-installed-') as temporary:
     base = Path(temporary)
     source = base / 'release'
@@ -47,8 +48,23 @@ with tempfile.TemporaryDirectory(prefix='renkit-inputplumber-installed-') as tem
     assert result.returncode == 0, result.stdout + result.stderr
     helper = installed / 'scripts/inputplumber_overlay.py'
     assert helper.read_bytes() == (source / 'scripts/inputplumber_overlay.py').read_bytes()
+    for name in ('scripts/deckygcm_package.py', 'data/deckygcm_files.json'):
+        assert (installed / name).read_bytes() == (source / name).read_bytes()
+    if len(sys.argv) == 4:
+        gcm = Path(sys.argv[3]).resolve()
+        inventory = json.loads((installed / 'data/deckygcm_files.json').read_text())
+        assert hashlib.sha256(gcm.read_bytes()).hexdigest() == inventory['sha256']
+        with zipfile.ZipFile(gcm) as archive:
+            assert set(archive.namelist()) == {'DeckyGCM/' + name for name in inventory['files']}
+            archive.extractall(base / 'plugin-files')
+        subprocess.run([sys.executable, str(installed / 'scripts/deckygcm_package.py'),
+                        str(base / 'plugin-files/DeckyGCM')], env=env, check=True)
     assert (installed / 'apps/customer-data').read_text() == 'keep'
-    fixture = json.loads((source / 'tests/fixtures/inputplumber-v0.83.1.json').read_text())
+    sha = hashlib.sha256(upstream.read_bytes()).hexdigest()
+    fixtures = [json.loads(path.read_text()) for path in
+                (source / 'tests/fixtures').glob('inputplumber-v*.json')]
+    fixture = next(item for item in fixtures if item['source']['sha256'] == sha)
+    version = fixture['source']['tag'].removeprefix('v')
     digest = fixture['source']['sha256']
     subprocess.run([sys.executable, str(helper), 'verify', str(upstream), digest], env=env, check=True)
     target = base / 'virtual-steamos'
@@ -59,7 +75,7 @@ with tempfile.TemporaryDirectory(prefix='renkit-inputplumber-installed-') as tem
     config.write_text('keep custom mapping')
     env['ZHOUKEER_TEST_MODE'] = '1'
     result = subprocess.run([sys.executable, str(helper), 'install', str(upstream), digest,
-                             '0.83.1', '--test-root', str(target)], env=env, capture_output=True, text=True)
+                             version, '--test-root', str(target)], env=env, capture_output=True, text=True)
     assert result.returncode == 0, result.stdout + result.stderr
     for row in fixture['members']:
         if row['type'] == '0':
@@ -70,4 +86,4 @@ with tempfile.TemporaryDirectory(prefix='renkit-inputplumber-installed-') as tem
     assert (target / 'usr/bin/inputplumber').read_bytes() == b'old binary'
     assert not (target / 'usr/lib/modules-load.d/inputplumber-hrtimer.conf').exists()
     assert config.read_text() == 'keep custom mapping'
-print('PASS: release → actual app installer → updated helper → real 0.83.1 package install/restore in a private root')
+print(f'PASS: release → actual app installer → updated helper → real {version} package install/restore in a private root')
