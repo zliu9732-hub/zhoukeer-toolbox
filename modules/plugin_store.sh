@@ -1765,31 +1765,75 @@ prepare_plugin_root() {
     fi
 }
 
+cleanup_plugin_install_workspace() {
+    local workspace="$1"
+    # Decky can make an old plugin directory root-owned even when plugins/ is
+    # user-writable. Only this private, generated workspace may need sudo.
+    if run_plugin_file_operation rm -rf -- "$workspace" 2>/dev/null; then return 0; fi
+    log "插件临时副本清理失败，尝试原管理员授权：$workspace"
+    if [ "${IS_CHIMERAOS:-0}" -ne 1 ] && [ "${PLUGIN_NEEDS_SUDO:-0}" -eq 0 ] && \
+        toolbox_sudo rm -rf -- "$workspace"; then return 0; fi
+    echo "旧文件暂未清理，已保留在：$workspace"
+    log "插件临时副本仍保留：$workspace"
+    return 1
+}
+
 install_tree_atomically() {
-    local source_dir="$1"
-    local target_parent="$2"
-    local target_name="$3"
-    local target_dir="$target_parent/$target_name"
-    local staging_dir="$target_parent/.${target_name}.new.$$"
-    local backup_dir="$target_parent/.${target_name}.backup.$$"
+    local source_dir="$1" target_parent="$2" target_name="$3" verifier="${4:-}"
+    local target_dir="$target_parent/$target_name" workspace staging_dir backup_dir
+    local PLUGIN_NEEDS_SUDO="${PLUGIN_NEEDS_SUDO:-0}"
 
-    run_plugin_file_operation rm -rf -- "$staging_dir" "$backup_dir" || return 1
-    run_plugin_file_operation cp -a -- "$source_dir" "$staging_dir" || return 1
-
-    if [ -e "$target_dir" ]; then
-        run_plugin_file_operation mv -- "$target_dir" "$backup_dir" || {
-            run_plugin_file_operation rm -rf -- "$staging_dir"
-            return 1
-        }
+    [ -d "$target_parent" ] || {
+        echo "$target_name 插件目录异常，未写入文件。"; return 1;
+    }
+    case "$target_name" in ''|.|..|*/*) echo '插件目录名称异常，未写入文件。'; return 1 ;; esac
+    target_parent="$(cd -P -- "$target_parent" && pwd)" || return 1
+    target_dir="$target_parent/$target_name"
+    if [ ! -w "${target_parent%/*}" ] && [ "${IS_CHIMERAOS:-0}" -ne 1 ]; then
+        PLUGIN_NEEDS_SUDO=1
     fi
-
-    if ! run_plugin_file_operation mv -- "$staging_dir" "$target_dir"; then
-        if [ -e "$backup_dir" ] && [ ! -e "$target_dir" ]; then
-            run_plugin_file_operation mv -- "$backup_dir" "$target_dir" || true
-        fi
+    # The loader scans every directory containing plugin.json, including hidden
+    # names. Stage and retain rollback copies beside plugins/, on the same disk.
+    workspace="$(run_plugin_file_operation mktemp -d "${target_parent%/*}/.renkit-plugin-install.XXXXXX")" || {
+        echo "$target_name 无法准备安装目录，请检查权限与剩余空间。"; return 1;
+    }
+    staging_dir="$workspace/new"
+    backup_dir="$workspace/previous"
+    if ! run_plugin_file_operation cp -a -- "$source_dir" "$staging_dir"; then
+        echo "$target_name 文件复制失败，原插件未改动。"
+        cleanup_plugin_install_workspace "$workspace" || true
         return 1
     fi
-    run_plugin_file_operation rm -rf -- "$backup_dir"
+    if [ -n "$verifier" ] && ! "$verifier" "$staging_dir"; then
+        echo "$target_name 新文件检查未通过，原插件未改动。"
+        cleanup_plugin_install_workspace "$workspace" || true
+        return 1
+    fi
+    if [ -e "$target_dir" ] || [ -L "$target_dir" ]; then
+        if ! run_plugin_file_operation mv -- "$target_dir" "$backup_dir"; then
+            echo "$target_name 无法备份原插件，未替换文件。"
+            cleanup_plugin_install_workspace "$workspace" || true
+            return 1
+        fi
+    fi
+    if ! run_plugin_file_operation mv -- "$staging_dir" "$target_dir"; then
+        echo "$target_name 文件切换失败，正在恢复原插件。"
+        if [ -e "$backup_dir" ] || [ -L "$backup_dir" ]; then
+            if ! run_plugin_file_operation mv -- "$backup_dir" "$target_dir"; then
+                echo "原插件未能自动恢复，备份保留在：$backup_dir"
+                log "插件恢复失败：$target_name backup=$backup_dir"
+                return 1
+            fi
+        fi
+        cleanup_plugin_install_workspace "$workspace" || true
+        return 1
+    fi
+    # A failed cleanup is not a failed installation. Retained files are outside
+    # the loader's scan directory and their location is reported explicitly.
+    if ! cleanup_plugin_install_workspace "$workspace"; then
+        echo "$target_name 新文件已安装，以上仅为旧文件清理提示。"
+    fi
+    return 0
 }
 
 find_plugin_source() {
@@ -1932,6 +1976,7 @@ install_decky_zip() {
     local sha256="$3"
     local expected_dir="$4"
     local skip_existing="${5:-1}"
+    local verifier="${6:-}"
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local tmp_dir
     local archive
@@ -1989,7 +2034,7 @@ install_decky_zip() {
             return 1
         fi
 
-        install_tree_atomically "$plugin_source" "$plugin_root" "$expected_dir" || {
+        install_tree_atomically "$plugin_source" "$plugin_root" "$expected_dir" "$verifier" || {
             echo "$display_name 安装失败，已尽量保留旧版本。"
             return 1
         }
@@ -4014,21 +4059,84 @@ refresh_feature_usage_guides() {
     [ "$fsr4_installed" -eq 0 ] || create_fsr4_supported_games_guide
 }
 
+isolate_legacy_plugin_install_copies() {
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" entry basename directory install_pid
+    local target_name old_name retained="" moved=0
+    local PLUGIN_NEEDS_SUDO="${PLUGIN_NEEDS_SUDO:-0}"
+    LEGACY_PLUGIN_COPIES_MOVED=0
+    [ "${IS_CHIMERAOS:-0}" -ne 1 ] || return 0
+    [ -d "$plugin_root" ] && [ ! -L "$plugin_root" ] || return 0
+    plugin_root="$(cd -P -- "$plugin_root" && pwd)" || return 1
+    if [ ! -w "$plugin_root" ] || [ ! -w "${plugin_root%/*}" ]; then PLUGIN_NEEDS_SUDO=1; fi
+    for entry in "$plugin_root"/.*.backup.* "$plugin_root"/.*.new.*; do
+        [ -d "$entry" ] && [ ! -L "$entry" ] || continue
+        basename="${entry##*/}"
+        [[ "$basename" =~ ^\.(.+)\.(backup|new)\.[0-9]+$ ]] || continue
+        directory="${BASH_REMATCH[1]}"
+        install_pid="${basename##*.}"
+        if [ -d "/proc/$install_pid" ] || kill -0 "$install_pid" 2>/dev/null; then continue; fi
+        case "$directory" in
+            'Decky LSFG-VK'|Decky-Framegen|CheatDeck|DeckyGCM|Mako|decky-steamgriddb|SDH-CssLoader|Friendeck-plugin|'Decky Music'|Fantastic) ;;
+            *) continue ;;
+        esac
+        # Never move the only copy of a plugin, an unrelated hidden directory,
+        # or user data. Keep identifiable legacy copies intact for recovery.
+        decky_plugin_directory_is_complete "$plugin_root" "$directory" || continue
+        decky_plugin_directory_is_complete "$plugin_root" "$basename" || continue
+        target_name="$(sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$plugin_root/$directory/plugin.json" | head -n 1)"
+        old_name="$(sed -n 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$entry/plugin.json" | head -n 1)"
+        [ "$target_name" = "$old_name" ] || continue
+        if [ -z "$retained" ]; then
+            retained="$(run_plugin_file_operation mktemp -d "${plugin_root%/*}/.renkit-plugin-retained.XXXXXX")" || {
+                echo '无法隔离上次安装残留，请检查插件目录权限。'; return 1;
+            }
+        fi
+        if ! run_plugin_file_operation mv -- "$entry" "$retained/$basename"; then
+            echo "上次安装残留未能移出：$basename"
+            log "插件残留隔离失败：$entry retained=$retained"
+            return 1
+        fi
+        moved=$((moved + 1))
+        LEGACY_PLUGIN_COPIES_MOVED=1
+    done
+    if [ "$moved" -gt 0 ]; then
+        echo "已隔离 ${moved} 个上次安装残留，原文件保留在：$retained"
+        log "插件残留已隔离：count=$moved retained=$retained"
+    fi
+    return 0
+}
+
 deckygcm_is_current() {
-    python3 "$PROJECT_ROOT/scripts/deckygcm_package.py" \
-        "${1:-${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}}/DeckyGCM" >/dev/null 2>&1
+    DECKYGCM_CHECK_ERROR=""
+    DECKYGCM_CHECK_ERROR="$(python3 "$PROJECT_ROOT/scripts/deckygcm_package.py" \
+        "${1:-${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}}/DeckyGCM" 2>&1)"
+}
+
+verify_deckygcm_directory() {
+    local details
+    if details="$(run_plugin_file_operation python3 "$PROJECT_ROOT/scripts/deckygcm_package.py" "$1" 2>&1)"; then
+        return 0
+    fi
+    echo "DeckyGCM 文件检查失败：${details:-无法运行检查组件，请重新打开 Renkit 更新后再试。}"
+    log "DeckyGCM 文件检查失败：$details"
+    return 1
 }
 
 install_cheatdeck_with_gcm() {
     local pair_changed=0 plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     PLUGIN_INSTALL_CHANGED=0
+    isolate_legacy_plugin_install_copies || return 1
+    pair_changed="${LEGACY_PLUGIN_COPIES_MOVED:-0}"
     echo "提示：强烈建议进入 游戏与插件，安装修改器所需运行工具。"
     resolve_plugin_latest cheatdeck
     if feature_plugin_is_current "$plugin_root" "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then
         echo "[已安装] CheatDeck v$DECKY_CHEATDECK_VERSION 已存在且文件完整，无需重复安装。"
     else
-        install_decky_zip "CheatDeck" "$DECKY_CHEATDECK_URL" "$DECKY_CHEATDECK_SHA256" "CheatDeck" 0 || return 1
-        pair_changed="$PLUGIN_INSTALL_CHANGED"
+        if ! install_decky_zip "CheatDeck" "$DECKY_CHEATDECK_URL" "$DECKY_CHEATDECK_SHA256" "CheatDeck" 0; then
+            PLUGIN_INSTALL_CHANGED="$pair_changed"
+            return 1
+        fi
+        [ "$PLUGIN_INSTALL_CHANGED" = 0 ] || pair_changed=1
     fi
     echo "DeckyGCM：搜索、下载修改器，并随游戏启动。"
     echo "感谢b站ProSS及时行乐"
@@ -4038,14 +4146,15 @@ install_cheatdeck_with_gcm() {
         PLUGIN_INSTALL_CHANGED="$pair_changed"
         return 0
     fi
-    if ! install_decky_zip "DeckyGCM" "$DECKYGCM_URL" "$DECKYGCM_SHA256" "DeckyGCM" 0; then
+    if ! install_decky_zip "DeckyGCM" "$DECKYGCM_URL" "$DECKYGCM_SHA256" "DeckyGCM" 0 verify_deckygcm_directory; then
         PLUGIN_INSTALL_CHANGED="$pair_changed"
         echo "DeckyGCM 未安装完成，请重新选择 CheatDeck 与 DeckyGCM 补装。"
         return 1
     fi
     PLUGIN_INSTALL_CHANGED=1
     deckygcm_is_current "$plugin_root" || {
-        echo "DeckyGCM 文件检查未通过，请重新安装。"
+        echo "DeckyGCM 文件检查未通过：${DECKYGCM_CHECK_ERROR:-无法运行检查组件。}"
+        log "DeckyGCM 安装后检查失败：${DECKYGCM_CHECK_ERROR:-无检查输出}"
         return 1
     }
 }
@@ -4641,7 +4750,8 @@ print_feature_plugin_status() {
     if deckygcm_is_current "$plugin_root"; then
         echo "✓ DeckyGCM：已安装 ${DECKYGCM_VERSION}，感谢b站ProSS及时行乐"
     else
-        echo "✗ DeckyGCM：文件不完整，请选择 CheatDeck 与 DeckyGCM 补装"
+        echo "✗ DeckyGCM：${DECKYGCM_CHECK_ERROR:-文件检查未通过，请选择 CheatDeck 与 DeckyGCM 补装}"
+        log "DeckyGCM 状态检查失败：${DECKYGCM_CHECK_ERROR:-无检查输出}"
         missing=1
     fi
     if feature_plugin_is_current "$plugin_root" "$STEAMGRIDDB_OFFICIAL_DIRECTORY" \
@@ -4722,6 +4832,24 @@ select_feature_trainer_tools() {
     esac
 }
 
+feature_install_step() {
+    local label="$1" status
+    shift
+    log "常用插件步骤开始：$label"
+    # Run in this shell so resolved versions and change flags survive. stderr
+    # must be visible too; the launcher otherwise filters it out of the window.
+    if "$@" 2>&1; then
+        log "常用插件步骤完成：$label"
+        return 0
+    else
+        status=$?
+    fi
+    FEATURE_INSTALL_FAILURES+=("$label")
+    echo "未完成：${label}（返回码 ${status}）。详细记录：$LOG_FILE"
+    log "常用插件步骤失败：$label status=$status"
+    return "$status"
+}
+
 install_feature_plugins() {
     local lsfg_variant=auto
 
@@ -4737,14 +4865,17 @@ install_feature_plugins() {
         select_feature_plugin_cleanup || return 1
         select_feature_trainer_tools || return 1
     fi
-    ensure_plugin_store_ready || return 1
+    feature_install_step '准备插件商城' ensure_plugin_store_ready || return 1
     if [ "$IS_STEAMOS" -eq 1 ] && [ "$FEATURE_PLUGIN_CLEANUP" = remove ]; then
         install_feature_plugins_clean "$lsfg_variant" || return 1
     else
         install_feature_plugins_selected "$lsfg_variant" || return 1
     fi
     if [ "$IS_STEAMOS" -eq 1 ] && [ "$FEATURE_TRAINER_TOOLS" = install ]; then
-        bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer-one "10-29" || return 1
+        feature_install_step '修改器运行工具 GE-10-29' bash "$PROJECT_ROOT/modules/ge_proton.sh" install-trainer-one "10-29" || {
+            echo '常用插件已安装完成；未完成的是另外选择的修改器运行工具。'
+            return 1
+        }
     fi
     return 0
 }
@@ -4752,6 +4883,7 @@ install_feature_plugins() {
 install_feature_plugins_selected() {
     local lsfg_variant="$1" plugin feature_plugins
     local failed=0
+    local -a FEATURE_INSTALL_FAILURES=()
 
     refresh_framegen_catalog || true
     load_framegen_cached_versions
@@ -4800,6 +4932,10 @@ install_feature_plugins_selected() {
         _all_installed=0
     fi
     if [ "$_all_installed" = "1" ]; then
+        feature_install_step '检查上次安装残留' isolate_legacy_plugin_install_copies || return 1
+        if [ "${LEGACY_PLUGIN_COPIES_MOVED:-0}" = 1 ]; then
+            reload_decky_plugins '已重新加载插件，避免重复副本造成报错。'
+        fi
         if [ "$IS_STEAMOS" -eq 1 ]; then
             echo "十款常用功能插件已全部安装且检查通过，无需重复安装。"
         else
@@ -4809,7 +4945,10 @@ install_feature_plugins_selected() {
             echo "常用插件已存在，但未能在桌面生成风灵月影网址.txt。"
         refresh_feature_usage_guides || true
         print_cef_remote_debugging_tip
-        print_feature_plugin_status
+        if ! print_feature_plugin_status; then
+            echo "已安装插件的复查未通过，请查看上方标记。详细记录：$LOG_FILE"
+            return 1
+        fi
         return 0
     fi
 
@@ -4827,7 +4966,7 @@ install_feature_plugins_selected() {
             lsfg)
                 echo "========== 小黄鸭（LSFG-VK） =========="
                 if [ "$lsfg_variant" = v2 ]; then
-                    install_lsfg_v2_from_gitee 0 || failed=1
+                    feature_install_step '小黄鸭 2.0' install_lsfg_v2_from_gitee 0 || failed=1
                     continue
                 fi
                 if [ "$lsfg_variant" = auto ] && lsfg_v2_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"; then
@@ -4835,14 +4974,14 @@ install_feature_plugins_selected() {
                     continue
                 fi
                 if [ "$lsfg_variant" = auto ] && lsfg_v2_is_selected "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"; then
-                    install_lsfg_v2_from_gitee 0 || failed=1
+                    feature_install_step '小黄鸭 2.0' install_lsfg_v2_from_gitee 0 || failed=1
                     continue
                 fi
                 if feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$LSFG_OFFICIAL_DIRECTORY" "$LSFG_OFFICIAL_VERSION" "小黄鸭"; then
                     echo "[已安装] 小黄鸭 v$LSFG_OFFICIAL_VERSION 已安装，跳过。"
                     continue
                 fi
-                install_lsfg_zh_from_gitee 0 || failed=1
+                feature_install_step '旧版小黄鸭' install_lsfg_zh_from_gitee 0 || failed=1
                 ;;
             fsr4)
                 echo "========== FSR4（Decky Framegen） =========="
@@ -4850,39 +4989,39 @@ install_feature_plugins_selected() {
                     echo "[已安装] FSR4 v$FSR4_OFFICIAL_VERSION 已安装，跳过。"
                     continue
                 fi
-                install_fsr4_zh_from_gitee 0 || failed=1
+                feature_install_step 'FSR4' install_fsr4_zh_from_gitee 0 || failed=1
                 ;;
             cheatdeck)
                 echo "========== CheatDeck 与 DeckyGCM =========="
-                install_configured_plugin cheatdeck 0 0 || {
+                feature_install_step 'CheatDeck 与 DeckyGCM' install_configured_plugin cheatdeck 0 0 || {
                     failed=1
                     echo "该插件未完成，继续尝试其余插件。"
                 }
                 ;;
             lsfg-mako)
                 echo "========== MAKO 小黄鸭与 Mako_Renkit 启动项 =========="
-                install_configured_plugin lsfg-mako 0 0 || failed=1
+                feature_install_step 'MAKO 小黄鸭与启动项' install_configured_plugin lsfg-mako 0 0 || failed=1
                 ;;
             steamgriddb)
                 echo "========== 游戏封面更换（SteamGridDB） =========="
-                install_configured_plugin steamgriddb 0 0 || failed=1
+                feature_install_step '游戏封面更换' install_configured_plugin steamgriddb 0 0 || failed=1
                 ;;
             cssloader)
                 echo "========== 主题美化（CSS Loader 中文版） =========="
-                install_configured_plugin cssloader 0 0 || failed=1
+                feature_install_step '主题美化' install_configured_plugin cssloader 0 0 || failed=1
                 ;;
             friendeck)
                 echo "========== 文件传输助手（Friendeck） =========="
-                install_configured_plugin friendeck 0 0 || failed=1
+                feature_install_step '文件传输助手' install_configured_plugin friendeck 0 0 || failed=1
                 ;;
             deckymusic)
                 echo "========== 音乐播放器（Decky Music） =========="
-                install_configured_plugin deckymusic 0 0 || failed=1
+                feature_install_step '音乐播放器' install_configured_plugin deckymusic 0 0 || failed=1
                 ;;
             fantastic)
                 echo "========== Fantastic 风扇控制（汉化：RenAmamiya） =========="
                 echo "警告：过低风扇转速可能导致 Steam Deck 设备过热。"
-                install_configured_plugin fantastic 0 0 || failed=1
+                feature_install_step 'Fantastic 风扇控制' install_configured_plugin fantastic 0 0 || failed=1
                 ;;
         esac
     done
@@ -4890,6 +5029,7 @@ install_feature_plugins_selected() {
     refresh_feature_usage_guides || true
     if ! print_feature_plugin_status; then
         failed=1
+        FEATURE_INSTALL_FAILURES+=('安装后的文件检查')
         echo "至少有一项插件文件未写入完成，请单独重试对应项目。"
     fi
 
@@ -4912,6 +5052,8 @@ install_feature_plugins_selected() {
     fi
 
     echo "部分功能插件未完成，请查看上方提示后单独重试。"
+    printf '未完成项目：%s\n' "${FEATURE_INSTALL_FAILURES[@]}"
+    echo "详细记录：$LOG_FILE"
     return 1
 }
 
