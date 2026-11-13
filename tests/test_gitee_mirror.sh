@@ -185,9 +185,9 @@ for mapping in \
 done
 grep -Fq -- '--only-inputplumber' "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
     FAIL "InputPlumber 缺少独立镜像同步模式"
-grep -Fq 'bash scripts/sync_gitee_mirrors.sh --only-inputplumber' \
+grep -Fxq '        run: bash scripts/sync_gitee_mirrors.sh' \
     "$PROJECT_ROOT/.github/workflows/sync-gitee-mirrors.yml" || \
-    FAIL "GitHub 推送后不会自动同步 InputPlumber 到 Gitee"
+    FAIL "推送同步脚本后不会运行通用镜像同步"
 grep -Fq 'deckymusic|Decky Music 完整包|v1.0.2|Decky.Music.full.zip|' \
     "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || \
     FAIL "Decky Music v1.0.2 完整包缺少 Gitee 固定分块清单"

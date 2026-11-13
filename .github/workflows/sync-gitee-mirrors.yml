@@ -20,12 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Sync plugin and GE-Proton Gitee mirrors
+      - name: Sync plugin and SteamOS asset mirrors
         env:
           GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
-        run: |
-          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
-            bash scripts/sync_gitee_mirrors.sh --only-inputplumber
-          else
-            bash scripts/sync_gitee_mirrors.sh
-          fi
+        run: bash scripts/sync_gitee_mirrors.sh

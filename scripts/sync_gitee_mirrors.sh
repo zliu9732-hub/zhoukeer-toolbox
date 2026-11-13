@@ -23,7 +23,6 @@ BASE="https://${OWNER}:${TOKEN}@gitee.com/${OWNER}"
 WORK="$(mktemp -d)"
 trap 'rm -rf -- "$WORK"' EXIT
 MIRROR1="$WORK/mirror1"
-MIRROR2="$WORK/mirror2"
 MIRROR3="$WORK/mirror3"
 MIRROR4="$WORK/mirror4"
 MIRROR8="$WORK/mirror8"
@@ -72,15 +71,16 @@ prepare_deckhomethemes_mirror() {
     if [ "$MODE" = --only-ayaneo3 ]; then
         git -C "$MIRROR4" sparse-checkout set --no-cone 'ayaneo3-companion/**'
     else
-        git -C "$MIRROR4" sparse-checkout set --no-cone 'deckhomethemes/**' 'epic-linux/**' 'ayaneo3-companion/**' 'deckygcm/**'
+        git -C "$MIRROR4" sparse-checkout set --no-cone 'deckhomethemes/**' 'epic-linux/**' 'ayaneo3-companion/**' 'deckygcm/**' 'screen-colors/**'
     fi
     git -C "$MIRROR4" checkout -q main
 }
 
 if [ -z "$MODE" ]; then
-    git clone -q "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
-    git clone -q "$BASE/zhoukeer-toolbox-mirror-2.git" "$MIRROR2"
-    git clone -q "$BASE/zhoukeer-toolbox-mirror-3.git" "$MIRROR3"
+    echo "Fetching zhoukeer-toolbox-mirror"
+    git clone -q --depth 1 --branch main "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
+    echo "Fetching zhoukeer-toolbox-mirror-3"
+    git clone -q --depth 1 --branch main "$BASE/zhoukeer-toolbox-mirror-3.git" "$MIRROR3"
 elif [ "$MODE" = "--only-steamos-fixed" ]; then
     prepare_steamos_fixed_mirror
     prepare_sdweak_mirror
@@ -90,7 +90,8 @@ fi
 if [ -z "$MODE" ] || [ "$MODE" = "--only-deckhomethemes" ] || [ "$MODE" = "--only-epic-linux" ] || [ "$MODE" = "--only-ayaneo3" ]; then
     prepare_deckhomethemes_mirror
 fi
-if [ -z "$MODE" ] || [ "$MODE" = "--only-ge-proton" ]; then
+if [ "$MODE" = "--only-ge-proton" ]; then
+    echo "Fetching zhoukeer-toolbox-mirror-8 for GE-Proton"
     git clone -q "$BASE/zhoukeer-toolbox-mirror-8.git" "$MIRROR8"
     prepare_empty_main "$MIRROR8"
 fi
@@ -102,6 +103,32 @@ fi
 sha_of() {
     sha256sum -- "$1" | awk '{print $1}'
 }
+
+mirror_has_asset() (
+    local mirror_repo="$1" id="$2" version="$3" file="$4" sha="$5"
+    local asset_dir="$mirror_repo/$id/$version" digest part size total=0 i
+    local -a files=()
+
+    [ -f "$mirror_repo/$id/latest.txt" ] || return 1
+    _gitee_mirror_parse_manifest "$mirror_repo/$id/latest.txt" || return 1
+    [ "$_GITEE_MIRROR_ID" = "$id" ] && [ "$_GITEE_MIRROR_VERSION" = "$version" ] &&
+        [ "$_GITEE_MIRROR_FILE" = "$file" ] && [ "$_GITEE_MIRROR_SHA256" = "$sha" ] || return 1
+    if [ "$_GITEE_MIRROR_CHUNKS" -eq 0 ]; then
+        files=("$asset_dir/$file")
+    else
+        for ((i=1; i<=_GITEE_MIRROR_CHUNKS; i++)); do
+            files+=("$asset_dir/$(printf 'part.%04d' "$i")")
+        done
+    fi
+    for part in "${files[@]}"; do
+        [ -f "$part" ] || return 1
+        size="$(wc -c < "$part")" || return 1
+        total=$((total + size))
+    done
+    [ "$total" -eq "$_GITEE_MIRROR_SIZE" ] || return 1
+    digest="$(cat -- "${files[@]}" | sha256sum | awk '{print $1}')" || return 1
+    [ "$digest" = "$sha" ]
+)
 
 write_manifest() {
     local dir="$1" id="$2" name="$3" version="$4" file="$5" url="$6" sha="$7"
@@ -146,6 +173,11 @@ sync_plugin() {
         sha="$_LATEST_RELEASE_SHA256"
     fi
     [ -n "$version" ] && [ -n "$file" ] && [ -n "$url" ] || return 1
+
+    if mirror_has_asset "$mirror_repo" "$id" "$version" "$file" "$sha"; then
+        echo "$id $version is already mirrored and verified"
+        return 0
+    fi
 
     if ! curl -fsSL --proto '=https' --proto-redir '=https' \
         --connect-timeout 15 --max-time 600 -o "$WORK/$file" "$url"; then
@@ -621,8 +653,6 @@ sync_plugin temurin21-jre "adoptium/temurin21-binaries" \
     "jdk-21.0.12+8" "OpenJDK21U-jre_x64_linux_hotspot_21.0.12_8.tar.gz" \
     "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jre_x64_linux_hotspot_21.0.12_8.tar.gz" \
     "8a379a67c91a3ae61ffb33d46e0a40c7ba35e70713c4db31cfca30492f792eff"
-sync_ge_proton
-
-for repo in "$MIRROR8" "$MIRROR1" "$MIRROR2" "$MIRROR3" "$MIRROR4"; do
+for repo in "$MIRROR1" "$MIRROR3" "$MIRROR4"; do
     commit_and_push "$repo"
 done
