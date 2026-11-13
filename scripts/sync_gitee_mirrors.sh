@@ -65,22 +65,38 @@ prepare_inputplumber_mirror() {
     git -C "$MIRROR1" checkout -q main
 }
 
+prepare_asset_mirror() {
+    local name="$1" repo="$2"
+    shift 2
+
+    echo "Fetching $name metadata"
+    git -c http.version=HTTP/1.1 clone -q --depth 1 --filter=blob:none \
+        --no-checkout --branch main "https://gitee.com/$OWNER/$name.git" "$repo"
+    git -C "$repo" config http.version HTTP/1.1
+    echo "Checking out assets from $name"
+    git -C "$repo" sparse-checkout set --no-cone "$@"
+    git -C "$repo" checkout -q main
+    git -C "$repo" remote set-url --push origin "$BASE/$name.git"
+}
+
 prepare_deckhomethemes_mirror() {
-    git clone -q --depth 1 --filter=blob:none --no-checkout \
-        "$BASE/zhoukeer-toolbox-mirror-4.git" "$MIRROR4"
     if [ "$MODE" = --only-ayaneo3 ]; then
-        git -C "$MIRROR4" sparse-checkout set --no-cone 'ayaneo3-companion/**'
+        prepare_asset_mirror zhoukeer-toolbox-mirror-4 "$MIRROR4" '/ayaneo3-companion/'
     else
-        git -C "$MIRROR4" sparse-checkout set --no-cone 'deckhomethemes/**' 'epic-linux/**' 'ayaneo3-companion/**' 'deckygcm/**' 'screen-colors/**'
+        prepare_asset_mirror zhoukeer-toolbox-mirror-4 "$MIRROR4" \
+            '/deckhomethemes/' '/epic-linux/' '/ayaneo3-companion/' '/deckygcm/' '/screen-colors/'
     fi
-    git -C "$MIRROR4" checkout -q main
 }
 
 if [ -z "$MODE" ]; then
-    echo "Fetching zhoukeer-toolbox-mirror"
-    git clone -q --depth 1 --branch main "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
-    echo "Fetching zhoukeer-toolbox-mirror-3"
-    git clone -q --depth 1 --branch main "$BASE/zhoukeer-toolbox-mirror-3.git" "$MIRROR3"
+    prepare_asset_mirror zhoukeer-toolbox-mirror "$MIRROR1" \
+        '/inputplumber/' '/f1-bios/' '/oxpx2-device/' '/oxpx2-map/' '/oxpx2-manager/' \
+        '/rustdesk/' '/fsr4/' '/cheatdeck/' '/steamgriddb/' '/cssloader/' '/friendeck/' \
+        '/deckymusic/' '/tomoon/' '/savepulse/' '/unifideck/' '/freedeck/' \
+        '/simpledeckytdp/' '/hmcl/' '/temurin21-jre/'
+    prepare_asset_mirror zhoukeer-toolbox-mirror-3 "$MIRROR3" \
+        '/sdweak/' '/lsfg/' '/lsfg-zh-signed/' '/lsfg-mako/' '/fsr4-zh-signed/' \
+        '/newfreedeck/' '/powercontrol/'
 elif [ "$MODE" = "--only-steamos-fixed" ]; then
     prepare_steamos_fixed_mirror
     prepare_sdweak_mirror
@@ -412,7 +428,7 @@ commit_and_push() {
         echo "No changes in $(basename "$repo")"
     else
         git -C "$repo" -c commit.gpgsign=false commit -q -m "Sync Gitee mirror assets"
-        git -C "$repo" push -q -u origin main
+        push_main_with_retry "$repo" "$(basename "$repo") assets"
         echo "Pushed $(basename "$repo")"
     fi
 }
