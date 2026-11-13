@@ -49,43 +49,36 @@ prepare_empty_main() {
     fi
 }
 
-# mirror-1 已积累大量分块文件；固定 SteamOS 资产同步无需把旧二进制下载到
-# Actions runner。服务端支持 Git partial clone，仅检出本次会写入的目录。
 prepare_steamos_fixed_mirror() {
-    git clone -q --depth 1 --filter=blob:none --no-checkout \
-        "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
-    git -C "$MIRROR1" sparse-checkout set --no-cone \
-        'inputplumber/**' 'f1-bios/**' 'oxpx2-device/**' 'oxpx2-map/**' \
-        'oxpx2-manager/**' 'rustdesk/**'
-    git -C "$MIRROR1" checkout -q main
+    prepare_asset_mirror zhoukeer-toolbox-mirror "$MIRROR1" \
+        inputplumber f1-bios oxpx2-device oxpx2-map oxpx2-manager rustdesk
 }
 
 prepare_sdweak_mirror() {
-    git clone -q --depth 1 --filter=blob:none --no-checkout \
-        "$BASE/zhoukeer-toolbox-mirror-3.git" "$MIRROR3"
-    git -C "$MIRROR3" sparse-checkout set --no-cone 'sdweak/**'
-    git -C "$MIRROR3" checkout -q main
+    prepare_asset_mirror zhoukeer-toolbox-mirror-3 "$MIRROR3" sdweak
 }
 
 prepare_inputplumber_mirror() {
-    git clone -q --depth 1 --filter=blob:none --no-checkout \
-        "$BASE/zhoukeer-toolbox-mirror.git" "$MIRROR1"
-    git -C "$MIRROR1" sparse-checkout set --no-cone 'inputplumber/**'
-    git -C "$MIRROR1" checkout -q main
+    prepare_asset_mirror zhoukeer-toolbox-mirror "$MIRROR1" inputplumber
 }
 
 prepare_asset_mirror() {
-    local name="$1" repo="$2"
+    local name="$1" repo="$2" id
+    local -a manifests=()
     shift 2
+    for id in "$@"; do
+        manifests+=("/$id/latest.txt")
+    done
 
     SYNC_STEP="fetching $name metadata"
     echo "$SYNC_STEP"
     git -c http.version=HTTP/1.1 clone -q --depth 1 --filter=blob:none \
         --no-checkout --branch main "https://gitee.com/$OWNER/$name.git" "$repo"
     git -C "$repo" config http.version HTTP/1.1
+    git -C "$repo" config diff.renames false
     SYNC_STEP="configuring sparse checkout for $name"
-    git -C "$repo" sparse-checkout set --no-cone "$@"
-    SYNC_STEP="checking out assets from $name"
+    git -C "$repo" sparse-checkout set --no-cone "${manifests[@]}"
+    SYNC_STEP="checking out manifests from $name"
     echo "$SYNC_STEP"
     git -C "$repo" checkout -q main
     git -C "$repo" remote set-url --push origin "$BASE/$name.git"
@@ -93,22 +86,21 @@ prepare_asset_mirror() {
 
 prepare_deckhomethemes_mirror() {
     if [ "$MODE" = --only-ayaneo3 ]; then
-        prepare_asset_mirror zhoukeer-toolbox-mirror-4 "$MIRROR4" '/ayaneo3-companion/'
+        prepare_asset_mirror zhoukeer-toolbox-mirror-4 "$MIRROR4" ayaneo3-companion
     else
         prepare_asset_mirror zhoukeer-toolbox-mirror-4 "$MIRROR4" \
-            '/deckhomethemes/' '/epic-linux/' '/ayaneo3-companion/' '/deckygcm/' '/screen-colors/'
+            deckhomethemes epic-linux ayaneo3-companion deckygcm screen-colors
     fi
 }
 
 if [ -z "$MODE" ]; then
     prepare_asset_mirror zhoukeer-toolbox-mirror "$MIRROR1" \
-        '/inputplumber/' '/f1-bios/' '/oxpx2-device/' '/oxpx2-map/' '/oxpx2-manager/' \
-        '/rustdesk/' '/fsr4/' '/cheatdeck/' '/steamgriddb/' '/cssloader/' '/friendeck/' \
-        '/deckymusic/' '/tomoon/' '/savepulse/' '/unifideck/' '/freedeck/' \
-        '/simpledeckytdp/' '/hmcl/' '/temurin21-jre/'
+        inputplumber f1-bios oxpx2-device oxpx2-map oxpx2-manager \
+        rustdesk fsr4 cheatdeck steamgriddb cssloader friendeck \
+        deckymusic tomoon savepulse unifideck freedeck \
+        simpledeckytdp hmcl temurin21-jre
     prepare_asset_mirror zhoukeer-toolbox-mirror-3 "$MIRROR3" \
-        '/sdweak/' '/lsfg/' '/lsfg-zh-signed/' '/lsfg-mako/' '/fsr4-zh-signed/' \
-        '/newfreedeck/' '/powercontrol/'
+        sdweak lsfg lsfg-zh-signed lsfg-mako fsr4-zh-signed newfreedeck powercontrol
 elif [ "$MODE" = "--only-steamos-fixed" ]; then
     prepare_steamos_fixed_mirror
     prepare_sdweak_mirror
@@ -135,28 +127,26 @@ sha_of() {
 
 mirror_has_asset() (
     local mirror_repo="$1" id="$2" version="$3" file="$4" sha="$5"
-    local asset_dir="$mirror_repo/$id/$version" digest part size total=0 i
-    local -a files=()
+    local asset_dir="$id/$version" part count i
 
     [ -f "$mirror_repo/$id/latest.txt" ] || return 1
     _gitee_mirror_parse_manifest "$mirror_repo/$id/latest.txt" || return 1
     [ "$_GITEE_MIRROR_ID" = "$id" ] && [ "$_GITEE_MIRROR_VERSION" = "$version" ] &&
         [ "$_GITEE_MIRROR_FILE" = "$file" ] && [ "$_GITEE_MIRROR_SHA256" = "$sha" ] || return 1
-    if [ "$_GITEE_MIRROR_CHUNKS" -eq 0 ]; then
-        files=("$asset_dir/$file")
-    else
-        for ((i=1; i<=_GITEE_MIRROR_CHUNKS; i++)); do
-            files+=("$asset_dir/$(printf 'part.%04d' "$i")")
-        done
+    # Git can check which blobs the commit contains without fetching their contents.
+    # The client still verifies the checksum when it downloads the archive.
+    [[ "$_GITEE_MIRROR_CHUNKS" =~ ^(0|[1-9][0-9]{0,3})$ ]] || return 1
+    count="$_GITEE_MIRROR_CHUNKS"
+    if [ "$count" -eq 0 ]; then
+        git -C "$mirror_repo" ls-files --error-unmatch -- "$asset_dir/$file" >/dev/null 2>&1
+        return
     fi
-    for part in "${files[@]}"; do
-        [ -f "$part" ] || return 1
-        size="$(wc -c < "$part")" || return 1
-        total=$((total + size))
+    local -a parts=()
+    for ((i=1; i<=count; i++)); do
+        printf -v part '%s/part.%04d' "$asset_dir" "$i"
+        parts+=("$part")
     done
-    [ "$total" -eq "$_GITEE_MIRROR_SIZE" ] || return 1
-    digest="$(cat -- "${files[@]}" | sha256sum | awk '{print $1}')" || return 1
-    [ "$digest" = "$sha" ]
+    git -C "$mirror_repo" ls-files --error-unmatch -- "${parts[@]}" >/dev/null 2>&1
 )
 
 write_manifest() {
@@ -202,15 +192,21 @@ sync_plugin() {
         url="$_LATEST_RELEASE_URL"
         sha="$_LATEST_RELEASE_SHA256"
     fi
-    [ -n "$version" ] && [ -n "$file" ] && [ -n "$url" ] || return 1
+    [[ "$version" =~ ^[[:alnum:]][[:alnum:].+_-]*$ ]] &&
+        [[ "$file" =~ ^[[:alnum:]][[:alnum:].+_-]*$ ]] &&
+        [[ "$sha" =~ ^[0-9a-f]{64}$ ]] && [ -n "$url" ] || return 1
 
     if mirror_has_asset "$mirror_repo" "$id" "$version" "$file" "$sha"; then
-        echo "$id $version is already mirrored and verified"
+        echo "$id $version is already mirrored (manifest and tracked paths match)"
         return 0
     fi
 
     if ! curl -fsSL --proto '=https' --proto-redir '=https' \
         --connect-timeout 15 --max-time 600 -o "$WORK/$file" "$url"; then
+        if [ "$id" = f1-bios ]; then
+            echo "F1 BIOS source is currently unavailable; preserving existing mirror state"
+            return 0
+        fi
         echo "Skip $id: source download failed"
         return 1
     fi
@@ -220,8 +216,11 @@ sync_plugin() {
     }
     size="$(wc -c < "$WORK/$file" | tr -d ' ')"
     target_dir="$mirror_repo/$id/$version"
-    mkdir -p "$target_dir"
-    rm -f -- "$mirror_repo/$id/$version"/*
+    # Replace only the exact version being published, even when its previous
+    # files are outside the sparse checkout. The verified download is ready.
+    git -C "$mirror_repo" rm -r --cached --sparse --ignore-unmatch -- "$id/$version" >/dev/null || return 1
+    rm -rf -- "$target_dir" || return 1
+    mkdir -p "$target_dir" || return 1
 
     if [ "$size" -le 9437184 ] && [ "$id" != sdweak ] && [ "$id" != deckhomethemes ] && [ "$id" != ayaneo3-companion ] && [ "$id" != deckygcm ]; then
         cp -- "$WORK/$file" "$target_dir/$file"
@@ -232,7 +231,8 @@ sync_plugin() {
         chunks="$(find "$target_dir" -maxdepth 1 -name 'part.*' | wc -l | tr -d ' ')"
     fi
     write_manifest "$mirror_repo" "$id" "$name" "$version" "$file" \
-        "$url" "$sha" "$size" "$chunks" "$chunk_size"
+        "$url" "$sha" "$size" "$chunks" "$chunk_size" || return 1
+    git -C "$mirror_repo" add --sparse -- "$id/$version" "$id/latest.txt" || return 1
     echo "Synced $id $version"
 }
 
@@ -438,7 +438,6 @@ commit_and_push() {
     SYNC_STEP="publishing $(basename "$repo")"
     git -C "$repo" config user.name "zhoukeer-toolbox[bot]"
     git -C "$repo" config user.email "bot@users.noreply.github.com"
-    git -C "$repo" add -A
     if git -C "$repo" diff --cached --quiet; then
         echo "No changes in $(basename "$repo")"
     else
@@ -454,8 +453,6 @@ commit_and_push_steamos_fixed() {
 
     git -C "$repo" config user.name "zhoukeer-toolbox[bot]"
     git -C "$repo" config user.email "bot@users.noreply.github.com"
-    git -C "$repo" add -A -- inputplumber f1-bios oxpx2-device oxpx2-map \
-        oxpx2-manager rustdesk
     if git -C "$repo" diff --cached --quiet; then
         echo "No SteamOS fixed-asset mirror changes"
     else
@@ -471,7 +468,6 @@ commit_and_push_inputplumber() {
 
     git -C "$repo" config user.name "zhoukeer-toolbox[bot]"
     git -C "$repo" config user.email "bot@users.noreply.github.com"
-    git -C "$repo" add -A -- inputplumber
     if git -C "$repo" diff --cached --quiet; then
         echo "No InputPlumber mirror changes"
     else
@@ -530,12 +526,10 @@ sync_steamos_fixed_assets() {
         "v0.79.2" "inputplumber-x86_64.tar.gz" \
         "https://github.com/ShadowBlip/InputPlumber/releases/download/v0.79.2/inputplumber-x86_64.tar.gz" \
         "dc8a859b55047c1a78c99dfaa296c55eebfbf798057f519543fbc7f6215cf953"
-    if ! sync_plugin f1-bios "zliu9732-hub/zhoukeer-toolbox" '^$' "飞行家 F1 V1.14 BIOS" \
+    sync_plugin f1-bios "zliu9732-hub/zhoukeer-toolbox" '^$' "飞行家 F1 V1.14 BIOS" \
         "f1-bios-v1.14" "ONEXFLY-F1-7840U-BIOS-V1.14.zip" \
         "https://github.com/zliu9732-hub/zhoukeer-toolbox/releases/download/f1-bios-v1.14/ONEXFLY-F1-7840U-BIOS-V1.14.zip" \
-        "32b166cf34a59220b3f8c5f9d12fc1f23348dd3af63c5b5ced6c4d5150e8d51e"; then
-        echo "F1 BIOS source is currently unavailable; preserving existing mirror state"
-    fi
+        "32b166cf34a59220b3f8c5f9d12fc1f23348dd3af63c5b5ced6c4d5150e8d51e"
     sync_plugin oxpx2-device "dahui/onexplayer-x2-mini-pro-cachyos" '^$' "X2 Mini Pro 设备描述" \
         "a0b76a1" "50-onexplayer_x2_mini.yaml" \
         "https://raw.githubusercontent.com/dahui/onexplayer-x2-mini-pro-cachyos/a0b76a16471174ded80913a681357f43bfb17fa4/etc/inputplumber/devices.d/50-onexplayer_x2_mini.yaml" \
@@ -583,7 +577,6 @@ if [ "$MODE" = "--only-steamos-fixed" ]; then
     commit_and_push_steamos_fixed "$MIRROR1"
     git -C "$MIRROR3" config user.name "zhoukeer-toolbox[bot]"
     git -C "$MIRROR3" config user.email "bot@users.noreply.github.com"
-    git -C "$MIRROR3" add -A -- sdweak
     if ! git -C "$MIRROR3" diff --cached --quiet; then
         git -C "$MIRROR3" -c commit.gpgsign=false commit -q -m "Sync SDWEAK small download parts"
         push_main_with_retry "$MIRROR3" "SDWEAK mirror asset" 300
