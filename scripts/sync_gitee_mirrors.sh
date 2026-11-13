@@ -50,57 +50,91 @@ prepare_empty_main() {
 }
 
 prepare_steamos_fixed_mirror() {
-    prepare_asset_mirror zhoukeer-toolbox-mirror "$MIRROR1" \
-        inputplumber f1-bios oxpx2-device oxpx2-map oxpx2-manager rustdesk
+    prepare_asset_mirror zhoukeer-toolbox-mirror "$MIRROR1"
 }
 
 prepare_sdweak_mirror() {
-    prepare_asset_mirror zhoukeer-toolbox-mirror-3 "$MIRROR3" sdweak
+    prepare_asset_mirror zhoukeer-toolbox-mirror-3 "$MIRROR3"
 }
 
 prepare_inputplumber_mirror() {
-    prepare_asset_mirror zhoukeer-toolbox-mirror "$MIRROR1" inputplumber
+    prepare_asset_mirror zhoukeer-toolbox-mirror "$MIRROR1"
 }
 
 prepare_asset_mirror() {
-    local name="$1" repo="$2" id
-    local -a manifests=()
-    shift 2
-    for id in "$@"; do
-        manifests+=("/$id/latest.txt")
-    done
+    local name="$1" repo="$2" api revision
+    api="https://gitee.com/api/v5/repos/$OWNER/$name"
+    SYNC_STEP="reading $name file list"
+    mkdir -p "$repo"
+    printf '%s\n' "$name" > "$repo/name"
+    curl -fsS --proto '=https' --connect-timeout 15 --max-time 60 --retry 2 \
+        --max-filesize 2097152 "$api/branches/main" -o "$repo/branch.json"
+    revision="$(python3 - "$repo/branch.json" <<'PY'
+import json
+import re
+import sys
 
+with open(sys.argv[1]) as source:
+    revision = json.load(source)["commit"]["sha"]
+if not re.fullmatch(r"[0-9a-f]{40}", revision):
+    raise SystemExit("Invalid Gitee branch revision")
+print(revision)
+PY
+)"
+    printf '%s\n' "$revision" > "$repo/revision"
+    curl -fsS --proto '=https' --connect-timeout 15 --max-time 60 --retry 2 \
+        --max-filesize 8388608 "$api/git/trees/$revision?recursive=1" -o "$repo/tree.json"
+    python3 - "$repo/tree.json" > "$repo/files" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1]) as source:
+    tree = json.load(source)
+if tree.get("truncated"):
+    raise SystemExit("Gitee returned an incomplete file list")
+for item in tree["tree"]:
+    if item["type"] == "blob" and item["mode"] in ("100644", "100755"):
+        path = item["path"]
+        if "\n" not in path and "\r" not in path:
+            print(path)
+PY
+}
+
+checkout_asset_mirror() {
+    local repo="$1" name revision attempt
+    [ -d "$repo/.git" ] && return 0
+    read -r name < "$repo/name"
+    read -r revision < "$repo/revision"
     SYNC_STEP="fetching $name metadata"
-    echo "$SYNC_STEP"
-    git -c http.version=HTTP/1.1 clone -q --depth 1 --filter=blob:none \
-        --no-checkout --branch main "https://gitee.com/$OWNER/$name.git" "$repo"
+    for attempt in 1 2 3; do
+        if timeout -k 10 120 git -c http.version=HTTP/1.1 clone -q --depth 1 \
+            --filter=blob:none --no-checkout --branch main \
+            "https://gitee.com/$OWNER/$name.git" "$repo.checkout"; then
+            mv -- "$repo.checkout/.git" "$repo"
+            rmdir -- "$repo.checkout"
+            break
+        fi
+        rm -rf -- "$repo.checkout"
+        [ "$attempt" -lt 3 ] || return 1
+    done
+    if [ "$(git -C "$repo" rev-parse HEAD)" != "$revision" ]; then
+        echo "$name changed during sync. Run the workflow again against the new revision."
+        return 1
+    fi
     git -C "$repo" config http.version HTTP/1.1
     git -C "$repo" config diff.renames false
-    SYNC_STEP="configuring sparse checkout for $name"
-    git -C "$repo" sparse-checkout set --no-cone "${manifests[@]}"
-    SYNC_STEP="checking out manifests from $name"
-    echo "$SYNC_STEP"
-    git -C "$repo" checkout -q main
+    git -C "$repo" sparse-checkout set --no-cone '/__renkit_sync_unused__'
+    git -C "$repo" read-tree -m HEAD
     git -C "$repo" remote set-url --push origin "$BASE/$name.git"
 }
 
 prepare_deckhomethemes_mirror() {
-    if [ "$MODE" = --only-ayaneo3 ]; then
-        prepare_asset_mirror zhoukeer-toolbox-mirror-4 "$MIRROR4" ayaneo3-companion
-    else
-        prepare_asset_mirror zhoukeer-toolbox-mirror-4 "$MIRROR4" \
-            deckhomethemes epic-linux ayaneo3-companion deckygcm screen-colors
-    fi
+    prepare_asset_mirror zhoukeer-toolbox-mirror-4 "$MIRROR4"
 }
 
 if [ -z "$MODE" ]; then
-    prepare_asset_mirror zhoukeer-toolbox-mirror "$MIRROR1" \
-        inputplumber f1-bios oxpx2-device oxpx2-map oxpx2-manager \
-        rustdesk fsr4 cheatdeck steamgriddb cssloader friendeck \
-        deckymusic tomoon savepulse unifideck freedeck \
-        simpledeckytdp hmcl temurin21-jre
-    prepare_asset_mirror zhoukeer-toolbox-mirror-3 "$MIRROR3" \
-        sdweak lsfg lsfg-zh-signed lsfg-mako fsr4-zh-signed newfreedeck powercontrol
+    prepare_asset_mirror zhoukeer-toolbox-mirror "$MIRROR1"
+    prepare_asset_mirror zhoukeer-toolbox-mirror-3 "$MIRROR3"
 elif [ "$MODE" = "--only-steamos-fixed" ]; then
     prepare_steamos_fixed_mirror
     prepare_sdweak_mirror
@@ -127,26 +161,28 @@ sha_of() {
 
 mirror_has_asset() (
     local mirror_repo="$1" id="$2" version="$3" file="$4" sha="$5"
-    local asset_dir="$id/$version" part count i
+    local asset_dir="$id/$version" part count i name revision manifest
 
-    [ -f "$mirror_repo/$id/latest.txt" ] || return 1
-    _gitee_mirror_parse_manifest "$mirror_repo/$id/latest.txt" || return 1
+    grep -Fxq -- "$id/latest.txt" "$mirror_repo/files" || return 1
+    read -r name < "$mirror_repo/name" || return 2
+    read -r revision < "$mirror_repo/revision" || return 2
+    manifest="$WORK/$id.manifest"
+    curl -fsS --proto '=https' --connect-timeout 15 --max-time 45 --retry 2 \
+        --max-filesize 2097152 \
+        "https://gitee.com/$OWNER/$name/raw/$revision/$id/latest.txt" -o "$manifest" || return 2
+    _gitee_mirror_parse_manifest "$manifest" || return 1
     [ "$_GITEE_MIRROR_ID" = "$id" ] && [ "$_GITEE_MIRROR_VERSION" = "$version" ] &&
         [ "$_GITEE_MIRROR_FILE" = "$file" ] && [ "$_GITEE_MIRROR_SHA256" = "$sha" ] || return 1
-    # Git can check which blobs the commit contains without fetching their contents.
-    # The client still verifies the checksum when it downloads the archive.
     [[ "$_GITEE_MIRROR_CHUNKS" =~ ^(0|[1-9][0-9]{0,3})$ ]] || return 1
     count="$_GITEE_MIRROR_CHUNKS"
     if [ "$count" -eq 0 ]; then
-        git -C "$mirror_repo" ls-files --error-unmatch -- "$asset_dir/$file" >/dev/null 2>&1
+        grep -Fxq -- "$asset_dir/$file" "$mirror_repo/files"
         return
     fi
-    local -a parts=()
     for ((i=1; i<=count; i++)); do
         printf -v part '%s/part.%04d' "$asset_dir" "$i"
-        parts+=("$part")
+        grep -Fxq -- "$part" "$mirror_repo/files" || return 1
     done
-    git -C "$mirror_repo" ls-files --error-unmatch -- "${parts[@]}" >/dev/null 2>&1
 )
 
 write_manifest() {
@@ -173,7 +209,7 @@ sync_plugin() {
     local id="$1" repo="$2" pattern="$3" name="$4"
     local pinned_version="${5:-}" pinned_file="${6:-}" pinned_url="${7:-}" pinned_sha="${8:-}"
     local mirror_repo="${9:-$MIRROR1}"
-    local version file url sha size chunks target_dir chunk_size=8388608
+    local version file url sha size chunks target_dir mirror_status chunk_size=8388608
     SYNC_STEP="syncing $id"
     case "$id" in sdweak|deckhomethemes) chunk_size=1048576 ;; ayaneo3-companion|deckygcm) chunk_size=131072 ;; esac
 
@@ -199,6 +235,12 @@ sync_plugin() {
     if mirror_has_asset "$mirror_repo" "$id" "$version" "$file" "$sha"; then
         echo "$id $version is already mirrored (manifest and tracked paths match)"
         return 0
+    else
+        mirror_status=$?
+        if [ "$mirror_status" -ne 1 ]; then
+            echo "$id: could not read the existing mirror manifest"
+            return "$mirror_status"
+        fi
     fi
 
     if ! curl -fsSL --proto '=https' --proto-redir '=https' \
@@ -214,6 +256,8 @@ sync_plugin() {
         echo "::error::$id SHA256 mismatch"
         return 1
     }
+    checkout_asset_mirror "$mirror_repo"
+    SYNC_STEP="staging $id"
     size="$(wc -c < "$WORK/$file" | tr -d ' ')"
     target_dir="$mirror_repo/$id/$version"
     # Replace only the exact version being published, even when its previous
@@ -436,6 +480,10 @@ commit_and_push() {
     local repo="$1"
 
     SYNC_STEP="publishing $(basename "$repo")"
+    if [ ! -d "$repo/.git" ]; then
+        echo "No changes in $(basename "$repo")"
+        return 0
+    fi
     git -C "$repo" config user.name "zhoukeer-toolbox[bot]"
     git -C "$repo" config user.email "bot@users.noreply.github.com"
     if git -C "$repo" diff --cached --quiet; then
@@ -450,6 +498,7 @@ commit_and_push() {
 
 commit_and_push_steamos_fixed() {
     local repo="$1"
+    [ -d "$repo/.git" ] || return 0
 
     git -C "$repo" config user.name "zhoukeer-toolbox[bot]"
     git -C "$repo" config user.email "bot@users.noreply.github.com"
@@ -465,6 +514,7 @@ commit_and_push_steamos_fixed() {
 
 commit_and_push_inputplumber() {
     local repo="$1"
+    [ -d "$repo/.git" ] || return 0
 
     git -C "$repo" config user.name "zhoukeer-toolbox[bot]"
     git -C "$repo" config user.email "bot@users.noreply.github.com"
@@ -575,12 +625,7 @@ fi
 if [ "$MODE" = "--only-steamos-fixed" ]; then
     sync_steamos_fixed_assets
     commit_and_push_steamos_fixed "$MIRROR1"
-    git -C "$MIRROR3" config user.name "zhoukeer-toolbox[bot]"
-    git -C "$MIRROR3" config user.email "bot@users.noreply.github.com"
-    if ! git -C "$MIRROR3" diff --cached --quiet; then
-        git -C "$MIRROR3" -c commit.gpgsign=false commit -q -m "Sync SDWEAK small download parts"
-        push_main_with_retry "$MIRROR3" "SDWEAK mirror asset" 300
-    fi
+    commit_and_push "$MIRROR3"
     exit 0
 fi
 
