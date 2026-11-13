@@ -167,7 +167,8 @@ mirror_has_asset() (
     read -r name < "$mirror_repo/name" || return 2
     read -r revision < "$mirror_repo/revision" || return 2
     manifest="$WORK/$id.manifest"
-    curl -fsS --proto '=https' --connect-timeout 15 --max-time 45 --retry 2 \
+    curl -fsSL --proto '=https' --proto-redir '=https' \
+        --connect-timeout 15 --max-time 45 --retry 2 \
         --max-filesize 2097152 \
         "https://gitee.com/$OWNER/$name/raw/$revision/$id/latest.txt" -o "$manifest" || return 2
     _gitee_mirror_parse_manifest "$manifest" || return 1
