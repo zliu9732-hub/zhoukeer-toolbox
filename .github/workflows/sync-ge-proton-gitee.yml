@@ -1,9 +1,8 @@
 name: Sync GE-Proton Gitee mirror
 
 on:
+  # Gitee returns HTTP 423 for mirror-8. Resume scheduling after Gitee unlocks it.
   workflow_dispatch:
-  schedule:
-    - cron: '30 */6 * * *'
 
 jobs:
   sync:
