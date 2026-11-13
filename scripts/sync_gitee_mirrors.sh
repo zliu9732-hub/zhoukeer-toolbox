@@ -1,6 +1,15 @@
 #!/bin/bash
 
-set -euo pipefail
+set -Eeuo pipefail
+
+SYNC_STEP="initializing mirror sync"
+report_sync_failure() {
+    local status="$1" line="$2"
+    printf '::error::Mirror sync failed while %s (exit %s, script line %s)\n' \
+        "$SYNC_STEP" "$status" "$line" >&2
+    exit "$status"
+}
+trap 'report_sync_failure "$?" "$LINENO"' ERR
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck disable=SC1091
@@ -69,12 +78,15 @@ prepare_asset_mirror() {
     local name="$1" repo="$2"
     shift 2
 
-    echo "Fetching $name metadata"
+    SYNC_STEP="fetching $name metadata"
+    echo "$SYNC_STEP"
     git -c http.version=HTTP/1.1 clone -q --depth 1 --filter=blob:none \
         --no-checkout --branch main "https://gitee.com/$OWNER/$name.git" "$repo"
     git -C "$repo" config http.version HTTP/1.1
-    echo "Checking out assets from $name"
+    SYNC_STEP="configuring sparse checkout for $name"
     git -C "$repo" sparse-checkout set --no-cone "$@"
+    SYNC_STEP="checking out assets from $name"
+    echo "$SYNC_STEP"
     git -C "$repo" checkout -q main
     git -C "$repo" remote set-url --push origin "$BASE/$name.git"
 }
@@ -107,7 +119,8 @@ if [ -z "$MODE" ] || [ "$MODE" = "--only-deckhomethemes" ] || [ "$MODE" = "--onl
     prepare_deckhomethemes_mirror
 fi
 if [ "$MODE" = "--only-ge-proton" ]; then
-    echo "Fetching zhoukeer-toolbox-mirror-8 for GE-Proton"
+    SYNC_STEP="fetching zhoukeer-toolbox-mirror-8 for GE-Proton"
+    echo "$SYNC_STEP"
     git clone -q "$BASE/zhoukeer-toolbox-mirror-8.git" "$MIRROR8"
     prepare_empty_main "$MIRROR8"
 fi
@@ -171,6 +184,7 @@ sync_plugin() {
     local pinned_version="${5:-}" pinned_file="${6:-}" pinned_url="${7:-}" pinned_sha="${8:-}"
     local mirror_repo="${9:-$MIRROR1}"
     local version file url sha size chunks target_dir chunk_size=8388608
+    SYNC_STEP="syncing $id"
     case "$id" in sdweak|deckhomethemes) chunk_size=1048576 ;; ayaneo3-companion|deckygcm) chunk_size=131072 ;; esac
 
     if [ -n "$pinned_version" ]; then
@@ -201,8 +215,8 @@ sync_plugin() {
         return 1
     fi
     [ "$(sha_of "$WORK/$file")" = "$sha" ] || {
-        echo "$id SHA256 mismatch"
-        exit 1
+        echo "::error::$id SHA256 mismatch"
+        return 1
     }
     size="$(wc -c < "$WORK/$file" | tr -d ' ')"
     target_dir="$mirror_repo/$id/$version"
@@ -421,6 +435,7 @@ commit_and_push_proton_cachyos_batches() {
 commit_and_push() {
     local repo="$1"
 
+    SYNC_STEP="publishing $(basename "$repo")"
     git -C "$repo" config user.name "zhoukeer-toolbox[bot]"
     git -C "$repo" config user.email "bot@users.noreply.github.com"
     git -C "$repo" add -A
@@ -428,6 +443,7 @@ commit_and_push() {
         echo "No changes in $(basename "$repo")"
     else
         git -C "$repo" -c commit.gpgsign=false commit -q -m "Sync Gitee mirror assets"
+        SYNC_STEP="pushing $(basename "$repo") assets to Gitee"
         push_main_with_retry "$repo" "$(basename "$repo") assets"
         echo "Pushed $(basename "$repo")"
     fi
