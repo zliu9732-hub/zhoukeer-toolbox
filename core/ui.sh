@@ -37,6 +37,10 @@ UI_TERMINAL_OUTPUT_READY=0
 UI_FONT_SIZE="${ZHOUKEER_FONT_SIZE:-12}"
 UI_MENU_SCREEN_ACTIVE=0
 UI_MENU_SCREEN_ENABLED=0
+UI_WAYLAND=0
+if [ "${XDG_SESSION_TYPE:-}" = wayland ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
+    UI_WAYLAND=1
+fi
 UI_LEFT_TOP=() UI_LEFT_BOTTOM=() UI_LEFT_COL=() UI_LEFT_WIDTH=()
 UI_RIGHT_TOP=() UI_RIGHT_BOTTOM=() UI_RIGHT_COL=() UI_RIGHT_WIDTH=()
 TOOLBOX_VERSION="$(tr -d '\r\n' < "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/VERSION" 2>/dev/null || true)"
@@ -44,6 +48,7 @@ TOOLBOX_VERSION="$(tr -d '\r\n' < "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && p
 
 ui_detect_layout() {
     local columns rows size
+    local minimum_rows="${1:-0}"
 
     # 优先读取实际 TTY，避免最大化后继承的 COLUMNS/LINES 仍是旧值。
     size="$(stty size 2>/dev/null || true)"
@@ -59,9 +64,13 @@ ui_detect_layout() {
     UI_COLUMNS="$columns"
     UI_ROWS="$rows"
     UI_COMPACT=0 UI_MIN_ROWS="$UI_LAST_ROW"
-    if [ "${RENKIT_COMPACT_MENUS:-0}" = 1 ] && [ "$UI_FRAME_KIND" = draw_category_frame ]; then
+    if { [ "${RENKIT_COMPACT_MENUS:-0}" = 1 ] && [ "$UI_FRAME_KIND" = draw_category_frame ]; } ||
+        [ "$UI_WAYLAND" = 1 ]; then
         UI_MIN_ROWS=21
         [ "$rows" -ge "$UI_LAST_ROW" ] || UI_COMPACT=1
+    fi
+    if [ "${minimum_rows:-0}" -gt "$UI_MIN_ROWS" ]; then
+        UI_MIN_ROWS="$minimum_rows"
     fi
     UI_CONTENT_ROWS=$((rows - 2))
     [ "$UI_CONTENT_ROWS" -ge "$UI_LAST_ROW" ] || UI_CONTENT_ROWS="$UI_LAST_ROW"
@@ -96,13 +105,23 @@ ui_request_preferred_canvas() {
 
 ui_set_session_font() {
     local font_size="$1"
-    command -v konsoleprofile >/dev/null 2>&1 || return 1
+    local font="Font=Noto Sans Mono CJK SC,$font_size"
     # KDE 的 konsoleprofile 通过 stdout 发送 OSC 50；不能重定向到 /dev/null。
     # 只把控制指令送至当前终端，不能混入 choice=$(...) 的动作返回值。
     if [ -t 1 ]; then
-        konsoleprofile "Font=Noto Sans Mono CJK SC,$font_size" 2>/dev/null
+        ui_emit_konsole_font "$font"
     elif [ "$UI_TERMINAL_OUTPUT_READY" = 1 ] && [ -t 9 ]; then
-        konsoleprofile "Font=Noto Sans Mono CJK SC,$font_size" >&9 2>/dev/null
+        ui_emit_konsole_font "$font" >&9
+    else
+        return 1
+    fi
+}
+
+ui_emit_konsole_font() {
+    if command -v konsoleprofile >/dev/null 2>&1; then
+        konsoleprofile "$1" 2>/dev/null
+    elif [ -n "${KONSOLE_VERSION:-}${KONSOLE_DBUS_SESSION:-}" ]; then
+        printf '\033]50;%s\a' "$1"
     else
         return 1
     fi
@@ -113,12 +132,11 @@ ui_fit_minimum_canvas_font() {
 
     # 只在启动/进入页面的画布不足时调整本会话字号，不修改用户的配置文件。
     # 普通窗口缩放重绘不调用此函数，避免移动按钮时突然改变字号。
-    command -v konsoleprofile >/dev/null 2>&1 || return 1
     [[ "$current" =~ ^[0-9]{1,2}$ ]] || current=12
     current=$((10#$current))
     [ "$current" -ge 8 ] && [ "$current" -le 32 ] || current=12
     [ "$current" -gt 8 ] || return 1
-    fitted=$((current * UI_ROWS / (UI_LAST_ROW + 2)))
+    fitted=$((current * UI_ROWS / (UI_MIN_ROWS + 1)))
     width_fit=$((current * UI_COLUMNS / 74))
     [ "$width_fit" -ge "$fitted" ] || fitted="$width_fit"
     [ "$fitted" -lt "$current" ] || fitted=$((current - 1))
@@ -130,24 +148,24 @@ ui_fit_minimum_canvas_font() {
 }
 
 ui_wait_for_minimum_canvas() {
-    local attempt=0
+    local attempt=0 minimum_rows="${1:-0}"
 
     while [ "$attempt" -lt "$UI_LAYOUT_RETRY_COUNT" ]; do
-        ui_detect_layout
+        ui_detect_layout "$minimum_rows"
         if [ "$UI_LAYOUT_USABLE" = 1 ]; then
             return 0
         fi
         # 先让终端恢复标准尺寸；桌面未接受窗口请求时再按真实行列缩小字号。
         # 每次字号变化都必须重新读取 TTY，不能把设置命令成功当作画布已可用。
-        if [ "$attempt" -eq 0 ]; then
+        if [ "$attempt" -eq 0 ] && [ "$UI_WAYLAND" = 0 ]; then
             ui_request_preferred_canvas
-        elif [ $((attempt % 3)) -eq 2 ]; then
+        elif [ $((attempt % 3)) -eq 2 ] || { [ "$attempt" -eq 0 ] && [ "$UI_WAYLAND" = 1 ]; }; then
             ui_fit_minimum_canvas_font || true
         fi
         [ "$UI_LAYOUT_RETRY_INTERVAL" = "0" ] || sleep "$UI_LAYOUT_RETRY_INTERVAL"
         attempt=$((attempt + 1))
     done
-    ui_detect_layout
+    ui_detect_layout "$minimum_rows"
     [ "$UI_LAYOUT_USABLE" = 1 ]
 }
 
@@ -157,10 +175,8 @@ ui_apply_screen_font() {
     [[ "$font_size" =~ ^[0-9]{1,2}$ ]] || return 0
     font_size=$((10#$font_size))
     [ "$font_size" -ge 8 ] && [ "$font_size" -le 32 ] || return 0
-    if command -v konsoleprofile >/dev/null 2>&1; then
-        if ui_set_session_font "$font_size"; then
-            UI_FONT_SIZE="$font_size"
-        fi
+    if ui_set_session_font "$font_size"; then
+        UI_FONT_SIZE="$font_size"
     fi
 }
 
@@ -195,6 +211,9 @@ ui_move() {
 ui_scale_row() {
     if [ "$UI_COMPACT" = 1 ] && [ -n "${UI_ROW_MAP[$1]:-}" ]; then
         UI_SCALED_ROW="${UI_ROW_MAP[$1]}"
+    elif [ "$UI_COMPACT" = 1 ] && [ "$UI_FRAME_KIND" = draw_disclaimer_frame ]; then
+        # 欢迎页最下面的按钮结束于第 19 行，保留文字原行号避免说明重叠。
+        UI_SCALED_ROW="$1"
     elif [ "$1" -gt "$UI_LAST_ROW" ]; then
         UI_SCALED_ROW=$((UI_CONTENT_ROWS + 1))
     else
@@ -285,6 +304,16 @@ ui_prepare_layout() {
         fi
         slot=$((slot + 1))
     done
+}
+
+ui_prepare_wayland_layout() {
+    ui_prepare_layout
+    if [ "$UI_WAYLAND" = 1 ] && [ "$UI_LAYOUT_USABLE" = 0 ]; then
+        # 帮助等特殊页面可能需要比普通菜单更多的行。
+        if ui_wait_for_minimum_canvas "$UI_MIN_ROWS"; then
+            ui_prepare_layout
+        fi
+    fi
 }
 
 # 矮窗口不压缩文字坐标：按原逻辑顺序逐项分配真实行，说明各占一行。
@@ -476,7 +505,7 @@ ui_redraw_if_resized() {
         UI_LAYOUT_USABLE="$previous_usable" UI_MIN_ROWS="$previous_min_rows"
         return 1
     fi
-    ui_prepare_layout
+    ui_prepare_wayland_layout
     ui_replay_frame
 }
 
@@ -954,7 +983,7 @@ ui_prompt() {
     ui_record_draw ui_prompt
     if [ "$UI_DEFERRED" = 1 ]; then
         ui_detect_layout
-        ui_prepare_layout
+        ui_prepare_wayland_layout
         ui_replay_frame
         return 0
     fi
