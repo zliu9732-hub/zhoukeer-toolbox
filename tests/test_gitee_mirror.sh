@@ -120,7 +120,7 @@ printf '%s\n' "$simpledeckytdp_sync" | grep -Fq \
     FAIL "SimpleDeckyTDP Gitee 自动同步 SHA256 与汉化基线不一致"
 grep -Fq 'sync_plugin newfreedeck' "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
     FAIL "NewFreedeck 0.2.0 缺少 Gitee 分块同步入口"
-grep -Fq 'newfreedeck|NewFreedeck|0.2.0|NewFreedeck.v.0.2.zip|' \
+grep -Fq 'newfreedeck|NewFreedeck|N03|NewFreedeck.v.0.3.zip|' \
     "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || \
     FAIL "NewFreedeck 0.2.0 缺少固定镜像清单"
 grep -Fq 'sync_plugin lsfg-mako' \
@@ -173,7 +173,7 @@ for mapping in \
     'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/e84f5b1f111af8862b06218479491fbf61036e1bfd9f16f93f9901e9b9ebc5e0.zip|steamgriddb' \
     'https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip|cssloader' \
     'https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip|friendeck' \
-    'https://github.com/jinzhongjia/decky-music/releases/download/v1.0.2/Decky.Music.full.zip|deckymusic' \
+    'https://github.com/jinzhongjia/decky-music/releases/download/v1.0.8/Decky.Music.full.zip|deckymusic' \
     'https://github.com/HMCL-dev/HMCL/releases/download/v3.16.3/HMCL-3.16.3.jar|hmcl' \
     'https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jre_x64_linux_hotspot_21.0.12_8.tar.gz|temurin21-jre'; do
     mapping_url="${mapping%%|*}"
@@ -188,9 +188,9 @@ grep -Fq -- '--only-inputplumber' "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" 
 grep -Fxq '        run: bash scripts/sync_gitee_mirrors.sh' \
     "$PROJECT_ROOT/.github/workflows/sync-gitee-mirrors.yml" || \
     FAIL "推送同步脚本后不会运行通用镜像同步"
-grep -Fq 'deckymusic|Decky Music 完整包|v1.0.2|Decky.Music.full.zip|' \
+grep -Fq 'deckymusic|Decky Music 完整包|v1.0.8|Decky.Music.full.zip|' \
     "$PROJECT_ROOT/scripts/mirror_gitee_assets.sh" || \
-    FAIL "Decky Music v1.0.2 完整包缺少 Gitee 固定分块清单"
+    FAIL "Decky Music v1.0.8 完整包缺少 Gitee 固定分块清单"
 grep -Fq "'^Decky[.]Music[.]full[.]zip$'" \
     "$PROJECT_ROOT/scripts/sync_gitee_mirrors.sh" || \
     FAIL "Decky Music 同步入口未固定完整包资产"

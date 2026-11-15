@@ -162,9 +162,9 @@ grep -Fq 'decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip' "$PROJECT_R
 grep -Fq 'Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CheatDeck/releases/download/v2.0.0/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'jinzhongjia/decky-music/releases/download/v1.0.2/Decky.Music.full.zip' \
+grep -Fq 'jinzhongjia/decky-music/releases/download/v1.0.8/Decky.Music.full.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '37b79e28e54691f9c7e301aaa83823e20f6cffc8948d312b7398dcc87e466e11' \
+grep -Fq 'bd82e2e3ed7fdc24bed0afa754eecf4625a2f80f400d989ac38e9e5fcf578844' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'ensure_deckymusic_full_current' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_DECKYMUSIC_MIRROR_REPO="zhoukeer-toolbox-mirror-4"' \
@@ -243,12 +243,12 @@ printf '%s\n' "$savepulse_install_output" | grep -Fq 'TEST_RELOAD: SavePulse'
     echo "FAIL: DeckRecall 未正确使用三段语义版本比较" >&2
     exit 1
 }
-grep -Fq 'mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip' \
+grep -Fq 'mubaraknumann/unifideck/releases/download/Release-0.8.0/unifideck.prod.v0.8.0.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59366936de' \
+grep -Fq '6fe7a4566e701ada64f3bc90cd148fa4e42e3b23e5cae7361b958032b2e11d20' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-unifideck_install="$(sed -n '/^[[:space:]]*unifideck)/,/^[[:space:]]*;;/p' \
-    "$PROJECT_ROOT/modules/plugin_store.sh" | head -n 16)"
+unifideck_install="$(sed -n '/^install_configured_plugin()/,/^decky_plugin_version()/p' \
+    "$PROJECT_ROOT/modules/plugin_store.sh" | sed -n '/^[[:space:]]*unifideck)/,/^[[:space:]]*;;/p')"
 printf '%s\n' "$unifideck_install" | grep -Fq 'resolve_plugin_latest unifideck' || {
     echo "FAIL: Unifideck 安装前未自动检测最新 Release" >&2
     exit 1
@@ -273,11 +273,11 @@ grep -Fq '"Freedeck" >/dev/null 2>&1; then' "$PROJECT_ROOT/modules/plugin_store.
     echo "FAIL: Freedeck 可用固定版本回退时仍会显示最新 Release 探测错误" >&2
     exit 1
 }
-grep -Fq 'Freedeck/releases/download/N0.2/NewFreedeck.v.0.2.zip' \
+grep -Fq 'Freedeck/releases/download/N03/NewFreedeck.v.0.3.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '74988f2da1a0d63394f9b7d968df32fd34f1dba8b3ba7736b31e7c8b452a293a' \
+grep -Fq 'b33bc4c9170b1758c9ffbbced41650811f769934e0740885a41384d36b35756e' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'DECKY_NEWFREEDECK_VERSION="0.2.0"' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'DECKY_NEWFREEDECK_VERSION="0.3.0"' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'DECKY_NEWFREEDECK_MIRROR_REPO="zhoukeer-toolbox-mirror-3"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 newfreedeck_install="$(sed -n '/^install_configured_plugin()/,/^decky_plugin_version()/p' \
@@ -291,7 +291,7 @@ printf '%s\n' "$newfreedeck_install" | grep -Fq 'resolve_plugin_latest newfreede
     echo "FAIL: NewFreedeck 安装前未自动检测作者最新 Release" >&2
     exit 1
 }
-printf '%s\n' "$newfreedeck_install" | grep -Fq '"NewFreedeck" 0' || {
+printf '%s\n' "$newfreedeck_install" | grep -Fq '"NewFreedeck" "$DECKY_NEWFREEDECK_VERSION" 0' || {
     echo "FAIL: NewFreedeck 旧版本不会被原子替换" >&2
     exit 1
 }
@@ -318,14 +318,14 @@ newfreedeck_latest="$(
     exit 1
 }
 
-# 本地 ZIP 桩验证 0.1 会原子升级到 0.2.0，同版再次执行不会重复下载。
-NEWFREEDECK_ARCHIVE="$TMP_ROOT/NewFreedeck.v.0.2.zip"
+# 本地 ZIP 桩验证 0.1 会原子升级到 0.3.0，同版再次执行不会重复下载。
+NEWFREEDECK_ARCHIVE="$TMP_ROOT/NewFreedeck.v.0.3.zip"
 NEWFREEDECK_BUILD="$TMP_ROOT/newfreedeck-build/NewFreedeck"
 NEWFREEDECK_PLUGIN_ROOT="$TMP_ROOT/newfreedeck-plugins"
 mkdir -p "$NEWFREEDECK_BUILD/dist" "$NEWFREEDECK_PLUGIN_ROOT/NewFreedeck/dist"
 printf '{"name":"NewFreedeck","flags":[],"api_version":1}\n' > \
     "$NEWFREEDECK_BUILD/plugin.json"
-printf '{"name":"Newfreedeck","version":"0.2.0"}\n' > \
+printf '{"name":"Newfreedeck","version":"0.3.0"}\n' > \
     "$NEWFREEDECK_BUILD/package.json"
 printf 'new bundle\n' > "$NEWFREEDECK_BUILD/dist/index.js"
 printf '{"name":"NewFreedeck","flags":[],"api_version":1}\n' > \
@@ -350,13 +350,13 @@ newfreedeck_upgrade_output="$(
     install_configured_plugin newfreedeck
 )"
 printf '%s\n' "$newfreedeck_upgrade_output" | \
-    grep -Fq '检测到 NewFreedeck 旧版本 0.1，将更新到 0.2.0。'
+    grep -Fq '检测到 NewFreedeck 旧版本 0.1，将更新到 0.3.0。'
 printf '%s\n' "$newfreedeck_upgrade_output" | grep -Fq 'TEST_RELOAD: NewFreedeck'
 installed_newfreedeck_version="$(sed -n \
     's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
     "$NEWFREEDECK_PLUGIN_ROOT/NewFreedeck/package.json")"
-[ "$installed_newfreedeck_version" = "0.2.0" ] || {
-    echo "FAIL: NewFreedeck 旧版本未升级到 0.2.0" >&2
+[ "$installed_newfreedeck_version" = "0.3.0" ] || {
+    echo "FAIL: NewFreedeck 旧版本未升级到 0.3.0" >&2
     exit 1
 }
 [ ! -e "$NEWFREEDECK_PLUGIN_ROOT/NewFreedeck/old-marker.txt" ] || {
@@ -375,7 +375,7 @@ newfreedeck_repeat_output="$(
     install_configured_plugin newfreedeck
 )"
 printf '%s\n' "$newfreedeck_repeat_output" | \
-    grep -Fq '[已安装] NewFreedeck v0.2.0 已存在且文件完整，无需重复安装。'
+    grep -Fq '[已安装] NewFreedeck v0.3.0 已存在且文件完整，无需重复安装。'
 grep -Fq 'PixelAddictUnlocked/allycenter/releases/download/v1.2.0/allycenter-v1.2.0.zip' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'a1059534de2a0e9556669adff3d933bcde802101faae7558f9b33db3a8e51bc7' \
@@ -819,10 +819,10 @@ grep -Fq 'lsfg-mako) show_plugin_download_speed_tip; install_configured_plugin l
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'eugeniosegala/MAKO' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'LSFG_MAKO_DIRECTORY="Mako"' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'LSFG_MAKO_VERSION="2.2.0"' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'DECKY_LSFG_MAKO_SHA256="621ad66bd40f12b416e8112bb78e1aae55a96bf7fe14439b95fca1cf89324089"' \
+grep -Fq 'LSFG_MAKO_BASELINE_VERSION="5.0.0"' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq 'DECKY_LSFG_MAKO_SHA256="26188b2c1f7152292acf13c155987a29a4e32f27609b00584fa80064ff78f9ae"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'LSFG_MAKO_INDEX_SHA256="e615016e8d1bb89634be7b259e24a972537cef0238b9036a20235bfffc615e2e"' \
+grep -Fq 'LSFG_MAKO_INDEX_SHA256="bc791f49b42985436a68c41d266a2eb9ccdf1337e1586554a4688b4bf1df83b4"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'LSFG_V2_DIRECTORY="$LSFG_OFFICIAL_DIRECTORY"' "$PROJECT_ROOT/modules/plugin_store.sh" || {
     echo "FAIL: 小黄鸭 2.0 未复用 1.0 目录" >&2
@@ -903,9 +903,9 @@ printf '%s\n' "$allycenter_output" | \
         [ "${GITEE_MIRROR_CONNECT_TIMEOUT:-}" = "5" ] || exit 82
         [ "${GITEE_MIRROR_MAX_TIME:-}" = "8" ] || exit 83
         [ "${GITEE_MIRROR_RETRIES:-}" = "1" ] || exit 84
-        _GITEE_MIRROR_LATEST_VERSION="plugin-v2.2.0"
-        _GITEE_MIRROR_LATEST_FILE="MAKO-Decky-v2.2.0.zip"
-        _GITEE_MIRROR_LATEST_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.2.0/MAKO-Decky-v2.2.0.zip"
+        _GITEE_MIRROR_LATEST_VERSION="plugin-v5.1.0"
+        _GITEE_MIRROR_LATEST_FILE="MAKO-Decky-v5.1.0.zip"
+        _GITEE_MIRROR_LATEST_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v5.1.0/MAKO-Decky-v5.1.0.zip"
         _GITEE_MIRROR_LATEST_SHA256="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     }
     resolve_latest_github_release() {
@@ -913,7 +913,7 @@ printf '%s\n' "$allycenter_output" | \
         exit 1
     }
     resolve_plugin_latest lsfg-mako
-    [ "$LSFG_MAKO_VERSION" = "2.2.0" ] || {
+    [ "$LSFG_MAKO_VERSION" = "5.1.0" ] || {
         echo "FAIL: MAKO 没有从 Gitee 镜像资产名更新版本" >&2
         exit 1
     }
@@ -926,17 +926,22 @@ printf '%s\n' "$allycenter_output" | \
 (
     # shellcheck disable=SC1090
     source "$PROJECT_ROOT/modules/plugin_store.sh"
-    resolve_latest_gitee_mirror() { return 1; }
+    resolve_latest_gitee_mirror() {
+        _GITEE_MIRROR_LATEST_VERSION="plugin-v2.2.0"
+        _GITEE_MIRROR_LATEST_FILE="MAKO-Decky-v2.2.0.zip"
+        _GITEE_MIRROR_LATEST_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.2.0/MAKO-Decky-v2.2.0.zip"
+        _GITEE_MIRROR_LATEST_SHA256="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
     resolve_latest_github_release() {
         [ "${GITHUB_API_CONNECT_TIMEOUT:-}" = "5" ] || exit 91
         [ "${GITHUB_API_MAX_TIME:-}" = "8" ] || exit 92
-        _LATEST_RELEASE_TAG="plugin-v2.2.0"
-        _LATEST_RELEASE_ASSET="MAKO-Decky-v2.2.0.zip"
-        _LATEST_RELEASE_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.2.0/MAKO-Decky-v2.2.0.zip"
+        _LATEST_RELEASE_TAG="plugin-v5.1.0"
+        _LATEST_RELEASE_ASSET="MAKO-Decky-v5.1.0.zip"
+        _LATEST_RELEASE_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v5.1.0/MAKO-Decky-v5.1.0.zip"
         _LATEST_RELEASE_SHA256="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
     }
     resolve_plugin_latest lsfg-mako
-    [ "$LSFG_MAKO_VERSION" = "2.2.0" ] || exit 93
+    [ "$LSFG_MAKO_VERSION" = "5.1.0" ] || exit 93
     [ "$DECKY_LSFG_MAKO_SHA256" = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" ] || exit 94
 )
 
@@ -1031,7 +1036,7 @@ cp "$PROJECT_ROOT/third_party/cssloader-zh-v2.1.2/dist/index.js" \
 printf '{"name": "Friendeck"}\n' > "$PLUGIN_ROOT/Friendeck-plugin/plugin.json"
 printf '{"version":"0.7.5"}\n' > "$PLUGIN_ROOT/Friendeck-plugin/package.json"
 printf '{"name": "Decky Music"}\n' > "$PLUGIN_ROOT/Decky Music/plugin.json"
-printf '{"version":"1.0.2"}\n' > "$PLUGIN_ROOT/Decky Music/package.json"
+printf '{"version":"1.0.8"}\n' > "$PLUGIN_ROOT/Decky Music/package.json"
 mkdir -p "$PLUGIN_ROOT/Decky Music/bin"
 for binary in player qq-provider ncm-provider; do
     printf 'binary fixture\n' > "$PLUGIN_ROOT/Decky Music/bin/$binary"

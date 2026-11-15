@@ -60,12 +60,13 @@ LSFG_V2_ARCHIVE_DIRECTORY="小黄鸭2.0"
 LSFG_V2_VERSION="0.14.4"
 LSFG_RUNTIME_ARCHIVE="lsfg-vk_noui.zip"
 LSFG_MAKO_DIRECTORY="Mako"
-LSFG_MAKO_VERSION="2.2.0"
+LSFG_MAKO_BASELINE_VERSION="5.0.0"
+LSFG_MAKO_VERSION="$LSFG_MAKO_BASELINE_VERSION"
 CHEATDECK_MAKO_OPTION_ID="renkit-mako"
 CHEATDECK_MAKO_LABEL="Mako_Renkit"
 CHEATDECK_MAKO_COMMAND="/home/deck/.local/bin/mako-run"
 CHEATDECK_MAKO_OPTION_CHANGED=0
-LSFG_MAKO_INDEX_SHA256="e615016e8d1bb89634be7b259e24a972537cef0238b9036a20235bfffc615e2e"
+LSFG_MAKO_INDEX_SHA256="bc791f49b42985436a68c41d266a2eb9ccdf1337e1586554a4688b4bf1df83b4"
 DECKY_LSFG_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 DECKY_LSFG_V2_MIRROR_REPO="zhoukeer-toolbox-mirror-4"
 DECKY_MAKO_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
@@ -99,8 +100,8 @@ CSSLOADER_ZH_INDEX_SHA256="38ec628efcc1238247e0cf771bde98b26be49349dca9c2d7de427
 # 独立插件固定使用作者 GitHub Release，避免被用户旧配置改回过期镜像。
 DECKY_LSFG_URL="https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip"
 DECKY_LSFG_SHA256="322f6eec21a489ef9f12938ea2ec4e43c234093876f95b7245fbd260f882ce9c"
-DECKY_LSFG_MAKO_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.2.0/MAKO-Decky-v2.2.0.zip"
-DECKY_LSFG_MAKO_SHA256="621ad66bd40f12b416e8112bb78e1aae55a96bf7fe14439b95fca1cf89324089"
+DECKY_LSFG_MAKO_URL="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v5.0.0/MAKO-Decky-v5.0.0.zip"
+DECKY_LSFG_MAKO_SHA256="26188b2c1f7152292acf13c155987a29a4e32f27609b00584fa80064ff78f9ae"
 DECKY_FSR4_URL="https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip"
 DECKY_FSR4_SHA256="3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f"
 DECKY_CHEATDECK_URL="https://github.com/SheffeyG/CheatDeck/releases/download/v2.0.0/CheatDeck.zip"
@@ -114,9 +115,9 @@ DECKY_FRIENDECK_URL="https://github.com/panyiwei-home/Friendeck/releases/downloa
 DECKY_FRIENDECK_SHA256="65465ff115e105912adf72b5461e17b697ac07100ce7061de2e962851e41c653"
 DECKY_FRIENDECK_RELEASE_VERSION="0.7.7"
 DECKY_FRIENDECK_PACKAGE_VERSION="0.7.5"
-DECKY_DECKYMUSIC_URL="https://github.com/jinzhongjia/decky-music/releases/download/v1.0.2/Decky.Music.full.zip"
-DECKY_DECKYMUSIC_SHA256="37b79e28e54691f9c7e301aaa83823e20f6cffc8948d312b7398dcc87e466e11"
-DECKY_DECKYMUSIC_VERSION="1.0.2"
+DECKY_DECKYMUSIC_URL="https://github.com/jinzhongjia/decky-music/releases/download/v1.0.8/Decky.Music.full.zip"
+DECKY_DECKYMUSIC_SHA256="bd82e2e3ed7fdc24bed0afa754eecf4625a2f80f400d989ac38e9e5fcf578844"
+DECKY_DECKYMUSIC_VERSION="1.0.8"
 DECKY_DECKYMUSIC_MIRROR_REPO="zhoukeer-toolbox-mirror-4"
 # Fantastic 使用 Renkit 实际汉化的完整上游包，只允许从 Gitee mirror-3
 # 固定地址下载。直接校验并原子写入 Decky 插件目录，不调用 Decky 商城安装界面。
@@ -130,6 +131,7 @@ SWITCH_TO_WINDOWS_SOURCE_DIR="$PROJECT_ROOT/decky-plugins/switch-to-windows"
 SWITCH_TO_WINDOWS_DIRECTORY="switch-to-windows"
 SWITCH_TO_WINDOWS_VERSION="1.0.3"
 DECKY_TOMOON_URL="https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip"
+DECKY_TOMOON_VERSION="0.2.8"
 DECKY_TOMOON_SHA256="5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6"
 DECKY_DECKRECALL_URL="https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.2/DeckRecall.zip"
 DECKY_DECKRECALL_SHA256="38cbbaa94f39bbe7231f490fd3826f1347ce8c0acb53aa69c784d8511cc058fd"
@@ -143,17 +145,17 @@ DECKY_LATEST_GITHUB_VERSION=""
 DECKY_LATEST_GITHUB_URL=""
 DECKY_LATEST_GITHUB_SHA256=""
 # Unifideck 固定使用作者最新正式 Release，避免用户旧配置继续下载更大的 0.7.0 包。
-DECKY_UNIFIDECK_URL="https://github.com/mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip"
-DECKY_UNIFIDECK_VERSION="0.7.2"
-DECKY_UNIFIDECK_SHA256="a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59366936de"
+DECKY_UNIFIDECK_URL="https://github.com/mubaraknumann/unifideck/releases/download/Release-0.8.0/unifideck.prod.v0.8.0.zip"
+DECKY_UNIFIDECK_VERSION="0.8.0"
+DECKY_UNIFIDECK_SHA256="6fe7a4566e701ada64f3bc90cd148fa4e42e3b23e5cae7361b958032b2e11d20"
 # Freedeck 固定使用作者 GitHub Release 0.6 插件包，避免源码包或旧配置装成 0.2。
 DECKY_FREEDECK_URL="https://github.com/panyiwei-home/Freedeck/releases/download/0.6/freedeck.v.0.6.zip"
 DECKY_FREEDECK_SHA256="04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62"
 DECKY_FREEDECK_VERSION="0.6"
 # NewFreedeck 是作者独立重构版，与 Freedeck 0.6 使用不同插件目录。
-DECKY_NEWFREEDECK_URL="https://github.com/panyiwei-home/Freedeck/releases/download/N0.2/NewFreedeck.v.0.2.zip"
-DECKY_NEWFREEDECK_SHA256="74988f2da1a0d63394f9b7d968df32fd34f1dba8b3ba7736b31e7c8b452a293a"
-DECKY_NEWFREEDECK_VERSION="0.2.0"
+DECKY_NEWFREEDECK_URL="https://github.com/panyiwei-home/Freedeck/releases/download/N03/NewFreedeck.v.0.3.zip"
+DECKY_NEWFREEDECK_SHA256="b33bc4c9170b1758c9ffbbced41650811f769934e0740885a41384d36b35756e"
+DECKY_NEWFREEDECK_VERSION="0.3.0"
 DECKY_NEWFREEDECK_MIRROR_REPO="zhoukeer-toolbox-mirror-3"
 # Ally Center 固定使用作者 v1.2.0 正式版；国内镜像与 NewFreedeck 共用 mirror-3。
 DECKY_ALLYCENTER_URL="${ZHOUKEER_DECKY_ALLYCENTER_URL:-https://github.com/PixelAddictUnlocked/allycenter/releases/download/v1.2.0/allycenter-v1.2.0.zip}"
@@ -275,6 +277,36 @@ deckrecall_version_is_older() {
         { [ "$installed_major" -eq "$latest_major" ] && [ "$installed_minor" -eq "$latest_minor" ] && [ "$installed_patch" -lt "$latest_patch" ]; }
 }
 
+plugin_stable_version() {
+    local version="${1#v}"
+    [[ "$version" =~ ^[0-9]+[.][0-9]+([.][0-9]+)?$ ]] || return 1
+    [[ "$version" == *.*.* ]] || version="$version.0"
+    printf '%s\n' "$version"
+}
+
+plugin_version_is_newer() {
+    local candidate reference
+    candidate="$(plugin_stable_version "$1")" && reference="$(plugin_stable_version "$2")" || return 1
+    [ "$candidate" != "$reference" ] &&
+        [ "$(printf '%s\n' "$candidate" "$reference" | LC_ALL=C sort -V | tail -n 1)" = "$candidate" ]
+}
+
+select_mako_release() {
+    local tag="$1" asset="$2" url="$3" sha="$4" version="${1#plugin-v}"
+    [[ "$version" =~ ^[0-9]+[.][0-9]+[.][0-9]+$ ]] &&
+        [ "$tag" = "plugin-v$version" ] && [ "$asset" = "MAKO-Decky-v$version.zip" ] &&
+        [ "$url" = "https://github.com/eugeniosegala/MAKO/releases/download/$tag/$asset" ] &&
+        [[ "$sha" =~ ^[[:xdigit:]]{64}$ ]] || return 1
+    if plugin_version_is_newer "$LSFG_MAKO_VERSION" "$version"; then return 1; fi
+    if [ "$version" = "$LSFG_MAKO_BASELINE_VERSION" ] && [ "$sha" != "$DECKY_LSFG_MAKO_SHA256" ]; then
+        return 1
+    fi
+    LSFG_MAKO_VERSION="$version"
+    DECKY_LSFG_MAKO_URL="$url"
+    DECKY_LSFG_MAKO_SHA256="$sha"
+    echo "MAKO 小黄鸭版本：v$version"
+}
+
 resolve_plugin_latest() {
     local action="$1"
     local latest_version
@@ -291,34 +323,21 @@ resolve_plugin_latest() {
         lsfg-mako)
             echo "正在检查 MAKO 小黄鸭的新版本..."
             if GITEE_MIRROR_REPO="$DECKY_MAKO_MIRROR_REPO" \
-                GITEE_MIRROR_CONNECT_TIMEOUT=5 \
-                GITEE_MIRROR_MAX_TIME=8 \
-                GITEE_MIRROR_RETRIES=1 \
+                GITEE_MIRROR_CONNECT_TIMEOUT=5 GITEE_MIRROR_MAX_TIME=8 GITEE_MIRROR_RETRIES=1 \
                 resolve_latest_gitee_mirror lsfg-mako \
-                    '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO 小黄鸭"; then
-                latest_version="${_GITEE_MIRROR_LATEST_FILE#MAKO-Decky-v}"
-                latest_version="${latest_version%.zip}"
-                if [[ "$latest_version" =~ ^[0-9]+([.][0-9]+)+$ ]]; then
-                    DECKY_LSFG_MAKO_URL="$_GITEE_MIRROR_LATEST_URL"
-                    DECKY_LSFG_MAKO_SHA256="$_GITEE_MIRROR_LATEST_SHA256"
-                    LSFG_MAKO_VERSION="$latest_version"
-                    return 0
-                fi
+                    '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO 小黄鸭" >/dev/null &&
+                select_mako_release "$_GITEE_MIRROR_LATEST_VERSION" "$_GITEE_MIRROR_LATEST_FILE" \
+                    "$_GITEE_MIRROR_LATEST_URL" "$_GITEE_MIRROR_LATEST_SHA256"; then
+                return 0
             fi
-            echo "正在继续检查 MAKO 小黄鸭的新版本..."
             if GITHUB_API_CONNECT_TIMEOUT=5 GITHUB_API_MAX_TIME=8 \
                 resolve_latest_github_release "eugeniosegala/MAKO" \
-                    '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO 小黄鸭"; then
-                latest_version="${_LATEST_RELEASE_ASSET#MAKO-Decky-v}"
-                latest_version="${latest_version%.zip}"
-                if [[ "$latest_version" =~ ^[0-9]+([.][0-9]+)+$ ]]; then
-                    DECKY_LSFG_MAKO_URL="$_LATEST_RELEASE_URL"
-                    DECKY_LSFG_MAKO_SHA256="$_LATEST_RELEASE_SHA256"
-                    LSFG_MAKO_VERSION="$latest_version"
-                    return 0
-                fi
+                    '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO 小黄鸭" >/dev/null &&
+                select_mako_release "$_LATEST_RELEASE_TAG" "$_LATEST_RELEASE_ASSET" \
+                    "$_LATEST_RELEASE_URL" "$_LATEST_RELEASE_SHA256"; then
+                return 0
             fi
-            echo "MAKO 最新版本检查失败，继续使用 Renkit 内置的校验版本。"
+            echo "暂时无法确认 MAKO 最新版，将使用已核验版本。"
             ;;
         fsr4)
             [ -z "${ZHOUKEER_DECKY_FSR4_URL:-}" ] || return 0
@@ -332,9 +351,12 @@ resolve_plugin_latest() {
             [ -z "${ZHOUKEER_DECKY_CHEATDECK_URL:-}" ] || return 0
             if resolve_latest_github_release "SheffeyG/CheatDeck" \
                 '^CheatDeck[.]zip$' "CheatDeck"; then
-                DECKY_CHEATDECK_URL="$_LATEST_RELEASE_URL"
-                DECKY_CHEATDECK_SHA256="$_LATEST_RELEASE_SHA256"
-                DECKY_CHEATDECK_VERSION="${_LATEST_RELEASE_TAG#v}"
+                latest_version="$(plugin_stable_version "$_LATEST_RELEASE_TAG")" || return 0
+                if ! plugin_version_is_newer "$DECKY_CHEATDECK_VERSION" "$latest_version"; then
+                    DECKY_CHEATDECK_URL="$_LATEST_RELEASE_URL"
+                    DECKY_CHEATDECK_SHA256="$_LATEST_RELEASE_SHA256"
+                    DECKY_CHEATDECK_VERSION="$latest_version"
+                fi
             fi
             ;;
         steamgriddb)
@@ -349,7 +371,7 @@ resolve_plugin_latest() {
             ;;
         friendeck)
             ensure_official_plugin_current \
-                "文件传输助手（Friendeck $DECKY_FRIENDECK_RELEASE_VERSION）" \
+                "文件传输助手（Friendeck ${DECKY_FRIENDECK_RELEASE_VERSION}）" \
                 "Friendeck-plugin" "$DECKY_FRIENDECK_PACKAGE_VERSION" \
                 "Friendeck" "文件传输助手" \
                 "$DECKY_FRIENDECK_URL" "$DECKY_FRIENDECK_SHA256"
@@ -360,9 +382,14 @@ resolve_plugin_latest() {
         tomoon)
             [ -z "${ZHOUKEER_DECKY_TOMOON_URL:-}" ] || return 0
             if resolve_latest_github_release "YukiCoco/ToMoon" \
-                '^tomoon-v[0-9.]+[.]zip$' "ToMoon"; then
-                DECKY_TOMOON_URL="$_LATEST_RELEASE_URL"
-                DECKY_TOMOON_SHA256="$_LATEST_RELEASE_SHA256"
+                '^tomoon-v[0-9.]+[.]zip$' "ToMoon" >/dev/null; then
+                latest_version="${_LATEST_RELEASE_ASSET#tomoon-v}"
+                latest_version="$(plugin_stable_version "${latest_version%.zip}")" || return 0
+                if ! plugin_version_is_newer "$DECKY_TOMOON_VERSION" "$latest_version"; then
+                    DECKY_TOMOON_URL="$_LATEST_RELEASE_URL"
+                    DECKY_TOMOON_SHA256="$_LATEST_RELEASE_SHA256"
+                    DECKY_TOMOON_VERSION="$latest_version"
+                fi
             fi
             ;;
         deckrecall)
@@ -371,39 +398,40 @@ resolve_plugin_latest() {
         unifideck)
             [ -z "${ZHOUKEER_DECKY_UNIFIDECK_URL:-}" ] || return 0
             if resolve_latest_github_release "mubaraknumann/unifideck" \
-                '^unifideck[.]prod[.]v[0-9.]+[.]zip$' "Unifideck"; then
-                DECKY_UNIFIDECK_URL="$_LATEST_RELEASE_URL"
-                DECKY_UNIFIDECK_SHA256="$_LATEST_RELEASE_SHA256"
-                DECKY_UNIFIDECK_VERSION="$_LATEST_RELEASE_TAG"
+                '^unifideck[.]prod[.]v[0-9.]+[.]zip$' "Unifideck" >/dev/null; then
+                latest_version="${_LATEST_RELEASE_ASSET#unifideck.prod.v}"
+                latest_version="$(plugin_stable_version "${latest_version%.zip}")" || return 0
+                if ! plugin_version_is_newer "$DECKY_UNIFIDECK_VERSION" "$latest_version"; then
+                    DECKY_UNIFIDECK_URL="$_LATEST_RELEASE_URL"
+                    DECKY_UNIFIDECK_SHA256="$_LATEST_RELEASE_SHA256"
+                    DECKY_UNIFIDECK_VERSION="$latest_version"
+                fi
             fi
             ;;
         freedeck)
             [ -z "${ZHOUKEER_DECKY_FREEDECK_URL:-}" ] || return 0
             if resolve_latest_github_release "panyiwei-home/Freedeck" \
                 '^freedeck[.]v[0-9.]+[.]zip$' "Freedeck" >/dev/null 2>&1; then
-                DECKY_FREEDECK_URL="$_LATEST_RELEASE_URL"
-                DECKY_FREEDECK_SHA256="$_LATEST_RELEASE_SHA256"
-                DECKY_FREEDECK_VERSION="$_LATEST_RELEASE_TAG"
+                latest_version="${_LATEST_RELEASE_ASSET#freedeck.v}"
+                latest_version="$(plugin_stable_version "${latest_version%.zip}")" || return 0
+                if ! plugin_version_is_newer "$DECKY_FREEDECK_VERSION" "$latest_version"; then
+                    DECKY_FREEDECK_URL="$_LATEST_RELEASE_URL"
+                    DECKY_FREEDECK_SHA256="$_LATEST_RELEASE_SHA256"
+                    DECKY_FREEDECK_VERSION="$latest_version"
+                fi
             fi
             ;;
         newfreedeck)
             if resolve_latest_github_release "panyiwei-home/Freedeck" \
                 '^NewFreedeck[.]v[.][0-9]+[.][0-9]+([.][0-9]+)?[.]zip$' \
                 "NewFreedeck" >/dev/null 2>&1; then
-                DECKY_NEWFREEDECK_URL="$_LATEST_RELEASE_URL"
-                DECKY_NEWFREEDECK_SHA256="$_LATEST_RELEASE_SHA256"
-                DECKY_NEWFREEDECK_VERSION="${_LATEST_RELEASE_ASSET#NewFreedeck.v.}"
-                DECKY_NEWFREEDECK_VERSION="${DECKY_NEWFREEDECK_VERSION%.zip}"
-                case "$DECKY_NEWFREEDECK_VERSION" in
-                    [0-9]*.[0-9]*.[0-9]*) ;;
-                    [0-9]*.[0-9]*) DECKY_NEWFREEDECK_VERSION="${DECKY_NEWFREEDECK_VERSION}.0" ;;
-                    *)
-                        echo "NewFreedeck 最新版本号格式异常，继续使用安全基线 0.2.0。"
-                        DECKY_NEWFREEDECK_URL="https://github.com/panyiwei-home/Freedeck/releases/download/N0.2/NewFreedeck.v.0.2.zip"
-                        DECKY_NEWFREEDECK_SHA256="74988f2da1a0d63394f9b7d968df32fd34f1dba8b3ba7736b31e7c8b452a293a"
-                        DECKY_NEWFREEDECK_VERSION="0.2.0"
-                        ;;
-                esac
+                latest_version="${_LATEST_RELEASE_ASSET#NewFreedeck.v.}"
+                latest_version="$(plugin_stable_version "${latest_version%.zip}")" || return 0
+                if ! plugin_version_is_newer "$DECKY_NEWFREEDECK_VERSION" "$latest_version"; then
+                    DECKY_NEWFREEDECK_URL="$_LATEST_RELEASE_URL"
+                    DECKY_NEWFREEDECK_SHA256="$_LATEST_RELEASE_SHA256"
+                    DECKY_NEWFREEDECK_VERSION="$latest_version"
+                fi
             fi
             ;;
         lego2-brightness-fix)
@@ -908,7 +936,7 @@ download_decky_component() {
 
     actual_sha256="$(calculate_decky_sha256 "$output")" || {
         rm -f -- "$output"
-        log "无法校验$name，已停止安装。"
+        log "无法校验${name}，已停止安装。"
         return 1
     }
     if [ "$actual_sha256" != "$expected_sha256" ]; then
@@ -1795,7 +1823,7 @@ cleanup_plugin_install_workspace() {
 
 install_tree_atomically() {
     local source_dir="$1" target_parent="$2" target_name="$3" verifier="${4:-}"
-    local target_dir="$target_parent/$target_name" workspace staging_dir backup_dir
+    local target_dir="$target_parent/$target_name" workspace staging_dir backup_dir installed_version staged_version
     local PLUGIN_NEEDS_SUDO="${PLUGIN_NEEDS_SUDO:-0}"
 
     [ -d "$target_parent" ] || {
@@ -1823,6 +1851,16 @@ install_tree_atomically() {
         echo "$target_name 新文件检查未通过，原插件未改动。"
         cleanup_plugin_install_workspace "$workspace" || true
         return 1
+    fi
+    if [ "${IS_STEAMOS:-0}" = 1 ] && [ "${allow_legacy_lsfg_switch:-0}" != 1 ] &&
+       [ ! -L "$target_dir" ] && [ ! -L "$target_dir/package.json" ]; then
+        installed_version="$(decky_plugin_version "$target_dir" || true)"
+        staged_version="$(decky_plugin_version "$staging_dir" || true)"
+        if plugin_version_is_newer "$installed_version" "$staged_version"; then
+            echo "$target_name 已保留较新的版本 ${installed_version}。"
+            cleanup_plugin_install_workspace "$workspace" || true
+            return 1
+        fi
     fi
     if [ -e "$target_dir" ] || [ -L "$target_dir" ]; then
         if ! run_plugin_file_operation mv -- "$target_dir" "$backup_dir"; then
@@ -1991,7 +2029,7 @@ install_decky_zip() {
     local sha256="$3"
     local expected_dir="$4"
     local skip_existing="${5:-1}"
-    local verifier="${6:-}"
+    local verifier="${6:-}" expected_version="${7:-}" actual_version
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local tmp_dir
     local archive
@@ -2049,6 +2087,15 @@ install_decky_zip() {
             return 1
         fi
 
+        if [ -n "$expected_version" ]; then
+            actual_version="$(decky_plugin_version "$plugin_source" || true)"
+            if ! decky_plugin_directory_is_complete "$(dirname "$plugin_source")" "$(basename "$plugin_source")" ||
+                [ "$(plugin_stable_version "$actual_version" || true)" != "$expected_version" ]; then
+                echo "$display_name 安装文件版本不符或不完整，已保留原插件。"
+                return 1
+            fi
+        fi
+
         install_tree_atomically "$plugin_source" "$plugin_root" "$expected_dir" "$verifier" || {
             echo "$display_name 安装失败，已尽量保留旧版本。"
             return 1
@@ -2061,6 +2108,32 @@ install_decky_zip() {
         return 0
     fi
     return 1
+}
+
+install_versioned_decky_zip() {
+    local display_name="$1" url="$2" sha="$3" directory="$4" expected_version="$5"
+    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" installed_version
+
+    # Other editions keep their existing installation behavior.
+    if [ "${IS_STEAMOS:-0}" != 1 ]; then
+        install_decky_zip "$display_name" "$url" "$sha" "$directory" "${6:-1}"
+        return $?
+    fi
+    expected_version="$(plugin_stable_version "$expected_version")" || return 1
+    PLUGIN_INSTALL_CHANGED=0
+    if decky_plugin_directory_is_complete "$plugin_root" "$directory"; then
+        installed_version="$(decky_plugin_version "$plugin_root/$directory" || true)"
+        if plugin_version_is_newer "$installed_version" "$expected_version"; then
+            echo "$display_name 已保留较新的版本 ${installed_version}。"
+            return 0
+        fi
+        if [ "$(plugin_stable_version "$installed_version" || true)" = "$expected_version" ]; then
+            echo "[已安装] $display_name $expected_version 已存在，无需重复安装。"
+            return 0
+        fi
+    fi
+    echo "正在安装 $display_name $expected_version..."
+    install_decky_zip "$display_name" "$url" "$sha" "$directory" 0 "" "$expected_version"
 }
 
 ensure_official_plugin_current() {
@@ -3166,6 +3239,7 @@ select_and_import_lossless_backup() {
 }
 
 install_lsfg_bundle() {
+    local allow_legacy_lsfg_switch=1
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local open_store_after="${1:-1}"
     local skip_existing="${2:-1}"
@@ -3177,7 +3251,7 @@ install_lsfg_bundle() {
         if feature_plugin_is_present "$plugin_root" "$LSFG_OFFICIAL_DIRECTORY" \
             "Decky LSFG-VK" "小黄鸭"; then
             installed_version="$(decky_plugin_version "$plugin_root/$LSFG_OFFICIAL_DIRECTORY" || true)"
-            echo "检测到小黄鸭旧版本 ${installed_version:-未知}，将更新到 $LSFG_OFFICIAL_VERSION。"
+            echo "检测到小黄鸭旧版本 ${installed_version:-未知}，将更新到 ${LSFG_OFFICIAL_VERSION}。"
         fi
         skip_existing=0
     fi
@@ -3201,17 +3275,24 @@ install_lsfg_chinese() {
 }
 
 mako_official_is_current() {
-    local plugin_root="$1"
-    local plugin_dir="$plugin_root/$LSFG_MAKO_DIRECTORY"
-    local actual_sha256 renderer_archive
+    verify_mako_directory "$1/$LSFG_MAKO_DIRECTORY" "${IS_STEAMOS:-0}"
+}
 
-    feature_plugin_is_current "$plugin_root" "$LSFG_MAKO_DIRECTORY" \
-        "$LSFG_MAKO_VERSION" "MAKO - Frame Generation" || return 1
+verify_mako_directory() {
+    local plugin_dir="$1" allow_newer="${2:-0}"
+    local actual_sha256 renderer_archive installed_version
+
+    feature_plugin_is_present "$(dirname "$plugin_dir")" "$(basename "$plugin_dir")" \
+        "MAKO - Frame Generation" || return 1
+    installed_version="$(decky_plugin_version "$plugin_dir")" || return 1
+    if [ "$installed_version" != "$LSFG_MAKO_VERSION" ]; then
+        [ "$allow_newer" = 1 ] && plugin_version_is_newer "$installed_version" "$LSFG_MAKO_VERSION" || return 1
+    fi
     [ -f "$plugin_dir/LICENSE.md" ] && [ ! -L "$plugin_dir/LICENSE.md" ] || return 1
     renderer_archive="$(find "$plugin_dir/bin" -maxdepth 1 -type f \
         -name 'MAKO-Renderer-v*-linux.tar.xz' -print -quit 2>/dev/null || true)"
     [ -n "$renderer_archive" ] || return 1
-    if [ "$LSFG_MAKO_VERSION" = "2.2.0" ]; then
+    if [ "$installed_version" = "$LSFG_MAKO_BASELINE_VERSION" ]; then
         actual_sha256="$(calculate_decky_sha256 "$plugin_dir/dist/index.js" 2>/dev/null || true)"
         [ "$actual_sha256" = "$LSFG_MAKO_INDEX_SHA256" ] || return 1
     fi
@@ -3220,6 +3301,7 @@ mako_official_is_current() {
 
 # 署名完整包只从 Gitee mirror-3 下载；镜像失败时保留现有插件并返回失败。
 install_lsfg_zh_from_gitee() {
+    local allow_legacy_lsfg_switch=1
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local reload_after="${1:-1}"
     local installed_version actual_sha256
@@ -3302,7 +3384,7 @@ install_lsfg_v2_from_gitee() {
     fi
     if feature_plugin_is_present "$plugin_root" "$LSFG_V2_DIRECTORY" "小黄鸭2.0" "Decky LSFG-VK" "小黄鸭"; then
         installed_version="$(decky_plugin_version "$plugin_root/$LSFG_V2_DIRECTORY" || true)"
-        echo "检测到现有小黄鸭版本 ${installed_version:-未知}，正在更新到 $LSFG_V2_VERSION。"
+        echo "检测到现有小黄鸭版本 ${installed_version:-未知}，正在更新到 ${LSFG_V2_VERSION}。"
     fi
 
     echo "正在安装小黄鸭 2.0..."
@@ -3475,7 +3557,7 @@ install_simpledeckytdp_zh_from_gitee() {
     if feature_plugin_is_present "$plugin_root" "$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" \
         "掌机功耗控制" "SimpleDeckyTDP"; then
         installed_version="$(decky_plugin_version "$plugin_root/$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" || true)"
-        echo "检测到现有 SimpleDeckyTDP 版本 ${installed_version:-未知}，正在更新中文插件到 $SIMPLEDECKYTDP_OFFICIAL_VERSION。"
+        echo "检测到现有 SimpleDeckyTDP 版本 ${installed_version:-未知}，正在更新中文插件到 ${SIMPLEDECKYTDP_OFFICIAL_VERSION}。"
     fi
 
     echo "正在安装 SimpleDeckyTDP 中文版..."
@@ -3516,7 +3598,7 @@ ensure_simpledeckytdp_chinese_current() {
     fi
     require_existing_chimera_plugin_environment || return 1
     if simpledeckytdp_chinese_is_current "$plugin_root"; then
-        echo "[已检测] 掌机功耗控制已是最新汉化版 v$SIMPLEDECKYTDP_OFFICIAL_VERSION，无需处理。"
+        echo "[已检测] 掌机功耗控制已是最新汉化版 v${SIMPLEDECKYTDP_OFFICIAL_VERSION}，无需处理。"
         return 0
     fi
     if [ -d "$plugin_root/$SIMPLEDECKYTDP_OFFICIAL_DIRECTORY" ]; then
@@ -3830,7 +3912,7 @@ ensure_handheld_overlay_current() {
     fi
     if handheld_overlay_is_current "$plugin_root" "$directory_name" \
         "$expected_version" "$display_name" "$overlay_sha256"; then
-        echo "[已检测] $display_name 已是完整的 v$expected_version，无需处理。"
+        echo "[已检测] $display_name 已是完整的 v${expected_version}，无需处理。"
         return 0
     fi
 
@@ -4143,11 +4225,12 @@ install_cheatdeck_with_gcm() {
     isolate_legacy_plugin_install_copies || return 1
     pair_changed="${LEGACY_PLUGIN_COPIES_MOVED:-0}"
     echo "提示：强烈建议进入 游戏与插件，安装修改器所需运行工具。"
-    resolve_plugin_latest cheatdeck
+    [ "${feature_release_versions_checked:-0}" = 1 ] || resolve_plugin_latest cheatdeck
     if feature_plugin_is_current "$plugin_root" "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then
         echo "[已安装] CheatDeck v$DECKY_CHEATDECK_VERSION 已存在且文件完整，无需重复安装。"
     else
-        if ! install_decky_zip "CheatDeck" "$DECKY_CHEATDECK_URL" "$DECKY_CHEATDECK_SHA256" "CheatDeck" 0; then
+        if ! install_versioned_decky_zip "CheatDeck" "$DECKY_CHEATDECK_URL" "$DECKY_CHEATDECK_SHA256" \
+            "CheatDeck" "$DECKY_CHEATDECK_VERSION" 0; then
             PLUGIN_INSTALL_CHANGED="$pair_changed"
             return 1
         fi
@@ -4178,7 +4261,7 @@ install_configured_plugin() {
     local action="$1"
     local reload_after_install="${2:-1}"
     local open_lsfg_store="${3:-1}"
-    local installed_version
+    local installed_version plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     local deckrecall_ready=0
 
     detect_platform
@@ -4219,14 +4302,15 @@ install_configured_plugin() {
             install_lsfg_bundle "$open_lsfg_store"
             ;;
         lsfg-mako)
-            resolve_plugin_latest lsfg-mako
+            [ "${feature_release_versions_checked:-0}" = 1 ] || resolve_plugin_latest lsfg-mako
             if [ -z "${DECKY_LSFG_MAKO_URL:-}" ] || \
                 [ -z "${DECKY_LSFG_MAKO_SHA256:-}" ]; then
                 echo "MAKO 小黄鸭官方包配置不完整，请更新Renkit后再试。"
                 return 1
             fi
-            if mako_official_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"; then
-                echo "[已安装] MAKO 小黄鸭 v$LSFG_MAKO_VERSION 官方中文原包完整，无需重复安装。"
+            if mako_official_is_current "$plugin_root"; then
+                installed_version="$(decky_plugin_version "$plugin_root/$LSFG_MAKO_DIRECTORY" || true)"
+                echo "[已安装] MAKO 小黄鸭 ${installed_version:-$LSFG_MAKO_VERSION} 官方原包完整，无需重复安装。"
                 PLUGIN_INSTALL_CHANGED=0
             else
                 echo "正在安装 MAKO 小黄鸭 v$LSFG_MAKO_VERSION 官方中文原包..."
@@ -4235,7 +4319,7 @@ install_configured_plugin() {
                     "MAKO 小黄鸭 v$LSFG_MAKO_VERSION" \
                     "$DECKY_LSFG_MAKO_URL" \
                     "$DECKY_LSFG_MAKO_SHA256" \
-                    "$LSFG_MAKO_DIRECTORY" 0 || {
+                    "$LSFG_MAKO_DIRECTORY" 0 verify_mako_directory || {
                         echo "MAKO 下载失败，已保留现有插件。"
                         return 1
                     }
@@ -4263,7 +4347,7 @@ install_configured_plugin() {
                 installed_version="$(decky_plugin_version \
                     "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/$FSR4_OFFICIAL_DIRECTORY" || true)"
                 [ -z "$installed_version" ] || \
-                    echo "检测到 FSR4 旧版本 $installed_version，将更新到 $FSR4_OFFICIAL_VERSION。"
+                    echo "检测到 FSR4 旧版本 ${installed_version}，将更新到 ${FSR4_OFFICIAL_VERSION}。"
                 install_decky_zip \
                     "FSR4（Decky Framegen）" \
                     "${DECKY_FSR4_URL:-}" \
@@ -4282,11 +4366,11 @@ install_configured_plugin() {
             ;;
         tomoon)
             resolve_plugin_latest tomoon
-            install_decky_zip \
+            install_versioned_decky_zip \
                 "ToMoon" \
                 "${DECKY_TOMOON_URL:-}" \
                 "${DECKY_TOMOON_SHA256:-}" \
-                "tomoon"
+                "tomoon" "$DECKY_TOMOON_VERSION"
             ;;
         deckrecall)
             resolve_plugin_latest deckrecall
@@ -4300,14 +4384,14 @@ install_configured_plugin() {
                 PLUGIN_INSTALL_CHANGED=0
             else
                 [ -z "$installed_version" ] || \
-                    echo "检测到 DeckRecall 已安装版本 $installed_version，最新正式版 $DECKY_DECKRECALL_VERSION。"
+                    echo "检测到 DeckRecall 已安装版本 ${installed_version}，最新正式版 ${DECKY_DECKRECALL_VERSION}。"
                 GITEE_MIRROR_REPO="$DECKY_DECKRECALL_MIRROR_REPO" \
                     GITHUB_RETRIES=1 GITHUB_MIN_SPEED_TIME=15 install_decky_zip \
                     "DeckRecall（添加启动项及恢复游戏可玩状态）" \
                     "${DECKY_DECKRECALL_URL:-}" \
                     "${DECKY_DECKRECALL_SHA256:-}" \
                     "DeckRecall" \
-                    0
+                    0 || return 1
             fi
             patch_deckrecall_steam_browser || return 1
             if decky_plugin_directory_is_complete \
@@ -4325,7 +4409,7 @@ install_configured_plugin() {
                 installed_version="$(decky_plugin_version \
                     "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/SavePulse" || true)"
                 [ -z "$installed_version" ] || \
-                    echo "检测到 SavePulse 已安装版本 $installed_version，将更新到 $DECKY_SAVEPULSE_VERSION。"
+                    echo "检测到 SavePulse 已安装版本 ${installed_version}，将更新到 ${DECKY_SAVEPULSE_VERSION}。"
                 GITHUB_RETRIES=1 GITHUB_MIN_SPEED_TIME=15 install_decky_zip \
                     "SavePulse（自动存档与加密 WebDAV 换机恢复）" \
                     "$DECKY_SAVEPULSE_URL" \
@@ -4336,11 +4420,11 @@ install_configured_plugin() {
             ;;
         freedeck)
             resolve_plugin_latest freedeck
-            install_decky_zip \
+            install_versioned_decky_zip \
                 "Freedeck（下载游戏和模拟器游戏）感谢作者b站一苇Isidf" \
                 "${DECKY_FREEDECK_URL:-}" \
                 "${DECKY_FREEDECK_SHA256:-}" \
-                "freedeck-plugin"
+                "freedeck-plugin" "$DECKY_FREEDECK_VERSION"
             ;;
         newfreedeck)
             resolve_plugin_latest newfreedeck
@@ -4352,15 +4436,16 @@ install_configured_plugin() {
             else
                 installed_version="$(decky_plugin_version \
                     "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/NewFreedeck" || true)"
-                [ -z "$installed_version" ] || \
+                if plugin_version_is_newer "$DECKY_NEWFREEDECK_VERSION" "$installed_version"; then
                     echo "检测到 NewFreedeck 旧版本 ${installed_version}，将更新到 ${DECKY_NEWFREEDECK_VERSION}。"
+                fi
                 echo "提示：NewFreedeck v$DECKY_NEWFREEDECK_VERSION 为作者重构版，作者说明个别模拟器仍不可用。"
                 GITEE_MIRROR_REPO="$DECKY_NEWFREEDECK_MIRROR_REPO" \
-                    install_decky_zip \
+                    install_versioned_decky_zip \
                     "NewFreedeck（重构版）" \
                     "$DECKY_NEWFREEDECK_URL" \
                     "$DECKY_NEWFREEDECK_SHA256" \
-                    "NewFreedeck" 0
+                    "NewFreedeck" "$DECKY_NEWFREEDECK_VERSION" 0
             fi
             ;;
         steamdb-info|decky-translator)
@@ -4379,7 +4464,7 @@ install_configured_plugin() {
                 installed_version="$(decky_plugin_version \
                     "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/PowerControl" || true)"
                 [ -z "$installed_version" ] || \
-                    echo "检测到 PowerControl 已安装版本 $installed_version，将更新到 $DECKY_POWERCONTROL_VERSION。"
+                    echo "检测到 PowerControl 已安装版本 ${installed_version}，将更新到 ${DECKY_POWERCONTROL_VERSION}。"
                 GITEE_MIRROR_REPO="$DECKY_POWERCONTROL_MIRROR_REPO" \
                     install_decky_zip \
                     "PowerControl v$DECKY_POWERCONTROL_VERSION" \
@@ -4453,11 +4538,11 @@ install_configured_plugin() {
         unifideck)
             resolve_plugin_latest unifideck
             [ "$IS_CHIMERAOS" -eq 1 ] || ensure_steam302_for_download || true
-            GITHUB_RETRIES=1 GITHUB_MIN_SPEED_TIME=20 install_decky_zip \
+            GITHUB_RETRIES=1 GITHUB_MIN_SPEED_TIME=20 install_versioned_decky_zip \
                 "Unifideck" \
                 "${DECKY_UNIFIDECK_URL:-}" \
                 "${DECKY_UNIFIDECK_SHA256:-}" \
-                "Unifideck"
+                "Unifideck" "$DECKY_UNIFIDECK_VERSION"
             ;;
         fantastic)
             if [ "$IS_STEAMOS" -ne 1 ] && { ! is_desktop_linux || ! gfg_extreme_is_steam_deck; }; then
@@ -4570,15 +4655,21 @@ feature_plugin_is_present() {
 }
 
 deckymusic_full_is_current() {
-    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
-    local binary
+    verify_deckymusic_full_directory "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/Decky Music" "${IS_STEAMOS:-0}"
+}
 
-    feature_plugin_is_current "$plugin_root" "Decky Music" \
-        "$DECKY_DECKYMUSIC_VERSION" "Decky Music" || return 1
+verify_deckymusic_full_directory() {
+    local plugin_dir="$1" allow_newer="${2:-0}"
+    local binary version
+
+    feature_plugin_is_present "$(dirname "$plugin_dir")" "$(basename "$plugin_dir")" "Decky Music" || return 1
+    version="$(decky_plugin_version "$plugin_dir")" || return 1
+    if [ "$version" != "$DECKY_DECKYMUSIC_VERSION" ]; then
+        [ "$allow_newer" = 1 ] && plugin_version_is_newer "$version" "$DECKY_DECKYMUSIC_VERSION" || return 1
+    fi
     for binary in player qq-provider ncm-provider; do
-        [ -f "$plugin_root/Decky Music/bin/$binary" ] && \
-            [ ! -L "$plugin_root/Decky Music/bin/$binary" ] && \
-            [ -s "$plugin_root/Decky Music/bin/$binary" ] || return 1
+        [ -f "$plugin_dir/bin/$binary" ] && [ ! -L "$plugin_dir/bin/$binary" ] &&
+            [ -s "$plugin_dir/bin/$binary" ] || return 1
     done
 }
 
@@ -4586,15 +4677,15 @@ ensure_deckymusic_full_current() {
     local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
 
     if deckymusic_full_is_current; then
-        echo "[已安装] 音乐播放器（Decky Music）v$DECKY_DECKYMUSIC_VERSION 完整包已存在，无需重复安装。"
+        echo "[已安装] 音乐播放器（Decky Music）v$(decky_plugin_version "$plugin_root/Decky Music") 完整包已存在，无需重复安装。"
         PLUGIN_INSTALL_CHANGED=0
         return 0
     fi
-    echo "正在安装音乐播放器 v$DECKY_DECKYMUSIC_VERSION，支持 QQ 音乐和网易云音乐。"
+    echo "正在安装音乐播放器 v${DECKY_DECKYMUSIC_VERSION}，支持 QQ 音乐和网易云音乐。"
     GITEE_MIRROR_REPO="$DECKY_DECKYMUSIC_MIRROR_REPO" \
     install_decky_zip "音乐播放器（Decky Music 完整包）" \
         "$DECKY_DECKYMUSIC_URL" "$DECKY_DECKYMUSIC_SHA256" \
-        "Decky Music" 0 || return 1
+        "Decky Music" 0 verify_deckymusic_full_directory || return 1
     deckymusic_full_is_current || {
         echo "Decky Music 安装后缺少播放器或音乐源文件，安装已判定失败。"
         return 1
@@ -4794,7 +4885,7 @@ print_feature_plugin_status() {
         missing=1
     fi
     if deckymusic_full_is_current; then
-        echo "✓ 音乐播放器（Decky Music）：官方版本 ${DECKY_DECKYMUSIC_VERSION}，完整包音乐源文件齐全"
+        echo "✓ 音乐播放器（Decky Music）：官方版本 $(decky_plugin_version "$plugin_root/Decky Music")，完整包音乐源文件齐全"
     else
         echo "✗ 音乐播放器（Decky Music）：缺失、版本不符或音乐源文件不完整"
         missing=1
@@ -4897,7 +4988,7 @@ install_feature_plugins() {
 
 install_feature_plugins_selected() {
     local lsfg_variant="$1" plugin feature_plugins
-    local failed=0
+    local failed=0 feature_release_versions_checked=0
     local -a FEATURE_INSTALL_FAILURES=()
 
     refresh_framegen_catalog || true
@@ -4945,6 +5036,17 @@ install_feature_plugins_selected() {
     fi
     if [ "$IS_STEAMOS" -eq 1 ] && ! mako_official_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"; then
         _all_installed=0
+    fi
+    # A fully installed combo still checks the dynamically tracked releases.
+    if [ "$_all_installed" = 1 ] && [ "$IS_STEAMOS" -eq 1 ]; then
+        resolve_plugin_latest lsfg-mako
+        resolve_plugin_latest cheatdeck
+        feature_release_versions_checked=1
+        if ! mako_official_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" ||
+           ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
+               "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then
+            _all_installed=0
+        fi
     fi
     if [ "$_all_installed" = "1" ]; then
         feature_install_step '检查上次安装残留' isolate_legacy_plugin_install_copies || return 1

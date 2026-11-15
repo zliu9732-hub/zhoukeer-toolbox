@@ -69,6 +69,7 @@ done
 MODE=steamos
 detect_platform
 reset_case; touch "$TEST_ROOT/cheatdeck"
+resolve_plugin_latest() { printf '%s\n' "$1" >> "$TEST_ROOT/release-checks"; }
 refresh_framegen_catalog() { :; }
 load_framegen_cached_versions() { :; }
 lsfg_v2_is_current() { return 0; }
@@ -84,5 +85,6 @@ install_feature_plugins_selected auto > "$TEST_ROOT/bundle" || fail 'Bundle with
 : > "$TEST_ROOT/packages"
 install_feature_plugins_selected auto > "$TEST_ROOT/repeat" || fail 'Complete bundle failed'
 [ ! -s "$TEST_ROOT/packages" ] || fail 'Complete bundle downloaded again'
-grep -Fq '十款常用功能插件已全部安装' "$TEST_ROOT/repeat" || fail 'Incorrect bundle count'
+grep -Fxq lsfg-mako "$TEST_ROOT/release-checks" || fail 'Complete bundle skipped release detection'
+grep -Fq '十款常用功能插件已全部安装'  "$TEST_ROOT/repeat" || fail 'Incorrect bundle count'
 echo 'PASS: SteamOS/desktop paired installs, missing companion repair, idempotence, first/second failures, retry, reload aggregation and complete-bundle shortcuts'

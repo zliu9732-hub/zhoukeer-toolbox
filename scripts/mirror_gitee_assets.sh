@@ -425,10 +425,10 @@ mirror_ge_proton_latest() {
 }
 
 mirror_mako_latest() {
-    local version="plugin-v2.2.0"
-    local file="MAKO-Decky-v2.2.0.zip"
-    local url="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.2.0/MAKO-Decky-v2.2.0.zip"
-    local sha256="621ad66bd40f12b416e8112bb78e1aae55a96bf7fe14439b95fca1cf89324089"
+    local version="plugin-v5.0.0"
+    local file="MAKO-Decky-v5.0.0.zip"
+    local url="https://github.com/eugeniosegala/MAKO/releases/download/plugin-v5.0.0/MAKO-Decky-v5.0.0.zip"
+    local sha256="26188b2c1f7152292acf13c155987a29a4e32f27609b00584fa80064ff78f9ae"
 
     if resolve_latest_github_release "eugeniosegala/MAKO" \
         '^MAKO-Decky-v[0-9.]+[.]zip$' "MAKO 小黄鸭" >/dev/null 2>&1; then
@@ -460,20 +460,20 @@ oxpx2-manager|X2 Mini Pro SteamOS 设备目标|a0b76a1|onexplayer-x2-mini.toml|h
 rustdesk|RustDesk AppImage|1.4.9|rustdesk-1.4.9-x86_64.AppImage|https://github.com/rustdesk/rustdesk/releases/download/1.4.9/rustdesk-1.4.9-x86_64.AppImage|7902cd60a4f29817eebe2668a15c9a1952ac690e8f7b07bfe7620fedd4e28217|
 lsfg|Decky LSFG-VK|v0.12.8|Decky.LSFG-VK.zip|https://github.com/xXJSONDeruloXx/decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip|322f6eec21a489ef9f12938ea2ec4e43c234093876f95b7245fbd260f882ce9c|
 lsfg-zh-signed|Decky LSFG-VK 署名中文插件|v0.12.8|Decky.LSFG-VK-zh-signed-v0.12.8-r4.zip|https://github.com/zliu9732-hub/decky-lsfg-vk-zh/releases/download/v0.12.8/Decky.LSFG-VK-zh-signed-v0.12.8-r4.zip|7f846c28bf5f9d08f6589a618c4e0c4ee4dffb05ad15938c39359c6460f1157b|
-lsfg-mako|MAKO 官方中文原包|plugin-v2.2.0|MAKO-Decky-v2.2.0.zip|https://github.com/eugeniosegala/MAKO/releases/download/plugin-v2.2.0/MAKO-Decky-v2.2.0.zip|621ad66bd40f12b416e8112bb78e1aae55a96bf7fe14439b95fca1cf89324089|
+lsfg-mako|MAKO 官方中文原包|plugin-v5.0.0|MAKO-Decky-v5.0.0.zip|https://github.com/eugeniosegala/MAKO/releases/download/plugin-v5.0.0/MAKO-Decky-v5.0.0.zip|26188b2c1f7152292acf13c155987a29a4e32f27609b00584fa80064ff78f9ae|
 fsr4|Decky-Framegen|v0.17|Decky-Framegen.zip|https://github.com/xXJSONDeruloXx/Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip|3300b617e3d979b483d03f995c75c829d6d54beaa4ac8dfae300c2560e4fc60f|
 fsr4-zh-signed|Decky-Framegen 署名中文插件|v0.17|Decky-Framegen-zh-signed-v0.17-r3.zip|https://github.com/zliu9732-hub/decky-framegen-zh/releases/download/v0.17/Decky-Framegen-zh-signed-v0.17-r3.zip|409aa32b843500a6828b73feeed5cc7307d9c7c60a470e288f2c8cf777d03adb|
 cheatdeck|CheatDeck|v2.0.0|CheatDeck.zip|https://github.com/SheffeyG/CheatDeck/releases/download/v2.0.0/CheatDeck.zip|32e2931f9ca8083c1605f04b4ed089b0bf210f79db236a7fd34f02c519e902d9|
 steamgriddb|SteamGridDB|v1.8.1|steamgriddb-v1.8.1.zip|https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/e84f5b1f111af8862b06218479491fbf61036e1bfd9f16f93f9901e9b9ebc5e0.zip|e84f5b1f111af8862b06218479491fbf61036e1bfd9f16f93f9901e9b9ebc5e0|
 cssloader|CSS Loader|v2.1.2|cssloader-v2.1.2.zip|https://cdn.tzatzikiweeb.moe/file/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip|1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350|
 friendeck|Friendeck|0.7.7|Friendeck.v.0.7.7.zip|https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip|65465ff115e105912adf72b5461e17b697ac07100ce7061de2e962851e41c653|
-deckymusic|Decky Music 完整包|v1.0.2|Decky.Music.full.zip|https://github.com/jinzhongjia/decky-music/releases/download/v1.0.2/Decky.Music.full.zip|37b79e28e54691f9c7e301aaa83823e20f6cffc8948d312b7398dcc87e466e11|
+deckymusic|Decky Music 完整包|v1.0.8|Decky.Music.full.zip|https://github.com/jinzhongjia/decky-music/releases/download/v1.0.8/Decky.Music.full.zip|bd82e2e3ed7fdc24bed0afa754eecf4625a2f80f400d989ac38e9e5fcf578844|
 tomoon|ToMoon|v0.2.8|tomoon-v0.2.8.zip|https://github.com/YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip|5500e6ed2d110b0e077b9eba3f1908eb50593483e51158b9351978d9a03191a6|
 deckrecall|DeckRecall|v0.4.2|DeckRecall.zip|https://github.com/Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.2/DeckRecall.zip|38cbbaa94f39bbe7231f490fd3826f1347ce8c0acb53aa69c784d8511cc058fd|
 savepulse|SavePulse|v0.2.0-alpha.1|SavePulse.zip|https://github.com/Ren-Amamiya-pixle/SavePulse/releases/download/v0.2.0-alpha.1/SavePulse.zip|e0680fc3995b8bbb2971673db43d5e9459d8fa8e4a1b431a1f5d4edad19a35ad|
-unifideck|Unifideck|Release-0.7.2|unifideck.prod.v0.7.2.zip|https://github.com/mubaraknumann/unifideck/releases/download/Release-0.7.2/unifideck.prod.v0.7.2.zip|a313be924cabe15255d222742a402cd98cb510a35dfe4b2d06cf1e59366936de|
+unifideck|Unifideck|Release-0.8.0|unifideck.prod.v0.8.0.zip|https://github.com/mubaraknumann/unifideck/releases/download/Release-0.8.0/unifideck.prod.v0.8.0.zip|6fe7a4566e701ada64f3bc90cd148fa4e42e3b23e5cae7361b958032b2e11d20|
 freedeck|Freedeck|0.6|freedeck.v.0.6.zip|https://github.com/panyiwei-home/Freedeck/releases/download/0.6/freedeck.v.0.6.zip|04329d07761c42cc481e97ddd4fc180fa51eb1d0388761424a8c90a18a822c62|
-newfreedeck|NewFreedeck|0.2.0|NewFreedeck.v.0.2.zip|https://github.com/panyiwei-home/Freedeck/releases/download/N0.2/NewFreedeck.v.0.2.zip|74988f2da1a0d63394f9b7d968df32fd34f1dba8b3ba7736b31e7c8b452a293a|
+newfreedeck|NewFreedeck|N03|NewFreedeck.v.0.3.zip|https://github.com/panyiwei-home/Freedeck/releases/download/N03/NewFreedeck.v.0.3.zip|b33bc4c9170b1758c9ffbbced41650811f769934e0740885a41384d36b35756e|
 allycenter|Ally Center|v1.2.0|allycenter-v1.2.0.zip|https://github.com/PixelAddictUnlocked/allycenter/releases/download/v1.2.0/allycenter-v1.2.0.zip|a1059534de2a0e9556669adff3d933bcde802101faae7558f9b33db3a8e51bc7|
 powercontrol|PowerControl|v3.15.1|PowerControl.zip|https://github.com/mengmeet/PowerControl/releases/download/v3.15.1/PowerControl.zip|9c14eddbec7657a23e73eaf811bd8344198159d48303481cf70ebb7c1c1ebd7c|
 huesync|HueSync|v3.9.0|huesync.zip|https://github.com/honjow/HueSync/releases/download/v3.9.0/huesync.zip|7510c96ed22278a914a3aae591c2393ff4e25812a765d1d633f77baa8a593e1f|
