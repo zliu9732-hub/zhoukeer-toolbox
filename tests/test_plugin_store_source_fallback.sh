@@ -15,6 +15,9 @@ fail() { echo "FAIL: $*" >&2; exit 1; }
 # shellcheck disable=SC1090
 source "$PROJECT_ROOT/modules/plugin_store.sh"
 log() { return 0; }
+# 自定义备用地址仍可使用，但内容必须与官方包校验值一致。
+DECKY_LOADER_URL="https://www.mhhf.com/Deck/decky/mock/PluginLoader"
+DECKY_SERVICE_URL="https://www.mhhf.com/Deck/decky/plugin_loader-release.service"
 
 PAYLOAD='decky-official-test-payload'
 CALLS="$TMP_ROOT/calls"

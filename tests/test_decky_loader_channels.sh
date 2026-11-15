@@ -274,7 +274,7 @@ SERVICE
 MOCK_RELEASE_SERVICE_SHA="$(calculate_decky_sha256 "$TMP_ROOT/mock-release.service")"
 MOCK_PRERELEASE_SERVICE_SHA="$(calculate_decky_sha256 "$TMP_ROOT/mock-prerelease.service")"
 cat > "$TMP_ROOT/gitee-latest.txt" <<EOF
-stable_version=v3.2.8
+stable_version=v3.3.1
 stable_parts=1
 stable_sha256=$MOCK_LOADER_SHA
 stable_part_sha256=$MOCK_LOADER_SHA
@@ -319,7 +319,7 @@ download_github_file() {
             printf '#!/bin/sh\nexit 0\n' > "$output"
             ;;
         */decky-installer-cn/plugin_loader-release.service)
-            [ "$GITEE_FAIL" -eq 0 ] || return 1
+            [ "$GITEE_FAIL" -eq 0 ] && [ "${GITEE_SERVICE_FAIL:-0}" -eq 0 ] || return 1
             cp "$TMP_ROOT/mock-release.service" "$output"
             ;;
         */decky-installer-cn/plugin_loader-prerelease.service)
@@ -375,7 +375,7 @@ install_plugin_store stable > "$TMP_ROOT/stable.output" || \
 if grep -Eq '分块|卸载' "$TMP_ROOT/stable.output"; then
     fail "稳定版插件商城显示了内部下载或卸载步骤"
 fi
-grep -Fxq 'v3.2.8' "$SERVICES_DIR/.loader.version" || \
+grep -Fxq 'v3.3.1' "$SERVICES_DIR/.loader.version" || \
     fail "稳定版安装未更新版本标记"
 grep -Eq '"branch"[[:space:]]*:[[:space:]]*0' "$SETTINGS_DIR/loader.json" || \
     fail "稳定版安装未切换到稳定分支"
@@ -432,7 +432,7 @@ if (
 ) > "$TMP_ROOT/download-failed.output" 2>&1; then
     fail "下载失败仍报告安装成功"
 fi
-grep -Fxq 'v3.2.8' "$SERVICES_DIR/.loader.version" || fail "下载失败删除了旧版本标记"
+grep -Fxq 'v3.3.1' "$SERVICES_DIR/.loader.version" || fail "下载失败删除了旧版本标记"
 [ -x "$SERVICES_DIR/PluginLoader" ] && [ -f "$UNIT_PATH" ] || fail "下载失败卸载了旧商城"
 if grep -Eq 'system (stop|disable|restart)|publish-loader' "$CALLS"; then
     fail "新文件下载完成前已改动旧服务"
@@ -482,7 +482,7 @@ printf 'old template\n' > "$SERVICES_DIR/.systemd/plugin_loader-release.service"
 if install_plugin_store prerelease > "$TMP_ROOT/rollback.output" 2>&1; then
     fail "测试版启动失败时仍报告安装成功"
 fi
-grep -Fxq 'v3.2.8' "$SERVICES_DIR/.loader.version" || \
+grep -Fxq 'v3.3.1' "$SERVICES_DIR/.loader.version" || \
     fail "测试版启动失败后未恢复稳定版版本标记"
 grep -Eq '"branch"[[:space:]]*:[[:space:]]*0' "$SETTINGS_DIR/loader.json" || \
     fail "测试版启动失败后未恢复稳定分支"
@@ -595,6 +595,49 @@ install_plugin_store prerelease >/dev/null || \
 grep -Fq "github Decky PluginLoader|$DECKY_PRERELEASE_LOADER_URL|$DECKY_PRERELEASE_LOADER_SHA256" \
     "$CALLS" || fail "Gitee 镜像失败后测试版未使用统一 GitHub Release 下载流程"
 GITEE_FAIL=0
+
+# 旧设置不能让新版安装退回 3.2.8。
+(
+    DECKY_LOADER_URL='https://www.mhhf.com/Deck/decky/v.3.2.8/PluginLoader'
+    DECKY_LOADER_SHA256='4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2'
+    source "$PROJECT_ROOT/modules/plugin_store.sh"
+    [[ "$DECKY_LOADER_URL" == */v3.3.1/PluginLoader ]] &&
+        [ "$DECKY_LOADER_SHA256" = '7bb73b0502c49e7194f34f9ce4ddb6777764e9277d7a5e54665f66460d50c315' ]
+) || fail "旧备用地址或校验值覆盖了新版"
+
+cp "$TMP_ROOT/gitee-latest.txt" "$TMP_ROOT/gitee-original.txt"
+sed 's/^stable_version=.*/stable_version=v3.2.8/' "$TMP_ROOT/gitee-original.txt" > "$TMP_ROOT/gitee-latest.txt"
+: > "$CALLS"
+install_plugin_store stable >/dev/null || fail "过期镜像未回退新版官方包"
+grep -Fxq 'v3.3.1' "$SERVICES_DIR/.loader.version" || fail "过期镜像导致降级"
+if grep -Eq 'gitee-part|github Decky systemd服务模板' "$CALLS"; then
+    fail "过期镜像仍下载旧组件"
+fi
+cp "$TMP_ROOT/gitee-original.txt" "$TMP_ROOT/gitee-latest.txt"
+
+# 先前写错的版本标记不能让一键流程跳过旧程序。
+printf '#!/bin/sh\nexit 3\n' > "$SERVICES_DIR/PluginLoader"
+install_plugin_store stable if-needed >/dev/null || fail "标记正确但程序错误时未修复"
+[ "$(calculate_decky_sha256 "$SERVICES_DIR/PluginLoader")" = "$MOCK_LOADER_SHA" ] ||
+    fail "一键流程跳过了标错版本的程序"
+
+# 一个组件不可用时使用同一官方版本的一整套文件。
+: > "$CALLS"
+GITEE_SERVICE_FAIL=1
+install_plugin_store stable >/dev/null || fail "同版本镜像服务缺失时未回退"
+grep -Fq "download Decky PluginLoader|$DECKY_LOADER_URL|$DECKY_LOADER_OFFICIAL_URL" "$CALLS" ||
+    fail "回退只替换了一个组件"
+sed 's/^stable_version=.*/stable_version=v3.3.2/' "$TMP_ROOT/gitee-original.txt" > "$TMP_ROOT/gitee-latest.txt"
+: > "$CALLS"
+if install_plugin_store stable > "$TMP_ROOT/new-mirror-failed.output"; then
+    fail "新版本镜像缺失组件时安装了旧版"
+fi
+grep -Fxq 'v3.3.1' "$SERVICES_DIR/.loader.version" || fail "新版本下载失败修改了安装标记"
+if grep -Eq 'download Decky PluginLoader|system (stop|disable|restart)|publish-loader' "$CALLS"; then
+    fail "新版本下载失败没有保留原安装"
+fi
+GITEE_SERVICE_FAIL=0
+cp "$TMP_ROOT/gitee-original.txt" "$TMP_ROOT/gitee-latest.txt"
 
 mkdir -p "$SERVICES_DIR/.systemd"
 for service_file in plugin_loader.service plugin_loader-release.service \

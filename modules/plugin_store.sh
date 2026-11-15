@@ -24,14 +24,17 @@ load_config
 
 # Decky 的认证接口固定为本机回环地址，不能从配置或环境覆盖。
 DECKY_API_BASE="http://127.0.0.1:1337"
-DECKY_LOADER_URL="${DECKY_LOADER_URL:-https://www.mhhf.com/Deck/decky/v.3.2.8/PluginLoader}"
-DECKY_LOADER_SHA256="${DECKY_LOADER_SHA256:-4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2}"
-DECKY_SERVICE_URL="${DECKY_SERVICE_URL:-https://www.mhhf.com/Deck/decky/plugin_loader-release.service}"
-DECKY_SERVICE_SHA256="${DECKY_SERVICE_SHA256:-64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1}"
-# 国内镜像不可用时，只回退到 Decky 官方固定版本文件；两条线路共用同一组 SHA256。
-DECKY_LOADER_OFFICIAL_URL="https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8/PluginLoader"
-DECKY_SERVICE_OFFICIAL_URL="https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/v3.2.8/dist/plugin_loader-release.service"
-DECKY_STABLE_VERSION="v3.2.8"
+# 稳定版备用文件与版本标记固定在同一官方发布，旧设置不能覆盖校验值。
+DECKY_STABLE_VERSION="v3.3.1"
+DECKY_LOADER_OFFICIAL_URL="https://github.com/SteamDeckHomebrew/decky-loader/releases/download/$DECKY_STABLE_VERSION/PluginLoader"
+DECKY_SERVICE_OFFICIAL_URL="https://raw.githubusercontent.com/SteamDeckHomebrew/decky-loader/$DECKY_STABLE_VERSION/dist/plugin_loader-release.service"
+DECKY_LOADER_URL="${DECKY_LOADER_URL:-$DECKY_LOADER_OFFICIAL_URL}"
+if [ "$DECKY_LOADER_URL" = "https://www.mhhf.com/Deck/decky/v.3.2.8/PluginLoader" ]; then
+    DECKY_LOADER_URL="$DECKY_LOADER_OFFICIAL_URL"
+fi
+DECKY_LOADER_SHA256="7bb73b0502c49e7194f34f9ce4ddb6777764e9277d7a5e54665f66460d50c315"
+DECKY_SERVICE_URL="${DECKY_SERVICE_URL:-$DECKY_SERVICE_OFFICIAL_URL}"
+DECKY_SERVICE_SHA256="64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1"
 # 测试版优先使用 Gitee 国内镜像，失败后回退 Decky 官方 prerelease，并通过统一 GitHub 下载链路选择传输源。
 DECKY_PRERELEASE_VERSION="v3.2.8-pre1"
 DECKY_PRERELEASE_LOADER_URL="https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.2.8-pre1/PluginLoader"
@@ -1151,6 +1154,12 @@ finish_plugin_store_install() {
     exit "$status"
 }
 
+decky_stable_version_at_least() {
+    local candidate="$1" minimum="$2"
+    [[ "$candidate" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || return 1
+    [ "$(printf '%s\n' "$minimum" "$candidate" | LC_ALL=C sort -V | tail -n 1)" = "$candidate" ]
+}
+
 install_plugin_store() (
     local channel="${1:-stable}"
     local install_mode="${2:-reinstall}"
@@ -1163,6 +1172,7 @@ install_plugin_store() (
     local service_sha256
     local channel_branch
     local installed_version=""
+    local fallback_version expected_installed_sha installed_sha
 
     case "$channel" in
         stable)
@@ -1190,6 +1200,8 @@ install_plugin_store() (
             return 1
             ;;
     esac
+    fallback_version="$selected_version"
+    expected_installed_sha="$loader_sha256"
     if [ "${ZHOUKEER_TEST_MODE:-0}" != "1" ] && \
         ! bash "$PROJECT_ROOT/modules/preflight.sh" decky; then
         echo "插件商城安装已停止：准备检查未通过。"
@@ -1227,20 +1239,36 @@ install_plugin_store() (
     services_dir="$DECKY_HOMEBREW_DIR/services"
     gitee_meta_file="$tmp_dir/gitee-decky-mirror.txt"
     if load_decky_gitee_mirror_meta "$gitee_meta_file"; then
-        gitee_meta_ok=1
         case "$channel" in
-            stable) selected_version="$DECKY_GITEE_STABLE_VERSION" ;;
-            prerelease) selected_version="$DECKY_GITEE_PRERELEASE_VERSION" ;;
+            stable)
+                if decky_stable_version_at_least "$DECKY_GITEE_STABLE_VERSION" "$fallback_version"; then
+                    gitee_meta_ok=1
+                    selected_version="$DECKY_GITEE_STABLE_VERSION"
+                    expected_installed_sha="$DECKY_GITEE_STABLE_SHA256"
+                fi
+                ;;
+            prerelease)
+                gitee_meta_ok=1
+                selected_version="$DECKY_GITEE_PRERELEASE_VERSION"
+                ;;
         esac
     fi
 
     installed_version="$(decky_plugin_store_version 2>/dev/null || true)"
-    if [ "$install_mode" = if-needed ] && decky_plugin_store_is_installed && \
-       [ -n "$installed_version" ] && \
-       [ "$installed_version" = "$selected_version" ]; then
-        echo "已检测到 Decky Loader ${installed_version}，当前已是该系统通道的最新版本。"
+    if [ "$channel" = stable ] && [ "$installed_version" != "$selected_version" ] && \
+       decky_plugin_store_is_installed && decky_stable_version_at_least "$installed_version" "$selected_version"; then
+        echo "已保留较新的插件商城 ${installed_version}。"
         cleanup_decky_tmp
         return 0
+    fi
+    if [ "$install_mode" = if-needed ] && decky_plugin_store_is_installed && \
+       [ "$installed_version" = "$selected_version" ]; then
+        installed_sha="$(calculate_decky_sha256 "$services_dir/PluginLoader" 2>/dev/null || true)"
+        if [ "$channel" != stable ] || [ "$installed_sha" = "$expected_installed_sha" ]; then
+            echo "已检测到 Decky Loader ${installed_version}，当前已是该系统通道的最新版本。"
+            cleanup_decky_tmp
+            return 0
+        fi
     fi
     if decky_plugin_store_is_installed; then
         if [ -n "$installed_version" ]; then
@@ -1290,41 +1318,28 @@ install_plugin_store() (
     trap 'exit 130' INT TERM
     trap 'finish_plugin_store_install $?' EXIT
 
-    if [ "$gitee_meta_ok" -eq 1 ] && download_decky_gitee_loader "$channel" "$loader_download"; then
-        selected_version="$DECKY_GITEE_SELECTED_VERSION"
+    if [ "$gitee_meta_ok" -eq 1 ] && \
+       download_decky_gitee_loader "$channel" "$loader_download" && \
+       download_decky_gitee_service "$channel" "$service_template"; then
         echo "插件商城安装文件已下载。"
-        log "Decky下载成功: Decky PluginLoader source=domestic-mirror"
-    elif [ "$channel" = "prerelease" ]; then
-        download_decky_prerelease_component \
-            "Decky PluginLoader" \
-            "$loader_url" \
-            "$loader_sha256" \
-            "$loader_download" || return 1
+        log "Decky下载成功: version=$selected_version source=domestic-mirror"
     else
-        download_decky_component_with_fallback \
-            "Decky PluginLoader" \
-            "$loader_url" \
-            "$loader_official_url" \
-            "$loader_sha256" \
-            "$loader_download" || return 1
-    fi
-    echo "正在下载插件商城所需文件..."
-    if [ "$gitee_meta_ok" -eq 1 ] && download_decky_gitee_service "$channel" "$service_template"; then
-        echo "插件商城运行所需文件已下载。"
-        log "Decky下载成功: Decky systemd服务模板 source=domestic-mirror"
-    elif [ "$channel" = "prerelease" ]; then
-        download_decky_prerelease_component \
-            "Decky systemd服务模板" \
-            "$service_url" \
-            "$service_sha256" \
-            "$service_template" || return 1
-    else
-        download_decky_component_with_fallback \
-            "Decky systemd服务模板" \
-            "$service_url" \
-            "$service_official_url" \
-            "$service_sha256" \
-            "$service_template" || return 1
+        if [ "$channel" = stable ] && [ "$selected_version" != "$fallback_version" ]; then
+            echo "插件商城 ${selected_version} 下载未完成，已停止安装，请稍后重试。"
+            return 1
+        fi
+        selected_version="$fallback_version"
+        if [ "$channel" = prerelease ]; then
+            download_decky_prerelease_component \
+                "Decky PluginLoader" "$loader_url" "$loader_sha256" "$loader_download" || return 1
+            download_decky_prerelease_component \
+                "Decky systemd服务模板" "$service_url" "$service_sha256" "$service_template" || return 1
+        else
+            download_decky_component_with_fallback \
+                "Decky PluginLoader" "$loader_url" "$loader_official_url" "$loader_sha256" "$loader_download" || return 1
+            download_decky_component_with_fallback \
+                "Decky systemd服务模板" "$service_url" "$service_official_url" "$service_sha256" "$service_template" || return 1
+        fi
     fi
     render_decky_service "$service_template" "$rendered_service" "$DECKY_HOMEBREW_DIR" || return 1
     prepare_decky_homebrew_dirs "$DECKY_HOMEBREW_DIR" || return 1

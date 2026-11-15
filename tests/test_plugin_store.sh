@@ -8,10 +8,8 @@ TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf -- "$TMP_ROOT"' EXIT
 export ZHOUKEER_APP_DIR="$TMP_ROOT/apps"
 
-grep -Fq 'https://www.mhhf.com/Deck/decky/v.3.2.8/PluginLoader' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2' \
-    "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'https://www.mhhf.com/Deck/decky/plugin_loader-release.service' \
+grep -Fq 'DECKY_STABLE_VERSION="v3.3.1"' "$PROJECT_ROOT/modules/plugin_store.sh"
+grep -Fq '7bb73b0502c49e7194f34f9ce4ddb6777764e9277d7a5e54665f66460d50c315' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
