@@ -456,6 +456,7 @@ gitee_mirror_id_for_url() {
         *'/xXJSONDeruloXx/decky-lsfg-vk/releases/download/'*) printf '%s\n' lsfg ;;
         *'/xXJSONDeruloXx/Decky-Framegen/releases/download/'*) printf '%s\n' fsr4 ;;
         *'/SheffeyG/CheatDeck/releases/download/'*) printf '%s\n' cheatdeck ;;
+        'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-4/raw/main/deckygcm/download/v1.0.1/DeckyGCM.v1.0.1.zip') printf '%s\n' deckygcm ;;
         *'/Qiming-Liu/Decky-Game-Cheats-Manager/releases/download/'*) printf '%s\n' deckygcm ;;
         *'/steam-deck-homebrew/versions/6d6eca184677dc9ff7736439ee7a575ca8ab386c5ffb1627d446bc43dbd1ecf3.zip') printf '%s\n' steamgriddb ;;
         *'/steam-deck-homebrew/versions/e84f5b1f111af8862b06218479491fbf61036e1bfd9f16f93f9901e9b9ebc5e0.zip') printf '%s\n' steamgriddb ;;

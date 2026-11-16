@@ -1,3 +1,7 @@
+## Renkit 3.5.1 DeckyGCM 下载修复 — 2026-11-16
+
+- 新增 DeckyGCM 1.0.1 国内原包直链。与 CheatDeck 一起安装时，备用下载改用该直链，安装前仍校验原包。
+
 ## Renkit 3.5.0 DeckyGCM 显示修复 — 2026-11-16
 
 - 单独安装 CheatDeck 与 DeckyGCM 前会检查插件商城，SteamOS 上的 DeckyGCM 需要 Decky Loader 3.3.0 或更新版本。已装好两款时再次选择也会让 Decky 重新扫描。

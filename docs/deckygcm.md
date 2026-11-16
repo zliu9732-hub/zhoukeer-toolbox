@@ -9,7 +9,7 @@ DeckyGCM 使用 Qiming-Liu 发布的 **v1.0.1 完整原包**，原包自带简�
 - 介绍视频：<https://www.bilibili.com/video/BV1J64k6WEoN/>
 - 原包 SHA256：`fc989a509847000f195dd64d62d7d41a0cdca4fefb2ee9cceb77bdd14573b013`，5,644,586 字节。
 
-下载沿用 Gitee 分块清单、大小限制、HTTPS、SHA256 和官方同哈希回退；`deckygcm` 位于 mirror-4，44 个 128 KiB 分块（末块 8,490 字节）。面向用户的下载进度不展示平台或分块细节。维护脚本固定已审核版本，避免自动替换未经检查的新包。更新版本时须重新核对完整原包与文件清单。
+下载沿用 Gitee 分块清单、大小限制、HTTPS、SHA256 和国内原包同哈希回退；`deckygcm` 位于 mirror-4，44 个 128 KiB 分块（末块 8,490 字节）。面向用户的下载进度不展示平台或分块细节。维护脚本固定已审核版本，避免自动替换未经检查的新包。更新版本时须重新核对完整原包与文件清单。
 
 `data/deckygcm_files.json` 记录原包全部 354 个文件的哈希，`scripts/deckygcm_package.py` 只读取文件，不导入插件；替换前暂存检查和最终状态检查覆盖后端、全部依赖、数据库和许可证，拒绝缺失、损坏和符号链接，输出失败文件及日志。上游发布包使用 Decky 的 CPython 3.14 格式和 Linux x86_64 依赖，需使用相应新版插件商城，不使用系统 Python 版本判断 Decky 的内置运行环境。
 
@@ -20,3 +20,5 @@ DeckyGCM 使用 Qiming-Liu 发布的 **v1.0.1 完整原包**，原包自带简�
 `tests/test_plugin_atomic_install.sh` 覆盖复制、切换、恢复、管理员清理和保留副本；`tests/test_feature_bundle_integration.sh [已核验的上游ZIP]` 执行实际组合、真实安装函数和状态检查，网络、服务、管理员权限失败仍为模拟。无参数使用私有合成包，发布验证须另外传入上游完整包。插件原包及下载清单没有变化。
 
 单独选择“CheatDeck 与 DeckyGCM”时，SteamOS 会先检查插件商城是否可用。DeckyGCM 需要 Decky Loader 3.3.0 起提供的 Python 3.14 环境。再次选择安装时，即使两款文件均完整，也会重新加载插件。2026-11-16 复验时，作者的下载地址返回 404，国内现有安装文件可完整下载并通过原包校验。
+
+Gitee 原包直链：<https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-4/raw/main/deckygcm/download/v1.0.1/DeckyGCM.v1.0.1.zip>。Renkit 的备用下载与镜像恢复使用该地址，并校验同一份上游原包 SHA256。

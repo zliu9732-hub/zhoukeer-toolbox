@@ -676,7 +676,7 @@ sync_plugin fsr4-zh-signed "zliu9732-hub/decky-framegen-zh" \
 sync_plugin cheatdeck "SheffeyG/CheatDeck" '^CheatDeck[.]zip$' "CheatDeck"
 sync_plugin deckygcm "Qiming-Liu/Decky-Game-Cheats-Manager" '^$' "DeckyGCM" \
     "v1.0.1" "DeckyGCM.v1.0.1.zip" \
-    "https://github.com/Qiming-Liu/Decky-Game-Cheats-Manager/releases/download/v1.0.1/DeckyGCM.v1.0.1.zip" \
+    "https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-4/raw/main/deckygcm/download/v1.0.1/DeckyGCM.v1.0.1.zip" \
     "fc989a509847000f195dd64d62d7d41a0cdca4fefb2ee9cceb77bdd14573b013" "$MIRROR4"
 sync_plugin steamgriddb "SteamGridDB/decky-steamgriddb" '^$' "SteamGridDB" \
     "v1.8.1" "steamgriddb-v1.8.1.zip" \

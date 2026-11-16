@@ -9,7 +9,7 @@ source "$ROOT/modules/plugin_store.sh"
 fail() { echo "FAIL: $*" >&2; exit 1; }
 [ "$(gitee_mirror_id_for_url "$DECKYGCM_URL")" = deckygcm ] || fail 'GCM download bypasses mirror mapping'
 [ "$(gitee_mirror_manifest_repo deckygcm)" = zhoukeer-toolbox-mirror-4 ] || fail 'Wrong GCM manifest repository'
-download_policy_url_allowed "$DECKYGCM_URL" || fail 'Official GCM fallback refused'
+download_policy_url_allowed "$DECKYGCM_URL" || fail 'Domestic GCM fallback refused'
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-4/raw/main/deckygcm/v1.0.1/part.0001' || fail 'GCM chunk refused'
 MODE=steamos FAIL_PACKAGE='' LOADER_VERSION=v3.3.1 LOADER_READY=1
 mkdir -p "$DECKY_PLUGIN_DIR"
@@ -29,6 +29,16 @@ log() { :; }
 toolbox_sudo() { fail 'Unexpected privileged action'; }
 download_github_file() { fail 'Unexpected network'; }
 download_gitee_mirror_file() { fail 'Unexpected network'; }
+(
+    download_gitee_mirror_file() { [ "$1:$3" = "deckygcm:$DECKYGCM_SHA256" ] || fail 'GCM mirror metadata changed'; return 1; }
+    download_github_file() {
+        case "$1" in https://gitee.com/*/DeckyGCM.v1.0.1.zip) ;; *) fail 'GCM fell back outside Gitee' ;; esac
+        [ "$1:$3" = "$DECKYGCM_URL:$DECKYGCM_SHA256" ] || fail 'GCM direct ZIP lost the pinned digest'
+        printf 'direct ZIP fixture\n' > "$2"
+    }
+    download_verified_package DeckyGCM "$DECKYGCM_URL" "$DECKYGCM_SHA256" "$TEST_ROOT/download"
+    grep -Fxq 'direct ZIP fixture' "$TEST_ROOT/download" || fail 'GCM direct backup did not run'
+)
 install_decky_zip() {
     printf '%s\n' "$1" >> "$TEST_ROOT/packages"
     PLUGIN_INSTALL_CHANGED=0
