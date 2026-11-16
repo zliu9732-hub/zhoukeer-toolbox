@@ -671,7 +671,7 @@ freedeck_versions_menu() {
     while true; do
         draw_category_frame games "Freedeck 版本选择" "下载和管理游戏，按需选择版本" 0
         ui_touch_button 5 '\033[1;97;48;5;24m' "Freedeck 0.6 稳定版" "现有稳定版本·感谢作者b站一苇Isidf"
-        ui_touch_button 9 '\033[1;97;48;5;160m' "NewFreedeck" "自动更新到最新版·部分模拟器暂时无法使用"
+        ui_touch_button 9 '\033[1;97;48;5;160m' "NewFreedeck 重构版" "自动更新到最新版·部分模拟器暂时无法使用"
         ui_touch_button 19 '\033[1;97;48;5;238m' "返回插件列表" "返回游戏与插件"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回首页" "查看全部功能分类"
         ui_prompt

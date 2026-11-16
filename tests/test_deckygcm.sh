@@ -11,10 +11,13 @@ fail() { echo "FAIL: $*" >&2; exit 1; }
 [ "$(gitee_mirror_manifest_repo deckygcm)" = zhoukeer-toolbox-mirror-4 ] || fail 'Wrong GCM manifest repository'
 download_policy_url_allowed "$DECKYGCM_URL" || fail 'Official GCM fallback refused'
 download_policy_url_allowed 'https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-4/raw/main/deckygcm/v1.0.1/part.0001' || fail 'GCM chunk refused'
-MODE=steamos FAIL_PACKAGE=''
+MODE=steamos FAIL_PACKAGE='' LOADER_VERSION=v3.3.1 LOADER_READY=1
 mkdir -p "$DECKY_PLUGIN_DIR"
 detect_platform() { IS_STEAMOS=0; IS_BAZZITE=0; IS_CHIMERAOS=0; IS_DESKTOP_LINUX=0; if [ "$MODE" = steamos ]; then IS_STEAMOS=1; else IS_DESKTOP_LINUX=1; fi; }
 require_existing_chimera_plugin_environment() { return 0; }
+ensure_plugin_store_ready() { echo check >> "$TEST_ROOT/loader-checks"; [ "$LOADER_READY" = 1 ]; }
+decky_plugin_store_is_installed() { return 0; }
+decky_plugin_store_version() { printf '%s\n' "$LOADER_VERSION"; }
 resolve_plugin_latest() { [ "$1" = cheatdeck ] || fail 'Wrong release lookup'; }
 feature_plugin_is_current() { [ -f "$TEST_ROOT/cheatdeck" ]; }
 deckygcm_is_current() { [ -f "$TEST_ROOT/gcm" ]; }
@@ -47,7 +50,12 @@ for MODE in steamos desktop; do
     ! grep -Eq '汉化：RenAmamiya|分块|Gitee' "$TEST_ROOT/output" || fail 'Upstream attribution or download wording incorrect'
     : > "$TEST_ROOT/packages"; : > "$TEST_ROOT/reloads"
     install_configured_plugin cheatdeck >/dev/null || fail 'Repeated pair failed'
-    [ ! -s "$TEST_ROOT/packages" ] && [ ! -s "$TEST_ROOT/reloads" ] || fail 'Complete pair unnecessarily reinstalled'
+    [ ! -s "$TEST_ROOT/packages" ] || fail 'Complete pair unnecessarily downloaded again'
+    if [ "$MODE" = steamos ]; then
+        [ "$(wc -l < "$TEST_ROOT/reloads")" -eq 1 ] || fail 'Manual repair did not rescan installed GCM'
+    else
+        [ ! -s "$TEST_ROOT/reloads" ] || fail 'Desktop complete pair unnecessarily reloaded'
+    fi
     rm "$TEST_ROOT/gcm"
     install_configured_plugin cheatdeck >/dev/null || fail 'Existing CheatDeck prevented GCM repair'
     [ "$(cat "$TEST_ROOT/packages")" = DeckyGCM ] || fail 'Missing GCM did not install alone'
@@ -65,6 +73,22 @@ for MODE in steamos desktop; do
     if install_configured_plugin cheatdeck >/dev/null; then fail 'CheatDeck failure masked'; fi
     [ "$(cat "$TEST_ROOT/packages")" = CheatDeck ] && [ ! -s "$TEST_ROOT/reloads" ] || fail 'Failed first plugin continued/reloaded'
 done
+MODE=steamos
+reset_case
+LOADER_READY=0
+LOADER_VERSION=v3.2.8
+if install_configured_plugin cheatdeck >/dev/null; then fail 'Unsupported loader setup was ignored'; fi
+[ ! -s "$TEST_ROOT/packages" ] || fail 'Plugin download began before loader setup'
+LOADER_READY=1
+touch "$TEST_ROOT/cheatdeck"
+if install_configured_plugin cheatdeck > "$TEST_ROOT/old-loader"; then fail 'Older loader accepted'; fi
+grep -Fq '3.3.0' "$TEST_ROOT/old-loader" || fail 'Missing loader requirement'
+[ ! -s "$TEST_ROOT/packages" ] || fail 'GCM downloaded for an incompatible loader'
+LOADER_VERSION=v3.3.1-pre1
+: > "$TEST_ROOT/loader-checks"
+install_configured_plugin cheatdeck >/dev/null || fail 'Compatible preview was rejected'
+[ "$(cat "$TEST_ROOT/packages")" = DeckyGCM ] || fail 'Missing GCM not installed on compatible preview'
+[ ! -s "$TEST_ROOT/loader-checks" ] || fail 'Compatible preview was unnecessarily updated'
 # The all-installed shortcut and per-plugin loop must both notice a missing GCM.
 MODE=steamos
 detect_platform

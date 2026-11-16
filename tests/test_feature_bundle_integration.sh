@@ -42,6 +42,7 @@ refresh_framegen_catalog() { :; }
 load_framegen_cached_versions() { :; }
 lsfg_v2_is_current() { return 1; }
 ensure_plugin_store_ready() { :; }
+decky_plugin_store_version() { echo v3.3.1; }
 select_lsfg_variant() { LSFG_INSTALL_VARIANT=legacy; }
 select_feature_plugin_cleanup() { FEATURE_PLUGIN_CLEANUP=keep; }
 OPTIONAL_TOOLS=skip

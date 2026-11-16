@@ -1,3 +1,8 @@
+## Renkit 3.5.0 DeckyGCM 显示修复 — 2026-11-16
+
+- 单独安装 CheatDeck 与 DeckyGCM 前会检查插件商城，SteamOS 上的 DeckyGCM 需要 Decky Loader 3.3.0 或更新版本。已装好两款时再次选择也会让 Decky 重新扫描。
+- Freedeck 版本选择继续提供 0.6 稳定版与 NewFreedeck 重构版，两款使用各自的安装目录。
+
 ## Renkit 3.4.9 插件更新修复 — 2026-11-16
 
 - 修复 ToMoon、Freedeck、Unifideck 检测到新版却跳过安装的问题。校验下载包内的版本，避免误报成功。常用插件整组已齐全时，仍检查 MAKO 和 CheatDeck 的新版本。

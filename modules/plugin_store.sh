@@ -4219,6 +4219,20 @@ verify_deckygcm_directory() {
     return 1
 }
 
+deckygcm_loader_is_compatible() {
+    [ "${IS_STEAMOS:-0}" = 1 ] || return 0
+    local version release loader_sha
+    version="$(decky_plugin_store_version || true)"
+    release="$(plugin_stable_version "${version%%-*}" || true)"
+    # Earlier downloads could mark the 3.2.8 executable as 3.3.1.
+    loader_sha="$(calculate_decky_sha256 "$DECKY_HOMEBREW_DIR/services/PluginLoader" 2>/dev/null || true)"
+    if [ -z "$release" ] || plugin_version_is_newer 3.3.0 "$release" ||
+       [ "$loader_sha" = 4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2 ]; then
+        echo "DeckyGCM 需要插件商城 3.3.0 或更新版本。请更新插件商城后再安装。"
+        return 1
+    fi
+}
+
 install_cheatdeck_with_gcm() {
     local pair_changed=0 plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
     PLUGIN_INSTALL_CHANGED=0
@@ -4235,6 +4249,10 @@ install_cheatdeck_with_gcm() {
             return 1
         fi
         [ "$PLUGIN_INSTALL_CHANGED" = 0 ] || pair_changed=1
+    fi
+    if ! deckygcm_loader_is_compatible; then
+        PLUGIN_INSTALL_CHANGED="$pair_changed"
+        return 1
     fi
     echo "DeckyGCM：搜索、下载修改器，并随游戏启动。"
     echo "感谢b站ProSS及时行乐"
@@ -4357,6 +4375,10 @@ install_configured_plugin() {
             fi
             ;;
         cheatdeck)
+            if [ "$IS_STEAMOS" -eq 1 ] && [ "$reload_after_install" = 1 ] &&
+               { ! decky_plugin_store_is_installed || ! deckygcm_loader_is_compatible >/dev/null; }; then
+                ensure_plugin_store_ready || return 1
+            fi
             install_cheatdeck_with_gcm || {
                 if [ "$reload_after_install" = 1 ] && [ "$PLUGIN_INSTALL_CHANGED" = 1 ]; then
                     reload_decky_plugins "已加载安装完成的插件；未完成的项目可再次选择补装。"
@@ -4602,6 +4624,12 @@ install_configured_plugin() {
         write_flingtrainer_desktop_note || \
             echo "CheatDeck 已处理，但未能在桌面生成风灵月影网址.txt。"
         print_cef_remote_debugging_tip
+    fi
+
+    # A manual retry must rescan an intact DeckyGCM directory too.
+    if [ "$action" = cheatdeck ] && [ "$IS_STEAMOS" -eq 1 ] && [ "$reload_after_install" = 1 ]; then
+        reload_decky_plugins "Decky 已重新加载。返回游戏模式，在插头菜单里查看 DeckyGCM 和 CheatDeck。"
+        return $?
     fi
 
     # DeckRecall 旧版安装流程在子 shell 中丢失了 PLUGIN_INSTALL_CHANGED，
@@ -5010,7 +5038,7 @@ install_feature_plugins_selected() {
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" "$FSR4_OFFICIAL_DIRECTORY" "$FSR4_OFFICIAL_VERSION" "Decky-Framegen（FSR4）"; then _all_installed=0; fi
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
         "CheatDeck" "$DECKY_CHEATDECK_VERSION" "CheatDeck"; then _all_installed=0; fi
-    if ! deckygcm_is_current; then _all_installed=0; fi
+    if ! deckygcm_loader_is_compatible >/dev/null || ! deckygcm_is_current; then _all_installed=0; fi
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
         "$STEAMGRIDDB_OFFICIAL_DIRECTORY" "$STEAMGRIDDB_OFFICIAL_VERSION" \
         "SteamGridDB"; then _all_installed=0; fi

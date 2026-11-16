@@ -299,7 +299,7 @@ game_environment_gui_menu() {
             lsfg "小黄鸭｜让游戏画面更流畅｜汉化：RenAmamiya" \
             fsr4 "FSR4｜改善支持游戏的画面｜请先阅读使用说明" \
             browse "浏览官方插件｜逐个查看插件作用" \
-            freedeck "Freedeck｜选择 0.6 稳定版或 NewFreedeck" \
+            freedeck "Freedeck｜选择 0.6 稳定版或 NewFreedeck 重构版" \
             handheld-plugins "掌机控制插件｜掌机功耗控制与 ROG Ally Center" \
             ge-proton "安装 GE 兼容层｜提高 Windows 游戏兼容性" \
             epic "Epic 游戏启动器｜安装并添加到 Steam" \
@@ -428,7 +428,7 @@ game_environment_gui_menu() {
             freedeck)
                 freedeck_choice="$(gui_dialog --menu "Freedeck 版本选择" \
                     stable "Freedeck 0.6 稳定版｜现有稳定版本" \
-                    new "NewFreedeck｜自动更新到最新版，部分模拟器暂时无法使用" \
+                    new "NewFreedeck 重构版｜自动更新到最新版，部分模拟器暂时无法使用" \
                     back "返回游戏与插件")" || continue
                 case "$freedeck_choice" in
                     stable)
