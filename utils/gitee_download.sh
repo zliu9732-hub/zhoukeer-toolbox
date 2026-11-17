@@ -234,6 +234,9 @@ _gitee_mirror_download_one() {
         --speed-limit "$min_speed" --speed-time "$min_speed_time"
         --max-filesize "$max_bytes"
     )
+    if [ "${GITEE_MIRROR_RETRY_CONNECTION_ERRORS:-0}" = 1 ]; then
+        curl_options+=(--retry-all-errors)
+    fi
     if [ "$quiet" = "1" ]; then
         curl_options+=(--silent)
         if curl "${curl_options[@]}" --output "$output" "$url" 2>/dev/null; then
@@ -264,10 +267,94 @@ _gitee_mirror_download_one() {
     fi
 }
 
+_gitee_mirror_part_url() {
+    local id="$1" index="$2" part_name="$3" part_repo
+    part_repo="$(gitee_mirror_manifest_repo "$id")"
+    if [ -n "$_GITEE_MIRROR_REPO1" ] && [ -n "$_GITEE_MIRROR_REPO2" ] &&
+       _gitee_mirror_positive_integer "$_GITEE_MIRROR_PARTS_REPO1"; then
+        if [ "$index" -le "$_GITEE_MIRROR_PARTS_REPO1" ]; then
+            part_repo="$_GITEE_MIRROR_REPO1"
+        else
+            part_repo="$_GITEE_MIRROR_REPO2"
+        fi
+    fi
+    printf '%s/%s/%s/%s\n' "$(gitee_mirror_raw_base "$part_repo")" "$id" "$_GITEE_MIRROR_VERSION" "$part_name"
+}
+
+_gitee_mirror_download_mako_parts() (
+    local id="$1" temp_dir="$2" output="$3" name="$4"
+    local index=1 count part file_url worker status failed position
+    local -a workers files
+    local progress_fd=0 failure_status seconds_left
+    local deadline=$((SECONDS + 300))
+    local GITEE_MIRROR_QUIET=1 GITEE_MIRROR_RETRIES=1 GITEE_MIRROR_RETRY_CONNECTION_ERRORS=1
+    local GITEE_MIRROR_MIN_SPEED_TIME=25 GITEE_MIRROR_MAX_TIME
+    if [ -t 1 ]; then
+        progress_fd=1
+    elif [ "${ZHOUKEER_PROGRESS_DIRECT_TTY:-0}" = 1 ] &&
+         [ -c /dev/tty ] && { exec 9>/dev/tty; } 2>/dev/null; then
+        progress_fd=9
+    fi
+
+    # Download up to three parts together, then append in manifest order.
+    while [ "$index" -le "$_GITEE_MIRROR_CHUNKS" ]; do
+        seconds_left=$((deadline - SECONDS))
+        if [ "$seconds_left" -lt 2 ]; then
+            [ "$progress_fd" = 0 ] || printf '\n' >&"$progress_fd" || true
+            return 1
+        fi
+        # One retry fits inside the remaining budget for this round.
+        GITEE_MIRROR_MAX_TIME="$((seconds_left / 2))"
+        workers=()
+        files=()
+        count=0
+        while [ "$count" -lt 3 ] && [ "$index" -le "$_GITEE_MIRROR_CHUNKS" ]; do
+            part="$(printf 'part.%04d' "$index")"
+            file_url="$(_gitee_mirror_part_url "$id" "$index" "$part")"
+            files+=("$temp_dir/$part")
+            (
+                if _gitee_mirror_download_one "$file_url" "$temp_dir/$part" "$_GITEE_MIRROR_CHUNK_SIZE"; then
+                    exit 0
+                fi
+                [ "${DOWNLOAD_LOCAL_IO_FAILED:-0}" != 1 ] || exit 23
+                exit 1
+            ) &
+            workers+=("$!")
+            index=$((index + 1))
+            count=$((count + 1))
+        done
+        failed=0
+        failure_status=1
+        for worker in "${workers[@]}"; do
+            if wait "$worker"; then continue; else status=$?; fi
+            if [ "$status" -eq 23 ]; then
+                failure_status=23
+            fi
+            failed=1
+        done
+        if [ "$failed" = 1 ]; then
+            [ "$progress_fd" = 0 ] || printf '\n' >&"$progress_fd" || true
+            return "$failure_status"
+        fi
+        for position in "${files[@]}"; do
+            if ! cat "$position" >> "$output"; then
+                [ "$progress_fd" = 0 ] || printf '\n' >&"$progress_fd" || true
+                return 23
+            fi
+            rm -f -- "$position"
+        done
+        if [ "$progress_fd" != 0 ]; then
+            printf '\r\033[2K正在下载 %s... %d%%' "$name" "$(((index - 1) * 100 / _GITEE_MIRROR_CHUNKS))" >&"$progress_fd" || true
+        fi
+    done
+    [ "$progress_fd" = 0 ] || printf '\n' >&"$progress_fd" || true
+    return 0
+)
+
 download_gitee_mirror_file() {
     local id="$1" output="$2" expected_sha256="${3:-}" name="${4:-安装文件}"
     local manifest manifest_file base_url file_url temp_file temp_dir part_name part_file
-    local actual_sha256 index actual_size part_repo
+    local actual_sha256 index actual_size status
     local GITEE_MIRROR_LABEL="$name"
 
     DOWNLOAD_LOCAL_IO_FAILED=0
@@ -325,43 +412,56 @@ download_gitee_mirror_file() {
             return 1
         fi
     else
-        temp_dir="$(mktemp -d 2>/dev/null)" || {
-            echo "$name 无法创建临时目录。"
-            return 1
-        }
         echo "正在下载 $name..."
-        index=1
-        while [ "$index" -le "$_GITEE_MIRROR_CHUNKS" ]; do
-            part_name="$(printf 'part.%04d' "$index")"
-            part_file="$temp_dir/$part_name"
-            part_repo="$(gitee_mirror_manifest_repo "$id")"
-            if [ -n "$_GITEE_MIRROR_REPO1" ] && [ -n "$_GITEE_MIRROR_REPO2" ] && \
-                _gitee_mirror_positive_integer "$_GITEE_MIRROR_PARTS_REPO1"; then
-                if [ "$index" -le "$_GITEE_MIRROR_PARTS_REPO1" ]; then
-                    part_repo="$_GITEE_MIRROR_REPO1"
-                else
-                    part_repo="$_GITEE_MIRROR_REPO2"
-                fi
-            fi
-            file_url="$(gitee_mirror_raw_base "$part_repo")/$id/$_GITEE_MIRROR_VERSION/$part_name"
-            if ! _gitee_mirror_download_one "$file_url" "$part_file" \
-                "$_GITEE_MIRROR_CHUNK_SIZE" "$((index - 1))" \
-                "$_GITEE_MIRROR_CHUNKS"; then
-                rm -rf -- "$temp_dir"
-                rm -f -- "$temp_file"
-                echo "$name 下载失败，正在重新尝试。"
-                return 1
-            fi
-            cat "$part_file" >> "$temp_file" || {
+        if [ "$id" = lsfg-mako ] && [ "$_GITEE_MIRROR_CHUNKS" -gt 1 ]; then
+            temp_dir="$(mktemp -d "${output}.parts.XXXXXX" 2>/dev/null)" || {
                 DOWNLOAD_LOCAL_IO_FAILED=1
-                rm -rf -- "$temp_dir"
-                rm -f -- "$temp_file"
-                echo "$name 的临时文件无法写入，请检查剩余空间后重试。"
+                echo "$name 无法创建临时目录。"
                 return 1
             }
-            rm -f -- "$part_file"
-            index=$((index + 1))
-        done
+            if _gitee_mirror_download_mako_parts "$id" "$temp_dir" "$temp_file" "$name"; then
+                :
+            else
+                status=$?
+                if [ "$status" -eq 23 ]; then DOWNLOAD_LOCAL_IO_FAILED=1; fi
+                rm -rf -- "$temp_dir"
+                rm -f -- "$temp_file"
+                if [ "${DOWNLOAD_LOCAL_IO_FAILED:-0}" = 1 ]; then
+                    echo "$name 的临时文件无法写入，请检查剩余空间后重试。"
+                else
+                    echo "$name 下载失败，正在尝试备用地址。"
+                fi
+                return 1
+            fi
+        else
+            temp_dir="$(mktemp -d 2>/dev/null)" || {
+                echo "$name 无法创建临时目录。"
+                return 1
+            }
+            index=1
+            while [ "$index" -le "$_GITEE_MIRROR_CHUNKS" ]; do
+                part_name="$(printf 'part.%04d' "$index")"
+                part_file="$temp_dir/$part_name"
+                file_url="$(_gitee_mirror_part_url "$id" "$index" "$part_name")"
+                if ! _gitee_mirror_download_one "$file_url" "$part_file" \
+                    "$_GITEE_MIRROR_CHUNK_SIZE" "$((index - 1))" \
+                    "$_GITEE_MIRROR_CHUNKS"; then
+                    rm -rf -- "$temp_dir"
+                    rm -f -- "$temp_file"
+                    echo "$name 下载失败，正在重新尝试。"
+                    return 1
+                fi
+                cat "$part_file" >> "$temp_file" || {
+                    DOWNLOAD_LOCAL_IO_FAILED=1
+                    rm -rf -- "$temp_dir"
+                    rm -f -- "$temp_file"
+                    echo "$name 的临时文件无法写入，请检查剩余空间后重试。"
+                    return 1
+                }
+                rm -f -- "$part_file"
+                index=$((index + 1))
+            done
+        fi
         rm -rf -- "$temp_dir"
     fi
 

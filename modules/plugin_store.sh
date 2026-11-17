@@ -2069,6 +2069,9 @@ install_decky_zip() {
                 echo "$display_name 的临时文件无法写入，请检查剩余空间后重试。"
                 return 1
             fi
+            # MAKO has already tried both download routes. Leave a failed
+            # package for a later retry instead of restarting the 162 MiB transfer.
+            [ "$expected_dir" != "$LSFG_MAKO_DIRECTORY" ] || return 1
             bash "$PROJECT_ROOT/modules/steam_accelerator.sh" ensure || true
             download_verified_package "$display_name" "$url" "$sha256" "$archive" || return 1
         fi
@@ -4370,6 +4373,8 @@ install_configured_plugin() {
             else
                 echo "正在安装 MAKO 小黄鸭 v$LSFG_MAKO_VERSION 官方中文原包..."
                 GITEE_MIRROR_REPO="$DECKY_MAKO_MIRROR_REPO" \
+                    GITHUB_ACCELERATION_FIRST=0 GITHUB_SKIP_RANKING=1 GITHUB_CONNECT_TIMEOUT=7 GITHUB_MIN_SPEED_TIME=25 \
+                    GITHUB_MAX_TIME=360 GITHUB_RETRIES=0 \
                     install_decky_zip \
                     "MAKO 小黄鸭 v$LSFG_MAKO_VERSION" \
                     "$DECKY_LSFG_MAKO_URL" \
@@ -5136,8 +5141,8 @@ install_feature_plugins_selected() {
 
     if [ "$IS_STEAMOS" -eq 1 ]; then
         echo "本次小黄鸭版本：$(lsfg_variant_label "$lsfg_variant")"
-        echo "将依次直接安装：所选小黄鸭、FSR4、CheatDeck 与 DeckyGCM、MAKO 小黄鸭与 Mako_Renkit 启动项、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。"
-        feature_plugins="lsfg fsr4 cheatdeck lsfg-mako steamgriddb cssloader friendeck deckymusic fantastic"
+        echo "将依次直接安装：所选小黄鸭、FSR4、CheatDeck 与 DeckyGCM、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制，最后处理 MAKO 小黄鸭。"
+        feature_plugins="lsfg fsr4 cheatdeck steamgriddb cssloader friendeck deckymusic fantastic lsfg-mako"
     else
         echo "将依次直接安装：小黄鸭、FSR4、CheatDeck 与 DeckyGCM、游戏封面更换、主题美化、文件传输助手、音乐播放器。"
         feature_plugins="lsfg fsr4 cheatdeck steamgriddb cssloader friendeck deckymusic"
@@ -5182,7 +5187,10 @@ install_feature_plugins_selected() {
                 ;;
             lsfg-mako)
                 echo "========== MAKO 小黄鸭与 Mako_Renkit 启动项 =========="
-                feature_install_step 'MAKO 小黄鸭与启动项' install_configured_plugin lsfg-mako 0 0 || failed=1
+                feature_install_step 'MAKO 小黄鸭与启动项' install_configured_plugin lsfg-mako 0 0 || {
+                    failed=1
+                    echo "可从「游戏与插件」单独重试 MAKO 小黄鸭。"
+                }
                 ;;
             steamgriddb)
                 echo "========== 游戏封面更换（SteamGridDB） =========="

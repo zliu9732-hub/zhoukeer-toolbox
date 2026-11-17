@@ -79,8 +79,13 @@ LSFG_MAKO_INDEX_SHA256="$(calculate_decky_sha256 "$DECKY_PLUGIN_DIR/$LSFG_MAKO_D
 CSSLOADER_ZH_INDEX_SHA256="$LSFG_MAKO_INDEX_SHA256"
 DECKY_FANTASTIC_INDEX_SHA256="$LSFG_MAKO_INDEX_SHA256"
 DECKYGCM_SHA256="$(calculate_decky_sha256 "$TEST_ROOT/gcm.zip")"
-DOWNLOADS=0 DENY_CLEANUP=0 DENY_ADMIN=0 CORRUPT_COPY=0
+DOWNLOADS=0 DENY_CLEANUP=0 DENY_ADMIN=0 CORRUPT_COPY=0 MAKO_DOWNLOAD_FAIL=0
 download_verified_package() {
+    if [ "$MAKO_DOWNLOAD_FAIL" = 1 ] && [[ "$1" == 'MAKO 小黄鸭 '* ]]; then
+        echo '模拟：MAKO 国内下载与备用地址均失败'
+        echo mako >> "$TEST_ROOT/mako-attempts"
+        return 1
+    fi
     [ "$1:$2:$3" = "DeckyGCM:$DECKYGCM_URL:$DECKYGCM_SHA256" ] || fail 'Unexpected download or metadata'
     [ "$(calculate_decky_sha256 "$TEST_ROOT/gcm.zip")" = "$3" ] || fail 'ZIP digest incorrect'
     echo download >> "$TEST_ROOT/downloads"
@@ -133,6 +138,20 @@ grep -Fq '未完成项目：CheatDeck 与 DeckyGCM' "$TEST_ROOT/corrupt" || fail
 grep -Fq 'DeckyGCM 文件检查失败' "$LOG_FILE" || fail 'Integrity reason missing from log'
 CORRUPT_COPY=0
 install_feature_plugins >/dev/null || fail 'Repair after failure failed'
+# At the end of the combo, a failed MAKO transfer must report only that
+# failure and leave the earlier plugins installed.
+mv "$DECKY_PLUGIN_DIR/Mako" "$TEST_ROOT/mako-previous"
+MAKO_DOWNLOAD_FAIL=1
+if install_feature_plugins > "$TEST_ROOT/mako-failure"; then fail 'MAKO failure was reported as success'; fi
+[ "$(wc -l < "$TEST_ROOT/mako-attempts")" -eq 1 ] || fail 'MAKO restarted both download routes'
+grep -Fq '未完成项目：MAKO 小黄鸭与启动项' "$TEST_ROOT/mako-failure" || fail 'MAKO failure was not listed'
+grep -Fq '✓ DeckyGCM' "$TEST_ROOT/mako-failure" || fail 'Earlier plugins did not finish'
+fantastic_line="$(rg -n '^========== Fantastic 风扇控制' "$TEST_ROOT/mako-failure" | cut -d: -f1)"
+mako_line="$(rg -n '^========== MAKO 小黄鸭与 Mako_Renkit 启动项' "$TEST_ROOT/mako-failure" | cut -d: -f1)"
+[ "$fantastic_line" -lt "$mako_line" ] || fail 'MAKO was not processed after the other plugins'
+MAKO_DOWNLOAD_FAIL=0
+mv "$TEST_ROOT/mako-previous" "$DECKY_PLUGIN_DIR/Mako"
+
 OPTIONAL_TOOLS=install
 bash() { [ "$2:$3" = 'install-trainer-one:10-29' ] || fail 'Unexpected child installer'; echo '模拟：运行工具下载失败' >&2; return 37; }
 if install_feature_plugins > "$TEST_ROOT/tools-fail" 2> "$TEST_ROOT/hidden-errors"; then fail 'Trainer failure masked'; fi

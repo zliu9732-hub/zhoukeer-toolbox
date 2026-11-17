@@ -259,4 +259,69 @@ grep -Fq 'Gitee 分块镜像优先，GitHub Release 回退' \
     "$PROJECT_ROOT/THIRD_PARTY_LICENSES.md" || \
     FAIL "License 清单缺少模拟器 Gitee 镜像说明"
 
+(
+    # Coordinate three mocked requests before allowing any to finish. This
+    # catches a serial regression without relying on measured execution time.
+    mkdir -p "$TMP_ROOT/mako-started"
+    mako_mode=success
+    download_gitee_mirror_manifest() {
+        [ "$1" = lsfg-mako ] || return 1
+        sed 's/^id=test$/id=lsfg-mako/' "$FIXTURE/latest.txt" > "$2" &&
+            _gitee_mirror_parse_manifest "$2"
+    }
+    curl() {
+        local output="" url="" retry_all=0 pause
+        while [ "$#" -gt 0 ]; do
+            case "$1" in
+                --output) output="$2"; shift 2 ;;
+                --retry-all-errors) retry_all=1; shift ;;
+                https://*) url="$1"; shift ;;
+                *) shift ;;
+            esac
+        done
+        case "$url" in */lsfg-mako/v1/part.*) ;; *) return 99 ;; esac
+        [ "$retry_all" = 1 ] || return 98
+        local part="${url##*/}"
+        : > "$TMP_ROOT/mako-started/$part"
+        for pause in {1..100}; do
+            [ -f "$TMP_ROOT/mako-started/part.0001" ] &&
+              [ -f "$TMP_ROOT/mako-started/part.0002" ] &&
+              [ -f "$TMP_ROOT/mako-started/part.0003" ] && break
+            sleep 0.03
+        done
+        [ "$pause" -lt 100 ] || return 97
+        if [ "$part" = part.0002 ]; then
+            case "$mako_mode" in
+                disk) return 23 ;;
+                network) return 56 ;;
+                bad-data) printf 'bad!' > "$output"; return 0 ;;
+            esac
+        fi
+        cp "$FIXTURE/v1/$part" "$output"
+    }
+    download_gitee_mirror_file lsfg-mako "$TMP_ROOT/mako.bin" "$FULL_SHA" MAKO > "$TMP_ROOT/mako-output" ||
+        FAIL 'MAKO parts did not run in parallel'
+    cmp -s "$FIXTURE/full" "$TMP_ROOT/mako.bin" || FAIL 'MAKO did not assemble parts in manifest order'
+    if grep -Eq '分块|Gitee' "$TMP_ROOT/mako-output"; then FAIL 'MAKO showed internal download details'; fi
+    download_github_file() { : > "$TMP_ROOT/mako-fallback"; }
+    for mako_mode in network disk bad-data; do
+        if [ "$mako_mode" = network ]; then
+            download_with_gitee_mirror_fallback lsfg-mako 'https://example.invalid/mako.zip' "$FULL_SHA" "$TMP_ROOT/mako-bad.bin" MAKO >/dev/null ||
+                FAIL 'Network failure did not switch to backup'
+            [ -f "$TMP_ROOT/mako-fallback" ] || FAIL 'Missing backup call'
+            rm -f -- "$TMP_ROOT/mako-fallback"
+        elif [ "$mako_mode" = disk ]; then
+            if download_with_gitee_mirror_fallback lsfg-mako 'https://example.invalid/mako.zip' "$FULL_SHA" "$TMP_ROOT/mako-bad.bin" MAKO >/dev/null; then
+                FAIL 'Local I/O failure was hidden'
+            fi
+            [ "$DOWNLOAD_LOCAL_IO_FAILED" = 1 ] && [ ! -e "$TMP_ROOT/mako-fallback" ] ||
+                FAIL 'Local write failure was retried over the network'
+        elif download_gitee_mirror_file lsfg-mako "$TMP_ROOT/mako-bad.bin" "$FULL_SHA" MAKO >/dev/null; then
+            FAIL 'MAKO accepted a corrupt part'
+        fi
+        [ ! -e "$TMP_ROOT/mako-bad.bin" ] || FAIL 'Partial MAKO archive was published'
+    done
+    if compgen -G "$TMP_ROOT/mako*.parts.*" >/dev/null; then FAIL 'MAKO left temporary parts on disk'; fi
+)
+
 echo "PASS: Gitee 分块镜像清单、重组、校验与授权过滤测试通过"

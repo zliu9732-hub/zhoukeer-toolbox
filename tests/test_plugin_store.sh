@@ -480,7 +480,7 @@ printf '%s\n' "$feature_install" | grep -Fq '小黄鸭（LSFG-VK）'
 printf '%s\n' "$feature_install" | grep -Fq 'reload_decky_plugins'
 printf '%s\n' "$feature_install" | grep -Fq '常用插件会出现在插头菜单中'
 printf '%s\n' "$feature_install" | grep -Fq '十款常用功能插件'
-printf '%s\n' "$feature_install" | grep -Fq 'feature_plugins="lsfg fsr4 cheatdeck lsfg-mako'
+printf '%s\n' "$feature_install" | grep -Fq 'feature_plugins="lsfg fsr4 cheatdeck steamgriddb cssloader friendeck deckymusic fantastic lsfg-mako"'
 grep -Fq 'SWITCH_TO_WINDOWS_SOURCE_DIR="$PROJECT_ROOT/decky-plugins/switch-to-windows"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Switch to Windows v$SWITCH_TO_WINDOWS_VERSION 安装成功；本人制作：RenAmamiya。' \
@@ -852,7 +852,7 @@ if printf '%s\n' "$configured_plugin_function" | grep -Fq 'remove_legacy_lsfg_di
 fi
 
 grep -Fq '正在安装 FSR4' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '将依次直接安装：所选小黄鸭、FSR4、CheatDeck 与 DeckyGCM、MAKO 小黄鸭与 Mako_Renkit 启动项、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制。' \
+grep -Fq '将依次直接安装：所选小黄鸭、FSR4、CheatDeck 与 DeckyGCM、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制，最后处理 MAKO 小黄鸭。' \
     "$PROJECT_ROOT/modules/plugin_store.sh" || {
     echo "FAIL: SteamOS 常用插件说明与当前组合不一致" >&2
     exit 1
