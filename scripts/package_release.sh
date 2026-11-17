@@ -24,6 +24,7 @@ for claw_file in PKGBUILD Makefile dkms.conf claw_rt721_amp.c claw-rt721-fix.ser
 done
 VERIFY_FILES="$VERIFY_FILES third_party/onexplayer-apex-tools-zh-v0.1.0/dist/index.js third_party/onexplayer-apex-tools-zh-v0.1.0/plugin.json third_party/onexplayer-apex-tools-zh-v0.1.0/package.json third_party/onexplayer-apex-tools-zh-v0.1.0/LICENSE"
 VERIFY_FILES="$VERIFY_FILES modules/ntfs_mount_repair.sh tests/test_ntfs_mount_repair.sh tests/test_ntfs_partition_picker.sh docs/ntfs-mount-repair.md"
+VERIFY_FILES="$VERIFY_FILES config/settings.example.conf tests/test_legacy_auto_update.py"
 PACKAGE_SOURCES=()
 VERIFY_FILES="$VERIFY_FILES modules/epic_linux.sh"
 VERIFY_FILES="$VERIFY_FILES modules/framegen_updates.sh scripts/framegen_package.py scripts/sync_framegen_zh.py scripts/framegen_ui.mjs scripts/vendor/acorn/acorn.mjs scripts/vendor/acorn/LICENSE data/framegen_zh.json data/framegen_auto_baseline.json assets/framegen/zh-runtime.js"
@@ -154,6 +155,13 @@ printf '%s  %s\n' "$PACKAGE_SHA256" "$PACKAGE_NAME" > "$SHA256SUMS_PATH"
 printf '%s  %s\n' "$PACKAGE_SHA256" "zhoukeer-toolbox.tar.gz" >> "$SHA256SUMS_PATH"
 printf '%s  %s\n' "$PACKAGE_SHA256" "$VERSIONED_PACKAGE_NAME" > \
     "$VERSIONED_PACKAGE_PATH.sha256"
+
+# A downloadable archive is not sufficient: an old client must be able to
+# finish installing it. This test blocks OS commands and simulates downloads.
+if ! RENKIT_TEST_BASH="$BASH" python3 "$PROJECT_ROOT/tests/test_legacy_auto_update.py" "$PACKAGE_PATH"; then
+    echo "3.3.5 旧版完整升级检查未通过，已停止发布。"
+    exit 1
+fi
 
 echo "仓库更新包: $PACKAGE_PATH"
 echo "旧链接兼容包: $DIST_DIR/zhoukeer-toolbox.tar.gz"

@@ -38,6 +38,9 @@ run_installer() {
         }
         export -f uname
         HOME="$home_dir" \
+            XDG_DATA_HOME="$home_dir/.local/share" \
+            XDG_CONFIG_HOME="$home_dir/.config" \
+            XDG_STATE_HOME="$home_dir/.local/state" \
             ZHOUKEER_INSTALL_DIR="$install_dir" \
             bash "$PROJECT_ROOT/install.sh" >/dev/null
     )
@@ -87,7 +90,7 @@ test_blank_config_migration() {
     assert_value "$config_file" DECKY_LSFG_SHA256 \
         "322f6eec21a489ef9f12938ea2ec4e43c234093876f95b7245fbd260f882ce9c"
     assert_value "$config_file" DECKY_LOADER_SHA256 \
-        "4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2"
+        "7bb73b0502c49e7194f34f9ce4ddb6777764e9277d7a5e54665f66460d50c315"
     assert_value "$config_file" DECKY_SERVICE_SHA256 \
         "64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1"
     assert_value "$config_file" DECKY_FSR4_SHA256 \
@@ -150,16 +153,16 @@ test_retired_decky_loader_default_migrated() {
     mkdir -p "$(dirname "$config_file")"
     cp "$PROJECT_ROOT/config/settings.example.conf" "$config_file"
     sed -i.bak \
-        -e 's|/Deck/decky/v.3.2.8/PluginLoader|/Deck/decky/v.3.2.6/PluginLoader|' \
-        -e 's/4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2/30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e/' \
+        -e 's|https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.3.1/PluginLoader|https://www.mhhf.com/Deck/decky/v.3.2.6/PluginLoader|' \
+        -e 's/7bb73b0502c49e7194f34f9ce4ddb6777764e9277d7a5e54665f66460d50c315/30f017a36a8baeb8c3dbae884f5d64be987a9b351b3859bf33e88615b653cf5e/' \
         "$config_file"
 
     run_installer "$case_root/home" "$install_dir"
 
     assert_value "$config_file" DECKY_LOADER_URL \
-        "https://www.mhhf.com/Deck/decky/v.3.2.8/PluginLoader"
+        "https://github.com/SteamDeckHomebrew/decky-loader/releases/download/v3.3.1/PluginLoader"
     assert_value "$config_file" DECKY_LOADER_SHA256 \
-        "4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2"
+        "7bb73b0502c49e7194f34f9ce4ddb6777764e9277d7a5e54665f66460d50c315"
 }
 
 test_retired_unifideck_default_migrated() {
@@ -287,7 +290,7 @@ test_retired_decky_installer_config_removed() {
         fail "退役的Decky外层安装器配置仍留在用户配置中"
     fi
     assert_value "$config_file" DECKY_LOADER_SHA256 \
-        "4b9a04a1ac4ed0c028dcbbc38cd03383eb438d69744d613775c93f81809afde2"
+        "7bb73b0502c49e7194f34f9ce4ddb6777764e9277d7a5e54665f66460d50c315"
     assert_value "$config_file" DECKY_SERVICE_SHA256 \
         "64d6aa626aa45e1659e3137aa3afd72edd840094199d62bb6ff2e73c5ce738b1"
 }
