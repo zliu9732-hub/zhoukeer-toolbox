@@ -19,6 +19,10 @@ log() { return 0; }
 DECKY_LOADER_URL="https://www.mhhf.com/Deck/decky/mock/PluginLoader"
 DECKY_SERVICE_URL="https://www.mhhf.com/Deck/decky/plugin_loader-release.service"
 
+# Avoid network probes: exercise the real shared downloader with mock curl only.
+get_ranked_github_sources() { printf '%s\n' https://github.com; }
+_github_remote_size_bytes() { return 1; }
+
 PAYLOAD='decky-official-test-payload'
 CALLS="$TMP_ROOT/calls"
 MOCK_OFFICIAL_FAIL=0
@@ -101,5 +105,35 @@ if download_decky_component_with_fallback \
     fail "国内与官方源均失败时仍返回成功"
 fi
 [ ! -e "$TMP_ROOT/failed.download" ] || fail "双源失败后保留了未校验下载"
+
+# A reachable alternate route must recover a failed direct GitHub request.
+get_ranked_github_sources() {
+    printf '%s\n' https://github.com https://ghfast.top/
+}
+# Wrap the existing mock without evaluating shell text.
+mock_curl_fallback() {
+    local output="" url=""
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            --output) shift; output="$1" ;;
+            https://*) url="$1" ;;
+        esac
+        shift
+    done
+    printf '%s\n' "$url" >> "$CALLS"
+    case "$url" in
+        https://ghfast.top/https://github.com/SteamDeckHomebrew/decky-loader/releases/download/*/PluginLoader)
+            printf '%s' "$PAYLOAD" > "$output" ;;
+        *) return 28 ;;
+    esac
+}
+curl() { mock_curl_fallback "$@"; }
+download_decky_component 'Decky PluginLoader' "$DECKY_LOADER_OFFICIAL_URL" \
+    "$EXPECTED_SHA256" "$TMP_ROOT/accelerated" >/dev/null || fail "稳定版没有切换到可用备用线路"
+cmp "$TMP_ROOT/expected" "$TMP_ROOT/accelerated" || fail "备用线路未保持官方原包"
+if download_decky_component 'Decky PluginLoader' "$DECKY_LOADER_OFFICIAL_URL" \
+    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa "$TMP_ROOT/wrong-hash" >/dev/null 2>&1; then
+    fail "备用线路绕过了官方 SHA256 校验"
+fi
 
 echo "PASS: 插件商城国内源失败自动切换 Decky 官方源，双源失败安全退出"

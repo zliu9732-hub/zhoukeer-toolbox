@@ -570,7 +570,8 @@ load_decky_gitee_mirror_meta() {
     DECKY_GITEE_PRERELEASE_PART_SHA256=""
     DECKY_GITEE_PRERELEASE_SERVICE_SHA256=""
 
-    if ! download_github_file "$DECKY_GITEE_MIRROR_META" "$meta_file" "" "Decky 镜像元数据"; then
+    if ! GITHUB_QUIET=1 GITHUB_CONNECT_TIMEOUT=5 GITHUB_MAX_TIME=12 GITHUB_RETRIES=0 \
+        download_github_file "$DECKY_GITEE_MIRROR_META" "$meta_file" "" "插件商城版本信息"; then
         log "Decky 国内镜像元数据获取失败，改用既有线路。"
         return 1
     fi
@@ -638,9 +639,9 @@ download_decky_gitee_part() {
     if ! run_curl_with_progress "$name" "$progress_index" "$progress_total" \
         --fail --location --progress-meter \
         --proto '=https' --proto-redir '=https' \
-        --connect-timeout 15 --max-time 1200 \
-        --retry 5 --retry-delay 2 --retry-connrefused \
-        --speed-limit 65536 --speed-time 60 \
+        --connect-timeout 5 --max-time 120 \
+        --retry 0 \
+        --speed-limit 65536 --speed-time 20 \
         --max-filesize "$max_bytes" \
         --output "$temporary_file" "$url"; then
         rm -f -- "$temporary_file"
@@ -901,6 +902,17 @@ download_decky_component() {
         echo "$name 的下载地址不可信，已停止。"
         return 1
     }
+
+    # Stable and prerelease downloads use the same measured fallback routes.
+    # The caller's official hash remains mandatory for every candidate.
+    case "$url" in
+        https://github.com/*|https://raw.githubusercontent.com/*)
+            GITHUB_CONNECT_TIMEOUT=5 GITHUB_MAX_TIME=180 GITHUB_RETRIES=0 \
+                GITHUB_MIN_SPEED_TIME=20 \
+                download_github_file "$url" "$output" "$expected_sha256" "$name"
+            return $?
+            ;;
+    esac
 
     local _dk_curl_options=(
         --fail
