@@ -299,6 +299,15 @@ grep -Fq 'Gitee 分块镜像优先，GitHub Release 回退' \
         fi
         cp "$FIXTURE/v1/$part" "$output"
     }
+    # Report actual received bytes, even before any complete file is appended.
+    printf '12345' > "$TMP_ROOT/mako-progress-part"
+    progress_started=$((SECONDS - 1))
+    _gitee_mirror_mako_progress MAKO 5 20 "$progress_started" 1 \
+        "$TMP_ROOT/mako-progress-part" "$TMP_ROOT/missing-part" > "$TMP_ROOT/mako-progress"
+    grep -Fq '50%' "$TMP_ROOT/mako-progress" || FAIL 'MAKO progress ignored received bytes'
+    grep -Fq 'KB/s' "$TMP_ROOT/mako-progress" || FAIL 'MAKO progress omitted speed'
+    _gitee_mirror_mako_progress MAKO 30 20 "$progress_started" 1 > "$TMP_ROOT/mako-progress"
+    grep -Fq '99%' "$TMP_ROOT/mako-progress" || FAIL 'MAKO announced completion before verification'
     download_gitee_mirror_file lsfg-mako "$TMP_ROOT/mako.bin" "$FULL_SHA" MAKO > "$TMP_ROOT/mako-output" ||
         FAIL 'MAKO parts did not run in parallel'
     cmp -s "$FIXTURE/full" "$TMP_ROOT/mako.bin" || FAIL 'MAKO did not assemble parts in manifest order'

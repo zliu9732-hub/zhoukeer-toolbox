@@ -50,9 +50,14 @@ assert_payload_progress update.sh download_one download_version_one
 assert_payload_progress bootstrap.sh download_one valid_sha256
 grep -Eq '^download_progress_filter\(\)' "$PROJECT_ROOT/bootstrap.sh" || \
     fail "bootstrap.sh 缺少独立 download_progress_filter 定义"
-if grep -Fq 'GITEE_MIRROR_QUIET=1' "$PROJECT_ROOT/utils/gitee_download.sh"; then
-    fail "国内镜像实际文件下载仍然隐藏进度"
-fi
+# Parallel requests share one byte-based progress line; individual curl meters
+# must stay quiet so three workers cannot overwrite the terminal independently.
+mako_progress="$(function_section utils/gitee_download.sh _gitee_mirror_download_mako_parts download_gitee_mirror_file)"
+grep -Fq '_gitee_mirror_mako_progress "$name"' <<< "$mako_progress" || \
+    fail "MAKO 并行下载没有显示实际总进度"
+grep -Fq 'sleep 1' <<< "$mako_progress" || fail "MAKO 等待下载时没有持续刷新"
+grep -Fq 'kill -0 "$worker"' <<< "$mako_progress" || fail "MAKO 没有在等待下载时检查进度"
+
 gitee_progress="$(function_section utils/gitee_download.sh download_gitee_mirror_file resolve_latest_gitee_mirror)"
 grep -Fq '"$((index - 1))"' <<< "$gitee_progress" || \
     fail "国内镜像没有换算连续总进度"

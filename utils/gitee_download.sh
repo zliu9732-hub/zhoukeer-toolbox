@@ -281,12 +281,32 @@ _gitee_mirror_part_url() {
     printf '%s/%s/%s/%s\n' "$(gitee_mirror_raw_base "$part_repo")" "$id" "$_GITEE_MIRROR_VERSION" "$part_name"
 }
 
+_gitee_mirror_mako_progress() {
+    local name="$1" completed="$2" total="$3" started="$4" progress_fd="$5"
+    local file bytes=0 current percent elapsed speed
+    shift 5
+    [ "$progress_fd" != 0 ] || return 0
+    for file in "$@"; do
+        [ -f "$file" ] || continue
+        current="$(wc -c < "$file" 2>/dev/null)" || continue
+        bytes=$((bytes + current))
+    done
+    bytes=$((completed + bytes))
+    percent=$((bytes * 100 / total))
+    [ "$percent" -le 99 ] || percent=99
+    elapsed=$((SECONDS - started))
+    [ "$elapsed" -gt 0 ] || elapsed=1
+    speed=$((bytes / elapsed / 1024))
+    printf '\r\033[2K正在下载 %s... %d%%（%d KB/s）' "$name" "$percent" "$speed" >&"$progress_fd" || true
+}
+
 _gitee_mirror_download_mako_parts() (
     local id="$1" temp_dir="$2" output="$3" name="$4"
     local index=1 count part file_url worker status failed position
     local -a workers files
-    local progress_fd=0 failure_status seconds_left
-    local deadline=$((SECONDS + 300))
+    local progress_fd=0 failure_status seconds_left running completed=0
+    local started=$SECONDS
+    local deadline=$((SECONDS + 1200))
     local GITEE_MIRROR_QUIET=1 GITEE_MIRROR_RETRIES=1 GITEE_MIRROR_RETRY_CONNECTION_ERRORS=1
     local GITEE_MIRROR_MIN_SPEED_TIME=25 GITEE_MIRROR_MAX_TIME
     if [ -t 1 ]; then
@@ -323,6 +343,16 @@ _gitee_mirror_download_mako_parts() (
             index=$((index + 1))
             count=$((count + 1))
         done
+        # Keep reporting bytes while curl works; a slow file must not look frozen.
+        while :; do
+            running=0
+            for worker in "${workers[@]}"; do
+                if kill -0 "$worker" 2>/dev/null; then running=1; fi
+            done
+            _gitee_mirror_mako_progress "$name" "$completed" "$_GITEE_MIRROR_SIZE" "$started" "$progress_fd" "${files[@]}"
+            [ "$running" = 1 ] || break
+            sleep 1
+        done
         failed=0
         failure_status=1
         for worker in "${workers[@]}"; do
@@ -341,10 +371,11 @@ _gitee_mirror_download_mako_parts() (
                 [ "$progress_fd" = 0 ] || printf '\n' >&"$progress_fd" || true
                 return 23
             fi
+            completed=$((completed + $(wc -c < "$position")))
             rm -f -- "$position"
         done
         if [ "$progress_fd" != 0 ]; then
-            printf '\r\033[2K正在下载 %s... %d%%' "$name" "$(((index - 1) * 100 / _GITEE_MIRROR_CHUNKS))" >&"$progress_fd" || true
+            _gitee_mirror_mako_progress "$name" "$completed" "$_GITEE_MIRROR_SIZE" "$started" "$progress_fd"
         fi
     done
     [ "$progress_fd" = 0 ] || printf '\n' >&"$progress_fd" || true
