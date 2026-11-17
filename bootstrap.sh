@@ -16,8 +16,9 @@ for arg in "$@"; do
 done
 
 GITEE_OWNER="${ZHOUKEER_GITEE_OWNER:-zliu9732-hub}"
-GITHUB_OWNER="${ZHOUKEER_GITHUB_OWNER:-}"
+GITHUB_OWNER="${ZHOUKEER_GITHUB_OWNER:-zliu9732-hub}"
 REPO_NAME="${ZHOUKEER_REPO_NAME:-zhoukeer-toolbox-v2}"
+GITHUB_REPO_NAME="${ZHOUKEER_GITHUB_REPO_NAME:-zhoukeer-toolbox}"
 BRANCH="${ZHOUKEER_BRANCH:-main}"
 INSTALL_DIR="${ZHOUKEER_INSTALL_DIR:-$HOME/.local/share/zhoukeer-toolbox}"
 
@@ -28,7 +29,7 @@ MAX_TIME="${ZHOUKEER_MAX_TIME:-600}"
 GITEE_RAW_BASE="${ZHOUKEER_GITEE_RAW_BASE:-https://gitee.com/$GITEE_OWNER/$REPO_NAME/raw/$BRANCH}"
 GITHUB_RAW_BASE="${ZHOUKEER_GITHUB_RAW_BASE:-}"
 if [ -z "$GITHUB_RAW_BASE" ] && [ -n "$GITHUB_OWNER" ]; then
-    GITHUB_RAW_BASE="https://raw.githubusercontent.com/$GITHUB_OWNER/$REPO_NAME/$BRANCH"
+    GITHUB_RAW_BASE="https://raw.githubusercontent.com/$GITHUB_OWNER/$GITHUB_REPO_NAME/$BRANCH"
 fi
 DOMAIN_RAW_BASE="${ZHOUKEER_DOMAIN_RAW_BASE:-https://jktool.icu}"
 PACKAGE_NAME="${ZHOUKEER_PACKAGE_NAME:-renkit.tar.gz}"

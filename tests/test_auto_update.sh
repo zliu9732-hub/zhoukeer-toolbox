@@ -79,6 +79,12 @@ if [ "${FAKE_VERSION_SOURCES_FAIL:-0}" = "1" ] && \
         */VERSION) exit 22 ;;
     esac
 fi
+if [ -n "${FAKE_ONLY_RAW_BASE:-}" ]; then
+    case "$clean_url" in
+        "$FAKE_ONLY_RAW_BASE"/*) ;;
+        *) exit 22 ;;
+    esac
+fi
 case "$clean_url" in
     */dist/renkit.tar.gz) source="$FAKE_REMOTE_DIR/dist/renkit.tar.gz" ;;
     */dist/SHA256SUMS) source="$FAKE_REMOTE_DIR/dist/SHA256SUMS" ;;
@@ -420,5 +426,27 @@ grep -Fq '继续当前版本' "$STATE_DIR/launcher.log"
     echo "FAIL: 更新后没有进入当前安装目录再启动主程序"
     exit 1
 }
+
+# A fresh install must reach GitHub when both other sources are unavailable.
+bootstrap_install="$TMP_ROOT/bootstrap-install"
+mkdir -p "$bootstrap_install" "$RELEASE_DIR/core" "$RELEASE_DIR/modules"
+touch "$RELEASE_DIR/main.sh"
+COPYFILE_DISABLE=1 tar -czf "$REMOTE_DIR/dist/renkit.tar.gz" -C "$RELEASE_DIR" .
+PACKAGE_SHA="$(shasum -a 256 "$REMOTE_DIR/dist/renkit.tar.gz" | awk '{print $1}')"
+printf '%s  %s\n' "$PACKAGE_SHA" 'renkit.tar.gz' > "$REMOTE_DIR/dist/SHA256SUMS"
+: > "$CURL_LOG"
+github_raw='https://raw.githubusercontent.com/zliu9732-hub/zhoukeer-toolbox/main'
+env -i HOME="$TMP_ROOT/home" PATH="$BIN_DIR:/usr/bin:/bin" \
+    FAKE_REMOTE_DIR="$REMOTE_DIR" FAKE_CURL_LOG="$CURL_LOG" \
+    FAKE_ONLY_RAW_BASE="$github_raw" ZHOUKEER_INSTALL_DIR="$bootstrap_install" \
+    "$BASH" "$PROJECT_ROOT/bootstrap.sh" > "$STATE_DIR/bootstrap.log" 2>&1 || {
+    cat "$STATE_DIR/bootstrap.log" >&2
+    echo "FAIL: 首次安装没有从默认 GitHub 地址回退成功" >&2
+    exit 1
+}
+for relative_url in VERSION dist/renkit.tar.gz dist/SHA256SUMS; do
+    grep -Fxq "$github_raw/$relative_url" "$CURL_LOG"
+done
+cmp "$RELEASE_DIR/VERSION" "$bootstrap_install/VERSION"
 
 echo "PASS: 启动检测、自动更新、版本跳过和失败回退测试通过"
