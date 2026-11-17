@@ -3275,28 +3275,65 @@ install_lsfg_chinese() {
 }
 
 mako_official_is_current() {
-    verify_mako_directory "$1/$LSFG_MAKO_DIRECTORY" "${IS_STEAMOS:-0}"
+    local PLUGIN_NEEDS_SUDO=0
+    verify_mako_directory "$1/$LSFG_MAKO_DIRECTORY" "${IS_STEAMOS:-0}" >/dev/null 2>&1
 }
 
 verify_mako_directory() {
     local plugin_dir="$1" allow_newer="${2:-0}"
-    local actual_sha256 renderer_archive installed_version
 
-    feature_plugin_is_present "$(dirname "$plugin_dir")" "$(basename "$plugin_dir")" \
-        "MAKO - Frame Generation" || return 1
-    installed_version="$(decky_plugin_version "$plugin_dir")" || return 1
-    if [ "$installed_version" != "$LSFG_MAKO_VERSION" ]; then
-        [ "$allow_newer" = 1 ] && plugin_version_is_newer "$installed_version" "$LSFG_MAKO_VERSION" || return 1
-    fi
-    [ -f "$plugin_dir/LICENSE.md" ] && [ ! -L "$plugin_dir/LICENSE.md" ] || return 1
-    renderer_archive="$(find "$plugin_dir/bin" -maxdepth 1 -type f \
-        -name 'MAKO-Renderer-v*-linux.tar.xz' -print -quit 2>/dev/null || true)"
-    [ -n "$renderer_archive" ] || return 1
-    if [ "$installed_version" = "$LSFG_MAKO_BASELINE_VERSION" ]; then
-        actual_sha256="$(calculate_decky_sha256 "$plugin_dir/dist/index.js" 2>/dev/null || true)"
-        [ "$actual_sha256" = "$LSFG_MAKO_INDEX_SHA256" ] || return 1
-    fi
-    ! grep -Fq 'RenAmamiya' "$plugin_dir/dist/index.js"
+    # The staged copy may be in a private root-owned workspace.
+    run_plugin_file_operation python3 -I - "$plugin_dir" "$LSFG_MAKO_VERSION" \
+        "$LSFG_MAKO_BASELINE_VERSION" "$LSFG_MAKO_INDEX_SHA256" "$allow_newer" <<'PYTHON'
+import hashlib
+import json
+import re
+import sys
+from pathlib import Path
+
+directory = Path(sys.argv[1])
+expected, baseline, frontend_hash, allow_newer = sys.argv[2:]
+
+
+def required_file(relative):
+    path = directory / relative
+    parents = [directory / parent for parent in Path(relative).parents]
+    if any(entry.is_symlink() for entry in [path, *parents]) or not path.is_file() or not path.stat().st_size:
+        raise ValueError(f"缺少有效文件 {relative}")
+    return path
+
+
+def version_key(version):
+    if not isinstance(version, str) or not re.fullmatch(r"v?[0-9]+[.][0-9]+(?:[.][0-9]+)?", version):
+        return ()
+    numbers = tuple(map(int, version.lstrip("v").split(".")))
+    return numbers if len(numbers) == 3 else (*numbers, 0)
+
+
+try:
+    manifest = json.loads(required_file("plugin.json").read_bytes())
+    if manifest.get("name") != "MAKO - Frame Generation":
+        raise ValueError("插件名称不符")
+    installed = json.loads(required_file("package.json").read_bytes()).get("version")
+    if installed != expected and not (allow_newer == "1" and version_key(installed) > version_key(expected)):
+        raise ValueError(f"插件版本不符，预期 {expected}，实际 {installed}")
+    required_file("LICENSE.md")
+    renderer_dir = directory / "bin"
+    if renderer_dir.is_symlink():
+        raise ValueError("MAKO 渲染组件目录不能是链接")
+    renderers = sorted(renderer_dir.glob("MAKO-Renderer-v*-linux.tar.xz"))
+    if not renderers:
+        raise ValueError("缺少 MAKO 渲染组件")
+    required_file(renderers[0].relative_to(directory))
+    frontend = required_file("dist/index.js").read_bytes()
+    if installed == baseline and hashlib.sha256(frontend).hexdigest() != frontend_hash:
+        raise ValueError("插件界面文件校验不一致")
+    if b"RenAmamiya" in frontend:
+        raise ValueError("发现旧汉化界面，需更换为官方原包")
+except (OSError, ValueError, AttributeError) as error:
+    print(f"MAKO 文件检查未通过：{error}", file=sys.stderr)
+    sys.exit(1)
+PYTHON
 }
 
 # 署名完整包只从 Gitee mirror-3 下载；镜像失败时保留现有插件并返回失败。
@@ -4338,7 +4375,7 @@ install_configured_plugin() {
                     "$DECKY_LSFG_MAKO_URL" \
                     "$DECKY_LSFG_MAKO_SHA256" \
                     "$LSFG_MAKO_DIRECTORY" 0 verify_mako_directory || {
-                        echo "MAKO 下载失败，已保留现有插件。"
+                        echo "MAKO 安装未完成，已保留现有插件。请查看上方失败原因。"
                         return 1
                     }
                 mako_official_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" || {
