@@ -14,6 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BASH = os.environ.get('RENKIT_TEST_BASH', '/bin/bash')
 archive = Path(sys.argv[1]).resolve()
+legacy_tag = sys.argv[2] if len(sys.argv) > 2 else 'v3.3.5'
 
 with tempfile.TemporaryDirectory(prefix='renkit-legacy-update-') as directory:
     base = Path(directory)
@@ -29,7 +30,7 @@ with tempfile.TemporaryDirectory(prefix='renkit-legacy-update-') as directory:
     (app / 'core').mkdir(parents=True)
     (app / 'config').mkdir()
     for relative in ('update.sh', 'core/download_policy.sh', 'core/source_status.sh', 'core/env.sh', 'VERSION', 'config/settings.example.conf'):
-        (app / relative).write_bytes(subprocess.check_output(['git', '-C', str(ROOT), 'show', 'v3.3.5:' + relative]))
+        (app / relative).write_bytes(subprocess.check_output(['git', '-C', str(ROOT), 'show', legacy_tag + ':' + relative]))
     original_updater = (app / 'update.sh').read_bytes()
     (app / 'config/settings.conf').write_text((app / 'config/settings.example.conf').read_text().replace('DUAL_BOOT_TIMEOUT="5"', 'DUAL_BOOT_TIMEOUT="9"'))
     (app / 'apps').mkdir()
@@ -76,5 +77,5 @@ esac
     assert (plugins / 'settings').read_text() == 'keep'
     for relative in ('launch.sh', 'update.sh', 'core/env.sh', 'modules/plugin_store.sh', 'config/settings.example.conf'):
         assert (app / relative).read_bytes() == (source / relative).read_bytes(), relative
-    assert original_updater == subprocess.check_output(['git', '-C', str(ROOT), 'show', 'v3.3.5:update.sh'])
-    print(f'PASS: original 3.3.5 startup updater → real {version} installer in {time.monotonic() - started:.1f}s; all 30 defaults; customer settings/apps/plugins preserved; network and system operations mocked')
+    assert original_updater == subprocess.check_output(['git', '-C', str(ROOT), 'show', legacy_tag + ':update.sh'])
+    print(f'PASS: original {legacy_tag} startup updater → real {version} installer in {time.monotonic() - started:.1f}s; all 30 defaults; customer settings/apps/plugins preserved; network and system operations mocked')

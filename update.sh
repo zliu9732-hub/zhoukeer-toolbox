@@ -423,6 +423,7 @@ download_version_with_fallback() {
     local candidate_file="${output}.candidate"
     local candidate best="" source_url source_label source_name status_key
     local code_source_reachable=0 local_version="" source deadline=0
+    local sources_left=3 remaining attempt_max_time attempt_connect_timeout attempt_retries
 
     if [ "$STARTUP_MODE" -eq 1 ]; then
         deadline=$((SECONDS + ${ZHOUKEER_STARTUP_VERSION_DEADLINE:-15}))
@@ -439,7 +440,23 @@ download_version_with_fallback() {
             domain) source_url="$DOMAIN_VERSION_URL"; source_label="域名"; source_name="域名"; status_key="update-domain" ;;
         esac
         rm -f -- "$candidate_file"
-        if ! download_version_one "$source_url" "$candidate_file" "$source_label"; then
+        attempt_max_time="$VERSION_MAX_TIME"
+        attempt_connect_timeout="$VERSION_CONNECT_TIMEOUT"
+        attempt_retries="$VERSION_RETRIES"
+        if [ "$deadline" -gt 0 ]; then
+            # Reserve time for every remaining source. A dead first address
+            # must not consume the entire startup budget before domain fallback.
+            remaining=$((deadline - SECONDS))
+            attempt_max_time=$((remaining / sources_left))
+            [ "$attempt_max_time" -gt 0 ] || attempt_max_time=1
+            [ "$attempt_max_time" -le "$VERSION_MAX_TIME" ] || attempt_max_time="$VERSION_MAX_TIME"
+            [ "$attempt_connect_timeout" -le "$attempt_max_time" ] || attempt_connect_timeout="$attempt_max_time"
+            attempt_retries=0
+        fi
+        sources_left=$((sources_left - 1))
+        if ! VERSION_MAX_TIME="$attempt_max_time" VERSION_CONNECT_TIMEOUT="$attempt_connect_timeout" \
+            VERSION_RETRIES="$attempt_retries" \
+            download_version_one "$source_url" "$candidate_file" "$source_label"; then
             source_status_record "$status_key" fail "版本检查失败" >/dev/null 2>&1 || true
             continue
         fi

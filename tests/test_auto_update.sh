@@ -54,9 +54,11 @@ cat > "$BIN_DIR/curl" <<'SCRIPT'
 #!/bin/bash
 output=""
 url=""
+max_time=0
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --output) output="$2"; shift 2 ;;
+        --max-time) max_time="$2"; shift 2 ;;
         --output=*) output="${1#*=}"; shift ;;
         -*) shift ;;
         *) url="$1"; shift ;;
@@ -64,6 +66,12 @@ while [ "$#" -gt 0 ]; do
 done
 printf '%s\n' "$url" >> "$FAKE_CURL_LOG"
 clean_url="${url%%\?*}"
+if [ "${FAKE_SLOW_VERSION_SOURCES:-0}" = 1 ] && \
+    [ "$clean_url" != "${FAKE_DOMAIN_RAW_BASE:?}/VERSION" ]; then
+    case "$clean_url" in
+        */VERSION) sleep "$max_time"; exit 28 ;;
+    esac
+fi
 if [ "${FAKE_GITEE_PACKAGE_FAIL:-0}" = "1" ] && \
     [ "$clean_url" = "${FAKE_GITEE_RAW_BASE:?}/dist/renkit.tar.gz" ]; then
     exit 22
@@ -148,6 +156,20 @@ fi
 grep -Fq '/dist/renkit.tar.gz' "$CURL_LOG"
 grep -Fq '/dist/SHA256SUMS' "$CURL_LOG"
 grep -Fq 'zhoukeer_cb=' "$CURL_LOG"
+
+# Two unavailable version sources must leave time for the working domain.
+printf '%s\n' '4.0.0' > "$INSTALL_DIR/VERSION"
+: > "$CURL_LOG"
+FAKE_SLOW_VERSION_SOURCES=1 ZHOUKEER_STARTUP_VERSION_DEADLINE=6 \
+    run_update > "$STATE_DIR/slow-version.output"
+[ "$(cat "$INSTALL_DIR/VERSION")" = '4.1.0' ] || {
+    echo "FAIL: 前两个版本源超时后，未通过备用域名完成更新" >&2
+    exit 1
+}
+grep -Fq 'https://domain.test/repo/VERSION' "$CURL_LOG" || {
+    echo "FAIL: 启动限时耗尽前没有检测备用域名" >&2
+    exit 1
+}
 
 # 1.3.10 已经公开发布，必须保留这批用户到 1.4.0 的完整更新链。
 printf '%s\n' '1.3.10' > "$INSTALL_DIR/VERSION"
