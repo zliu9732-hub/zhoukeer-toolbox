@@ -168,13 +168,12 @@ assert_contains "$gui_games" '战网启动器' "GUI 游戏与插件缺少战网�
 assert_contains "$touch_plugin_page_2" 'ToMoon' "插件第二页缺少 ToMoon"
 assert_contains "$gui_games" 'ToMoon' "GUI 游戏与插件缺少 ToMoon"
 for menu in "$touch_feature_singles" "$gui_games"; do
-    for item in '游戏封面更换' '主题美化' '文件传输助手' '音乐播放器' 'Fantastic 风扇控制'; do
+    for item in '游戏封面更换' '主题美化' '文件传输助手' 'Fantastic 风扇控制'; do
         assert_contains "$menu" "$item" "其余常用插件缺少独立入口：$item"
     done
-    for action in steamgriddb cssloader friendeck deckymusic fantastic; do
+    for action in steamgriddb cssloader friendeck fantastic; do
         assert_contains "$menu" "modules/plugin_store.sh\" $action" "其余常用插件动作错误：$action"
     done
-    assert_contains "$menu" '支持 QQ 音乐和网易云音乐' "音乐播放器入口未说明支持的音乐平台"
 done
 assert_not_contains "$touch_feature_singles" 'Switch to Windows' "Switch to Windows 不应继续显示在其余常用插件"
 assert_not_contains "$touch_plugin_page_2" '安装模拟器' "插件第二页仍显示模拟器入口"

@@ -115,10 +115,6 @@ DECKY_FRIENDECK_URL="https://github.com/panyiwei-home/Friendeck/releases/downloa
 DECKY_FRIENDECK_SHA256="65465ff115e105912adf72b5461e17b697ac07100ce7061de2e962851e41c653"
 DECKY_FRIENDECK_RELEASE_VERSION="0.7.7"
 DECKY_FRIENDECK_PACKAGE_VERSION="0.7.5"
-DECKY_DECKYMUSIC_URL="https://github.com/jinzhongjia/decky-music/releases/download/v1.0.8/Decky.Music.full.zip"
-DECKY_DECKYMUSIC_SHA256="bd82e2e3ed7fdc24bed0afa754eecf4625a2f80f400d989ac38e9e5fcf578844"
-DECKY_DECKYMUSIC_VERSION="1.0.8"
-DECKY_DECKYMUSIC_MIRROR_REPO="zhoukeer-toolbox-mirror-4"
 # Fantastic 使用 Renkit 实际汉化的完整上游包，只允许从 Gitee mirror-3
 # 固定地址下载。直接校验并原子写入 Decky 插件目录，不调用 Decky 商城安装界面。
 DECKY_FANTASTIC_URL="https://gitee.com/zliu9732-hub/zhoukeer-toolbox-mirror-3/raw/main/fantastic-zh-signed/v0.5.1/Fantastic-zh-signed-v0.5.1.zip"
@@ -375,9 +371,6 @@ resolve_plugin_latest() {
                 "Friendeck-plugin" "$DECKY_FRIENDECK_PACKAGE_VERSION" \
                 "Friendeck" "文件传输助手" \
                 "$DECKY_FRIENDECK_URL" "$DECKY_FRIENDECK_SHA256"
-            ;;
-        deckymusic)
-            ensure_deckymusic_full_current
             ;;
         tomoon)
             [ -z "${ZHOUKEER_DECKY_TOMOON_URL:-}" ] || return 0
@@ -4225,7 +4218,7 @@ isolate_legacy_plugin_install_copies() {
         install_pid="${basename##*.}"
         if [ -d "/proc/$install_pid" ] || kill -0 "$install_pid" 2>/dev/null; then continue; fi
         case "$directory" in
-            'Decky LSFG-VK'|Decky-Framegen|CheatDeck|DeckyGCM|Mako|decky-steamgriddb|SDH-CssLoader|Friendeck-plugin|'Decky Music'|Fantastic) ;;
+            'Decky LSFG-VK'|Decky-Framegen|CheatDeck|DeckyGCM|Mako|decky-steamgriddb|SDH-CssLoader|Friendeck-plugin|Fantastic) ;;
             *) continue ;;
         esac
         # Never move the only copy of a plugin, an unrelated hidden directory,
@@ -4342,7 +4335,7 @@ install_configured_plugin() {
     require_existing_chimera_plugin_environment || return 1
     if [ "$IS_CHIMERAOS" -eq 1 ]; then
         case "$action" in
-            lsfg-mako|cheatdeck|deckrecall|savepulse|steamgriddb|cssloader|friendeck|deckymusic|freedeck|newfreedeck|tomoon|unifideck|simpledeckytdp) ;;
+            lsfg-mako|cheatdeck|deckrecall|savepulse|steamgriddb|cssloader|friendeck|freedeck|newfreedeck|tomoon|unifideck|simpledeckytdp) ;;
             *)
                 echo "该插件不在 Renkit ChimeraOS版的安全安装清单中，已停止执行。"
                 return 1
@@ -4665,9 +4658,6 @@ install_configured_plugin() {
         friendeck)
             resolve_plugin_latest friendeck
             ;;
-        deckymusic)
-            resolve_plugin_latest deckymusic
-            ;;
         *) return 1 ;;
     esac || return 1
 
@@ -4734,44 +4724,6 @@ feature_plugin_is_present() {
         [ "$actual_name" = "$expected_name" ] && return 0
     done
     return 1
-}
-
-deckymusic_full_is_current() {
-    verify_deckymusic_full_directory "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}/Decky Music" "${IS_STEAMOS:-0}"
-}
-
-verify_deckymusic_full_directory() {
-    local plugin_dir="$1" allow_newer="${2:-0}"
-    local binary version
-
-    feature_plugin_is_present "$(dirname "$plugin_dir")" "$(basename "$plugin_dir")" "Decky Music" || return 1
-    version="$(decky_plugin_version "$plugin_dir")" || return 1
-    if [ "$version" != "$DECKY_DECKYMUSIC_VERSION" ]; then
-        [ "$allow_newer" = 1 ] && plugin_version_is_newer "$version" "$DECKY_DECKYMUSIC_VERSION" || return 1
-    fi
-    for binary in player qq-provider ncm-provider; do
-        [ -f "$plugin_dir/bin/$binary" ] && [ ! -L "$plugin_dir/bin/$binary" ] &&
-            [ -s "$plugin_dir/bin/$binary" ] || return 1
-    done
-}
-
-ensure_deckymusic_full_current() {
-    local plugin_root="${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}"
-
-    if deckymusic_full_is_current; then
-        echo "[已安装] 音乐播放器（Decky Music）v$(decky_plugin_version "$plugin_root/Decky Music") 完整包已存在，无需重复安装。"
-        PLUGIN_INSTALL_CHANGED=0
-        return 0
-    fi
-    echo "正在安装音乐播放器 v${DECKY_DECKYMUSIC_VERSION}，支持 QQ 音乐和网易云音乐。"
-    GITEE_MIRROR_REPO="$DECKY_DECKYMUSIC_MIRROR_REPO" \
-    install_decky_zip "音乐播放器（Decky Music 完整包）" \
-        "$DECKY_DECKYMUSIC_URL" "$DECKY_DECKYMUSIC_SHA256" \
-        "Decky Music" 0 verify_deckymusic_full_directory || return 1
-    deckymusic_full_is_current || {
-        echo "Decky Music 安装后缺少播放器或音乐源文件，安装已判定失败。"
-        return 1
-    }
 }
 
 # SteamDB 游戏数据与沉浸式翻译均使用 mirror-3 上的固定完整汉化包。
@@ -4966,12 +4918,6 @@ print_feature_plugin_status() {
         echo "✗ 文件传输助手（Friendeck）：缺失、版本不符或官方名称未恢复"
         missing=1
     fi
-    if deckymusic_full_is_current; then
-        echo "✓ 音乐播放器（Decky Music）：官方版本 $(decky_plugin_version "$plugin_root/Decky Music")，完整包音乐源文件齐全"
-    else
-        echo "✗ 音乐播放器（Decky Music）：缺失、版本不符或音乐源文件不完整"
-        missing=1
-    fi
     if [ "${IS_STEAMOS:-0}" = "1" ]; then
         if feature_plugin_is_current "$plugin_root" "$DECKY_FANTASTIC_DIRECTORY" \
             "$DECKY_FANTASTIC_VERSION" "Fantastic" && \
@@ -5105,7 +5051,6 @@ install_feature_plugins_selected() {
     if ! feature_plugin_is_current "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
         "Friendeck-plugin" "$DECKY_FRIENDECK_PACKAGE_VERSION" \
         "Friendeck"; then _all_installed=0; fi
-    if ! deckymusic_full_is_current; then _all_installed=0; fi
     if [ "$IS_STEAMOS" -eq 1 ] && \
        { ! feature_plugin_is_current \
             "${DECKY_PLUGIN_DIR:-$HOME/homebrew/plugins}" \
@@ -5136,9 +5081,9 @@ install_feature_plugins_selected() {
             reload_decky_plugins '已重新加载插件，避免重复副本造成报错。'
         fi
         if [ "$IS_STEAMOS" -eq 1 ]; then
-            echo "十款常用功能插件已全部安装且检查通过，无需重复安装。"
+            echo "九款常用功能插件已全部安装且检查通过，无需重复安装。"
         else
-            echo "八款常用功能插件已全部安装且检查通过，无需重复安装。"
+            echo "七款常用功能插件已全部安装且检查通过，无需重复安装。"
         fi
         write_flingtrainer_desktop_note || \
             echo "常用插件已存在，但未能在桌面生成风灵月影网址.txt。"
@@ -5153,11 +5098,11 @@ install_feature_plugins_selected() {
 
     if [ "$IS_STEAMOS" -eq 1 ]; then
         echo "本次小黄鸭版本：$(lsfg_variant_label "$lsfg_variant")"
-        echo "将依次直接安装：所选小黄鸭、FSR4、CheatDeck 与 DeckyGCM、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制，最后处理 MAKO 小黄鸭。"
-        feature_plugins="lsfg fsr4 cheatdeck steamgriddb cssloader friendeck deckymusic fantastic lsfg-mako"
+        echo "将依次直接安装：所选小黄鸭、FSR4、CheatDeck 与 DeckyGCM、游戏封面更换、主题美化、文件传输助手、Fantastic 风扇控制，最后处理 MAKO 小黄鸭。"
+        feature_plugins="lsfg fsr4 cheatdeck steamgriddb cssloader friendeck fantastic lsfg-mako"
     else
-        echo "将依次直接安装：小黄鸭、FSR4、CheatDeck 与 DeckyGCM、游戏封面更换、主题美化、文件传输助手、音乐播放器。"
-        feature_plugins="lsfg fsr4 cheatdeck steamgriddb cssloader friendeck deckymusic"
+        echo "将依次直接安装：小黄鸭、FSR4、CheatDeck 与 DeckyGCM、游戏封面更换、主题美化、文件传输助手。"
+        feature_plugins="lsfg fsr4 cheatdeck steamgriddb cssloader friendeck"
     fi
     for plugin in $feature_plugins; do
         echo ""
@@ -5216,10 +5161,6 @@ install_feature_plugins_selected() {
                 echo "========== 文件传输助手（Friendeck） =========="
                 feature_install_step '文件传输助手' install_configured_plugin friendeck 0 0 || failed=1
                 ;;
-            deckymusic)
-                echo "========== 音乐播放器（Decky Music） =========="
-                feature_install_step '音乐播放器' install_configured_plugin deckymusic 0 0 || failed=1
-                ;;
             fantastic)
                 echo "========== Fantastic 风扇控制（汉化：RenAmamiya） =========="
                 echo "警告：过低风扇转速可能导致 Steam Deck 设备过热。"
@@ -5244,9 +5185,9 @@ install_feature_plugins_selected() {
 
     if [ "$failed" -eq 0 ]; then
         if [ "$IS_STEAMOS" -eq 1 ]; then
-            echo "十款常用功能插件已全部安装完成，名称、版本和关键文件均已确认。"
+            echo "九款常用功能插件已全部安装完成，名称、版本和关键文件均已确认。"
         else
-            echo "八款常用功能插件已全部安装完成，名称、版本和关键文件均已确认。"
+            echo "七款常用功能插件已全部安装完成，名称、版本和关键文件均已确认。"
         fi
         print_cef_remote_debugging_tip
         log "常用功能插件整组安装完成"
@@ -5260,7 +5201,7 @@ install_feature_plugins_selected() {
 }
 
 install_all_plugin_packages() {
-    echo "将依次处理十款常用功能插件和精选插件，其中包括 MAKO、Fantastic、SimpleDeckyTDP 与 Unifideck。"
+    echo "将依次处理九款常用功能插件和精选插件，其中包括 MAKO、Fantastic、SimpleDeckyTDP 与 Unifideck。"
     echo "官方推荐插件仍由 Decky 内置安装器在 Steam 界面中确认。"
 
     install_feature_plugins || return 1
@@ -5307,7 +5248,7 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     detect_platform
     if [ "$IS_CHIMERAOS" -eq 1 ]; then
         case "$requested_action" in
-            lsfg-mako|lsfg-v2|lsfg-zh|lsfg-zh-gitee|fsr4-zh|fsr4-zh-gitee|cheatdeck|steamgriddb|cssloader|friendeck|deckymusic|tomoon|deckrecall|savepulse|freedeck|newfreedeck|simpledeckytdp-zh|simpledeckytdp-zh-gitee|unifideck)
+            lsfg-mako|lsfg-v2|lsfg-zh|lsfg-zh-gitee|fsr4-zh|fsr4-zh-gitee|cheatdeck|steamgriddb|cssloader|friendeck|tomoon|deckrecall|savepulse|freedeck|newfreedeck|simpledeckytdp-zh|simpledeckytdp-zh-gitee|unifideck)
                 require_existing_chimera_plugin_environment || exit 1
                 ;;
             feature-status) ;;
@@ -5341,7 +5282,6 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
         cssloader) show_plugin_download_speed_tip; install_configured_plugin cssloader ;;
         deckhomethemes) show_plugin_download_speed_tip; install_configured_plugin deckhomethemes ;;
         friendeck) show_plugin_download_speed_tip; install_configured_plugin friendeck ;;
-        deckymusic) show_plugin_download_speed_tip; install_configured_plugin deckymusic ;;
         fantastic) show_plugin_download_speed_tip; install_configured_plugin fantastic ;;
         switch-to-windows) install_configured_plugin switch-to-windows ;;
         tomoon) show_plugin_download_speed_tip; install_configured_plugin tomoon ;;

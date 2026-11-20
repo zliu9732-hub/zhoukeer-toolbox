@@ -34,8 +34,7 @@ DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
     # 旧问题安装时必须重新安装官方包，原子替换整个目录，并保持官方后端/版本/前端不变。
     for entry in \
         "decky-steamgriddb|SteamGridDB|1.7.1|游戏封面更换" \
-        "Friendeck-plugin|Friendeck|0.7.5|文件传输助手" \
-        "Decky Music|Decky Music|1.0.2|音乐播放器"; do
+        "Friendeck-plugin|Friendeck|0.7.5|文件传输助手"; do
         directory="${entry%%|*}"
         rest="${entry#*|}"
         official="${rest%%|*}"
@@ -66,8 +65,7 @@ DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
     # 官方名称且版本正确时直接跳过，不重复下载。
     for entry in \
         "decky-steamgriddb|SteamGridDB|1.7.1" \
-        "Friendeck-plugin|Friendeck|0.7.5" \
-        "Decky Music|Decky Music|1.0.2"; do
+        "Friendeck-plugin|Friendeck|0.7.5"; do
         directory="${entry%%|*}"
         rest="${entry#*|}"
         official="${rest%%|*}"
@@ -101,9 +99,7 @@ DECKY_PLUGIN_DIR="$PLUGIN_ROOT" PROJECT_ROOT="$PROJECT_ROOT" bash -c '
 
 grep -Fq 'DECKY_FRIENDECK_SHA256="65465ff115e105912adf72b5461e17b697ac07100ce7061de2e962851e41c653"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'DECKY_DECKYMUSIC_SHA256="bd82e2e3ed7fdc24bed0afa754eecf4625a2f80f400d989ac38e9e5fcf578844"' \
-    "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CSSLOADER_ZH_INDEX_SHA256="38ec628efcc1238247e0cf771bde98b26be49349dca9c2d7de4270ad242a2567"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 
-echo "PASS: 四款常用插件名称、CSS Loader 中文前端和官方后端不变校验通过"
+echo "PASS: 三款常用插件名称、CSS Loader 中文前端和官方后端不变校验通过"

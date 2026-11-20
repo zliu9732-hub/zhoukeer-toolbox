@@ -111,7 +111,6 @@ mako_official_is_current() { return 0; }
 feature_plugin_is_current() { return 0; }
 feature_plugin_is_present() { return 1; }
 calculate_decky_sha256() { case "$1" in *Fantastic*) echo "$DECKY_FANTASTIC_INDEX_SHA256";; *) echo "$CSSLOADER_ZH_INDEX_SHA256";; esac; }
-deckymusic_full_is_current() { return 0; }
 print_feature_plugin_status() { deckygcm_is_current; }
 install_configured_plugin() { [ "$1" != cheatdeck ] || install_cheatdeck_with_gcm; }
 install_feature_plugins_selected auto > "$TEST_ROOT/bundle" || fail 'Bundle with missing GCM failed'
@@ -120,5 +119,5 @@ install_feature_plugins_selected auto > "$TEST_ROOT/bundle" || fail 'Bundle with
 install_feature_plugins_selected auto > "$TEST_ROOT/repeat" || fail 'Complete bundle failed'
 [ ! -s "$TEST_ROOT/packages" ] || fail 'Complete bundle downloaded again'
 grep -Fxq lsfg-mako "$TEST_ROOT/release-checks" || fail 'Complete bundle skipped release detection'
-grep -Fq '十款常用功能插件已全部安装'  "$TEST_ROOT/repeat" || fail 'Incorrect bundle count'
+grep -Fq '九款常用功能插件已全部安装'  "$TEST_ROOT/repeat" || fail 'Incorrect bundle count'
 echo 'PASS: SteamOS/desktop paired installs, missing companion repair, idempotence, first/second failures, retry, reload aggregation and complete-bundle shortcuts'

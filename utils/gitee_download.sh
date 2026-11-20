@@ -593,7 +593,6 @@ gitee_mirror_id_for_url() {
         *'/steam-deck-homebrew/versions/e84f5b1f111af8862b06218479491fbf61036e1bfd9f16f93f9901e9b9ebc5e0.zip') printf '%s\n' steamgriddb ;;
         *'/steam-deck-homebrew/versions/1a1e8f4dded8494febe56df16429ef5bba1e5b8feb3fd989d5808fbef0d71350.zip') printf '%s\n' cssloader ;;
         *'/panyiwei-home/Friendeck/releases/download/'*) printf '%s\n' friendeck ;;
-        *'/jinzhongjia/decky-music/releases/download/'*) printf '%s\n' deckymusic ;;
         *'/YukiCoco/ToMoon/releases/download/'*) printf '%s\n' tomoon ;;
         *'/Ren-Amamiya-pixle/DeckRecall/releases/download/'*) printf '%s\n' deckrecall ;;
         *'/Ren-Amamiya-pixle/SavePulse/releases/download/'*) printf '%s\n' savepulse ;;

@@ -124,7 +124,7 @@ grep -Fq 'Decky Loader 安装完成' "$TMP_ROOT/decky.out" || fail "Decky 安装
 # Bazzite 已安装官方 Decky 后，汉化功能插件必须通过平台门禁；测试仅在临时
 # HOME 中放置完整文件桩，不下载、不提权，也不接触真实 Decky 服务。
 BAZZITE_PLUGIN_ROOT="$DECKY_HOME/homebrew/plugins"
-for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck decky-steamgriddb SDH-CssLoader Friendeck-plugin "Decky Music"; do
+for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck decky-steamgriddb SDH-CssLoader Friendeck-plugin; do
     mkdir -p "$BAZZITE_PLUGIN_ROOT/$plugin_dir/dist"
     printf 'test bundle\n' > "$BAZZITE_PLUGIN_ROOT/$plugin_dir/dist/index.js"
 done
@@ -144,12 +144,6 @@ cp "$PROJECT_ROOT/third_party/cssloader-zh-v2.1.2/dist/index.js" \
     "$BAZZITE_PLUGIN_ROOT/SDH-CssLoader/dist/index.js"
 printf '{"name":"Friendeck"}\n' > "$BAZZITE_PLUGIN_ROOT/Friendeck-plugin/plugin.json"
 printf '{"version":"0.7.5"}\n' > "$BAZZITE_PLUGIN_ROOT/Friendeck-plugin/package.json"
-printf '{"name":"Decky Music"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky Music/plugin.json"
-printf '{"version":"1.0.2"}\n' > "$BAZZITE_PLUGIN_ROOT/Decky Music/package.json"
-mkdir -p "$BAZZITE_PLUGIN_ROOT/Decky Music/bin"
-for binary in player qq-provider ncm-provider; do
-    printf 'binary fixture\n' > "$BAZZITE_PLUGIN_ROOT/Decky Music/bin/$binary"
-done
 HOME="$DECKY_HOME" PATH="$DECKY_BIN:/usr/bin:/bin" \
 DECKY_PLUGIN_DIR="$BAZZITE_PLUGIN_ROOT" ZHOUKEER_TEST_MODE=1 \
 ZHOUKEER_OS_RELEASE_FILE="$BAZZITE_RELEASE" \
@@ -184,7 +178,7 @@ grep -Fq 'modules/plugin_store.sh" lsfg-v2' "$PROJECT_ROOT/main-bazzite.sh" || f
 grep -Fq 'modules/plugin_store.sh" lsfg-mako' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite MAKO 小黄鸭入口缺失"
 grep -Fq 'bazzite_lsfg_versions_menu' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite 小黄鸭版本子菜单缺失"
 grep -Fq 'modules/plugin_store.sh" fsr4-zh-gitee' "$PROJECT_ROOT/main-bazzite.sh" || fail "Bazzite FSR4 入口缺失"
-for plugin_action in steamgriddb cssloader friendeck deckymusic; do
+for plugin_action in steamgriddb cssloader friendeck; do
     grep -Fq "modules/plugin_store.sh\" $plugin_action" "$PROJECT_ROOT/main-bazzite.sh" || \
         fail "Bazzite 其余常用插件缺少独立入口：$plugin_action"
 done

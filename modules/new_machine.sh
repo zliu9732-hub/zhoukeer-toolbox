@@ -171,7 +171,7 @@ show_initialization_plan() {
     fi
     echo "【04】安装中文输入法"
     echo "【05-06】安装微信、QQ、Firefox并创建桌面图标"
-    echo "【07】安装插件商城、游戏下载工具和十款常用插件"
+    echo "【07】安装插件商城、游戏下载工具和九款常用插件"
     echo "【小黄鸭版本】$(lsfg_variant_label "$LSFG_INSTALL_VARIANT")"
     echo "【已有插件】$(feature_plugin_cleanup_label "$FEATURE_PLUGIN_CLEANUP")"
     if [ "$FEATURE_PLUGIN_CLEANUP" = remove ]; then
@@ -489,7 +489,7 @@ run_new_machine_initialization() {
         bash "$PROJECT_ROOT/modules/software.sh" browser
     run_step "【07】Decky 插件商城" env ZHOUKEER_AUTO_CONFIRM=1 \
         bash "$PROJECT_ROOT/modules/plugin_store.sh" store-auto
-    run_step "【07】十款常用插件（含 MAKO 与 Mako_Renkit、主题美化与 Fantastic 汉化）" env ZHOUKEER_AUTO_CONFIRM=1 \
+    run_step "【07】九款常用插件（含 MAKO 与 Mako_Renkit、主题美化与 Fantastic 汉化）" env ZHOUKEER_AUTO_CONFIRM=1 \
         ZHOUKEER_LSFG_VARIANT="$LSFG_INSTALL_VARIANT" \
         ZHOUKEER_FEATURE_PLUGIN_CLEANUP="$FEATURE_PLUGIN_CLEANUP" \
         ZHOUKEER_FEATURE_TRAINER_TOOLS=skip \

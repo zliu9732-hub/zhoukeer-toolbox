@@ -21,7 +21,7 @@ printf '\nFLOW_DONE\n'
   p=subprocess.Popen(['bash',str(fixture)],env=dict(os.environ,UI_TEST_ROOT=str(ROOT),UI_TEST_MODE='live'),stdin=slave,stdout=slave,stderr=slave);os.close(slave)
   try:
    frame=read_until(master,b'\x1b[?1006h');check('GFG Extreme' not in frame,'Crowded page one')
-   for label in ['游戏封面更换','音乐播放器','下一页','返回插件列表','返回首页']:item_position(frame,label)
+   for label in ['游戏封面更换','文件传输助手','下一页','返回插件列表','返回首页']:item_position(frame,label)
    y,x=item_position(frame,'下一页');os.write(master,click(x,y));frame=read_until(master,b'\x1b[?1006h')
    for label in ['GFG Extreme','Fantastic','屏幕色彩','上一页']:item_position(frame,label)
    y,x=item_position(frame,'GFG Extreme');os.write(master,click(x,y));frame=read_until(master,b'\x1b[?1006h');check('MOCK_GFG_INSTALL' in frame,'Wrong touch dispatch')

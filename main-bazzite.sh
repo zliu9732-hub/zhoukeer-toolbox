@@ -492,18 +492,18 @@ bazzite_feature_plugins_menu() {
     local choice
     while true; do
         draw_category_frame games "汉化功能插件" "选择需要的功能，安装后在游戏模式打开"
-        ui_touch_button 4 '\033[1;97;48;5;24m' "常用插件组合" "小黄鸭、FSR4、CheatDeck 与 DeckyGCM、封面、主题、传输和音乐"
+        ui_touch_button 4 '\033[1;97;48;5;24m' "常用插件组合" "小黄鸭、FSR4、CheatDeck 与 DeckyGCM、封面、主题与文件传输"
         ui_touch_button 7 '\033[1;97;48;5;24m' "小黄鸭版本选择" "旧版、新版与 MAKO，按需选择"
         ui_touch_button 10 '\033[1;97;48;5;24m' "安装 FSR4" "Decky-Framegen 汉化版"
         ui_touch_button 13 '\033[1;97;48;5;24m' "安装 CheatDeck 与 DeckyGCM" "搜索、下载修改器并随游戏启动"
         ui_touch_button 16 '\033[1;97;48;5;24m' "更多功能插件" "Freedeck、ToMoon、Unifideck 与掌机控制"
-        ui_touch_button 19 '\033[1;97;48;5;24m' "其余常用插件" "封面、主题、文件传输与音乐播放器单独安装"
+        ui_touch_button 19 '\033[1;97;48;5;24m' "其余常用插件" "封面、主题与文件传输等功能单独安装"
         ui_touch_button 22 '\033[1;97;48;5;238m' "返回 Decky 插件"
         ui_prompt
         choice="$(read_touch_menu right:4-5:all right:7-8:lsfg right:10-11:fsr4 right:13-14:cheatdeck right:16-17:more right:19-20:feature-singles right:22-23:back)"
         if apply_navigation "$choice"; then return 1; fi
         case "$choice" in
-            all) confirm_and_run "安装常用功能插件" "将安装八款常用功能插件；需要时会请求管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
+            all) confirm_and_run "安装常用功能插件" "将安装七款常用功能插件；需要时会请求管理员权限" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" features ;;
             lsfg) bazzite_lsfg_versions_menu || return 1 ;;
             fsr4) confirm_and_run "安装 FSR4" "安装完整中文包并检查完整性；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" fsr4-zh-gitee ;;
             cheatdeck) confirm_and_run "安装 CheatDeck 与 DeckyGCM" "一起安装两款修改器插件；感谢b站ProSS及时行乐" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck ;;
@@ -522,7 +522,6 @@ bazzite_common_feature_singles_menu() {
             ui_touch_button 5 '\033[1;97;48;5;24m' "游戏封面更换" "更换 Steam 游戏封面"
             ui_touch_button 7 '\033[1;97;48;5;24m' "主题美化" "更换游戏模式的界面样式"
             ui_touch_button 9 '\033[1;97;48;5;24m' "文件传输助手" "在掌机和其他设备之间传文件"
-            ui_touch_button 11 '\033[1;97;48;5;24m' "音乐播放器" "播放器和音乐源已内置"
             ui_touch_button 13 '\033[1;97;48;5;24m' "主页主题（ThemeHub）" "PS5、Switch、Xbox 等主页风格"
             ui_touch_button 15 '\033[1;97;48;5;24m' "屏幕色彩" "调整颜色并一键恢复"
             ui_touch_button 17 '\033[1;97;48;5;24m' "SteamDB 游戏数据" "查看价格史低与在线峰值"
@@ -540,7 +539,7 @@ bazzite_common_feature_singles_menu() {
         ui_touch_button 23 '\033[1;97;48;5;238m' "返回首页"
         ui_prompt
         if [ "$page" -eq 1 ]; then
-            choice="$(read_touch_menu right:5-6:steamgriddb right:7-8:cssloader right:9-10:friendeck right:11-12:deckymusic right:13-14:deckhomethemes right:15-16:screen-colors right:17-18:steamdb-info right:19-20:next right:21-22:back right:23-24:home)"
+            choice="$(read_touch_menu right:5-6:steamgriddb right:7-8:cssloader right:9-10:friendeck right:13-14:deckhomethemes right:15-16:screen-colors right:17-18:steamdb-info right:19-20:next right:21-22:back right:23-24:home)"
         else
             choice="$(read_touch_menu right:5-6:gfg-extreme right:7-8:fantastic right:9-10:decky-translator right:11-12:rog-white-install right:13-14:handheld-pink-install right:15-16:pink-white-gradient-install right:19-20:previous right:21-22:back right:23-24:home)"
         fi
@@ -549,7 +548,6 @@ bazzite_common_feature_singles_menu() {
             steamgriddb) confirm_and_run "安装游戏封面更换" "更换 Steam 游戏封面" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
             cssloader) confirm_and_run "安装主题美化" "安装 CSS Loader 中文版" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
             friendeck) confirm_and_run "安装文件传输助手" "安装后可在插件中传输文件" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
-            deckymusic) confirm_and_run "安装音乐播放器" "安装播放器及音乐源" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
             deckhomethemes) confirm_and_run "安装主页主题（ThemeHub）" "完整中文版；主题资源在插件内下载；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckhomethemes ;;
             screen-colors) confirm_and_run "安装屏幕色彩" "在游戏模式调整屏幕颜色；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" screen-colors ;;
             steamdb-info) confirm_and_run "安装SteamDB 游戏数据" "需要开启 CEF 远程调试；汉化：RenAmamiya" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamdb-info ;;

@@ -690,10 +690,6 @@ sync_plugin friendeck "panyiwei-home/Friendeck" '^Friendeck[.]v[.]0[.]7[.]7[.]zi
     "0.7.7" "Friendeck.v.0.7.7.zip" \
     "https://github.com/panyiwei-home/Friendeck/releases/download/0.7.7/Friendeck.v.0.7.7.zip" \
     "65465ff115e105912adf72b5461e17b697ac07100ce7061de2e962851e41c653"
-sync_plugin deckymusic "jinzhongjia/decky-music" '^Decky[.]Music[.]full[.]zip$' "Decky Music 完整包" \
-    "v1.0.8" "Decky.Music.full.zip" \
-    "https://github.com/jinzhongjia/decky-music/releases/download/v1.0.8/Decky.Music.full.zip" \
-    "bd82e2e3ed7fdc24bed0afa754eecf4625a2f80f400d989ac38e9e5fcf578844" "$MIRROR4"
 sync_plugin tomoon "YukiCoco/ToMoon" '^tomoon-v[0-9.]+[.]zip$' "ToMoon"
 sync_plugin savepulse "Ren-Amamiya-pixle/SavePulse" '^SavePulse[.]zip$' "SavePulse" \
     "v0.2.0-alpha.1" "SavePulse.zip" \

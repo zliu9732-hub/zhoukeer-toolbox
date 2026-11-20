@@ -21,7 +21,6 @@ Renkit自身代码使用仓库根目录 `LICENSE`（个人免费使用，禁止�
 | SteamGridDB | Steam 游戏封面管理插件 | https://github.com/SteamGridDB/decky-steamgriddb | GPL-3.0-or-later | 是 | 使用 Decky 官方商店 v1.8.1 完整原包；保留官方名称、原作者与内置中文界面 |
 | CSS Loader | Steam CSS 主题插件 | https://github.com/DeckThemes/SDH-CssLoader | GPL-2.0-or-later | 是 | 使用 Decky 官方商店 v2.1.2 原包并叠加中文前端；后端保持原包 |
 | Friendeck | 局域网文件传输插件 | https://github.com/panyiwei-home/Friendeck | GPL-3.0 | 是 | Release 0.7.7 原包；安装后仅改 `plugin.json` 显示名称 |
-| Decky Music | QQ 音乐与网易云音乐插件 | https://github.com/jinzhongjia/decky-music | MIT | 是 | v1.0.0 原包；安装后仅改 `plugin.json` 显示名称 |
 | ToMoon | ToMoon 插件 | https://github.com/YukiCoco/ToMoon | BSD-3-Clause | 是 | |
 | DeckRecall | DeckRecall 插件 | https://github.com/Ren-Amamiya-pixle/DeckRecall | 作者授权 Renkit 镜像分发 | 是 | DeckRecall 作者于 2026-08-10 在 Renkit 开发会话中明确授权国内镜像分发 |
 | SavePulse | 自动版本存档与加密 WebDAV 换机恢复插件 | https://github.com/Ren-Amamiya-pixle/SavePulse | GPL-3.0-only | 是 | 作者 Release 分块镜像；每位用户绑定自己的坚果云或标准 WebDAV，下载重组后校验作者包 SHA256 |

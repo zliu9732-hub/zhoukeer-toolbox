@@ -33,4 +33,4 @@ GFG/Fantastic 在桌面 Linux 仍需 Steam Deck，AYANEO3 仍校验机型。GFG 
 
 交付 ThemeHub 1.10.9 完整中文 ZIP：根目录 DeckHomeThemes，69 个运行/声明/汉化报告文件，SHA256 `97fdf3fbf4341e5e7efada4cb7a0e7457a5b7b6b1340d3b22cd2d04c7ee17bbe`；与已发布清单一致，可在 Decky 开发者设置直接选 ZIP 安装。以原始 1.10.9 包重建，重新验证显示文案清单、后端与功能 AST、原作者与黄色 RenAmamiya 汉化署名。
 
-3.4.5 起，桌面版的 CheatDeck 入口同时安装 DeckyGCM；常用组合共八款插件，已有 CheatDeck 也会补装 DeckyGCM。原包自带中文，感谢b站ProSS及时行乐，保留 Qiming-Liu 与 GPL-3.0。
+3.4.5 起，桌面版的 CheatDeck 入口同时安装 DeckyGCM，已有 CheatDeck 也会补装 DeckyGCM。原包自带中文，感谢b站ProSS及时行乐，保留 Qiming-Liu 与 GPL-3.0。3.5.9 起，常用组合共七款插件。

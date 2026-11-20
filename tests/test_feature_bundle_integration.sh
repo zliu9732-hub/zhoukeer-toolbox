@@ -71,9 +71,6 @@ echo renderer > "$DECKY_PLUGIN_DIR/$LSFG_MAKO_DIRECTORY/bin/MAKO-Renderer-v2.2.0
 make_plugin "$STEAMGRIDDB_OFFICIAL_DIRECTORY" SteamGridDB "$STEAMGRIDDB_OFFICIAL_VERSION"
 make_plugin "$CSSLOADER_OFFICIAL_DIRECTORY" 主题美化 "$CSSLOADER_OFFICIAL_VERSION"
 make_plugin Friendeck-plugin Friendeck "$DECKY_FRIENDECK_PACKAGE_VERSION"
-make_plugin 'Decky Music' 'Decky Music' "$DECKY_DECKYMUSIC_VERSION"
-mkdir -p "$DECKY_PLUGIN_DIR/Decky Music/bin"
-for binary in player qq-provider ncm-provider; do echo fixture > "$DECKY_PLUGIN_DIR/Decky Music/bin/$binary"; done
 make_plugin "$DECKY_FANTASTIC_DIRECTORY" Fantastic "$DECKY_FANTASTIC_VERSION"
 LSFG_MAKO_INDEX_SHA256="$(calculate_decky_sha256 "$DECKY_PLUGIN_DIR/$LSFG_MAKO_DIRECTORY/dist/index.js")"
 CSSLOADER_ZH_INDEX_SHA256="$LSFG_MAKO_INDEX_SHA256"
@@ -109,7 +106,7 @@ toolbox_sudo() {
     "$@"
 }
 install_feature_plugins > "$TEST_ROOT/fresh" 2> "$TEST_ROOT/hidden-errors" || fail 'Full combo failed'
-grep -Fq '十款常用功能插件已全部安装完成' "$TEST_ROOT/fresh" || fail 'Combo not verified'
+grep -Fq '九款常用功能插件已全部安装完成' "$TEST_ROOT/fresh" || fail 'Combo not verified'
 grep -Fq '✓ DeckyGCM' "$TEST_ROOT/fresh" || fail 'Real companion check skipped'
 for DENY_ADMIN in 0 1; do
     echo changed > "$DECKY_PLUGIN_DIR/DeckyGCM/README.md"
@@ -158,4 +155,4 @@ if install_feature_plugins > "$TEST_ROOT/tools-fail" 2> "$TEST_ROOT/hidden-error
 grep -Fq '模拟：运行工具下载失败' "$TEST_ROOT/tools-fail" || fail 'Child stderr filtered away'
 grep -Fq '常用插件已安装完成；未完成的是另外选择的修改器运行工具' "$TEST_ROOT/tools-fail" || fail 'Optional tool failure mislabeled as plugin failure'
 unset -f bash
-echo 'PASS: actual ten-plugin combo, real GCM unzip/copy/full status, existing root-owned backup failures, successful warnings, repeat install, staging corruption, rollback, visible reasons and separate trainer failure'
+echo 'PASS: actual nine-plugin combo, real GCM unzip/copy/full status, existing root-owned backup failures, successful warnings, repeat install, staging corruption, rollback, visible reasons and separate trainer failure'

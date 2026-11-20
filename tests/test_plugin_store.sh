@@ -162,13 +162,6 @@ grep -Fq 'decky-lsfg-vk/releases/download/v0.12.8/Decky.LSFG-VK.zip' "$PROJECT_R
 grep -Fq 'Decky-Framegen/releases/download/v0.17/Decky-Framegen.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'CheatDeck/releases/download/v2.0.0/CheatDeck.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'YukiCoco/ToMoon/releases/download/v0.2.8/tomoon-v0.2.8.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'jinzhongjia/decky-music/releases/download/v1.0.8/Decky.Music.full.zip' \
-    "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'bd82e2e3ed7fdc24bed0afa754eecf4625a2f80f400d989ac38e9e5fcf578844' \
-    "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'ensure_deckymusic_full_current' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq 'DECKY_DECKYMUSIC_MIRROR_REPO="zhoukeer-toolbox-mirror-4"' \
-    "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Ren-Amamiya-pixle/DeckRecall/releases/download/v0.4.2/DeckRecall.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq '38cbbaa94f39bbe7231f490fd3826f1347ce8c0acb53aa69c784d8511cc058fd' "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Ren-Amamiya-pixle/SavePulse/releases/download/v0.2.0-alpha.1/SavePulse.zip' "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -437,7 +430,6 @@ for install_call in \
     'install_configured_plugin steamgriddb 0 0' \
     'install_configured_plugin cssloader 0 0' \
     'install_configured_plugin friendeck 0 0' \
-    'install_configured_plugin deckymusic 0 0' \
     'install_configured_plugin fantastic 0 0'; do
     printf '%s\n' "$feature_install" | grep -Fq "$install_call" || {
         echo "FAIL: 常用插件组合缺少下载调用：$install_call" >&2
@@ -479,8 +471,8 @@ grep -Fq 'decky_plugin_store_version()' "$PROJECT_ROOT/modules/plugin_store.sh" 
 printf '%s\n' "$feature_install" | grep -Fq '小黄鸭（LSFG-VK）'
 printf '%s\n' "$feature_install" | grep -Fq 'reload_decky_plugins'
 printf '%s\n' "$feature_install" | grep -Fq '常用插件会出现在插头菜单中'
-printf '%s\n' "$feature_install" | grep -Fq '十款常用功能插件'
-printf '%s\n' "$feature_install" | grep -Fq 'feature_plugins="lsfg fsr4 cheatdeck steamgriddb cssloader friendeck deckymusic fantastic lsfg-mako"'
+printf '%s\n' "$feature_install" | grep -Fq '九款常用功能插件'
+printf '%s\n' "$feature_install" | grep -Fq 'feature_plugins="lsfg fsr4 cheatdeck steamgriddb cssloader friendeck fantastic lsfg-mako"'
 grep -Fq 'SWITCH_TO_WINDOWS_SOURCE_DIR="$PROJECT_ROOT/decky-plugins/switch-to-windows"' \
     "$PROJECT_ROOT/modules/plugin_store.sh"
 grep -Fq 'Switch to Windows v$SWITCH_TO_WINDOWS_VERSION 安装成功；本人制作：RenAmamiya。' \
@@ -852,7 +844,7 @@ if printf '%s\n' "$configured_plugin_function" | grep -Fq 'remove_legacy_lsfg_di
 fi
 
 grep -Fq '正在安装 FSR4' "$PROJECT_ROOT/modules/plugin_store.sh"
-grep -Fq '将依次直接安装：所选小黄鸭、FSR4、CheatDeck 与 DeckyGCM、游戏封面更换、主题美化、文件传输助手、音乐播放器、Fantastic 风扇控制，最后处理 MAKO 小黄鸭。' \
+grep -Fq '将依次直接安装：所选小黄鸭、FSR4、CheatDeck 与 DeckyGCM、游戏封面更换、主题美化、文件传输助手、Fantastic 风扇控制，最后处理 MAKO 小黄鸭。' \
     "$PROJECT_ROOT/modules/plugin_store.sh" || {
     echo "FAIL: SteamOS 常用插件说明与当前组合不一致" >&2
     exit 1
@@ -999,7 +991,7 @@ fi
 # 小黄鸭官方 v0.12.8 使用 Decky LSFG-VK，旧汉化包使用“小黄鸭”；
 # 状态检查必须同时兼容官方名和旧中文名。
 PLUGIN_ROOT="$TMP_ROOT/plugins"
-for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck decky-steamgriddb SDH-CssLoader Friendeck-plugin "Decky Music"; do
+for plugin_dir in "Decky LSFG-VK" Decky-Framegen CheatDeck decky-steamgriddb SDH-CssLoader Friendeck-plugin; do
     mkdir -p "$PLUGIN_ROOT/$plugin_dir/dist"
     printf 'bundle\n' > "$PLUGIN_ROOT/$plugin_dir/dist/index.js"
 done
@@ -1035,12 +1027,6 @@ cp "$PROJECT_ROOT/third_party/cssloader-zh-v2.1.2/dist/index.js" \
     "$PLUGIN_ROOT/SDH-CssLoader/dist/index.js"
 printf '{"name": "Friendeck"}\n' > "$PLUGIN_ROOT/Friendeck-plugin/plugin.json"
 printf '{"version":"0.7.5"}\n' > "$PLUGIN_ROOT/Friendeck-plugin/package.json"
-printf '{"name": "Decky Music"}\n' > "$PLUGIN_ROOT/Decky Music/plugin.json"
-printf '{"version":"1.0.8"}\n' > "$PLUGIN_ROOT/Decky Music/package.json"
-mkdir -p "$PLUGIN_ROOT/Decky Music/bin"
-for binary in player qq-provider ncm-provider; do
-    printf 'binary fixture\n' > "$PLUGIN_ROOT/Decky Music/bin/$binary"
-done
 print_test_feature_plugin_status() (
     # shellcheck disable=SC1090
     source "$PROJECT_ROOT/modules/plugin_store.sh"
@@ -1061,17 +1047,7 @@ printf '%s\n' "$status_output" | grep -Fq '✓ CheatDeck：已写入 Decky，官
 printf '%s\n' "$status_output" | grep -Fq '✓ 游戏封面更换（SteamGridDB）'
 printf '%s\n' "$status_output" | grep -Fq '✓ 主题美化（CSS Loader）'
 printf '%s\n' "$status_output" | grep -Fq '✓ 文件传输助手（Friendeck）'
-printf '%s\n' "$status_output" | grep -Fq '✓ 音乐播放器（Decky Music）'
 printf '%s\n' "$status_output" | grep -Fq '✓ Fantastic 风扇控制：'
-
-rm -f -- "$PLUGIN_ROOT/Decky Music/bin/ncm-provider"
-if incomplete_music_status="$(print_test_feature_plugin_status)"; then
-    echo "FAIL: Decky Music 缺少音乐源时不应通过状态检查" >&2
-    exit 1
-fi
-printf '%s\n' "$incomplete_music_status" | \
-    grep -Fq '音乐源文件不完整'
-printf 'binary fixture\n' > "$PLUGIN_ROOT/Decky Music/bin/ncm-provider"
 
 printf '{"name":"小黄鸭"}\n' > "$PLUGIN_ROOT/Decky LSFG-VK/plugin.json"
 legacy_status_output="$(print_test_feature_plugin_status)"
@@ -1135,7 +1111,6 @@ update_output="$(
                 steamgriddb) echo "TEST_UPDATE: SteamGridDB" ;;
                 cssloader) echo "TEST_UPDATE: CSS Loader" ;;
                 friendeck) echo "TEST_UPDATE: Friendeck" ;;
-                deckymusic) echo "TEST_UPDATE: Decky Music" ;;
                 fantastic)
                     mkdir -p "$DECKY_PLUGIN_DIR/Fantastic"
                     cp -R "$PROJECT_ROOT/third_party/fantastic-zh-v0.5.1/." \
@@ -1161,7 +1136,6 @@ printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: MAKO'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: SteamGridDB'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: CSS Loader'
 printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: Friendeck'
-printf '%s\n' "$update_output" | grep -Fq 'TEST_UPDATE: Decky Music'
 printf '%s\n' "$update_output" | grep -Fq '官方版本 0.12.8'
 printf '%s\n' "$update_output" | grep -Fq '官方版本 0.17'
 

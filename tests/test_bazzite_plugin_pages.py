@@ -5,7 +5,7 @@ from test_responsive_ui import ROOT,SHELL,check,click,item_position,read_until,r
 source=(ROOT/'main-bazzite.sh').read_text()
 def extract(name):return re.search(r'^'+name+r'\(\).*?^}',source,re.M|re.S).group()
 pages=[[
- ('游戏封面更换','steamgriddb'),('主题美化','cssloader'),('文件传输助手','friendeck'),('音乐播放器','deckymusic'),('主页主题（ThemeHub）','deckhomethemes'),('屏幕色彩','screen-colors'),('SteamDB 游戏数据','steamdb-info')],
+ ('游戏封面更换','steamgriddb'),('主题美化','cssloader'),('文件传输助手','friendeck'),('主页主题（ThemeHub）','deckhomethemes'),('屏幕色彩','screen-colors'),('SteamDB 游戏数据','steamdb-info')],
  [('GFG Extreme','gfg-extreme'),('Fantastic 风扇控制','fantastic'),('游戏翻译','decky-translator'),('ROG White 白色主题','rog_white_theme.sh:install'),('掌机 Pink 粉色主题','handheld_pink_theme.sh:install'),('粉白渐变主题','pink_white_gradient_theme.sh:install')]]
 with tempfile.TemporaryDirectory(prefix='renkit-desktop-plugin-pages-') as directory:
  fixture=Path(directory)/'menu.sh'

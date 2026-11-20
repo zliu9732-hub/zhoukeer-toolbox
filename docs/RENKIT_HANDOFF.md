@@ -249,7 +249,7 @@ Bazzite 菜单已经包含官方插件分页、功能插件和掌机插件，包
 
 - 小黄鸭（LSFG）、FSR4/Decky-Framegen、CheatDeck。
 - DeckRecall、Freedeck、NewFreedeck、ToMoon、Unifideck。
-- SteamGridDB、CSS Loader 中文版、Friendeck、Decky Music。
+- SteamGridDB、CSS Loader 中文版、Friendeck。
 - 掌机功耗控制、Ally Center、HueSync、Legion Go Remapper、GPD Control、Legion Go Vibe、Legion Go 2 Fan。
 - OneXPlayer Apex Tools；仅适用于明确机型，必须保留高风险提示，不能在其他掌机安装。
 

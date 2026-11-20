@@ -73,7 +73,6 @@ install_lsfg_zh_from_gitee() { fail "常用组合把 2.0 降回 1.0"; }
 install_fsr4_zh_from_gitee() { return 0; }
 install_configured_plugin() { return 0; }
 mako_official_is_current() { return 0; }
-deckymusic_full_is_current() { return 0; }
 refresh_feature_usage_guides() { return 0; }
 print_feature_plugin_status() { return 0; }
 check_lossless_scaling_installation() { return 0; }

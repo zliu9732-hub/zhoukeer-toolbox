@@ -41,7 +41,6 @@ run_bundle() (
     lsfg_v2_is_current() { [ "$installed" = v2 ]; }
     lsfg_v2_is_selected() { [ "$installed" = v2 ]; }
     calculate_decky_sha256() { printf '%s\n' "$CSSLOADER_ZH_INDEX_SHA256"; }
-    deckymusic_full_is_current() { return 0; }
     mako_official_is_current() { return 0; }
     install_lsfg_v2_from_gitee() { echo INSTALL_V2; }
     install_lsfg_zh_from_gitee() { echo INSTALL_LEGACY; }

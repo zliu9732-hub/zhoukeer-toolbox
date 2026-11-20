@@ -292,9 +292,9 @@ game_environment_gui_menu() {
 
     while true; do
         choice="$(gui_dialog --menu "游戏与插件｜插件商城" \
-            features "常用插件组合｜两版小黄鸭、FSR4、Fantastic等十款插件" \
+            features "常用插件组合｜两版小黄鸭、FSR4、Fantastic等九款插件" \
             cheatdeck "CheatDeck 与 DeckyGCM｜搜索、下载修改器并随游戏启动" \
-            all "常用插件加精选插件｜优先安装十款常用插件，已装则跳过；再补精选" \
+            all "常用插件加精选插件｜优先安装九款常用插件，已装则跳过；再补精选" \
             feature-singles "其余常用插件｜封面、主题、Fantastic等插件单独安装" \
             lsfg "小黄鸭｜让游戏画面更流畅｜汉化：RenAmamiya" \
             fsr4 "FSR4｜改善支持游戏的画面｜请先阅读使用说明" \
@@ -323,7 +323,7 @@ game_environment_gui_menu() {
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" cheatdeck
                 ;;
             features)
-                gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。未安装插件商城时会先安装插件商城，再继续安装十款常用插件（含 MAKO）。Fantastic 会覆盖默认风扇曲线；会使用管理员权限。是否继续？" && \
+                gui_confirm "请先在游戏模式：Steam 键 → 设置 → 启用开发者模式；设置左侧出现“开发者”后 → 开发者 → 杂项，开启“CEF 远程调试”，完成后重新进入桌面模式。未安装插件商城时会先安装插件商城，再继续安装九款常用插件（含 MAKO）。Fantastic 会覆盖默认风扇曲线；会使用管理员权限。是否继续？" && \
                     run_gui_action "安装常用插件组合" env ZHOUKEER_AUTO_CONFIRM=1 \
                     bash "$PROJECT_ROOT/modules/plugin_store.sh" features
                 ;;
@@ -340,7 +340,6 @@ game_environment_gui_menu() {
                             steamgriddb "游戏封面更换｜更换 Steam 游戏封面" \
                             cssloader "主题美化｜更换游戏模式的界面主题和样式" \
                             friendeck "文件传输助手｜在掌机和其他设备之间传文件" \
-                            deckymusic "音乐播放器｜支持 QQ 音乐和网易云音乐" \
                             next "下一页｜功耗、风扇与屏幕色彩" \
                             back "返回游戏与插件")" || break
                     else
@@ -348,7 +347,7 @@ game_environment_gui_menu() {
                             gfg-extreme "GFG Extreme 功耗与补帧｜自动调节耗电与流畅度｜汉化：RenAmamiya" \
                             fantastic "Fantastic 风扇控制｜完整汉化版｜汉化：RenAmamiya｜注意温度" \
                             screen-colors "屏幕色彩｜调整颜色与一键效果｜汉化：RenAmamiya" \
-                            previous "上一页｜封面、主题、文件传输与音乐" \
+                            previous "上一页｜封面、主题与文件传输" \
                             back "返回游戏与插件")" || break
                     fi
                 case "$feature_choice" in
@@ -358,7 +357,6 @@ game_environment_gui_menu() {
                     steamgriddb) run_gui_action "安装游戏封面更换" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" steamgriddb ;;
                     cssloader) run_gui_action "安装主题美化" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" cssloader ;;
                     friendeck) run_gui_action "安装文件传输助手" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" friendeck ;;
-                    deckymusic) run_gui_action "安装音乐播放器" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" deckymusic ;;
                     screen-colors)
                         gui_confirm "调整游戏模式下的屏幕色彩，提供影院、鲜艳、舒适和类 OLED 效果；可一键恢复原始色彩。仅在游戏模式生效，会使用管理员权限；类 OLED 效果不会改变屏幕本身。汉化：RenAmamiya。是否安装？" && \
                             run_gui_action "安装屏幕色彩" env ZHOUKEER_AUTO_CONFIRM=1 bash "$PROJECT_ROOT/modules/plugin_store.sh" screen-colors
