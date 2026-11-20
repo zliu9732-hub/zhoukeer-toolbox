@@ -1,6 +1,6 @@
 #!/bin/bash
 renkit_brand_run() {
-    local renderer_args=(--keep-footer --allow-pipe-output)
+    local renderer_args=(--allow-pipe-output)
     # Shell-function callbacks and redirected output keep their existing behavior.
     if ! declare -F "$1" >/dev/null && [ -t 0 ] &&
         { [ -t 1 ] || [ "${RENKIT_BRAND_TTY:-0}" = 1 ]; } &&

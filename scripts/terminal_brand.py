@@ -4,6 +4,7 @@ import errno
 import fcntl
 import os
 import pty
+import re
 import select
 import signal
 import struct
@@ -250,7 +251,21 @@ class Boundaries:
         return data[:end]
 
 
-def run(command, keep_footer=False, allow_pipe_output=False, log_file=None):
+TERMINAL_ESCAPE = re.compile(
+    rb'\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07\x1b]*(?:\x07|\x1b\\)|'
+    rb'[P_^].*?\x1b\\|[ -/]*[@-Z\\-~])', re.DOTALL
+)
+
+
+def recent_plain_output(data, rows):
+    """Recover recent messages and the current prompt after terminal reflow."""
+    plain = TERMINAL_ESCAPE.sub(b'', data).decode('utf-8', errors='ignore')
+    plain = ''.join(char for char in plain if char in '\r\n\t' or char.isprintable())
+    lines = [line.rsplit('\r', 1)[-1] for line in plain.replace('\r\n', '\n').split('\n')]
+    return '\r\n'.join(lines[-max(1, rows // 2):]).encode()
+
+
+def run(command, allow_pipe_output=False, log_file=None):
     # Redirected output and noninteractive runs preserve ordinary stream behavior.
     if not os.isatty(0) or (not os.isatty(1) and not allow_pipe_output) or os.environ.get('TERM') == 'dumb':
         return subprocess.call(command)
@@ -261,7 +276,9 @@ def run(command, keep_footer=False, allow_pipe_output=False, log_file=None):
     process = None
     boundary = Boundaries()
     size = [24, 80]
-    previous_art = []
+    footer = b''
+    footer_top = 0
+    recent_output = b''
     resize_pending = False
 
     def output(value):
@@ -275,23 +292,26 @@ def run(command, keep_footer=False, allow_pipe_output=False, log_file=None):
             except ProcessLookupError:
                 pass
 
-    def resized(signum=None, frame=None):
-        nonlocal size, previous_art
+    def resized(initial=False):
+        nonlocal size, footer, footer_top, recent_output
         winsize = fcntl.ioctl(0, termios.TIOCGWINSZ, b'\0' * 8)
         rows, cols, _, _ = struct.unpack('HHHH', winsize)
-        size = [rows or 24, cols or 80]
+        new_size = [rows or 24, cols or 80]
+        if not initial and new_size == size:
+            return
+        size = new_size
+        if initial:
+            footer = decoration(*size)
+            footer_top = artwork(*size)[0] + 1
+            output(footer)
+        elif footer:
+            # Konsole may have reflowed the old artwork before SIGWINCH.
+            # Its former coordinates can now contain logs or a prompt.
+            # Resume ordinary terminal output for the rest of this action.
+            footer = b''
+            output(b'\x1b[0m\x1b[r\x1b[2J\x1b[H' + recent_plain_output(recent_output, size[0]))
+            recent_output = b''
         fcntl.ioctl(master, termios.TIOCSWINSZ, winsize)
-        if process and process.poll() is None:
-            forward(signal.SIGWINCH)
-        # Clear only cells previously owned by the signature before a resize.
-        erase = '\x1b7'
-        for row, col, line, color in previous_art:
-            if row <= size[0] and col <= size[1]:
-                width = cell_width(line)
-                erase += f'\x1b[{row};{col}H' + ' ' * min(width, size[1] - col)
-        output((erase + '\x1b8').encode())
-        previous_art = artwork(*size)[1]
-        output(decoration(*size))
 
     def interrupted(signum, frame):
         if process and process.poll() is None:
@@ -308,10 +328,10 @@ def run(command, keep_footer=False, allow_pipe_output=False, log_file=None):
         fcntl.ioctl(slave, termios.TIOCSCTTY, 0)
 
     try:
-        resized()
         for signum in (signal.SIGWINCH, signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
             previous[signum] = signal.getsignal(signum)
             signal.signal(signum, request_resize if signum == signal.SIGWINCH else interrupted)
+        resized(initial=True)
         tty.setraw(0)
         process = subprocess.Popen(command, stdin=slave, stdout=slave, stderr=slave if action_log else None, preexec_fn=child_setup)
         os.close(slave)
@@ -336,16 +356,19 @@ def run(command, keep_footer=False, allow_pipe_output=False, log_file=None):
                     inputs.remove(fd)
                     continue
                 if fd == master:
+                    if resize_pending:
+                        resize_pending = False
+                        resized()
                     if action_log:
                         action_log.write(data)
                         action_log.flush()
                     chunk = boundary.take(data)
                     if chunk:
-                        bottom, lines = artwork(*size)
-                        if lines:
-                            chunk = chunk.replace(b'\x1b[r', f'\x1b[1;{bottom}r'.encode())
+                        if footer:
+                            recent_output = (recent_output + chunk)[-8192:]
+                            chunk = chunk.replace(b'\x1b[r', f'\x1b[1;{footer_top - 1}r'.encode())
                         output(chunk)
-                        output(decoration(*size))
+                        output(footer)
                 else:
                     os.write(master, data)
         if boundary.pending:
@@ -360,11 +383,15 @@ def run(command, keep_footer=False, allow_pipe_output=False, log_file=None):
             except subprocess.TimeoutExpired:
                 forward(signal.SIGKILL)
                 process.wait()
+        termios.tcsetattr(0, termios.TCSANOW, original)
+        resized()
+        if footer:
+            erase_rows = ''.join(f'\x1b[{row};1H\x1b[2K' for row in range(footer_top, size[0] + 1))
+            output(b'\x1b7\x1b[0m\x1b[r' + erase_rows.encode() + b'\x1b8\x1b[0m')
+        else:
+            output(b'\x1b7\x1b[r\x1b8\x1b[0m')
         for signum, handler in previous.items():
             signal.signal(signum, handler)
-        termios.tcsetattr(0, termios.TCSANOW, original)
-        if not keep_footer or not process or process.returncode is None or process.returncode < 0:
-            output(b'\x1b[0m\x1b[r')
         os.close(master)
         if action_log:
             action_log.close()
@@ -374,7 +401,6 @@ def run(command, keep_footer=False, allow_pipe_output=False, log_file=None):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--keep-footer', action='store_true')
     parser.add_argument('--allow-pipe-output', action='store_true')
     parser.add_argument('--log-file')
     parser.add_argument('command', nargs=argparse.REMAINDER)
@@ -383,7 +409,7 @@ if __name__ == '__main__':
     if not command:
         parser.error('missing command')
     try:
-        sys.exit(run(command, args.keep_footer, args.allow_pipe_output, args.log_file))
+        sys.exit(run(command, args.allow_pipe_output, args.log_file))
     except OSError as error:
         print(f"安装界面无法启动当前操作：{error}", file=sys.stderr)
         sys.exit(127 if isinstance(error, FileNotFoundError) else 126)

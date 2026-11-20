@@ -11,9 +11,12 @@ import tempfile
 import termios
 import time
 import tty
-from test_responsive_ui import ROOT,check,read_until,resize
+from test_responsive_ui import ROOT,check,read_until as read_pty_until,resize
 spec=importlib.util.spec_from_file_location('brand',ROOT/'scripts/terminal_brand.py')
 b=importlib.util.module_from_spec(spec);spec.loader.exec_module(b)
+def read_until(master, expected):
+ # A read can end in the middle of the next block glyph after the marker.
+ return read_pty_until(master,expected,decode_errors='replace')
 def input_state(fd):
  state=termios.tcgetattr(fd)
  # macOS sets this transient kernel flag when returning pending input to canonical mode.
@@ -62,6 +65,7 @@ for i in range(100):print(f"LOG_{i:03}")
 print("INPUT:",flush=True)
 answer=sys.stdin.readline().strip()
 print("ANSWER="+answer,flush=True)
+print("SIZE="+str(os.get_terminal_size()),flush=True)
 time.sleep(.1)
 sys.exit(7 if answer=="fail" else 0)
 ''')
@@ -74,13 +78,15 @@ sys.exit(7 if answer=="fail" else 0)
    expected_region=f'\x1b[1;{b.artwork(32,120)[0]}r'
    check(expected_region in frame and '\x1b[rSTART' not in frame,'Child removed footer reservation')
    resize(master,70,24);os.kill(process.pid,signal.SIGWINCH)
-   expected_region=f'\x1b[1;{b.artwork(24,70)[0]}r'
-   frame=read_until(master,expected_region.encode());check(expected_region in frame,'Resize did not fit compact footer')
-   # Read the entire resized title, rather than stopping at its scroll region.
-   if b.name_art(b.COMPACT_FONT)[-1] not in frame:
-    frame+=read_until(master,b'\x1b8')
-   check(b.name_art(b.COMPACT_FONT)[-1] in frame,'70-column terminal lost the large name after resizing')
-   os.write(master,(answer+'\n').encode());out=read_until(master,('ANSWER='+answer).encode());check(wait_exit(master,process)==status,'Child exit code changed')
+   frame=read_until(master,b'INPUT:')
+   _, reset, restored=frame.partition('\x1b[0m\x1b[r\x1b[2J\x1b[H')
+   check(reset,'Resize left the reflowed artwork on screen')
+   check('LOG_099' in restored and b.LABEL not in restored,'Resize lost recent output or replayed artwork')
+   resize(master,94,28);os.kill(process.pid,signal.SIGWINCH)
+   time.sleep(.25)
+   os.write(master,(answer+'\n').encode());out=read_until(master,b'SIZE=os.terminal_size(columns=94, lines=28)');check(wait_exit(master,process)==status,'Child exit code changed')
+   check('ANSWER='+answer in out,'Input was lost during resize')
+   check(b.LABEL not in out and '\x1b[2J' not in out,'Second resize redrew the footer or cleared ordinary output')
    check(input_state(slave)==original,'Terminal input state not restored')
    logged=(d/'action.log').read_text();check('LOG_099' in logged and b.LABEL not in logged,'Decoration polluted action log')
   finally:
