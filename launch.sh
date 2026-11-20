@@ -151,7 +151,7 @@ filter_terminal_stderr() {
 }
 
 run_startup_screen() {
-    printf '\033[0m\033[r\033[3J\033[2J\033[H\n\n  Renkit启动中，请耐心等待…\n  若启动较慢，Renkit可能正在更新，请耐心等待。\n'
+    printf '\n  Renkit启动中，请耐心等待…\n  若启动较慢，Renkit可能正在更新，请耐心等待。\n'
     run_startup_update
     if [ "$(uname -s 2>/dev/null || echo unknown)" = Linux ] &&
         [ -r "$PROJECT_ROOT/modules/inputplumber_update.sh" ]; then
@@ -166,6 +166,7 @@ run_main() {
 
     # 启动更新可能受网络或镜像响应影响。先显示明确状态，避免 Konsole 在
     # 更新检查尚未结束时只留下空白背景而被误认为Renkit已经卡死。
+    printf '\033[0m\033[r\033[3J\033[2J\033[H'
     if [ "$MAIN_PROGRAM" = "$PROJECT_ROOT/main.sh" ] && [ -t 0 ] && [ -t 1 ] &&
         command -v python3 >/dev/null 2>&1; then
         python3 "$PROJECT_ROOT/scripts/terminal_brand.py" -- bash "$PROJECT_ROOT/launch.sh" --run-startup-screen

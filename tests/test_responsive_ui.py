@@ -145,14 +145,14 @@ def run(fixture, columns, rows, mode='render', data=b''):
     return result.stdout.decode()
 
 
-def read_until(master, expected, timeout=5, decode_errors='strict'):
+def read_until(master, expected, timeout=5):
     result = b''
     deadline = time.monotonic() + timeout
     while expected not in result and time.monotonic() < deadline:
         if select.select([master], [], [], 0.1)[0]:
             result += os.read(master, 65536)
     check(expected in result, f'Terminal did not produce {expected!r}: {result[-500:]!r}')
-    return result.decode(errors=decode_errors)
+    return result.decode()
 
 
 def resize(master, columns, rows):

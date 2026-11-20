@@ -3,20 +3,15 @@ import importlib.util
 import os
 from pathlib import Path
 import pty
-import re
 import select
 import signal
 import subprocess
 import tempfile
 import termios
 import time
-import tty
-from test_responsive_ui import ROOT,check,read_until as read_pty_until,resize
+from test_responsive_ui import ROOT,check,read_until,resize
 spec=importlib.util.spec_from_file_location('brand',ROOT/'scripts/terminal_brand.py')
 b=importlib.util.module_from_spec(spec);spec.loader.exec_module(b)
-def read_until(master, expected):
- # A read can end in the middle of the next block glyph after the marker.
- return read_pty_until(master,expected,decode_errors='replace')
 def input_state(fd):
  state=termios.tcgetattr(fd)
  # macOS sets this transient kernel flag when returning pending input to canonical mode.
@@ -31,36 +26,10 @@ def wait_exit(master,process,timeout=4):
    try:os.read(master,65536)
    except OSError:pass
  return process.wait(timeout=1)
-name_styles=[b.name_art(font) for font in (b.FONT,b.COMPACT_FONT)]
-for rows,cols in [(32,120),(48,160),(31,94),(24,120),(24,95),(24,80),(24,70),(18,70),(14,70),(24,62),(24,50),(20,50),(26,42),(20,32),(18,28),(16,40),(14,22),(10,20)]:
- bottom,lines=b.artwork(rows,cols)
- for row,col,line,color in lines:
-  check(row>bottom and row<=rows,'Artwork overlaps scrolling logs')
-  width=b.cell_width(line)
-  check(col+width<=cols,'Artwork exceeds terminal width')
-  if line in [b.LABEL]+[line for style in name_styles for line in style]:
-   check(color==196,'Red name changed color')
-  else:
-   check(all(c in b.PALETTE.values() for c in (color if isinstance(color,tuple) else (color,))),'Mascot palette invalid')
-  check('闲鱼' not in line,'Removed badge label still visible')
- check(bottom>=8,'Branding leaves too little space for logs')
- if cols>=62 or (cols>=50 and rows>=20):
-  check(any(all(any(t==glyph and color==196 for r,c,t,color in lines) for glyph in style)
-            for style in name_styles),'Normal window lost the five-row red block name')
-for pixels in [b.FISH_PIXELS,b.FISH_SMALL_PIXELS,b.FISH_TINY_PIXELS]:
- check({'Y','W','K'} <= set(''.join(pixels)),'Mascot lost yellow head or eyes')
- for row,runs in enumerate(b.avatar_lines(pixels)):
-  check(sum(len(text) for _,text,_ in runs)==len(pixels[0]),'Colored runs changed mascot width')
-for sequence in [b'\x1b[2J',b'\x1b]0;title\x1b\\','🐟中文'.encode()]:
- for split in range(1,len(sequence)):
-  parser=b.Boundaries();first=parser.take(sequence[:split]);second=parser.take(sequence[split:])
-  check(first+second==sequence and not parser.pending,'Chunk boundary lost bytes')
- # No drawing may split a terminal control or a multibyte glyph.
-parser=b.Boundaries();check(parser.take(b'abc\x1b[')==b'abc','Partial CSI leaked');check(parser.take(b'2J')==b'\x1b[2J','Partial CSI changed')
 with tempfile.TemporaryDirectory() as directory:
  d=Path(directory);child=d/'action.py'
  child.write_text('''import os,sys,time
-print("\\033[2J\\033[H\\033[rSTART",flush=True)
+print("START",flush=True)
 for i in range(100):print(f"LOG_{i:03}")
 print("INPUT:",flush=True)
 answer=sys.stdin.readline().strip()
@@ -73,20 +42,15 @@ sys.exit(7 if answer=="fail" else 0)
   master,slave=pty.openpty();resize(master,120,32);original=input_state(slave)
   process=subprocess.Popen(['python3',str(ROOT/'scripts/terminal_brand.py'),'--log-file',str(d/'action.log'),'--','python3',str(child)],stdin=slave,stdout=slave,stderr=slave,env={**os.environ,'TERM':'xterm-256color'})
   try:
-   frame=read_until(master,b'INPUT:');check(b.LABEL in frame and '\x1b[1;38;5;220m' in frame and '\x1b[1;38;5;196m' in frame,'Yellow fish/red name missing')
-   check('LOG_000' in frame and 'LOG_099' in frame,'Lost installer output')
-   expected_region=f'\x1b[1;{b.artwork(32,120)[0]}r'
-   check(expected_region in frame and '\x1b[rSTART' not in frame,'Child removed footer reservation')
-   resize(master,70,24);os.kill(process.pid,signal.SIGWINCH)
    frame=read_until(master,b'INPUT:')
-   _, reset, restored=frame.partition('\x1b[0m\x1b[r\x1b[2J\x1b[H')
-   check(reset,'Resize left the reflowed artwork on screen')
-   check('LOG_099' in restored and b.LABEL not in restored,'Resize lost recent output or replayed artwork')
-   resize(master,94,28);os.kill(process.pid,signal.SIGWINCH)
+   check(frame.startswith(b.SIGNATURE.decode()),'Yellow fish and red signature should appear once in the output stream')
+   check('LOG_000' in frame and 'LOG_099' in frame,'Lost installer output')
+   for cols,rows in [(70,24),(120,32),(18,10),(94,28)]:
+    resize(master,cols,rows);os.kill(process.pid,signal.SIGWINCH)
    time.sleep(.25)
    os.write(master,(answer+'\n').encode());out=read_until(master,b'SIZE=os.terminal_size(columns=94, lines=28)');check(wait_exit(master,process)==status,'Child exit code changed')
    check('ANSWER='+answer in out,'Input was lost during resize')
-   check(b.LABEL not in out and '\x1b[2J' not in out,'Second resize redrew the footer or cleared ordinary output')
+   check('\x1b' not in frame.removeprefix(b.SIGNATURE.decode()) + out,'Relay inserted positioning or repaint sequences')
    check(input_state(slave)==original,'Terminal input state not restored')
    logged=(d/'action.log').read_text();check('LOG_099' in logged and b.LABEL not in logged,'Decoration polluted action log')
   finally:
@@ -121,4 +85,4 @@ sys.exit(7 if answer=="fail" else 0)
  finally:
   if process.poll() is None:process.kill()
   process.wait();os.close(master);os.close(slave)
-print('PASS: shared action/startup signature, clear/resize, input and logs, UTF-8/ANSI boundaries, cancellation, redirects and argv')
+print('PASS: shared action/startup signature, repeated resize, input and logs, cancellation, redirects and argv')
