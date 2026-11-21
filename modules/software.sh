@@ -1462,6 +1462,31 @@ uninstall_steam_entry_flatpak_software() {
         "$SOFTWARE_DESKTOP_NAME.desktop" "$SOFTWARE_APP_ID.desktop"
 }
 
+install_netease_from_available_remote() {
+    local remote
+
+    # A responsive mirror can still lack this app. Check the actual package
+    # before entering a potentially slow install transaction.
+    for remote in "$INSTALL_PRIMARY_REMOTE" "$INSTALL_FALLBACK_REMOTE"; do
+        echo "正在检查 $SOFTWARE_NAME 是否可下载..."
+        if timeout --foreground 15 flatpak remote-info --user "$remote" "$SOFTWARE_APP_ID" >/dev/null 2>&1; then
+            echo "正在安装 $SOFTWARE_NAME..."
+            if run_flatpak_install "$remote"; then
+                return 0
+            fi
+        fi
+        log "$SOFTWARE_NAME 下载检查或安装失败: $remote"
+    done
+
+    echo "当前下载线路不可用，正在换一条线路..."
+    if ensure_official_flathub_remote && run_flatpak_install "$FLATHUB_OFFICIAL_REMOTE"; then
+        return 0
+    fi
+    echo "$SOFTWARE_NAME 下载或安装失败，请检查网络后重试。"
+    log "$SOFTWARE_NAME Flatpak备用安装失败"
+    return 1
+}
+
 install_software() {
     local target="$1"
 
@@ -1562,35 +1587,39 @@ install_software() {
         fi
 
         choose_install_remotes
-        local _fr_retry=0
-        while [ "$_fr_retry" -le 1 ]; do
-            echo "正在安装 $SOFTWARE_NAME..."
-            if run_flatpak_install "$INSTALL_PRIMARY_REMOTE"; then
-                break
-            fi
-            if run_flatpak_install "$INSTALL_FALLBACK_REMOTE"; then
-                break
-            fi
-            if [ "$_fr_retry" -eq 0 ]; then
-                echo "检测到下载源不可用，正在重新尝试，请耐心等待..."
-                detect_platform
-                if [ "$IS_CHIMERAOS" -eq 1 ]; then
-                    ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
-                        ensure_flatpak_remotes >/dev/null 2>&1 || true
-                elif ! ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
-                    bash "$PROJECT_ROOT/modules/domestic_source.sh" enable >/dev/null 2>&1; then
-                    ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
-                        ensure_flatpak_remotes >/dev/null 2>&1 || true
+        if [ "$target" = "netease-music" ]; then
+            install_netease_from_available_remote || return 1
+        else
+            local _fr_retry=0
+            while [ "$_fr_retry" -le 1 ]; do
+                echo "正在安装 $SOFTWARE_NAME..."
+                if run_flatpak_install "$INSTALL_PRIMARY_REMOTE"; then
+                    break
                 fi
-                choose_install_remotes 2>/dev/null || true
-                _fr_retry=1
-            else
-                echo "多次下载失败或超时，已停止。"
-                echo "提示：请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。"
-                log "$SOFTWARE_NAME Flatpak安装失败"
-                return 1
-            fi
-        done
+                if run_flatpak_install "$INSTALL_FALLBACK_REMOTE"; then
+                    break
+                fi
+                if [ "$_fr_retry" -eq 0 ]; then
+                    echo "检测到下载源不可用，正在重新尝试，请耐心等待..."
+                    detect_platform
+                    if [ "$IS_CHIMERAOS" -eq 1 ]; then
+                        ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
+                            ensure_flatpak_remotes >/dev/null 2>&1 || true
+                    elif ! ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
+                        bash "$PROJECT_ROOT/modules/domestic_source.sh" enable >/dev/null 2>&1; then
+                        ZHOUKEER_FORCE_FLATPAK_RECONFIGURE=1 \
+                            ensure_flatpak_remotes >/dev/null 2>&1 || true
+                    fi
+                    choose_install_remotes 2>/dev/null || true
+                    _fr_retry=1
+                else
+                    echo "多次下载失败或超时，已停止。"
+                    echo "提示：请先在Renkit【初始化国内源并检测系统组件】中初始化国内源后重试。"
+                    log "$SOFTWARE_NAME Flatpak安装失败"
+                    return 1
+                fi
+            done
+        fi
     fi
 
     if ! software_is_installed; then
