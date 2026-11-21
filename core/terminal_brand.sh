@@ -1,11 +1,16 @@
 #!/bin/bash
+renkit_brand_available() {
+    # Shell-function callbacks and redirected output keep their existing behavior.
+    ! declare -F "$1" >/dev/null && [ -t 0 ] &&
+        { [ -t 1 ] || [ "${RENKIT_BRAND_TTY:-0}" = 1 ]; } &&
+        [ "${TERM:-}" != dumb ] && command -v python3 >/dev/null 2>&1
+}
+
 renkit_brand_run() {
     local renderer_args=(--allow-pipe-output)
-    # Shell-function callbacks and redirected output keep their existing behavior.
-    if ! declare -F "$1" >/dev/null && [ -t 0 ] &&
-        { [ -t 1 ] || [ "${RENKIT_BRAND_TTY:-0}" = 1 ]; } &&
-        [ "${TERM:-}" != dumb ] && command -v python3 >/dev/null 2>&1; then
+    if renkit_brand_available "$@"; then
         [ -z "${RENKIT_BRAND_LOG:-}" ] || renderer_args+=(--log-file "$RENKIT_BRAND_LOG")
+        [ -z "${RENKIT_BRAND_TITLE:-}" ] || renderer_args+=(--title "$RENKIT_BRAND_TITLE")
         python3 "$PROJECT_ROOT/scripts/terminal_brand.py" "${renderer_args[@]}" -- "$@"
     elif [ -n "${RENKIT_BRAND_LOG:-}" ]; then
         "$@" 2>&1 | tee "$RENKIT_BRAND_LOG"

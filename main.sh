@@ -85,6 +85,7 @@ pause_menu() {
 run_action() {
     local status
     local title="$1"
+    local RENKIT_BRAND_TITLE=""
     shift
 
     disable_mouse_tracking
@@ -95,11 +96,18 @@ run_action() {
     echo ""
     # 启动器会把 stderr 送入日志过滤器；下载进度使用回车刷新，若经过该
     # 管道会被 read 等到下载结束才输出。直接写入控制终端以实时显示进度。
+    if renkit_brand_available "$@"; then
+        RENKIT_BRAND_TITLE="$title"
+    fi
     ZHOUKEER_PROGRESS_DIRECT_TTY=1 renkit_brand_run "$@"
     status=$?
     case "$status" in 129|130|143) exit "$status" ;; esac
 
     cd "$HOME" 2>/dev/null || cd / || true
+    if [ -n "$RENKIT_BRAND_TITLE" ]; then
+        ui_discard_pending_input
+        return 0
+    fi
 
     if [ "$status" -eq 0 ]; then
         echo ""
